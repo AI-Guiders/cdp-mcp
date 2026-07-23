@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Cdp.Core;
+using Cdp.Lsp;
 using Cdp.ScriptableIde;
 using Tomlyn;
 
@@ -12,6 +13,7 @@ internal sealed class CdpSettings
     public MemorySettings Memory { get; init; } = new();
     public DevSettings Dev { get; init; } = new();
     public LanguageRegistry Languages { get; init; } = LanguageRegistry.Default;
+    public IReadOnlyList<LspLaunchPreset> LspPresets { get; init; } = LspLaunchPreset.BuiltInDefaults;
     public IntentWorkspaceSettings IntentWorkspace { get; init; } = new();
     public VendorCatalogOptions Vendor { get; init; } = VendorCatalog.CreateBuiltInDefaults();
 
@@ -65,12 +67,38 @@ internal sealed class CdpSettings
                 Anui = Enabled(dev.Anui)
             },
             Languages = BuildLanguageRegistry(doc.Languages),
+            LspPresets = BuildLspPresets(doc.Languages?.Lsp),
             IntentWorkspace = new IntentWorkspaceSettings
             {
                 DatabasePath = string.IsNullOrWhiteSpace(intentWs.DatabasePath) ? null : intentWs.DatabasePath.Trim()
             },
             Vendor = VendorCatalog.CreateBuiltInDefaults()
         };
+    }
+
+    private static IReadOnlyList<LspLaunchPreset> BuildLspPresets(CdpTomlLspPreset[]? src)
+    {
+        if (src is not { Length: > 0 })
+            return LspLaunchPreset.BuiltInDefaults;
+
+        var list = new List<LspLaunchPreset>();
+        foreach (var row in src)
+        {
+            if (string.IsNullOrWhiteSpace(row.Id) || string.IsNullOrWhiteSpace(row.Command))
+                continue;
+            list.Add(new LspLaunchPreset
+            {
+                Id = row.Id.Trim().ToLowerInvariant(),
+                Command = row.Command.Trim(),
+                Args = row.Args ?? [],
+                LanguageIds = row.LanguageIds is { Length: > 0 } lids
+                    ? lids.Select(x => x.Trim().ToLowerInvariant()).Where(x => x.Length > 0).ToArray()
+                    : [row.Id.Trim().ToLowerInvariant()],
+                RootMarkers = row.RootMarkers ?? []
+            });
+        }
+
+        return list.Count > 0 ? list : LspLaunchPreset.BuiltInDefaults;
     }
 
     private static LanguageRegistry BuildLanguageRegistry(CdpTomlLanguages? src)
@@ -153,6 +181,16 @@ internal sealed class CdpSettings
         public string[]? Ids { get; set; }
         public Dictionary<string, string>? Aliases { get; set; }
         public CdpTomlLanguageDetect[]? Detect { get; set; }
+        public CdpTomlLspPreset[]? Lsp { get; set; }
+    }
+
+    private sealed class CdpTomlLspPreset
+    {
+        public string? Id { get; set; }
+        public string? Command { get; set; }
+        public string[]? Args { get; set; }
+        public string[]? LanguageIds { get; set; }
+        public string[]? RootMarkers { get; set; }
     }
 
     private sealed class CdpTomlLanguageDetect

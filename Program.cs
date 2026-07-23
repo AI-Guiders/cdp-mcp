@@ -14,7 +14,7 @@ using Tool = ModelContextProtocol.Protocol.Tool;
 var configPath = args.SkipWhile(a => a != "--config").Skip(1).FirstOrDefault()
     ?? Environment.GetEnvironmentVariable("CDP_MCP_CONFIG");
 var settings = CdpSettings.Load(configPath);
-IdeLanguageTools.Configure(settings.Languages);
+IdeLanguageTools.Configure(settings.Languages, settings.LspPresets);
 VendorCatalog.Configure(settings.Vendor);
 
 var workspaceDbPath = settings.IntentWorkspace.DatabasePath
@@ -91,6 +91,7 @@ var anuiTools = Anui.Agent.Mcp.ToolCatalog.Build().ToDictionary(t => t.Name, Str
 
 var session = new SessionContext();
 var docStore = new DocumentBufferStore();
+IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
 if (CdpEnumParse.TryParsePhase(settings.DefaultPhase, out var dp)) session.Phase = dp;
 if (CdpEnumParse.TryParseObject(settings.DefaultObject, out var dobj)) session.Object = dobj;
@@ -196,7 +197,7 @@ List<Tool> BuildMetaTools() =>
             start_line = new { type = "integer" },
             end_line = new { type = "integer" },
             edit_op = new { type = "string", description = "edit: anchor|set_text|replace|replace_range — prefer anchor" },
-            anchor = new { type = "string", description = "edit_op=anchor: BracketLocate wire e.g. [F:Alpha.cs;M:Tag;K:Initializer]" },
+            anchor = new { type = "string", description = "edit_op=anchor: csharp [F:;M:;K:] or xml [F:;X:path;A:attr?][+K:Element]" },
             at = new { type = "string", description = "Alias of anchor" },
             text = new { type = "string", description = "edit set_text / create body / anchor replacement" },
             old_string = new { type = "string" },
@@ -791,6 +792,7 @@ async Task<string> DispatchMetaAsync(
                 },
                 backends = modules.Select(m => new { domain = m.Domain, enabled = m.IsEnabled, health = m.HealthSummary }),
                 typescript_worker = IdeLanguageTools.TsHealth(),
+                lsp = IdeLanguageTools.LspHealth(),
                 project = new
                 {
                     root = session.ProjectRoot,
@@ -1075,6 +1077,7 @@ async Task<string> DispatchMetaAsync(
             session.SolutionOrProjectPath = null;
             session.TsConfigPath = null;
             session.Language = null;
+            await IdeLanguageTools.CloseProjectAsync().ConfigureAwait(false);
             RoslynMcp.ServiceLayer.MsBuildWorkspaceHost.Invalidate();
             RoslynMcp.ServiceLayer.DiagnosticsResultCache.InvalidateAll();
             NotifyListChanged();

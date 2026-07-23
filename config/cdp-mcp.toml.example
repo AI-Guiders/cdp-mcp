@@ -92,6 +92,15 @@ kind = "pyproject"
 file_name = "pyproject.toml"
 priority = 40
 
+# LSP presets — commodity IDE verbs (definition/rename/codeAction…) for non-Roslyn languages.
+# Omit → built-in python → pyright-langserver --stdio
+[[languages.lsp]]
+id = "python"
+command = "pyright-langserver"
+args = ["--stdio"]
+language_ids = ["python"]
+root_markers = ["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "pyrightconfig.json", ".git"]
+
 # Intent workspace (scenes/stages) — WitDatabase persist
 [intent_workspace]
 # database_path = "C:/Users/YOU/AppData/Local/cdp-mcp/intent-workspace.witdb"

@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.103</Version>
+    <Version>0.5.111</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -27,7 +27,7 @@
                       Condition="'$(AidUseNuGet)' == 'true' OR !Exists('..\cdp-core\Cdp.Core.csproj')" />
     <ProjectReference Include="..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj"
                       Condition="'$(AidUseNuGet)' != 'true' AND Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
-    <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.48"
+    <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.49"
                       Condition="'$(AidUseNuGet)' == 'true' OR !Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
     <ProjectReference Include="..\terminal-mcp-core\TerminalMcp.Core.csproj" />
     <ProjectReference Include="..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" />
@@ -43,6 +43,7 @@
     <ProjectReference Include="..\ai-native-ui\src\Anui.Agent\Anui.Agent.csproj" />
     <ProjectReference Include="..\ai-native-ui\src\Anui.Ingest\Anui.Ingest.csproj" />
     <ProjectReference Include="..\typescript-lang\TypescriptLang.Core\TypescriptLang.Core.csproj" />
+    <ProjectReference Include="..\lsp-lang\Cdp.Lsp.Core\Cdp.Lsp.Core.csproj" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.9.1" />
   </ItemGroup>
   <!-- Link sibling MCP handler surfaces (same assembly names as standalone MCP tools). -->

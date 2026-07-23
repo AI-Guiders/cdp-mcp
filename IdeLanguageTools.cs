@@ -1,5 +1,7 @@
+using System.Text;
 using System.Text.Json;
 using Cdp.Core;
+using Cdp.Lsp;
 using Cdp.ScriptableIde;
 using TypescriptLang;
 using Tool = ModelContextProtocol.Protocol.Tool;
@@ -8,6 +10,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Bare IDE verbs + <c>cdp_open</c> helpers. Harness routes by <see cref="SessionContext.Language"/>.
+/// csharp → Roslyn; typescript → TS worker; languages with [[languages.lsp]] → <see cref="LspClient"/>.
 /// </summary>
 internal static class IdeLanguageTools
 {
@@ -19,15 +22,26 @@ internal static class IdeLanguageTools
         "get_symbol_at_position",
         "get_diagnostics",
         "resolve_project_root",
-        "get_workspace_navigation_context"
+        "get_workspace_navigation_context",
+        "rename_symbol",
+        "code_actions",
+        "apply_code_action"
     };
 
     private static readonly object TsGate = new();
     private static TypescriptLanguageClient? _ts;
     private static string? _tsOpenedRoot;
     private static LanguageRegistry _langs = LanguageRegistry.Default;
+    private static readonly LspSessionPool LspPool = new();
+    private static DocumentBufferStore? _docStore;
 
-    public static void Configure(LanguageRegistry languages) => _langs = languages;
+    public static void Configure(LanguageRegistry languages, IReadOnlyList<LspLaunchPreset>? lspPresets = null)
+    {
+        _langs = languages;
+        LspPool.Configure(lspPresets ?? LspLaunchPreset.BuiltInDefaults);
+    }
+
+    public static void BindDocumentStore(DocumentBufferStore store) => _docStore = store;
 
     public static LanguageRegistry Languages => _langs;
 
@@ -36,7 +50,7 @@ internal static class IdeLanguageTools
     public static IEnumerable<Tool> BuildBareVerbTools()
     {
         yield return Tool("go_to_definition",
-            "IDE: go to definition. Harness routes LSP by session language (after cdp_open). 1-based line/column.",
+            "IDE: go to definition. Routes by session language (Roslyn / TS worker / LSP). 1-based line/column.",
             PositionalSchema());
         yield return Tool("find_usages",
             "IDE: find references/usages. Harness routes by session language.",
@@ -54,7 +68,7 @@ internal static class IdeLanguageTools
                 required = new[] { "file_path" }
             });
         yield return Tool("get_symbol_at_position",
-            "IDE: symbol / quick-info at position.",
+            "IDE: symbol / hover at position.",
             PositionalSchema());
         yield return Tool("get_diagnostics",
             "IDE: diagnostics for a file (prefer over host ReadLints when language is open).",
@@ -79,26 +93,58 @@ internal static class IdeLanguageTools
                 }
             });
         yield return Tool("get_workspace_navigation_context",
-            "IDE: Semantic Map related/subgraph (csharp). Wide strokes: partial/xaml/tests first, then same_directory≤4 (name-affinity), same_namespace≤4, project_peer≤3. Not a usages graph — use find_usages for detail. preset=explore_default excludes project_peer; peers_only = old dump. After cdp_open .sln/.csproj.",
+            "IDE: Semantic Map related/subgraph (csharp). After cdp_open .sln/.csproj.",
             new
             {
                 type = "object",
                 properties = new
                 {
-                    file_path = new { type = "string", description = "Anchor file in the opened solution." },
+                    file_path = new { type = "string" },
                     mode = new { type = "string", description = "related | subgraph" },
-                    line = new { type = "integer", description = "optional 1-based" },
-                    column = new { type = "integer", description = "optional 1-based" },
+                    line = new { type = "integer" },
+                    column = new { type = "integer" },
                     max_related = new { type = "integer" },
                     max_nodes = new { type = "integer" },
                     max_edges = new { type = "integer" },
                     include_kinds = new { type = "array", items = new { type = "string" } },
                     exclude_kinds = new { type = "array", items = new { type = "string" } },
                     preset = new { type = "string" },
-                    language = new { type = "string", description = "optional override; csharp-only v0" },
-                    solution_or_project_path = new { type = "string", description = "optional; default session after cdp_open" }
+                    language = new { type = "string" },
+                    solution_or_project_path = new { type = "string" }
                 },
                 required = new[] { "file_path", "mode" }
+            });
+        yield return Tool("rename_symbol",
+            "IDE: rename symbol (LSP textDocument/rename). language with [[languages.lsp]] preset (e.g. python).",
+            new
+            {
+                type = "object",
+                properties = new
+                {
+                    file_path = new { type = "string" },
+                    line = new { type = "integer", description = "1-based" },
+                    column = new { type = "integer", description = "1-based" },
+                    new_name = new { type = "string" },
+                    language = new { type = "string" },
+                    apply = new { type = "boolean", description = "default true: write workspace edit to disk/buffers" }
+                },
+                required = new[] { "file_path", "line", "column", "new_name" }
+            });
+        yield return Tool("code_actions",
+            "IDE: list LSP code actions / refactors at position. Then apply_code_action with action_index.",
+            PositionalSchema());
+        yield return Tool("apply_code_action",
+            "IDE: apply code action by index from last code_actions on this LSP session.",
+            new
+            {
+                type = "object",
+                properties = new
+                {
+                    action_index = new { type = "integer", description = "0-based from code_actions" },
+                    language = new { type = "string" },
+                    apply = new { type = "boolean", description = "default true" }
+                },
+                required = new[] { "action_index" }
             });
     }
 
@@ -148,8 +194,14 @@ internal static class IdeLanguageTools
             session_phase = CdpEnumParse.ToWire(session.Phase),
             session_object = CdpEnumParse.ToWire(session.Object),
             recent_count = OpenRecentStore.List().Count,
-            recent_store = OpenRecentStore.Location
+            recent_store = OpenRecentStore.Location,
+            lsp_preset = LspPool.TryGetPreset(open.Language ?? "", out var p) ? p.Id : null
         }, new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    public static async Task CloseProjectAsync()
+    {
+        await LspPool.StopAllAsync().ConfigureAwait(false);
     }
 
     public static async Task<string> DispatchBareAsync(
@@ -200,12 +252,25 @@ internal static class IdeLanguageTools
         }
 
         if (lang.Equals(CdpLanguages.Csharp, StringComparison.OrdinalIgnoreCase))
+        {
+            if (name is "rename_symbol" or "code_actions" or "apply_code_action")
+                throw new ArgumentException(
+                    $"{name} via LSP is for languages with [[languages.lsp]] presets. For csharp use roslyn_rename / roslyn_get_code_actions.");
             return await DispatchCsharpAsync(name, session, byDomain, args, cancellationToken).ConfigureAwait(false);
+        }
+
         if (lang.Equals(CdpLanguages.Typescript, StringComparison.OrdinalIgnoreCase))
+        {
+            if (name is "rename_symbol" or "code_actions" or "apply_code_action")
+                throw new ArgumentException($"{name} not wired for typescript worker yet; use LSP preset languages (e.g. python).");
             return await DispatchTypescriptAsync(name, session, args, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (LspPool.TryGetPreset(lang, out _))
+            return await DispatchLspAsync(name, lang, session, args, cancellationToken).ConfigureAwait(false);
 
         throw new ArgumentException(
-            $"No IDE engine for language '{lang}'. Call cdp_open(path) first, or pass language= from [languages] (csharp|typescript today).");
+            $"No IDE engine for language '{lang}'. Call cdp_open(path) first, or configure [[languages.lsp]] / language=csharp|typescript|python.");
     }
 
     private static string ResolveLanguage(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
@@ -309,6 +374,249 @@ internal static class IdeLanguageTools
         return result.GetRawText();
     }
 
+    private static async Task<string> DispatchLspAsync(
+        string name,
+        string languageId,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args,
+        CancellationToken cancellationToken)
+    {
+        var root = session.ProjectRoot
+            ?? throw new ArgumentException("cdp_open a project first (e.g. pyproject.toml) for LSP languages.");
+        var client = await LspPool.GetOrStartAsync(languageId, root, cancellationToken).ConfigureAwait(false);
+        var langId = client.Preset.LanguageIds.FirstOrDefault() ?? languageId;
+
+        if (name == "apply_code_action")
+        {
+            if (!args.TryGetValue("action_index", out var ai) || !ai.TryGetInt32(out var index) || index < 0)
+                throw new ArgumentException("action_index (integer >= 0) is required.");
+
+            var edit = await client.ApplyCodeActionAsync(index, cancellationToken).ConfigureAwait(false);
+            var doApply = !args.TryGetValue("apply", out var ap) || ap.ValueKind != JsonValueKind.False;
+            return FormatWorkspaceEditResult("apply_code_action", edit, doApply);
+        }
+
+        if (name == "rename_symbol")
+        {
+            var path = Path.GetFullPath(RequireString(args, "file_path"));
+            await EnsureLspDocAsync(client, path, langId, cancellationToken).ConfigureAwait(false);
+            var newName = RequireString(args, "new_name");
+            var edit = await client.RenameAsync(
+                path, RequireInt(args, "line"), RequireInt(args, "column"), newName, cancellationToken)
+                .ConfigureAwait(false);
+            var doApply = !args.TryGetValue("apply", out var ap) || ap.ValueKind != JsonValueKind.False;
+            return FormatWorkspaceEditResult("rename_symbol", edit, doApply);
+        }
+
+        if (name is "go_to_definition" or "find_usages" or "get_symbol_at_position" or "code_actions")
+        {
+            var path = Path.GetFullPath(RequireString(args, "file_path"));
+            await EnsureLspDocAsync(client, path, langId, cancellationToken).ConfigureAwait(false);
+            var line = RequireInt(args, "line");
+            var col = RequireInt(args, "column");
+
+            return name switch
+            {
+                "go_to_definition" => JsonSerializer.Serialize(new
+                {
+                    schema = "lsp_locations/v0",
+                    language = languageId,
+                    locations = (await client.GoToDefinitionAsync(path, line, col, cancellationToken).ConfigureAwait(false))
+                        .Select(LocDto)
+                }, Pretty),
+                "find_usages" => JsonSerializer.Serialize(new
+                {
+                    schema = "lsp_locations/v0",
+                    language = languageId,
+                    locations = (await client.FindReferencesAsync(path, line, col, cancellationToken).ConfigureAwait(false))
+                        .Select(LocDto)
+                }, Pretty),
+                "get_symbol_at_position" => JsonSerializer.Serialize(new
+                {
+                    schema = "lsp_hover/v0",
+                    language = languageId,
+                    hover = await client.HoverAsync(path, line, col, cancellationToken).ConfigureAwait(false) is { } h
+                        ? new
+                        {
+                            contents = h.Contents,
+                            range = h.Range is { } r ? RangeDto(r) : null
+                        }
+                        : null
+                }, Pretty),
+                "code_actions" => JsonSerializer.Serialize(new
+                {
+                    schema = "lsp_code_actions/v0",
+                    language = languageId,
+                    actions = await client.CodeActionsAsync(path, line, col, cancellationToken).ConfigureAwait(false)
+                }, Pretty),
+                _ => throw new InvalidOperationException(name)
+            };
+        }
+
+        if (name == "get_document_symbols")
+        {
+            var path = Path.GetFullPath(RequireString(args, "file_path"));
+            await EnsureLspDocAsync(client, path, langId, cancellationToken).ConfigureAwait(false);
+            return JsonSerializer.Serialize(new
+            {
+                schema = "lsp_document_symbols/v0",
+                language = languageId,
+                symbols = await client.DocumentSymbolsAsync(path, cancellationToken).ConfigureAwait(false)
+            }, Pretty);
+        }
+
+        if (name == "get_diagnostics")
+        {
+            var path = Path.GetFullPath(RequireString(args, "file_path"));
+            await EnsureLspDocAsync(client, path, langId, cancellationToken).ConfigureAwait(false);
+            // brief wait for publishDiagnostics
+            await Task.Delay(400, cancellationToken).ConfigureAwait(false);
+            var diags = await client.DiagnosticsAsync(path, cancellationToken).ConfigureAwait(false);
+            return JsonSerializer.Serialize(new
+            {
+                schema = "lsp_diagnostics/v0",
+                language = languageId,
+                diagnostics = diags.Select(d => new
+                {
+                    severity = d.Severity,
+                    code = d.Code,
+                    message = d.Message,
+                    source = d.Source,
+                    range = RangeDto(d.Range)
+                })
+            }, Pretty);
+        }
+
+        throw new ArgumentException($"Unsupported bare verb for LSP language '{languageId}': {name}");
+    }
+
+    static async Task EnsureLspDocAsync(LspClient client, string path, string languageId, CancellationToken ct)
+    {
+        string? text = null;
+        if (_docStore?.TryGet(path, out var buf) == true)
+            text = buf.Text;
+        await client.EnsureOpenAsync(path, text, languageId, ct).ConfigureAwait(false);
+    }
+
+    static object LocDto(LspLocation loc)
+    {
+        var (ls, cs) = LspClient.ToOneBased(loc.Range.Start);
+        var (le, ce) = LspClient.ToOneBased(loc.Range.End);
+        return new
+        {
+            path = LspClient.UriToPath(loc.Uri),
+            uri = loc.Uri,
+            start_line = ls,
+            start_column = cs,
+            end_line = le,
+            end_column = ce
+        };
+    }
+
+    static object RangeDto(LspRange r)
+    {
+        var (ls, cs) = LspClient.ToOneBased(r.Start);
+        var (le, ce) = LspClient.ToOneBased(r.End);
+        return new { start_line = ls, start_column = cs, end_line = le, end_column = ce };
+    }
+
+    static string FormatWorkspaceEditResult(string op, LspWorkspaceEdit? edit, bool apply)
+    {
+        if (edit is null)
+            return JsonSerializer.Serialize(new { schema = "lsp_workspace_edit/v0", op, ok = false, note = "no_edit" }, Pretty);
+
+        var files = new List<object>();
+        if (apply)
+        {
+            foreach (var (uri, edits) in edit.Changes)
+            {
+                var path = LspClient.UriToPath(uri);
+                var applied = ApplyEditsToFile(path, edits);
+                files.Add(new { path, edits = edits.Count, applied });
+            }
+        }
+        else
+        {
+            foreach (var (uri, edits) in edit.Changes)
+                files.Add(new { path = LspClient.UriToPath(uri), edits = edits.Count, applied = false });
+        }
+
+        return JsonSerializer.Serialize(new
+        {
+            schema = "lsp_workspace_edit/v0",
+            op,
+            ok = true,
+            apply,
+            files
+        }, Pretty);
+    }
+
+    static bool ApplyEditsToFile(string path, IReadOnlyList<LspTextEdit> edits)
+    {
+        var text = _docStore?.TryGet(path, out var buf) == true
+            ? buf.Text
+            : File.ReadAllText(path);
+
+        // Apply from end to start so offsets stay valid
+        var ordered = edits
+            .Select(e =>
+            {
+                var start = OffsetOf(text, e.Range.Start.Line + 1, e.Range.Start.Character + 1);
+                var end = OffsetOf(text, e.Range.End.Line + 1, e.Range.End.Character + 1);
+                return (start, end, e.NewText);
+            })
+            .OrderByDescending(t => t.start)
+            .ToArray();
+
+        var sb = new StringBuilder(text);
+        foreach (var (start, end, newText) in ordered)
+        {
+            if (end < start || start < 0 || end > sb.Length)
+                continue;
+            sb.Remove(start, end - start);
+            sb.Insert(start, newText);
+        }
+
+        var next = sb.ToString();
+        if (_docStore?.TryGet(path, out var openBuf) == true)
+        {
+            openBuf.Text = next;
+            openBuf.Version++;
+            openBuf.Dirty = true;
+            _docStore.Flush(openBuf, allowShrink: true);
+        }
+        else
+        {
+            File.WriteAllText(path, next);
+        }
+
+        return true;
+    }
+
+    static int OffsetOf(string text, int line1Based, int column1Based)
+    {
+        // LSP character is UTF-16; match DocumentBufferStore semantics (1-based line/col).
+        var line = 1;
+        var i = 0;
+        while (i < text.Length && line < line1Based)
+        {
+            if (text[i] == '\n') line++;
+            i++;
+        }
+
+        var col = 1;
+        while (i < text.Length && col < column1Based)
+        {
+            if (text[i] == '\n') break;
+            i++;
+            col++;
+        }
+
+        return i;
+    }
+
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+
     private static async Task<TypescriptLanguageClient> EnsureTsClientAsync(
         SessionContext session,
         CancellationToken cancellationToken)
@@ -355,6 +663,12 @@ internal static class IdeLanguageTools
             };
         }
     }
+
+    public static object LspHealth() => new
+    {
+        presets = LspPool.Presets.Select(p => new { p.Id, p.Command, args = p.Args }),
+        sessions = LspPool.HealthSnapshot()
+    };
 
     private static string RequireString(IReadOnlyDictionary<string, JsonElement> args, string key)
     {
