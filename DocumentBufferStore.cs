@@ -107,6 +107,27 @@ internal sealed class DocumentBufferStore
         return Open(full);
     }
 
+    /// <summary>
+    /// Resolve/open while the caller already holds <see cref="MutateAsync"/> for this path.
+    /// Nested <see cref="Open"/> would Wait the same <see cref="PathMutateGate"/> → deadlock.
+    /// </summary>
+    internal DocBuffer ResolveUnlocked(string? path, string? docId)
+    {
+        if (docId is { Length: > 0 })
+        {
+            var hit = _byPath.Values.FirstOrDefault(b =>
+                string.Equals(b.DocId, docId, StringComparison.OrdinalIgnoreCase));
+            if (hit is not null)
+                return hit;
+            throw new ArgumentException($"Unknown doc_id: {docId}");
+        }
+
+        if (path is not { Length: > 0 })
+            throw new ArgumentException("path or doc_id is required.");
+
+        return OpenUnlocked(Path.GetFullPath(path), refresh: false);
+    }
+
     public bool TryGet(string pathOrId, out DocBuffer buf)
     {
         if (_byPath.TryGetValue(Path.GetFullPath(pathOrId), out buf!))

@@ -150,10 +150,12 @@ internal static class DocumentEditPlane
         var pathKey = ResolvePathKey(store, session, args);
         var applied = await store.MutateAsync(pathKey, async () =>
         {
+            // Must not call Resolve/Open here: they take PathMutateGate again → self-deadlock
+            // when the buffer was never opened (first edit_op=set_text on a cold path).
             var pathArg = OptString(args, "path");
-            var buf = pathArg is { Length: > 0 }
-                ? store.Resolve(pathArg, OptString(args, "doc_id"))
-                : store.Open(pathKey, refresh: false);
+            var buf = store.ResolveUnlocked(
+                pathArg is { Length: > 0 } ? pathArg : pathKey,
+                OptString(args, "doc_id"));
             var snapshotText = buf.Text;
             var snapshotVersion = buf.Version;
             var snapshotDirty = buf.Dirty;
@@ -295,11 +297,20 @@ internal static class DocumentEditPlane
         IReadOnlyDictionary<string, JsonElement> args)
     {
         var wire = OptString(args, "anchor") ?? OptString(args, "at")
-            ?? throw new ArgumentException("edit_op=anchor requires anchor= (or at=) bracket wire [F:;M:;K:].");
+            ?? throw new ArgumentException("edit_op=anchor requires anchor= (or at=) bracket wire [F:;M:;K:] or [F:;X:;A:].");
         var replacement = OptString(args, "text") ?? OptString(args, "new_string")
             ?? throw new ArgumentException("edit_op=anchor requires text= (replacement for resolved locus).");
 
-        var span = BracketLocate.Parse(wire);
+        BracketLocate.Span span;
+        try
+        {
+            span = BracketLocate.Parse(wire);
+        }
+        catch (ArgumentException ex)
+        {
+            throw new ArgumentException($"Anchor wire invalid: {ex.Message}");
+        }
+
         var filePath = ResolveAnchorFilePath(buf, session, span, OptString(args, "path"));
         if (!string.Equals(filePath, buf.Path, StringComparison.OrdinalIgnoreCase))
         {
@@ -308,31 +319,83 @@ internal static class DocumentEditPlane
                 "Pass path= matching F: (or omit path and put absolute/relative path in F:).");
         }
 
-        if (!string.Equals(buf.Language, "csharp", StringComparison.OrdinalIgnoreCase))
-            throw new ArgumentException(
-                $"edit_op=anchor requires csharp buffer (got language={buf.Language}). path={buf.Path}");
+        var family = BracketLocate.ClassifyFamily(span, out var familyError);
+        if (familyError is not null)
+            throw new ArgumentException(familyError);
+        if (family == BracketLocate.AxisFamily.None)
+            throw new ArgumentException("Anchor needs csharp axes (M/L/S/K) or xml axes (X/A).");
 
-        if (!BracketSyntaxResolve.TryResolve(buf.Path, buf.Text, span, out var range, out var detail))
-            throw new ArgumentException($"Anchor resolve failed ({detail}): {wire}");
+        if (family == BracketLocate.AxisFamily.Csharp)
+        {
+            if (!string.Equals(buf.Language, "csharp", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException(
+                    $"axes_mismatch: csharp axes on language={buf.Language}. path={buf.Path}");
+
+            if (!BracketSyntaxResolve.TryResolve(buf.Path, buf.Text, span, out var range, out var detail))
+                throw new ArgumentException($"Anchor resolve failed ({detail}): {wire}");
+
+            store.ApplyReplaceRange(
+                buf,
+                range.LineStart,
+                range.ColumnStart,
+                range.LineEnd,
+                range.ColumnEnd,
+                replacement);
+
+            return new
+            {
+                family = "csharp",
+                wire = BracketLocate.Format(span),
+                resolve = detail,
+                range = new
+                {
+                    start_line = range.LineStart,
+                    start_column = range.ColumnStart,
+                    end_line = range.LineEnd,
+                    end_column = range.ColumnEnd
+                }
+            };
+        }
+
+        // Xml family
+        if (!string.Equals(buf.Language, "xml", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException(
+                $"axes_mismatch: xml axes on language={buf.Language}. path={buf.Path}");
+
+        if (!BracketXmlResolve.TryResolve(buf.Path, buf.Text, span, out var xml, out var xmlDetail))
+            throw new ArgumentException($"Anchor resolve failed ({xmlDetail}): {wire}");
+
+        var textToWrite = replacement;
+        if (xml.Insert)
+        {
+            if (string.IsNullOrWhiteSpace(xml.InsertElementName))
+                throw new ArgumentException("xml_insert_missing_element_name");
+            textToWrite = BracketXmlResolve.BuildInsertElement(
+                xml.InsertElementName,
+                replacement,
+                xml.InsertIndent ?? "  ");
+        }
 
         store.ApplyReplaceRange(
             buf,
-            range.LineStart,
-            range.ColumnStart,
-            range.LineEnd,
-            range.ColumnEnd,
-            replacement);
+            xml.Range.LineStart,
+            xml.Range.ColumnStart,
+            xml.Range.LineEnd,
+            xml.Range.ColumnEnd,
+            textToWrite);
 
         return new
         {
+            family = "xml",
             wire = BracketLocate.Format(span),
-            resolve = detail,
+            resolve = xml.Detail,
+            insert = xml.Insert,
             range = new
             {
-                start_line = range.LineStart,
-                start_column = range.ColumnStart,
-                end_line = range.LineEnd,
-                end_column = range.ColumnEnd
+                start_line = xml.Range.LineStart,
+                start_column = xml.Range.ColumnStart,
+                end_line = xml.Range.LineEnd,
+                end_column = xml.Range.ColumnEnd
             }
         };
     }
