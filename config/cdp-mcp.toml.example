@@ -93,13 +93,14 @@ file_name = "pyproject.toml"
 priority = 40
 
 # LSP presets — commodity IDE verbs (definition/rename/codeAction…) for non-Roslyn languages.
-# Omit → built-in python → pyright-langserver --stdio
-[[languages.lsp]]
-id = "python"
-command = "pyright-langserver"
-args = ["--stdio"]
-language_ids = ["python"]
-root_markers = ["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "pyrightconfig.json", ".git"]
+# Omit → built-in: basedpyright-langserver, fallback pyright-langserver (npm/pip on PATH).
+# Open pyright codeAction ≈ createTypeStub only; basedpyright adds auto-import quickfixes.
+# [[languages.lsp]]
+# id = "python"
+# command = "basedpyright-langserver"
+# args = ["--stdio"]
+# language_ids = ["python"]
+# root_markers = ["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "pyrightconfig.json", ".git"]
 
 # Intent workspace (scenes/stages) — WitDatabase persist
 [intent_workspace]

@@ -131,7 +131,7 @@ internal static class IdeLanguageTools
                 required = new[] { "file_path", "line", "column", "new_name" }
             });
         yield return Tool("code_actions",
-            "IDE: list LSP code actions / refactors at position. Then apply_code_action with action_index.",
+            "IDE: list LSP code actions at position (then apply_code_action). Python: prefer basedpyright (auto-import); open pyright often returns []. Unused-import removal is Pylance-only.",
             PositionalSchema());
         yield return Tool("apply_code_action",
             "IDE: apply code action by index from last code_actions on this LSP session.",
@@ -666,9 +666,30 @@ internal static class IdeLanguageTools
 
     public static object LspHealth() => new
     {
-        presets = LspPool.Presets.Select(p => new { p.Id, p.Command, args = p.Args }),
-        sessions = LspPool.HealthSnapshot()
+        presets = LspPool.Presets.Select(p => new
+        {
+            p.Id,
+            p.Command,
+            candidates = p.CommandCandidates,
+            args = p.Args,
+            resolved_probe = TryProbeResolve(p)
+        }),
+        sessions = LspPool.HealthSnapshot(),
+        note = "Python default prefers basedpyright-langserver (richer codeAction) over pyright-langserver."
     };
+
+    static object? TryProbeResolve(LspLaunchPreset p)
+    {
+        try
+        {
+            var r = LspCommandResolver.Resolve(p);
+            return new { file = r.FileName, display = r.Display, args = r.Args };
+        }
+        catch (Exception ex)
+        {
+            return new { error = ex.Message };
+        }
+    }
 
     private static string RequireString(IReadOnlyDictionary<string, JsonElement> args, string key)
     {
