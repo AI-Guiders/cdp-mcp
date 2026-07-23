@@ -21,6 +21,8 @@
   <ItemGroup>
     <ProjectReference Include="..\cdp-core\Cdp.Core.csproj" Condition="Exists('..\cdp-core\Cdp.Core.csproj')" />
     <PackageReference Include="AIGuiders.Cdp.Core" Version="0.3.0" Condition="!Exists('..\cdp-core\Cdp.Core.csproj')" />
+    <ProjectReference Include="..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj" Condition="Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
+    <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.48" Condition="!Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
     <ProjectReference Include="..\terminal-mcp-core\TerminalMcp.Core.csproj" />
     <ProjectReference Include="..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" />
     <ProjectReference Include="..\agent-notes-core\AgentNotes.Core.csproj" />
@@ -34,7 +36,6 @@
     <ProjectReference Include="..\hybrid-codebase-index-core\HybridCodebaseIndex.Core.csproj" />
     <ProjectReference Include="..\ai-native-ui\src\Anui.Agent\Anui.Agent.csproj" />
     <ProjectReference Include="..\ai-native-ui\src\Anui.Ingest\Anui.Ingest.csproj" />
-    <ProjectReference Include="..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj" />
     <ProjectReference Include="..\typescript-lang\TypescriptLang.Core\TypescriptLang.Core.csproj" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.9.1" />
   </ItemGroup>
