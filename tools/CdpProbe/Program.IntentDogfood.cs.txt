@@ -1,0 +1,48 @@
+using System.Text.Json;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
+
+var exe = args.ElementAtOrDefault(0) ?? @"D:\cdp-mcp\CdpMcp.exe";
+var config = args.ElementAtOrDefault(1) ?? @"D:\cdp-mcp\cdp-mcp.toml";
+var ts = @"D:\Experiments\Personal Cursor Folder\Financial\software\open\typescript-lang\fixtures\mini";
+var csproj = @"D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-core\Cdp.Core.csproj";
+var csFile = @"D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-core\ToolAffordance.cs";
+
+await using var client = await McpClient.CreateAsync(new StdioClientTransport(new()
+{
+    Name = "intent-dogfood",
+    Command = exe,
+    Arguments = ["--config", config],
+}));
+
+async Task<string> Call(string name, Dictionary<string, object?> arguments)
+{
+    var result = await client.CallToolAsync(name, arguments);
+    return string.Join("\n", result.Content.OfType<TextContentBlock>().Select(t => t.Text));
+}
+
+var tools = await client.ListToolsAsync();
+var names = tools.Select(t => t.Name).ToHashSet(StringComparer.Ordinal);
+if (!names.Contains("cdp_work") || !names.Contains("get_workspace_navigation_context"))
+    throw new Exception("missing tools: " + string.Join(",", names.Order()));
+
+Console.WriteLine(await Call("cdp_work", new() { ["op"] = "intent_upsert", ["title"] = "ts-cide-explore" }));
+Console.WriteLine(await Call("cdp_open", new() { ["path"] = ts }));
+Console.WriteLine(await Call("cdp_work", new() { ["op"] = "scene_park", ["name"] = "ts-explore" }));
+Console.WriteLine(await Call("cdp_work", new() { ["op"] = "stage_upsert", ["title"] = "go csharp" }));
+Console.WriteLine(await Call("cdp_open", new() { ["path"] = csproj }));
+Console.WriteLine(await Call("cdp_work", new() { ["op"] = "scene_park", ["name"] = "csharp-explore" }));
+var nav = await Call("get_workspace_navigation_context", new()
+{
+    ["file_path"] = csFile,
+    ["mode"] = "related",
+    ["max_related"] = 5
+});
+Console.WriteLine("NAV " + nav[..Math.Min(280, nav.Length)].Replace('\n', ' '));
+var sw = await Call("cdp_work", new() { ["op"] = "scene_switch", ["name"] = "ts-explore" });
+using var doc = JsonDocument.Parse(sw);
+var lang = doc.RootElement.GetProperty("session").GetProperty("language").GetString();
+Console.WriteLine("switched language=" + lang);
+if (lang != "typescript")
+    throw new Exception("expected typescript, got " + lang);
+Console.WriteLine("OK dogfood");

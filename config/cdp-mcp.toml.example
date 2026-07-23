@@ -1,0 +1,98 @@
+version = 1
+default_phase = "recall"
+default_object = "kb"
+
+[memory]
+notes_config = "/path/to/agent-notes-mcp.toml"
+task_config = "/path/to/agent-task-knowledge-mcp.toml"
+
+[memory.world]
+enabled = true
+roots = ["worlds", "META"]
+
+[memory.project]
+enabled = true
+# work/projects = task-bound; personal = free-theme Kolb (personal/kolb)
+roots = ["work/projects", "personal"]
+
+[memory.task]
+enabled = true
+
+[memory.session]
+enabled = true
+
+[memory.skill]
+enabled = true
+roots = ["domains", "templates"]
+
+[memory.self.finding]
+enabled = true
+
+[memory.self.failure]
+enabled = true
+
+[dev.debug]
+enabled = true
+
+[dev.build]
+enabled = true
+
+[dev.roslyn]
+enabled = true
+
+[dev.git]
+enabled = true
+
+[dev.codebase_index]
+enabled = true
+
+[dev.anui]
+enabled = true
+
+# Language axis — not a closed enum. Omit section → built-in defaults (csharp/typescript/python/delphi).
+[languages]
+ids = ["csharp", "typescript", "python", "delphi"]
+
+[languages.aliases]
+cs = "csharp"
+"c#" = "csharp"
+ts = "typescript"
+tsx = "typescript"
+py = "python"
+pas = "delphi"
+objectpascal = "delphi"
+
+[[languages.detect]]
+id = "csharp"
+kind = "sln"
+extension = ".sln"
+priority = 10
+
+[[languages.detect]]
+id = "csharp"
+kind = "sln"
+extension = ".slnx"
+priority = 11
+
+[[languages.detect]]
+id = "csharp"
+kind = "csproj"
+extension = ".csproj"
+priority = 20
+
+[[languages.detect]]
+id = "typescript"
+kind = "tsconfig"
+file_name = "tsconfig.json"
+priority = 30
+
+[[languages.detect]]
+id = "python"
+kind = "pyproject"
+file_name = "pyproject.toml"
+priority = 40
+
+# Intent workspace (scenes/stages) — WitDatabase persist
+[intent_workspace]
+# database_path = "C:/Users/YOU/AppData/Local/cdp-mcp/intent-workspace.witdb"
+

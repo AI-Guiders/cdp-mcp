@@ -1,0 +1,89 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <SelfContained>true</SelfContained>
+    <LangVersion>14</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>CdpMcp</RootNamespace>
+    <AssemblyName>CdpMcp</AssemblyName>
+    <Version>0.5.103</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="1.3.0" />
+    <PackageReference Include="Tomlyn" Version="2.9.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
+    <PackageReference Include="OutWit.Database.EntityFramework" Version="1.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\cdp-core\Cdp.Core.csproj" Condition="Exists('..\cdp-core\Cdp.Core.csproj')" />
+    <PackageReference Include="AIGuiders.Cdp.Core" Version="0.3.0" Condition="!Exists('..\cdp-core\Cdp.Core.csproj')" />
+    <ProjectReference Include="..\terminal-mcp-core\TerminalMcp.Core.csproj" />
+    <ProjectReference Include="..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" />
+    <ProjectReference Include="..\agent-notes-core\AgentNotes.Core.csproj" />
+    <ProjectReference Include="..\agent-task-knowledge-core\AgentTaskKnowledge.Core.csproj" />
+    <ProjectReference Include="..\agent-findings-core\AgentFindings.Core.csproj" />
+    <ProjectReference Include="..\agent-failures-core\AgentFailures.Core.csproj" />
+    <ProjectReference Include="..\dotnet-debug-core\DotnetDebug.Core.csproj" />
+    <ProjectReference Include="..\dotnet-build-test-core\DotNetBuildTest.Core.csproj" />
+    <ProjectReference Include="..\roslyn-mcp-core\RoslynMcp.Core.csproj" />
+    <ProjectReference Include="..\git-mcp-core\GitMcp.Core.csproj" />
+    <ProjectReference Include="..\hybrid-codebase-index-core\HybridCodebaseIndex.Core.csproj" />
+    <ProjectReference Include="..\ai-native-ui\src\Anui.Agent\Anui.Agent.csproj" />
+    <ProjectReference Include="..\ai-native-ui\src\Anui.Ingest\Anui.Ingest.csproj" />
+    <ProjectReference Include="..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj" />
+    <ProjectReference Include="..\typescript-lang\TypescriptLang.Core\TypescriptLang.Core.csproj" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.9.1" />
+  </ItemGroup>
+  <!-- Link sibling MCP handler surfaces (same assembly names as standalone MCP tools). -->
+  <ItemGroup>
+    <Compile Include="..\agent-findings-mcp\ToolHandlers.cs" Link="Backends\Linked\FindingsToolHandlers.cs" />
+    <Compile Include="..\agent-findings-mcp\ToolCatalog.cs" Link="Backends\Linked\FindingsToolCatalog.cs" />
+    <Compile Include="..\agent-findings-mcp\ManPages.cs" Link="Backends\Linked\FindingsManPages.cs" />
+    <Compile Include="..\agent-findings-mcp\McpArgumentHelpers.cs" Link="Backends\Linked\FindingsMcpArgumentHelpers.cs" />
+    <Compile Include="..\agent-failures-mcp\ToolHandlers.cs" Link="Backends\Linked\FailuresToolHandlers.cs" />
+    <Compile Include="..\agent-failures-mcp\ToolCatalog.cs" Link="Backends\Linked\FailuresToolCatalog.cs" />
+    <Compile Include="..\agent-failures-mcp\ManPages.cs" Link="Backends\Linked\FailuresManPages.cs" />
+    <Compile Include="..\agent-failures-mcp\McpArgumentHelpers.cs" Link="Backends\Linked\FailuresMcpArgumentHelpers.cs" />
+    <Compile Include="..\agent-task-knowledge-mcp\ToolHandlers.cs" Link="Backends\Linked\TkToolHandlers.cs" />
+    <Compile Include="..\agent-task-knowledge-mcp\ToolCatalog.cs" Link="Backends\Linked\TkToolCatalog.cs" />
+    <Compile Include="..\agent-task-knowledge-mcp\ManPages.cs" Link="Backends\Linked\TkManPages.cs" />
+    <Compile Include="..\agent-task-knowledge-mcp\McpArgumentHelpers.cs" Link="Backends\Linked\TkMcpArgumentHelpers.cs" />
+    <Compile Include="..\dotnet-debug-mcp\ToolCatalog.cs" Link="Backends\Linked\DbgToolCatalog.cs" />
+    <Compile Include="..\dotnet-debug-mcp\ManPages.cs" Link="Backends\Linked\DbgManPages.cs" />
+    <Compile Include="..\dotnet-debug-mcp\McpArgumentHelpers.cs" Link="Backends\Linked\DbgMcpArgumentHelpers.cs" />
+    <Compile Include="..\dotnet-debug-mcp\DapHelpers.cs" Link="Backends\Linked\DbgDapHelpers.cs" />
+    <Compile Include="..\dotnet-debug-mcp\DebugSession.cs" Link="Backends\Linked\DbgDebugSession.cs" />
+    <Compile Include="..\dotnet-debug-mcp\BreakpointToolHandlers.cs" Link="Backends\Linked\DbgBreakpointToolHandlers.cs" />
+    <Compile Include="..\dotnet-debug-mcp\DebugLaunchToolHandlers.cs" Link="Backends\Linked\DbgDebugLaunchToolHandlers.cs" />
+    <Compile Include="..\dotnet-debug-mcp\LaunchTargetResolver.cs" Link="Backends\Linked\DbgLaunchTargetResolver.cs" />
+    <Compile Include="..\dotnet-debug-mcp\DebugControlToolHandlers.cs" Link="Backends\Linked\DbgDebugControlToolHandlers.cs" />
+    <Compile Include="..\dotnet-build-test-mcp-repo\dotnet-build-test-mcp\ToolCatalog.cs" Link="Backends\Linked\BtToolCatalog.cs" />
+    <Compile Include="..\roslyn-mcp\ToolCatalog.cs" Link="Backends\Linked\RoslynToolCatalog.cs" />
+    <Compile Include="..\roslyn-mcp\Mcp\ToolSchemas.cs" Link="Backends\Linked\RoslynToolSchemas.cs" />
+    <Compile Include="..\roslyn-mcp\Mcp\ToolHandlers.cs" Link="Backends\Linked\RoslynToolHandlers.cs" />
+    <Compile Include="..\git-mcp\ToolCatalog.cs" Link="Backends\Linked\GitToolCatalog.cs" />
+    <Compile Include="..\git-mcp\ToolHandlers.cs" Link="Backends\Linked\GitToolHandlers.cs" />
+    <Compile Include="..\hybrid-codebase-index\HybridCodebaseIndex.Mcp\ToolCatalog.cs" Link="Backends\Linked\HciToolCatalog.cs" />
+    <Compile Include="..\hybrid-codebase-index\HybridCodebaseIndex.Mcp\ToolHandlers.cs" Link="Backends\Linked\HciToolHandlers.cs" />
+    <Compile Include="..\hybrid-codebase-index\HybridCodebaseIndex.Mcp\ManPages.cs" Link="Backends\Linked\HciManPages.cs" />
+    <Compile Include="..\hybrid-codebase-index\HybridCodebaseIndex.Mcp\IndexWatchManager.cs" Link="Backends\Linked\HciIndexWatchManager.cs" />
+    <Compile Include="..\ai-native-ui\src\Anui.Agent.Mcp\ToolCatalog.cs" Link="Backends\Linked\AnuiToolCatalog.cs" />
+    <Compile Include="..\ai-native-ui\src\Anui.Agent.Mcp\ToolSchemas.cs" Link="Backends\Linked\AnuiToolSchemas.cs" />
+    <Compile Include="..\ai-native-ui\src\Anui.Agent.Mcp\ToolHandlers.cs" Link="Backends\Linked\AnuiToolHandlers.cs" />
+    <Compile Include="..\ai-native-ui\src\Anui.Agent.Mcp\ManPages.cs" Link="Backends\Linked\AnuiManPages.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="tools/**" />
+    <None Remove="tools/**" />
+    <EmbeddedResource Remove="tools/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="config\cdp-mcp.toml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

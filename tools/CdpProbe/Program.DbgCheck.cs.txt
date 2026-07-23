@@ -1,0 +1,10 @@
+using System.Text.Json;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
+var transport = new StdioClientTransport(new(){ Name="p", Command=@"D:\cdp-mcp\CdpMcp.exe", Arguments=["--config",@"D:\cdp-mcp\cdp-mcp.toml"]});
+await using var client = await McpClient.CreateAsync(transport);
+var health = await client.CallToolAsync("cdp_health", new Dictionary<string,object?>());
+Console.WriteLine(string.Join("", health.Content.OfType<TextContentBlock>().Select(t=>t.Text)));
+await client.CallToolAsync("cdp_context", new Dictionary<string,object?>{["phase"]="explore",["object"]="process",["intent"]="verify"});
+var ping = await client.CallToolAsync("dbg_debug_ping", new Dictionary<string,object?>());
+Console.WriteLine(string.Join("", ping.Content.OfType<TextContentBlock>().Select(t=>t.Text)));

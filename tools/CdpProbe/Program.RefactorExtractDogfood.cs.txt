@@ -1,0 +1,40 @@
+using System.Text.Json;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
+
+var exe = args.ElementAtOrDefault(0) ?? @"D:\cdp-mcp\CdpMcp.exe";
+var config = args.ElementAtOrDefault(1) ?? @"D:\cdp-mcp\cdp-mcp.toml";
+var csproj = @"D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-core\Cdp.Core.csproj";
+var csFile = @"D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-core\Wave1AffordanceSeed.cs";
+
+await using var client = await McpClient.CreateAsync(new StdioClientTransport(new()
+{
+    Name = "refactor-extract-dogfood",
+    Command = exe,
+    Arguments = ["--config", config],
+}));
+
+async Task<string> Call(string name, Dictionary<string, object?> arguments)
+{
+    var result = await client.CallToolAsync(name, arguments);
+    return string.Join("\n", result.Content.OfType<TextContentBlock>().Select(t => t.Text));
+}
+
+Console.WriteLine(await Call("cdp_open", new() { ["path"] = csproj }));
+
+// Memory.Task AddRange block (after Session extract): L40-51
+var bracket = $"[F:{csFile.Replace("\\", "/")}; M:Build; L:40-51]";
+var csx = $$"""
+    return await Refactor.Method.Extract.At(@"{{bracket.Replace("\"", "\\\"")}}").NameAsync("AddMemoryTask");
+    """;
+
+var raw = await Call("cdp_csx_run", new() { ["code"] = csx });
+Console.WriteLine(raw);
+using var doc = JsonDocument.Parse(raw);
+if (!doc.RootElement.GetProperty("Ok").GetBoolean())
+    throw new Exception("csx failed");
+var result = doc.RootElement.GetProperty("Result").GetString() ?? "";
+using var inner = JsonDocument.Parse(result);
+if (!inner.RootElement.GetProperty("ok").GetBoolean())
+    throw new Exception("extract failed: " + result);
+Console.WriteLine("OK Refactor.Extract dogfood");

@@ -1,0 +1,10 @@
+bin/
+obj/
+publish/
+publish-release/
+*.user
+*.suo
+.vs/
+.hybrid-codebase-index/
+config/cdp-mcp.toml
+config/cdp-mcp.local.toml

@@ -1,0 +1,90 @@
+using System.Text.Json;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
+
+var exe = args.ElementAtOrDefault(0) ?? @"D:\cdp-mcp\CdpMcp.exe";
+var config = args.ElementAtOrDefault(1) ?? @"D:\cdp-mcp\cdp-mcp.toml";
+var csproj = @"D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-core\Cdp.Core.csproj";
+var csFile = @"D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-core\ToolAffordance.cs";
+
+await using var client = await McpClient.CreateAsync(new StdioClientTransport(new()
+{
+    Name = "ide-report-dogfood",
+    Command = exe,
+    Arguments = ["--config", config],
+}));
+
+async Task<string> Call(string name, Dictionary<string, object?> arguments)
+{
+    var result = await client.CallToolAsync(name, arguments);
+    return string.Join("\n", result.Content.OfType<TextContentBlock>().Select(t => t.Text));
+}
+
+Console.WriteLine(await Call("cdp_work", new() { ["op"] = "intent_upsert", ["title"] = "ide-report-async" }));
+Console.WriteLine(await Call("cdp_open", new() { ["path"] = csproj }));
+
+// Prefer MCP stage_enqueue (same path CSX uses via bus)
+var job = JsonSerializer.Serialize(new
+{
+    kind = "semantic_map",
+    mode = "related",
+    file_path = csFile,
+    solution_or_project_path = csproj
+});
+var enqRaw = await Call("cdp_work", new()
+{
+    ["op"] = "stage_enqueue",
+    ["title"] = "SemanticMap ToolAffordance",
+    ["job_json"] = job,
+    ["start_job"] = true
+});
+Console.WriteLine("ENQ " + enqRaw);
+using var enq = JsonDocument.Parse(enqRaw);
+var stageId = enq.RootElement.GetProperty("stage_id").GetGuid();
+
+Console.WriteLine(await Call("cdp_work", new() { ["op"] = "scene_park", ["name"] = "csharp-before-poll" }));
+var ts = @"D:\Experiments\Personal Cursor Folder\Financial\software\open\typescript-lang\fixtures\mini";
+Console.WriteLine(await Call("cdp_open", new() { ["path"] = ts }));
+
+string? loot = null;
+for (var i = 0; i < 60; i++)
+{
+    await Task.Delay(500);
+    var got = await Call("cdp_work", new() { ["op"] = "stage_get", ["stage_id"] = stageId.ToString("D") });
+    using var g = JsonDocument.Parse(got);
+    var status = g.RootElement.GetProperty("status").GetString();
+    Console.WriteLine($"poll {i} status={status}");
+    if (status is "done" or "parked")
+    {
+        loot = g.RootElement.TryGetProperty("loot", out var l) && l.ValueKind != JsonValueKind.Null
+            ? l.GetString()
+            : null;
+        var err = g.RootElement.TryGetProperty("job_error", out var e) && e.ValueKind != JsonValueKind.Null
+            ? e.GetString()
+            : null;
+        if (status == "parked")
+            throw new Exception("job failed: " + err + " loot=" + loot);
+        break;
+    }
+}
+
+if (string.IsNullOrWhiteSpace(loot))
+    throw new Exception("timeout waiting for IdeReport loot");
+using var report = JsonDocument.Parse(loot);
+var kind = report.RootElement.GetProperty("kind").GetString();
+var highlights = report.RootElement.GetProperty("highlights").GetArrayLength();
+Console.WriteLine($"loot kind={kind} highlights={highlights}");
+if (kind != "semantic_map")
+    throw new Exception("expected semantic_map");
+
+// CSX enqueue compile+run smoke
+var csx = """
+    var a = CodeAnchor.File(@"PLACEHOLDER");
+    return await SemanticMap.EnqueueAroundAsync(a, "related");
+    """.Replace("PLACEHOLDER", csFile.Replace("\\", "\\\\"));
+var csxRun = await Call("cdp_csx_run", new() { ["code"] = csx });
+using var csxDoc = JsonDocument.Parse(csxRun);
+if (!csxDoc.RootElement.GetProperty("Ok").GetBoolean())
+    throw new Exception("csx failed: " + csxRun);
+Console.WriteLine("CSX enqueue ok");
+Console.WriteLine("OK async IdeReport dogfood");
