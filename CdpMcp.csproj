@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\cdp-core\Cdp.Core.csproj" Condition="Exists('..\cdp-core\Cdp.Core.csproj')" />
-    <PackageReference Include="AIGuiders.Cdp.Core" Version="0.3.0" Condition="!Exists('..\cdp-core\Cdp.Core.csproj')" />
+    <PackageReference Include="AIGuiders.Cdp.Core" Version="0.4.17" Condition="!Exists('..\cdp-core\Cdp.Core.csproj')" />
     <ProjectReference Include="..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj" Condition="Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
     <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.48" Condition="!Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
     <ProjectReference Include="..\terminal-mcp-core\TerminalMcp.Core.csproj" />
