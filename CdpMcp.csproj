@@ -10,6 +10,8 @@
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
     <Version>0.5.103</Version>
+    <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
+    <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ModelContextProtocol" Version="1.3.0" />
@@ -19,10 +21,14 @@
     <PackageReference Include="OutWit.Database.EntityFramework" Version="1.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\cdp-core\Cdp.Core.csproj" Condition="Exists('..\cdp-core\Cdp.Core.csproj')" />
-    <PackageReference Include="AIGuiders.Cdp.Core" Version="0.4.17" Condition="!Exists('..\cdp-core\Cdp.Core.csproj')" />
-    <ProjectReference Include="..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj" Condition="Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
-    <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.48" Condition="!Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
+    <ProjectReference Include="..\cdp-core\Cdp.Core.csproj"
+                      Condition="'$(AidUseNuGet)' != 'true' AND Exists('..\cdp-core\Cdp.Core.csproj')" />
+    <PackageReference Include="AIGuiders.Cdp.Core" Version="0.4.17"
+                      Condition="'$(AidUseNuGet)' == 'true' OR !Exists('..\cdp-core\Cdp.Core.csproj')" />
+    <ProjectReference Include="..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj"
+                      Condition="'$(AidUseNuGet)' != 'true' AND Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
+    <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.48"
+                      Condition="'$(AidUseNuGet)' == 'true' OR !Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
     <ProjectReference Include="..\terminal-mcp-core\TerminalMcp.Core.csproj" />
     <ProjectReference Include="..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" />
     <ProjectReference Include="..\agent-notes-core\AgentNotes.Core.csproj" />

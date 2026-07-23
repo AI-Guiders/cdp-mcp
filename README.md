@@ -25,8 +25,13 @@ Meta tools (always in ListTools): `cdp_man`, `cdp_session`, `cdp_health`, `cdp_c
 ```powershell
 dotnet test ..\cdp-core\Cdp.Core.Tests\Cdp.Core.Tests.csproj -c Release
 .\publish-and-deploy.ps1
+.\publish-and-deploy.ps1 -Mode hard
+# Sibling cdp-core / cdp-scriptable-ide present but use nuget.org packages instead:
+.\publish-and-deploy.ps1 -UseNuGet
 dotnet run --project tools\CdpProbe\CdpProbe.csproj -c Release
 ```
+
+`-UseNuGet` → `aid-publish -UseNuGet` → MSBuild `AidUseNuGet=true` (AIGuiders.Cdp.Core + AIGuiders.Cdp.ScriptableIde). Other backends still need the open monorepo until they grow the same package fallbacks. Requires `aid-publish` ≥ **0.1.5**.
 
 Default deploy path: `D:\cdp-mcp\CdpMcp.exe` + `cdp-mcp.toml` + `ts-worker/` (Node on PATH required for TypeScript).
 

@@ -9,12 +9,16 @@
 #
 # Run:  cd ...\cdp-mcp  ;  .\publish-and-deploy.ps1
 #       .\publish-and-deploy.ps1 -Mode hard
+#       .\publish-and-deploy.ps1 -UseNuGet   # force AIGuiders.Cdp.* packages even if sibling csproj exist
 # Optional: -Target "D:\cdp-mcp"
 [CmdletBinding()]
 param(
     [string] $Target = "D:\cdp-mcp",
     [ValidateSet("soft", "hard")]
-    [string] $Mode = "soft"
+    [string] $Mode = "soft",
+    # Prefer NuGet for Cdp.Core / Cdp.ScriptableIde (ignore sibling ProjectReference).
+    # Other backends still need the monorepo until they have package fallbacks.
+    [switch] $UseNuGet
 )
 
 $ErrorActionPreference = "Stop"
@@ -39,6 +43,10 @@ try {
     )
     if ($Mode -eq "hard") {
         $publishArgs += "-KillRunning"
+    }
+    if ($UseNuGet) {
+        Write-Host "aid-publish -UseNuGet (/p:AidUseNuGet=true)"
+        $publishArgs += "-UseNuGet"
     }
 
     if (Test-Path -LiteralPath (Join-Path $here ".config\dotnet-tools.json")) {
