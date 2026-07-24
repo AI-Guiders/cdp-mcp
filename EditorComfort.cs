@@ -424,6 +424,10 @@ internal static class EditorComfort
         IReadOnlyDictionary<string, JsonElement> args,
         bool all)
     {
+        var scopeRaw = OptString(args, "scope") ?? OptString(args, "in") ?? "buffer";
+        if (FindInFiles.IsFilesScope(scopeRaw))
+            return FindInFiles.Dispatch(store, session, args, all);
+
         var buf = ResolveBuf(store, session, args);
         var query = OptString(args, "query") ?? OptString(args, "text") ?? OptString(args, "pattern");
         if (string.IsNullOrEmpty(query))
@@ -433,8 +437,9 @@ internal static class EditorComfort
                 schema = Schema,
                 ok = false,
                 op = all ? "find_all" : "find",
+                scope = "buffer",
                 error = "query_required",
-                hint = "query= / text= / pattern= (regex=true for Regex)"
+                hint = "query= (buffer Find). regex=true = Use Regular Expressions. scope=project = Find in Files."
             }, Pretty);
         }
 
@@ -475,6 +480,7 @@ internal static class EditorComfort
             schema = Schema,
             ok = true,
             op = all ? "find_all" : "find",
+            scope = "buffer",
             query,
             regex,
             ignore_case = ignoreCase,
@@ -485,13 +491,16 @@ internal static class EditorComfort
                 ? (object[])
                 [
                     new { go = "peek", label = "Peek hit", why = "go_args.wire= from hits[].anchor" },
-                    new { go = "replace_all", label = "Replace all", why = "query= + text= replacement" }
+                    new { go = "replace_all", label = "Replace all", why = "query= + text= replacement" },
+                    new { go = "find_all", label = "Find in Files", why = "scope=project same query" }
                 ]
                 : (object[])
                 [
-                    new { go = "find", label = "Retry", why = "regex=true / ignore_case=" }
+                    new { go = "find", label = "Retry", why = "regex=true / scope=project" }
                 ],
-            hint = "Hits are anchors. find = first; find_all = up to cap."
+            hint =
+                "VS Find (buffer). regex=true = Use Regular Expressions. " +
+                "scope=project|files = Find in Files (rg → anchors)."
         }, Pretty);
     }
 

@@ -51,6 +51,8 @@ internal static class IdeCockpit
             ["paste"] = ("cdp_buffer", Dict(("op", "paste"))),
             ["find"] = ("cdp_buffer", Dict(("op", "find"))),
             ["find_all"] = ("cdp_buffer", Dict(("op", "find_all"))),
+            ["find_in_files"] = ("cdp_buffer", Dict(("op", "find_all"), ("scope", "project"))),
+            ["fif"] = ("cdp_buffer", Dict(("op", "find_all"), ("scope", "project"))),
             ["replace_all"] = ("cdp_buffer", Dict(("op", "replace_all"))),
             ["back"] = ("cdp_buffer", Dict(("op", "back"))),
             ["forward"] = ("cdp_buffer", Dict(("op", "forward"))),
@@ -284,6 +286,7 @@ internal static class IdeCockpit
                 "Quality: go=quality / mfd=gates (project-tunable .cdp/quality-gates.toml). " +
                 "Analysis: go=analysis_scene / go=clones (domain scene, not MFD). " +
                 "Editor comfort: go=undo|redo|history|copy|cut|paste|find|back|forward|scratch. " +
+                "Find: go=find query= (buffer); go=find_in_files / scope=project = Find in Files (rg→anchors); regex=true = Use Regular Expressions. " +
                 "Go To (Ctrl+T): go=goto query= (f|t|m|# prefixes). " +
                 "go_detail=full for organ dump. Organs stay — not a monolith."
         };
