@@ -487,6 +487,20 @@ List<Tool> BuildMetaTools() =>
             limit = new { type = "integer" }
         }
     }),
+    Meta("cdp_cockpit", "Agent IDE cockpit hub (kj-1329): compact where-am-I — session + shell tabs + buffer dirty + debug + git dirty + last test + work focus. Prefer after cdp_open / hard deploy before tool thrash. Drill via existing *_scene. Not a cdp_session replacement (no pack dogfood).", new
+    {
+        type = "object",
+        properties = new
+        {
+            include_git = new { type = "boolean", description = "Include git_scene compact (default true)." },
+            include_shell = new { type = "boolean", description = "Include shell tabs summary (default true)." },
+            include_buffer = new { type = "boolean", description = "Include buffer dirty summary (default true)." },
+            include_debug = new { type = "boolean", description = "Include debug DAP/BP summary (default true)." },
+            include_test = new { type = "boolean", description = "Include TestRunCache last_run (default true; no discover)." },
+            include_work = new { type = "boolean", description = "Include active intent/scene ids (default true)." },
+            include_submodules = new { type = "boolean", description = "Pass through to git_scene (default false for speed)." }
+        }
+    }),
     Meta("cdp_session", "Agent-IDE session plane: context + shortlist + health + optional debug stop_context + pack dogfood (definitions/process/procedure) + continuity hint.", new
     {
         type = "object",
@@ -703,7 +717,7 @@ var options = new McpServerOptions
         "Cold ListTools = recall+kb (known memory pull; not browse). " +
         "After MCP restart: call cdp_session or cdp_context first so ListTools refreshes (pack tools). " +
         "Pack dogfood: memory_world_get_definition|get_process|get_procedure|list_pack|radius_gate_check (epistemic-scene). " +
-        "Always: cdp_session (omnibus) / cdp_context / cdp_open / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
+        "Always: cdp_cockpit (hub) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
         "Mutate SSOT: cdp_buffer (open|create|edit); Instant Save flush=true on edit/close (flush=false batches; close discard=true to drop). Relative path= → ProjectRoot after cdp_open. Prefer edit_op=anchor [F:;M:;K:] for csharp. Cursor host Write bypasses PathMutateGate. " +
         "Buffer plane: cdp_buffer op=open|edit|… — edit returns diagnostics in-result (almost-online while you keep the turn). " +
         "Debug plane: cdp_debug op=bp_add|launch|stop_context|… — session defaults after cdp_open; .csproj is BP key, launch resolves dll under bin/; JSON file is storage only. " +
@@ -795,7 +809,7 @@ async Task<string> DispatchMetaAsync(
         case "cdp_man":
             if (callArgs.TryGetValue("tool", out var t) && t.GetString() is { Length: > 0 } tool)
                 return $"Manual: {tool} — see tool description; domain ops via prefixed tools / sibling man.";
-            return "TOC: cdp_session (omnibus plane + pack dogfood), cdp_health(explain_tool?), cdp_capabilities, " +
+            return "TOC: cdp_cockpit (hub where-am-I), cdp_session (omnibus plane + pack dogfood), cdp_health(explain_tool?), cdp_capabilities, " +
                    "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_build|cdp_run|cdp_test|cdp_test_scene|cdp_test_plan (session IDE lifecycle), " +
                    "cdp_buffer(op=scene|open|read|edit|diagnostics|close) file buffer SSOT; edit returns diagnostics, " +
                    "cdp_debug(op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|…) debug plane; session defaults, not breakpoints JSON, " +
@@ -1265,6 +1279,18 @@ async Task<string> DispatchMetaAsync(
                 })
             }, Pretty);
         }
+        case "cdp_cockpit":
+            cancellationToken.ThrowIfCancellationRequested();
+            return await IdeCockpit.BuildAsync(
+                    session,
+                    docStore,
+                    shellHabitat,
+                    byDomain,
+                    workspaceStore,
+                    workspaceState,
+                    callArgs,
+                    cancellationToken)
+                .ConfigureAwait(false);
         case "cdp_session":
         {
             cancellationToken.ThrowIfCancellationRequested();
