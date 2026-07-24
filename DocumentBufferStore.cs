@@ -154,15 +154,68 @@ internal sealed class DocumentBufferStore
     {
         if (string.IsNullOrEmpty(oldString))
             throw new ArgumentException("old_string is required for replace.");
-        var idx = buf.Text.IndexOf(oldString, StringComparison.Ordinal);
-        if (idx < 0)
-            throw new ArgumentException("old_string not found in buffer.");
-        var idx2 = buf.Text.IndexOf(oldString, idx + oldString.Length, StringComparison.Ordinal);
-        if (idx2 >= 0)
+
+        if (!TryFindUniqueSpan(buf.Text, oldString, out var idx, out var matchedLen))
+        {
+            // Distinguish not-found vs ambiguous for agent recovery.
+            var exact = buf.Text.IndexOf(oldString, StringComparison.Ordinal);
+            if (exact < 0
+                && buf.Text.IndexOf(NormalizeNewlines(oldString, "\n"), StringComparison.Ordinal) < 0
+                && buf.Text.IndexOf(NormalizeNewlines(oldString, "\r\n"), StringComparison.Ordinal) < 0)
+                throw new ArgumentException("old_string not found in buffer.");
             throw new ArgumentException("old_string is not unique in buffer; narrow the span.");
-        buf.Text = string.Concat(buf.Text.AsSpan(0, idx), newString, buf.Text.AsSpan(idx + oldString.Length));
+        }
+
+        var insertion = AdaptNewlinesToBuffer(newString ?? "", buf.Text);
+        buf.Text = string.Concat(buf.Text.AsSpan(0, idx), insertion, buf.Text.AsSpan(idx + matchedLen));
         buf.Version++;
         buf.Dirty = true;
+    }
+
+    /// <summary>
+    /// Exact Ordinal match first; if miss, retry with LF/CRLF variants of <paramref name="needle"/>
+    /// so agents can pass \\n while the buffer still has Windows CRLF.
+    /// </summary>
+    static bool TryFindUniqueSpan(string haystack, string needle, out int index, out int matchedLength)
+    {
+        index = -1;
+        matchedLength = 0;
+        string[] candidates =
+        [
+            needle,
+            NormalizeNewlines(needle, "\n"),
+            NormalizeNewlines(needle, "\r\n")
+        ];
+
+        foreach (var candidate in candidates.Distinct(StringComparer.Ordinal))
+        {
+            if (candidate.Length == 0)
+                continue;
+            var first = haystack.IndexOf(candidate, StringComparison.Ordinal);
+            if (first < 0)
+                continue;
+            var second = haystack.IndexOf(candidate, first + candidate.Length, StringComparison.Ordinal);
+            if (second >= 0)
+                return false;
+            index = first;
+            matchedLength = candidate.Length;
+            return true;
+        }
+
+        return false;
+    }
+
+    static string NormalizeNewlines(string text, string eol) =>
+        (text ?? "").Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace("\r", "\n", StringComparison.Ordinal)
+            .Replace("\n", eol, StringComparison.Ordinal);
+
+    static string AdaptNewlinesToBuffer(string text, string bufferSample)
+    {
+        if (string.IsNullOrEmpty(text) || text.IndexOf('\n') < 0 && text.IndexOf('\r') < 0)
+            return text;
+        var eol = bufferSample.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
+        return NormalizeNewlines(text, eol);
     }
 
     /// <summary>1-based line/column; end exclusive on end position (like LSP range).</summary>

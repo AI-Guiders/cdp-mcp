@@ -179,7 +179,7 @@ List<Tool> BuildMetaTools() =>
             recent_index = new { type = "integer", description = "Optional 0-based Open Recent index (0 = last opened)." }
         }
     }),
-    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|read|edit|diagnostics|close. Instant Save: edit/close flush=true by default (disk on every edit). flush=false = batch in memory; close+dirty needs discard=true. Prefer edit_op=anchor. Diagnostics: scope=syntax|project|solution; cached while version unchanged (force=true). edit diagnose default true (csharp syntax). Parallel OK.", new
+    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|read|edit|diagnostics|close. Instant Save: edit/close flush=true by default (disk on every edit). flush=false = batch in memory; close+dirty needs discard=true. csharp: prefer edit_op=anchor [F:;M:;K:] (surgical); replace/replace_range are fallbacks (replace tolerates LF↔CRLF). Diagnostics: scope=syntax|project|solution; cached while version unchanged (force=true). edit diagnose default true (csharp syntax). Parallel OK.", new
     {
         type = "object",
         properties = new

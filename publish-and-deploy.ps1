@@ -32,6 +32,14 @@ if (-not (Test-Path -LiteralPath $csproj)) {
 
 $deployRoot = if ($Mode -eq "soft") { "$Target.next" } else { $Target }
 $pendingMarker = Join-Path $Target "cdp-pending-update.json"
+$liveConfig = Join-Path $Target "cdp-mcp.toml"
+$configBackup = $null
+# aid-publish replaces the target tree — stash live toml before hard wipe.
+if ($Mode -eq "hard" -and (Test-Path -LiteralPath $liveConfig)) {
+    $configBackup = Join-Path $env:TEMP ("cdp-mcp-toml-" + [guid]::NewGuid().ToString("N") + ".toml")
+    Copy-Item -LiteralPath $liveConfig -Destination $configBackup -Force
+    Write-Host "Backed up live config: $liveConfig"
+}
 
 Push-Location $here
 try {
@@ -64,12 +72,17 @@ try {
         exit 1
     }
     $configDst = Join-Path $deployRoot "cdp-mcp.toml"
-    if (Test-Path -LiteralPath $configDst) {
+    if ($configBackup -and (Test-Path -LiteralPath $configBackup)) {
+        Copy-Item -LiteralPath $configBackup -Destination $configDst -Force
+        Remove-Item -LiteralPath $configBackup -Force -ErrorAction SilentlyContinue
+        Write-Host "Restored live config: $configDst"
+    } elseif (Test-Path -LiteralPath $configDst) {
         Write-Host "Keep existing config: $configDst (template not applied)"
     } else {
         Copy-Item -LiteralPath $configSrc -Destination $configDst -Force
         Write-Host "Seeded config from template: $configDst"
     }
+
 
     # TypeScript LanguageService worker (Node) — side-by-side with CdpMcp.exe
     $workerSrc = Join-Path $here "..\typescript-lang\worker"
