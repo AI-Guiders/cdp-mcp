@@ -500,13 +500,23 @@ List<Tool> BuildMetaTools() =>
         },
         required = new[] { "op" }
     }),
-    Meta("cdp_csx_check", "Compile CSX against allowlisted ScriptGlobals (Debug/Roslyn/Git/Verify/Mutate/Anui/Execution). No tool dispatch.", new
+    Meta("cdp_csx_check", "Compile CSX against allowlisted ScriptGlobals (Debug/Roslyn/Git/Verify/Mutate/Anui/Execution/Help). No tool dispatch. Returns DiagnosticItems with anchors.", new
     {
         type = "object",
         properties = new
         {
             code = new { type = "string", description = "CSX source (preferred)." },
             path = new { type = "string", description = "Optional path to .csx file if code omitted." }
+        }
+    }),
+    Meta("cdp_csx_help", "Live CSX API help from XML docs (not a static man). op=toc|of. Prefer before inventing Symbol/SemanticMap APIs.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "toc (default) | of" },
+            path = new { type = "string", description = "For op=of: Symbol, SemanticMap, Symbol.Named, Help, …" },
+            max = new { type = "integer", description = "Cap facade/member rows (default 48 toc / 40 of)." }
         }
     }),
     Meta("cdp_csx_run", "Run CSX via ScriptHost. mode=run|dry_run. Dispatches to mounted domains (roslyn/git/debug/…).", new
@@ -612,7 +622,7 @@ List<Tool> BuildMetaTools() =>
         type = "object",
         properties = new { tab = new { type = "string" } }
     }),
-    Meta("cdp_shell_close", "Close tab (kills if running); frees a slot toward max_tabs.", new
+    Meta("cdp_shell_close", "Close tab (kills if running); removes it from the habitat scene.", new
     {
         type = "object",
         properties = new { tab = new { type = "string" } }
@@ -648,7 +658,7 @@ var options = new McpServerOptions
         "IDE verbs (harness routes LSP): go_to_definition, find_usages, get_document_symbols, get_symbol_at_position, get_diagnostics, resolve_project_root, get_workspace_navigation_context. " +
         "Prefer cdp_build/cdp_run/cdp_test/cdp_pkg_*/cdp_project_*/cdp_sln_* over shell for session project. " +
         "Agent shell habitat: cdp_shell_* = primary IDE terminal; sibling terminal-mcp (terminal_*) = escape only. " +
-        "CSX: cdp_csx_check | cdp_csx_run (Symbol/SemanticMap/Work Enqueue*) | cdp_csx_run_plan | promote | discard. " +
+        "CSX: cdp_csx_help | cdp_csx_check | cdp_csx_run (Symbol/SemanticMap/Work Enqueue*) | cdp_csx_run_plan | promote | discard. " +
         "Domain tools prefixed " + DomainPrefixHint + " (roslyn_* = legacy aliases; prefer bare IDE verbs). " +
         "ListTools = meta + bare IDE verbs + ≤10 domain shortlist (deduped underlying; not full union). " +
         "Too many tools = agent thrash — use cdp_context to retarget, cdp_tools to preview, cdp_session for pack embed. " +
@@ -741,7 +751,7 @@ async Task<string> DispatchMetaAsync(
                    "cdp_sln_create|list|projects|add|remove, " +
                    "cdp_work(op=intent|stage|scene), cdp_tools(... palette), " +
                    "IDE: go_to_definition|find_usages|get_document_symbols|get_symbol_at_position|get_diagnostics|resolve_project_root|get_workspace_navigation_context, " +
-                   "cdp_csx_check / cdp_csx_run / cdp_csx_run_plan / promote / discard. " +
+                   "cdp_csx_help / cdp_csx_check / cdp_csx_run / cdp_csx_run_plan / promote / discard. " +
                    "cdp_shell_scene|run|history|rerun|last|which|kill|close (agent terminal; background long-run). " +
                    "Pack: get_definition|list_pack|get_process|get_procedure|radius_gate_check. " +
                    "Domain prefixes: memory_world_ memory_project_ memory_task_ memory_session_ memory_skill_ " +
@@ -1248,6 +1258,26 @@ async Task<string> DispatchMetaAsync(
             var code = await ResolveCsxSourceAsync(callArgs).ConfigureAwait(false);
             var report = await ScriptHost.CheckAsync(code, cancellationToken).ConfigureAwait(false);
             return JsonSerializer.Serialize(report, Pretty);
+        }
+        case "cdp_csx_help":
+        {
+            var op = callArgs.TryGetValue("op", out var opEl) && opEl.GetString() is { Length: > 0 } ops
+                ? ops.Trim()
+                : "toc";
+            var max = callArgs.TryGetValue("max", out var maxEl) && maxEl.ValueKind == JsonValueKind.Number
+                ? maxEl.GetInt32()
+                : (int?)null;
+            if (op.Equals("toc", StringComparison.OrdinalIgnoreCase))
+                return CsxHelpCatalog.Toc(max ?? 48);
+            if (op.Equals("of", StringComparison.OrdinalIgnoreCase))
+            {
+                var path = callArgs.TryGetValue("path", out var pEl) ? pEl.GetString() : null;
+                if (string.IsNullOrWhiteSpace(path))
+                    throw new ArgumentException("path required for cdp_csx_help op=of (e.g. Symbol or SemanticMap.Explore).");
+                return CsxHelpCatalog.Of(path!, max ?? 40);
+            }
+
+            throw new ArgumentException("op must be toc|of");
         }
         case "cdp_csx_run":
         {
