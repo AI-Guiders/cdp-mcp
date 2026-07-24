@@ -1,11 +1,2 @@
-bin/
-obj/
-publish/
-publish-release/
-dist/
-*.user
-*.suo
-.vs/
-.hybrid-codebase-index/
-config/cdp-mcp.toml
-config/cdp-mcp.local.toml
+# Local agent scratch (cdp_buffer op=scratch)
+.cdp/scratch/
