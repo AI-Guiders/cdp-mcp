@@ -1,6 +1,8 @@
 using System.Collections.Frozen;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Cdp.Core;
+using Cdp.Evidence;
 using Cdp.ScriptableIde;
 using CdpMcp;
 using CdpMcp.Backends;
@@ -283,13 +285,42 @@ List<Tool> BuildMetaTools() =>
             }
         }
     }),
-    Meta("cdp_test", "IDE Test: session project. csharp→dotnet test; typescript→npm test. Prefer over shell.", new
+    Meta("cdp_test", "IDE Test: session project. csharp→dotnet test; typescript→npm test. Prefer over shell. Prefer cdp_test_scene first to list FQNs.", new
     {
         type = "object",
         properties = new
         {
             path = new { type = "string", description = "Optional .sln/.csproj/package root; default = session" },
             solution_path = new { type = "string", description = "Alias of path (csharp)" },
+            configuration = new { type = "string" },
+            filter = new { type = "string", description = "VSTest --filter" },
+            include_raw_output = new { type = "boolean" },
+            timeout_seconds = new { type = "integer" }
+        }
+    }),
+    Meta("cdp_test_scene", "Test Runner map (git_scene analogue): discover FQNs via `dotnet test --list-tests` + last_run cache. Prefer before cdp_test / shell archaeology.", new
+    {
+        type = "object",
+        properties = new
+        {
+            path = new { type = "string" },
+            solution_path = new { type = "string" },
+            configuration = new { type = "string" },
+            max_tests = new { type = "integer", description = "Cap discovered FQNs (default 500)" },
+            timeout_seconds = new { type = "integer" }
+        }
+    }),
+    Meta("cdp_test_plan", "Select tests then preview|apply. include[] FQNs, failed_first=true (from last_run), or filter=. op=preview|apply → structured test_run/v0 + evidence.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "preview|apply (aliases draft|run); default preview" },
+            path = new { type = "string" },
+            solution_path = new { type = "string" },
+            include = new { type = "array", items = new { type = "string" }, description = "FQNs or filter fragments" },
+            failed_first = new { type = "boolean", description = "Re-run last_run failed set" },
+            filter = new { type = "string", description = "Raw VSTest --filter" },
             configuration = new { type = "string" },
             include_raw_output = new { type = "boolean" },
             timeout_seconds = new { type = "integer" }
@@ -350,7 +381,18 @@ List<Tool> BuildMetaTools() =>
         type = "object",
         properties = new { path = new { type = "string" } }
     }),
-    Meta("cdp_project_create", "Scaffold project. csharp: tfm_policy (+ tfm=). typescript: engine_policy (+ engines=). Policies prefer_most_used|latest|lts|specified — LTS from vendor meta (dotnet releases-index release-type / node dist lts). Optional open=true.", new
+    Meta("cdp_project_scene", "Project map before create (git_scene analogue): curated templates (VS-like), session anchors, existing csproj/sln. Optional include_installed=true → dotnet new list. Prefer before inventing files / guessing template=.", new
+    {
+        type = "object",
+        properties = new
+        {
+            root = new { type = "string", description = "Scan root (default session work root)" },
+            include_installed = new { type = "boolean", description = "Also parse `dotnet new list --type project` (capped)" },
+            max_existing = new { type = "integer", description = "Cap for existing projects (default 40)" },
+            max_installed = new { type = "integer", description = "Cap for installed templates (default 80)" }
+        }
+    }),
+    Meta("cdp_project_create", "Scaffold project. csharp: tfm_policy (+ tfm=). typescript: engine_policy (+ engines=). Policies prefer_most_used|latest|lts|specified — LTS from vendor meta (dotnet releases-index release-type / node dist lts). Optional open=true. Prefer cdp_project_scene first.", new
     {
         type = "object",
         properties = new
@@ -519,6 +561,16 @@ List<Tool> BuildMetaTools() =>
             max = new { type = "integer", description = "Cap facade/member rows (default 48 toc / 40 of)." }
         }
     }),
+    Meta("cdp_evidence", "Project any pipe (build/test/publish/shell/auto) to evidence/v0 with Anchor wires — click locus, no line guessing.", new
+    {
+        type = "object",
+        properties = new
+        {
+            kind = new { type = "string", description = "auto|build|test|publish|shell|csx|generic (default auto)" },
+            text = new { type = "string", description = "Raw stdout/stderr/log body to project." },
+            path = new { type = "string", description = "Optional file path if text omitted." }
+        }
+    }),
     Meta("cdp_csx_run", "Run CSX via ScriptHost. mode=run|dry_run. Dispatches to mounted domains (roslyn/git/debug/…).", new
     {
         type = "object",
@@ -658,7 +710,7 @@ var options = new McpServerOptions
         "IDE verbs (harness routes LSP): go_to_definition, find_usages, get_document_symbols, get_symbol_at_position, get_diagnostics, resolve_project_root, get_workspace_navigation_context. " +
         "Prefer cdp_build/cdp_run/cdp_test/cdp_pkg_*/cdp_project_*/cdp_sln_* over shell for session project. " +
         "Agent shell habitat: cdp_shell_* = primary IDE terminal; sibling terminal-mcp (terminal_*) = escape only. " +
-        "CSX: cdp_csx_help | cdp_csx_check | cdp_csx_run (Symbol/SemanticMap/Work Enqueue*) | cdp_csx_run_plan | promote | discard. " +
+        "CSX: cdp_csx_help | cdp_csx_check | cdp_csx_run | cdp_csx_run_plan | promote | discard | cdp_evidence. " +
         "Domain tools prefixed " + DomainPrefixHint + " (roslyn_* = legacy aliases; prefer bare IDE verbs). " +
         "ListTools = meta + bare IDE verbs + ≤10 domain shortlist (deduped underlying; not full union). " +
         "Too many tools = agent thrash — use cdp_context to retarget, cdp_tools to preview, cdp_session for pack embed. " +
@@ -744,10 +796,10 @@ async Task<string> DispatchMetaAsync(
             if (callArgs.TryGetValue("tool", out var t) && t.GetString() is { Length: > 0 } tool)
                 return $"Manual: {tool} — see tool description; domain ops via prefixed tools / sibling man.";
             return "TOC: cdp_session (omnibus plane + pack dogfood), cdp_health(explain_tool?), cdp_capabilities, " +
-                   "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_build|cdp_run|cdp_test (session IDE lifecycle), " +
+                   "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_build|cdp_run|cdp_test|cdp_test_scene|cdp_test_plan (session IDE lifecycle), " +
                    "cdp_buffer(op=scene|open|read|edit|diagnostics|close) file buffer SSOT; edit returns diagnostics, " +
                    "cdp_debug(op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|…) debug plane; session defaults, not breakpoints JSON, " +
-                   "cdp_pkg_find|list|add|remove|update|outdated, cdp_project_create|list|close|add_to_sln, " +
+                   "cdp_pkg_find|list|add|remove|update|outdated, cdp_project_scene|create|list|close|add_to_sln, " +
                    "cdp_sln_create|list|projects|add|remove, " +
                    "cdp_work(op=intent|stage|scene), cdp_tools(... palette), " +
                    "IDE: go_to_definition|find_usages|get_document_symbols|get_symbol_at_position|get_diagnostics|resolve_project_root|get_workspace_navigation_context, " +
@@ -814,8 +866,9 @@ async Task<string> DispatchMetaAsync(
                 },
                 explain_tool = explain,
                 recovery_note =
-                    "Host (Cursor) owns MCP process restart; agent cannot self-reload. " +
-                    "Soft deploy stages to <target>.next + cdp-pending-update.json; apply with publish -Mode hard then Reload MCP. " +
+                    "After hard deploy KillRunning: Cursor owns the process — agent has no Reload button, but can nudge host remount. " +
+                    "Confirmed Cursor lifehack (kj-1349): edit ~/.cursor/mcp.json (e.g. bump env CDP_RELOAD_NUDGE on cdp/cdp-debug) → host respawns MCP. " +
+                    "Soft deploy stages to <target>.next + cdp-pending-update.json; apply with publish -Mode hard (external terminal), then mcp.json nudge (or human Reload). " +
                     "Prefer cdp_health + explain_tool before guessing missing tools."
             }, Pretty);
         }
@@ -983,6 +1036,12 @@ async Task<string> DispatchMetaAsync(
         case "cdp_test":
             return await IdeSessionLifecycle.TestAsync(
                 session, callArgs, byDomain.GetValueOrDefault("build"), cancellationToken).ConfigureAwait(false);
+        case "cdp_test_scene":
+            return await IdeSessionLifecycle.TestSceneAsync(
+                session, callArgs, byDomain.GetValueOrDefault("build"), cancellationToken).ConfigureAwait(false);
+        case "cdp_test_plan":
+            return await IdeSessionLifecycle.TestPlanAsync(
+                session, callArgs, byDomain.GetValueOrDefault("build"), cancellationToken).ConfigureAwait(false);
         case "cdp_run":
             return await IdeSessionLifecycle.RunAsync(session, callArgs, cancellationToken).ConfigureAwait(false);
         case "cdp_pkg_find":
@@ -1032,6 +1091,19 @@ async Task<string> DispatchMetaAsync(
         {
             var (bus, plan) = PackageSession(session, callArgs);
             return (await PackageOps.OutdatedAsync(bus, plan, OptionalPath(callArgs), cancellationToken).ConfigureAwait(false)).ToJson();
+        }
+        case "cdp_project_scene":
+        {
+            var (bus, plan) = PackageSession(session, callArgs);
+            var root = callArgs.TryGetValue("root", out var rEl) ? rEl.GetString() : null;
+            var includeInstalled = callArgs.TryGetValue("include_installed", out var ii)
+                && ii.ValueKind == JsonValueKind.True;
+            var maxExisting = callArgs.TryGetValue("max_existing", out var me) && me.TryGetInt32(out var mei)
+                ? mei : ProjectScene.MaxExistingDefault;
+            var maxInstalled = callArgs.TryGetValue("max_installed", out var mi) && mi.TryGetInt32(out var mii)
+                ? mii : ProjectScene.MaxInstalledDefault;
+            return (await ProjectOps.SceneAsync(bus, plan, root, includeInstalled, maxExisting, maxInstalled, cancellationToken)
+                .ConfigureAwait(false)).ToJson();
         }
         case "cdp_project_create":
         {
@@ -1279,6 +1351,27 @@ async Task<string> DispatchMetaAsync(
 
             throw new ArgumentException("op must be toc|of");
         }
+        case "cdp_evidence":
+        {
+            var kind = callArgs.TryGetValue("kind", out var kEl) && kEl.GetString() is { Length: > 0 } ks
+                ? ks.Trim()
+                : "auto";
+            string? text = callArgs.TryGetValue("text", out var tEl) ? tEl.GetString() : null;
+            if (string.IsNullOrWhiteSpace(text)
+                && callArgs.TryGetValue("path", out var epEl)
+                && epEl.GetString() is { Length: > 0 } ep)
+            {
+                text = await File.ReadAllTextAsync(Path.GetFullPath(ep), cancellationToken).ConfigureAwait(false);
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+                throw new ArgumentException("text or path required for cdp_evidence");
+
+            var ctx = new EvidenceContext(
+                ProjectRoot: session.ProjectRoot,
+                SolutionOrProjectPath: session.SolutionOrProjectPath);
+            return EvidencePreprocess.ToJson(EvidencePreprocess.Project(kind, text, ctx));
+        }
         case "cdp_csx_run":
         {
             var code = await ResolveCsxSourceAsync(callArgs).ConfigureAwait(false);
@@ -1413,7 +1506,9 @@ async Task<string> DispatchMetaAsync(
             int? codepage = callArgs.TryGetValue("codepage", out var cpEl) && cpEl.TryGetInt32(out var cp)
                 ? cp
                 : null;
-            return shellHabitat.Run(ShellDefaults(session), cmd, tab, cwd, shell, timeout, background, codepage, argv);
+            return AttachShellEvidence(
+                shellHabitat.Run(ShellDefaults(session), cmd, tab, cwd, shell, timeout, background, codepage, argv),
+                session);
         }
         case "cdp_shell_history":
         {
@@ -1431,7 +1526,9 @@ async Task<string> DispatchMetaAsync(
                 ? to
                 : null;
             var background = callArgs.TryGetValue("background", out var bgEl) && bgEl.ValueKind == JsonValueKind.True;
-            return shellHabitat.Rerun(ShellDefaults(session), tab, index, timeout, background);
+            return AttachShellEvidence(
+                shellHabitat.Rerun(ShellDefaults(session), tab, index, timeout, background),
+                session);
         }
         case "cdp_shell_last":
         {
@@ -1439,7 +1536,7 @@ async Task<string> DispatchMetaAsync(
             var maxChars = callArgs.TryGetValue("max_chars", out var mcEl) && mcEl.TryGetInt32(out var mc)
                 ? mc
                 : 0;
-            return shellHabitat.Last(tab, maxChars);
+            return AttachShellEvidence(shellHabitat.Last(tab, maxChars), session);
         }
         case "cdp_shell_which":
         {
@@ -1466,6 +1563,41 @@ TerminalMcp.Core.ShellCwdDefaults ShellDefaults(SessionContext s) => new()
     ProjectRoot = s.ProjectRoot,
     ScmRoot = s.ScmRoot
 };
+
+/// <summary>On failed shell result, project stdout/stderr → evidence/v0 anchors when loci exist.</summary>
+string AttachShellEvidence(string json, SessionContext s)
+{
+    try
+    {
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        var failed = (root.TryGetProperty("ok", out var okEl) && okEl.ValueKind == JsonValueKind.False)
+            || (root.TryGetProperty("exit_code", out var exEl) && exEl.TryGetInt32(out var code) && code != 0);
+        if (!failed)
+            return json;
+
+        var stdout = root.TryGetProperty("stdout", out var so) ? so.GetString() ?? "" : "";
+        var stderr = root.TryGetProperty("stderr", out var se) ? se.GetString() ?? "" : "";
+        var text = (stdout + "\n" + stderr).Trim();
+        if (text.Length == 0)
+            return json;
+
+        var evidence = EvidencePreprocess.Project(
+            "shell",
+            text,
+            new EvidenceContext(ProjectRoot: s.ProjectRoot, SolutionOrProjectPath: s.SolutionOrProjectPath));
+        if (evidence.ItemCount == 0)
+            return json;
+
+        var node = JsonNode.Parse(json)!.AsObject();
+        node["evidence"] = JsonNode.Parse(EvidencePreprocess.ToJson(evidence));
+        return node.ToJsonString(Pretty);
+    }
+    catch
+    {
+        return json;
+    }
+}
 
 (ScriptToolBus bus, PlanContext plan) PackageSession(
     SessionContext session,

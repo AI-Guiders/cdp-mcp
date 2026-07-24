@@ -85,6 +85,8 @@ internal sealed class BuildTestBackend(CdpSettings settings) : ICdpBackendModule
         {
             "build_structured" => await _jobs.BuildStructuredAsync(args, CancellationToken.None).ConfigureAwait(false),
             "run_tests" => await _jobs.RunTestsAsync(args, CancellationToken.None).ConfigureAwait(false),
+            "test_scene" => await _jobs.TestSceneAsync(args, CancellationToken.None).ConfigureAwait(false),
+            "test_plan" => await _jobs.TestPlanAsync(args, CancellationToken.None).ConfigureAwait(false),
             "publish_structured" => await _jobs.PublishStructuredAsync(args, CancellationToken.None).ConfigureAwait(false),
             "get_job_status" => _jobs.GetJobStatus(args),
             "get_job_log" => _jobs.GetJobLog(args),

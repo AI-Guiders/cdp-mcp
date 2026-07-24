@@ -141,6 +141,42 @@ internal static class IdeSessionLifecycle
         return Fail("cdp.test", $"No test projection for language '{lang}'.", target);
     }
 
+    public static async Task<string> TestSceneAsync(
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args,
+        ICdpBackendModule? buildMod,
+        CancellationToken ct)
+    {
+        if (!TryResolveTarget(session, args, out var target, out var err))
+            throw new ArgumentException(err);
+
+        var lang = ResolveLanguage(session);
+        if (!LooksCsharp(target, lang))
+            return Fail("cdp.test_scene", "csharp only in v0 (dotnet test --list-tests).", target);
+
+        if (buildMod is null)
+            throw new InvalidOperationException("build backend not mounted.");
+        return await buildMod.CallAsync("test_scene", WithSolution(args, target)).ConfigureAwait(false);
+    }
+
+    public static async Task<string> TestPlanAsync(
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args,
+        ICdpBackendModule? buildMod,
+        CancellationToken ct)
+    {
+        if (!TryResolveTarget(session, args, out var target, out var err))
+            throw new ArgumentException(err);
+
+        var lang = ResolveLanguage(session);
+        if (!LooksCsharp(target, lang))
+            return Fail("cdp.test_plan", "csharp only in v0.", target);
+
+        if (buildMod is null)
+            throw new InvalidOperationException("build backend not mounted.");
+        return await buildMod.CallAsync("test_plan", WithSolution(args, target)).ConfigureAwait(false);
+    }
+
     public static async Task<string> RunAsync(
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args,
