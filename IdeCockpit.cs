@@ -49,6 +49,10 @@ internal static class IdeCockpit
             ["copy"] = ("cdp_buffer", Dict(("op", "copy"))),
             ["cut"] = ("cdp_buffer", Dict(("op", "cut"))),
             ["paste"] = ("cdp_buffer", Dict(("op", "paste"))),
+            ["clipboard"] = ("cdp_buffer", Dict(("op", "clipboard"))),
+            ["clip"] = ("cdp_buffer", Dict(("op", "clipboard"))),
+            ["clip_clear"] = ("cdp_buffer", Dict(("op", "clipboard_clear"))),
+            ["clipboard_clear"] = ("cdp_buffer", Dict(("op", "clipboard_clear"))),
             ["find"] = ("cdp_buffer", Dict(("op", "find"))),
             ["find_all"] = ("cdp_buffer", Dict(("op", "find_all"))),
             ["find_in_files"] = ("cdp_buffer", Dict(("op", "find_all"), ("scope", "project"))),
@@ -285,7 +289,7 @@ internal static class IdeCockpit
                 "Edit sniper: go=scope from=/till= → go=target → go=peek → go=edit_draft. " +
                 "Quality: go=quality / mfd=gates (project-tunable .cdp/quality-gates.toml). " +
                 "Analysis: go=analysis_scene / go=clones (domain scene, not MFD). " +
-                "Editor comfort: go=undo|redo|history|copy|cut|paste|find|back|forward|scratch. " +
+                "Editor comfort: go=undo|redo|history|copy|cut|paste|clipboard|find|back|forward|scratch. " +
                 "Find: go=find query= (buffer); go=find_in_files / scope=project = Find in Files (rg→anchors); regex=true = Use Regular Expressions. " +
                 "Go To (Ctrl+T): go=goto query= (f|t|m|# prefixes). " +
                 "go_detail=full for organ dump. Organs stay — not a monolith."
@@ -529,6 +533,8 @@ internal static class IdeCockpit
 
         if (EditorComfort.AnyUndo())
             Add("n-undo", "undo", "Undo last edit", "buffer edit stack");
+        if (EditorComfort.AnyClipboard())
+            Add("n-clipboard", "clipboard", "Clipboard", "session clip — peek / paste / clear");
         if (EditorComfort.AnyNavBack())
             Add("n-back", "back", "Nav back", "locus stack");
 
@@ -802,6 +808,17 @@ internal static class IdeCockpit
                 "cdp_buffer op=open → go=editor_scene",
                 "buffer_scene",
                 new { count = 0 }));
+        }
+
+        if (EditorComfort.ClipboardLocusDetail() is { } clip)
+        {
+            list.Add(new Locus(
+                "clip:session",
+                "clipboard",
+                $"clip {clip.Chars}c",
+                "go=clipboard → paste | clip_clear",
+                "clipboard",
+                new { chars = clip.Chars, from = clip.From, preview = clip.Preview }));
         }
 
         list.Add(new Locus(

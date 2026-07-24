@@ -181,12 +181,12 @@ List<Tool> BuildMetaTools() =>
             recent_index = new { type = "integer", description = "Optional 0-based Open Recent index (0 = last opened)." }
         }
     }),
-    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek + editor comfort undo|redo|history|copy|cut|paste|find|find_all|replace_all|back|forward|nav|recent_files|scratch. Find: scope=buffer (Ctrl+F) or scope=project (Ctrl+Shift+F / rg→anchors); regex=true = Use Regular Expressions. Instant Save: edit/close flush=true by default. Comfort results use anchors. Relative path= → ProjectRoot after cdp_open. csharp: prefer edit_op=anchor [F:;M:;K:]. Parallel OK.", new
+    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek + editor comfort undo|redo|history|copy|cut|paste|clipboard|clip_clear|find|find_all|replace_all|back|forward|nav|recent_files|scratch. Find: scope=buffer (Ctrl+F) or scope=project (Ctrl+Shift+F / rg→anchors); regex=true = Use Regular Expressions. Clipboard: session clip scene (not OS) — inspect/clear; filled by copy|cut. Instant Save: edit/close flush=true by default. Comfort results use anchors. Relative path= → ProjectRoot after cdp_open. csharp: prefer edit_op=anchor [F:;M:;K:]. Parallel OK.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek|undo|redo|history|copy|cut|paste|find|find_all|replace_all|back|forward|nav|recent_files|scratch" },
+            op = new { type = "string", description = "scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek|undo|redo|history|copy|cut|paste|clipboard|clipboard_clear|find|find_all|replace_all|back|forward|nav|recent_files|scratch" },
             path = new { type = "string", description = "reload|keep_disk|disk_peek: optional (omit = all drifted); find scope=project: optional subdir; otherwise file path" },
             pad = new { type = "integer", description = "disk_peek: ± context lines around first diff (default 2)" },
             doc_id = new { type = "string" },
@@ -215,6 +215,7 @@ List<Tool> BuildMetaTools() =>
             glob = new { type = "string", description = "find scope=project: rg --glob (e.g. *.cs)" },
             max = new { type = "integer", description = "find scope=project: hit cap" },
             peek = new { type = "boolean", description = "find scope=project: auto open+peek top hit (default true)" },
+            clear = new { type = "boolean", description = "clipboard: true = clear session clip" },
             ext = new { type = "string", description = "scratch: file extension (default cs)" }
         },
         required = new[] { "op" }

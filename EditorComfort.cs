@@ -38,6 +38,7 @@ internal static class EditorComfort
     public static bool IsComfortOp(string op) => op is
         "undo" or "redo" or "history"
         or "copy" or "paste" or "cut"
+        or "clipboard" or "clip" or "clipboard_clear" or "clip_clear"
         or "find" or "find_all" or "replace_all"
         or "back" or "forward" or "nav" or "nav_status"
         or "recent_files" or "scratch";
@@ -55,6 +56,8 @@ internal static class EditorComfort
             "copy" => Copy(store, session, args),
             "cut" => Cut(store, session, args),
             "paste" => Paste(store, session, args),
+            "clipboard" or "clip" => ClipboardCard(args),
+            "clipboard_clear" or "clip_clear" => ClipboardClear(),
             "find" or "find_all" => Find(store, session, args, all: op == "find_all" || BoolOr(args, "all", false)),
             "replace_all" => ReplaceAll(store, session, args),
             "back" => NavStep(store, session, forward: false),
@@ -141,6 +144,8 @@ internal static class EditorComfort
                 undo_buffers = Stacks.Count(kv => kv.Value.Undo.Count > 0),
                 clipboard = ClipText is { Length: > 0 },
                 clip_chars = ClipText?.Length ?? 0,
+                clip_from = ClipFrom,
+                clip_preview = ClipText is null ? null : PreviewClip(ClipText, 80),
                 nav_back = NavBack.Count,
                 nav_forward = NavForward.Count,
                 nav_current = NavCurrent,
@@ -159,6 +164,91 @@ internal static class EditorComfort
     {
         lock (Gate)
             return NavBack.Count > 0;
+    }
+
+    public static bool AnyClipboard()
+    {
+        lock (Gate)
+            return ClipText is { Length: > 0 };
+    }
+
+    /// <summary>Desk locus pulse when clipboard holds text.</summary>
+    public static (int Chars, string? From, string Preview)? ClipboardLocusDetail()
+    {
+        lock (Gate)
+        {
+            if (ClipText is null)
+                return null;
+            return (ClipText.Length, ClipFrom, PreviewClip(ClipText, 160));
+        }
+    }
+
+    static string ClipboardCard(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (BoolOr(args, "clear", false))
+            return ClipboardClear();
+
+        lock (Gate)
+        {
+            var empty = ClipText is null;
+            var preview = empty ? null : PreviewClip(ClipText!, 1_200);
+            return JsonSerializer.Serialize(new
+            {
+                schema = Schema,
+                ok = true,
+                op = "clipboard",
+                empty,
+                chars = ClipText?.Length ?? 0,
+                from = ClipFrom,
+                preview,
+                next = empty
+                    ? (object[])
+                    [
+                        new { go = "copy", label = "Copy into clip", why = "anchor= or start_line=" },
+                        new { go = "cut", label = "Cut into clip", why = "anchor= — removes from buffer" }
+                    ]
+                    : (object[])
+                    [
+                        new { go = "paste", label = "Paste", why = "anchor=/path= destination" },
+                        new { go = "clip_clear", label = "Clear clipboard", why = "drop session clip" },
+                        new { go = "cut", label = "Cut replace", why = "overwrite clip from buffer" }
+                    ],
+                hint =
+                    "Session clipboard (not OS). go=clipboard to inspect; go=copy|cut fills it; go=paste applies. " +
+                    "clear=true / go=clip_clear to empty."
+            }, Pretty);
+        }
+    }
+
+    static string ClipboardClear()
+    {
+        lock (Gate)
+        {
+            ClipText = null;
+            ClipFrom = null;
+        }
+
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "clipboard_clear",
+            empty = true,
+            next = new object[]
+            {
+                new { go = "copy", label = "Copy", why = "refill clip" },
+                new { go = "cut", label = "Cut", why = "refill + remove" }
+            },
+            hint = "Session clipboard cleared."
+        }, Pretty);
+    }
+
+    static string PreviewClip(string text, int max)
+    {
+        var one = text.Replace("\r\n", "\n").Replace('\r', '\n');
+        if (one.Length <= max)
+            return one;
+        return one[..max] + "\n…";
     }
 
     static string Undo(DocumentBufferStore store, SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
@@ -286,9 +376,11 @@ internal static class EditorComfort
             from,
             next = new object[]
             {
-                new { go = "paste", label = "Paste", why = "anchor=/path= destination" }
+                new { go = "paste", label = "Paste", why = "anchor=/path= destination" },
+                new { go = "clipboard", label = "Clipboard", why = "inspect session clip" },
+                new { go = "cut", label = "Cut instead", why = "same span, remove from buffer" }
             },
-            hint = "Session clipboard set (not OS clipboard). go=paste at anchor or path+line."
+            hint = "Session clipboard set (not OS). go=clipboard to peek; go=paste at anchor."
         }, Pretty);
     }
 
@@ -796,6 +888,14 @@ internal static class EditorComfort
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
+        // Clipboard-only fill: no open buffer required.
+        if (OptString(args, "text") is { Length: > 0 } literal
+            && OptString(args, "anchor") is null
+            && OptString(args, "at") is null
+            && OptString(args, "from") is null
+            && IntOrNull(args, "start_line") is null)
+            return (literal, "text=");
+
         var detailed = ExtractSpanDetailed(store, session, args, ResolveBuf(store, session, args));
         return (detailed.Text, detailed.From);
     }
@@ -880,6 +980,8 @@ internal static class EditorComfort
     static object[] ComfortNext(DocBuffer buf) =>
     [
         new { go = "undo", label = "Undo", why = "edit stack" },
+        new { go = "clipboard", label = "Clipboard", why = AnyClipboard() ? "session clip holds text" : "empty — copy/cut" },
+        new { go = "cut", label = "Cut", why = "anchor= → clip + remove" },
         new { go = "history", label = "History", why = $"doc {buf.DocId}" },
         new { go = "back", label = "Nav back", why = "locus stack" }
     ];
@@ -892,7 +994,8 @@ internal static class EditorComfort
             {
                 empty = ClipText is null,
                 chars = ClipText?.Length ?? 0,
-                from = ClipFrom
+                from = ClipFrom,
+                preview = ClipText is null ? null : PreviewClip(ClipText, 120)
             };
         }
     }
