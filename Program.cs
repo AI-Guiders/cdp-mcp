@@ -224,24 +224,26 @@ List<Tool> BuildMetaTools() =>
             context_lines = new { type = "integer", description = "Max lines in context window (default 80)" }
         }
     }),
-    Meta("cdp_edit_plan", "Logical edit plan (git_plan analogue). Prefer YAML: op=validate|apply yaml='- message: …\\n  steps:\\n    - path: …'. Also slices_yaml=|plan= or slices=[] JSON. edit_op=anchor preferred. Routes through cdp_buffer — not Cursor Write.", new
+    Meta("cdp_edit_plan", "Logical edit plan. YAML preferred. Mutate: steps. Fix (Roslyn code action, document): path + fix:[IDE0005,…]. sketch=fix drafts suggested_yaml from diags. Stable diagnostic ids. Routes mutate via cdp_buffer; fix via roslyn_apply_code_action.", new
     {
         type = "object",
         properties = new
         {
             op = new { type = "string", description = "draft|validate|apply (preview→validate); default draft" },
+            sketch = new { type = "string", description = "draft: fix|diags — build suggested_yaml from document diagnostics" },
             include = new { type = "array", items = new { type = "string" }, description = "draft: filter candidates by path/doc_id; cold paths listed too" },
-            yaml = new { type = "string", description = "Preferred: YAML list of slices (or slices: […] document). Alias: slices_yaml=|plan=." },
+            path = new { type = "string", description = "draft sketch=fix: focus file" },
+            yaml = new { type = "string", description = "Preferred: YAML list of slices (path+fix and/or steps). Alias: slices_yaml=|plan=." },
             slices_yaml = new { type = "string", description = "Alias of yaml=" },
             plan = new { type = "string", description = "Alias of yaml=" },
             slices = new
             {
-                description = "JSON array [{message,steps…}] or YAML/JSON string (prefer yaml= instead)"
+                description = "JSON array [{path,fix,message,steps…}] or YAML/JSON string (prefer yaml= instead)"
             },
             resolve_anchors = new { type = "boolean", description = "validate: dry-resolve anchor wires (default true)" },
             stop_on_error = new { type = "boolean", description = "apply: stop first failing step (default true)" },
-            diagnose = new { type = "boolean", description = "apply: per-step diagnostics (default true)" },
-            flush = new { type = "boolean", description = "apply: Instant Save per step (default true)" },
+            diagnose = new { type = "boolean", description = "apply mutate: per-step diagnostics (default true)" },
+            flush = new { type = "boolean", description = "apply mutate: Instant Save per step (default true)" },
             skip_validate = new { type = "boolean", description = "apply: skip pre-validate (default false)" }
         }
     }),

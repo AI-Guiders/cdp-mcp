@@ -172,25 +172,31 @@ internal static class EditorPlane
         var op = (OptString(args, "op") ?? "draft").Trim().ToLowerInvariant();
         return op switch
         {
-            "draft" => Draft(store, session, args),
-            "validate" => Validate(store, session, args),
+            "draft" => await DraftAsync(store, session, byDomain, args, cancellationToken)
+                .ConfigureAwait(false),
+            "validate" => await ValidateAsync(store, session, byDomain, args, cancellationToken)
+                .ConfigureAwait(false),
             "apply" => await ApplyAsync(store, session, byDomain, args, cancellationToken)
                 .ConfigureAwait(false),
-            "preview" => Validate(store, session, args), // alias like test_plan
+            "preview" => await ValidateAsync(store, session, byDomain, args, cancellationToken)
+                .ConfigureAwait(false),
             _ => throw new ArgumentException("cdp_edit_plan op must be draft|validate|apply (preview→validate).")
         };
     }
 
-    static string Draft(
+    static async Task<string> DraftAsync(
         DocumentBufferStore store,
         SessionContext session,
-        IReadOnlyDictionary<string, JsonElement> args)
+        IReadOnlyDictionary<string, ICdpBackendModule> byDomain,
+        IReadOnlyDictionary<string, JsonElement> args,
+        CancellationToken cancellationToken)
     {
         var docs = store.All
             .OrderBy(b => b.DocId, StringComparer.Ordinal)
             .ToArray();
 
         var include = StringArray(args, "include");
+        var sketch = (OptString(args, "sketch") ?? "").Trim().ToLowerInvariant();
         var candidates = new List<object>();
         foreach (var b in docs)
         {
@@ -213,7 +219,6 @@ internal static class EditorPlane
             });
         }
 
-        // Optional disk paths not yet opened — still list as cold candidates.
         foreach (var raw in include)
         {
             if (string.IsNullOrWhiteSpace(raw) || raw.StartsWith("doc-", StringComparison.OrdinalIgnoreCase))
@@ -245,43 +250,58 @@ internal static class EditorPlane
             }
         }
 
+        string? suggestedYaml = null;
+        if (sketch is "fix" or "diags" or "diagnostics")
+        {
+            var focus = OptString(args, "path");
+            string? target = null;
+            if (focus is { Length: > 0 })
+                target = ResolveUserPath(session, focus);
+            else if (docs.FirstOrDefault(d =>
+                         string.Equals(d.Language, "csharp", StringComparison.OrdinalIgnoreCase)) is { } cs)
+                target = cs.Path;
+            else if (docs.Length > 0)
+                target = docs[0].Path;
+
+            if (target is not null)
+                suggestedYaml = await EditPlanFix.SuggestFixYamlAsync(session, byDomain, target, cancellationToken)
+                    .ConfigureAwait(false);
+        }
+
         return JsonSerializer.Serialize(new
         {
             schema = PlanSchema,
             op = "draft",
             ok = true,
+            sketch = string.IsNullOrEmpty(sketch) ? null : sketch,
             hint =
-                "Prefer YAML: op=validate|apply yaml='- message: …\\n  steps:\\n  - path: …'. " +
-                "Or slices=[] JSON. edit_op=anchor|replace|replace_range|set_text.",
+                "Mutate: yaml steps. Fix (code action): yaml with path+fix:[IDE0005,…]. " +
+                "sketch=fix → suggested_yaml from document diags. Prefer stable diagnostic ids.",
             session = new { project_root = session.ProjectRoot, language = session.Language },
             candidates,
             candidate_count = candidates.Count,
+            suggested_yaml = suggestedYaml,
             example_yaml = ExampleYaml,
-            example_slice = new
-            {
-                message = "why this logical edit group",
-                steps = new object[]
-                {
-                    new
-                    {
-                        path = "Foo.cs",
-                        edit_op = "anchor",
-                        anchor = "[F:Foo.cs;M:Bar;K:Method]",
-                        text = "// replacement body"
-                    }
-                }
-            }
+            example_fix_yaml =
+                """
+                - path: Foo.cs
+                  message: clean document
+                  fix:
+                    - IDE0005
+                """
         }, Pretty);
     }
 
-    static string Validate(
+    static async Task<string> ValidateAsync(
         DocumentBufferStore store,
         SessionContext session,
-        IReadOnlyDictionary<string, JsonElement> args)
+        IReadOnlyDictionary<string, ICdpBackendModule> byDomain,
+        IReadOnlyDictionary<string, JsonElement> args,
+        CancellationToken cancellationToken)
     {
         var slices = TryGetSlices(args)
             ?? throw new ArgumentException(
-                "cdp_edit_plan validate requires yaml= (YAML list) or slices=[{message,steps:…}].");
+                "cdp_edit_plan validate requires yaml= (YAML list) or slices=[{message,steps|fix:…}].");
         var resolveAnchors = BoolOr(args, "resolve_anchors", defaultValue: true);
         var results = new List<object>();
         var anyFail = false;
@@ -289,12 +309,37 @@ internal static class EditorPlane
         foreach (var slice in slices.Take(MaxSlices))
         {
             var errors = new List<string>();
-            if (string.IsNullOrWhiteSpace(slice.Message))
-                errors.Add("message required");
-            if (slice.Steps.Count == 0)
-                errors.Add("steps required (non-empty)");
+            if (string.IsNullOrWhiteSpace(slice.Message) && slice.FixIds.Count == 0 && slice.Steps.Count == 0)
+                errors.Add("message or fix/steps required");
+            if (slice.FixIds.Count == 0 && slice.Steps.Count == 0)
+                errors.Add("fix and/or steps required");
             if (slice.Steps.Count > MaxStepsPerSlice)
                 errors.Add($"steps_cap:{MaxStepsPerSlice}");
+
+            object? fixCheck = null;
+            if (slice.FixIds.Count > 0)
+            {
+                var path = slice.Path;
+                if (string.IsNullOrWhiteSpace(path))
+                    errors.Add("path required for fix:");
+                else
+                {
+                    var full = ResolveUserPath(session, path);
+                    var (ok, err, hits) = await EditPlanFix.FindHitsAsync(
+                            session, byDomain, full, slice.FixIds, cancellationToken)
+                        .ConfigureAwait(false);
+                    if (!ok)
+                        errors.Add(err ?? "fix_validate_failed");
+                    fixCheck = new
+                    {
+                        ok,
+                        path = full,
+                        ids = slice.FixIds,
+                        hits = hits.Select(h => new { h.Id, h.Line, h.Column, h.Message }).ToArray(),
+                        error = err
+                    };
+                }
+            }
 
             var stepResults = new List<object>();
             for (var i = 0; i < slice.Steps.Count && i < MaxStepsPerSlice; i++)
@@ -313,12 +358,14 @@ internal static class EditorPlane
                 });
             }
 
-            var ok = errors.Count == 0;
-            if (!ok) anyFail = true;
+            var okSlice = errors.Count == 0;
+            if (!okSlice) anyFail = true;
             results.Add(new
             {
                 message = slice.Message,
-                ok,
+                path = slice.Path,
+                ok = okSlice,
+                fix = fixCheck,
                 step_count = slice.Steps.Count,
                 errors,
                 steps = stepResults
@@ -334,7 +381,7 @@ internal static class EditorPlane
             slices = results,
             hint = anyFail
                 ? "Fix slice errors before op=apply."
-                : "Ready: cdp_edit_plan op=apply with the same slices."
+                : "Ready: cdp_edit_plan op=apply with the same yaml."
         }, Pretty);
     }
 
@@ -355,7 +402,8 @@ internal static class EditorPlane
 
         if (!skipValidate)
         {
-            var pre = Validate(store, session, args);
+            var pre = await ValidateAsync(store, session, byDomain, args, cancellationToken)
+                .ConfigureAwait(false);
             using var doc = JsonDocument.Parse(pre);
             if (doc.RootElement.TryGetProperty("ok", out var okEl) && okEl.ValueKind == JsonValueKind.False)
             {
@@ -378,8 +426,62 @@ internal static class EditorPlane
         {
             cancellationToken.ThrowIfCancellationRequested();
             var stepResults = new List<object>();
+            object? fixResult = null;
             var sliceOk = true;
             string? sliceError = null;
+
+            // fix: first (code actions), then mutate steps
+            if (slice.FixIds.Count > 0 && !string.IsNullOrWhiteSpace(slice.Path))
+            {
+                try
+                {
+                    var full = ResolveUserPath(session, slice.Path);
+                    var (okHits, errHits, hits) = await EditPlanFix.FindHitsAsync(
+                            session, byDomain, full, slice.FixIds, cancellationToken)
+                        .ConfigureAwait(false);
+                    if (!okHits)
+                    {
+                        sliceOk = false;
+                        anyFail = true;
+                        sliceError = errHits;
+                        fixResult = new { ok = false, error = errHits };
+                    }
+                    else
+                    {
+                        var (okApply, errApply, detail) = await EditPlanFix.ApplyHitsAsync(
+                                session, byDomain, full, hits, cancellationToken)
+                            .ConfigureAwait(false);
+                        fixResult = new { ok = okApply, error = errApply, applied = detail };
+                        if (!okApply)
+                        {
+                            sliceOk = false;
+                            anyFail = true;
+                            sliceError = errApply;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    sliceOk = false;
+                    anyFail = true;
+                    sliceError = ex.Message;
+                    fixResult = new { ok = false, error = ex.Message };
+                }
+
+                if (!sliceOk && stopOnError)
+                {
+                    sliceResults.Add(new
+                    {
+                        message = slice.Message,
+                        path = slice.Path,
+                        ok = false,
+                        error = sliceError,
+                        fix = fixResult,
+                        steps = stepResults
+                    });
+                    break;
+                }
+            }
 
             for (var i = 0; i < slice.Steps.Count && i < MaxStepsPerSlice; i++)
             {
@@ -421,8 +523,10 @@ internal static class EditorPlane
             sliceResults.Add(new
             {
                 message = slice.Message,
+                path = slice.Path,
                 ok = sliceOk,
                 error = sliceError,
+                fix = fixResult,
                 steps = stepResults
             });
 
@@ -581,9 +685,11 @@ internal static class EditorPlane
         return dict;
     }
 
-    sealed class EditSlice(string Message, IReadOnlyList<EditStep> Steps)
+    sealed class EditSlice(string Message, IReadOnlyList<EditStep> Steps, string? Path = null, IReadOnlyList<string>? FixIds = null)
     {
         public string Message { get; } = Message;
+        public string? Path { get; } = Path;
+        public IReadOnlyList<string> FixIds { get; } = FixIds ?? [];
         public IReadOnlyList<EditStep> Steps { get; } = Steps;
     }
 
@@ -638,14 +744,31 @@ internal static class EditorPlane
     {
         try
         {
-            // Accept either a bare list or { slices: [...] }
             var trimmed = yaml.TrimStart();
-            if (trimmed.StartsWith("slices:", StringComparison.OrdinalIgnoreCase)
+            // Document form: path + fix: (and optional steps/slices wrapper)
+            if (trimmed.StartsWith("path:", StringComparison.OrdinalIgnoreCase)
+                || trimmed.StartsWith("fix:", StringComparison.OrdinalIgnoreCase)
+                || trimmed.StartsWith("slices:", StringComparison.OrdinalIgnoreCase)
                 || trimmed.StartsWith("---", StringComparison.Ordinal))
             {
                 var wrap = Yaml.Deserialize<YamlPlanDoc>(yaml);
-                if (wrap?.Slices is { Count: > 0 })
-                    return wrap.Slices.Select(FromYamlSlice).ToArray();
+                if (wrap is not null)
+                {
+                    if (wrap.Slices is { Count: > 0 })
+                        return wrap.Slices.Select(FromYamlSlice).ToArray();
+                    if ((wrap.Fix is { Count: > 0 } || wrap.Steps is { Count: > 0 })
+                        && !string.IsNullOrWhiteSpace(wrap.Path))
+                    {
+                        return
+                        [
+                            new EditSlice(
+                                wrap.Message ?? "",
+                                (wrap.Steps ?? []).Select(FromYamlStep).ToArray(),
+                                wrap.Path,
+                                wrap.Fix ?? [])
+                        ];
+                    }
+                }
             }
 
             var list = Yaml.Deserialize<List<YamlSliceDto>>(yaml);
@@ -661,25 +784,47 @@ internal static class EditorPlane
 
     static EditSlice FromYamlSlice(YamlSliceDto s)
     {
-        var steps = (s.Steps ?? [])
-            .Select(st => new EditStep
-            {
-                Path = st.Path,
-                EditOp = st.EditOp ?? st.Op,
-                Anchor = st.Anchor,
-                At = st.At,
-                Text = st.Text,
-                OldString = st.OldString,
-                NewString = st.NewString,
-                StartLine = st.StartLine,
-                StartColumn = st.StartColumn,
-                EndLine = st.EndLine,
-                EndColumn = st.EndColumn,
-                AllowShrink = st.AllowShrink
-            })
-            .ToArray();
-        return new EditSlice(s.Message ?? "", steps);
+        var steps = (s.Steps ?? []).Select(FromYamlStep).ToArray();
+        // If steps omit path but slice has path, inherit for mutate steps.
+        if (!string.IsNullOrWhiteSpace(s.Path))
+        {
+            steps = steps.Select(st => string.IsNullOrWhiteSpace(st.Path)
+                ? new EditStep
+                {
+                    Path = s.Path,
+                    EditOp = st.EditOp,
+                    Anchor = st.Anchor,
+                    At = st.At,
+                    Text = st.Text,
+                    OldString = st.OldString,
+                    NewString = st.NewString,
+                    StartLine = st.StartLine,
+                    StartColumn = st.StartColumn,
+                    EndLine = st.EndLine,
+                    EndColumn = st.EndColumn,
+                    AllowShrink = st.AllowShrink
+                }
+                : st).ToArray();
+        }
+
+        return new EditSlice(s.Message ?? "", steps, s.Path, s.Fix ?? []);
     }
+
+    static EditStep FromYamlStep(YamlStepDto st) => new()
+    {
+        Path = st.Path,
+        EditOp = st.EditOp ?? st.Op,
+        Anchor = st.Anchor,
+        At = st.At,
+        Text = st.Text,
+        OldString = st.OldString,
+        NewString = st.NewString,
+        StartLine = st.StartLine,
+        StartColumn = st.StartColumn,
+        EndLine = st.EndLine,
+        EndColumn = st.EndColumn,
+        AllowShrink = st.AllowShrink
+    };
 
     static IReadOnlyList<EditSlice> ParseJsonSlices(string json)
     {
@@ -700,6 +845,20 @@ internal static class EditorPlane
             if (item.ValueKind != JsonValueKind.Object)
                 continue;
             var message = item.TryGetProperty("message", out var m) ? m.GetString() ?? "" : "";
+            var path = item.TryGetProperty("path", out var p) ? p.GetString() : null;
+            var fixIds = new List<string>();
+            if (item.TryGetProperty("fix", out var fixEl) && fixEl.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var f in fixEl.EnumerateArray())
+                {
+                    if (f.ValueKind == JsonValueKind.String && f.GetString() is { Length: > 0 } id)
+                        fixIds.Add(id);
+                    else if (f.ValueKind == JsonValueKind.Object && f.TryGetProperty("id", out var idEl)
+                             && idEl.GetString() is { Length: > 0 } oid)
+                        fixIds.Add(oid);
+                }
+            }
+
             var steps = new List<EditStep>();
             if (item.TryGetProperty("steps", out var stepsEl) && stepsEl.ValueKind == JsonValueKind.Array)
             {
@@ -711,7 +870,7 @@ internal static class EditorPlane
                 }
             }
 
-            list.Add(new EditSlice(message, steps));
+            list.Add(new EditSlice(message, steps, path, fixIds));
         }
 
         return list;
@@ -719,12 +878,18 @@ internal static class EditorPlane
 
     sealed class YamlPlanDoc
     {
+        public string? Path { get; set; }
+        public string? Message { get; set; }
+        public List<string>? Fix { get; set; }
+        public List<YamlStepDto>? Steps { get; set; }
         public List<YamlSliceDto>? Slices { get; set; }
     }
 
     sealed class YamlSliceDto
     {
+        public string? Path { get; set; }
         public string? Message { get; set; }
+        public List<string>? Fix { get; set; }
         public List<YamlStepDto>? Steps { get; set; }
     }
 
