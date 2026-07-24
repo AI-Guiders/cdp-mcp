@@ -567,8 +567,26 @@ internal static class DocumentEditPlane
     static string Close(DocumentBufferStore store, IReadOnlyDictionary<string, JsonElement> args)
     {
         var buf = store.Resolve(OptString(args, "path"), OptString(args, "doc_id"));
-        if (BoolOr(args, "flush", defaultValue: false) && buf.Dirty)
-            store.Flush(buf);
+        // Instant Save: close defaults to flush=true (same as edit). Discard needs explicit discard=true.
+        var flush = BoolOr(args, "flush", defaultValue: true);
+        var discard = BoolOr(args, "discard", defaultValue: false);
+        var wasDirty = buf.Dirty;
+        var flushed = false;
+        if (wasDirty)
+        {
+            if (flush)
+            {
+                store.Flush(buf, allowShrink: true);
+                flushed = true;
+            }
+            else if (!discard)
+            {
+                throw new InvalidOperationException(
+                    $"Buffer is dirty ({buf.Path}). close defaults to flush=true (Instant Save); " +
+                    "pass flush=false&discard=true to drop unsaved edits.");
+            }
+        }
+
         var path = buf.Path;
         var id = buf.DocId;
         store.Close(path, null);
@@ -577,7 +595,9 @@ internal static class DocumentEditPlane
             schema = "doc_close/v0",
             ok = true,
             closed_doc_id = id,
-            path
+            path,
+            flushed,
+            discarded_dirty = discard && wasDirty && !flushed
         }, Pretty);
     }
 
