@@ -364,16 +364,17 @@ List<Tool> BuildMetaTools() =>
             timeout_seconds = new { type = "integer" }
         }
     }),
-    Meta("cdp_goto", "VS Ctrl+T / Go To All: fuzzy files/types/members → anchors. query= required. Prefixes: f file, t type, m member, # symbol (or kind=). Prefer over find when you know the name.", new
+    Meta("cdp_goto", "VS Ctrl+T Go To All + Ctrl+Q features: fuzzy files/types/members → anchors (top hit auto open+peek). Prefixes: f/t/m/# code; q: desk verbs (or kind=feature). Prefer over find when you know the name.", new
     {
         type = "object",
         properties = new
         {
-            query = new { type = "string", description = "Search text; optional prefix 't Foo' / 'f:Bar'" },
+            query = new { type = "string", description = "Search text; optional prefix 't Foo' / 'f:Bar' / 'q undo'" },
             q = new { type = "string", description = "Alias of query" },
-            kind = new { type = "string", description = "all|file|type|member|symbol (default all)" },
+            kind = new { type = "string", description = "all|file|type|member|symbol|feature (default all)" },
             filter = new { type = "string", description = "Alias of kind" },
-            max = new { type = "integer", description = "Cap hits (default 40)" }
+            max = new { type = "integer", description = "Cap hits (default 40)" },
+            peek = new { type = "boolean", description = "Auto open+peek top code hit (default true)" }
         }
     }),
     Meta("cdp_analysis_scene", "Code Analysis domain scene (git_scene/test_scene peer). On demand — not MFD. feature omit → map; feature=clones → VS-style duplicates (exact/strong), results=anchors. scope=file|method|selection|project|solution; optional anchor=/from= seed; search_in= for seed radius.", new
@@ -910,7 +911,7 @@ async Task<string> DispatchMetaAsync(
                    "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_editor_scene|cdp_edit_sniper|cdp_edit_plan (map→aim→slices), " +
                    "cdp_build|cdp_run|cdp_test|cdp_test_scene|cdp_test_plan (session IDE lifecycle), " +
                    "cdp_analysis_scene (code analysis domain; feature=clones), " +
-                   "cdp_goto (VS Ctrl+T Go To All → anchors), " +
+                   "cdp_goto (Ctrl+T code + Ctrl+Q features → land/peek), " +
                    "cdp_buffer(op=scene|open|read|edit|diagnostics|close) file buffer SSOT; edit returns diagnostics, " +
                    "cdp_debug(op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|…) debug plane; session defaults, not breakpoints JSON, " +
                    "cdp_pkg_find|list|add|remove|update|outdated, cdp_project_scene|create|list|close|add_to_sln, " +

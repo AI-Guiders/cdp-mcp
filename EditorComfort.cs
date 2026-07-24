@@ -149,6 +149,18 @@ internal static class EditorComfort
         }
     }
 
+    public static bool AnyUndo()
+    {
+        lock (Gate)
+            return Stacks.Values.Any(s => s.Undo.Count > 0);
+    }
+
+    public static bool AnyNavBack()
+    {
+        lock (Gate)
+            return NavBack.Count > 0;
+    }
+
     static string Undo(DocumentBufferStore store, SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
         var buf = ResolveBuf(store, session, args);

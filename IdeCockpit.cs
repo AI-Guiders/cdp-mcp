@@ -69,6 +69,8 @@ internal static class IdeCockpit
             ["goto"] = ("cdp_goto", null),
             ["go_to"] = ("cdp_goto", null),
             ["t"] = ("cdp_goto", null),
+            ["q"] = ("cdp_goto", Dict(("kind", "feature"))),
+            ["feature"] = ("cdp_goto", Dict(("kind", "feature"))),
             ["shell_scene"] = ("cdp_shell_scene", null),
             ["shell"] = ("cdp_shell_scene", null),
             ["shell_last"] = ("cdp_shell_last", null),
@@ -87,6 +89,36 @@ internal static class IdeCockpit
             d[k] = JsonSerializer.SerializeToElement(v);
         return d;
     }
+
+    /// <summary>VS Ctrl+Q — fuzzy desk verbs / organs (not code).</summary>
+    public static FeatureHit[] SearchFeatures(string query, int max)
+    {
+        var q = (query ?? "").Trim();
+        if (q.Length == 0)
+            return [];
+
+        static int Score(string name, string query)
+        {
+            if (name.Equals(query, StringComparison.OrdinalIgnoreCase))
+                return 1000;
+            if (name.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+                return 800;
+            if (name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                return 500;
+            return 0;
+        }
+
+        return GoMap.Keys
+            .Select(go => (go, score: Score(go, q)))
+            .Where(x => x.score > 0)
+            .OrderByDescending(x => x.score)
+            .ThenBy(x => x.go, StringComparer.OrdinalIgnoreCase)
+            .Take(max)
+            .Select(x => new FeatureHit(x.go, x.score, GoMap[x.go].Tool))
+            .ToArray();
+    }
+
+    public readonly record struct FeatureHit(string Go, int Score, string Tool);
 
     sealed class Locus(
         string Id,
@@ -487,7 +519,15 @@ internal static class IdeCockpit
         if (session.ProjectRoot is null)
             Add("n-open", "project_scene", "Project map", "No project — cdp_open / project_scene first");
         else
+        {
+            Add("n-goto", "goto", "Go To (Ctrl+T)", "query= type/member/file — land on anchor");
             Add("n-editor", "editor_scene", "Editor map", "Buffer/desk loop");
+        }
+
+        if (EditorComfort.AnyUndo())
+            Add("n-undo", "undo", "Undo last edit", "buffer edit stack");
+        if (EditorComfort.AnyNavBack())
+            Add("n-back", "back", "Nav back", "locus stack");
 
         // Quality stabilizer: after thick files / gate findings — guide, don't sermon.
         if (quality is { Enabled: true, Fail: > 0 })
