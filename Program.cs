@@ -359,6 +359,25 @@ List<Tool> BuildMetaTools() =>
             timeout_seconds = new { type = "integer" }
         }
     }),
+    Meta("cdp_analysis_scene", "Code Analysis domain scene (git_scene/test_scene peer). On demand — not MFD. feature omit → map; feature=clones → VS-style duplicates (exact/strong), results=anchors. scope=file|method|selection|project|solution; optional anchor=/from= seed; search_in= for seed radius.", new
+    {
+        type = "object",
+        properties = new
+        {
+            feature = new { type = "string", description = "omit|scene → map; clones → code clone analysis" },
+            op = new { type = "string", description = "Alias of feature" },
+            scope = new { type = "string", description = "clones: file|method|selection|project|solution" },
+            path = new { type = "string", description = "clones: file under analysis / seed file" },
+            anchor = new { type = "string", description = "clones seed wire [F:;M:;L:]" },
+            from = new { type = "string", description = "Alias of anchor" },
+            search_in = new { type = "string", description = "When seed set: file|project|solution (default project if open)" },
+            min_statements = new { type = "integer", description = "Default 10 project/solution, 3 local" },
+            max_files = new { type = "integer" },
+            max_groups = new { type = "integer" },
+            start_line = new { type = "integer" },
+            end_line = new { type = "integer" }
+        }
+    }),
     Meta("cdp_test_plan", "Select tests then preview|apply. include[] FQNs, failed_first=true (from last_run), or filter=. op=preview|apply → structured test_run/v0 + evidence.", new
     {
         type = "object",
@@ -834,6 +853,9 @@ async Task<string> DispatchAsync(
         return await EditorPlane.DispatchAsync(name, docStore, session, byDomain, callArgs, cancellationToken)
             .ConfigureAwait(false);
 
+    if (AnalysisScene.IsAnalysisTool(name))
+        return AnalysisScene.Dispatch(docStore, session, callArgs);
+
     if (DebugPlane.IsDebugPlaneTool(name))
         return await DebugPlane.DispatchAsync(session, byDomain, callArgs, cancellationToken)
             .ConfigureAwait(false);
@@ -867,6 +889,7 @@ async Task<string> DispatchMetaAsync(
             return "TOC: cdp_cockpit (hub where-am-I), cdp_session (omnibus plane + pack dogfood), cdp_health(explain_tool?), cdp_capabilities, " +
                    "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_editor_scene|cdp_edit_sniper|cdp_edit_plan (map→aim→slices), " +
                    "cdp_build|cdp_run|cdp_test|cdp_test_scene|cdp_test_plan (session IDE lifecycle), " +
+                   "cdp_analysis_scene (code analysis domain; feature=clones), " +
                    "cdp_buffer(op=scene|open|read|edit|diagnostics|close) file buffer SSOT; edit returns diagnostics, " +
                    "cdp_debug(op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|…) debug plane; session defaults, not breakpoints JSON, " +
                    "cdp_pkg_find|list|add|remove|update|outdated, cdp_project_scene|create|list|close|add_to_sln, " +

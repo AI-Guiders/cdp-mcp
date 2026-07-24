@@ -50,6 +50,9 @@ internal static class IdeCockpit
             ["test_scene"] = ("cdp_test_scene", null),
             ["test"] = ("cdp_test_scene", null),
             ["test_plan"] = ("cdp_test_plan", Dict(("op", "preview"))),
+            ["analysis_scene"] = ("cdp_analysis_scene", null),
+            ["analysis"] = ("cdp_analysis_scene", null),
+            ["clones"] = ("cdp_analysis_scene", Dict(("feature", "clones"))),
             ["shell_scene"] = ("cdp_shell_scene", null),
             ["shell"] = ("cdp_shell_scene", null),
             ["shell_last"] = ("cdp_shell_last", null),
@@ -231,6 +234,7 @@ internal static class IdeCockpit
                 "locus=buffer:doc-N scopes go=disk_peek|reload|keep_disk to that file. " +
                 "Edit sniper: go=scope from=/till= → go=target → go=peek → go=edit_draft. " +
                 "Quality: go=quality / mfd=gates (project-tunable .cdp/quality-gates.toml). " +
+                "Analysis: go=analysis_scene / go=clones (domain scene, not MFD). " +
                 "go_detail=full for organ dump. Organs stay — not a monolith."
         };
 
@@ -398,6 +402,8 @@ internal static class IdeCockpit
             AddNum("slice_count", "slices");
             AddNum("path_count", "paths");
             AddNum("tab_count", "tabs");
+            AddNum("groups", "groups");
+            AddNum("files_scanned", "files");
 
             if (root.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String)
                 bits.Add(Truncate(err.GetString(), 80) ?? "error");
@@ -755,6 +761,14 @@ internal static class IdeCockpit
             test.Failed > 0 ? "go=test_plan" : "go=test_scene",
             test.Failed > 0 ? "test_plan" : "test_scene",
             test));
+
+        list.Add(new Locus(
+            "analysis:scene",
+            "analysis",
+            session.ProjectRoot is { Length: > 0 } ? "analysis ready" : "no project",
+            "go=analysis_scene → feature=clones",
+            "analysis_scene",
+            new { features = new[] { "clones" } }));
 
         list.Add(new Locus(
             "work:focus",
