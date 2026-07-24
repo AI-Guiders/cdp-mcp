@@ -1,0 +1,12 @@
+# Project quality gates overlay (wins over host cdp-mcp.toml [quality]).
+# Discuss/tune here — not carved in stone.
+[quality]
+enabled = true
+mode = "warn"
+
+[quality.gates]
+file_lines_warn = 350
+file_lines_fail = 700
+method_lines_warn = 70
+method_lines_fail = 120
+suggest_sniper_file_lines = 180

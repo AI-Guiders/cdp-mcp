@@ -330,6 +330,7 @@ internal static class DocumentEditPlane
             meta = applied.Buf.ToMeta(),
             diagnostics,
             diagnostics_note = diagNote,
+            quality = QualityGates.ForEditResult(applied.Buf, session.ProjectRoot),
             mutate = "path_serialized"
         }, Pretty);
     }

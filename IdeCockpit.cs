@@ -22,7 +22,7 @@ internal static class IdeCockpit
     static readonly JsonSerializerOptions Compact = new() { WriteIndented = false };
     static readonly HashSet<string> MfdPages = new(StringComparer.OrdinalIgnoreCase)
     {
-        "nav", "sys", "chk"
+        "nav", "sys", "chk", "gates"
     };
 
     /// <summary>Allowlist desk verbs → organ tools. Cockpit stays a пульт, not the organ.</summary>
@@ -124,6 +124,31 @@ internal static class IdeCockpit
         object? goResult = null;
         // Buffer before go= so locus=buffer:doc-N can inject path= into reload/keep_disk/disk_peek.
         var buffer = CollectBuffer(docStore.Scene());
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("quality", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("gates", StringComparison.OrdinalIgnoreCase)))
+        {
+            // Soft organ: quality gates scene (not a separate MCP tool in v0).
+            mfd = "gates";
+            var path = OptString(args, "path");
+            if (args.TryGetValue("go_args", out var ga) && ga.ValueKind == JsonValueKind.Object
+                && ga.TryGetProperty("path", out var gp) && gp.ValueKind == JsonValueKind.String)
+                path ??= gp.GetString();
+            var q = string.IsNullOrWhiteSpace(path)
+                ? QualityGates.EvaluateStore(docStore, session.ProjectRoot)
+                : QualityGates.EvaluatePath(docStore, session.ProjectRoot, path!);
+            goResult = new
+            {
+                ok = true,
+                go = "quality",
+                tool = "quality_gates",
+                detail = "full",
+                truncated = false,
+                result = q
+            };
+            goVerb = null;
+        }
+
         if (goVerb is { Length: > 0 })
         {
             goResult = await DispatchGoAsync(goVerb.Trim(), args, buffer, focusId, dispatch, cancellationToken)
@@ -137,9 +162,10 @@ internal static class IdeCockpit
         var debug = CollectDebug(session);
         var test = CollectTest(session);
         var work = CollectWork(workspaceStore, workspaceState);
+        var quality = QualityGates.Snap(docStore, session.ProjectRoot);
 
-        var loci = BuildLoci(session, git, shell, buffer, debug, test, work);
-        var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId);
+        var loci = BuildLoci(session, git, shell, buffer, debug, test, work, quality);
+        var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId, quality);
 
         // Sniper locus appears when a corridor is held (desk pulse, not organ dump).
         if (EditSniper.HasHold)
@@ -176,8 +202,15 @@ internal static class IdeCockpit
         {
             "sys" => BuildSysPage(session, git, shell, buffer, debug, test, work),
             "chk" => BuildChkPage(session, git, shell, buffer, debug, test),
+            "gates" => QualityGates.EvaluateStore(docStore, session.ProjectRoot),
             _ => BuildNavPage(loci, focus)
         };
+
+        var goVerbs = GoMap.Keys
+            .Concat(["quality", "gates"])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
         var payload = new
         {
@@ -185,18 +218,19 @@ internal static class IdeCockpit
             ok = true,
             role = "desk",
             mfd,
-            mfd_pages = new[] { "nav", "sys", "chk" },
+            mfd_pages = new[] { "nav", "sys", "chk", "gates" },
             session = SessionPulse(session),
             loci = loci.Select(l => l.Card()).ToArray(),
             next,
             focus,
             page,
             go = goResult,
-            go_verbs = GoMap.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray(),
+            go_verbs = goVerbs,
             hint =
                 "Cold start: cdp_cockpit first. Desk: mfd=|locus=|go= (default go_detail=pulse). " +
                 "locus=buffer:doc-N scopes go=disk_peek|reload|keep_disk to that file. " +
                 "Edit sniper: go=scope from=/till= → go=target → go=peek → go=edit_draft. " +
+                "Quality: go=quality / mfd=gates (project-tunable .cdp/quality-gates.toml). " +
                 "go_detail=full for organ dump. Organs stay — not a monolith."
         };
 
@@ -411,7 +445,8 @@ internal static class IdeCockpit
         DebugSnap debug,
         TestSnap test,
         WorkSnap work,
-        string? focusId)
+        string? focusId,
+        QualityGates.QualitySnap quality)
     {
         var list = new List<object>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -426,6 +461,15 @@ internal static class IdeCockpit
             Add("n-open", "project_scene", "Project map", "No project — cdp_open / project_scene first");
         else
             Add("n-editor", "editor_scene", "Editor map", "Buffer/desk loop");
+
+        // Quality stabilizer: after thick files / gate findings — guide, don't sermon.
+        if (quality is { Enabled: true, Fail: > 0 })
+            Add("n-quality", "quality", "Quality gates", $"FAIL×{quality.Fail} — harness next step");
+        else if (quality is { Enabled: true, Warn: > 0 })
+            Add("n-quality", "quality", "Quality gates", $"WARN×{quality.Warn} — review or tune overlay");
+
+        if (quality.SuggestSniper && !EditSniper.HasHold)
+            Add("n-scope", "scope", "Sniper aim", "Large open file — aim corridor before thick edit");
 
         // VS-style: File Modified Outside the Environment — Reload?
         if (buffer.DiskChangedCount > 0)
@@ -607,7 +651,8 @@ internal static class IdeCockpit
         BufferSnap buffer,
         DebugSnap debug,
         TestSnap test,
-        WorkSnap work)
+        WorkSnap work,
+        QualityGates.QualitySnap quality)
     {
         var list = new List<Locus>();
 
@@ -726,6 +771,19 @@ internal static class IdeCockpit
             "go=chk",
             "chk",
             new { switch_to = "chk" }));
+
+        if (quality.Enabled)
+        {
+            list.Add(new Locus(
+                "mfd:gates",
+                "mfd",
+                quality.Fail > 0 || quality.Warn > 0
+                    ? $"quality {quality.Pulse}"
+                    : "quality gates ok",
+                "go=quality / mfd=gates — project-tunable",
+                "quality",
+                quality));
+        }
 
         return list;
     }
