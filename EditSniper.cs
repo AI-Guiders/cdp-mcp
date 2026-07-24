@@ -500,6 +500,8 @@ internal static class EditSniper
     [
         new { go = "target", label = "Outline corridor", why = "sniper step 2" },
         new { go = "peek", label = "Peek corridor", why = "tiny window before shoot" },
+        new { go = "paste_sniper", label = "Paste frame into aim", why = "clipboard → replace hold" },
+        new { go = "put_sniper", label = "Put draft into aim", why = "text=/frame= thick rewrite" },
         new { go = "edit_draft", label = "Shoot (draft)", why = "mutate/fix plan" },
         new { go = "scope_clear", label = "Clear aim", why = "drop From/Till" }
     ];

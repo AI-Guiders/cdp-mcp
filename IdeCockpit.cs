@@ -49,6 +49,10 @@ internal static class IdeCockpit
             ["copy"] = ("cdp_buffer", Dict(("op", "copy"))),
             ["cut"] = ("cdp_buffer", Dict(("op", "cut"))),
             ["paste"] = ("cdp_buffer", Dict(("op", "paste"))),
+            ["put"] = ("cdp_buffer", Dict(("op", "put"))),
+            ["dump"] = ("cdp_buffer", Dict(("op", "put"))),
+            ["paste_sniper"] = ("cdp_buffer", Dict(("op", "paste"), ("sniper", "true"), ("place", "replace"))),
+            ["put_sniper"] = ("cdp_buffer", Dict(("op", "put"), ("sniper", "true"), ("place", "replace"))),
             ["clipboard"] = ("cdp_buffer", Dict(("op", "clipboard"))),
             ["clip"] = ("cdp_buffer", Dict(("op", "clipboard"))),
             ["clip_clear"] = ("cdp_buffer", Dict(("op", "clipboard_clear"))),
@@ -289,10 +293,10 @@ internal static class IdeCockpit
                 "Edit sniper: go=scope from=/till= → go=target → go=peek → go=edit_draft. " +
                 "Quality: go=quality / mfd=gates (project-tunable .cdp/quality-gates.toml). " +
                 "Analysis: go=analysis_scene / go=clones (domain scene, not MFD). " +
-                "Editor comfort: go=undo|redo|history|copy|cut|paste|clipboard|find|back|forward|scratch. " +
-                "Clipboard: Android frames (go=clipboard); paste frame=cN place=before|after|sniper; preserve=false burns frame. " +
-                "Find: go=find query= (buffer); go=find_in_files / scope=project = Find in Files (rg→anchors); regex=true = Use Regular Expressions. " +
-                "Go To (Ctrl+T): go=goto query= (f|t|m|# prefixes). " +
+                "Editor comfort: go=undo|redo|copy|cut|paste|put|clipboard|find|…. " +
+                "put: dump draft (path=|sniper) text=/frame= then refine. " +
+                "Clipboard frames; paste_sniper/put_sniper into aim. " +
+                "Find: go=find / find_in_files; Go To: go=goto. " +
                 "go_detail=full for organ dump. Organs stay — not a monolith."
         };
 
@@ -566,12 +570,17 @@ internal static class IdeCockpit
         {
             Add("n-target", "target", "Outline corridor", $"Aim {EditSniper.PulseLine}");
             Add("n-peek", "peek", "Peek aim", "wire= optional; corridor window");
+            if (EditorComfort.AnyClipboard())
+                Add("n-paste-sniper", "paste_sniper", "Paste frame into aim", "MRU/frame= replace hold");
+            Add("n-put-sniper", "put_sniper", "Put draft into aim", "text=/frame= thick rewrite");
             Add("n-edit-draft", "edit_draft", "Shoot (draft)", "mutate/fix inside aim");
             Add("n-scope-clear", "scope_clear", "Clear aim", "drop From/Till");
         }
         else if (buffer.Count > 0 || session.ProjectRoot is not null)
         {
             Add("n-scope", "scope", "Sniper aim", "from=/till= corridor before outline");
+            if (session.ProjectRoot is not null)
+                Add("n-put", "put", "Put draft file", "path= + text=/frame= — one-shot dump");
         }
 
         if (buffer.Count > 0 && !EditSniper.HasHold)

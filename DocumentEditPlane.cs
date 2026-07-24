@@ -71,7 +71,7 @@ internal static class DocumentEditPlane
             _ when EditorComfort.IsComfortOp(op) => EditorComfort.Dispatch(store, session, op, args),
             _ => throw new ArgumentException(
                 "cdp_buffer op must be scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek|" +
-                "undo|redo|history|copy|cut|paste|find|find_all|replace_all|back|forward|nav|recent_files|scratch.")
+                "undo|redo|history|copy|cut|paste|put|clipboard|find|find_all|replace_all|back|forward|nav|recent_files|scratch.")
         };
     }
 
