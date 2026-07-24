@@ -43,6 +43,19 @@ internal static class IdeCockpit
             ["reload"] = ("cdp_buffer", Dict(("op", "reload"))),
             ["keep_disk"] = ("cdp_buffer", Dict(("op", "keep_disk"))),
             ["disk_peek"] = ("cdp_buffer", Dict(("op", "disk_peek"))),
+            ["undo"] = ("cdp_buffer", Dict(("op", "undo"))),
+            ["redo"] = ("cdp_buffer", Dict(("op", "redo"))),
+            ["history"] = ("cdp_buffer", Dict(("op", "history"))),
+            ["copy"] = ("cdp_buffer", Dict(("op", "copy"))),
+            ["cut"] = ("cdp_buffer", Dict(("op", "cut"))),
+            ["paste"] = ("cdp_buffer", Dict(("op", "paste"))),
+            ["find"] = ("cdp_buffer", Dict(("op", "find"))),
+            ["find_all"] = ("cdp_buffer", Dict(("op", "find_all"))),
+            ["replace_all"] = ("cdp_buffer", Dict(("op", "replace_all"))),
+            ["back"] = ("cdp_buffer", Dict(("op", "back"))),
+            ["forward"] = ("cdp_buffer", Dict(("op", "forward"))),
+            ["recent_files"] = ("cdp_buffer", Dict(("op", "recent_files"))),
+            ["scratch"] = ("cdp_buffer", Dict(("op", "scratch"))),
             ["git_scene"] = ("git_git_scene", null),
             ["git"] = ("git_git_scene", null),
             ["git_draft"] = ("git_git_plan", Dict(("op", "draft"))),
@@ -235,6 +248,7 @@ internal static class IdeCockpit
                 "Edit sniper: go=scope from=/till= → go=target → go=peek → go=edit_draft. " +
                 "Quality: go=quality / mfd=gates (project-tunable .cdp/quality-gates.toml). " +
                 "Analysis: go=analysis_scene / go=clones (domain scene, not MFD). " +
+                "Editor comfort: go=undo|redo|history|copy|cut|paste|find|back|forward|scratch. " +
                 "go_detail=full for organ dump. Organs stay — not a monolith."
         };
 
@@ -404,6 +418,9 @@ internal static class IdeCockpit
             AddNum("tab_count", "tabs");
             AddNum("groups", "groups");
             AddNum("files_scanned", "files");
+            AddNum("undo_left", "undo");
+            AddNum("redo_left", "redo");
+            AddNum("replaced", "replaced");
 
             if (root.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String)
                 bits.Add(Truncate(err.GetString(), 80) ?? "error");

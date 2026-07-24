@@ -175,12 +175,14 @@ internal static class EditorPlane
                 keep_disk = drift > 0 ? "cdp_buffer op=keep_disk (all drifted) or path= — Don't Reload" : null,
                 draft = "cdp_edit_plan op=draft",
                 apply = "cdp_edit_plan op=apply yaml=… (preferred) or slices=[]",
+                comfort = "go=undo|redo|copy|paste|find|back|scratch",
                 buffer = "cdp_buffer still fine for single surgical edit"
             },
+            comfort = EditorComfort.Snap(),
             hint = drift > 0
                 ? "File(s) modified outside — go=disk_peek → reload | keep_disk."
                 : "Map first (this tool); multi-step → edit_plan YAML slices (git_plan analogue). " +
-                  "Prefer edit_op=anchor [F:;M:;K:]. path=/locus= for context on demand — not a full dump."
+                  "Prefer edit_op=anchor [F:;M:;K:]. Editor comfort: undo/redo/copy/paste/find/back/scratch."
         }, Pretty);
     }
 

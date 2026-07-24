@@ -432,6 +432,12 @@ internal static class EditSniper
             slice.Append(allLines[i - 1]);
         }
 
+        var locusWire = usedWire
+            ?? BracketLocate.Format(new BracketLocate.Span(
+                h.FileLabel, null, lineStart, lineEnd == lineStart ? null : lineEnd));
+        EditorComfort.PushLocus(session, locusWire);
+        EditorComfort.RememberFile(h.Path);
+
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
@@ -447,10 +453,11 @@ internal static class EditSniper
             next = new object[]
             {
                 new { go = "edit_draft", label = "Shoot (draft)", why = "mutate/fix with seen wire" },
+                new { go = "back", label = "Nav back", why = "locus stack" },
                 new { go = "target", label = "Re-outline", why = "pick another wire" },
                 new { go = "scope_clear", label = "Clear aim", why = "drop corridor" }
             },
-            hint = "Peek is corridor/wire only — not a file dump. pad= for ± lines."
+            hint = "Peek is corridor/wire only — not a file dump. pad= for ± lines. Pushes locus nav."
         }, Pretty);
     }
 

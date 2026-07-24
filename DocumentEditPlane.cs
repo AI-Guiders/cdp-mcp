@@ -68,8 +68,10 @@ internal static class DocumentEditPlane
             "reload" => Reload(store, session, args),
             "keep_disk" => KeepDisk(store, session, args),
             "disk_peek" => DiskPeek(store, session, args),
+            _ when EditorComfort.IsComfortOp(op) => EditorComfort.Dispatch(store, session, op, args),
             _ => throw new ArgumentException(
-                "cdp_buffer op must be scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek.")
+                "cdp_buffer op must be scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek|" +
+                "undo|redo|history|copy|cut|paste|find|find_all|replace_all|back|forward|nav|recent_files|scratch.")
         };
     }
 
@@ -95,6 +97,8 @@ internal static class DocumentEditPlane
 
         var full = ResolveUserPath(session, path);
         var buf = store.ReloadFromDisk(full);
+        EditorComfort.ClearStack(full);
+        EditorComfort.RememberFile(full);
         return JsonSerializer.Serialize(new
         {
             schema = "doc_reload/v0",
@@ -102,7 +106,7 @@ internal static class DocumentEditPlane
             op = "reload",
             count = 1,
             meta = buf.ToMeta(),
-            hint = "Buffer ← disk. Dirty cleared. Like VS: File modified outside — Reload."
+            hint = "Buffer ← disk. Dirty cleared. Edit undo stack cleared for this file."
         }, Pretty);
     }
 
@@ -176,6 +180,8 @@ internal static class DocumentEditPlane
         var diagnose = BoolOr(args, "diagnose", defaultValue: false);
         var refresh = BoolOr(args, "refresh", defaultValue: false);
         var buf = store.Open(path, refresh);
+        EditorComfort.RememberFile(path);
+        EditorComfort.PushLocus(session, path);
         object? diagnostics = null;
         string? diagNote = null;
         if (diagnose)
@@ -187,11 +193,12 @@ internal static class DocumentEditPlane
             schema = "doc_open/v0",
             ok = true,
             meta = buf.ToMeta(),
+            comfort = EditorComfort.Snap(),
             diagnostics,
             diagnostics_note = diagNote,
             hint =
                 "Prefer edit_op=anchor with Anchor wire [F:;M:;K:] (csharp). " +
-                "Fallback: set_text|replace|replace_range. Create: op=create."
+                "Comfort: undo/redo/copy/paste/find/back. Fallback: set_text|replace|replace_range."
         }, Pretty);
     }
 
@@ -231,6 +238,8 @@ internal static class DocumentEditPlane
         var path = OptString(args, "path");
         var resolved = path is { Length: > 0 } ? ResolveUserPath(session, path) : null;
         var buf = store.Resolve(resolved, OptString(args, "doc_id"));
+        EditorComfort.RememberFile(buf.Path);
+        EditorComfort.PushLocus(session, buf.Path);
         int? start = IntOrNull(args, "start_line");
         int? end = IntOrNull(args, "end_line");
         return JsonSerializer.Serialize(buf.ToReadResult(start, end), Pretty);
@@ -301,7 +310,7 @@ internal static class DocumentEditPlane
                     buf.LastDiagnosedVersion = null;
                 }
 
-                return new EditApplied(buf, op, flush, allowShrink, anchorResolved);
+                return new EditApplied(buf, op, flush, allowShrink, anchorResolved, snapshotText);
             }
             catch
             {
@@ -311,6 +320,13 @@ internal static class DocumentEditPlane
                 throw;
             }
         }, cancellationToken).ConfigureAwait(false);
+
+        EditorComfort.RecordEdit(applied.Buf.Path, applied.BeforeText, applied.Buf.Text, applied.Op);
+        EditorComfort.RememberFile(applied.Buf.Path);
+        if (applied.Anchor is not null)
+        {
+            // Best-effort locus from anchor edit result if it carries a wire.
+        }
 
         var diagnose = BoolOr(args, "diagnose", defaultValue: true);
         object? diagnostics = null;
@@ -331,6 +347,7 @@ internal static class DocumentEditPlane
             diagnostics,
             diagnostics_note = diagNote,
             quality = QualityGates.ForEditResult(applied.Buf, session.ProjectRoot),
+            comfort = EditorComfort.Snap(),
             mutate = "path_serialized"
         }, Pretty);
     }
@@ -340,7 +357,8 @@ internal static class DocumentEditPlane
         string Op,
         bool Flushed,
         bool AllowShrink,
-        object? Anchor);
+        object? Anchor,
+        string BeforeText);
 
     /// <summary>
     /// Single-flight + soft timeout so parallel edits never wedge on Roslyn workspace load.

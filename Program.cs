@@ -181,17 +181,17 @@ List<Tool> BuildMetaTools() =>
             recent_index = new { type = "integer", description = "Optional 0-based Open Recent index (0 = last opened)." }
         }
     }),
-    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek. Instant Save: edit/close flush=true by default. reload/keep_disk/disk_peek = VS File Modified Outside (Reload? / Don't Reload / glance). Relative path= → ProjectRoot after cdp_open. csharp: prefer edit_op=anchor [F:;M:;K:]. Parallel OK.", new
+    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek + editor comfort undo|redo|history|copy|cut|paste|find|find_all|replace_all|back|forward|nav|recent_files|scratch. Instant Save: edit/close flush=true by default. Comfort results use anchors. Relative path= → ProjectRoot after cdp_open. csharp: prefer edit_op=anchor [F:;M:;K:]. Parallel OK.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek" },
+            op = new { type = "string", description = "scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek|undo|redo|history|copy|cut|paste|find|find_all|replace_all|back|forward|nav|recent_files|scratch" },
             path = new { type = "string", description = "reload|keep_disk|disk_peek: optional (omit = all drifted); otherwise file path" },
             pad = new { type = "integer", description = "disk_peek: ± context lines around first diff (default 2)" },
             doc_id = new { type = "string" },
             diagnose = new { type = "boolean", description = "open default false; create/edit default true (csharp: syntax)" },
-            flush = new { type = "boolean", description = "edit/close default true (Instant Save). false = keep dirty in memory (batch)." },
+            flush = new { type = "boolean", description = "edit/close/undo/redo/paste default true (Instant Save). false = keep dirty in memory (batch)." },
             discard = new { type = "boolean", description = "close only: with flush=false, required to drop dirty buffer without writing." },
             refresh = new { type = "boolean", description = "open: reload from disk; diagnostics: soft prefer-cache when false" },
             force = new { type = "boolean", description = "diagnostics: recompute even if version unchanged" },
@@ -201,13 +201,18 @@ List<Tool> BuildMetaTools() =>
             start_line = new { type = "integer" },
             end_line = new { type = "integer" },
             edit_op = new { type = "string", description = "edit: anchor|set_text|replace|replace_range — prefer anchor" },
-            anchor = new { type = "string", description = "edit_op=anchor: csharp [F:;M:;K:] or xml [F:;X:path;A:attr?][+K:Element]" },
+            anchor = new { type = "string", description = "edit_op=anchor / copy|cut|paste: csharp [F:;M:;K:] or xml [F:;X:path;A:attr?][+K:Element]" },
             at = new { type = "string", description = "Alias of anchor" },
-            text = new { type = "string", description = "edit set_text / create body / anchor replacement" },
+            text = new { type = "string", description = "edit set_text / create body / anchor replacement / paste override / find query alias" },
             old_string = new { type = "string" },
             new_string = new { type = "string", description = "replace; also alias of text for anchor" },
             start_column = new { type = "integer" },
-            end_column = new { type = "integer" }
+            end_column = new { type = "integer" },
+            query = new { type = "string", description = "find|find_all|replace_all needle" },
+            pattern = new { type = "string", description = "Alias of query (regex when regex=true)" },
+            regex = new { type = "boolean", description = "find/replace_all: treat query as Regex" },
+            ignore_case = new { type = "boolean" },
+            ext = new { type = "string", description = "scratch: file extension (default cs)" }
         },
         required = new[] { "op" }
     }),
