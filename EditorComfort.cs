@@ -25,8 +25,6 @@ internal static class EditorComfort
     static readonly List<string> NavBack = [];
     static readonly List<string> NavForward = [];
     static string? NavCurrent;
-    static string? ClipText;
-    static string? ClipFrom;
     static int ScratchSeq;
 
     sealed class EditStack
@@ -142,10 +140,7 @@ internal static class EditorComfort
             return new
             {
                 undo_buffers = Stacks.Count(kv => kv.Value.Undo.Count > 0),
-                clipboard = ClipText is { Length: > 0 },
-                clip_chars = ClipText?.Length ?? 0,
-                clip_from = ClipFrom,
-                clip_preview = ClipText is null ? null : PreviewClip(ClipText, 80),
+                clipboard = SessionClipboard.Summary(),
                 nav_back = NavBack.Count,
                 nav_forward = NavForward.Count,
                 nav_current = NavCurrent,
@@ -166,89 +161,94 @@ internal static class EditorComfort
             return NavBack.Count > 0;
     }
 
-    public static bool AnyClipboard()
-    {
-        lock (Gate)
-            return ClipText is { Length: > 0 };
-    }
+    public static bool AnyClipboard() => SessionClipboard.Any();
 
-    /// <summary>Desk locus pulse when clipboard holds text.</summary>
-    public static (int Chars, string? From, string Preview)? ClipboardLocusDetail()
-    {
-        lock (Gate)
-        {
-            if (ClipText is null)
-                return null;
-            return (ClipText.Length, ClipFrom, PreviewClip(ClipText, 160));
-        }
-    }
+    /// <summary>Desk locus pulse when clipboard holds frames.</summary>
+    public static (int Count, string? CurrentId, int Chars, string? From, string Preview)? ClipboardLocusDetail() =>
+        SessionClipboard.LocusPulse();
 
     static string ClipboardCard(IReadOnlyDictionary<string, JsonElement> args)
     {
+        var dropFrame = OptString(args, "frame") ?? OptString(args, "id");
         if (BoolOr(args, "clear", false))
-            return ClipboardClear();
-
-        lock (Gate)
         {
-            var empty = ClipText is null;
-            var preview = empty ? null : PreviewClip(ClipText!, 1_200);
-            return JsonSerializer.Serialize(new
+            if (dropFrame is { Length: > 0 })
             {
-                schema = Schema,
-                ok = true,
-                op = "clipboard",
-                empty,
-                chars = ClipText?.Length ?? 0,
-                from = ClipFrom,
-                preview,
-                next = empty
-                    ? (object[])
-                    [
-                        new { go = "copy", label = "Copy into clip", why = "anchor= or start_line=" },
-                        new { go = "cut", label = "Cut into clip", why = "anchor= — removes from buffer" }
-                    ]
-                    : (object[])
-                    [
-                        new { go = "paste", label = "Paste", why = "anchor=/path= destination" },
-                        new { go = "clip_clear", label = "Clear clipboard", why = "drop session clip" },
-                        new { go = "cut", label = "Cut replace", why = "overwrite clip from buffer" }
-                    ],
-                hint =
-                    "Session clipboard (not OS). go=clipboard to inspect; go=copy|cut fills it; go=paste applies. " +
-                    "clear=true / go=clip_clear to empty."
-            }, Pretty);
+                if (!SessionClipboard.Drop(dropFrame, out var dropped))
+                {
+                    return JsonSerializer.Serialize(new
+                    {
+                        schema = Schema,
+                        ok = false,
+                        op = "clipboard",
+                        error = "frame_not_found",
+                        frame = dropFrame
+                    }, Pretty);
+                }
+
+                return JsonSerializer.Serialize(new
+                {
+                    schema = Schema,
+                    ok = true,
+                    op = "clipboard",
+                    dropped = dropped,
+                    clipboard = SessionClipboard.SceneCard(),
+                    next = new object[]
+                    {
+                        new { go = "clipboard", label = "Clipboard", why = "remaining frames" },
+                        new { go = "copy", label = "Copy", why = "push frame" }
+                    },
+                    hint = $"Dropped frame {dropped}."
+                }, Pretty);
+            }
+
+            return ClipboardClear();
         }
+
+        var scene = SessionClipboard.SceneCard();
+        var empty = !SessionClipboard.Any();
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "clipboard",
+            clipboard = scene,
+            next = empty
+                ? (object[])
+                [
+                    new { go = "copy", label = "Copy into clip", why = "anchor= → new frame" },
+                    new { go = "cut", label = "Cut into clip", why = "anchor= — frame + remove" }
+                ]
+                : (object[])
+                [
+                    new { go = "paste", label = "Paste current", why = "frame= omit = MRU; place=before|after|sniper" },
+                    new { go = "paste", label = "Paste frame", why = "frame=cN preserve=false if one-shot" },
+                    new { go = "clip_clear", label = "Clear all", why = "drop every frame" }
+                ],
+            hint =
+                "Android-style IDE clipboard: frames c1… . go=paste frame=cN. " +
+                "preserve=true (default) keeps frame; preserve=false burns after paste. " +
+                "clear=true frame=cN drops one; clip_clear drops all."
+        }, Pretty);
     }
 
     static string ClipboardClear()
     {
-        lock (Gate)
-        {
-            ClipText = null;
-            ClipFrom = null;
-        }
-
+        SessionClipboard.ClearAll();
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
             ok = true,
             op = "clipboard_clear",
             empty = true,
+            count = 0,
             next = new object[]
             {
-                new { go = "copy", label = "Copy", why = "refill clip" },
-                new { go = "cut", label = "Cut", why = "refill + remove" }
+                new { go = "copy", label = "Copy", why = "push frame" },
+                new { go = "cut", label = "Cut", why = "push + remove" }
             },
-            hint = "Session clipboard cleared."
+            hint = "All clipboard frames cleared."
         }, Pretty);
-    }
-
-    static string PreviewClip(string text, int max)
-    {
-        var one = text.Replace("\r\n", "\n").Replace('\r', '\n');
-        if (one.Length <= max)
-            return one;
-        return one[..max] + "\n…";
     }
 
     static string Undo(DocumentBufferStore store, SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
@@ -361,26 +361,24 @@ internal static class EditorComfort
     static string Copy(DocumentBufferStore store, SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
         var (text, from) = ExtractSpan(store, session, args);
-        lock (Gate)
-        {
-            ClipText = text;
-            ClipFrom = from;
-        }
+        var frame = SessionClipboard.Push(text, from, "copy");
 
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
             ok = true,
             op = "copy",
+            frame = frame.Id,
             chars = text.Length,
             from,
+            clipboard = SessionClipboard.Summary(),
             next = new object[]
             {
-                new { go = "paste", label = "Paste", why = "anchor=/path= destination" },
-                new { go = "clipboard", label = "Clipboard", why = "inspect session clip" },
-                new { go = "cut", label = "Cut instead", why = "same span, remove from buffer" }
+                new { go = "paste", label = "Paste frame", why = $"frame={frame.Id} place=after|before|sniper" },
+                new { go = "clipboard", label = "Clipboard", why = "Android-style frame list" },
+                new { go = "cut", label = "Cut instead", why = "same span → frame + remove" }
             },
-            hint = "Session clipboard set (not OS). go=clipboard to peek; go=paste at anchor."
+            hint = $"Pushed frame {frame.Id} (MRU). Paste keeps it unless preserve=false."
         }, Pretty);
     }
 
@@ -404,11 +402,7 @@ internal static class EditorComfort
 
         var buf = ResolveBuf(store, session, args);
         var (text, from, startLine, startCol, endLine, endCol) = ExtractSpanDetailed(store, session, args, buf);
-        lock (Gate)
-        {
-            ClipText = text;
-            ClipFrom = from;
-        }
+        var frame = SessionClipboard.Push(text, from, "cut");
 
         var before = buf.Text;
         store.ApplyReplaceRange(buf, startLine, startCol, endLine, endCol, "");
@@ -423,91 +417,197 @@ internal static class EditorComfort
             schema = Schema,
             ok = true,
             op = "cut",
+            frame = frame.Id,
             chars = text.Length,
             from,
             meta = buf.ToMeta(),
+            clipboard = SessionClipboard.Summary(),
             next = new object[]
             {
-                new { go = "paste", label = "Paste elsewhere", why = "clipboard holds cut text" },
-                new { go = "undo", label = "Undo cut", why = "restore" }
+                new { go = "paste", label = "Paste frame", why = $"frame={frame.Id}" },
+                new { go = "undo", label = "Undo cut", why = "restore" },
+                new { go = "clipboard", label = "Clipboard", why = "frames" }
             },
-            hint = "Cut → session clipboard + removed from buffer."
+            hint = $"Cut → frame {frame.Id} + removed from buffer."
         }, Pretty);
     }
 
     static string Paste(DocumentBufferStore store, SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
+        var frameArg = OptString(args, "frame") ?? OptString(args, "id") ?? OptString(args, "clip");
+        var preserve = BoolOr(args, "preserve", true);
         string text;
-        lock (Gate)
+        string? frameId;
+
+        if (OptString(args, "text") is { Length: > 0 } overrideText
+            && frameArg is null)
         {
-            if (ClipText is null)
+            // One-shot text paste without touching frames.
+            text = overrideText;
+            frameId = null;
+        }
+        else
+        {
+            var frame = SessionClipboard.Find(frameArg);
+            if (frame is null)
             {
                 return JsonSerializer.Serialize(new
                 {
                     schema = Schema,
                     ok = false,
                     op = "paste",
-                    error = "clipboard_empty",
-                    hint = "go=copy / go=cut first"
+                    error = SessionClipboard.Any() ? "frame_not_found" : "clipboard_empty",
+                    frame = frameArg,
+                    hint = "go=copy / go=cut first; or frame=cN from go=clipboard"
                 }, Pretty);
             }
 
-            text = ClipText;
+            text = frame.Text;
+            frameId = frame.Id;
         }
 
-        var buf = ResolveBuf(store, session, args);
-        var before = buf.Text;
-        var wire = OptString(args, "anchor") ?? OptString(args, "at") ?? OptString(args, "from");
+        var place = (OptString(args, "place") ?? OptString(args, "at_place") ?? "after")
+            .Trim()
+            .ToLowerInvariant();
+        if (place is "before" or "pre" or "b")
+            place = "before";
+        else if (place is "after" or "post" or "a")
+            place = "after";
+        else if (place is "replace" or "over" or "r")
+            place = "replace";
+        else if (place is "sniper" or "hold" or "target")
+            place = "sniper";
+
+        var useSniper = BoolOr(args, "sniper", false)
+            || place == "sniper"
+            || string.Equals(OptString(args, "dest"), "sniper", StringComparison.OrdinalIgnoreCase);
+
+        DocBuffer buf;
         string where;
-        if (wire is { Length: > 0 })
+        var before = "";
+
+        if (useSniper)
         {
-            var span = BracketLocate.Parse(wire);
-            var file = span.File is { Length: > 0 }
-                ? ResolveUserPath(session, span.File)
-                : buf.Path;
-            if (!string.Equals(file, buf.Path, StringComparison.OrdinalIgnoreCase))
-                buf = store.Resolve(file, null);
+            if (!EditSniper.TryGetHold(out var path, out var label, out var ls, out var cs, out var le, out var ce))
+            {
+                return JsonSerializer.Serialize(new
+                {
+                    schema = Schema,
+                    ok = false,
+                    op = "paste",
+                    error = "no_sniper_hold",
+                    hint = "go=scope from=/till= first, then paste sniper=true place=before|after|replace"
+                }, Pretty);
+            }
+
+            buf = store.Resolve(path, null);
             before = buf.Text;
-            if (!BracketSyntaxResolve.TryResolve(buf.Path, buf.Text, span, out var range, out var detail))
-                throw new ArgumentException($"Paste anchor resolve failed ({detail}): {wire}");
-            store.ApplyReplaceRange(
-                buf, range.LineStart, range.ColumnStart, range.LineEnd, range.ColumnEnd, text);
-            where = NormalizeWire(wire);
-        }
-        else if (IntOrNull(args, "start_line") is int sl)
-        {
-            var sc = IntOrNull(args, "start_column") ?? 1;
-            var el = IntOrNull(args, "end_line") ?? sl;
-            var ec = IntOrNull(args, "end_column") ?? sc;
-            store.ApplyReplaceRange(buf, sl, sc, el, ec, text);
-            where = WireLines(session, buf.Path, sl, el);
+            var sniperPlace = place is "before" or "after" or "replace" ? place : "before";
+            where = ApplyPlaced(store, session, buf, text, sniperPlace, ls, cs, le, ce, label);
         }
         else
         {
-            // Append at end of file.
-            var lines = CountLines(buf.Text);
-            var lastLen = LastLineLength(buf.Text);
-            store.ApplyReplaceRange(buf, lines, Math.Max(1, lastLen + 1), lines, Math.Max(1, lastLen + 1), text);
-            where = WireLines(session, buf.Path, lines, lines);
+            var wire = OptString(args, "anchor") ?? OptString(args, "at") ?? OptString(args, "from");
+            if (wire is { Length: > 0 })
+            {
+                buf = ResolveBuf(store, session, args);
+                var span = BracketLocate.Parse(wire);
+                var file = span.File is { Length: > 0 }
+                    ? ResolveUserPath(session, span.File)
+                    : buf.Path;
+                if (!string.Equals(file, buf.Path, StringComparison.OrdinalIgnoreCase))
+                    buf = store.Resolve(file, null);
+                before = buf.Text;
+                if (!BracketSyntaxResolve.TryResolve(buf.Path, buf.Text, span, out var range, out var detail))
+                    throw new ArgumentException($"Paste anchor resolve failed ({detail}): {wire}");
+                where = ApplyPlaced(
+                    store, session, buf, text, place is "replace" ? "replace" : place,
+                    range.LineStart, range.ColumnStart, range.LineEnd, range.ColumnEnd,
+                    FileLabel(session, buf.Path));
+            }
+            else if (IntOrNull(args, "start_line") is int sl)
+            {
+                buf = ResolveBuf(store, session, args);
+                before = buf.Text;
+                var sc = IntOrNull(args, "start_column") ?? 1;
+                var el = IntOrNull(args, "end_line") ?? sl;
+                var ec = IntOrNull(args, "end_column") ?? sc;
+                where = ApplyPlaced(
+                    store, session, buf, text, place is "replace" ? "replace" : place,
+                    sl, sc, el, ec, FileLabel(session, buf.Path));
+            }
+            else
+            {
+                buf = ResolveBuf(store, session, args);
+                before = buf.Text;
+                // Append at end of file.
+                var lines = CountLines(buf.Text);
+                var lastLen = LastLineLength(buf.Text);
+                store.ApplyReplaceRange(
+                    buf, lines, Math.Max(1, lastLen + 1), lines, Math.Max(1, lastLen + 1), text);
+                where = WireLines(session, buf.Path, lines, lines);
+            }
         }
 
         var flush = BoolOr(args, "flush", true);
         if (flush)
             store.Flush(buf, allowShrink: true);
-        RecordEdit(buf.Path, before, buf.Text, "paste");
+        RecordEdit(buf.Path, before, buf.Text, frameId is null ? "paste" : $"paste:{frameId}");
         PushLocus(session, where);
+
+        if (frameId is not null && !preserve)
+            SessionClipboard.Drop(frameId, out _);
 
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
             ok = true,
             op = "paste",
+            frame = frameId,
+            preserved = frameId is not null && preserve,
             chars = text.Length,
+            place = useSniper ? $"sniper:{(place is "before" or "after" or "replace" ? place : "before")}" : place,
             at = where,
             meta = buf.ToMeta(),
+            clipboard = SessionClipboard.Summary(),
             next = ComfortNext(buf),
-            hint = "Pasted from session clipboard."
+            hint = frameId is null
+                ? "Pasted text= override."
+                : preserve
+                    ? $"Pasted frame {frameId} (still in clipboard). preserve=false to burn."
+                    : $"Pasted and dropped frame {frameId}."
         }, Pretty);
+    }
+
+    /// <summary>Insert before/after range or replace it.</summary>
+    static string ApplyPlaced(
+        DocumentBufferStore store,
+        SessionContext session,
+        DocBuffer buf,
+        string text,
+        string place,
+        int lineStart,
+        int colStart,
+        int lineEnd,
+        int colEnd,
+        string fileLabel)
+    {
+        if (place == "replace")
+        {
+            store.ApplyReplaceRange(buf, lineStart, colStart, lineEnd, colEnd, text);
+            return BracketLocate.Format(new BracketLocate.Span(
+                fileLabel, null, lineStart, lineEnd == lineStart ? null : lineEnd));
+        }
+
+        if (place == "before")
+        {
+            store.ApplyReplaceRange(buf, lineStart, colStart, lineStart, colStart, text);
+            return BracketLocate.Format(new BracketLocate.Span(fileLabel, null, lineStart, null));
+        }
+
+        // after — insert at end of range (exclusive end point)
+        store.ApplyReplaceRange(buf, lineEnd, colEnd, lineEnd, colEnd, text);
+        return BracketLocate.Format(new BracketLocate.Span(fileLabel, null, lineEnd, null));
     }
 
     static string Find(
@@ -986,19 +1086,7 @@ internal static class EditorComfort
         new { go = "back", label = "Nav back", why = "locus stack" }
     ];
 
-    static object ClipSummary()
-    {
-        lock (Gate)
-        {
-            return new
-            {
-                empty = ClipText is null,
-                chars = ClipText?.Length ?? 0,
-                from = ClipFrom,
-                preview = ClipText is null ? null : PreviewClip(ClipText, 120)
-            };
-        }
-    }
+    static object ClipSummary() => SessionClipboard.Summary();
 
     static object NavPulse()
     {

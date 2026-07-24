@@ -290,6 +290,7 @@ internal static class IdeCockpit
                 "Quality: go=quality / mfd=gates (project-tunable .cdp/quality-gates.toml). " +
                 "Analysis: go=analysis_scene / go=clones (domain scene, not MFD). " +
                 "Editor comfort: go=undo|redo|history|copy|cut|paste|clipboard|find|back|forward|scratch. " +
+                "Clipboard: Android frames (go=clipboard); paste frame=cN place=before|after|sniper; preserve=false burns frame. " +
                 "Find: go=find query= (buffer); go=find_in_files / scope=project = Find in Files (rg→anchors); regex=true = Use Regular Expressions. " +
                 "Go To (Ctrl+T): go=goto query= (f|t|m|# prefixes). " +
                 "go_detail=full for organ dump. Organs stay — not a monolith."
@@ -534,7 +535,7 @@ internal static class IdeCockpit
         if (EditorComfort.AnyUndo())
             Add("n-undo", "undo", "Undo last edit", "buffer edit stack");
         if (EditorComfort.AnyClipboard())
-            Add("n-clipboard", "clipboard", "Clipboard", "session clip — peek / paste / clear");
+            Add("n-clipboard", "clipboard", "Clipboard", "frames — pick frame= + paste");
         if (EditorComfort.AnyNavBack())
             Add("n-back", "back", "Nav back", "locus stack");
 
@@ -815,10 +816,17 @@ internal static class IdeCockpit
             list.Add(new Locus(
                 "clip:session",
                 "clipboard",
-                $"clip {clip.Chars}c",
-                "go=clipboard → paste | clip_clear",
+                $"clip ×{clip.Count} ({clip.CurrentId})",
+                "go=clipboard → paste frame= | clip_clear",
                 "clipboard",
-                new { chars = clip.Chars, from = clip.From, preview = clip.Preview }));
+                new
+                {
+                    count = clip.Count,
+                    current = clip.CurrentId,
+                    chars = clip.Chars,
+                    from = clip.From,
+                    preview = clip.Preview
+                }));
         }
 
         list.Add(new Locus(

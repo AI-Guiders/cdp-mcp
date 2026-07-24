@@ -53,6 +53,32 @@ internal static class EditSniper
             }
             : null;
 
+    /// <summary>For clipboard paste into sniper corridor (before/after/replace).</summary>
+    public static bool TryGetHold(
+        out string path,
+        out string fileLabel,
+        out int lineStart,
+        out int columnStart,
+        out int lineEnd,
+        out int columnEnd)
+    {
+        if (Hold is not { } h)
+        {
+            path = "";
+            fileLabel = "";
+            lineStart = columnStart = lineEnd = columnEnd = 0;
+            return false;
+        }
+
+        path = h.Path;
+        fileLabel = h.FileLabel;
+        lineStart = h.LineStart;
+        columnStart = h.ColumnStart;
+        lineEnd = h.LineEnd;
+        columnEnd = h.ColumnEnd;
+        return true;
+    }
+
     public static bool IsSniperTool(string name) =>
         string.Equals(name, ToolName, StringComparison.OrdinalIgnoreCase);
 
