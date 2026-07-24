@@ -66,6 +66,9 @@ internal static class IdeCockpit
             ["analysis_scene"] = ("cdp_analysis_scene", null),
             ["analysis"] = ("cdp_analysis_scene", null),
             ["clones"] = ("cdp_analysis_scene", Dict(("feature", "clones"))),
+            ["goto"] = ("cdp_goto", null),
+            ["go_to"] = ("cdp_goto", null),
+            ["t"] = ("cdp_goto", null),
             ["shell_scene"] = ("cdp_shell_scene", null),
             ["shell"] = ("cdp_shell_scene", null),
             ["shell_last"] = ("cdp_shell_last", null),
@@ -249,6 +252,7 @@ internal static class IdeCockpit
                 "Quality: go=quality / mfd=gates (project-tunable .cdp/quality-gates.toml). " +
                 "Analysis: go=analysis_scene / go=clones (domain scene, not MFD). " +
                 "Editor comfort: go=undo|redo|history|copy|cut|paste|find|back|forward|scratch. " +
+                "Go To (Ctrl+T): go=goto query= (f|t|m|# prefixes). " +
                 "go_detail=full for organ dump. Organs stay — not a monolith."
         };
 
