@@ -26,6 +26,7 @@ Meta tools (always in ListTools): `cdp_man`, `cdp_session`, `cdp_health`, `cdp_c
 dotnet test ..\cdp-core\Cdp.Core.Tests\Cdp.Core.Tests.csproj -c Release
 .\publish-and-deploy.ps1
 .\publish-and-deploy.ps1 -Mode hard
+.\publish-and-deploy.ps1 -Mode hard -Target D:\cdp-mcp-debug   # experimental spare
 # Sibling cdp-core / cdp-scriptable-ide present but use nuget.org packages instead:
 .\publish-and-deploy.ps1 -UseNuGet
 dotnet run --project tools\CdpProbe\CdpProbe.csproj -c Release
@@ -35,6 +36,18 @@ dotnet run --project tools\CdpProbe\CdpProbe.csproj -c Release
 
 Default deploy path: `D:\cdp-mcp\CdpMcp.exe` + `cdp-mcp.toml` + `ts-worker/` (Node on PATH required for TypeScript).
 
+### Dual instance (release + experimental)
+
+Same source tree, two publish roots — so hard deploy can kill one MCP while the other stays up for self-host:
+
+| Cursor MCP name | Target | Role |
+|-----------------|--------|------|
+| `cdp` | `D:\cdp-mcp` | release |
+| `cdp-debug` | `D:\cdp-mcp-debug` | experimental spare |
+
+Hard-deploy only the instance you are replacing (`-Target …`). Prefer editing product sources via the spare, then promote to release. Live `cdp-mcp.toml` at the target is **not** overwritten if it already exists (template seeds first deploy only).
+
+`cdp_buffer` Instant Save: `edit`/`close` default `flush=true`; dirty `close` needs `discard=true` to drop.
 
 ## GitHub
 

@@ -10,7 +10,8 @@
 # Run:  cd ...\cdp-mcp  ;  .\publish-and-deploy.ps1
 #       .\publish-and-deploy.ps1 -Mode hard
 #       .\publish-and-deploy.ps1 -UseNuGet   # force AIGuiders.Cdp.* packages even if sibling csproj exist
-# Optional: -Target "D:\cdp-mcp"
+# Optional: -Target "D:\cdp-mcp" (release) or "D:\cdp-mcp-debug" (experimental spare).
+# Existing <Target>\cdp-mcp.toml is kept (template seeds only when missing).
 [CmdletBinding()]
 param(
     [string] $Target = "D:\cdp-mcp",
@@ -63,7 +64,12 @@ try {
         exit 1
     }
     $configDst = Join-Path $deployRoot "cdp-mcp.toml"
-    Copy-Item -LiteralPath $configSrc -Destination $configDst -Force
+    if (Test-Path -LiteralPath $configDst) {
+        Write-Host "Keep existing config: $configDst (template not applied)"
+    } else {
+        Copy-Item -LiteralPath $configSrc -Destination $configDst -Force
+        Write-Host "Seeded config from template: $configDst"
+    }
 
     # TypeScript LanguageService worker (Node) — side-by-side with CdpMcp.exe
     $workerSrc = Join-Path $here "..\typescript-lang\worker"
