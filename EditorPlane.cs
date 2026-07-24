@@ -17,7 +17,23 @@ internal static class EditorPlane
     public const int MaxStepsPerSlice = 64;
     public const int ContextMaxLinesDefault = 80;
 
+    public const string ExampleYaml =
+        """
+        - message: why this logical edit group
+          steps:
+            - path: Foo.cs
+              edit_op: replace
+              old_string: old
+              new_string: new
+            # or: edit_op: anchor / anchor: "[F:Foo.cs;M:Bar;K:Method]" / text: "…"
+        """;
+
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly YamlDotNet.Serialization.IDeserializer Yaml =
+        new YamlDotNet.Serialization.DeserializerBuilder()
+            .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)
+            .IgnoreUnmatchedProperties()
+            .Build();
 
     public static bool IsEditorTool(string name) =>
         name is "cdp_editor_scene" or "cdp_edit_plan";
@@ -137,11 +153,11 @@ internal static class EditorPlane
             next = new
             {
                 draft = "cdp_edit_plan op=draft",
-                apply = "cdp_edit_plan op=apply slices=[{message,steps:[{path,edit_op,…}]}]",
+                apply = "cdp_edit_plan op=apply yaml=… (preferred) or slices=[]",
                 buffer = "cdp_buffer still fine for single surgical edit"
             },
             hint =
-                "Map first (this tool); multi-step → edit_plan slices (git_plan analogue). " +
+                "Map first (this tool); multi-step → edit_plan YAML slices (git_plan analogue). " +
                 "Prefer edit_op=anchor [F:;M:;K:]. path=/locus= for context on demand — not a full dump."
         }, Pretty);
     }
@@ -235,11 +251,12 @@ internal static class EditorPlane
             op = "draft",
             ok = true,
             hint =
-                "Split work into slices[{message, steps:[{path, edit_op, …}]}]; then op=validate or op=apply. " +
-                "edit_op=anchor|replace|replace_range|set_text. Prefer anchor [F:;M:;K:].",
+                "Prefer YAML: op=validate|apply yaml='- message: …\\n  steps:\\n  - path: …'. " +
+                "Or slices=[] JSON. edit_op=anchor|replace|replace_range|set_text.",
             session = new { project_root = session.ProjectRoot, language = session.Language },
             candidates,
             candidate_count = candidates.Count,
+            example_yaml = ExampleYaml,
             example_slice = new
             {
                 message = "why this logical edit group",
@@ -264,7 +281,7 @@ internal static class EditorPlane
     {
         var slices = TryGetSlices(args)
             ?? throw new ArgumentException(
-                "cdp_edit_plan validate requires slices=[{message,steps:[{path,edit_op,…}]}].");
+                "cdp_edit_plan validate requires yaml= (YAML list) or slices=[{message,steps:…}].");
         var resolveAnchors = BoolOr(args, "resolve_anchors", defaultValue: true);
         var results = new List<object>();
         var anyFail = false;
@@ -330,7 +347,7 @@ internal static class EditorPlane
     {
         var slices = TryGetSlices(args)
             ?? throw new ArgumentException(
-                "cdp_edit_plan apply requires slices=[{message,steps:[{path,edit_op,…}]}].");
+                "cdp_edit_plan apply requires yaml= (YAML list) or slices=[{message,steps:…}].");
         var stopOnError = BoolOr(args, "stop_on_error", defaultValue: true);
         var diagnose = BoolOr(args, "diagnose", defaultValue: true);
         var flush = BoolOr(args, "flush", defaultValue: true);
@@ -588,9 +605,95 @@ internal static class EditorPlane
 
     static IReadOnlyList<EditSlice>? TryGetSlices(IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!args.TryGetValue("slices", out var el) || el.ValueKind != JsonValueKind.Array)
+        // Prefer YAML string: yaml= | slices_yaml= | plan=
+        foreach (var key in new[] { "yaml", "slices_yaml", "plan" })
+        {
+            var y = OptString(args, key);
+            if (y is { Length: > 0 })
+                return ParseYamlSlices(y);
+        }
+
+        if (!args.TryGetValue("slices", out var el))
             return null;
 
+        // slices as YAML/JSON string (agents often paste a block)
+        if (el.ValueKind == JsonValueKind.String)
+        {
+            var s = el.GetString();
+            if (string.IsNullOrWhiteSpace(s))
+                return null;
+            var t = s.TrimStart();
+            if (t.StartsWith('[') || t.StartsWith('{'))
+                return ParseJsonSlices(s);
+            return ParseYamlSlices(s);
+        }
+
+        if (el.ValueKind != JsonValueKind.Array)
+            return null;
+
+        return ParseJsonArray(el);
+    }
+
+    static IReadOnlyList<EditSlice> ParseYamlSlices(string yaml)
+    {
+        try
+        {
+            // Accept either a bare list or { slices: [...] }
+            var trimmed = yaml.TrimStart();
+            if (trimmed.StartsWith("slices:", StringComparison.OrdinalIgnoreCase)
+                || trimmed.StartsWith("---", StringComparison.Ordinal))
+            {
+                var wrap = Yaml.Deserialize<YamlPlanDoc>(yaml);
+                if (wrap?.Slices is { Count: > 0 })
+                    return wrap.Slices.Select(FromYamlSlice).ToArray();
+            }
+
+            var list = Yaml.Deserialize<List<YamlSliceDto>>(yaml);
+            if (list is null || list.Count == 0)
+                throw new ArgumentException("YAML slices empty.");
+            return list.Select(FromYamlSlice).ToArray();
+        }
+        catch (Exception ex) when (ex is not ArgumentException)
+        {
+            throw new ArgumentException($"YAML slices parse failed: {ex.Message}");
+        }
+    }
+
+    static EditSlice FromYamlSlice(YamlSliceDto s)
+    {
+        var steps = (s.Steps ?? [])
+            .Select(st => new EditStep
+            {
+                Path = st.Path,
+                EditOp = st.EditOp ?? st.Op,
+                Anchor = st.Anchor,
+                At = st.At,
+                Text = st.Text,
+                OldString = st.OldString,
+                NewString = st.NewString,
+                StartLine = st.StartLine,
+                StartColumn = st.StartColumn,
+                EndLine = st.EndLine,
+                EndColumn = st.EndColumn,
+                AllowShrink = st.AllowShrink
+            })
+            .ToArray();
+        return new EditSlice(s.Message ?? "", steps);
+    }
+
+    static IReadOnlyList<EditSlice> ParseJsonSlices(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("slices", out var inner))
+            return ParseJsonArray(inner);
+        if (root.ValueKind == JsonValueKind.Array)
+            return ParseJsonArray(root);
+        throw new ArgumentException("JSON slices must be an array or {slices:[…]}.");
+    }
+
+    static IReadOnlyList<EditSlice> ParseJsonArray(JsonElement el)
+    {
         var list = new List<EditSlice>();
         foreach (var item in el.EnumerateArray())
         {
@@ -612,6 +715,34 @@ internal static class EditorPlane
         }
 
         return list;
+    }
+
+    sealed class YamlPlanDoc
+    {
+        public List<YamlSliceDto>? Slices { get; set; }
+    }
+
+    sealed class YamlSliceDto
+    {
+        public string? Message { get; set; }
+        public List<YamlStepDto>? Steps { get; set; }
+    }
+
+    sealed class YamlStepDto
+    {
+        public string? Path { get; set; }
+        public string? EditOp { get; set; }
+        public string? Op { get; set; }
+        public string? Anchor { get; set; }
+        public string? At { get; set; }
+        public string? Text { get; set; }
+        public string? OldString { get; set; }
+        public string? NewString { get; set; }
+        public int? StartLine { get; set; }
+        public int? StartColumn { get; set; }
+        public int? EndLine { get; set; }
+        public int? EndColumn { get; set; }
+        public bool? AllowShrink { get; set; }
     }
 
     static EditStep ParseStep(JsonElement s) => new()

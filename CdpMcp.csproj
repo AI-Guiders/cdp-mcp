@@ -9,13 +9,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.126</Version>
+    <Version>0.5.127</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ModelContextProtocol" Version="1.3.0" />
     <PackageReference Include="Tomlyn" Version="2.9.0" />
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
     <PackageReference Include="OutWit.Database.EntityFramework" Version="1.0.3" />
