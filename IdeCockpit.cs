@@ -14,8 +14,9 @@ namespace CdpMcp;
 /// </summary>
 internal static class IdeCockpit
 {
-    public const string SchemaVersion = "cockpit/v1.1";
+    public const string SchemaVersion = "cockpit/v1.2";
     public const int GoResultCapChars = 24_000;
+    public const int GoPulseCapChars = 1_200;
 
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
     static readonly JsonSerializerOptions Compact = new() { WriteIndented = false };
@@ -170,8 +171,8 @@ internal static class IdeCockpit
             go = goResult,
             go_verbs = GoMap.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray(),
             hint =
-                "Cockpit = пульт (desk): mfd=nav|sys|chk; locus=<id> detail; go=<verb> routes to organs. " +
-                "Not a monolith — organs stay (*_scene/*_plan/buffer). Prefer next[].go or locus.go."
+                "Cold start: cdp_cockpit first. Desk: mfd=|locus=|go= (default go_detail=pulse). " +
+                "go_detail=full for organ dump. Organs stay — not a monolith."
         };
 
         return JsonSerializer.Serialize(payload, Pretty);
@@ -183,6 +184,10 @@ internal static class IdeCockpit
         Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> dispatch,
         CancellationToken cancellationToken)
     {
+        var detail = (OptString(cockpitArgs, "go_detail") ?? "pulse").Trim().ToLowerInvariant();
+        if (detail is not ("pulse" or "full"))
+            detail = "pulse";
+
         if (verb.Equals("cockpit", StringComparison.OrdinalIgnoreCase)
             || verb.Equals("cdp_cockpit", StringComparison.OrdinalIgnoreCase))
         {
@@ -222,24 +227,32 @@ internal static class IdeCockpit
         try
         {
             var raw = await dispatch(map.Tool, callArgs, cancellationToken).ConfigureAwait(false);
-            var capped = CapGoResult(raw);
-            object? parsed = null;
-            try
+            if (detail == "full")
             {
-                parsed = JsonSerializer.Deserialize<JsonElement>(capped.Text);
-            }
-            catch
-            {
-                parsed = capped.Text;
+                var capped = CapGoResult(raw, GoResultCapChars);
+                object? parsed = TryParseJson(capped.Text);
+                return new
+                {
+                    ok = true,
+                    go = verb,
+                    tool = map.Tool,
+                    detail = "full",
+                    truncated = capped.Truncated,
+                    result = parsed
+                };
             }
 
+            var pulse = PulseFromOrgan(raw);
             return new
             {
-                ok = true,
+                ok = pulse.Ok,
                 go = verb,
                 tool = map.Tool,
-                truncated = capped.Truncated,
-                result = parsed
+                detail = "pulse",
+                pulse = pulse.Line,
+                schema = pulse.Schema,
+                next = pulse.Next,
+                hint = pulse.Hint ?? "go_detail=full for organ dump; or call organ tool directly."
             };
         }
         catch (Exception ex)
@@ -249,16 +262,85 @@ internal static class IdeCockpit
                 ok = false,
                 go = verb,
                 tool = map.Tool,
+                detail,
                 error = ex.Message
             };
         }
     }
 
-    static (string Text, bool Truncated) CapGoResult(string raw)
+    sealed record OrganPulse(bool Ok, string Line, string? Schema, object? Next, string? Hint);
+
+    static OrganPulse PulseFromOrgan(string raw)
     {
-        if (raw.Length <= GoResultCapChars)
+        try
+        {
+            using var doc = JsonDocument.Parse(raw);
+            var root = doc.RootElement;
+            var ok = !root.TryGetProperty("ok", out var okEl) || okEl.ValueKind != JsonValueKind.False;
+            var schema = root.TryGetProperty("schema", out var sch) && sch.ValueKind == JsonValueKind.String
+                ? sch.GetString()
+                : null;
+            var hint = root.TryGetProperty("hint", out var h) && h.ValueKind == JsonValueKind.String
+                ? Truncate(h.GetString(), 240)
+                : null;
+            object? next = null;
+            if (root.TryGetProperty("next", out var n))
+                next = JsonSerializer.Deserialize<JsonElement>(n.GetRawText());
+
+            var bits = new List<string>();
+            if (schema is { Length: > 0 })
+                bits.Add(schema);
+            bits.Add(ok ? "ok" : "FAIL");
+
+            void AddNum(string key, string label)
+            {
+                if (root.TryGetProperty(key, out var el) && el.TryGetInt32(out var n))
+                    bits.Add($"{label}={n}");
+            }
+
+            AddNum("count", "n");
+            AddNum("dirty_count", "dirty");
+            AddNum("candidate_count", "cand");
+            AddNum("slice_count", "slices");
+            AddNum("path_count", "paths");
+            AddNum("tab_count", "tabs");
+
+            if (root.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String)
+                bits.Add(Truncate(err.GetString(), 80) ?? "error");
+
+            // git_scene often nests roots
+            if (root.TryGetProperty("roots", out var roots) && roots.ValueKind == JsonValueKind.Array)
+                bits.Add($"roots={roots.GetArrayLength()}");
+
+            var line = string.Join(' ', bits);
+            if (line.Length > GoPulseCapChars)
+                line = line[..GoPulseCapChars] + "…";
+            return new OrganPulse(ok, line, schema, next, hint);
+        }
+        catch
+        {
+            var line = Truncate(raw, GoPulseCapChars) ?? "";
+            return new OrganPulse(true, line, null, null, "go_detail=full for parseable dump");
+        }
+    }
+
+    static object? TryParseJson(string text)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<JsonElement>(text);
+        }
+        catch
+        {
+            return text;
+        }
+    }
+
+    static (string Text, bool Truncated) CapGoResult(string raw, int cap)
+    {
+        if (raw.Length <= cap)
             return (raw, false);
-        return (raw[..GoResultCapChars] + "\n…[cockpit go.result truncated]", true);
+        return (raw[..cap] + "\n…[cockpit go.result truncated]", true);
     }
 
     static object[] BuildNext(

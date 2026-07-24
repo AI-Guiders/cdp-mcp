@@ -521,7 +521,7 @@ List<Tool> BuildMetaTools() =>
             limit = new { type = "integer" }
         }
     }),
-    Meta("cdp_cockpit", "Agent IDE desk (пульт): single-screen MFD + loci + next[] + go= to organs (kj-1721). mfd=nav|sys|chk; locus=<id> detail; go=<verb> dispatches *_scene/*_plan/buffer — not a monolith. Prefer after cdp_open.", new
+    Meta("cdp_cockpit", "Agent IDE desk (пульт): cold-start here. MFD + loci + next[] + go= to organs. Default go_detail=pulse (quiet); go_detail=full for organ dump. Not a monolith.", new
     {
         type = "object",
         properties = new
@@ -533,6 +533,7 @@ List<Tool> BuildMetaTools() =>
             go = new { type = "string", description = "Desk verb → organ (editor_scene|edit_draft|git_scene|git_draft|test_scene|shell_scene|debug_scene|build|…). Alias: do=." },
             @do = new { type = "string", description = "Alias of go." },
             go_args = new { type = "object", description = "Optional args merged into the target organ tool." },
+            go_detail = new { type = "string", description = "pulse (default, quiet) | full (organ dump in go.result)." },
             include_submodules = new { type = "boolean", description = "Pass through to git_scene (default false)." }
         }
     }),
