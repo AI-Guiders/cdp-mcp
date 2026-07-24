@@ -40,6 +40,9 @@ internal static class IdeCockpit
             ["sniper"] = (EditSniper.ToolName, Dict(("op", "status"))),
             ["buffer_scene"] = ("cdp_buffer", Dict(("op", "scene"))),
             ["buffer"] = ("cdp_buffer", Dict(("op", "scene"))),
+            ["reload"] = ("cdp_buffer", Dict(("op", "reload"))),
+            ["keep_disk"] = ("cdp_buffer", Dict(("op", "keep_disk"))),
+            ["disk_peek"] = ("cdp_buffer", Dict(("op", "disk_peek"))),
             ["git_scene"] = ("git_git_scene", null),
             ["git"] = ("git_git_scene", null),
             ["git_draft"] = ("git_git_plan", Dict(("op", "draft"))),
@@ -318,6 +321,7 @@ internal static class IdeCockpit
 
             AddNum("count", "n");
             AddNum("dirty_count", "dirty");
+            AddNum("disk_changed_count", "disk");
             AddNum("candidate_count", "cand");
             AddNum("slice_count", "slices");
             AddNum("path_count", "paths");
@@ -384,6 +388,17 @@ internal static class IdeCockpit
             Add("n-open", "project_scene", "Project map", "No project — cdp_open / project_scene first");
         else
             Add("n-editor", "editor_scene", "Editor map", "Buffer/desk loop");
+
+        // VS-style: File Modified Outside the Environment — Reload?
+        if (buffer.DiskChangedCount > 0)
+        {
+            Add("n-disk-peek", "disk_peek", "Peek disk vs memory",
+                "Glance before Reload? (mtime / content)");
+            Add("n-reload", "reload", "Reload from disk",
+                $"{buffer.DiskChangedCount} file(s) changed outside — like VS Reload?");
+            Add("n-keep-disk", "keep_disk", "Keep memory",
+                "Don't Reload — silence all drifted (or path= one)");
+        }
 
         // Sniper beats (kj-1848): scope → target → shoot — prefer over file-wide outline.
         if (EditSniper.HasHold)
@@ -461,7 +476,7 @@ internal static class IdeCockpit
         project = session.ProjectRoot is null ? "no_project — cdp_open" : session.ProjectRoot,
         git = GitPulseLine(gitRoot),
         shell = $"tabs={shell.TabCount} running={shell.Running} failed={shell.Failed}",
-        buffer = $"open={buffer.Count} dirty={buffer.DirtyCount}",
+        buffer = $"open={buffer.Count} dirty={buffer.DirtyCount} disk_changed={buffer.DiskChangedCount}",
         debug = debug.ActiveDap
             ? $"dap stopped={debug.Stopped} bp={debug.BreakpointCount}"
             : $"idle bp={debug.BreakpointCount}",
@@ -606,12 +621,20 @@ internal static class IdeCockpit
 
         foreach (var doc in buffer.Docs.Take(16))
         {
+            var both = doc.DiskChanged && doc.Dirty;
+            var pulse =
+                (both ? "DIRTY+DISK " : doc.DiskChanged ? "DISK CHANGED " : doc.Dirty ? "DIRTY " : "") +
+                ShortPath(doc.Path);
             list.Add(new Locus(
                 $"buffer:{doc.DocId}",
                 "buffer",
-                (doc.Dirty ? "DIRTY " : "") + ShortPath(doc.Path),
-                "go=editor_scene → go=edit_draft",
-                "editor_scene",
+                pulse,
+                doc.DiskChanged
+                    ? (both
+                        ? "go=disk_peek → reload loses edits; or keep_disk"
+                        : "go=disk_peek → reload | keep_disk — modified outside")
+                    : "go=editor_scene → go=edit_draft",
+                doc.DiskChanged ? "disk_peek" : "editor_scene",
                 doc));
         }
 
@@ -793,9 +816,15 @@ internal static class IdeCockpit
         return new ShellSnap(PropInt(root, "tab_count") ?? tabs.Count, running, failed, tabs);
     }
 
-    sealed record BufferDoc(string DocId, string Path, string? Language, bool Dirty, int? Version);
+    sealed record BufferDoc(
+        string DocId,
+        string Path,
+        string? Language,
+        bool Dirty,
+        bool DiskChanged,
+        int? Version);
 
-    sealed record BufferSnap(int Count, int DirtyCount, IReadOnlyList<BufferDoc> Docs);
+    sealed record BufferSnap(int Count, int DirtyCount, int DiskChangedCount, IReadOnlyList<BufferDoc> Docs);
 
     static BufferSnap CollectBuffer(object sceneObj)
     {
@@ -812,13 +841,15 @@ internal static class IdeCockpit
                     PropStr(d, "path") ?? "?",
                     PropStr(d, "language"),
                     PropBool(d, "dirty") == true,
+                    PropBool(d, "disk_changed") == true,
                     PropInt(d, "version")));
             }
         }
 
         return new BufferSnap(
             PropInt(root, "count") ?? docs.Count,
-            docs.Count(d => d.Dirty),
+            PropInt(root, "dirty_count") ?? docs.Count(d => d.Dirty),
+            PropInt(root, "disk_changed_count") ?? docs.Count(d => d.DiskChanged),
             docs);
     }
 

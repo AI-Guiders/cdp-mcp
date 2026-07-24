@@ -63,20 +63,32 @@ internal static class EditorPlane
             .OrderBy(b => b.DocId, StringComparer.Ordinal)
             .ToArray();
 
-        var loci = docs.Select(b => new
+        var loci = docs.Select(b =>
         {
-            id = $"buffer:{b.DocId}",
-            kind = "buffer",
-            pulse = (b.Dirty ? "DIRTY " : "") + ShortPath(b.Path),
-            drill = "cdp_editor_scene path=… | cdp_edit_plan",
-            doc_id = b.DocId,
-            path = b.Path,
-            dirty = b.Dirty,
-            language = b.Language,
-            version = b.Version,
-            line_count = CountLines(b.Text),
-            diags_cached = b.LastDiagnosedVersion == b.Version && b.LastDiagnosticsJson is { Length: > 0 }
-        }).Cast<object>().ToList();
+            var changed = b.ProbeDiskChanged(out _, out var reason);
+            var pulse =
+                (changed ? "DISK CHANGED " : "") +
+                (b.Dirty ? "DIRTY " : "") +
+                ShortPath(b.Path);
+            return (object)new
+            {
+                id = $"buffer:{b.DocId}",
+                kind = "buffer",
+                pulse,
+                drill = changed
+                    ? "go=reload path=… (or keep_disk) — file modified outside"
+                    : "cdp_editor_scene path=… | cdp_edit_plan",
+                doc_id = b.DocId,
+                path = b.Path,
+                dirty = b.Dirty,
+                disk_changed = changed,
+                disk_changed_reason = reason,
+                language = b.Language,
+                version = b.Version,
+                line_count = CountLines(b.Text),
+                diags_cached = b.LastDiagnosedVersion == b.Version && b.LastDiagnosticsJson is { Length: > 0 }
+            };
+        }).ToList();
 
         if (docs.Length == 0)
         {
@@ -111,12 +123,15 @@ internal static class EditorPlane
                 var maxLines = Math.Clamp(IntOr(args, "context_lines", ContextMaxLinesDefault), 1, 400);
                 var start = IntOrNull(args, "start_line") ?? 1;
                 var end = IntOrNull(args, "end_line") ?? Math.Min(CountLines(buf.Text), start + maxLines - 1);
+                var changed = buf.ProbeDiskChanged(out _, out var reason);
                 context = new
                 {
                     ok = true,
                     locus = $"buffer:{buf.DocId}",
                     meta = buf.ToMeta(),
                     window = buf.ToReadResult(start, end),
+                    disk_changed = changed,
+                    disk_changed_reason = reason,
                     diags_note = buf.LastDiagnosedVersion == buf.Version
                         ? "cache_available (cdp_buffer op=diagnostics)"
                         : "stale_or_missing — run cdp_buffer op=diagnostics"
@@ -136,6 +151,7 @@ internal static class EditorPlane
             }
         }
 
+        var drift = docs.Count(b => b.ProbeDiskChanged(out _, out _));
         return JsonSerializer.Serialize(new
         {
             schema = SceneSchema,
@@ -148,18 +164,23 @@ internal static class EditorPlane
             },
             count = docs.Length,
             dirty_count = docs.Count(d => d.Dirty),
+            disk_changed_count = drift,
             buffers = docs.Select(b => b.ToMeta()).ToArray(),
             loci,
             context,
             next = new
             {
+                disk_peek = drift > 0 ? "cdp_buffer op=disk_peek (all drifted) or path=" : null,
+                reload = drift > 0 ? "cdp_buffer op=reload (all drifted) or path=" : null,
+                keep_disk = drift > 0 ? "cdp_buffer op=keep_disk (all drifted) or path= — Don't Reload" : null,
                 draft = "cdp_edit_plan op=draft",
                 apply = "cdp_edit_plan op=apply yaml=… (preferred) or slices=[]",
                 buffer = "cdp_buffer still fine for single surgical edit"
             },
-            hint =
-                "Map first (this tool); multi-step → edit_plan YAML slices (git_plan analogue). " +
-                "Prefer edit_op=anchor [F:;M:;K:]. path=/locus= for context on demand — not a full dump."
+            hint = drift > 0
+                ? "File(s) modified outside — go=disk_peek → reload | keep_disk."
+                : "Map first (this tool); multi-step → edit_plan YAML slices (git_plan analogue). " +
+                  "Prefer edit_op=anchor [F:;M:;K:]. path=/locus= for context on demand — not a full dump."
         }, Pretty);
     }
 

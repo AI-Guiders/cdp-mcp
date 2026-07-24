@@ -266,15 +266,77 @@ internal sealed class DocumentBufferStore
         buf.DiskMtimeUtc = File.GetLastWriteTimeUtc(buf.Path);
     }
 
-    public object Scene() => new
+    public object Scene()
     {
-        schema = "doc_scene/v0",
-        count = _byPath.Count,
-        docs = _byPath.Values
+        var docs = _byPath.Values
             .OrderBy(b => b.DocId, StringComparer.Ordinal)
             .Select(b => b.ToMeta())
-            .ToArray()
-    };
+            .ToArray();
+        var drift = _byPath.Values.Count(b => b.ProbeDiskChanged(out _, out _));
+        return new
+        {
+            schema = "doc_scene/v0",
+            count = _byPath.Count,
+            dirty_count = _byPath.Values.Count(b => b.Dirty),
+            disk_changed_count = drift,
+            docs
+        };
+    }
+
+    /// <summary>Force buffer ← disk (VS Reload). Clears dirty.</summary>
+    public DocBuffer ReloadFromDisk(string path)
+    {
+        var full = Path.GetFullPath(path);
+        return _gate.Run(full, () => OpenUnlocked(full, refresh: true));
+    }
+
+    /// <summary>Reload every open buffer whose disk mtime drifted (batch Reload?).</summary>
+    public IReadOnlyList<DocBuffer> ReloadAllDrifted()
+    {
+        var hits = _byPath.Values.Where(b => b.ProbeDiskChanged(out _, out _)).ToArray();
+        foreach (var b in hits)
+            ReloadFromDisk(b.Path);
+        return hits;
+    }
+
+    /// <summary>Keep memory, silence drift pulse (VS Don't Reload).</summary>
+    public DocBuffer KeepDisk(string path)
+    {
+        var full = Path.GetFullPath(path);
+        return _gate.Run(full, () =>
+        {
+            if (!_byPath.TryGetValue(full, out var buf))
+                throw new InvalidOperationException($"Buffer not open: {full}");
+            buf.AcknowledgeDisk();
+            return buf;
+        });
+    }
+
+    /// <summary>Acknowledge every open buffer with disk drift (batch Don't Reload).</summary>
+    public IReadOnlyList<DocBuffer> KeepAllDrifted()
+    {
+        var hits = _byPath.Values.Where(b => b.ProbeDiskChanged(out _, out _)).ToArray();
+        foreach (var b in hits)
+            KeepDisk(b.Path);
+        return hits;
+    }
+
+    /// <summary>Compact memory vs disk peek before Reload? (VS-style glance).</summary>
+    public object PeekDisk(string path, int pad = 2, int maxHunkLines = 24)
+    {
+        var full = Path.GetFullPath(path);
+        if (!_byPath.TryGetValue(full, out var buf))
+            throw new InvalidOperationException($"Buffer not open: {full}");
+        return buf.PeekDisk(pad, maxHunkLines);
+    }
+
+    public IReadOnlyList<object> PeekAllDrifted(int pad = 2, int maxHunkLines = 16)
+    {
+        return _byPath.Values
+            .Where(b => b.ProbeDiskChanged(out _, out _))
+            .Select(b => b.PeekDisk(pad, maxHunkLines))
+            .ToArray();
+    }
 
     public static string GuessLanguage(string path)
     {
@@ -338,18 +400,165 @@ internal sealed class DocBuffer
     public int? LastDiagnosedVersion { get; set; }
     public string? LastDiagnosedScope { get; set; }
 
-    public object ToMeta() => new
+    public object ToMeta()
     {
-        doc_id = DocId,
-        path = Path,
-        language = Language,
-        version = Version,
-        dirty = Dirty,
-        line_count = CountLines(Text),
-        char_count = Text.Length,
-        disk_mtime_utc = DiskMtimeUtc,
-        last_diagnosed_utc = LastDiagnosedUtc
-    };
+        var changed = ProbeDiskChanged(out var diskNow, out var reason);
+        return new
+        {
+            doc_id = DocId,
+            path = Path,
+            language = Language,
+            version = Version,
+            dirty = Dirty,
+            line_count = CountLines(Text),
+            char_count = Text.Length,
+            disk_mtime_utc = DiskMtimeUtc,
+            disk_now_utc = diskNow,
+            disk_changed = changed,
+            disk_changed_reason = reason,
+            last_diagnosed_utc = LastDiagnosedUtc
+        };
+    }
+
+    /// <summary>
+    /// VS-style "File Modified Outside the Environment": disk mtime (or presence)
+    /// differs from last buffer sync.
+    /// </summary>
+    public bool ProbeDiskChanged(out DateTime? diskNow, out string? reason)
+    {
+        diskNow = null;
+        reason = null;
+        try
+        {
+            if (!File.Exists(Path))
+            {
+                reason = "missing_on_disk";
+                return true;
+            }
+
+            diskNow = File.GetLastWriteTimeUtc(Path);
+            if (diskNow.Value != DiskMtimeUtc)
+            {
+                reason = "mtime";
+                return true;
+            }
+
+            return false;
+        }
+        catch (Exception)
+        {
+            reason = "probe_failed";
+            return true;
+        }
+    }
+
+    /// <summary>Silence drift without taking disk (Don't Reload).</summary>
+    public void AcknowledgeDisk()
+    {
+        if (File.Exists(Path))
+            DiskMtimeUtc = File.GetLastWriteTimeUtc(Path);
+    }
+
+    /// <summary>Glance: memory vs on-disk text (not a full unified dump).</summary>
+    public object PeekDisk(int pad = 2, int maxHunkLines = 24)
+    {
+        pad = Math.Clamp(pad, 0, 8);
+        maxHunkLines = Math.Clamp(maxHunkLines, 4, 80);
+        var changed = ProbeDiskChanged(out var diskNow, out var reason);
+        if (!File.Exists(Path))
+        {
+            return new
+            {
+                schema = "doc_disk_peek/v0",
+                path = Path,
+                doc_id = DocId,
+                disk_changed = changed,
+                disk_changed_reason = reason ?? "missing_on_disk",
+                content_same = false,
+                missing_on_disk = true,
+                dirty = Dirty,
+                disk_mtime_utc = DiskMtimeUtc,
+                disk_now_utc = diskNow
+            };
+        }
+
+        var diskText = File.ReadAllText(Path);
+        var contentSame = string.Equals(Text, diskText, StringComparison.Ordinal);
+        if (contentSame)
+        {
+            return new
+            {
+                schema = "doc_disk_peek/v0",
+                path = Path,
+                doc_id = DocId,
+                disk_changed = changed,
+                disk_changed_reason = reason,
+                content_same = true,
+                missing_on_disk = false,
+                dirty = Dirty,
+                pulse = changed ? "mtime drifted, content same" : "in sync",
+                disk_mtime_utc = DiskMtimeUtc,
+                disk_now_utc = diskNow,
+                mem_lines = CountLines(Text),
+                disk_lines = CountLines(diskText)
+            };
+        }
+
+        var mem = SplitLines(Text);
+        var disk = SplitLines(diskText);
+        var first = 0;
+        var lim = Math.Min(mem.Count, disk.Count);
+        while (first < lim && mem[first] == disk[first])
+            first++;
+
+        var start = Math.Max(0, first - pad);
+        var end = Math.Min(Math.Max(mem.Count, disk.Count), first + maxHunkLines - pad);
+        var rows = new List<object>();
+        for (var i = start; i < end; i++)
+        {
+            var m = i < mem.Count ? mem[i] : null;
+            var d = i < disk.Count ? disk[i] : null;
+            var mark = m == d ? " " : m is null ? "+" : d is null ? "-" : "!";
+            rows.Add(new
+            {
+                line = i + 1,
+                mark,
+                mem = TrimPeek(m),
+                disk = TrimPeek(d)
+            });
+            if (rows.Count >= maxHunkLines)
+                break;
+        }
+
+        return new
+        {
+            schema = "doc_disk_peek/v0",
+            path = Path,
+            doc_id = DocId,
+            disk_changed = changed,
+            disk_changed_reason = reason,
+            content_same = false,
+            missing_on_disk = false,
+            dirty = Dirty,
+            pulse = Dirty
+                ? "DIRTY+DISK — memory ≠ disk (reload loses buffer edits)"
+                : "DISK CHANGED — memory ≠ disk",
+            first_diff_line = first + 1,
+            mem_lines = mem.Count,
+            disk_lines = disk.Count,
+            disk_mtime_utc = DiskMtimeUtc,
+            disk_now_utc = diskNow,
+            sample = rows,
+            hint = "go=reload (take disk) | go=keep_disk (keep memory). Dirty+drift: reload drops buffer edits."
+        };
+    }
+
+    static string? TrimPeek(string? s)
+    {
+        if (s is null)
+            return null;
+        return s.Length <= 160 ? s : s[..157] + "...";
+    }
 
     public object ToReadResult(int? startLine, int? endLine)
     {

@@ -65,9 +65,103 @@ internal static class DocumentEditPlane
             "diagnostics" => await DiagnosticsAsync(store, session, byDomain, args, cancellationToken)
                 .ConfigureAwait(false),
             "close" => Close(store, session, args),
+            "reload" => Reload(store, session, args),
+            "keep_disk" => KeepDisk(store, session, args),
+            "disk_peek" => DiskPeek(store, session, args),
             _ => throw new ArgumentException(
-                "cdp_buffer op must be scene|open|create|read|edit|diagnostics|close.")
+                "cdp_buffer op must be scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek.")
         };
+    }
+
+    static string Reload(
+        DocumentBufferStore store,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var path = OptString(args, "path");
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            var hit = store.ReloadAllDrifted();
+            return JsonSerializer.Serialize(new
+            {
+                schema = "doc_reload/v0",
+                ok = true,
+                op = "reload",
+                count = hit.Count,
+                reloaded = hit.Select(b => b.ToMeta()).ToArray(),
+                hint = "Reloaded all buffers with disk drift (VS Reload). Pass path= for one file."
+            }, Pretty);
+        }
+
+        var full = ResolveUserPath(session, path);
+        var buf = store.ReloadFromDisk(full);
+        return JsonSerializer.Serialize(new
+        {
+            schema = "doc_reload/v0",
+            ok = true,
+            op = "reload",
+            count = 1,
+            meta = buf.ToMeta(),
+            hint = "Buffer ← disk. Dirty cleared. Like VS: File modified outside — Reload."
+        }, Pretty);
+    }
+
+    static string KeepDisk(
+        DocumentBufferStore store,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var path = OptString(args, "path");
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            var hit = store.KeepAllDrifted();
+            return JsonSerializer.Serialize(new
+            {
+                schema = "doc_keep_disk/v0",
+                ok = true,
+                op = "keep_disk",
+                count = hit.Count,
+                kept = hit.Select(b => b.ToMeta()).ToArray(),
+                hint = "Kept memory for all drifted buffers (VS Don't Reload). Pass path= for one file."
+            }, Pretty);
+        }
+
+        var full = ResolveUserPath(session, path);
+        var buf = store.KeepDisk(full);
+        return JsonSerializer.Serialize(new
+        {
+            schema = "doc_keep_disk/v0",
+            ok = true,
+            op = "keep_disk",
+            count = 1,
+            meta = buf.ToMeta(),
+            hint = "Kept memory; silenced disk_changed (VS Don't Reload)."
+        }, Pretty);
+    }
+
+    static string DiskPeek(
+        DocumentBufferStore store,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var path = OptString(args, "path");
+        var pad = IntOrNull(args, "pad") ?? 2;
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            var peeks = store.PeekAllDrifted(pad);
+            return JsonSerializer.Serialize(new
+            {
+                schema = "doc_disk_peek_batch/v0",
+                ok = true,
+                op = "disk_peek",
+                count = peeks.Count,
+                peeks,
+                hint = "Glance mem vs disk for all drifted. Pass path= for one file. Then go=reload|keep_disk."
+            }, Pretty);
+        }
+
+        var full = ResolveUserPath(session, path);
+        return JsonSerializer.Serialize(store.PeekDisk(full, pad), Pretty);
     }
 
     static async Task<string> OpenAsync(

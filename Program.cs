@@ -181,13 +181,14 @@ List<Tool> BuildMetaTools() =>
             recent_index = new { type = "integer", description = "Optional 0-based Open Recent index (0 = last opened)." }
         }
     }),
-    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|read|edit|diagnostics|close. Instant Save: edit/close flush=true by default (disk on every edit). flush=false = batch in memory; close+dirty needs discard=true. Relative path= resolves against session ProjectRoot (cdp_open), not process cwd. csharp: prefer edit_op=anchor [F:;M:;K:] (surgical); replace/replace_range are fallbacks (replace tolerates LF↔CRLF). Diagnostics: scope=syntax|project|solution; cached while version unchanged (force=true). edit diagnose default true (csharp syntax). Parallel OK.", new
+    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek. Instant Save: edit/close flush=true by default. reload/keep_disk/disk_peek = VS File Modified Outside (Reload? / Don't Reload / glance). Relative path= → ProjectRoot after cdp_open. csharp: prefer edit_op=anchor [F:;M:;K:]. Parallel OK.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|open|create|read|edit|diagnostics|close" },
-            path = new { type = "string" },
+            op = new { type = "string", description = "scene|open|create|read|edit|diagnostics|close|reload|keep_disk|disk_peek" },
+            path = new { type = "string", description = "reload|keep_disk|disk_peek: optional (omit = all drifted); otherwise file path" },
+            pad = new { type = "integer", description = "disk_peek: ± context lines around first diff (default 2)" },
             doc_id = new { type = "string" },
             diagnose = new { type = "boolean", description = "open default false; create/edit default true (csharp: syntax)" },
             flush = new { type = "boolean", description = "edit/close default true (Instant Save). false = keep dirty in memory (batch)." },
