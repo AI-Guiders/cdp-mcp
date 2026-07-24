@@ -9,12 +9,13 @@ using TerminalMcp.Core;
 namespace CdpMcp;
 
 /// <summary>
-/// Agent IDE cockpit — single-screen MFD + loci navigation (kj-1329 / kj-1603).
-/// Modes: nav | sys | chk. Select <c>locus=</c> for detail (CodeAnchor-like). Not a CIDE multi-pane clone.
+/// Agent IDE cockpit — single-screen MFD + loci + desk dispatcher (kj-1329 / kj-1603 / kj-1721).
+/// Modes: nav | sys | chk. <c>locus=</c> for detail; <c>go=</c> routes to organs (not a monolith).
 /// </summary>
 internal static class IdeCockpit
 {
-    public const string SchemaVersion = "cockpit/v1";
+    public const string SchemaVersion = "cockpit/v1.1";
+    public const int GoResultCapChars = 24_000;
 
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
     static readonly JsonSerializerOptions Compact = new() { WriteIndented = false };
@@ -23,17 +24,55 @@ internal static class IdeCockpit
         "nav", "sys", "chk"
     };
 
+    /// <summary>Allowlist desk verbs → organ tools. Cockpit stays a пульт, not the organ.</summary>
+    static readonly Dictionary<string, (string Tool, Dictionary<string, JsonElement>? Defaults)> GoMap =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["editor_scene"] = ("cdp_editor_scene", null),
+            ["editor"] = ("cdp_editor_scene", null),
+            ["edit_draft"] = ("cdp_edit_plan", Dict(("op", "draft"))),
+            ["edit_plan"] = ("cdp_edit_plan", Dict(("op", "draft"))),
+            ["buffer_scene"] = ("cdp_buffer", Dict(("op", "scene"))),
+            ["buffer"] = ("cdp_buffer", Dict(("op", "scene"))),
+            ["git_scene"] = ("git_git_scene", null),
+            ["git"] = ("git_git_scene", null),
+            ["git_draft"] = ("git_git_plan", Dict(("op", "draft"))),
+            ["git_plan"] = ("git_git_plan", Dict(("op", "draft"))),
+            ["test_scene"] = ("cdp_test_scene", null),
+            ["test"] = ("cdp_test_scene", null),
+            ["test_plan"] = ("cdp_test_plan", Dict(("op", "preview"))),
+            ["shell_scene"] = ("cdp_shell_scene", null),
+            ["shell"] = ("cdp_shell_scene", null),
+            ["shell_last"] = ("cdp_shell_last", null),
+            ["debug_scene"] = ("cdp_debug", Dict(("op", "scene"))),
+            ["debug"] = ("cdp_debug", Dict(("op", "scene"))),
+            ["build"] = ("cdp_build", null),
+            ["project_scene"] = ("cdp_project_scene", null),
+            ["project"] = ("cdp_project_scene", null),
+            ["work"] = ("cdp_work", Dict(("op", "status"))),
+        };
+
+    static Dictionary<string, JsonElement> Dict(params (string Key, string Value)[] pairs)
+    {
+        var d = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        foreach (var (k, v) in pairs)
+            d[k] = JsonSerializer.SerializeToElement(v);
+        return d;
+    }
+
     sealed class Locus(
         string Id,
         string Kind,
         string Pulse,
         string Drill,
+        string? Go = null,
         object? Detail = null)
     {
         public string Id { get; } = Id;
         public string Kind { get; } = Kind;
         public string Pulse { get; } = Pulse;
         public string Drill { get; } = Drill;
+        public string? Go { get; } = Go;
         public object? Detail { get; } = Detail;
 
         public object Card() => new
@@ -41,7 +80,8 @@ internal static class IdeCockpit
             id = Id,
             kind = Kind,
             pulse = Pulse,
-            drill = Drill
+            drill = Drill,
+            go = Go
         };
     }
 
@@ -53,6 +93,7 @@ internal static class IdeCockpit
         IntentWorkspaceStore? workspaceStore,
         IntentWorkspaceState workspaceState,
         IReadOnlyDictionary<string, JsonElement> args,
+        Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> dispatch,
         CancellationToken cancellationToken)
     {
         var mfd = OptString(args, "mfd") ?? OptString(args, "page") ?? "nav";
@@ -62,6 +103,21 @@ internal static class IdeCockpit
 
         var focusId = OptString(args, "locus") ?? OptString(args, "focus");
         var includeSubmodules = BoolOr(args, "include_submodules", false);
+        var goVerb = OptString(args, "go") ?? OptString(args, "do");
+
+        // Soft MFD switches via go=chk|sys|nav (no organ dispatch).
+        if (goVerb is { Length: > 0 } && MfdPages.Contains(goVerb.Trim()))
+        {
+            mfd = goVerb.Trim().ToLowerInvariant();
+            goVerb = null;
+        }
+
+        object? goResult = null;
+        if (goVerb is { Length: > 0 })
+        {
+            goResult = await DispatchGoAsync(goVerb.Trim(), args, dispatch, cancellationToken)
+                .ConfigureAwait(false);
+        }
 
         var git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken).ConfigureAwait(false);
         var shell = CollectShell(shellHabitat.Scene());
@@ -71,6 +127,7 @@ internal static class IdeCockpit
         var work = CollectWork(workspaceStore, workspaceState);
 
         var loci = BuildLoci(session, git, shell, buffer, debug, test, work);
+        var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId);
 
         object? focus = null;
         if (!string.IsNullOrWhiteSpace(focusId))
@@ -86,6 +143,7 @@ internal static class IdeCockpit
                     kind = hit.Kind,
                     pulse = hit.Pulse,
                     drill = hit.Drill,
+                    go = hit.Go,
                     detail = hit.Detail
                 };
         }
@@ -101,18 +159,162 @@ internal static class IdeCockpit
         {
             schema = SchemaVersion,
             ok = true,
+            role = "desk",
             mfd,
             mfd_pages = new[] { "nav", "sys", "chk" },
             session = SessionPulse(session),
             loci = loci.Select(l => l.Card()).ToArray(),
+            next,
             focus,
             page,
+            go = goResult,
+            go_verbs = GoMap.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray(),
             hint =
-                "Single-screen MFD: mfd=nav|sys|chk; locus=<id> for detail (CodeAnchor-like). " +
-                "Not multi-pane. Drill via locus.drill / existing *_scene."
+                "Cockpit = пульт (desk): mfd=nav|sys|chk; locus=<id> detail; go=<verb> routes to organs. " +
+                "Not a monolith — organs stay (*_scene/*_plan/buffer). Prefer next[].go or locus.go."
         };
 
         return JsonSerializer.Serialize(payload, Pretty);
+    }
+
+    static async Task<object> DispatchGoAsync(
+        string verb,
+        IReadOnlyDictionary<string, JsonElement> cockpitArgs,
+        Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> dispatch,
+        CancellationToken cancellationToken)
+    {
+        if (verb.Equals("cockpit", StringComparison.OrdinalIgnoreCase)
+            || verb.Equals("cdp_cockpit", StringComparison.OrdinalIgnoreCase))
+        {
+            return new
+            {
+                ok = false,
+                go = verb,
+                error = "refuse_self",
+                hint = "go= routes to organs; use mfd=/locus= for cockpit itself."
+            };
+        }
+
+        if (!GoMap.TryGetValue(verb, out var map))
+        {
+            return new
+            {
+                ok = false,
+                go = verb,
+                error = "unknown_go",
+                hint = "Pick from go_verbs[] or next[].go / locus.go."
+            };
+        }
+
+        var callArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        if (map.Defaults is not null)
+        {
+            foreach (var kv in map.Defaults)
+                callArgs[kv.Key] = kv.Value;
+        }
+
+        if (cockpitArgs.TryGetValue("go_args", out var goArgs) && goArgs.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var p in goArgs.EnumerateObject())
+                callArgs[p.Name] = p.Value.Clone();
+        }
+
+        try
+        {
+            var raw = await dispatch(map.Tool, callArgs, cancellationToken).ConfigureAwait(false);
+            var capped = CapGoResult(raw);
+            object? parsed = null;
+            try
+            {
+                parsed = JsonSerializer.Deserialize<JsonElement>(capped.Text);
+            }
+            catch
+            {
+                parsed = capped.Text;
+            }
+
+            return new
+            {
+                ok = true,
+                go = verb,
+                tool = map.Tool,
+                truncated = capped.Truncated,
+                result = parsed
+            };
+        }
+        catch (Exception ex)
+        {
+            return new
+            {
+                ok = false,
+                go = verb,
+                tool = map.Tool,
+                error = ex.Message
+            };
+        }
+    }
+
+    static (string Text, bool Truncated) CapGoResult(string raw)
+    {
+        if (raw.Length <= GoResultCapChars)
+            return (raw, false);
+        return (raw[..GoResultCapChars] + "\n…[cockpit go.result truncated]", true);
+    }
+
+    static object[] BuildNext(
+        SessionContext session,
+        JsonElement? gitRoot,
+        ShellSnap shell,
+        BufferSnap buffer,
+        DebugSnap debug,
+        TestSnap test,
+        WorkSnap work,
+        string? focusId)
+    {
+        var list = new List<object>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        void Add(string id, string go, string label, string why)
+        {
+            if (list.Count >= 8 || !seen.Add(go))
+                return;
+            list.Add(new { id, go, label, why });
+        }
+
+        if (session.ProjectRoot is null)
+            Add("n-open", "project_scene", "Project map", "No project — cdp_open / project_scene first");
+        else
+            Add("n-editor", "editor_scene", "Editor map", "Buffer/desk loop");
+
+        if (buffer.Count > 0)
+            Add("n-edit-draft", "edit_draft", "Edit plan draft", $"Open buffers={buffer.Count} dirty={buffer.DirtyCount}");
+        else if (session.ProjectRoot is not null)
+            Add("n-buffer", "buffer_scene", "Buffer scene", "No open buffers yet");
+
+        if (gitRoot is { } g && GitIsDirty(g))
+            Add("n-git-draft", "git_draft", "Git plan draft", "Dirty SCM — logical slices");
+        else
+            Add("n-git", "git_scene", "Git scene", "SCM map");
+
+        if (test.Failed > 0)
+            Add("n-test-plan", "test_plan", "Retest failed", "last_run has failures");
+        else
+            Add("n-test", "test_scene", "Test scene", "Discover / last_run");
+
+        if (debug.Stopped)
+            Add("n-debug", "debug_scene", "Debug scene", "DAP stopped — stop_context via organ");
+        else
+            Add("n-shell", "shell_scene", "Shell habitat", shell.Running > 0 ? "jobs running" : "tabs map");
+
+        if (focusId is { Length: > 0 }
+            && focusId.StartsWith("buffer:", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(focusId, "buffer:none", StringComparison.OrdinalIgnoreCase))
+            Add("n-focus-editor", "editor_scene", "Focus editor context", $"locus {focusId}");
+
+        if (work.IntentId is not null)
+            Add("n-work", "work", "Work status", work.SceneName ?? work.IntentId);
+
+        Add("n-chk", "chk", "Checklists", "mfd=chk");
+        return list.ToArray();
     }
 
     static object SessionPulse(SessionContext session) => new
@@ -128,7 +330,7 @@ internal static class IdeCockpit
     static object BuildNavPage(IReadOnlyList<Locus> loci, object? focus) => new
     {
         title = "NAV",
-        note = "Pick locus= to open detail on this screen.",
+        note = "Pick locus= for detail, or go=<verb> from next[] / locus.go.",
         locus_count = loci.Count,
         focus
     };
@@ -248,6 +450,7 @@ internal static class IdeCockpit
                 ? "no project — cdp_open"
                 : $"{session.Language ?? "?"} @ {ShortPath(session.ProjectRoot)}",
             "cdp_open / cdp_session",
+            "project_scene",
             SessionPulse(session)));
 
         if (gitRoot is { } g)
@@ -258,7 +461,8 @@ internal static class IdeCockpit
                 "git:scm",
                 "git",
                 dirty ? $"dirty on {branch}" : $"clean {branch}",
-                "git_git_scene → git_git_plan",
+                "go=git_scene → go=git_draft",
+                dirty ? "git_draft" : "git_scene",
                 CompactGit(g)));
         }
         else
@@ -267,7 +471,8 @@ internal static class IdeCockpit
                 "git:scm",
                 "git",
                 "unavailable — cdp_open scm_root",
-                "git_git_scene",
+                "go=git_scene",
+                "git_scene",
                 new { available = false }));
         }
 
@@ -281,7 +486,8 @@ internal static class IdeCockpit
                 id,
                 "shell",
                 pulse,
-                "cdp_shell_scene / cdp_shell_last",
+                "go=shell_scene / go=shell_last",
+                "shell_scene",
                 tab));
         }
 
@@ -291,7 +497,8 @@ internal static class IdeCockpit
                 $"buffer:{doc.DocId}",
                 "buffer",
                 (doc.Dirty ? "DIRTY " : "") + ShortPath(doc.Path),
-                "cdp_editor_scene path=… → cdp_edit_plan",
+                "go=editor_scene → go=edit_draft",
+                "editor_scene",
                 doc));
         }
 
@@ -301,7 +508,8 @@ internal static class IdeCockpit
                 "buffer:none",
                 "buffer",
                 "no open buffers",
-                "cdp_buffer op=open → cdp_editor_scene",
+                "cdp_buffer op=open → go=editor_scene",
+                "buffer_scene",
                 new { count = 0 }));
         }
 
@@ -311,7 +519,8 @@ internal static class IdeCockpit
             debug.ActiveDap
                 ? (debug.Stopped ? "STOPPED" : "dap running") + $" bp={debug.BreakpointCount}"
                 : $"idle bp={debug.BreakpointCount}",
-            debug.Stopped ? "cdp_debug op=stop_context" : "cdp_debug op=scene",
+            "go=debug_scene",
+            "debug_scene",
             debug));
 
         list.Add(new Locus(
@@ -322,21 +531,24 @@ internal static class IdeCockpit
                 : test.LastRun is null
                     ? "no last_run"
                     : $"{(test.Success ? "ok" : "FAIL")} {test.Passed}/{test.Total}",
-            test.Failed > 0 ? "cdp_test_plan failed_first=true" : "cdp_test_scene",
+            test.Failed > 0 ? "go=test_plan" : "go=test_scene",
+            test.Failed > 0 ? "test_plan" : "test_scene",
             test));
 
         list.Add(new Locus(
             "work:focus",
             "work",
             work.IntentId is null ? "no active intent" : $"{work.SceneName ?? work.IntentId}",
-            "cdp_work op=status",
+            "go=work",
+            "work",
             work));
 
         list.Add(new Locus(
             "mfd:chk",
             "mfd",
             "checklists (ship/deploy/habitat)",
-            "cdp_cockpit mfd=chk",
+            "go=chk",
+            "chk",
             new { switch_to = "chk" }));
 
         return list;

@@ -521,15 +521,18 @@ List<Tool> BuildMetaTools() =>
             limit = new { type = "integer" }
         }
     }),
-    Meta("cdp_cockpit", "Agent IDE cockpit — single-screen MFD + loci (kj-1329/1603). mfd=nav|sys|chk; locus=<id> opens detail (CodeAnchor-like). Prefer after cdp_open / hard deploy. Not multi-pane; not cdp_session pack dogfood.", new
+    Meta("cdp_cockpit", "Agent IDE desk (пульт): single-screen MFD + loci + next[] + go= to organs (kj-1721). mfd=nav|sys|chk; locus=<id> detail; go=<verb> dispatches *_scene/*_plan/buffer — not a monolith. Prefer after cdp_open.", new
     {
         type = "object",
         properties = new
         {
-            mfd = new { type = "string", description = "MFD page: nav (default) | sys | chk. Alias: page=." },
+            mfd = new { type = "string", description = "MFD page: nav (default) | sys | chk. Alias: page=. Also go=chk|sys|nav." },
             page = new { type = "string", description = "Alias of mfd." },
             locus = new { type = "string", description = "Focus locus id from loci[] (e.g. git:scm, shell:main, buffer:doc-1)." },
             focus = new { type = "string", description = "Alias of locus." },
+            go = new { type = "string", description = "Desk verb → organ (editor_scene|edit_draft|git_scene|git_draft|test_scene|shell_scene|debug_scene|build|…). Alias: do=." },
+            @do = new { type = "string", description = "Alias of go." },
+            go_args = new { type = "object", description = "Optional args merged into the target organ tool." },
             include_submodules = new { type = "boolean", description = "Pass through to git_scene (default false)." }
         }
     }),
@@ -749,7 +752,7 @@ var options = new McpServerOptions
         "Cold ListTools = recall+kb (known memory pull; not browse). " +
         "After MCP restart: call cdp_session or cdp_context first so ListTools refreshes (pack tools). " +
         "Pack dogfood: memory_world_get_definition|get_process|get_procedure|list_pack|radius_gate_check (epistemic-scene). " +
-        "Always: cdp_cockpit (hub) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_editor_scene|cdp_edit_plan / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
+        "Always: cdp_cockpit (desk/пульт: next[]+go=) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_editor_scene|cdp_edit_plan / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
         "Mutate SSOT: cdp_buffer (open|create|edit); Instant Save flush=true on edit/close (flush=false batches; close discard=true to drop). Relative path= → ProjectRoot after cdp_open. Prefer edit_op=anchor [F:;M:;K:] for csharp. Cursor host Write bypasses PathMutateGate. " +
         "Buffer plane: cdp_buffer op=open|edit|… — edit returns diagnostics in-result (almost-online while you keep the turn). " +
         "Debug plane: cdp_debug op=bp_add|launch|stop_context|… — session defaults after cdp_open; .csproj is BP key, launch resolves dll under bin/; JSON file is storage only. " +
@@ -1326,6 +1329,7 @@ async Task<string> DispatchMetaAsync(
                     workspaceStore,
                     workspaceState,
                     callArgs,
+                    DispatchAsync,
                     cancellationToken)
                 .ConfigureAwait(false);
         case "cdp_session":
