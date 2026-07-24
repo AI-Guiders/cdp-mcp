@@ -184,6 +184,7 @@ internal static class IdeCockpit
                     items = new object[]
                     {
                         Item("cdp_open / cockpit before thrash", hasProject),
+                        Item("prefer cdp_editor_scene → cdp_edit_plan for multi-step", true),
                         Item("prefer cdp_buffer over Cursor Write", buffer.DirtyCount == 0 || hasProject),
                         Item("cdp_shell_* primary; terminal_* escape only", true),
                         Item("no Cursor Write when buffer plane fits", true)
@@ -290,7 +291,7 @@ internal static class IdeCockpit
                 $"buffer:{doc.DocId}",
                 "buffer",
                 (doc.Dirty ? "DIRTY " : "") + ShortPath(doc.Path),
-                "cdp_buffer op=read|edit",
+                "cdp_editor_scene path=… → cdp_edit_plan",
                 doc));
         }
 
@@ -300,7 +301,7 @@ internal static class IdeCockpit
                 "buffer:none",
                 "buffer",
                 "no open buffers",
-                "cdp_buffer op=open",
+                "cdp_buffer op=open → cdp_editor_scene",
                 new { count = 0 }));
         }
 

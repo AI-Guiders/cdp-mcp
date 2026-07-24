@@ -210,6 +210,40 @@ List<Tool> BuildMetaTools() =>
         },
         required = new[] { "op" }
     }),
+    Meta("cdp_editor_scene", "Editor map (git_scene analogue for buffers): open buffers + loci; path=/locus=/doc_id= → context window on demand. Prefer before multi-step edits. Single edit still fine via cdp_buffer.", new
+    {
+        type = "object",
+        properties = new
+        {
+            path = new { type = "string", description = "Focus file (opens context window if buffer open)" },
+            doc_id = new { type = "string" },
+            locus = new { type = "string", description = "buffer:doc-N from loci[]" },
+            focus = new { type = "string", description = "Alias of locus" },
+            start_line = new { type = "integer" },
+            end_line = new { type = "integer" },
+            context_lines = new { type = "integer", description = "Max lines in context window (default 80)" }
+        }
+    }),
+    Meta("cdp_edit_plan", "Logical edit plan (git_plan analogue): op=draft|validate|apply. slices=[{message,steps:[{path,edit_op,anchor|old_string|…}]}]. Prefer edit_op=anchor. Routes through cdp_buffer (PathMutateGate) — not Cursor Write.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "draft|validate|apply (preview→validate); default draft" },
+            include = new { type = "array", items = new { type = "string" }, description = "draft: filter candidates by path/doc_id; cold paths listed too" },
+            slices = new
+            {
+                type = "array",
+                description = "validate|apply: [{message, steps:[{path, edit_op, …}]}]",
+                items = new { type = "object" }
+            },
+            resolve_anchors = new { type = "boolean", description = "validate: dry-resolve anchor wires (default true)" },
+            stop_on_error = new { type = "boolean", description = "apply: stop first failing step (default true)" },
+            diagnose = new { type = "boolean", description = "apply: per-step diagnostics (default true)" },
+            flush = new { type = "boolean", description = "apply: Instant Save per step (default true)" },
+            skip_validate = new { type = "boolean", description = "apply: skip pre-validate (default false)" }
+        }
+    }),
     Meta("cdp_debug", "Debug plane (breakpoints + DAP): op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|attach|continue|stop|stop_context|step_*|stack|variables. Session defaults after cdp_open — no hand-written breakpoints JSON.", new
     {
         type = "object",
@@ -715,7 +749,7 @@ var options = new McpServerOptions
         "Cold ListTools = recall+kb (known memory pull; not browse). " +
         "After MCP restart: call cdp_session or cdp_context first so ListTools refreshes (pack tools). " +
         "Pack dogfood: memory_world_get_definition|get_process|get_procedure|list_pack|radius_gate_check (epistemic-scene). " +
-        "Always: cdp_cockpit (hub) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
+        "Always: cdp_cockpit (hub) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_editor_scene|cdp_edit_plan / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
         "Mutate SSOT: cdp_buffer (open|create|edit); Instant Save flush=true on edit/close (flush=false batches; close discard=true to drop). Relative path= → ProjectRoot after cdp_open. Prefer edit_op=anchor [F:;M:;K:] for csharp. Cursor host Write bypasses PathMutateGate. " +
         "Buffer plane: cdp_buffer op=open|edit|… — edit returns diagnostics in-result (almost-online while you keep the turn). " +
         "Debug plane: cdp_debug op=bp_add|launch|stop_context|… — session defaults after cdp_open; .csproj is BP key, launch resolves dll under bin/; JSON file is storage only. " +
@@ -777,6 +811,10 @@ async Task<string> DispatchAsync(
         return await DocumentEditPlane.DispatchAsync(name, docStore, session, byDomain, callArgs, cancellationToken)
             .ConfigureAwait(false);
 
+    if (EditorPlane.IsEditorTool(name))
+        return await EditorPlane.DispatchAsync(name, docStore, session, byDomain, callArgs, cancellationToken)
+            .ConfigureAwait(false);
+
     if (DebugPlane.IsDebugPlaneTool(name))
         return await DebugPlane.DispatchAsync(session, byDomain, callArgs, cancellationToken)
             .ConfigureAwait(false);
@@ -808,7 +846,8 @@ async Task<string> DispatchMetaAsync(
             if (callArgs.TryGetValue("tool", out var t) && t.GetString() is { Length: > 0 } tool)
                 return $"Manual: {tool} — see tool description; domain ops via prefixed tools / sibling man.";
             return "TOC: cdp_cockpit (hub where-am-I), cdp_session (omnibus plane + pack dogfood), cdp_health(explain_tool?), cdp_capabilities, " +
-                   "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_build|cdp_run|cdp_test|cdp_test_scene|cdp_test_plan (session IDE lifecycle), " +
+                   "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_editor_scene|cdp_edit_plan (buffer map→slices), " +
+                   "cdp_build|cdp_run|cdp_test|cdp_test_scene|cdp_test_plan (session IDE lifecycle), " +
                    "cdp_buffer(op=scene|open|read|edit|diagnostics|close) file buffer SSOT; edit returns diagnostics, " +
                    "cdp_debug(op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|…) debug plane; session defaults, not breakpoints JSON, " +
                    "cdp_pkg_find|list|add|remove|update|outdated, cdp_project_scene|create|list|close|add_to_sln, " +
