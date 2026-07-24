@@ -487,18 +487,16 @@ List<Tool> BuildMetaTools() =>
             limit = new { type = "integer" }
         }
     }),
-    Meta("cdp_cockpit", "Agent IDE cockpit hub (kj-1329): compact where-am-I — session + shell tabs + buffer dirty + debug + git dirty + last test + work focus. Prefer after cdp_open / hard deploy before tool thrash. Drill via existing *_scene. Not a cdp_session replacement (no pack dogfood).", new
+    Meta("cdp_cockpit", "Agent IDE cockpit — single-screen MFD + loci (kj-1329/1603). mfd=nav|sys|chk; locus=<id> opens detail (CodeAnchor-like). Prefer after cdp_open / hard deploy. Not multi-pane; not cdp_session pack dogfood.", new
     {
         type = "object",
         properties = new
         {
-            include_git = new { type = "boolean", description = "Include git_scene compact (default true)." },
-            include_shell = new { type = "boolean", description = "Include shell tabs summary (default true)." },
-            include_buffer = new { type = "boolean", description = "Include buffer dirty summary (default true)." },
-            include_debug = new { type = "boolean", description = "Include debug DAP/BP summary (default true)." },
-            include_test = new { type = "boolean", description = "Include TestRunCache last_run (default true; no discover)." },
-            include_work = new { type = "boolean", description = "Include active intent/scene ids (default true)." },
-            include_submodules = new { type = "boolean", description = "Pass through to git_scene (default false for speed)." }
+            mfd = new { type = "string", description = "MFD page: nav (default) | sys | chk. Alias: page=." },
+            page = new { type = "string", description = "Alias of mfd." },
+            locus = new { type = "string", description = "Focus locus id from loci[] (e.g. git:scm, shell:main, buffer:doc-1)." },
+            focus = new { type = "string", description = "Alias of locus." },
+            include_submodules = new { type = "boolean", description = "Pass through to git_scene (default false)." }
         }
     }),
     Meta("cdp_session", "Agent-IDE session plane: context + shortlist + health + optional debug stop_context + pack dogfood (definitions/process/procedure) + continuity hint.", new
