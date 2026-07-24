@@ -35,6 +35,7 @@ internal static class IdeCockpit
             ["edit_plan"] = ("cdp_edit_plan", Dict(("op", "draft"))),
             ["scope"] = (EditSniper.ToolName, Dict(("op", "scope"))),
             ["target"] = (EditSniper.ToolName, Dict(("op", "target"))),
+            ["peek"] = (EditSniper.ToolName, Dict(("op", "peek"))),
             ["scope_clear"] = (EditSniper.ToolName, Dict(("op", "clear"))),
             ["sniper"] = (EditSniper.ToolName, Dict(("op", "status"))),
             ["buffer_scene"] = ("cdp_buffer", Dict(("op", "scene"))),
@@ -188,7 +189,7 @@ internal static class IdeCockpit
             go_verbs = GoMap.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray(),
             hint =
                 "Cold start: cdp_cockpit first. Desk: mfd=|locus=|go= (default go_detail=pulse). " +
-                "Edit sniper: go=scope from=/till= → go=target → go=edit_draft. " +
+                "Edit sniper: go=scope from=/till= → go=target → go=peek → go=edit_draft. " +
                 "go_detail=full for organ dump. Organs stay — not a monolith."
         };
 
@@ -388,6 +389,7 @@ internal static class IdeCockpit
         if (EditSniper.HasHold)
         {
             Add("n-target", "target", "Outline corridor", $"Aim {EditSniper.PulseLine}");
+            Add("n-peek", "peek", "Peek aim", "wire= optional; corridor window");
             Add("n-edit-draft", "edit_draft", "Shoot (draft)", "mutate/fix inside aim");
             Add("n-scope-clear", "scope_clear", "Clear aim", "drop From/Till");
         }

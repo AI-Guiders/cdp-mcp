@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Cdp.Core;
 using Cdp.ScriptableIde;
@@ -65,6 +66,7 @@ internal static class EditSniper
         {
             "scope" or "set" => Scope(store, session, args),
             "target" or "outline" => Target(store, session, args),
+            "peek" or "view" => Peek(store, session, args),
             "clear" or "scope_clear" => Clear(),
             "status" or "show" => Status(),
             _ => JsonSerializer.Serialize(new
@@ -72,7 +74,7 @@ internal static class EditSniper
                 schema = Schema,
                 ok = false,
                 error = "unknown_op",
-                hint = "op=scope|target|clear|status"
+                hint = "op=scope|target|peek|clear|status"
             }, Pretty)
         };
     }
@@ -338,19 +340,133 @@ internal static class EditSniper
             targets = nodes,
             next = new object[]
             {
+                new { go = "peek", label = "Peek wire/corridor", why = "go_args.wire= optional" },
                 new { go = "edit_draft", label = "Draft mutate/fix", why = "pick wire → YAML / fix" },
-                new { go = "editor_scene", label = "Peek corridor", why = "path + start_line/end_line" },
                 new { go = "scope_clear", label = "Clear aim", why = "drop corridor" }
             },
             hint =
-                "Targets are in-corridor only. Pick wire → cdp_edit_plan / buffer anchor. " +
+                "Targets are in-corridor only. go=peek wire=… → tiny window; then edit_plan. " +
                 "Wide file outline is not default."
         }, Pretty);
+    }
+
+    static string Peek(
+        DocumentBufferStore store,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (Hold is null)
+        {
+            return JsonSerializer.Serialize(new
+            {
+                schema = Schema,
+                ok = false,
+                op = "peek",
+                error = "no_scope",
+                hint = "go=scope from=… first (or peek after target)"
+            }, Pretty);
+        }
+
+        var h = Hold;
+        var pad = Math.Clamp(IntOr(args, "pad", 0), 0, 40);
+        var maxLines = Math.Clamp(IntOr(args, "max_lines", 60), 1, 200);
+        var wire = OptString(args, "wire") ?? OptString(args, "anchor") ?? OptString(args, "at");
+
+        int lineStart;
+        int lineEnd;
+        string? resolve = null;
+        string? usedWire = null;
+
+        if (!string.IsNullOrWhiteSpace(wire))
+        {
+            if (!TryResolveWire(store, session, wire, out var path, out var range, out var detail, out var err))
+            {
+                return JsonSerializer.Serialize(new
+                {
+                    schema = Schema,
+                    ok = false,
+                    op = "peek",
+                    error = err,
+                    wire
+                }, Pretty);
+            }
+
+            if (!string.Equals(path, h.Path, StringComparison.OrdinalIgnoreCase))
+            {
+                return JsonSerializer.Serialize(new
+                {
+                    schema = Schema,
+                    ok = false,
+                    op = "peek",
+                    error = "wire_outside_hold_file",
+                    hold_path = h.Path,
+                    wire_path = path
+                }, Pretty);
+            }
+
+            lineStart = range.LineStart;
+            lineEnd = range.LineEnd;
+            resolve = detail;
+            usedWire = NormalizeWire(wire);
+        }
+        else
+        {
+            lineStart = h.LineStart;
+            lineEnd = h.LineEnd;
+            usedWire = null;
+        }
+
+        lineStart = Math.Max(1, lineStart - pad);
+        lineEnd += pad;
+
+        var text = ReadText(store, h.Path);
+        var allLines = SplitLines(text);
+        lineEnd = Math.Min(allLines.Count, lineEnd);
+        if (lineEnd - lineStart + 1 > maxLines)
+            lineEnd = lineStart + maxLines - 1;
+
+        var slice = new StringBuilder();
+        for (var i = lineStart; i <= lineEnd; i++)
+        {
+            if (i > lineStart) slice.Append('\n');
+            slice.Append(allLines[i - 1]);
+        }
+
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "peek",
+            hold = HoldCard(),
+            wire = usedWire,
+            resolve,
+            start_line = lineStart,
+            end_line = lineEnd,
+            count = lineEnd - lineStart + 1,
+            text = slice.ToString(),
+            next = new object[]
+            {
+                new { go = "edit_draft", label = "Shoot (draft)", why = "mutate/fix with seen wire" },
+                new { go = "target", label = "Re-outline", why = "pick another wire" },
+                new { go = "scope_clear", label = "Clear aim", why = "drop corridor" }
+            },
+            hint = "Peek is corridor/wire only — not a file dump. pad= for ± lines."
+        }, Pretty);
+    }
+
+    static List<string> SplitLines(string text)
+    {
+        var list = new List<string>();
+        using var reader = new StringReader(text);
+        while (reader.ReadLine() is { } line)
+            list.Add(line);
+        return list;
     }
 
     static object[] ShootNext() =>
     [
         new { go = "target", label = "Outline corridor", why = "sniper step 2" },
+        new { go = "peek", label = "Peek corridor", why = "tiny window before shoot" },
         new { go = "edit_draft", label = "Shoot (draft)", why = "mutate/fix plan" },
         new { go = "scope_clear", label = "Clear aim", why = "drop From/Till" }
     ];
