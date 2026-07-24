@@ -122,15 +122,18 @@ internal static class IdeCockpit
         }
 
         object? goResult = null;
+        // Buffer before go= so locus=buffer:doc-N can inject path= into reload/keep_disk/disk_peek.
+        var buffer = CollectBuffer(docStore.Scene());
         if (goVerb is { Length: > 0 })
         {
-            goResult = await DispatchGoAsync(goVerb.Trim(), args, dispatch, cancellationToken)
+            goResult = await DispatchGoAsync(goVerb.Trim(), args, buffer, focusId, dispatch, cancellationToken)
                 .ConfigureAwait(false);
+            // Re-collect after organ may have mutated buffers (reload/keep_disk/edit…).
+            buffer = CollectBuffer(docStore.Scene());
         }
 
         var git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken).ConfigureAwait(false);
         var shell = CollectShell(shellHabitat.Scene());
-        var buffer = CollectBuffer(docStore.Scene());
         var debug = CollectDebug(session);
         var test = CollectTest(session);
         var work = CollectWork(workspaceStore, workspaceState);
@@ -192,6 +195,7 @@ internal static class IdeCockpit
             go_verbs = GoMap.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray(),
             hint =
                 "Cold start: cdp_cockpit first. Desk: mfd=|locus=|go= (default go_detail=pulse). " +
+                "locus=buffer:doc-N scopes go=disk_peek|reload|keep_disk to that file. " +
                 "Edit sniper: go=scope from=/till= → go=target → go=peek → go=edit_draft. " +
                 "go_detail=full for organ dump. Organs stay — not a monolith."
         };
@@ -202,6 +206,8 @@ internal static class IdeCockpit
     static async Task<object> DispatchGoAsync(
         string verb,
         IReadOnlyDictionary<string, JsonElement> cockpitArgs,
+        BufferSnap buffer,
+        string? focusId,
         Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> dispatch,
         CancellationToken cancellationToken)
     {
@@ -245,6 +251,8 @@ internal static class IdeCockpit
                 callArgs[p.Name] = p.Value.Clone();
         }
 
+        InjectBufferPathFromLocus(verb, callArgs, buffer, focusId);
+
         try
         {
             var raw = await dispatch(map.Tool, callArgs, cancellationToken).ConfigureAwait(false);
@@ -287,6 +295,36 @@ internal static class IdeCockpit
                 error = ex.Message
             };
         }
+    }
+
+    /// <summary>
+    /// Desk comfort: <c>locus=buffer:doc-N</c> + <c>go=reload|keep_disk|disk_peek</c>
+    /// scopes to that file when <c>path=</c> / <c>go_args.path</c> omitted.
+    /// </summary>
+    static void InjectBufferPathFromLocus(
+        string verb,
+        Dictionary<string, JsonElement> callArgs,
+        BufferSnap buffer,
+        string? focusId)
+    {
+        if (verb is not ("reload" or "keep_disk" or "disk_peek"))
+            return;
+        if (callArgs.TryGetValue("path", out var pathEl)
+            && pathEl.ValueKind == JsonValueKind.String
+            && !string.IsNullOrWhiteSpace(pathEl.GetString()))
+            return;
+        if (focusId is not { Length: > 0 }
+            || !focusId.StartsWith("buffer:", StringComparison.OrdinalIgnoreCase)
+            || focusId.Equals("buffer:none", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var docId = focusId["buffer:".Length..];
+        var doc = buffer.Docs.FirstOrDefault(d =>
+            string.Equals(d.DocId, docId, StringComparison.OrdinalIgnoreCase));
+        if (doc is null || string.IsNullOrWhiteSpace(doc.Path) || doc.Path == "?")
+            return;
+
+        callArgs["path"] = JsonSerializer.SerializeToElement(doc.Path);
     }
 
     sealed record OrganPulse(bool Ok, string Line, string? Schema, object? Next, string? Hint);
@@ -397,7 +435,9 @@ internal static class IdeCockpit
             Add("n-reload", "reload", "Reload from disk",
                 $"{buffer.DiskChangedCount} file(s) changed outside — like VS Reload?");
             Add("n-keep-disk", "keep_disk", "Keep memory",
-                "Don't Reload — silence all drifted (or path= one)");
+                focusId is { Length: > 0 } && focusId.StartsWith("buffer:", StringComparison.OrdinalIgnoreCase)
+                    ? $"Don't Reload — locus {focusId} → path="
+                    : "Don't Reload — silence all drifted (or path= / locus=buffer:…)");
         }
 
         // Sniper beats (kj-1848): scope → target → shoot — prefer over file-wide outline.
