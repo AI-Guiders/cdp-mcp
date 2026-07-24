@@ -179,7 +179,7 @@ List<Tool> BuildMetaTools() =>
             recent_index = new { type = "integer", description = "Optional 0-based Open Recent index (0 = last opened)." }
         }
     }),
-    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|read|edit|diagnostics|close. Instant Save: edit/close flush=true by default (disk on every edit). flush=false = batch in memory; close+dirty needs discard=true. csharp: prefer edit_op=anchor [F:;M:;K:] (surgical); replace/replace_range are fallbacks (replace tolerates LF↔CRLF). Diagnostics: scope=syntax|project|solution; cached while version unchanged (force=true). edit diagnose default true (csharp syntax). Parallel OK.", new
+    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|read|edit|diagnostics|close. Instant Save: edit/close flush=true by default (disk on every edit). flush=false = batch in memory; close+dirty needs discard=true. Relative path= resolves against session ProjectRoot (cdp_open), not process cwd. csharp: prefer edit_op=anchor [F:;M:;K:] (surgical); replace/replace_range are fallbacks (replace tolerates LF↔CRLF). Diagnostics: scope=syntax|project|solution; cached while version unchanged (force=true). edit diagnose default true (csharp syntax). Parallel OK.", new
     {
         type = "object",
         properties = new
@@ -642,7 +642,7 @@ var options = new McpServerOptions
         "After MCP restart: call cdp_session or cdp_context first so ListTools refreshes (pack tools). " +
         "Pack dogfood: memory_world_get_definition|get_process|get_procedure|list_pack|radius_gate_check (epistemic-scene). " +
         "Always: cdp_session (omnibus) / cdp_context / cdp_open / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
-        "Mutate SSOT: cdp_buffer (open|create|edit); Instant Save flush=true on edit/close (flush=false batches; close discard=true to drop). Prefer edit_op=anchor [F:;M:;K:] for csharp. Cursor host Write bypasses PathMutateGate. " +
+        "Mutate SSOT: cdp_buffer (open|create|edit); Instant Save flush=true on edit/close (flush=false batches; close discard=true to drop). Relative path= → ProjectRoot after cdp_open. Prefer edit_op=anchor [F:;M:;K:] for csharp. Cursor host Write bypasses PathMutateGate. " +
         "Buffer plane: cdp_buffer op=open|edit|… — edit returns diagnostics in-result (almost-online while you keep the turn). " +
         "Debug plane: cdp_debug op=bp_add|launch|stop_context|… — session defaults after cdp_open; .csproj is BP key, launch resolves dll under bin/; JSON file is storage only. " +
         "IDE verbs (harness routes LSP): go_to_definition, find_usages, get_document_symbols, get_symbol_at_position, get_diagnostics, resolve_project_root, get_workspace_navigation_context. " +

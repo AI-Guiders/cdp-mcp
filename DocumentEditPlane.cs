@@ -60,11 +60,11 @@ internal static class DocumentEditPlane
             "scene" => JsonSerializer.Serialize(store.Scene(), Pretty),
             "open" => await OpenAsync(store, session, byDomain, args, cancellationToken).ConfigureAwait(false),
             "create" => await CreateAsync(store, session, byDomain, args, cancellationToken).ConfigureAwait(false),
-            "read" => Read(store, args),
+            "read" => Read(store, session, args),
             "edit" => await EditAsync(store, session, byDomain, editArgs, cancellationToken).ConfigureAwait(false),
             "diagnostics" => await DiagnosticsAsync(store, session, byDomain, args, cancellationToken)
                 .ConfigureAwait(false),
-            "close" => Close(store, args),
+            "close" => Close(store, session, args),
             _ => throw new ArgumentException(
                 "cdp_buffer op must be scene|open|create|read|edit|diagnostics|close.")
         };
@@ -77,7 +77,7 @@ internal static class DocumentEditPlane
         IReadOnlyDictionary<string, JsonElement> args,
         CancellationToken cancellationToken)
     {
-        var path = RequireString(args, "path");
+        var path = ResolveUserPath(session, RequireString(args, "path"));
         // Default false: open of large csharp projects can dump hundreds of Roslyn items and hang the host.
         var diagnose = BoolOr(args, "diagnose", defaultValue: false);
         var refresh = BoolOr(args, "refresh", defaultValue: false);
@@ -108,7 +108,7 @@ internal static class DocumentEditPlane
         IReadOnlyDictionary<string, JsonElement> args,
         CancellationToken cancellationToken)
     {
-        var path = RequireString(args, "path");
+        var path = ResolveUserPath(session, RequireString(args, "path"));
         var overwrite = BoolOr(args, "overwrite", defaultValue: false);
         var text = OptString(args, "text");
         var diagnose = BoolOr(args, "diagnose", defaultValue: true);
@@ -129,9 +129,14 @@ internal static class DocumentEditPlane
         }, Pretty);
     }
 
-    static string Read(DocumentBufferStore store, IReadOnlyDictionary<string, JsonElement> args)
+    static string Read(
+        DocumentBufferStore store,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
     {
-        var buf = store.Resolve(OptString(args, "path"), OptString(args, "doc_id"));
+        var path = OptString(args, "path");
+        var resolved = path is { Length: > 0 } ? ResolveUserPath(session, path) : null;
+        var buf = store.Resolve(resolved, OptString(args, "doc_id"));
         int? start = IntOrNull(args, "start_line");
         int? end = IntOrNull(args, "end_line");
         return JsonSerializer.Serialize(buf.ToReadResult(start, end), Pretty);
@@ -152,10 +157,8 @@ internal static class DocumentEditPlane
         {
             // Must not call Resolve/Open here: they take PathMutateGate again → self-deadlock
             // when the buffer was never opened (first edit_op=set_text on a cold path).
-            var pathArg = OptString(args, "path");
-            var buf = store.ResolveUnlocked(
-                pathArg is { Length: > 0 } ? pathArg : pathKey,
-                OptString(args, "doc_id"));
+            // pathKey is already session-resolved (ProjectRoot); do not re-GetFullPath relative path=.
+            var buf = store.ResolveUnlocked(pathKey, OptString(args, "doc_id"));
             var snapshotText = buf.Text;
             var snapshotVersion = buf.Version;
             var snapshotDirty = buf.Dirty;
@@ -400,6 +403,23 @@ internal static class DocumentEditPlane
         };
     }
 
+    /// <summary>
+    /// Relative <c>path=</c> → <see cref="SessionContext.ProjectRoot"/> (else process cwd).
+    /// Absolute unchanged. Aligns buffer plane with anchor <c>F:</c> resolve — not MCP host home.
+    /// </summary>
+    static string ResolveUserPath(SessionContext session, string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        var p = path.Trim();
+        if (Path.IsPathRooted(p))
+            return Path.GetFullPath(p);
+
+        var root = session.ProjectRoot is { Length: > 0 } pr
+            ? pr
+            : Directory.GetCurrentDirectory();
+        return Path.GetFullPath(Path.Combine(root, p));
+    }
+
     static string ResolveAnchorFilePath(
         DocBuffer buf,
         SessionContext session,
@@ -407,7 +427,7 @@ internal static class DocumentEditPlane
         string? pathArg)
     {
         if (pathArg is { Length: > 0 })
-            return Path.GetFullPath(pathArg);
+            return ResolveUserPath(session, pathArg);
 
         if (!string.IsNullOrWhiteSpace(span.File))
         {
@@ -431,7 +451,7 @@ internal static class DocumentEditPlane
     {
         var path = OptString(args, "path");
         if (path is { Length: > 0 })
-            return Path.GetFullPath(path);
+            return ResolveUserPath(session, path);
 
         var wire = OptString(args, "anchor") ?? OptString(args, "at");
         if (wire is { Length: > 0 })
@@ -461,7 +481,9 @@ internal static class DocumentEditPlane
         IReadOnlyDictionary<string, JsonElement> args,
         CancellationToken cancellationToken)
     {
-        var buf = store.Resolve(OptString(args, "path"), OptString(args, "doc_id"));
+        var path = OptString(args, "path");
+        var resolved = path is { Length: > 0 } ? ResolveUserPath(session, path) : null;
+        var buf = store.Resolve(resolved, OptString(args, "doc_id"));
         var flush = BoolOr(args, "flush", defaultValue: true);
         // force=true → recompute even if version unchanged. refresh=false kept as soft "prefer cache".
         var force = BoolOr(args, "force", defaultValue: false);
@@ -564,9 +586,14 @@ internal static class DocumentEditPlane
         }
     }
 
-    static string Close(DocumentBufferStore store, IReadOnlyDictionary<string, JsonElement> args)
+    static string Close(
+        DocumentBufferStore store,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
     {
-        var buf = store.Resolve(OptString(args, "path"), OptString(args, "doc_id"));
+        var pathArg = OptString(args, "path");
+        var resolved = pathArg is { Length: > 0 } ? ResolveUserPath(session, pathArg) : null;
+        var buf = store.Resolve(resolved, OptString(args, "doc_id"));
         // Instant Save: close defaults to flush=true (same as edit). Discard needs explicit discard=true.
         var flush = BoolOr(args, "flush", defaultValue: true);
         var discard = BoolOr(args, "discard", defaultValue: false);
