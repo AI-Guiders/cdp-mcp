@@ -36,7 +36,7 @@ internal static class EditorPlane
             .Build();
 
     public static bool IsEditorTool(string name) =>
-        name is "cdp_editor_scene" or "cdp_edit_plan";
+        name is "cdp_editor_scene" or "cdp_edit_plan" || EditSniper.IsSniperTool(name);
 
     public static async Task<string> DispatchAsync(
         string name,
@@ -50,6 +50,7 @@ internal static class EditorPlane
             "cdp_editor_scene" => Scene(store, session, args),
             "cdp_edit_plan" => await PlanAsync(store, session, byDomain, args, cancellationToken)
                 .ConfigureAwait(false),
+            _ when EditSniper.IsSniperTool(name) => EditSniper.Dispatch(store, session, args),
             _ => throw new ArgumentException($"Unknown editor tool: {name}")
         };
 

@@ -247,6 +247,17 @@ List<Tool> BuildMetaTools() =>
             skip_validate = new { type = "boolean", description = "apply: skip pre-validate (default false)" }
         }
     }),
+    Meta("cdp_edit_sniper", "Edit sniper (kj-1848): scope From/Till corridor → target outline inside → shoot via edit_plan. Prefer go=scope/target on cdp_cockpit. Hold survives until scope_clear.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scope|target|clear|status (default status)" },
+            from = new { type = "string", description = "scope: Select.From anchor wire [F:;M:;S:/L:]" },
+            till = new { type = "string", description = "scope: Till wire, or body|enclosing" },
+            max = new { type = "integer", description = "target: max nodes (default 48)" }
+        }
+    }),
     Meta("cdp_debug", "Debug plane (breakpoints + DAP): op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|attach|continue|stop|stop_context|step_*|stack|variables. Session defaults after cdp_open — no hand-written breakpoints JSON.", new
     {
         type = "object",
@@ -533,7 +544,7 @@ List<Tool> BuildMetaTools() =>
             page = new { type = "string", description = "Alias of mfd." },
             locus = new { type = "string", description = "Focus locus id from loci[] (e.g. git:scm, shell:main, buffer:doc-1)." },
             focus = new { type = "string", description = "Alias of locus." },
-            go = new { type = "string", description = "Desk verb → organ (editor_scene|edit_draft|git_scene|git_draft|test_scene|shell_scene|debug_scene|build|…). Alias: do=." },
+            go = new { type = "string", description = "Desk verb → organ (scope|target|scope_clear|editor_scene|edit_draft|git_scene|…). Alias: do=." },
             @do = new { type = "string", description = "Alias of go." },
             go_args = new { type = "object", description = "Optional args merged into the target organ tool." },
             go_detail = new { type = "string", description = "pulse (default, quiet) | full (organ dump in go.result)." },
@@ -853,7 +864,7 @@ async Task<string> DispatchMetaAsync(
             if (callArgs.TryGetValue("tool", out var t) && t.GetString() is { Length: > 0 } tool)
                 return $"Manual: {tool} — see tool description; domain ops via prefixed tools / sibling man.";
             return "TOC: cdp_cockpit (hub where-am-I), cdp_session (omnibus plane + pack dogfood), cdp_health(explain_tool?), cdp_capabilities, " +
-                   "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_editor_scene|cdp_edit_plan (buffer map→slices), " +
+                   "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_editor_scene|cdp_edit_sniper|cdp_edit_plan (map→aim→slices), " +
                    "cdp_build|cdp_run|cdp_test|cdp_test_scene|cdp_test_plan (session IDE lifecycle), " +
                    "cdp_buffer(op=scene|open|read|edit|diagnostics|close) file buffer SSOT; edit returns diagnostics, " +
                    "cdp_debug(op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|…) debug plane; session defaults, not breakpoints JSON, " +

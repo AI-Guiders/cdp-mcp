@@ -33,6 +33,10 @@ internal static class IdeCockpit
             ["editor"] = ("cdp_editor_scene", null),
             ["edit_draft"] = ("cdp_edit_plan", Dict(("op", "draft"))),
             ["edit_plan"] = ("cdp_edit_plan", Dict(("op", "draft"))),
+            ["scope"] = (EditSniper.ToolName, Dict(("op", "scope"))),
+            ["target"] = (EditSniper.ToolName, Dict(("op", "target"))),
+            ["scope_clear"] = (EditSniper.ToolName, Dict(("op", "clear"))),
+            ["sniper"] = (EditSniper.ToolName, Dict(("op", "status"))),
             ["buffer_scene"] = ("cdp_buffer", Dict(("op", "scene"))),
             ["buffer"] = ("cdp_buffer", Dict(("op", "scene"))),
             ["git_scene"] = ("git_git_scene", null),
@@ -130,6 +134,18 @@ internal static class IdeCockpit
         var loci = BuildLoci(session, git, shell, buffer, debug, test, work);
         var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId);
 
+        // Sniper locus appears when a corridor is held (desk pulse, not organ dump).
+        if (EditSniper.HasHold)
+        {
+            loci.Insert(Math.Min(1, loci.Count), new Locus(
+                "edit:sniper",
+                "sniper",
+                $"aim {EditSniper.PulseLine}",
+                "go=target → go=edit_draft | go=scope_clear",
+                "target",
+                EditSniper.HoldCard()));
+        }
+
         object? focus = null;
         if (!string.IsNullOrWhiteSpace(focusId))
         {
@@ -172,6 +188,7 @@ internal static class IdeCockpit
             go_verbs = GoMap.Keys.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).ToArray(),
             hint =
                 "Cold start: cdp_cockpit first. Desk: mfd=|locus=|go= (default go_detail=pulse). " +
+                "Edit sniper: go=scope from=/till= → go=target → go=edit_draft. " +
                 "go_detail=full for organ dump. Organs stay — not a monolith."
         };
 
@@ -367,9 +384,21 @@ internal static class IdeCockpit
         else
             Add("n-editor", "editor_scene", "Editor map", "Buffer/desk loop");
 
-        if (buffer.Count > 0)
+        // Sniper beats (kj-1848): scope → target → shoot — prefer over file-wide outline.
+        if (EditSniper.HasHold)
+        {
+            Add("n-target", "target", "Outline corridor", $"Aim {EditSniper.PulseLine}");
+            Add("n-edit-draft", "edit_draft", "Shoot (draft)", "mutate/fix inside aim");
+            Add("n-scope-clear", "scope_clear", "Clear aim", "drop From/Till");
+        }
+        else if (buffer.Count > 0 || session.ProjectRoot is not null)
+        {
+            Add("n-scope", "scope", "Sniper aim", "from=/till= corridor before outline");
+        }
+
+        if (buffer.Count > 0 && !EditSniper.HasHold)
             Add("n-edit-draft", "edit_draft", "Edit plan draft", $"Open buffers={buffer.Count} dirty={buffer.DirtyCount}");
-        else if (session.ProjectRoot is not null)
+        else if (session.ProjectRoot is not null && buffer.Count == 0 && !EditSniper.HasHold)
             Add("n-buffer", "buffer_scene", "Buffer scene", "No open buffers yet");
 
         if (gitRoot is { } g && GitIsDirty(g))
