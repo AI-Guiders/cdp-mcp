@@ -112,6 +112,10 @@ internal static class IdeCockpit
             ["project_scene"] = ("cdp_project_scene", null),
             ["project"] = ("cdp_project_scene", null),
             ["work"] = ("cdp_work", Dict(("op", "status"))),
+            ["restore"] = ("cdp_restore", null),
+            ["restore_previous"] = ("cdp_restore", null),
+            ["previous"] = ("cdp_restore", null),
+            ["desk_restore"] = ("cdp_restore", null),
         };
 
     static Dictionary<string, JsonElement> Dict(params (string Key, string Value)[] pairs)
@@ -558,6 +562,10 @@ internal static class IdeCockpit
             Add("n-goto", "goto", "Go To (Ctrl+T)", "query= type/member/file — land on anchor");
             Add("n-editor", "editor_scene", "Editor map", "Buffer/desk loop");
         }
+
+        // Dual-instance / post hard-deploy: Restore Previous desk bookmark.
+        if (session.ProjectRoot is null && File.Exists(DeskBookmark.FilePath))
+            Add("n-restore", "restore", "Restore Previous", "desk bookmark — project + buffers (not LLM chat)");
 
         if (EditorComfort.AnyUndo())
             Add("n-undo", "undo", "Undo last edit", "buffer edit stack");

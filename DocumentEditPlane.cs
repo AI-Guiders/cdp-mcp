@@ -185,6 +185,7 @@ internal static class DocumentEditPlane
         var buf = store.Open(path, refresh);
         EditorComfort.RememberFile(path);
         EditorComfort.PushLocus(session, path);
+        DeskBookmark.Save(session, store);
         object? diagnostics = null;
         string? diagNote = null;
         if (diagnose)

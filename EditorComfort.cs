@@ -118,6 +118,13 @@ internal static class EditorComfort
         }
     }
 
+    /// <summary>MRU file paths (absolute) for desk bookmark when buffers are empty.</summary>
+    public static IReadOnlyList<string> RecentFilePaths()
+    {
+        lock (Gate)
+            return RecentPaths.ToList();
+    }
+
     public static void PushLocus(SessionContext session, string? wireOrPath)
     {
         if (string.IsNullOrWhiteSpace(wireOrPath))
@@ -547,6 +554,8 @@ internal static class EditorComfort
         {
             /* peek optional */
         }
+
+        DeskBookmark.Save(session, store);
 
         return JsonSerializer.Serialize(new
         {

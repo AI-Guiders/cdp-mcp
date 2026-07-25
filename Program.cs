@@ -172,7 +172,7 @@ List<Tool> BuildMetaTools() =>
             get = new { type = "boolean", description = "If true, only return current context." }
         }
     }),
-    Meta("cdp_open", "Open a project path: detect .sln/.csproj/tsconfig → session root+language+scm_root; list_changed. After open, git_* may omit workspace_path (defaults to scm_root). Prefer before go_to_definition. Omit path to reopen Recent[0]; or recent_index=N.", new
+    Meta("cdp_open", "Open a project path: detect .sln/.csproj/tsconfig → session root+language+scm_root; list_changed. After open, git_* may omit workspace_path (defaults to scm_root). Prefer before go_to_definition. Omit path to reopen Recent[0]; or recent_index=N. Autosaves desk bookmark for cdp_restore.", new
     {
         type = "object",
         properties = new
@@ -319,6 +319,14 @@ List<Tool> BuildMetaTools() =>
         properties = new
         {
             take = new { type = "integer", description = "Max entries (default 12)." }
+        }
+    }),
+    Meta("cdp_restore", "Restore Previous desk after MCP kill/reload (dual-instance comfort). Reopens last project + buffer paths from disk bookmark (%LocalAppData%/cdp-mcp/desk-previous.json). Autosaved on cdp_open / buffer open. NOT full LLM chat context. op=peek|restore (default restore). Alias cockpit go=restore.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "restore (default) | peek" }
         }
     }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell.", new
@@ -841,7 +849,7 @@ var options = new McpServerOptions
         "Cold ListTools = recall+kb (known memory pull; not browse). " +
         "After MCP restart: call cdp_session or cdp_context first so ListTools refreshes (pack tools). " +
         "Pack dogfood: memory_world_get_definition|get_process|get_procedure|list_pack|radius_gate_check (epistemic-scene). " +
-        "Always: cdp_cockpit (desk/пульт: next[]+go=) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_editor_scene|cdp_edit_plan / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
+        "Always: cdp_cockpit (desk/пульт: next[]+go=) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_restore (Restore Previous desk) / cdp_editor_scene|cdp_edit_plan / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
         "Mutate SSOT: cdp_buffer (open|create|edit); Instant Save flush=true on edit/close (flush=false batches; close discard=true to drop). Relative path= → ProjectRoot after cdp_open. Prefer edit_op=anchor [F:;M:;K:] for csharp. Cursor host Write bypasses PathMutateGate. " +
         "Buffer plane: cdp_buffer op=open|edit|… — edit returns diagnostics in-result (almost-online while you keep the turn). " +
         "Debug plane: cdp_debug op=bp_add|launch|stop_context|… — session defaults after cdp_open; .csproj is BP key, launch resolves dll under bin/; JSON file is storage only. " +
@@ -1146,6 +1154,7 @@ async Task<string> DispatchMetaAsync(
             var open = settings.Languages.Detect(openPath);
             var payload = IdeLanguageTools.ApplyOpen(session, open);
             shellHabitat.SyncSessionCwd(session.ProjectRoot);
+            DeskBookmark.Save(session, docStore);
             NotifyListChanged();
             // HCI-like: warm MSBuild workspace once for csharp session (background).
             if (string.Equals(session.Language, "csharp", StringComparison.OrdinalIgnoreCase)
@@ -1166,6 +1175,22 @@ async Task<string> DispatchMetaAsync(
             }
 
             return payload + "\n# list_changed: shortlist refreshed after cdp_open";
+        }
+        case "cdp_restore":
+        {
+            var restoreOp = "restore";
+            if (callArgs.TryGetValue("op", out var ropEl) && ropEl.GetString() is { Length: > 0 } rop)
+                restoreOp = rop.Trim();
+            if (string.Equals(restoreOp, "peek", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(restoreOp, "status", StringComparison.OrdinalIgnoreCase))
+                return DeskBookmark.PeekJson();
+
+            return DeskBookmark.Restore(
+                session,
+                docStore,
+                detectOpen: p => settings.Languages.Detect(p),
+                syncShellCwd: () => shellHabitat.SyncSessionCwd(session.ProjectRoot),
+                notifyListChanged: NotifyListChanged) + "\n# list_changed: shortlist refreshed after cdp_restore";
         }
         case "cdp_recent":
         {
