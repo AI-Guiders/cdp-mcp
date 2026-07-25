@@ -869,11 +869,12 @@ var options = new McpServerOptions
                 var text = await DispatchAsync(name, callArgs, cancellationToken);
                 return new CallToolResult
                 {
-                    Content = [new TextContentBlock { Text = ResponseCaps.CapText(text) }]
+                    Content = ToolMediaOutbox.BuildContent(text)
                 };
             }
             catch (OperationCanceledException)
             {
+                ToolMediaOutbox.Clear();
                 return new CallToolResult
                 {
                     Content = [new TextContentBlock { Text = $"# Aborted: {(string.IsNullOrEmpty(name) ? "(unknown)" : name)}" }]
@@ -881,6 +882,7 @@ var options = new McpServerOptions
             }
             catch (Exception ex)
             {
+                ToolMediaOutbox.Clear();
                 return new CallToolResult
                 {
                     Content = [new TextContentBlock { Text = $"Error: {ex.Message}" }],

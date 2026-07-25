@@ -100,7 +100,65 @@ internal static class TakeShip
             verify = new { status = verifyStatus, error_count = 0, note = verifyNote };
         }
 
-        var preview = TakeKinds.PreviewAscii(buf, body);
+        // PlantUML: render PNG → MCP ImageContent (vision). Also acts as verify when no Roslyn.
+        object preview;
+        string? previewAscii = null;
+        var plantLike = PlantUmlRender.LooksLikePlantUml(body, buf.Path, fence);
+        if (plantLike)
+        {
+            var rendered = PlantUmlRender.RenderPng(body, cancellationToken);
+            if (rendered.Ok && rendered.Png is { Length: > 0 } png)
+            {
+                var attached = ToolMediaOutbox.TryAdd(png, "image/png");
+                preview = new
+                {
+                    status = "ok",
+                    kind = "plantuml_png",
+                    bytes = png.Length,
+                    mime = "image/png",
+                    attached_image = attached,
+                    jar = rendered.Jar,
+                    note = attached ? "ImageContent for host vision" : "png_ok_but_outbox_full"
+                };
+                if (doCheck && verifyStatus is "skipped")
+                {
+                    verifyStatus = "ok";
+                    verifyNote = "plantuml_render";
+                    verify = new { status = verifyStatus, error_count = 0, note = verifyNote };
+                }
+            }
+            else
+            {
+                preview = new
+                {
+                    status = "failed",
+                    kind = "plantuml_png",
+                    note = rendered.Error,
+                    jar = rendered.Jar
+                };
+                if (doCheck)
+                {
+                    verifyStatus = "failed";
+                    errorCount = Math.Max(1, errorCount);
+                    verifyItems = new object[] { new { severity = "error", message = rendered.Error } };
+                    verifyNote = "plantuml_render";
+                    verify = new
+                    {
+                        status = verifyStatus,
+                        error_count = errorCount,
+                        items = verifyItems,
+                        note = verifyNote
+                    };
+                }
+            }
+        }
+        else
+        {
+            var ascii = TakeKinds.PreviewAscii(buf, body);
+            previewAscii = ascii.Ascii;
+            preview = new { status = ascii.Status, note = ascii.Note };
+        }
+
         var chat = TakeKinds.ChatMarkdown(fence, body);
 
         if (verifyStatus == "failed" && !forceShip)
@@ -117,8 +175,8 @@ internal static class TakeShip
                 kind = fence,
                 body,
                 chat_markdown = chat,
-                preview_ascii = preview.Ascii,
-                preview = new { status = preview.Status, note = preview.Note },
+                preview_ascii = previewAscii,
+                preview,
                 verify,
                 start_line = span.StartLine,
                 start_column = span.StartCol,
@@ -148,8 +206,8 @@ internal static class TakeShip
             kind = fence,
             body,
             chat_markdown = chat,
-            preview_ascii = preview.Ascii,
-            preview = new { status = preview.Status, note = preview.Note },
+            preview_ascii = previewAscii,
+            preview,
             verify,
             forced = forceShip && verifyStatus == "failed",
             start_line = span.StartLine,
