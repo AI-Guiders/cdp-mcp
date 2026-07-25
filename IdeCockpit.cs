@@ -51,6 +51,9 @@ internal static class IdeCockpit
             ["paste"] = ("cdp_buffer", Dict(("op", "paste"))),
             ["put"] = ("cdp_buffer", Dict(("op", "put"))),
             ["dump"] = ("cdp_buffer", Dict(("op", "put"))),
+            ["take"] = ("take", null),
+            ["get_take"] = ("get_take", null),
+            ["ship"] = ("take", null),
             ["paste_sniper"] = ("cdp_buffer", Dict(("op", "paste"), ("sniper", "true"), ("place", "replace"))),
             ["put_sniper"] = ("cdp_buffer", Dict(("op", "put"), ("sniper", "true"), ("place", "replace"))),
             ["clipboard"] = ("cdp_buffer", Dict(("op", "clipboard"))),
@@ -601,6 +604,8 @@ internal static class IdeCockpit
             Add("n-scope", "scope", "Sniper aim", "from=/till= corridor before outline");
             if (session.ProjectRoot is not null)
                 Add("n-put", "put", "Put draft file", "path= + text=/frame= — one-shot dump");
+            if (buffer.Count > 0)
+                Add("n-take", "take", "Take / ship", "verify → chat_markdown (inverse of put)");
         }
 
         if (buffer.Count > 0 && !EditSniper.HasHold)

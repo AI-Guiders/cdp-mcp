@@ -181,12 +181,12 @@ List<Tool> BuildMetaTools() =>
             recent_index = new { type = "integer", description = "Optional 0-based Open Recent index (0 = last opened)." }
         }
     }),
-    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|put|read|edit|diagnostics|close|reload|keep_disk|disk_peek + comfort undo|redo|history|copy|cut|paste|clipboard|find|…. put= dump draft in one shot (path= file | sniper=true | anchor=); body text= or frame=cN. Clipboard Android frames. Find scope=buffer|project. Instant Save. Anchors. Relative path= → ProjectRoot.", new
+    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|put|take|read|edit|diagnostics|close|reload|keep_disk|disk_peek + comfort undo|redo|history|copy|cut|paste|clipboard|find|…. put= dump draft; take= verify-then-ship (chat_markdown). Clipboard Android frames. Find scope=buffer|project. Instant Save. Anchors. Relative path= → ProjectRoot.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|open|create|put|read|edit|diagnostics|close|reload|keep_disk|disk_peek|undo|redo|history|copy|cut|paste|clipboard|clipboard_clear|find|find_all|replace_all|back|forward|nav|recent_files|scratch" },
+            op = new { type = "string", description = "scene|open|create|put|take|read|edit|diagnostics|close|reload|keep_disk|disk_peek|undo|redo|history|copy|cut|paste|clipboard|clipboard_clear|find|find_all|replace_all|back|forward|nav|recent_files|scratch" },
             path = new { type = "string", description = "reload|keep_disk|disk_peek: optional (omit = all drifted); find scope=project: optional subdir; otherwise file path" },
             pad = new { type = "integer", description = "disk_peek: ± context lines around first diff (default 2)" },
             doc_id = new { type = "string" },
@@ -957,7 +957,7 @@ async Task<string> DispatchMetaAsync(
                    "cdp_pkg_find|list|add|remove|update|outdated, cdp_project_scene|create|list|close|add_to_sln, " +
                    "cdp_sln_create|list|projects|add|remove, " +
                    "cdp_work(op=intent|stage|scene), cdp_tools(... palette), " +
-                   "IDE: go_to_definition|find_usages|get_document_symbols|get_symbol_at_position|get_diagnostics|get_completions|get_signature_help|find|find_in_files|resolve_project_root|get_workspace_navigation_context, " +
+                   "IDE: go_to_definition|find_usages|get_document_symbols|get_symbol_at_position|get_diagnostics|get_completions|get_signature_help|find|find_in_files|take|resolve_project_root|get_workspace_navigation_context, " +
                    "cdp_csx_help / cdp_csx_check / cdp_csx_run / cdp_csx_run_plan / promote / discard. " +
                    "cdp_shell_scene|run|history|rerun|last|which|kill|close (agent terminal; background long-run). " +
                    "Pack: get_definition|list_pack|get_process|get_procedure|radius_gate_check. " +

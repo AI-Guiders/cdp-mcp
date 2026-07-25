@@ -27,6 +27,8 @@ internal static class IdeLanguageTools
         "get_find",
         "find_in_files",
         "find_all",
+        "take",
+        "get_take",
         "resolve_project_root",
         "get_workspace_navigation_context",
         "rename_symbol",
@@ -132,6 +134,12 @@ internal static class IdeLanguageTools
         yield return Tool("find_all",
             "IDE: find all hits — buffer by default; scope=project = Find in Files.",
             FindSchema());
+        yield return Tool("take",
+            "IDE: verify-then-ship (inverse of put). Buffer/span → body + chat_markdown. Paste chat_markdown into reply. Alias: get_take. check=false skips verify; force=true ships despite errors.",
+            TakeSchema());
+        yield return Tool("get_take",
+            "Alias of take (discoverability next to get_completions).",
+            TakeSchema());
         yield return Tool("resolve_project_root",
             "Resolve project root / language markers from a path (or return session project after cdp_open).",
             new
@@ -231,6 +239,27 @@ internal static class IdeLanguageTools
         required = new[] { "query" }
     };
 
+    private static object TakeSchema() => new
+    {
+        type = "object",
+        properties = new
+        {
+            path = new { type = "string", description = "file; default open buffer" },
+            file_path = new { type = "string", description = "alias of path" },
+            anchor = new { type = "string", description = "csharp [F:;M:;K:] span" },
+            start_line = new { type = "integer" },
+            end_line = new { type = "integer" },
+            start_column = new { type = "integer" },
+            end_column = new { type = "integer" },
+            fence = new { type = "string", description = "markdown fence override (csharp|mermaid|…)" },
+            kind = new { type = "string", description = "alias of fence" },
+            check = new { type = "boolean", description = "default true — run available verify" },
+            force = new { type = "boolean", description = "ship despite verify errors" },
+            sniper = new { type = "boolean", description = "take sniper hold span" },
+            scope = new { type = "string", description = "diagnostics scope when verifying csharp" }
+        }
+    };
+
     private static object PositionalSchema() => new
     {
         type = "object",
@@ -325,6 +354,10 @@ internal static class IdeLanguageTools
         if (name is "find" or "get_find" or "find_in_files" or "find_all")
             return await DispatchFindAsync(name, session, byDomain, args, cancellationToken).ConfigureAwait(false);
 
+        // Verify-then-ship — inverse of put.
+        if (name is "take" or "get_take")
+            return await DispatchTakeAsync(session, byDomain, args, cancellationToken).ConfigureAwait(false);
+
         var lang = ResolveLanguage(session, args);
         if (name == "get_workspace_navigation_context")
         {
@@ -408,6 +441,31 @@ internal static class IdeLanguageTools
             dict["op"] = JsonSerializer.SerializeToElement("find");
         }
 
+        return await DocumentEditPlane.DispatchAsync(
+                "cdp_buffer", _docStore, session, byDomain, dict, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    static async Task<string> DispatchTakeAsync(
+        SessionContext session,
+        IReadOnlyDictionary<string, ICdpBackendModule> byDomain,
+        IReadOnlyDictionary<string, JsonElement> args,
+        CancellationToken cancellationToken)
+    {
+        if (_docStore is null)
+            throw new InvalidOperationException("Document buffer store not bound.");
+
+        var dict = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        foreach (var kv in args)
+        {
+            if (kv.Key is "language") continue;
+            if (kv.Key is "file_path" && !args.ContainsKey("path"))
+                dict["path"] = kv.Value;
+            else
+                dict[kv.Key] = kv.Value;
+        }
+
+        dict["op"] = JsonSerializer.SerializeToElement("take");
         return await DocumentEditPlane.DispatchAsync(
                 "cdp_buffer", _docStore, session, byDomain, dict, cancellationToken)
             .ConfigureAwait(false);

@@ -35,7 +35,7 @@ internal static class EditorComfort
 
     public static bool IsComfortOp(string op) => op is
         "undo" or "redo" or "history"
-        or "copy" or "paste" or "cut" or "put"
+        or "copy" or "paste" or "cut" or "put" or "take"
         or "clipboard" or "clip" or "clipboard_clear" or "clip_clear"
         or "find" or "find_all" or "replace_all"
         or "back" or "forward" or "nav" or "nav_status"
@@ -55,6 +55,8 @@ internal static class EditorComfort
             "cut" => Cut(store, session, args),
             "paste" => Paste(store, session, args),
             "put" => Put(store, session, args),
+            "take" => throw new InvalidOperationException(
+                "take is async — use DocumentEditPlane / bare take (verify then ship)."),
             "clipboard" or "clip" => ClipboardCard(args),
             "clipboard_clear" or "clip_clear" => ClipboardClear(),
             "find" or "find_all" => Find(store, session, args, all: op == "find_all" || BoolOr(args, "all", false)),
@@ -561,13 +563,14 @@ internal static class EditorComfort
             clipboard = SessionClipboard.Summary(),
             next = new object[]
             {
+                new { go = "take", label = "Take / ship", why = "verify then chat_markdown — inverse of put" },
                 new { go = "scope", label = "Sniper refine", why = "from=/till= then edit" },
                 new { go = "edit_draft", label = "Edit plan", why = "surgical slices" },
                 new { go = "find", label = "Find in draft", why = "query= inside buffer" },
                 new { go = "undo", label = "Undo put", why = "one stack step" }
             },
             hint =
-                "Draft dumped. Refine with scope/edit/paste — not another put unless rewrite. " +
+                "Draft dumped. Verify+ship with take; refine with scope/edit/paste. " +
                 "frame= from clipboard; preserve=false burns frame."
         }, Pretty);
     }
@@ -1224,6 +1227,79 @@ internal static class EditorComfort
         var detailed = ExtractSpanDetailed(store, session, args, ResolveBuf(store, session, args));
         return (detailed.Text, detailed.From);
     }
+
+    /// <summary>
+    /// Span for <c>take</c>: whole buffer by default; else anchor / lines / sniper hold (same as copy).
+    /// </summary>
+    internal static TakeSpan ResolveTakeSpan(
+        DocumentBufferStore store,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var hasSpan = OptString(args, "anchor") is { Length: > 0 }
+            || OptString(args, "at") is { Length: > 0 }
+            || OptString(args, "from") is { Length: > 0 }
+            || IntOrNull(args, "start_line") is not null
+            || OptString(args, "text") is { Length: > 0 };
+
+        if (!hasSpan
+            && BoolOr(args, "sniper", false)
+            && EditSniper.TryGetHold(out var sp, out var label, out var ls, out var cs, out var le, out var ce))
+        {
+            var sbuf = store.Resolve(sp, null);
+            var start = OffsetOf(sbuf.Text, ls, cs);
+            var end = OffsetOf(sbuf.Text, le, ce);
+            if (end < start) (start, end) = (end, start);
+            return new TakeSpan(sbuf, sbuf.Text[start..end], label, ls, cs, le, ce);
+        }
+
+        if (!hasSpan)
+        {
+            var whole = ResolveBuf(store, session, args);
+            var lines = CountLines(whole.Text);
+            var endCol = LineLengthAt(whole.Text, lines) + 1;
+            return new TakeSpan(whole, whole.Text, WireFile(session, whole.Path), 1, 1, lines, endCol);
+        }
+
+        // text= alone (no buffer span) — ephemeral body, still need a buffer for path/fence if open
+        if (OptString(args, "text") is { Length: > 0 } literal
+            && OptString(args, "anchor") is null
+            && OptString(args, "at") is null
+            && OptString(args, "from") is null
+            && IntOrNull(args, "start_line") is null)
+        {
+            DocBuffer? open = null;
+            try { open = ResolveBuf(store, session, args); } catch { /* optional */ }
+            if (open is null)
+                throw new ArgumentException("take text= needs an open buffer or path= for fence/verify context.");
+            return new TakeSpan(open, literal, "text=", 1, 1, 1, 1);
+        }
+
+        var buf = ResolveBuf(store, session, args);
+        var wire = OptString(args, "anchor") ?? OptString(args, "at") ?? OptString(args, "from");
+        if (wire is { Length: > 0 })
+        {
+            var span = BracketLocate.Parse(wire);
+            if (span.File is { Length: > 0 })
+            {
+                var file = ResolveUserPath(session, span.File);
+                if (!string.Equals(file, buf.Path, StringComparison.OrdinalIgnoreCase))
+                    buf = store.Resolve(file, null);
+            }
+        }
+
+        var d = ExtractSpanDetailed(store, session, args, buf);
+        return new TakeSpan(buf, d.Text, d.From, d.StartLine, d.StartCol, d.EndLine, d.EndCol);
+    }
+
+    internal readonly record struct TakeSpan(
+        DocBuffer Buf,
+        string Body,
+        string From,
+        int StartLine,
+        int StartCol,
+        int EndLine,
+        int EndCol);
 
     static (string Text, string From, int StartLine, int StartCol, int EndLine, int EndCol) ExtractSpanDetailed(
         DocumentBufferStore store,
