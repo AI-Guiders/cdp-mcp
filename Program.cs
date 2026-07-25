@@ -411,6 +411,24 @@ List<Tool> BuildMetaTools() =>
             end_line = new { type = "integer" }
         }
     }),
+    Meta("cdp_script_scene", "Script habitat (put → buffer diagnostics → check → run → report). Not external throwaway CSX. op omit → map; put name=/text= under .cdp/scripts; open|check|run|last|help. Run wraps cdp_csx_run; check = ScriptHost allowlist + buffer diags.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "omit|scene|put|open|check|run|last|help" },
+            feature = new { type = "string", description = "Alias of op" },
+            name = new { type = "string", description = "put/open/check/run: script file name under .cdp/scripts" },
+            path = new { type = "string", description = "script path (absolute or project-relative)" },
+            file = new { type = "string", description = "Alias of path/name" },
+            text = new { type = "string", description = "put: draft body" },
+            body = new { type = "string", description = "put: alias of text" },
+            code = new { type = "string", description = "put: alias of text" },
+            overwrite = new { type = "boolean", description = "put: replace existing (default true if exists)" },
+            mode = new { type = "string", description = "run: run|dry_run" },
+            refresh = new { type = "boolean", description = "open: reload from disk" }
+        }
+    }),
     Meta("cdp_test_plan", "Select tests then preview|apply. include[] FQNs, failed_first=true (from last_run), or filter=. op=preview|apply → structured test_run/v0 + evidence.", new
     {
         type = "object",
@@ -827,7 +845,7 @@ var options = new McpServerOptions
         "IDE verbs (harness routes LSP): go_to_definition, find_usages, get_document_symbols, get_symbol_at_position, get_diagnostics, resolve_project_root, get_workspace_navigation_context. " +
         "Prefer cdp_build/cdp_run/cdp_test/cdp_pkg_*/cdp_project_*/cdp_sln_* over shell for session project. " +
         "Agent shell habitat: cdp_shell_* = primary IDE terminal; sibling terminal-mcp (terminal_*) = escape only. " +
-        "CSX: cdp_csx_help | cdp_csx_check | cdp_csx_run | cdp_csx_run_plan | promote | discard | cdp_evidence. " +
+        "CSX: cdp_script_scene (put→diags→check→run) | cdp_csx_help | cdp_csx_check | cdp_csx_run | cdp_csx_run_plan | promote | discard | cdp_evidence. " +
         "Domain tools prefixed " + DomainPrefixHint + " (roslyn_* = legacy aliases; prefer bare IDE verbs). " +
         "ListTools = meta + bare IDE verbs + ≤10 domain shortlist (deduped underlying; not full union). " +
         "Too many tools = agent thrash — use cdp_context to retarget, cdp_tools to preview, cdp_session for pack embed. " +
@@ -890,6 +908,11 @@ async Task<string> DispatchAsync(
         return await AnalysisScene.DispatchAsync(docStore, session, byDomain, callArgs, cancellationToken)
             .ConfigureAwait(false);
 
+    if (ScriptScene.IsScriptTool(name))
+        return await ScriptScene.DispatchAsync(
+                docStore, session, byDomain, callArgs, DispatchMetaAsync, cancellationToken)
+            .ConfigureAwait(false);
+
     if (GoToAll.IsGoToTool(name))
         return GoToAll.Dispatch(docStore, session, callArgs);
 
@@ -927,6 +950,7 @@ async Task<string> DispatchMetaAsync(
                    "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_editor_scene|cdp_edit_sniper|cdp_edit_plan (map→aim→slices), " +
                    "cdp_build|cdp_run|cdp_test|cdp_test_scene|cdp_test_plan (session IDE lifecycle), " +
                    "cdp_analysis_scene (code analysis domain; feature=clones), " +
+                   "cdp_script_scene (script habitat put→diags→run), " +
                    "cdp_goto (Ctrl+T code + Ctrl+Q features → land/peek), " +
                    "cdp_buffer(op=scene|open|read|edit|diagnostics|close) file buffer SSOT; edit returns diagnostics, " +
                    "cdp_debug(op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|…) debug plane; session defaults, not breakpoints JSON, " +

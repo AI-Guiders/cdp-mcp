@@ -81,6 +81,14 @@ internal static class IdeCockpit
             ["semantic_map"] = ("cdp_analysis_scene", Dict(("feature", "semantic_map"))),
             ["semantic"] = ("cdp_analysis_scene", Dict(("feature", "semantic_map"))),
             ["related"] = ("cdp_analysis_scene", Dict(("feature", "semantic_map"))),
+            ["script_scene"] = ("cdp_script_scene", null),
+            ["script"] = ("cdp_script_scene", null),
+            ["script_put"] = ("cdp_script_scene", Dict(("op", "put"))),
+            ["script_open"] = ("cdp_script_scene", Dict(("op", "open"))),
+            ["script_check"] = ("cdp_script_scene", Dict(("op", "check"))),
+            ["script_run"] = ("cdp_script_scene", Dict(("op", "run"))),
+            ["script_last"] = ("cdp_script_scene", Dict(("op", "last"))),
+            ["script_help"] = ("cdp_script_scene", Dict(("op", "help"))),
             ["goto"] = ("cdp_goto", null),
             ["go_to"] = ("cdp_goto", null),
             ["t"] = ("cdp_goto", null),
@@ -298,6 +306,7 @@ internal static class IdeCockpit
                 "Edit sniper: go=scope from=/till= → go=target → go=peek → go=edit_draft. " +
                 "Quality: go=quality / mfd=gates (project-tunable .cdp/quality-gates.toml). " +
                 "Analysis: go=analysis_scene / go=correspondence|semantic_map|clones (domain scene, not MFD). " +
+                "Scripts: go=script_scene / go=script_put|check|run (put→diags→run, not pray). " +
                 "Editor comfort: go=undo|redo|copy|cut|paste|put|clipboard|find|…. " +
                 "put: dump draft (path=|sniper) text=/frame= then refine. " +
                 "Clipboard frames; paste_sniper/put_sniper into aim. " +
@@ -592,6 +601,9 @@ internal static class IdeCockpit
             Add("n-edit-draft", "edit_draft", "Edit plan draft", $"Open buffers={buffer.Count} dirty={buffer.DirtyCount}");
         else if (session.ProjectRoot is not null && buffer.Count == 0 && !EditSniper.HasHold)
             Add("n-buffer", "buffer_scene", "Buffer scene", "No open buffers yet");
+
+        if (session.ProjectRoot is not null)
+            Add("n-script", "script_scene", "Script habitat", "put→diags→check→run");
 
         if (gitRoot is { } g && GitIsDirty(g))
             Add("n-git-draft", "git_draft", "Git plan draft", "Dirty SCM — logical slices");
