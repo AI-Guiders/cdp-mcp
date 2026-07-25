@@ -23,6 +23,10 @@ internal static class IdeLanguageTools
         "get_diagnostics",
         "get_completions",
         "get_signature_help",
+        "find",
+        "get_find",
+        "find_in_files",
+        "find_all",
         "resolve_project_root",
         "get_workspace_navigation_context",
         "rename_symbol",
@@ -116,6 +120,18 @@ internal static class IdeLanguageTools
                 },
                 required = new[] { "file_path", "line", "column" }
             });
+        yield return Tool("find",
+            "IDE: Find in buffer (VS Ctrl+F). Same shelf as get_completions — query= → hits with line/column/anchor. Alias: get_find. scope=project → find_in_files.",
+            FindSchema());
+        yield return Tool("get_find",
+            "Alias of find (discoverability next to get_completions).",
+            FindSchema());
+        yield return Tool("find_in_files",
+            "IDE: Find in Files (rg). query=; optional path=/glob=/regex=. Alias: find_all with scope=project.",
+            FindInFilesSchema());
+        yield return Tool("find_all",
+            "IDE: find all hits — buffer by default; scope=project = Find in Files.",
+            FindSchema());
         yield return Tool("resolve_project_root",
             "Resolve project root / language markers from a path (or return session project after cdp_open).",
             new
@@ -181,6 +197,39 @@ internal static class IdeLanguageTools
                 required = new[] { "action_index" }
             });
     }
+
+    private static object FindSchema() => new
+    {
+        type = "object",
+        properties = new
+        {
+            query = new { type = "string", description = "needle (aliases: text, pattern)" },
+            path = new { type = "string", description = "file; default open buffer / project-relative" },
+            file_path = new { type = "string", description = "alias of path" },
+            scope = new { type = "string", description = "buffer|project|files (default buffer)" },
+            regex = new { type = "boolean" },
+            ignore_case = new { type = "boolean" },
+            glob = new { type = "string", description = "find_in_files: rg --glob" },
+            max = new { type = "integer" }
+        },
+        required = new[] { "query" }
+    };
+
+    private static object FindInFilesSchema() => new
+    {
+        type = "object",
+        properties = new
+        {
+            query = new { type = "string" },
+            path = new { type = "string", description = "optional subdir under project" },
+            scope = new { type = "string", description = "project|files (default project)" },
+            regex = new { type = "boolean" },
+            ignore_case = new { type = "boolean" },
+            glob = new { type = "string" },
+            max = new { type = "integer" }
+        },
+        required = new[] { "query" }
+    };
 
     private static object PositionalSchema() => new
     {
@@ -272,6 +321,10 @@ internal static class IdeLanguageTools
             }, new JsonSerializerOptions { WriteIndented = true });
         }
 
+        // Text find — language-agnostic, same shelf as get_completions (not cdp_buffer-only).
+        if (name is "find" or "get_find" or "find_in_files" or "find_all")
+            return await DispatchFindAsync(name, session, byDomain, args, cancellationToken).ConfigureAwait(false);
+
         var lang = ResolveLanguage(session, args);
         if (name == "get_workspace_navigation_context")
         {
@@ -316,6 +369,48 @@ internal static class IdeLanguageTools
         if (!CdpLanguages.IsAny(session.Language))
             return session.Language!;
         return CdpLanguages.Any;
+    }
+
+    static async Task<string> DispatchFindAsync(
+        string name,
+        SessionContext session,
+        IReadOnlyDictionary<string, ICdpBackendModule> byDomain,
+        IReadOnlyDictionary<string, JsonElement> args,
+        CancellationToken cancellationToken)
+    {
+        if (_docStore is null)
+            throw new InvalidOperationException("Document buffer store not bound.");
+
+        var dict = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        foreach (var kv in args)
+        {
+            if (kv.Key is "language") continue;
+            // bare file_path → buffer path=
+            if (kv.Key is "file_path" && !args.ContainsKey("path"))
+                dict["path"] = kv.Value;
+            else
+                dict[kv.Key] = kv.Value;
+        }
+
+        if (name is "find_in_files")
+        {
+            dict["op"] = JsonSerializer.SerializeToElement("find_all");
+            if (!dict.ContainsKey("scope"))
+                dict["scope"] = JsonSerializer.SerializeToElement("project");
+        }
+        else if (name is "find_all")
+        {
+            dict["op"] = JsonSerializer.SerializeToElement("find_all");
+        }
+        else
+        {
+            // find | get_find
+            dict["op"] = JsonSerializer.SerializeToElement("find");
+        }
+
+        return await DocumentEditPlane.DispatchAsync(
+                "cdp_buffer", _docStore, session, byDomain, dict, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private static async Task<string> DispatchCsharpAsync(

@@ -905,17 +905,19 @@ internal static class EditorComfort
             next = hits.Count > 0
                 ? (object[])
                 [
+                    new { go = "complete", label = "Completions at hit", why = "line/column from hits[0] → get_completions" },
+                    new { go = "signature_help", label = "Signature help", why = "inside call near hit" },
                     new { go = "peek", label = "Peek hit", why = "go_args.wire= from hits[].anchor" },
                     new { go = "replace_all", label = "Replace all", why = "query= + text= replacement" },
-                    new { go = "find_all", label = "Find in Files", why = "scope=project same query" }
+                    new { go = "find_in_files", label = "Find in Files", why = "scope=project same query" }
                 ]
                 : (object[])
                 [
                     new { go = "find", label = "Retry", why = "regex=true / scope=project" }
                 ],
             hint =
-                "VS Find (buffer). regex=true = Use Regular Expressions. " +
-                "scope=project|files = Find in Files (rg → anchors)."
+                "VS Find (buffer). Bare verb find|get_find. regex=true = Use Regular Expressions. " +
+                "scope=project|files = Find in Files (rg → anchors). next: complete/signature_help."
         }, Pretty);
     }
 
@@ -1296,6 +1298,8 @@ internal static class EditorComfort
                 endLine == line ? null : endLine)),
             line,
             column = col,
+            end_line = endLine,
+            end_column = endCol,
             preview
         };
     }

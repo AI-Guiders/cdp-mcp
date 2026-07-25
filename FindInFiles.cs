@@ -184,6 +184,8 @@ internal static class FindInFiles
             next = hits.Count > 0
                 ? (object[])
                 [
+                    new { go = "complete", label = "Completions at hit", why = "line/column from hits[0]" },
+                    new { go = "signature_help", label = "Signature help", why = "near hit" },
                     new { go = "scope", label = "Sniper from land", why = $"from={hits[0].Anchor}" },
                     new { go = "edit_draft", label = "Edit here", why = "land open+peeked" },
                     new { go = "find_all", label = "More hits", why = "same query + scope=project" }
