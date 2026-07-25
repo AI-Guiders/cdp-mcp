@@ -387,16 +387,16 @@ List<Tool> BuildMetaTools() =>
             peek = new { type = "boolean", description = "Auto open+peek top code hit (default true)" }
         }
     }),
-    Meta("cdp_analysis_scene", "Code Analysis domain scene (git_scene/test_scene peer). On demand — not MFD. feature omit → map; feature=clones → VS-style duplicates (exact/strong), results=anchors. scope=file|method|selection|project|solution; optional anchor=/from= seed; search_in= for seed radius.", new
+    Meta("cdp_analysis_scene", "Code Analysis domain scene (git_scene/test_scene peer). On demand — not MFD. feature omit → map; feature=correspondence → ADR/docs↔code from .cascade/workspace.toml (anchors); feature=clones → VS-style duplicates. scope= for clones; path=/anchor= for both.", new
     {
         type = "object",
         properties = new
         {
-            feature = new { type = "string", description = "omit|scene → map; clones → code clone analysis" },
+            feature = new { type = "string", description = "omit|scene → map; correspondence → doc↔code L1; clones → code clone analysis" },
             op = new { type = "string", description = "Alias of feature" },
             scope = new { type = "string", description = "clones: file|method|selection|project|solution" },
-            path = new { type = "string", description = "clones: file under analysis / seed file" },
-            anchor = new { type = "string", description = "clones seed wire [F:;M:;L:]" },
+            path = new { type = "string", description = "correspondence/clones: file under analysis" },
+            anchor = new { type = "string", description = "seed wire [F:;M:;L:]" },
             from = new { type = "string", description = "Alias of anchor" },
             search_in = new { type = "string", description = "When seed set: file|project|solution (default project if open)" },
             min_statements = new { type = "integer", description = "Default 10 project/solution, 3 local" },

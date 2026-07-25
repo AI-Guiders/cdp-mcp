@@ -76,6 +76,8 @@ internal static class IdeCockpit
             ["analysis_scene"] = ("cdp_analysis_scene", null),
             ["analysis"] = ("cdp_analysis_scene", null),
             ["clones"] = ("cdp_analysis_scene", Dict(("feature", "clones"))),
+            ["correspondence"] = ("cdp_analysis_scene", Dict(("feature", "correspondence"))),
+            ["corr"] = ("cdp_analysis_scene", Dict(("feature", "correspondence"))),
             ["goto"] = ("cdp_goto", null),
             ["go_to"] = ("cdp_goto", null),
             ["t"] = ("cdp_goto", null),
@@ -292,7 +294,7 @@ internal static class IdeCockpit
                 "locus=buffer:doc-N scopes go=disk_peek|reload|keep_disk to that file. " +
                 "Edit sniper: go=scope from=/till= → go=target → go=peek → go=edit_draft. " +
                 "Quality: go=quality / mfd=gates (project-tunable .cdp/quality-gates.toml). " +
-                "Analysis: go=analysis_scene / go=clones (domain scene, not MFD). " +
+                "Analysis: go=analysis_scene / go=correspondence|clones (domain scene, not MFD). " +
                 "Editor comfort: go=undo|redo|copy|cut|paste|put|clipboard|find|…. " +
                 "put: dump draft (path=|sniper) text=/frame= then refine. " +
                 "Clipboard frames; paste_sniper/put_sniper into aim. " +
@@ -864,9 +866,9 @@ internal static class IdeCockpit
             "analysis:scene",
             "analysis",
             session.ProjectRoot is { Length: > 0 } ? "analysis ready" : "no project",
-            "go=analysis_scene → feature=clones",
+            "go=analysis_scene → correspondence|clones",
             "analysis_scene",
-            new { features = new[] { "clones" } }));
+            new { features = new[] { "correspondence", "clones" } }));
 
         list.Add(new Locus(
             "work:focus",

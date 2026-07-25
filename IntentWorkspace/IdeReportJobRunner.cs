@@ -41,14 +41,29 @@ internal sealed class IdeReportJobRunner(
         if (string.IsNullOrWhiteSpace(kind))
             throw new ArgumentException("job.kind is required.");
 
+        var filePath = ReqString(root, "file_path");
+        int? line = root.TryGetProperty("line", out var ln) && ln.TryGetInt32(out var li) ? li : null;
+        int? column = root.TryGetProperty("column", out var col) && col.TryGetInt32(out var ci) ? ci : null;
+
+        if (string.Equals(kind, "correspondence", StringComparison.OrdinalIgnoreCase))
+        {
+            var solutionOpt = root.TryGetProperty("solution_or_project_path", out var solEl)
+                ? solEl.GetString()
+                : null;
+            var anchor = new CodeAnchor(filePath, line, column, solutionOpt);
+            var hint = WorkspaceCorrespondence.FindWorkspaceRoot(filePath, solutionOpt is { Length: > 0 }
+                ? Path.GetDirectoryName(solutionOpt)
+                : null);
+            var lootCorr = IdeReport.Correspondence(anchor, hint).ToJson();
+            store.StageCompleteJob(stageId, lootCorr);
+            return;
+        }
+
         if (!byDomain.TryGetValue(CdpDomains.Roslyn, out var roslyn) || !roslyn.IsEnabled)
             throw new InvalidOperationException("Roslyn backend not mounted.");
 
-        var filePath = ReqString(root, "file_path");
         var solution = ReqString(root, "solution_or_project_path");
-        int? line = root.TryGetProperty("line", out var ln) && ln.TryGetInt32(out var li) ? li : null;
-        int? column = root.TryGetProperty("column", out var col) && col.TryGetInt32(out var ci) ? ci : null;
-        var anchor = new CodeAnchor(filePath, line, column, solution);
+        var roslynAnchor = new CodeAnchor(filePath, line, column, solution);
 
         string loot;
         if (string.Equals(kind, "semantic_map", StringComparison.OrdinalIgnoreCase))
@@ -65,7 +80,7 @@ internal sealed class IdeReportJobRunner(
             if (line is { } l) args["line"] = JsonSerializer.SerializeToElement(l);
             if (column is { } c) args["column"] = JsonSerializer.SerializeToElement(c);
             var raw = await roslyn.CallAsync("roslyn_get_workspace_navigation_context", args).ConfigureAwait(false);
-            loot = IdeReportBuilder.FromSemanticMapRelated(anchor, raw, mode).ToJson();
+            loot = IdeReportBuilder.FromSemanticMapRelated(roslynAnchor, raw, mode).ToJson();
         }
         else if (string.Equals(kind, "find_usages", StringComparison.OrdinalIgnoreCase))
         {
@@ -79,11 +94,7 @@ internal sealed class IdeReportJobRunner(
                 ["column"] = JsonSerializer.SerializeToElement(column.Value)
             };
             var raw = await roslyn.CallAsync("roslyn_find_usages", args).ConfigureAwait(false);
-            loot = IdeReportBuilder.FromFindUsages(anchor, raw).ToJson();
-        }
-        else if (string.Equals(kind, "correspondence", StringComparison.OrdinalIgnoreCase))
-        {
-            loot = IdeReport.CorrespondenceStub(anchor).ToJson();
+            loot = IdeReportBuilder.FromFindUsages(roslynAnchor, raw).ToJson();
         }
         else
         {

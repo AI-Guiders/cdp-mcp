@@ -30,13 +30,15 @@ internal static class AnalysisScene
         {
             "clones" or "clone" or "duplicates" or "code_clones" =>
                 CodeClones.Run(store, session, args),
+            "correspondence" or "corr" or "docs" or "adr_map" =>
+                Correspondence.Run(store, session, args),
             _ => JsonSerializer.Serialize(new
             {
                 schema = Schema,
                 ok = false,
                 error = "unknown_feature",
                 feature,
-                hint = "feature omit → scene map; feature=clones scope=file|method|selection|project|solution"
+                hint = "feature omit → scene map; feature=clones|correspondence"
             }, Pretty)
         };
     }
@@ -56,6 +58,13 @@ internal static class AnalysisScene
                     new
                     {
                         go = "analysis_scene",
+                        label = "Correspondence",
+                        why = "path= → ADR/docs + reverse anchors",
+                        go_args = new { feature = "correspondence" }
+                    },
+                    new
+                    {
+                        go = "analysis_scene",
                         label = "Clones in file",
                         why = "go_args: { feature:\"clones\", scope:\"file\", path?:\"…\" }",
                         go_args = new { feature = "clones", scope = "file" }
@@ -65,13 +74,6 @@ internal static class AnalysisScene
                         go = "analysis_scene",
                         label = "Clones in project",
                         why = "min 10 statements (VS Analyze Solution analogue)",
-                        go_args = new { feature = "clones", scope = "project" }
-                    },
-                    new
-                    {
-                        go = "analysis_scene",
-                        label = "Match seed",
-                        why = "anchor=/from= + scope= where to search",
                         go_args = new { feature = "clones", scope = "project" }
                     }
                 ]
@@ -83,6 +85,15 @@ internal static class AnalysisScene
             [
                 new
                 {
+                    id = "correspondence",
+                    title = "Doc↔code correspondence (L1)",
+                    hint =
+                        "Forward ADR/feature docs + reverse code_anchors from .cascade/workspace.toml. " +
+                        "Results = anchors. path= or open buffer.",
+                    go_args = new { feature = "correspondence" }
+                },
+                new
+                {
                     id = "clones",
                     title = "Code clones (VS-style)",
                     hint =
@@ -92,7 +103,7 @@ internal static class AnalysisScene
                 }
             ],
             hint =
-                "Domain scene (not MFD). Call feature=clones with scope=; more analysis features land here."
+                "Domain scene (not MFD). feature=correspondence|clones; more analysis features land here."
         }, Pretty);
     }
 
