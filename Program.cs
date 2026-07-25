@@ -329,6 +329,17 @@ List<Tool> BuildMetaTools() =>
             op = new { type = "string", description = "restore (default) | peek" }
         }
     }),
+    Meta("cdp_land", "Land via Family:navigation Anchor wire (ADR 0186). NOT Deep-Link/URI. Pass anchor=[Family:navigation;Command:open|goto|restore|show|go;…]. Nested Anchor:[…] reuses code/xml resolve. Alias go=land.", new
+    {
+        type = "object",
+        properties = new
+        {
+            anchor = new { type = "string", description = "[Family:navigation;Command:…;Go:…;Anchor:[…]]" },
+            at = new { type = "string", description = "Alias of anchor" },
+            wire = new { type = "string", description = "Alias of anchor" }
+        },
+        required = new[] { "anchor" }
+    }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell.", new
     {
         type = "object",
@@ -849,7 +860,7 @@ var options = new McpServerOptions
         "Cold ListTools = recall+kb (known memory pull; not browse). " +
         "After MCP restart: call cdp_session or cdp_context first so ListTools refreshes (pack tools). " +
         "Pack dogfood: memory_world_get_definition|get_process|get_procedure|list_pack|radius_gate_check (epistemic-scene). " +
-        "Always: cdp_cockpit (desk/пульт: next[]+go=) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_restore (Restore Previous desk) / cdp_editor_scene|cdp_edit_plan / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
+        "Always: cdp_cockpit (desk/пульт: next[]+go=) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_restore (Restore Previous desk) / cdp_land (Family:navigation Anchor land) / cdp_editor_scene|cdp_edit_plan / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
         "Mutate SSOT: cdp_buffer (open|create|edit); Instant Save flush=true on edit/close (flush=false batches; close discard=true to drop). Relative path= → ProjectRoot after cdp_open. Prefer edit_op=anchor [F:;M:;K:] for csharp. Cursor host Write bypasses PathMutateGate. " +
         "Buffer plane: cdp_buffer op=open|edit|… — edit returns diagnostics in-result (almost-online while you keep the turn). " +
         "Debug plane: cdp_debug op=bp_add|launch|stop_context|… — session defaults after cdp_open; .csproj is BP key, launch resolves dll under bin/; JSON file is storage only. " +
@@ -1191,6 +1202,19 @@ async Task<string> DispatchMetaAsync(
                 detectOpen: p => settings.Languages.Detect(p),
                 syncShellCwd: () => shellHabitat.SyncSessionCwd(session.ProjectRoot),
                 notifyListChanged: NotifyListChanged) + "\n# list_changed: shortlist refreshed after cdp_restore";
+        }
+        case "cdp_land":
+        {
+            return await NavigationLand.RunAsync(
+                    callArgs,
+                    session,
+                    docStore,
+                    detectOpen: p => settings.Languages.Detect(p),
+                    syncShellCwd: () => shellHabitat.SyncSessionCwd(session.ProjectRoot),
+                    notifyListChanged: NotifyListChanged,
+                    dispatchTool: DispatchAsync,
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
         case "cdp_recent":
         {

@@ -116,6 +116,10 @@ internal static class IdeCockpit
             ["restore_previous"] = ("cdp_restore", null),
             ["previous"] = ("cdp_restore", null),
             ["desk_restore"] = ("cdp_restore", null),
+            ["navigate"] = ("cdp_land", null),
+            ["land"] = ("cdp_land", null),
+            ["deep_link"] = ("cdp_land", null),
+            ["deeplink"] = ("cdp_land", null),
         };
 
     static Dictionary<string, JsonElement> Dict(params (string Key, string Value)[] pairs)

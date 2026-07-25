@@ -444,6 +444,9 @@ internal static class DocumentEditPlane
             throw new ArgumentException(familyError);
         if (family == BracketLocate.AxisFamily.None)
             throw new ArgumentException("Anchor needs csharp axes (M/L/S/K) or xml axes (X/A).");
+        if (family == BracketLocate.AxisFamily.Navigation)
+            throw new ArgumentException(
+                "Family:navigation is land-only — use cdp_land (not edit_op=anchor).");
 
         if (family == BracketLocate.AxisFamily.Csharp)
         {
