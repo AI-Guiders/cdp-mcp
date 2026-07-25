@@ -14,7 +14,8 @@ using OutWit.Database.EntityFramework.Extensions;
 using Tool = ModelContextProtocol.Protocol.Tool;
 
 var configPath = args.SkipWhile(a => a != "--config").Skip(1).FirstOrDefault()
-    ?? Environment.GetEnvironmentVariable("CDP_MCP_CONFIG");
+    ?? Environment.GetEnvironmentVariable("CDP_MCP_CONFIG")
+    ?? Path.Combine(AppContext.BaseDirectory, "config", "cdp-mcp.toml");
 var settings = CdpSettings.Load(configPath);
 IdeLanguageTools.Configure(settings.Languages, settings.LspPresets);
 VendorCatalog.Configure(settings.Vendor);
@@ -37,6 +38,13 @@ void EnsureWorkspaceDb()
     workspaceStore = new IntentWorkspaceStore(wsOptions);
     workspaceStore.EnsureOpenRecentTable();
     workspaceStore.MigrateLegacyOpenRecentJsonIfPresent();
+    workspaceStore.EnsureDeskSeatsTable();
+    workspaceStore.MigrateLegacyDeskSeatsJsonIfPresent();
+    workspaceStore.EnsureWorkFocusTable();
+    workspaceStore.WorkFocusHydrate(workspaceState);
+    workspaceStore.EnsureScriptLastRunTable();
+    IdeDeskSeats.Bind(workspaceStore);
+    ScriptScene.Bind(workspaceStore);
     OpenRecentStore.Configure(new WitDbOpenRecentBackend(workspaceStore, workspaceDbPath));
 }
 
@@ -95,8 +103,23 @@ var session = new SessionContext();
 var docStore = new DocumentBufferStore();
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
+var mcpOutlet = new McpOutletHabitat();
+var internetBrowser = new InternetBrowserHabitat();
+var ideSettings = new IdeSettingsHabitat(
+    configPath,
+    settings,
+    session,
+    shellHabitat,
+    () => ShellDefaults(session));
 if (CdpEnumParse.TryParsePhase(settings.DefaultPhase, out var dp)) session.Phase = dp;
 if (CdpEnumParse.TryParseObject(settings.DefaultObject, out var dobj)) session.Object = dobj;
+// User prefs can override cold phase/object after process defaults.
+if (IdeSettingsStore.TryGet("session.default_phase", out var up)
+    && CdpEnumParse.TryParsePhase(up, out var udp))
+    session.Phase = udp;
+if (IdeSettingsStore.TryGet("session.default_object", out var uo)
+    && CdpEnumParse.TryParseObject(uo, out var udo))
+    session.Object = udo;
 
 var mcpVersion = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "0.4.0";
 var Pretty = new JsonSerializerOptions { WriteIndented = true };
@@ -181,7 +204,7 @@ List<Tool> BuildMetaTools() =>
             recent_index = new { type = "integer", description = "Optional 0-based Open Recent index (0 = last opened)." }
         }
     }),
-    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|put|take|read|edit|diagnostics|close|reload|keep_disk|disk_peek + comfort undo|redo|history|copy|cut|paste|clipboard|find|…. put= dump draft; take= verify-then-ship (chat_markdown). Clipboard Android frames. Find scope=buffer|project. Instant Save. Anchors. Relative path= → ProjectRoot.", new
+    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|put|take|read|edit|diagnostics|close|reload|keep_disk|disk_peek + comfort undo|redo|history|copy|cut|paste|clipboard|find|…. put= dump draft; take= verify-then-ship. Instant Save. Anchors: edit_op=anchor + place=before|after|replace (default replace). Relative path= → ProjectRoot.", new
     {
         type = "object",
         properties = new
@@ -203,7 +226,7 @@ List<Tool> BuildMetaTools() =>
             edit_op = new { type = "string", description = "edit: anchor|set_text|replace|replace_range — prefer anchor" },
             anchor = new { type = "string", description = "edit_op=anchor / copy|cut|paste: csharp [F:;M:;K:] or xml [F:;X:path;A:attr?][+K:Element]" },
             at = new { type = "string", description = "Alias of anchor" },
-            text = new { type = "string", description = "edit set_text / create body / anchor replacement / paste override / find query alias" },
+            text = new { type = "string", description = "edit set_text / create body / anchor text (replace=overwrite locus; place=before|after=insert body) / paste override / find query alias" },
             old_string = new { type = "string" },
             new_string = new { type = "string", description = "replace; also alias of text for anchor" },
             start_column = new { type = "integer" },
@@ -217,7 +240,7 @@ List<Tool> BuildMetaTools() =>
             peek = new { type = "boolean", description = "find scope=project: auto open+peek top hit (default true)" },
             clear = new { type = "boolean", description = "clipboard: true = clear (all, or frame= one)" },
             frame = new { type = "string", description = "paste|put|clipboard: frame id cN (omit = current MRU)" },
-            place = new { type = "string", description = "paste|put: before|after|replace|sniper (put default replace)" },
+            place = new { type = "string", description = "edit_op=anchor|paste|put: before|after|replace (anchor default replace). paste/put also sniper. CRITICAL: place=before/after inserts — does not overwrite locus." },
             sniper = new { type = "boolean", description = "paste|put: apply into edit sniper hold" },
             preserve = new { type = "boolean", description = "paste|put: keep frame after use (default true); false = burn" },
             body = new { type = "string", description = "put: alias of text= draft body" },
@@ -339,6 +362,61 @@ List<Tool> BuildMetaTools() =>
             wire = new { type = "string", description = "Alias of anchor" }
         },
         required = new[] { "anchor" }
+    }),
+    Meta("cdp_mcp", "Agent MCP outlet (ADR 0187) — Cursor-parity control inside CDP. op=scene|presets|mount|tools|call|unmount. Mount guests (Serena/memory/…) for a task; child tools NEVER enter host ListTools. Alias go=mcp_scene|mcp_mount|…", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene (default) | presets | mount | tools | call | unmount" },
+            id = new { type = "string", description = "Mount id (default=preset name)" },
+            server = new { type = "string", description = "Mounted server id for tools/call/unmount" },
+            preset = new { type = "string", description = "mount: memory|serena|filesystem|time|…" },
+            command = new { type = "string", description = "mount: exe if not preset" },
+            args = new { description = "mount: string[] argv; call: object of child tool args" },
+            tool = new { type = "string", description = "call: child tool name" },
+            name = new { type = "string", description = "call alias of tool; mount transport name" },
+            filter = new { type = "string", description = "tools: name/description filter" },
+            take = new { type = "integer", description = "tools: max (default 40)" }
+        }
+    }),
+    Meta("cdp_browser", "Agent internet browser in CDP (ADR 0188) — lynx + Chromium UA spoof. NOT Cursor Browser. op=scene|which|open|search|dump|links|follow|back|forward|close. Search default=DDG HTML. Alias go=scene_internet_browser.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene (default) | which | open | search | dump | links | follow | back | forward | close" },
+            url = new { type = "string", description = "open: https://… (http/file ok; bare host → https://)" },
+            q = new { type = "string", description = "search: query text" },
+            query = new { type = "string", description = "search: alias of q" },
+            engine = new { type = "string", description = "search: ddg (default) | google | bing" },
+            tab = new { type = "string", description = "Browser tab id (default main / active; search→search)" },
+            link = new { type = "integer", description = "follow: N from op=links" },
+            filter = new { type = "string", description = "links: filter urls" },
+            take = new { type = "integer", description = "links: max" },
+            width = new { type = "integer", description = "lynx -width (default 100)" },
+            max_chars = new { type = "integer", description = "cap dump body" },
+            timeout_seconds = new { type = "integer", description = "fetch timeout (default 45)" },
+            useragent = new { type = "string", description = "override UA (default Chromium spoof; env CDP_BROWSER_UA)" }
+        }
+    }),
+    Meta("cdp_settings", "Agent IDE Tools→Options (ADR 0190). op=options|page|get|set|lsp_probe|lsp_install|lsp_ensure|lsp_add. page=languages → install LSP via IDE shell. Alias go=options / lsp_ensure.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "options|page|catalog|get|set|unset|lsp_probe|lsp_install|lsp_ensure|lsp_add|which" },
+            page = new { type = "string", description = "languages|internet|desk|shell|mcp|environment|process" },
+            section = new { type = "string", description = "alias of page" },
+            key = new { type = "string", description = "get/set: browser.search_engine | desk.default_layout | …" },
+            value = new { type = "string", description = "set value" },
+            id = new { type = "string", description = "lsp_*: python|go|rust|yaml|json|markdown" },
+            language = new { type = "string", description = "alias of id" },
+            via = new { type = "string", description = "lsp_install/ensure: npm|pip|pipx|go|rustup|scoop|winget" },
+            command = new { type = "string", description = "lsp_add: executable name" },
+            args = new { description = "lsp_add: string[] server args (default --stdio)" },
+            writable_only = new { type = "boolean", description = "catalog: only hot user keys" }
+        }
     }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell.", new
     {
@@ -628,20 +706,39 @@ List<Tool> BuildMetaTools() =>
             limit = new { type = "integer" }
         }
     }),
-    Meta("cdp_cockpit", "Agent IDE desk (пульт): cold-start here. MFD + loci + next[] + go= to organs. Default go_detail=pulse (quiet); go_detail=full for organ dump. Not a monolith.", new
+    Meta("cdp_cockpit", "Agent IDE desk — Scan Pattern seats + view once (ADR 0191/0193). Slim default. World channel (git/shell/browser/mcp) replaces on M without organ thrash. Cold auto-restore. seats_detail=full for panes.", new
     {
         type = "object",
         properties = new
         {
             mfd = new { type = "string", description = "MFD page: nav (default) | sys | chk. Alias: page=. Also go=chk|sys|nav." },
             page = new { type = "string", description = "Alias of mfd." },
-            locus = new { type = "string", description = "Focus locus id from loci[] (e.g. git:scm, shell:main, buffer:doc-1)." },
+            locus = new { type = "string", description = "Focus locus id from loci[] (e.g. git:scm, shell:main, buffer:doc-1, browser:net)." },
             focus = new { type = "string", description = "Alias of locus." },
-            go = new { type = "string", description = "Desk verb → organ (scope|target|scope_clear|editor_scene|edit_draft|git_scene|…). Alias: do=." },
+            go = new { type = "string", description = "Desk verb → organ; in seats mode places into P|F|M by policy. Alias: do=." },
             @do = new { type = "string", description = "Alias of go." },
+            cmd = new { type = "string", description = "REPL line: \"go browser\" | \"layout cockpit\" | \"seat m git\" | \"clear\". Alias: line=|repl=." },
+            line = new { type = "string", description = "Alias of cmd." },
+            repl = new { type = "string", description = "Alias of cmd." },
             go_args = new { type = "object", description = "Optional args merged into the target organ tool." },
             go_detail = new { type = "string", description = "pulse (default, quiet) | full (organ dump in go.result)." },
-            include_submodules = new { type = "boolean", description = "Pass through to git_scene (default false)." }
+            layout = new { type = "string", description = "Seat preset: cockpit | code+net | code+shell | code+git | desk. Sticky replace-in-seat." },
+            seat = new { type = "string", description = "Explicit seat: p|forward|m (with organ=)." },
+            organ = new { type = "string", description = "Organ pin for seat= (or pin=)." },
+            pins = new { description = "Seats mode: scan-order fill P,F,M. Tiles mode: sticky pin list." },
+            tiles = new { description = "Alias of pins." },
+            pin = new { description = "Tiles mode: add pin(s). Seats: prefer seat=+organ=." },
+            pin_clear = new { type = "boolean", description = "Clear seats/pins." },
+            clear_pins = new { type = "boolean", description = "Alias of pin_clear." },
+            seat_clear = new { type = "boolean", description = "Alias of pin_clear (seats)." },
+            pane_full = new { type = "string", description = "Which seat/pin gets go_detail=full (also forces panes)." },
+            full_pane = new { type = "string", description = "Alias of pane_full." },
+            seats_detail = new { type = "string", description = "compact (default: view+slots) | full (include panes[])." },
+            view_detail = new { type = "string", description = "Alias of seats_detail." },
+            desk_detail = new { type = "string", description = "slim (default: omit loci[]/go_verbs[]) | nav | full. Alias: nav_detail=." },
+            nav_detail = new { type = "string", description = "Alias of desk_detail." },
+            include_submodules = new { type = "boolean", description = "Pass through to git_scene (default false)." },
+            no_restore = new { type = "boolean", description = "Skip once-per-process cold auto desk bookmark restore (default false)." }
         }
     }),
     Meta("cdp_session", "Agent-IDE session plane: context + shortlist + health + optional debug stop_context + pack dogfood (definitions/process/procedure) + continuity hint.", new
@@ -860,7 +957,7 @@ var options = new McpServerOptions
         "Cold ListTools = recall+kb (known memory pull; not browse). " +
         "After MCP restart: call cdp_session or cdp_context first so ListTools refreshes (pack tools). " +
         "Pack dogfood: memory_world_get_definition|get_process|get_procedure|list_pack|radius_gate_check (epistemic-scene). " +
-        "Always: cdp_cockpit (desk/пульт: next[]+go=) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_restore (Restore Previous desk) / cdp_land (Family:navigation Anchor land) / cdp_editor_scene|cdp_edit_plan / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
+        "Always: cdp_cockpit (desk seats P|F|M + cmd= REPL: next[]+go=) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_restore (Restore Previous desk) / cdp_land (Family:navigation Anchor land) / cdp_mcp (MCP outlet scene/mount/call) / cdp_browser (internet lynx: scene_internet_browser) / cdp_settings (Tools→Options: go=options) / cdp_editor_scene|cdp_edit_plan / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
         "Mutate SSOT: cdp_buffer (open|create|edit); Instant Save flush=true on edit/close (flush=false batches; close discard=true to drop). Relative path= → ProjectRoot after cdp_open. Prefer edit_op=anchor [F:;M:;K:] for csharp. Cursor host Write bypasses PathMutateGate. " +
         "Buffer plane: cdp_buffer op=open|edit|… — edit returns diagnostics in-result (almost-online while you keep the turn). " +
         "Debug plane: cdp_debug op=bp_add|launch|stop_context|… — session defaults after cdp_open; .csproj is BP key, launch resolves dll under bin/; JSON file is storage only. " +
@@ -1045,9 +1142,9 @@ async Task<string> DispatchMetaAsync(
                 },
                 explain_tool = explain,
                 recovery_note =
-                    "After hard deploy KillRunning: Cursor owns the process — agent has no Reload button, but can nudge host remount. " +
-                    "Confirmed Cursor lifehack (kj-1349): edit ~/.cursor/mcp.json (e.g. bump env CDP_RELOAD_NUDGE on cdp/cdp-debug) → host respawns MCP. " +
-                    "Soft deploy stages to <target>.next + cdp-pending-update.json; apply with publish -Mode hard (external terminal), then mcp.json nudge (or human Reload). " +
+                    "After hard deploy KillRunning: Cursor owns the process — agent has no Reload button. " +
+                    "publish-and-deploy.ps1 -Mode hard auto-bumps ~/.cursor/mcp.json CDP_RELOAD_NUDGE (kj-1349) unless -NoNudgeMcp. " +
+                    "Fallback: edit nudge manually or human Reload. Soft deploy stages to <target>.next + cdp-pending-update.json. " +
                     "Prefer cdp_health + explain_tool before guessing missing tools."
             }, Pretty);
         }
@@ -1216,6 +1313,12 @@ async Task<string> DispatchMetaAsync(
                     cancellationToken)
                 .ConfigureAwait(false);
         }
+        case "cdp_mcp":
+            return await mcpOutlet.DispatchAsync(callArgs, cancellationToken).ConfigureAwait(false);
+        case "cdp_browser":
+            return internetBrowser.Dispatch(callArgs);
+        case "cdp_settings":
+            return ideSettings.Dispatch(callArgs);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();
@@ -1475,18 +1578,63 @@ async Task<string> DispatchMetaAsync(
             }, Pretty);
         }
         case "cdp_cockpit":
+        {
             cancellationToken.ThrowIfCancellationRequested();
+            EnsureWorkspaceDb(); // desk_seats + script_last_run (WitDB)
+            object? warm = null;
+            var skipRestore = false;
+            if (callArgs.TryGetValue("no_restore", out var nrEl))
+            {
+                skipRestore = nrEl.ValueKind == JsonValueKind.True
+                    || (nrEl.ValueKind == JsonValueKind.String
+                        && bool.TryParse(nrEl.GetString(), out var nrBool) && nrBool)
+                    || (nrEl.ValueKind == JsonValueKind.Number
+                        && nrEl.TryGetInt32(out var nrInt) && nrInt != 0);
+            }
+
+            // Cold desk: once per process, hydrate bookmark so banner isn't sad after remount.
+            if (!skipRestore
+                && string.IsNullOrWhiteSpace(session.ProjectRoot)
+                && DeskWarm.TryConsume()
+                && DeskBookmark.TryLoad() is not null)
+            {
+                try
+                {
+                    _ = DeskBookmark.Restore(
+                        session,
+                        docStore,
+                        detectOpen: p => settings.Languages.Detect(p),
+                        syncShellCwd: () => shellHabitat.SyncSessionCwd(session.ProjectRoot),
+                        notifyListChanged: NotifyListChanged);
+                    warm = new
+                    {
+                        ok = true,
+                        source = "desk_bookmark",
+                        note = "auto-restore on cold cockpit (once/process)"
+                    };
+                }
+                catch (Exception ex)
+                {
+                    warm = new { ok = false, source = "desk_bookmark", error = ex.Message };
+                }
+            }
+
             return await IdeCockpit.BuildAsync(
                     session,
                     docStore,
                     shellHabitat,
+                    internetBrowser,
+                    ideSettings,
+                    mcpOutlet,
                     byDomain,
                     workspaceStore,
                     workspaceState,
                     callArgs,
                     DispatchAsync,
-                    cancellationToken)
+                    cancellationToken,
+                    warm)
                 .ConfigureAwait(false);
+        }
         case "cdp_session":
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -1723,11 +1871,11 @@ async Task<string> DispatchMetaAsync(
             string? shell = callArgs.TryGetValue("shell", out var shEl) ? shEl.GetString() : null;
             int? timeout = callArgs.TryGetValue("timeout_seconds", out var toEl) && toEl.TryGetInt32(out var to)
                 ? to
-                : null;
+                : IdeSettingsHabitat.EffectiveShellTimeout();
             var background = callArgs.TryGetValue("background", out var bgEl) && bgEl.ValueKind == JsonValueKind.True;
             int? codepage = callArgs.TryGetValue("codepage", out var cpEl) && cpEl.TryGetInt32(out var cp)
                 ? cp
-                : null;
+                : IdeSettingsHabitat.EffectiveShellCodepage();
             return AttachShellEvidence(
                 shellHabitat.Run(ShellDefaults(session), cmd, tab, cwd, shell, timeout, background, codepage, argv),
                 session);
@@ -1746,7 +1894,7 @@ async Task<string> DispatchMetaAsync(
                 : null;
             int? timeout = callArgs.TryGetValue("timeout_seconds", out var toEl) && toEl.TryGetInt32(out var to)
                 ? to
-                : null;
+                : IdeSettingsHabitat.EffectiveShellTimeout();
             var background = callArgs.TryGetValue("background", out var bgEl) && bgEl.ValueKind == JsonValueKind.True;
             return AttachShellEvidence(
                 shellHabitat.Rerun(ShellDefaults(session), tab, index, timeout, background),
@@ -1994,9 +2142,32 @@ object DispatchCdpWork(IReadOnlyDictionary<string, JsonElement> callArgs)
             NotifyListChanged),
         "scene_list" => store.SceneList(workspaceState),
         "status" => store.Status(workspaceState, session),
+        "tasks" or "board" or "plan" or "feature" or "task" or "focus" or "done"
+            or "park" or "pending" or "active" or "drop" or "rm" or "delete"
+            or "feature_drop" or "task_drop" => IdeTaskManager.Handle(
+            store,
+            workspaceState,
+            MergeTmOp(callArgs, op)),
+        "intent_delete" => store.IntentDelete(
+            workspaceState,
+            GuidArg("intent_id") ?? throw new ArgumentException("intent_id is required for intent_delete.")),
+        "stage_delete" => store.StageDelete(
+            workspaceState,
+            GuidArg("stage_id") ?? throw new ArgumentException("stage_id is required for stage_delete.")),
         _ => throw new ArgumentException(
-            $"Unknown cdp_work op '{op}'. Use intent_*|stage_*|scene_*|status (incl. stage_enqueue|stage_get).")
+            $"Unknown cdp_work op '{op}'. Use intent_*|stage_*|scene_*|status|tasks|feature|task|focus|done|drop.")
     };
+}
+
+static IReadOnlyDictionary<string, JsonElement> MergeTmOp(
+    IReadOnlyDictionary<string, JsonElement> callArgs,
+    string op)
+{
+    var d = new Dictionary<string, JsonElement>(callArgs, StringComparer.Ordinal)
+    {
+        ["tm_op"] = JsonSerializer.SerializeToElement(op is "tasks" or "board" or "plan" or "status" ? "board" : op)
+    };
+    return d;
 }
 
 object EnqueueStageJob(

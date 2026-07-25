@@ -9,14 +9,92 @@ using TerminalMcp.Core;
 namespace CdpMcp;
 
 /// <summary>
-/// Agent IDE cockpit — single-screen MFD + loci + desk dispatcher (kj-1329 / kj-1603 / kj-1721).
-/// Modes: nav | sys | chk. <c>locus=</c> for detail; <c>go=</c> routes to organs (not a monolith).
+/// Agent IDE cockpit — MFD + loci + desk dispatcher + <b>scan-pattern seats</b> (ADR 0191)
+/// + tile manager (ADR 0189). Modes: nav | sys | chk. <c>cmd=</c> REPL; <c>go=</c> places organ in seat.
 /// </summary>
 internal static class IdeCockpit
 {
-    public const string SchemaVersion = "cockpit/v1.2";
+    public const string SchemaVersion = "cockpit/v1.15";
     public const int GoResultCapChars = 24_000;
     public const int GoPulseCapChars = 1_200;
+    public const int MaxTiles = 4;
+
+    /// <summary>Exposed for Tools → Options desk.default_layout choices.</summary>
+    public static string[] LayoutPresetIds =>
+        LayoutPresets.Keys
+            .Concat(IdeDeskSeats.PresetIds)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+    public static bool IsKnownGoVerb(string verb) => GoMap.ContainsKey(verb);
+    public static bool IsKnownPinAlias(string alias) => PinAliases.ContainsKey(alias);
+
+    /// <summary>Canonical seat organ pin (aliases → plan/editor_scene/…).</summary>
+    public static string CanonicalOrganPin(string organPin)
+    {
+        var pin = organPin.Trim().ToLowerInvariant();
+        return PinAliases.TryGetValue(pin, out var canon) ? canon : pin;
+    }
+
+    static readonly object PinGate = new();
+    static List<string> StickyPins = [];
+
+    static readonly Dictionary<string, string[]> LayoutPresets = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["code+net"] = ["editor_scene", "browser"],
+        ["code+shell"] = ["editor_scene", "shell"],
+        ["code+git"] = ["editor_scene", "git_scene"],
+        ["net+shell"] = ["browser", "shell"],
+        ["desk"] = ["editor_scene", "browser", "shell"],
+        ["cockpit"] = ["editor_scene", "browser", "shell"],
+        ["code+net+shell"] = ["editor_scene", "browser", "shell"],
+        ["agent"] = ["plan", "editor_scene", "script_scene"],
+    };
+
+    static readonly Dictionary<string, string> PinAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["editor"] = "editor_scene",
+        ["editor_scene"] = "editor_scene",
+        ["code"] = "editor_scene",
+        ["buffer"] = "buffer_scene",
+        ["buffer_scene"] = "buffer_scene",
+        ["browser"] = "browser",
+        ["net"] = "browser",
+        ["internet"] = "browser",
+        ["internet_browser"] = "browser",
+        ["scene_internet_browser"] = "browser",
+        ["shell"] = "shell_scene",
+        ["shell_scene"] = "shell_scene",
+        ["git"] = "git_scene",
+        ["git_scene"] = "git_scene",
+        ["debug"] = "debug_scene",
+        ["debug_scene"] = "debug_scene",
+        ["test"] = "test_scene",
+        ["test_scene"] = "test_scene",
+        ["mcp"] = "mcp_scene",
+        ["mcp_scene"] = "mcp_scene",
+        ["settings"] = "settings",
+        ["settings_scene"] = "settings",
+        ["ide_settings"] = "settings",
+        ["prefs"] = "settings",
+        ["options"] = "settings",
+        ["correspondence"] = "correspondence",
+        ["corr"] = "correspondence",
+        ["work"] = "plan",
+        ["tasks"] = "plan",
+        ["plan"] = "plan",
+        ["task"] = "plan",
+        ["feature"] = "plan",
+        ["tm"] = "plan",
+        ["report"] = "report",
+        ["evidence"] = "report",
+        ["pfd"] = "report",
+        ["alert"] = "alert",
+        ["eicas"] = "alert",
+        ["project"] = "project_scene",
+        ["project_scene"] = "project_scene",
+    };
 
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
     static readonly JsonSerializerOptions Compact = new() { WriteIndented = false };
@@ -101,8 +179,9 @@ internal static class IdeCockpit
             ["goto"] = ("cdp_goto", null),
             ["go_to"] = ("cdp_goto", null),
             ["t"] = ("cdp_goto", null),
+            // Goto Feature (code nav) — not Task Manager; TM uses soft organ + plan aliases.
             ["q"] = ("cdp_goto", Dict(("kind", "feature"))),
-            ["feature"] = ("cdp_goto", Dict(("kind", "feature"))),
+            ["goto_feature"] = ("cdp_goto", Dict(("kind", "feature"))),
             ["shell_scene"] = ("cdp_shell_scene", null),
             ["shell"] = ("cdp_shell_scene", null),
             ["shell_last"] = ("cdp_shell_last", null),
@@ -111,7 +190,13 @@ internal static class IdeCockpit
             ["build"] = ("cdp_build", null),
             ["project_scene"] = ("cdp_project_scene", null),
             ["project"] = ("cdp_project_scene", null),
-            ["work"] = ("cdp_work", Dict(("op", "status"))),
+            // Plan = Task Manager organ (Feature/Task vocabulary). work/tasks/tm = aliases.
+            ["plan"] = ("cdp_work", Dict(("op", "tasks"))),
+            ["work"] = ("cdp_work", Dict(("op", "tasks"))),
+            ["tasks"] = ("cdp_work", Dict(("op", "tasks"))),
+            ["task"] = ("cdp_work", Dict(("op", "tasks"))),
+            ["feature"] = ("cdp_work", Dict(("op", "tasks"))),
+            ["tm"] = ("cdp_work", Dict(("op", "tasks"))),
             ["restore"] = ("cdp_restore", null),
             ["restore_previous"] = ("cdp_restore", null),
             ["previous"] = ("cdp_restore", null),
@@ -120,6 +205,45 @@ internal static class IdeCockpit
             ["land"] = ("cdp_land", null),
             ["deep_link"] = ("cdp_land", null),
             ["deeplink"] = ("cdp_land", null),
+            ["mcp_scene"] = ("cdp_mcp", Dict(("op", "scene"))),
+            ["mcp"] = ("cdp_mcp", Dict(("op", "scene"))),
+            ["mcp_presets"] = ("cdp_mcp", Dict(("op", "presets"))),
+            ["mcp_mount"] = ("cdp_mcp", Dict(("op", "mount"))),
+            ["mcp_tools"] = ("cdp_mcp", Dict(("op", "tools"))),
+            ["mcp_call"] = ("cdp_mcp", Dict(("op", "call"))),
+            ["mcp_unmount"] = ("cdp_mcp", Dict(("op", "unmount"))),
+            ["scene_internet_browser"] = ("cdp_browser", Dict(("op", "scene"))),
+            ["internet_browser"] = ("cdp_browser", Dict(("op", "scene"))),
+            ["internet_browser_scene"] = ("cdp_browser", Dict(("op", "scene"))),
+            ["browser_scene"] = ("cdp_browser", Dict(("op", "scene"))),
+            ["browser"] = ("cdp_browser", Dict(("op", "scene"))),
+            ["internet_browser_open"] = ("cdp_browser", Dict(("op", "open"))),
+            ["internet_browser_dump"] = ("cdp_browser", Dict(("op", "dump"))),
+            ["internet_browser_links"] = ("cdp_browser", Dict(("op", "links"))),
+            ["internet_browser_follow"] = ("cdp_browser", Dict(("op", "follow"))),
+            ["internet_browser_which"] = ("cdp_browser", Dict(("op", "which"))),
+            ["internet_browser_search"] = ("cdp_browser", Dict(("op", "search"))),
+            ["search"] = ("cdp_browser", Dict(("op", "search"))),
+            ["settings"] = ("cdp_settings", Dict(("op", "options"))),
+            ["settings_scene"] = ("cdp_settings", Dict(("op", "options"))),
+            ["ide_settings"] = ("cdp_settings", Dict(("op", "options"))),
+            ["prefs"] = ("cdp_settings", Dict(("op", "options"))),
+            ["options"] = ("cdp_settings", Dict(("op", "options"))),
+            ["tools_options"] = ("cdp_settings", Dict(("op", "options"))),
+            ["options_page"] = ("cdp_settings", Dict(("op", "page"))),
+            ["settings_page"] = ("cdp_settings", Dict(("op", "page"))),
+            ["settings_catalog"] = ("cdp_settings", Dict(("op", "catalog"))),
+            ["settings_get"] = ("cdp_settings", Dict(("op", "get"))),
+            ["settings_set"] = ("cdp_settings", Dict(("op", "set"))),
+            ["settings_unset"] = ("cdp_settings", Dict(("op", "unset"))),
+            ["settings_which"] = ("cdp_settings", Dict(("op", "which"))),
+            ["lsp_probe"] = ("cdp_settings", Dict(("op", "lsp_probe"))),
+            ["lsp_status"] = ("cdp_settings", Dict(("op", "lsp_probe"))),
+            ["lsp_install"] = ("cdp_settings", Dict(("op", "lsp_install"))),
+            ["lsp_ensure"] = ("cdp_settings", Dict(("op", "lsp_ensure"))),
+            ["lsp_add"] = ("cdp_settings", Dict(("op", "lsp_add"))),
+            ["languages"] = ("cdp_settings", Dict(("op", "page"), ("page", "languages"))),
+            ["languages_page"] = ("cdp_settings", Dict(("op", "page"), ("page", "languages"))),
         };
 
     static Dictionary<string, JsonElement> Dict(params (string Key, string Value)[] pairs)
@@ -160,6 +284,49 @@ internal static class IdeCockpit
 
     public readonly record struct FeatureHit(string Go, int Score, string Tool);
 
+    readonly record struct SeatPane(
+        string Seat,
+        string? Organ,
+        bool Empty,
+        bool Full,
+        bool Ok,
+        string Line,
+        object? Pane)
+    {
+        public object ToSlot() => new
+        {
+            seat = Seat,
+            glyph = IdeDeskView.SeatGlyph(Seat),
+            organ = Organ,
+            label = IdeDeskView.ShortOrgan(Organ),
+            empty = Empty,
+            ok = Ok,
+            line = Line,
+            full = Full
+        };
+
+        public object ToCard(bool includePane) => includePane
+            ? new
+            {
+                seat = Seat,
+                organ = Organ,
+                empty = Empty,
+                ok = Ok,
+                line = Line,
+                full = Full,
+                pane = Pane
+            }
+            : new
+            {
+                seat = Seat,
+                organ = Organ,
+                empty = Empty,
+                ok = Ok,
+                line = Line,
+                full = Full
+            };
+    }
+
     sealed class Locus(
         string Id,
         string Kind,
@@ -189,14 +356,31 @@ internal static class IdeCockpit
         SessionContext session,
         DocumentBufferStore docStore,
         ShellHabitat shellHabitat,
+        InternetBrowserHabitat internetBrowser,
+        IdeSettingsHabitat ideSettings,
+        McpOutletHabitat mcpOutlet,
         IReadOnlyDictionary<string, ICdpBackendModule> byDomain,
         IntentWorkspaceStore? workspaceStore,
         IntentWorkspaceState workspaceState,
         IReadOnlyDictionary<string, JsonElement> args,
         Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> dispatch,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        object? warm = null)
     {
-        var mfd = OptString(args, "mfd") ?? OptString(args, "page") ?? "nav";
+        object? replDirect = null;
+        var cmdLine = OptString(args, "cmd") ?? OptString(args, "line") ?? OptString(args, "repl")
+            ?? OptString(args, "ccl") ?? OptString(args, "ccc");
+        if (cmdLine is { Length: > 0 })
+        {
+            var applied = IdeRepl.Apply(cmdLine, args);
+            if (applied is { } a)
+            {
+                args = a.Args;
+                replDirect = a.Direct;
+            }
+        }
+
+        var mfd = OptString(args, "mfd") ?? OptString(args, "page") ?? IdeSettingsHabitat.EffectiveDeskMfd();
         mfd = mfd.Trim().ToLowerInvariant();
         if (!MfdPages.Contains(mfd))
             mfd = "nav";
@@ -212,7 +396,33 @@ internal static class IdeCockpit
             goVerb = null;
         }
 
-        object? goResult = null;
+        // Soft tile / seat verbs: go=tiles|layout|seats|repl (no organ).
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("tiles", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("layout", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("tile", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("seats", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("seat", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("repl", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("ccl", StringComparison.OrdinalIgnoreCase)))
+        {
+            goVerb = null;
+        }
+
+        ApplyDeskMutation(args);
+        var deskCleared = BoolOr(args, "pin_clear", false) || BoolOr(args, "clear_pins", false)
+            || BoolOr(args, "seat_clear", false) || BoolOr(args, "clear_seats", false);
+        if (IdeDeskSeats.IsSeatsMode())
+        {
+            if (!deskCleared)
+                IdeDeskSeats.EnsureDefaultsFromSettings();
+            // Cheerful sit: sticky report without evidence → plan (not !report).
+            CheerIdleReportSeat(session);
+        }
+        else
+            EnsureDefaultLayoutFromSettings();
+
+        object? goResult = replDirect;
         // Buffer before go= so locus=buffer:doc-N can inject path= into reload/keep_disk/disk_peek.
         var buffer = CollectBuffer(docStore.Scene());
         if (goVerb is { Length: > 0 }
@@ -237,26 +447,129 @@ internal static class IdeCockpit
                 truncated = false,
                 result = q
             };
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("quality");
+            goVerb = null;
+        }
+
+        // Soft organ: report / evidence board (ADR 0193 — last probe body).
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("report", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("evidence", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("pfd", StringComparison.OrdinalIgnoreCase)))
+        {
+            goResult = IdeReportBoard.Handle(session, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("report");
+            goVerb = null;
+        }
+
+        // Defer alert soft organ until after Collect* (needs buffer/debug snaps).
+        var wantAlert = goVerb is { Length: > 0 }
+            && (goVerb.Equals("alert", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("eicas", StringComparison.OrdinalIgnoreCase));
+        if (wantAlert)
+            goVerb = null;
+
+        // Soft organ: Plan / Task Manager (Feature → Task tree, WitDB sticky focus).
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("plan", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("work", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("tasks", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("tm", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("task", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("feature", StringComparison.OrdinalIgnoreCase)))
+        {
+            if (workspaceStore is null)
+            {
+                goResult = new
+                {
+                    ok = false,
+                    go = "plan",
+                    error = "no_workspace",
+                    hint = "Intent workspace WitDB unavailable."
+                };
+            }
+            else
+            {
+                var tmArgs = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
+                if (!tmArgs.ContainsKey("tm_op")
+                    && goVerb is "feature" or "task"
+                    && (!tmArgs.TryGetValue("go_args", out var gax)
+                        || gax.ValueKind != JsonValueKind.Object
+                        || !gax.TryGetProperty("op", out _)))
+                {
+                    tmArgs["tm_op"] = JsonSerializer.SerializeToElement(
+                        goVerb.Equals("feature", StringComparison.OrdinalIgnoreCase) ? "feature" : "task");
+                }
+
+                goResult = IdeTaskManager.Handle(workspaceStore, workspaceState, tmArgs);
+            }
+
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("plan");
+            goVerb = null;
+        }
+
+        // World snaps early — seat pulse + scene-only go= reuse (no double/triple organ thrash).
+        var git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken).ConfigureAwait(false);
+        var shell = CollectShell(shellHabitat.Scene());
+        var browser = internetBrowser.Pulse();
+        var mcpPulse = mcpOutlet.Pulse();
+        var settingsPulse = ideSettings.Pulse();
+
+        // Soft world scene go= (pulse only): place seat, skip DispatchGoAsync.
+        var goDetailEarly = (OptString(args, "go_detail") ?? "pulse").Trim().ToLowerInvariant();
+        if (goVerb is { Length: > 0 }
+            && IdeWorldChannel.IsWorldSceneGo(goVerb)
+            && goDetailEarly is not "full"
+            && !args.ContainsKey("go_args"))
+        {
+            var pin = ResolvePinName(goVerb.Trim()) ?? goVerb.Trim();
+            goResult = WorldSnapPane(pin, git, shell, browser, mcpPulse);
+            if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(pin))
+                IdeDeskSeats.PlaceOrgan(pin);
             goVerb = null;
         }
 
         if (goVerb is { Length: > 0 })
         {
+            var pin = ResolvePinName(goVerb.Trim()) ?? goVerb.Trim();
             goResult = await DispatchGoAsync(goVerb.Trim(), args, buffer, focusId, dispatch, cancellationToken)
                 .ConfigureAwait(false);
+            if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(pin))
+                IdeDeskSeats.PlaceOrgan(pin);
             // Re-collect after organ may have mutated buffers (reload/keep_disk/edit…).
             buffer = CollectBuffer(docStore.Scene());
+            // World organs may have mutated habitat — refresh cheap pulses.
+            if (IdeWorldChannel.IsWorldOrgan(pin))
+            {
+                shell = CollectShell(shellHabitat.Scene());
+                browser = internetBrowser.Pulse();
+                mcpPulse = mcpOutlet.Pulse();
+                if (CanonicalOrganPin(pin) is "git_scene")
+                    git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        var git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken).ConfigureAwait(false);
-        var shell = CollectShell(shellHabitat.Scene());
         var debug = CollectDebug(session);
         var test = CollectTest(session);
         var work = CollectWork(workspaceStore, workspaceState);
         var quality = QualityGates.Snap(docStore, session.ProjectRoot);
+        var alertSnap = IdeAlertChannel.Build(
+            quality, buffer.DiskChangedCount, debug.ActiveDap, debug.Stopped);
 
-        var loci = BuildLoci(session, git, shell, buffer, debug, test, work, quality);
-        var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId, quality);
+        // Soft organ: alert after snaps exist (quality + disk + DAP).
+        if (wantAlert)
+        {
+            goResult = IdeAlertChannel.Handle(
+                quality, buffer.DiskChangedCount, debug.ActiveDap, debug.Stopped, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("alert");
+        }
+
+        var loci = BuildLoci(session, git, shell, browser, settingsPulse, buffer, debug, test, work, quality);
+        var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId, quality, alertSnap);
 
         // Sniper locus appears when a corridor is held (desk pulse, not organ dump).
         if (EditSniper.HasHold)
@@ -298,41 +611,352 @@ internal static class IdeCockpit
         };
 
         var goVerbs = GoMap.Keys
-            .Concat(["quality", "gates"])
+            .Concat(["quality", "gates", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "report", "evidence", "alert", "eicas"])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        var payload = new
-        {
-            schema = SchemaVersion,
-            ok = true,
-            role = "desk",
-            mfd,
-            mfd_pages = new[] { "nav", "sys", "chk", "gates" },
-            session = SessionPulse(session),
-            loci = loci.Select(l => l.Card()).ToArray(),
-            next,
-            focus,
-            page,
-            go = goResult,
-            go_verbs = goVerbs,
-            hint =
-                "Cold start: cdp_cockpit first. Desk: mfd=|locus=|go= (default go_detail=pulse). " +
-                "locus=buffer:doc-N scopes go=disk_peek|reload|keep_disk to that file. " +
-                "Edit sniper: go=scope from=/till= → go=target → go=peek → go=edit_draft. " +
-                "Quality: go=quality / mfd=gates (project-tunable .cdp/quality-gates.toml). " +
-                "Analysis: go=analysis_scene / go=correspondence|semantic_map|clones (domain scene, not MFD). " +
-                "Scripts: go=script_scene / go=script_put|check|run (put→diags→run, not pray). " +
-                "Editor comfort: go=undo|redo|copy|cut|paste|put|clipboard|find|…. " +
-                "put: dump draft (path=|sniper) text=/frame= then refine. " +
-                "Clipboard frames; paste_sniper/put_sniper into aim. " +
-                "Find: go=find / find_in_files; Go To: go=goto. " +
-                "go_detail=full for organ dump. Organs stay — not a monolith."
-        };
+        var seatsMode = IdeDeskSeats.IsSeatsMode();
+        object? seats = null;
+        object? tiles = null;
+        var pins = SnapshotPins();
+        var tileLayout = OptString(args, "layout");
+        string?[] seatPinList = [];
 
-        return JsonSerializer.Serialize(payload, Pretty);
+        if (seatsMode)
+        {
+            var seatMap = IdeDeskSeats.Snapshot();
+            seatPinList = IdeDeskSeats.Order.Select(s => seatMap[s]).ToArray();
+            var fullPane = OptString(args, "pane_full") ?? OptString(args, "full_pane");
+            var seatsDetail = (OptString(args, "seats_detail") ?? OptString(args, "view_detail") ?? "compact")
+                .Trim().ToLowerInvariant();
+            var wantPanes = seatsDetail is "full" or "panes"
+                || BoolOr(args, "seats_panes", false)
+                || BoolOr(args, "compact", true) == false;
+            var hasProject = !string.IsNullOrWhiteSpace(session.ProjectRoot);
+            var seatPanes = new List<SeatPane>();
+            foreach (var seatId in IdeDeskSeats.Order)
+            {
+                var organ = seatMap[seatId];
+                if (organ is not { Length: > 0 })
+                {
+                    seatPanes.Add(new SeatPane(seatId, null, true, false, true, "(empty)", null));
+                    continue;
+                }
+
+                var wantFull = fullPane is { Length: > 0 }
+                    && (string.Equals(fullPane, organ, StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(fullPane, seatId, StringComparison.OrdinalIgnoreCase)
+                        || (PinAliases.TryGetValue(fullPane, out var fa)
+                            && string.Equals(fa, organ, StringComparison.OrdinalIgnoreCase)));
+
+                // Quiet seat: organs that thrash without cdp_open — no dispatch / no Application Data noise.
+                // Plan stays live (WitDB offline). Editor/browser quiet until project.
+                if (!hasProject && !wantFull && IdeDeskView.OrganNeedsProject(organ))
+                {
+                    var quiet = QuietNoProjectPane(organ);
+                    var (qOk, qLine) = IdeDeskView.LineFromPane(quiet, false, organ);
+                    seatPanes.Add(new SeatPane(seatId, organ, false, false, qOk, qLine, quiet));
+                    continue;
+                }
+
+                var tileArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+                foreach (var kv in args)
+                    tileArgs[kv.Key] = kv.Value;
+                tileArgs["go_detail"] = JsonSerializer.SerializeToElement(wantFull ? "full" : "pulse");
+                // Cockpit steer must not leak into organ dispatch (else browser gets op=feature → unknown_op).
+                tileArgs.Remove("go");
+                tileArgs.Remove("do");
+                tileArgs.Remove("cmd");
+                tileArgs.Remove("line");
+                tileArgs.Remove("repl");
+                tileArgs.Remove("go_args");
+                tileArgs.Remove("tm_op");
+                tileArgs.Remove("seat");
+                tileArgs.Remove("organ");
+                tileArgs.Remove("pin");
+                tileArgs.Remove("layout");
+                tileArgs.Remove("pins");
+                tileArgs.Remove("tiles");
+                tileArgs.Remove("pane_full");
+                tileArgs.Remove("full_pane");
+                tileArgs.Remove("seats_detail");
+                tileArgs.Remove("view_detail");
+                tileArgs.Remove("desk_detail");
+                tileArgs.Remove("nav_detail");
+                tileArgs.Remove("locus");
+                tileArgs.Remove("focus");
+                tileArgs.Remove("mfd");
+                tileArgs.Remove("page");
+                tileArgs.Remove("pin_clear");
+                tileArgs.Remove("clear_pins");
+                tileArgs.Remove("seat_clear");
+                tileArgs.Remove("clear_seats");
+
+                object pane;
+                var planPin = CanonicalOrganPin(organ);
+                if (planPin is "plan")
+                {
+                    // Soft organ — seat must not route through GoMap/cdp_work defaults alone.
+                    if (workspaceStore is null)
+                    {
+                        pane = new
+                        {
+                            ok = false,
+                            go = "plan",
+                            error = "no_workspace",
+                            hint = "Intent workspace WitDB unavailable."
+                        };
+                    }
+                    else
+                    {
+                        var board = IdeTaskManager.Handle(workspaceStore, workspaceState, tileArgs);
+                        pane = wantFull
+                            ? new
+                            {
+                                ok = true,
+                                go = "plan",
+                                tool = "cdp_work",
+                                detail = "full",
+                                truncated = false,
+                                result = board
+                            }
+                            : board;
+                    }
+                }
+                else if (planPin is "report" or "evidence" or "pfd")
+                {
+                    var board = IdeReportBoard.Handle(session, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "report",
+                            tool = "report_board",
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : board;
+                }
+                else if (planPin is "alert" or "eicas")
+                {
+                    var board = IdeAlertChannel.Handle(
+                        quality, buffer.DiskChangedCount, debug.ActiveDap, debug.Stopped, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "alert",
+                            tool = "alert_channel",
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : board;
+                }
+                else if (planPin is "quality" or "gates")
+                {
+                    var q = QualityGates.EvaluateStore(docStore, session.ProjectRoot);
+                    pane = wantFull
+                        ? new { ok = true, go = "quality", tool = "quality_gates", detail = "full", truncated = false, result = q }
+                        : new { ok = true, go = "quality", detail = "pulse", pulse = QualityGates.Snap(docStore, session.ProjectRoot).Pulse, result = q };
+                }
+                else if (!wantFull && IdeWorldChannel.IsWorldOrgan(planPin))
+                {
+                    // World channel: reuse cockpit snaps — never re-dispatch scene on every desk pulse.
+                    pane = WorldSnapPane(planPin, git, shell, browser, mcpPulse);
+                }
+                else if (!wantFull && planPin is ("editor_scene" or "buffer_scene" or "editor" or "buffer"))
+                {
+                    pane = EditorSnapPane(buffer);
+                }
+                else if (!wantFull && planPin is ("script_scene" or "script" or "probe"))
+                {
+                    var (sok, sp) = ScriptScene.Pulse(session);
+                    pane = new { ok = sok, go = "script_scene", detail = "pulse", pulse = sp, snap = true };
+                }
+                else
+                {
+                    pane = await DispatchGoAsync(organ, tileArgs, buffer, focusId, dispatch, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+
+                var (ok, line) = IdeDeskView.LineFromPane(pane, false, organ);
+                seatPanes.Add(new SeatPane(seatId, organ, false, wantFull, ok, line, pane));
+                if (wantFull)
+                    wantPanes = true;
+            }
+
+            var viewSlots = seatPanes
+                .Select(s => new IdeDeskView.Slot(s.Seat, s.Organ, s.Empty, s.Ok, s.Line, s.Full))
+                .ToArray();
+            var view = IdeDeskView.Build(viewSlots);
+            var includePanes = wantPanes;
+            // Root payload owns view once — seats/tiles keep slots only (cockpit/v1.8).
+            seats = IdeDeskSeats.Card(
+                seatPanes.Select(s => s.ToSlot()).ToList(),
+                includePanes ? seatPanes.Select(s => s.ToCard(true)).ToList() : null);
+            // Seats mode: no legacy tiles blob (view once at root).
+            tiles = null;
+
+            var deskDetail = ResolveDeskDetail(args, focusId);
+            var wantNav = deskDetail is "nav" or "full";
+            var payload = new Dictionary<string, object?>
+            {
+                ["schema"] = SchemaVersion,
+                ["ok"] = true,
+                ["role"] = "desk",
+                ["mode"] = "seats",
+                ["view"] = view,
+                ["mfd"] = mfd,
+                ["mfd_pages"] = new[] { "nav", "sys", "chk", "gates" },
+                ["session"] = SessionPulse(session),
+                ["desk_detail"] = deskDetail,
+                ["seats"] = seats,
+                ["tiles"] = tiles,
+                ["pins"] = seatPinList.Where(x => x is { Length: > 0 }).ToArray(),
+                ["layouts"] = LayoutPresetIds,
+                ["next"] = next,
+                ["focus"] = focus,
+                ["page"] = page,
+                ["go"] = goResult,
+                ["warm"] = warm,
+                ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
+                ["hint"] = wantNav
+                    ? "Read view.banner / view.ascii first. Steer: cmd=\"go alert\" | layout=agent. " +
+                      "seats_detail=full or pane_full= for organ dump."
+                    : "Slim desk (cockpit/v1.15): view + seats + next + alert. " +
+                      "Cold auto-restore. desk_detail=nav for loci[]; cmd=alert|probe|report|plan (CCL)."
+            };
+            if (wantNav)
+            {
+                payload["loci"] = loci.Select(l => l.Card()).ToArray();
+                payload["go_verbs"] = goVerbs;
+            }
+
+            return JsonSerializer.Serialize(payload, Pretty);
+        }
+
+        {
+            var requestPins = ResolveRequestedPins(args);
+            var tilePins = requestPins.Count > 0 ? requestPins : pins;
+            if (tilePins.Count > 0)
+            {
+                var fullPane = OptString(args, "pane_full") ?? OptString(args, "full_pane");
+                tiles = await BuildTilesAsync(
+                        tilePins,
+                        tileLayout,
+                        fullPane,
+                        args,
+                        buffer,
+                        focusId,
+                        dispatch,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        var deskDetailTiles = ResolveDeskDetail(args, focusId);
+        var wantNavTiles = deskDetailTiles is "nav" or "full";
+        var tilesPayload = new Dictionary<string, object?>
+        {
+            ["schema"] = SchemaVersion,
+            ["ok"] = true,
+            ["role"] = "desk",
+            ["mode"] = "tiles",
+            ["mfd"] = mfd,
+            ["mfd_pages"] = new[] { "nav", "sys", "chk", "gates" },
+            ["session"] = SessionPulse(session),
+            ["desk_detail"] = deskDetailTiles,
+            ["seats"] = null,
+            ["tiles"] = tiles,
+            ["pins"] = pins.ToArray(),
+            ["layouts"] = LayoutPresetIds,
+            ["next"] = next,
+            ["focus"] = focus,
+            ["page"] = page,
+            ["go"] = goResult,
+            ["warm"] = warm,
+            ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
+            ["hint"] = "desk.mode=tiles (legacy). Prefer seats. desk_detail=nav for loci/go_verbs."
+        };
+        if (wantNavTiles)
+        {
+            tilesPayload["loci"] = loci.Select(l => l.Card()).ToArray();
+            tilesPayload["go_verbs"] = goVerbs;
+        }
+
+        return JsonSerializer.Serialize(tilesPayload, Pretty);
     }
+
+    static string ResolveDeskDetail(IReadOnlyDictionary<string, JsonElement> args, string? focusId)
+    {
+        var raw = (OptString(args, "desk_detail") ?? OptString(args, "nav_detail") ?? "slim")
+            .Trim().ToLowerInvariant();
+        if (raw is "compact")
+            raw = "slim";
+        // Focused locus needs the nav catalog.
+        if (focusId is { Length: > 0 } && raw is "slim" or "omit")
+            return "nav";
+        if (raw is "slim" or "omit" or "nav" or "full")
+            return raw is "omit" ? "slim" : raw;
+        return "slim";
+    }
+
+
+    static object WorldSnapPane(
+        string organ,
+        JsonElement? git,
+        ShellSnap shell,
+        InternetBrowserHabitat.BrowserPulse browser,
+        McpOutletHabitat.McpPulse mcp)
+    {
+        var pin = CanonicalOrganPin(organ);
+        return pin switch
+        {
+            "git_scene" => IdeWorldChannel.Pane("git_scene", git is not null, GitPulseLine(git)),
+            "shell_scene" => IdeWorldChannel.Pane(
+                "shell_scene",
+                true,
+                shell.Running > 0
+                    ? $"shell · {shell.TabCount} tab(s) · {shell.Running} running"
+                    : $"shell · {shell.TabCount} tab(s)"),
+            "browser" => IdeWorldChannel.Pane("browser", browser.Ok, browser.Line),
+            "mcp_scene" => IdeWorldChannel.Pane("mcp_scene", mcp.Ok, mcp.Line),
+            _ => IdeWorldChannel.Pane(pin, true, pin)
+        };
+    }
+
+    static object EditorSnapPane(BufferSnap buffer)
+    {
+        var pulse = buffer.Count == 0
+            ? "—"
+            : buffer.DiskChangedCount > 0
+                ? $"{buffer.Count} buf · disk×{buffer.DiskChangedCount}"
+                : buffer.DirtyCount > 0
+                    ? $"{buffer.Count} buf · dirty×{buffer.DirtyCount}"
+                    : $"{buffer.Count} buf";
+        return new
+        {
+            ok = true,
+            go = "editor_scene",
+            detail = "pulse",
+            pulse,
+            snap = true,
+            hint = "pane_full=editor for dump"
+        };
+    }
+
+    static object QuietNoProjectPane(string organ) => new
+    {
+        ok = true,
+        go = organ,
+        detail = "pulse",
+        pulse = "no project — cdp_open",
+        quiet = true,
+        hint = "cdp_open first; pane_full= to force organ dump anyway."
+    };
 
     static async Task<object> DispatchGoAsync(
         string verb,
@@ -458,6 +1082,222 @@ internal static class IdeCockpit
         callArgs["path"] = JsonSerializer.SerializeToElement(doc.Path);
     }
 
+    static void EnsureDefaultLayoutFromSettings()
+    {
+        lock (PinGate)
+        {
+            if (StickyPins.Count > 0) return;
+            var layout = IdeSettingsHabitat.EffectiveDeskLayout();
+            if (layout is { Length: > 0 } && LayoutPresets.TryGetValue(layout, out var preset))
+                StickyPins = preset.Take(MaxTiles).ToList();
+        }
+    }
+
+    /// <summary>Seats (default) or legacy tile pin mutations.</summary>
+    static void ApplyDeskMutation(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (IdeDeskSeats.IsSeatsMode())
+        {
+            if (BoolOr(args, "pin_clear", false) || BoolOr(args, "clear_pins", false)
+                || BoolOr(args, "seat_clear", false) || BoolOr(args, "clear_seats", false))
+            {
+                IdeDeskSeats.Clear();
+                return;
+            }
+
+            if (IdeDeskSeats.TryParseSeatAssignment(args, out var seat, out var organ)
+                && seat is not null && organ is not null)
+            {
+                var pin = ResolvePinName(organ) ?? organ;
+                IdeDeskSeats.TryPlaceExplicit(seat, pin);
+                return;
+            }
+
+            var layout = OptString(args, "layout");
+            if (layout is { Length: > 0 } && IdeDeskSeats.TryApplyPreset(layout))
+                return;
+
+            // pins= in seats mode: interpret as scan-order fill P,F,M (replace, not append).
+            var pins = ParsePinList(args, "pins") ?? ParsePinList(args, "tiles");
+            if (pins is { Count: > 0 })
+            {
+                IdeDeskSeats.Clear();
+                for (var i = 0; i < Math.Min(pins.Count, IdeDeskSeats.Order.Length); i++)
+                    IdeDeskSeats.TryPlaceExplicit(IdeDeskSeats.Order[i], pins[i]);
+            }
+
+            return;
+        }
+
+        ApplyPinMutation(args);
+    }
+
+    static string? ResolvePinName(string verb)
+    {
+        if (PinAliases.TryGetValue(verb, out var canon))
+            return canon;
+        return GoMap.ContainsKey(verb) ? verb : null;
+    }
+
+    /// <summary>Sticky report with no evidence → sit on plan (cheerful cold desk).</summary>
+    static void CheerIdleReportSeat(SessionContext session)
+    {
+        var map = IdeDeskSeats.Snapshot();
+        if (!map.TryGetValue("p", out var organ) || organ is not { Length: > 0 })
+            return;
+        if (CanonicalOrganPin(organ) is not "report")
+            return;
+        if (IdeReportBoard.HasEvidence(session))
+            return;
+        IdeDeskSeats.PlaceOrgan("plan");
+    }
+
+    static bool IsPlaceableOrgan(string pin)
+    {
+        if (PinAliases.ContainsKey(pin))
+            return true;
+        // Scene-like go verbs that own a seat pulse (not clipboard / find one-shots).
+        return pin is "editor_scene" or "buffer_scene" or "browser" or "shell_scene" or "git_scene"
+            or "debug_scene" or "test_scene" or "mcp_scene" or "settings" or "project_scene"
+            or "plan" or "work" or "report" or "evidence" or "pfd" or "alert" or "eicas"
+            or "correspondence" or "quality" or "gates" or "analysis_scene"
+            or "script_scene" or "semantic_map";
+    }
+
+    static void ApplyPinMutation(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (BoolOr(args, "pin_clear", false) || BoolOr(args, "clear_pins", false))
+        {
+            lock (PinGate) StickyPins = [];
+            return;
+        }
+
+        var layout = OptString(args, "layout");
+        if (layout is { Length: > 0 } && LayoutPresets.TryGetValue(layout.Trim(), out var preset))
+        {
+            lock (PinGate) StickyPins = preset.Take(MaxTiles).ToList();
+            return;
+        }
+
+        var pins = ParsePinList(args, "pins") ?? ParsePinList(args, "tiles");
+        if (pins is { Count: > 0 })
+        {
+            lock (PinGate) StickyPins = pins.Take(MaxTiles).ToList();
+            return;
+        }
+
+        var add = ParsePinList(args, "pin");
+        if (add is { Count: > 0 })
+        {
+            lock (PinGate)
+            {
+                foreach (var p in add)
+                {
+                    if (!StickyPins.Contains(p, StringComparer.OrdinalIgnoreCase) && StickyPins.Count < MaxTiles)
+                        StickyPins.Add(p);
+                }
+            }
+        }
+    }
+
+    static List<string> SnapshotPins()
+    {
+        lock (PinGate) return StickyPins.ToList();
+    }
+
+    static List<string> ResolveRequestedPins(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var layout = OptString(args, "layout");
+        if (layout is { Length: > 0 } && LayoutPresets.TryGetValue(layout.Trim(), out var preset))
+            return preset.Take(MaxTiles).ToList();
+        return ParsePinList(args, "pins") ?? ParsePinList(args, "tiles") ?? [];
+    }
+
+    static List<string>? ParsePinList(IReadOnlyDictionary<string, JsonElement> args, string key)
+    {
+        if (!args.TryGetValue(key, out var el))
+            return null;
+
+        var raw = new List<string>();
+        if (el.ValueKind == JsonValueKind.String)
+        {
+            raw.AddRange((el.GetString() ?? "")
+                .Split([',', ';', '|', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        }
+        else if (el.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in el.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String && item.GetString() is { Length: > 0 } s)
+                    raw.Add(s.Trim());
+            }
+        }
+        else
+            return null;
+
+        var resolved = new List<string>();
+        foreach (var r in raw)
+        {
+            if (PinAliases.TryGetValue(r, out var canon))
+            {
+                if (!resolved.Contains(canon, StringComparer.OrdinalIgnoreCase))
+                    resolved.Add(canon);
+            }
+            else if (GoMap.ContainsKey(r) && !resolved.Contains(r, StringComparer.OrdinalIgnoreCase))
+                resolved.Add(r);
+        }
+
+        return resolved.Count == 0 ? null : resolved;
+    }
+
+    static async Task<object> BuildTilesAsync(
+        IReadOnlyList<string> pins,
+        string? layout,
+        string? fullPane,
+        IReadOnlyDictionary<string, JsonElement> cockpitArgs,
+        BufferSnap buffer,
+        string? focusId,
+        Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> dispatch,
+        CancellationToken cancellationToken)
+    {
+        var panes = new List<object>();
+        foreach (var pin in pins.Take(MaxTiles))
+        {
+            var wantFull = fullPane is { Length: > 0 }
+                && (string.Equals(fullPane, pin, StringComparison.OrdinalIgnoreCase)
+                    || (PinAliases.TryGetValue(fullPane, out var fa)
+                        && string.Equals(fa, pin, StringComparison.OrdinalIgnoreCase)));
+
+            var tileArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+            foreach (var kv in cockpitArgs)
+                tileArgs[kv.Key] = kv.Value;
+            tileArgs["go_detail"] = JsonSerializer.SerializeToElement(wantFull ? "full" : "pulse");
+            // Don't re-apply go= from parent into every pane.
+            tileArgs.Remove("go");
+            tileArgs.Remove("do");
+
+            var pane = await DispatchGoAsync(pin, tileArgs, buffer, focusId, dispatch, cancellationToken)
+                .ConfigureAwait(false);
+            panes.Add(new
+            {
+                pin,
+                full = wantFull,
+                pane
+            });
+        }
+
+        return new
+        {
+            ok = true,
+            role = "tiles",
+            layout,
+            pins,
+            count = panes.Count,
+            panes,
+            hint = "Human twin: code + browser side-by-side. Drill one pane: go=<pin> go_detail=full; or pane_full=<pin>."
+        };
+    }
+
     sealed record OrganPulse(bool Ok, string Line, string? Schema, object? Next, string? Hint);
 
     static OrganPulse PulseFromOrgan(string raw)
@@ -467,6 +1307,21 @@ internal static class IdeCockpit
             using var doc = JsonDocument.Parse(raw);
             var root = doc.RootElement;
             var ok = !root.TryGetProperty("ok", out var okEl) || okEl.ValueKind != JsonValueKind.False;
+            if (root.TryGetProperty("pulse", out var pulseEl) && pulseEl.ValueKind == JsonValueKind.String)
+            {
+                var pulseLine = pulseEl.GetString() ?? "";
+                if (pulseLine.Length > 0)
+                {
+                    var hintEarly = root.TryGetProperty("hint", out var h0) && h0.ValueKind == JsonValueKind.String
+                        ? Truncate(h0.GetString(), 240)
+                        : null;
+                    var schemaEarly = root.TryGetProperty("schema", out var sch0) && sch0.ValueKind == JsonValueKind.String
+                        ? sch0.GetString()
+                        : null;
+                    return new OrganPulse(ok, Truncate(pulseLine, GoPulseCapChars) ?? pulseLine, schemaEarly, null, hintEarly);
+                }
+            }
+
             var schema = root.TryGetProperty("schema", out var sch) && sch.ValueKind == JsonValueKind.String
                 ? sch.GetString()
                 : null;
@@ -548,7 +1403,8 @@ internal static class IdeCockpit
         TestSnap test,
         WorkSnap work,
         string? focusId,
-        QualityGates.QualitySnap quality)
+        QualityGates.QualitySnap quality,
+        IdeAlertChannel.Snap alert)
     {
         var list = new List<object>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -560,15 +1416,27 @@ internal static class IdeCockpit
         }
 
         if (session.ProjectRoot is null)
-            Add("n-open", "project_scene", "Project map", "No project — cdp_open / project_scene first");
-        else
         {
-            Add("n-goto", "goto", "Go To (Ctrl+T)", "query= type/member/file — land on anchor");
-            Add("n-editor", "editor_scene", "Editor map", "Buffer/desk loop");
+            Add("n-open", "project_scene", "Project map", "No project — cdp_open / project_scene first");
+            if (File.Exists(DeskBookmark.FilePath))
+                Add("n-restore", "restore", "Restore Previous", "desk bookmark — project + buffers (not LLM chat)");
+            if (work.IntentId is not null)
+                Add("n-plan", "plan", "Task Manager", work.Pulse ?? work.IntentId);
+            else
+                Add("n-plan", "plan", "Task Manager", "no plan — feature <name>");
+            Add("n-settings", "options", "Tools → Options", "IDE prefs — internet/desk/shell/mcp (not Cursor)");
+            return list.ToArray();
         }
 
+        // EICAS-lite: surface alert before comfort next when something beeps.
+        if (alert.Level != IdeAlertChannel.Level.Clear)
+            Add("n-alert", "alert", "Alert board", alert.Pulse);
+
+        Add("n-goto", "goto", "Go To (Ctrl+T)", "query= type/member/file — land on anchor");
+        Add("n-editor", "editor_scene", "Editor map", "Buffer/desk loop");
+
         // Dual-instance / post hard-deploy: Restore Previous desk bookmark.
-        if (session.ProjectRoot is null && File.Exists(DeskBookmark.FilePath))
+        if (File.Exists(DeskBookmark.FilePath))
             Add("n-restore", "restore", "Restore Previous", "desk bookmark — project + buffers (not LLM chat)");
 
         if (EditorComfort.AnyUndo())
@@ -643,13 +1511,17 @@ internal static class IdeCockpit
         else
             Add("n-shell", "shell_scene", "Shell habitat", shell.Running > 0 ? "jobs running" : "tabs map");
 
+        Add("n-settings", "options", "Tools → Options", "IDE prefs — internet/desk/shell/mcp (not Cursor)");
+
         if (focusId is { Length: > 0 }
             && focusId.StartsWith("buffer:", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(focusId, "buffer:none", StringComparison.OrdinalIgnoreCase))
             Add("n-focus-editor", "editor_scene", "Focus editor context", $"locus {focusId}");
 
         if (work.IntentId is not null)
-            Add("n-work", "work", "Work status", work.SceneName ?? work.IntentId);
+            Add("n-plan", "plan", "Task Manager", work.Pulse ?? work.IntentId);
+        else
+            Add("n-plan", "plan", "Task Manager", "no plan — feature <name>");
 
         Add("n-chk", "chk", "Checklists", "mfd=chk");
         return list.ToArray();
@@ -695,7 +1567,7 @@ internal static class IdeCockpit
                 ? "no last_run — cdp_test_scene"
                 : $"last {(test.Success ? "ok" : "FAIL")} {test.Passed}/{test.Total}"
             : test.Reason,
-        work = work.IntentId is null ? "no active intent" : $"intent={work.IntentId} scene={work.SceneName}"
+        work = work.Pulse ?? "no plan"
     };
 
     static object BuildChkPage(
@@ -748,8 +1620,7 @@ internal static class IdeCockpit
                     title = "Hard deploy recovery",
                     items = new object[]
                     {
-                        Item("publish -Mode hard from external terminal", true),
-                        Item("mcp.json CDP_RELOAD_NUDGE (kj-1349)", true),
+                        Item("publish -Mode hard (external; auto CDP_RELOAD_NUDGE)", true),
                         Item("cdp_health version check", true),
                         Item("cdp_cockpit reorient", hasProject)
                     }
@@ -774,6 +1645,8 @@ internal static class IdeCockpit
         SessionContext session,
         JsonElement? gitRoot,
         ShellSnap shell,
+        InternetBrowserHabitat.BrowserPulse browser,
+        IdeSettingsHabitat.SettingsPulse settings,
         BufferSnap buffer,
         DebugSnap debug,
         TestSnap test,
@@ -791,6 +1664,20 @@ internal static class IdeCockpit
             "cdp_open / cdp_session",
             "project_scene",
             SessionPulse(session)));
+
+        list.Add(new Locus(
+            "settings:ide",
+            "settings",
+            settings.Line,
+            "go=options → page=internet|desk|shell|mcp",
+            "settings",
+            new
+            {
+                ok = settings.Ok,
+                user_count = settings.UserCount,
+                user_path = settings.UserPath,
+                process_path = settings.ProcessPath
+            }));
 
         if (gitRoot is { } g)
         {
@@ -829,6 +1716,22 @@ internal static class IdeCockpit
                 "shell_scene",
                 tab));
         }
+
+        list.Add(new Locus(
+            "browser:net",
+            "browser",
+            browser.Line,
+            "go=browser / go=search q=… / layout=code+net",
+            "browser",
+            new
+            {
+                ok = browser.Ok,
+                active_tab = browser.ActiveTab,
+                tab_count = browser.TabCount,
+                url = browser.Url,
+                preview = browser.Preview,
+                lynx = browser.LynxPath
+            }));
 
         foreach (var doc in buffer.Docs.Take(16))
         {
@@ -909,11 +1812,11 @@ internal static class IdeCockpit
             new { features = new[] { "correspondence", "semantic_map", "clones" } }));
 
         list.Add(new Locus(
-            "work:focus",
-            "work",
-            work.IntentId is null ? "no active intent" : $"{work.SceneName ?? work.IntentId}",
-            "go=work",
-            "work",
+            "plan:focus",
+            "plan",
+            work.Pulse ?? "no plan — feature <name>",
+            "go=plan / cmd=\"feature X\" | task Y | done",
+            "plan",
             work));
 
         list.Add(new Locus(
@@ -1172,14 +2075,17 @@ internal static class IdeCockpit
             });
     }
 
-    sealed record WorkSnap(string? IntentId, string? SceneId, string? SceneName);
+    sealed record WorkSnap(string? IntentId, string? StageId, string? Pulse);
 
     static WorkSnap CollectWork(IntentWorkspaceStore? store, IntentWorkspaceState state)
     {
         if (store is null)
-            return new WorkSnap(null, null, null);
-        var (wid, sid, sname, _) = store.PlaneIds(state);
-        return new WorkSnap(wid, sid, sname);
+            return new WorkSnap(null, null, "no task store");
+        var pulse = IdeTaskManager.PulseLine(store, state);
+        return new WorkSnap(
+            state.ActiveIntentId?.ToString("D"),
+            state.ActiveStageId?.ToString("D"),
+            pulse);
     }
 
     static string ShortPath(string path)

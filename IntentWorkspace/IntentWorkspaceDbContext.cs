@@ -9,6 +9,9 @@ internal sealed class IntentWorkspaceDbContext(DbContextOptions<IntentWorkspaceD
     public DbSet<StageEntity> Stages => Set<StageEntity>();
     public DbSet<SceneEntity> Scenes => Set<SceneEntity>();
     public DbSet<OpenRecentEntity> OpenRecent => Set<OpenRecentEntity>();
+    public DbSet<DeskSeatEntity> DeskSeats => Set<DeskSeatEntity>();
+    public DbSet<WorkFocusEntity> WorkFocus => Set<WorkFocusEntity>();
+    public DbSet<ScriptLastRunEntity> ScriptLastRuns => Set<ScriptLastRunEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,6 +49,30 @@ internal sealed class IntentWorkspaceDbContext(DbContextOptions<IntentWorkspaceD
             e.Property(x => x.Path).IsRequired();
             e.HasIndex(x => x.Path);
             e.HasIndex(x => x.OpenedUtc);
+        });
+
+        modelBuilder.Entity<DeskSeatEntity>(e =>
+        {
+            e.ToTable("desk_seats");
+            e.HasKey(x => x.Seat);
+            e.Property(x => x.Seat).IsRequired();
+        });
+
+        modelBuilder.Entity<WorkFocusEntity>(e =>
+        {
+            e.ToTable("work_focus");
+            e.HasKey(x => x.Id);
+        });
+
+        modelBuilder.Entity<ScriptLastRunEntity>(e =>
+        {
+            e.ToTable("script_last_run");
+            e.HasKey(x => x.RootKey);
+            e.Property(x => x.RootKey).IsRequired();
+            e.Property(x => x.Path).IsRequired();
+            e.Property(x => x.Mode).IsRequired();
+            e.Property(x => x.Pulse).IsRequired();
+            e.Property(x => x.BoardJson).IsRequired();
         });
     }
 }

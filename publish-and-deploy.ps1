@@ -5,7 +5,8 @@
 # Modes:
 #   soft (default) — stage to <Target>.next WITHOUT killing live MCP; write
 #                    <Target>\cdp-pending-update.json so cdp_health.runtime.pending_update shows it.
-#   hard           — KillRunning + deploy to <Target>; clear pending marker. Then Reload MCP.
+#   hard           — KillRunning + deploy to <Target>; clear pending; auto-bump
+#                    ~/.cursor/mcp.json CDP_RELOAD_NUDGE (kj-1349) unless -NoNudgeMcp.
 #
 # Run:  cd ...\cdp-mcp  ;  .\publish-and-deploy.ps1
 #       .\publish-and-deploy.ps1 -Mode hard
@@ -19,7 +20,9 @@ param(
     [string] $Mode = "soft",
     # Prefer NuGet for Cdp.Core / Cdp.ScriptableIde (ignore sibling ProjectReference).
     # Other backends still need the monorepo until they have package fallbacks.
-    [switch] $UseNuGet
+    [switch] $UseNuGet,
+    # Hard mode: skip auto CDP_RELOAD_NUDGE bump in ~/.cursor/mcp.json.
+    [switch] $NoNudgeMcp
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,6 +31,28 @@ $csproj = Join-Path $here "CdpMcp.csproj"
 if (-not (Test-Path -LiteralPath $csproj)) {
     Write-Error "CdpMcp.csproj not found under $here"
     exit 1
+}
+
+function Invoke-CdpReloadNudge {
+    $mcpJson = Join-Path $env:USERPROFILE ".cursor\mcp.json"
+    if (-not (Test-Path -LiteralPath $mcpJson)) {
+        return @{ Ok = $false; Error = "missing $mcpJson" }
+    }
+    $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+    $raw = Get-Content -LiteralPath $mcpJson -Raw -Encoding utf8
+    if ($raw -notmatch '"CDP_RELOAD_NUDGE"') {
+        return @{ Ok = $false; Error = "no CDP_RELOAD_NUDGE keys in mcp.json" }
+    }
+    $count = ([regex]::Matches($raw, '"CDP_RELOAD_NUDGE"\s*:')).Count
+    $next = [regex]::Replace(
+        $raw,
+        '"CDP_RELOAD_NUDGE"\s*:\s*"[^"]*"',
+        "`"CDP_RELOAD_NUDGE`": `"$stamp`"")
+    if ($next -eq $raw) {
+        return @{ Ok = $false; Error = "replace produced no change" }
+    }
+    Set-Content -LiteralPath $mcpJson -Value $next -Encoding utf8 -NoNewline
+    return @{ Ok = $true; Path = $mcpJson; Value = $stamp; Count = $count }
 }
 
 $deployRoot = if ($Mode -eq "soft") { "$Target.next" } else { $Target }
@@ -140,7 +165,22 @@ try {
         Write-Host ""
         Write-Host "HARD deployed: $exe"
         Write-Host "Config:        $configDst"
-        Write-Host "Pending cleared. Toggle/reload MCP in Cursor if disconnected."
+        Write-Host "Pending cleared."
+
+        if (-not $NoNudgeMcp) {
+            try {
+                $nudge = Invoke-CdpReloadNudge
+                if ($nudge.Ok) {
+                    Write-Host "MCP nudge:     $($nudge.Path) CDP_RELOAD_NUDGE=$($nudge.Value) (×$($nudge.Count))"
+                } else {
+                    Write-Host "MCP nudge:     skipped — $($nudge.Error) (human Reload fallback)"
+                }
+            } catch {
+                Write-Host "MCP nudge:     failed — $($_.Exception.Message) (human Reload fallback)"
+            }
+        } else {
+            Write-Host "MCP nudge:     skipped (-NoNudgeMcp). Toggle/reload MCP in Cursor if disconnected."
+        }
     }
 
     Write-Host ""

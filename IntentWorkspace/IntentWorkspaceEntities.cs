@@ -51,3 +51,33 @@ internal sealed class OpenRecentEntity
     public string? Language { get; set; }
     public DateTimeOffset OpenedUtc { get; set; }
 }
+
+/// <summary>Scan Pattern desk seats — one row per seat (p|forward|m).</summary>
+internal sealed class DeskSeatEntity
+{
+    public string Seat { get; set; } = "";
+    public string? Organ { get; set; }
+    public DateTimeOffset UpdatedUtc { get; set; }
+}
+
+/// <summary>Singleton sticky Task Manager focus — survives MCP remount.</summary>
+internal sealed class WorkFocusEntity
+{
+    public int Id { get; set; } = 1;
+    public Guid? ActiveIntentId { get; set; }
+    public Guid? ActiveStageId { get; set; }
+    public DateTimeOffset UpdatedUtc { get; set; }
+}
+
+/// <summary>Thin ScriptScene last-run pulse/board — survives MCP remount (ADR 0193 comfort).</summary>
+internal sealed class ScriptLastRunEntity
+{
+    public string RootKey { get; set; } = "";
+    public string Path { get; set; } = "";
+    public string Mode { get; set; } = "";
+    public bool Ok { get; set; }
+    public DateTimeOffset AtUtc { get; set; }
+    public string Pulse { get; set; } = "";
+    public string? BodyJson { get; set; }
+    public string BoardJson { get; set; } = "[]";
+}

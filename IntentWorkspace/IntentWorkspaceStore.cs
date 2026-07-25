@@ -8,6 +8,7 @@ internal sealed class IntentWorkspaceState
 {
     public Guid? ActiveIntentId { get; set; }
     public Guid? ActiveSceneId { get; set; }
+    public Guid? ActiveStageId { get; set; }
     public string DatabasePath { get; init; } = "";
 }
 
@@ -68,6 +69,7 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
 
         db.SaveChanges();
         state.ActiveIntentId = entity.Id;
+        WorkFocusSave(state);
         return new IntentUpsertResult(entity.Id, entity.Title, active: true);
     }
 
@@ -88,7 +90,75 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
                      ?? throw new ArgumentException($"intent_id not found: {intentId}");
         state.ActiveIntentId = entity.Id;
         state.ActiveSceneId = null;
+        state.ActiveStageId = null;
+        WorkFocusSave(state);
         return new IntentUpsertResult(entity.Id, entity.Title, active: true);
+    }
+
+    public object IntentDelete(IntentWorkspaceState state, Guid intentId)
+    {
+        string title = "";
+        Guid? nextIntent = null;
+        WithDb(db =>
+        {
+            var entity = db.Intents.FirstOrDefault(x => x.Id == intentId)
+                         ?? throw new ArgumentException($"intent_id not found: {intentId}");
+            title = entity.Title;
+            db.Stages.RemoveRange(db.Stages.Where(x => x.IntentId == intentId));
+            db.Scenes.RemoveRange(db.Scenes.Where(x => x.IntentId == intentId));
+            db.Intents.Remove(entity);
+            db.SaveChanges();
+            nextIntent = db.Intents.AsNoTracking()
+                .OrderByDescending(x => x.UpdatedUtc)
+                .Select(x => (Guid?)x.Id)
+                .FirstOrDefault();
+        });
+
+        if (state.ActiveIntentId == intentId)
+        {
+            state.ActiveIntentId = nextIntent;
+            state.ActiveStageId = null;
+            state.ActiveSceneId = null;
+            WorkFocusSave(state);
+        }
+
+        return new { op = "feature_drop", feature_id = intentId, title };
+    }
+
+    public object StageDelete(IntentWorkspaceState state, Guid stageId)
+    {
+        var intentId = RequireIntent(state);
+        string title = "";
+        var clearFocus = false;
+        WithDb(db =>
+        {
+            var entity = db.Stages.FirstOrDefault(x => x.Id == stageId && x.IntentId == intentId)
+                         ?? throw new ArgumentException($"stage_id not found: {stageId}");
+            title = entity.Title;
+            DeleteStageTreeUnlocked(db, stageId);
+            db.SaveChanges();
+            clearFocus = state.ActiveStageId == stageId
+                         || (state.ActiveStageId is { } aid
+                             && !db.Stages.AsNoTracking().Any(x => x.Id == aid));
+        });
+
+        if (clearFocus)
+        {
+            state.ActiveStageId = null;
+            WorkFocusSave(state);
+        }
+
+        return new { op = "task_drop", task_id = stageId, title };
+    }
+
+    static void DeleteStageTreeUnlocked(IntentWorkspaceDbContext db, Guid stageId)
+    {
+        var children = db.Stages.Where(x => x.ParentId == stageId).Select(x => x.Id).ToList();
+        foreach (var child in children)
+            DeleteStageTreeUnlocked(db, child);
+        var row = db.Stages.FirstOrDefault(x => x.Id == stageId);
+        if (row is not null)
+            db.Stages.Remove(row);
     }
 
     public StageUpsertResult StageUpsert(
@@ -411,16 +481,21 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
         using var db = Open();
         string? intentTitle = null;
         string? sceneName = null;
+        string? stageTitle = null;
         if (state.ActiveIntentId is { } iid)
             intentTitle = db.Intents.AsNoTracking().Where(x => x.Id == iid).Select(x => x.Title).FirstOrDefault();
         if (state.ActiveSceneId is { } sid)
             sceneName = db.Scenes.AsNoTracking().Where(x => x.Id == sid).Select(x => x.Name).FirstOrDefault();
+        if (state.ActiveStageId is { } stid)
+            stageTitle = db.Stages.AsNoTracking().Where(x => x.Id == stid).Select(x => x.Title).FirstOrDefault();
 
         return new
         {
             database_path = state.DatabasePath,
             active_intent_id = state.ActiveIntentId,
             active_intent_title = intentTitle,
+            active_stage_id = state.ActiveStageId,
+            active_stage_title = stageTitle,
             active_scene_id = state.ActiveSceneId,
             active_scene_name = sceneName,
             session = JsonSerializer.Deserialize<JsonElement>(session.ToJson())
@@ -580,5 +655,372 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
         {
             // leave legacy file if parse failed
         }
+    }
+
+    /// <summary>Existing WitDB may predate desk_seats — EnsureCreated won't alter; CREATE IF NOT EXISTS.</summary>
+    public void EnsureDeskSeatsTable()
+    {
+        WithDb(db =>
+        {
+            db.Database.ExecuteSqlRaw(
+                """
+                CREATE TABLE IF NOT EXISTS desk_seats (
+                    Seat TEXT NOT NULL PRIMARY KEY,
+                    Organ TEXT NULL,
+                    UpdatedUtc TEXT NOT NULL
+                );
+                """);
+        });
+    }
+
+    public void DeskSeatsSave(IReadOnlyDictionary<string, string?> seats)
+    {
+        var now = DateTimeOffset.UtcNow;
+        WithDb(db =>
+        {
+            foreach (var (seat, organ) in seats)
+            {
+                var row = db.DeskSeats.Find(seat);
+                if (row is null)
+                {
+                    db.DeskSeats.Add(new DeskSeatEntity
+                    {
+                        Seat = seat,
+                        Organ = string.IsNullOrWhiteSpace(organ) ? null : organ.Trim(),
+                        UpdatedUtc = now
+                    });
+                }
+                else
+                {
+                    row.Organ = string.IsNullOrWhiteSpace(organ) ? null : organ.Trim();
+                    row.UpdatedUtc = now;
+                }
+            }
+
+            db.SaveChanges();
+        });
+    }
+
+    /// <returns>false if table empty / never saved.</returns>
+    public bool DeskSeatsTryLoad(IDictionary<string, string?> into)
+    {
+        return WithDb(db =>
+        {
+            var rows = db.DeskSeats.AsNoTracking().ToList();
+            if (rows.Count == 0)
+                return false;
+            foreach (var key in into.Keys.ToList())
+                into[key] = null;
+            foreach (var row in rows)
+            {
+                if (into.ContainsKey(row.Seat))
+                    into[row.Seat] = string.IsNullOrWhiteSpace(row.Organ) ? null : row.Organ.Trim();
+            }
+
+            return true;
+        });
+    }
+
+    /// <summary>One-shot import from mistaken desk-seats.json then delete.</summary>
+    public void MigrateLegacyDeskSeatsJsonIfPresent()
+    {
+        var legacy = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "cdp-mcp",
+            "desk-seats.json");
+        if (!File.Exists(legacy))
+            return;
+        try
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllText(legacy));
+            var root = doc.RootElement;
+            if (!root.TryGetProperty("seats", out var seatsEl) && !root.TryGetProperty("Seats", out seatsEl))
+            {
+                File.Delete(legacy);
+                return;
+            }
+
+            var map = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+            foreach (var p in seatsEl.EnumerateObject())
+                map[p.Name] = p.Value.ValueKind == JsonValueKind.String ? p.Value.GetString() : null;
+            if (map.Count > 0)
+                DeskSeatsSave(map);
+            File.Delete(legacy);
+        }
+        catch
+        {
+            // leave legacy if parse failed
+        }
+    }
+
+    public void EnsureWorkFocusTable()
+    {
+        WithDb(db =>
+        {
+            db.Database.ExecuteSqlRaw(
+                """
+                CREATE TABLE IF NOT EXISTS work_focus (
+                    Id INTEGER NOT NULL PRIMARY KEY,
+                    ActiveIntentId TEXT NULL,
+                    ActiveStageId TEXT NULL,
+                    UpdatedUtc TEXT NOT NULL
+                );
+                """);
+        });
+    }
+
+    public void WorkFocusHydrate(IntentWorkspaceState state)
+    {
+        WithDb(db =>
+        {
+            var row = db.WorkFocus.AsNoTracking().FirstOrDefault(x => x.Id == 1);
+            if (row is null)
+                return;
+            if (row.ActiveIntentId is { } iid && db.Intents.AsNoTracking().Any(x => x.Id == iid))
+                state.ActiveIntentId = iid;
+            if (row.ActiveStageId is { } sid
+                && db.Stages.AsNoTracking().Any(x => x.Id == sid
+                    && (state.ActiveIntentId == null || x.IntentId == state.ActiveIntentId)))
+                state.ActiveStageId = sid;
+        });
+    }
+
+    public void WorkFocusSave(IntentWorkspaceState state)
+    {
+        var now = DateTimeOffset.UtcNow;
+        WithDb(db =>
+        {
+            var row = db.WorkFocus.Find(1);
+            if (row is null)
+            {
+                db.WorkFocus.Add(new WorkFocusEntity
+                {
+                    Id = 1,
+                    ActiveIntentId = state.ActiveIntentId,
+                    ActiveStageId = state.ActiveStageId,
+                    UpdatedUtc = now
+                });
+            }
+            else
+            {
+                row.ActiveIntentId = state.ActiveIntentId;
+                row.ActiveStageId = state.ActiveStageId;
+                row.UpdatedUtc = now;
+            }
+
+            db.SaveChanges();
+        });
+    }
+
+    /// <summary>Existing WitDB may predate script_last_run — EnsureCreated won't alter.</summary>
+    public void EnsureScriptLastRunTable()
+    {
+        WithDb(db =>
+        {
+            db.Database.ExecuteSqlRaw(
+                """
+                CREATE TABLE IF NOT EXISTS script_last_run (
+                    RootKey TEXT NOT NULL PRIMARY KEY,
+                    Path TEXT NOT NULL,
+                    Mode TEXT NOT NULL,
+                    Ok INTEGER NOT NULL,
+                    AtUtc TEXT NOT NULL,
+                    Pulse TEXT NOT NULL,
+                    BodyJson TEXT NULL,
+                    BoardJson TEXT NOT NULL
+                );
+                """);
+        });
+    }
+
+    public void ScriptLastRunSave(
+        string rootKey,
+        string path,
+        string mode,
+        bool ok,
+        DateTime atUtc,
+        string pulse,
+        string? bodyJson,
+        IReadOnlyList<string> board)
+    {
+        var boardJson = JsonSerializer.Serialize(board);
+        var at = new DateTimeOffset(DateTime.SpecifyKind(atUtc, DateTimeKind.Utc));
+        WithDb(db =>
+        {
+            var row = db.ScriptLastRuns.Find(rootKey);
+            if (row is null)
+            {
+                db.ScriptLastRuns.Add(new ScriptLastRunEntity
+                {
+                    RootKey = rootKey,
+                    Path = path,
+                    Mode = mode,
+                    Ok = ok,
+                    AtUtc = at,
+                    Pulse = pulse,
+                    BodyJson = bodyJson,
+                    BoardJson = boardJson
+                });
+            }
+            else
+            {
+                row.Path = path;
+                row.Mode = mode;
+                row.Ok = ok;
+                row.AtUtc = at;
+                row.Pulse = pulse;
+                row.BodyJson = bodyJson;
+                row.BoardJson = boardJson;
+            }
+
+            db.SaveChanges();
+        });
+    }
+
+    public (string Path, string Mode, bool Ok, DateTime AtUtc, string Pulse, string? BodyJson, string[] Board)?
+        ScriptLastRunTryLoad(string rootKey)
+    {
+        return WithDb<(string Path, string Mode, bool Ok, DateTime AtUtc, string Pulse, string? BodyJson, string[] Board)?>(db =>
+        {
+            var row = db.ScriptLastRuns.AsNoTracking().FirstOrDefault(x => x.RootKey == rootKey);
+            if (row is null)
+                return null;
+
+            string[] board;
+            try
+            {
+                board = JsonSerializer.Deserialize<string[]>(row.BoardJson) ?? [];
+            }
+            catch
+            {
+                board = [row.Pulse];
+            }
+
+            return (row.Path, row.Mode, row.Ok, row.AtUtc.UtcDateTime, row.Pulse, row.BodyJson, board);
+        });
+    }
+
+    public void FocusStage(IntentWorkspaceState state, Guid stageId)
+    {
+        WithDb(db =>
+        {
+            var entity = db.Stages.FirstOrDefault(x => x.Id == stageId)
+                         ?? throw new ArgumentException($"stage_id not found: {stageId}");
+            state.ActiveIntentId = entity.IntentId;
+            state.ActiveStageId = entity.Id;
+            foreach (var s in db.Stages.Where(x => x.IntentId == entity.IntentId && x.Status == "active"))
+            {
+                if (s.Id != entity.Id)
+                    s.Status = "pending";
+            }
+
+            entity.Status = "active";
+            entity.UpdatedUtc = DateTimeOffset.UtcNow;
+            db.SaveChanges();
+        });
+        WorkFocusSave(state);
+    }
+
+    public Guid? FindIntentIdByTitle(string? title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return null;
+        var t = title.Trim();
+        return WithDb(db =>
+            db.Intents.AsNoTracking()
+                .Where(x => x.Title == t)
+                .OrderByDescending(x => x.UpdatedUtc)
+                .Select(x => (Guid?)x.Id)
+                .FirstOrDefault()
+            ?? db.Intents.AsNoTracking()
+                .Where(x => x.Title.ToLower() == t.ToLower())
+                .OrderByDescending(x => x.UpdatedUtc)
+                .Select(x => (Guid?)x.Id)
+                .FirstOrDefault());
+    }
+
+    public Guid? FindStageIdByTitle(IntentWorkspaceState state, string? title) =>
+        FindStageMatching(state, title, parentId: null, matchParent: false);
+
+    /// <summary>
+    /// When <paramref name="matchParent"/> is true, match <paramref name="parentId"/> exactly
+    /// (null = root). Otherwise ignore parent.
+    /// </summary>
+    public Guid? FindStageMatching(
+        IntentWorkspaceState state,
+        string? title,
+        Guid? parentId,
+        bool matchParent)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return null;
+        var t = title.Trim();
+        var intentId = state.ActiveIntentId;
+        return WithDb(db =>
+        {
+            var q = db.Stages.AsNoTracking().AsQueryable();
+            if (intentId is { } iid)
+                q = q.Where(x => x.IntentId == iid);
+            if (matchParent)
+                q = q.Where(x => x.ParentId == parentId);
+
+            return q.Where(x => x.Title == t)
+                       .OrderByDescending(x => x.UpdatedUtc)
+                       .Select(x => (Guid?)x.Id)
+                       .FirstOrDefault()
+                   ?? q.Where(x => x.Title.ToLower() == t.ToLower())
+                       .OrderByDescending(x => x.UpdatedUtc)
+                       .Select(x => (Guid?)x.Id)
+                       .FirstOrDefault();
+        });
+    }
+
+    public Guid? FindNextPendingStage(IntentWorkspaceState state)
+    {
+        if (state.ActiveIntentId is not { } intentId)
+            return null;
+        return WithDb(db =>
+            db.Stages.AsNoTracking()
+                .Where(x => x.IntentId == intentId
+                            && (x.Status == "pending" || x.Status == "active")
+                            && x.Id != state.ActiveStageId)
+                .OrderBy(x => x.Ordinal)
+                .Select(x => (Guid?)x.Id)
+                .FirstOrDefault());
+    }
+
+    public IdeTaskManager.Snapshot TaskManagerSnapshot(IntentWorkspaceState state)
+    {
+        return WithDb(db =>
+        {
+            var intents = db.Intents.AsNoTracking().OrderByDescending(x => x.UpdatedUtc).ToList();
+            var stages = db.Stages.AsNoTracking().ToList();
+            string? activeFeatureTitle = null;
+            string? activeStageTitle = null;
+            if (state.ActiveIntentId is { } aid)
+                activeFeatureTitle = intents.FirstOrDefault(x => x.Id == aid)?.Title;
+            if (state.ActiveStageId is { } sid)
+                activeStageTitle = stages.FirstOrDefault(x => x.Id == sid)?.Title;
+
+            var features = intents.Select(i =>
+            {
+                var st = stages.Where(s => s.IntentId == i.Id)
+                    .Select(s => new IdeTaskManager.StageNode(s.Id, s.ParentId, s.Title, s.Status, s.Ordinal))
+                    .ToList();
+                return new IdeTaskManager.FeatureNode(
+                    i.Id,
+                    i.Title,
+                    state.ActiveIntentId == i.Id,
+                    state.ActiveIntentId == i.Id ? state.ActiveStageId : null,
+                    st);
+            }).ToList();
+
+            return new IdeTaskManager.Snapshot(
+                state.ActiveIntentId,
+                activeFeatureTitle,
+                state.ActiveStageId,
+                activeStageTitle,
+                features);
+        });
     }
 }
