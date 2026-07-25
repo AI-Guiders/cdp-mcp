@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Cdp.Core;
 using Cdp.Lsp;
 using Cdp.ScriptableIde;
@@ -329,6 +330,27 @@ internal static class IdeLanguageTools
             lsp_preset = LspPool.TryGetPreset(open.Language ?? "", out var p) ? p.Id : null
         }, new JsonSerializerOptions { WriteIndented = true });
     }
+
+    /// <summary>Attach ApplyOpen meta onto create/sln step JSON as <c>open</c> (scm_note, buffer_note, …).</summary>
+    public static string MergeStepOpenMeta(string stepJson, string? openPayloadJson)
+    {
+        if (string.IsNullOrWhiteSpace(openPayloadJson))
+            return stepJson;
+        try
+        {
+            var node = JsonNode.Parse(stepJson)?.AsObject();
+            var open = JsonNode.Parse(openPayloadJson);
+            if (node is null || open is null)
+                return stepJson;
+            node["open"] = open;
+            return node.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch
+        {
+            return stepJson;
+        }
+    }
+
 
 
     public static async Task CloseProjectAsync()

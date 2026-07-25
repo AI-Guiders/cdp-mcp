@@ -1438,6 +1438,7 @@ async Task<string> DispatchMetaAsync(
             // PreferMostUsed scans session work root if set
             var step = await ProjectOps.CreateAsync(bus, plan, outputDir, projName, template, policy, tfm, engPolicy, engines, force, cancellationToken)
                 .ConfigureAwait(false);
+            string? openMeta = null;
             if (doOpen && step.Ok && step.Data is { } dataEl)
             {
                 string? openPath = null;
@@ -1454,13 +1455,13 @@ async Task<string> DispatchMetaAsync(
                     EnsureOpenRecentWired();
                     var open = settings.Languages.Detect(openPath);
                     var park = docStore.ParkOutsideProject(open.Root);
-                    IdeLanguageTools.ApplyOpen(session, open, park);
+                    openMeta = IdeLanguageTools.ApplyOpen(session, open, park);
                     shellHabitat.SyncSessionCwd(session.ProjectRoot);
                     NotifyListChanged();
                 }
             }
 
-            return step.ToJson();
+            return IdeLanguageTools.MergeStepOpenMeta(step.ToJson(), openMeta);
         }
         case "cdp_project_list":
         {
@@ -1503,6 +1504,7 @@ async Task<string> DispatchMetaAsync(
             var (bus, plan) = PackageSession(session, callArgs);
             var step = await SolutionOps.CreateAsync(bus, plan, outputDir, slnName, force, doOpen, cancellationToken)
                 .ConfigureAwait(false);
+            string? openMeta = null;
             if (doOpen && step.Ok && step.Data is { } dataEl)
             {
                 string? openPath = null;
@@ -1517,13 +1519,13 @@ async Task<string> DispatchMetaAsync(
                     EnsureOpenRecentWired();
                     var open = settings.Languages.Detect(openPath);
                     var park = docStore.ParkOutsideProject(open.Root);
-                    IdeLanguageTools.ApplyOpen(session, open, park);
+                    openMeta = IdeLanguageTools.ApplyOpen(session, open, park);
                     shellHabitat.SyncSessionCwd(session.ProjectRoot);
                     NotifyListChanged();
                 }
             }
 
-            return step.ToJson();
+            return IdeLanguageTools.MergeStepOpenMeta(step.ToJson(), openMeta);
         }
         case "cdp_sln_list":
         {
