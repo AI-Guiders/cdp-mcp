@@ -602,6 +602,9 @@ internal static class DocumentEditPlane
         var force = BoolOr(args, "force", defaultValue: false);
         var refresh = BoolOr(args, "refresh", defaultValue: true);
         var scope = OptString(args, "scope") ?? "syntax";
+        if (CsxBufferDiagnostics.IsCsxPath(buf.Path)
+            && (scope is "syntax" or "csx" or "script" or "parse" or "file"))
+            scope = CsxBufferDiagnostics.Scope;
 
         if (!force
             && (!refresh || (buf.LastDiagnosedVersion == buf.Version
@@ -656,6 +659,51 @@ internal static class DocumentEditPlane
         var lang = buf.Language;
         if (lang is not "csharp" and not "typescript")
             return (null, $"No online diagnostics for language '{lang}' (csharp|typescript only).");
+
+        // .csx: ScriptHost allowlist — not ParseText/MSBuild (closes green-buffer / red-check).
+        if (CsxBufferDiagnostics.IsCsxPath(buf.Path))
+        {
+            var csxScope = string.Equals(scope, "syntax", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(scope, "csx", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(scope, "script", StringComparison.OrdinalIgnoreCase)
+                ? CsxBufferDiagnostics.Scope
+                : scope;
+
+            if (buf.LastDiagnosticsJson is { Length: > 0 }
+                && buf.LastDiagnosedVersion == buf.Version
+                && string.Equals(buf.LastDiagnosedScope ?? CsxBufferDiagnostics.Scope, csxScope, StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var hit = JsonSerializer.Deserialize<JsonElement>(buf.LastDiagnosticsJson);
+                    return (ResponseCaps.CapDiagnostics(hit), "cache_hit (unchanged buffer version)");
+                }
+                catch
+                {
+                    // recompute
+                }
+            }
+
+            try
+            {
+                var raw = await CsxBufferDiagnostics.DiagnoseAsync(
+                        buf.Path,
+                        buf.Text,
+                        session.ProjectRoot,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+                buf.LastDiagnosticsJson = raw;
+                buf.LastDiagnosedUtc = DateTime.UtcNow;
+                buf.LastDiagnosedVersion = buf.Version;
+                buf.LastDiagnosedScope = CsxBufferDiagnostics.Scope;
+                var el = JsonSerializer.Deserialize<JsonElement>(raw);
+                return (ResponseCaps.CapDiagnostics(el), null);
+            }
+            catch (Exception ex)
+            {
+                return (null, $"csx diagnostics failed: {ex.Message}");
+            }
+        }
 
         if (buf.LastDiagnosticsJson is { Length: > 0 }
             && buf.LastDiagnosedVersion == buf.Version
