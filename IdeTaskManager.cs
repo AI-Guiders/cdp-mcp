@@ -39,8 +39,22 @@ internal static class IdeTaskManager
                 "pending" or "reopen" => TaskStatus(store, state, args, "pending"),
                 "park" or "parked" => TaskStatus(store, state, args, "parked"),
                 "active" => TaskStatus(store, state, args, "active"),
+                "promote" or "promote_plan" or "ask_confirm" => IdePlanPromote.Promote(
+                    store, state, Opt(args, "project_root") ?? OptGoArg(args, "project_root"),
+                    Opt(args, "notes") ?? OptGoArg(args, "notes") ?? Opt(args, "body") ?? OptGoArg(args, "body"),
+                    Opt(args, "dir") ?? OptGoArg(args, "dir") ?? Opt(args, "inbox") ?? OptGoArg(args, "inbox")),
+                "confirm" or "plan_confirm" or "approved" => IdePlanPromote.Confirm(
+                    store, state, Opt(args, "project_root") ?? OptGoArg(args, "project_root"),
+                    Opt(args, "dir") ?? OptGoArg(args, "dir"),
+                    Opt(args, "plan_id") ?? OptGoArg(args, "plan_id"),
+                    reject: false),
+                "reject" or "plan_reject" or "denied" => IdePlanPromote.Confirm(
+                    store, state, Opt(args, "project_root") ?? OptGoArg(args, "project_root"),
+                    Opt(args, "dir") ?? OptGoArg(args, "dir"),
+                    Opt(args, "plan_id") ?? OptGoArg(args, "plan_id"),
+                    reject: true),
                 _ => throw new ArgumentException(
-                    $"unknown task op '{op}'. Use board|feature|task|focus|done|park|drop.")
+                    $"unknown task op '{op}'. Use board|feature|task|focus|done|park|drop|promote|confirm|reject.")
             };
         }
         catch (Exception ex)
@@ -51,7 +65,8 @@ internal static class IdeTaskManager
                 schema = SchemaVersion,
                 role = "task_manager",
                 error = ex.Message,
-                hint = "cmd=\"feature X\" | task Y | task under P C | drop task Y | drop feature X | done | go=plan"
+                hint =
+                    "cmd=\"feature X\" | task Y | promote | confirm | reject | drop | done | go=plan"
             };
         }
 
@@ -67,9 +82,16 @@ internal static class IdeTaskManager
             view = board.View,
             focus = board.Focus,
             mutation,
+            promoted = op is "promote" or "promote_plan" or "ask_confirm"
+                or "confirm" or "plan_confirm" or "approved"
+                or "reject" or "plan_reject" or "denied"
+                ? mutation
+                : IdePlanPromote.TryPulse(
+                    Opt(args, "project_root") ?? OptGoArg(args, "project_root"),
+                    Opt(args, "dir") ?? OptGoArg(args, "dir")),
             hint =
                 "Feature=Intent, Task=Stage (WitDB). Sticky focus survives remount. " +
-                "REPL: feature|task|focus|done|park|drop|plan. pane_full=plan for JSON tree."
+                "REPL: feature|task|focus|done|park|drop|promote|confirm|reject|plan. pane_full=plan for JSON tree."
         };
     }
 

@@ -2152,10 +2152,13 @@ object DispatchCdpWork(IReadOnlyDictionary<string, JsonElement> callArgs)
         "status" => store.Status(workspaceState, session),
         "tasks" or "board" or "plan" or "feature" or "task" or "focus" or "done"
             or "park" or "pending" or "active" or "drop" or "rm" or "delete"
-            or "feature_drop" or "task_drop" => IdeTaskManager.Handle(
+            or "feature_drop" or "task_drop"
+            or "promote" or "promote_plan" or "ask_confirm"
+            or "confirm" or "plan_confirm" or "approved"
+            or "reject" or "plan_reject" or "denied" => IdeTaskManager.Handle(
             store,
             workspaceState,
-            MergeTmOp(callArgs, op)),
+            MergeTmOp(InjectProjectRoot(callArgs, session), op)),
         "intent_delete" => store.IntentDelete(
             workspaceState,
             GuidArg("intent_id") ?? throw new ArgumentException("intent_id is required for intent_delete.")),
@@ -2174,6 +2177,23 @@ static IReadOnlyDictionary<string, JsonElement> MergeTmOp(
     var d = new Dictionary<string, JsonElement>(callArgs, StringComparer.Ordinal)
     {
         ["tm_op"] = JsonSerializer.SerializeToElement(op is "tasks" or "board" or "plan" or "status" ? "board" : op)
+    };
+    return d;
+}
+
+static IReadOnlyDictionary<string, JsonElement> InjectProjectRoot(
+    IReadOnlyDictionary<string, JsonElement> callArgs,
+    SessionContext session)
+{
+    if (callArgs.TryGetValue("project_root", out var existing)
+        && existing.ValueKind == JsonValueKind.String
+        && existing.GetString() is { Length: > 0 })
+        return callArgs;
+    if (session.ProjectRoot is not { Length: > 0 } pr)
+        return callArgs;
+    var d = new Dictionary<string, JsonElement>(callArgs, StringComparer.Ordinal)
+    {
+        ["project_root"] = JsonSerializer.SerializeToElement(pr)
     };
     return d;
 }

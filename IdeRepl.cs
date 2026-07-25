@@ -239,6 +239,36 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        if (head is "promote" or "promote_plan" or "ask")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("promote");
+            if (tokens.Count >= 2)
+            {
+                var notes = string.Join(' ', tokens.Skip(1));
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { notes, op = "promote" });
+            }
+            else
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "promote" });
+            return (merged, null);
+        }
+
+        if (head is "confirm" or "approved")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("confirm");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "confirm" });
+            return (merged, null);
+        }
+
+        if (head is "reject" or "denied")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("reject");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "reject" });
+            return (merged, null);
+        }
+
         if (head is "drop" or "rm" or "delete")
         {
             // drop feature X | drop task X | drop X | drop
@@ -399,6 +429,9 @@ internal static class IdeRepl
                 "full report",
                 "feature desk-comfort",
                 "task ship-omit",
+                "promote",
+                "confirm",
+                "reject",
                 "plan",
                 "go browser",
                 "seat m git",

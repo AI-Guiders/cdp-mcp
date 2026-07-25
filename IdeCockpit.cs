@@ -478,7 +478,10 @@ internal static class IdeCockpit
                 || goVerb.Equals("tasks", StringComparison.OrdinalIgnoreCase)
                 || goVerb.Equals("tm", StringComparison.OrdinalIgnoreCase)
                 || goVerb.Equals("task", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("feature", StringComparison.OrdinalIgnoreCase)))
+                || goVerb.Equals("feature", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("promote", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("confirm", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("reject", StringComparison.OrdinalIgnoreCase)))
         {
             if (workspaceStore is null)
             {
@@ -493,14 +496,21 @@ internal static class IdeCockpit
             else
             {
                 var tmArgs = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
+                if (session.ProjectRoot is { Length: > 0 } pr)
+                    tmArgs["project_root"] = JsonSerializer.SerializeToElement(pr);
                 if (!tmArgs.ContainsKey("tm_op")
-                    && goVerb is "feature" or "task"
+                    && goVerb is "feature" or "task" or "promote" or "confirm" or "reject"
                     && (!tmArgs.TryGetValue("go_args", out var gax)
                         || gax.ValueKind != JsonValueKind.Object
                         || !gax.TryGetProperty("op", out _)))
                 {
                     tmArgs["tm_op"] = JsonSerializer.SerializeToElement(
-                        goVerb.Equals("feature", StringComparison.OrdinalIgnoreCase) ? "feature" : "task");
+                        goVerb.Equals("feature", StringComparison.OrdinalIgnoreCase) ? "feature"
+                        : goVerb.Equals("task", StringComparison.OrdinalIgnoreCase) ? "task"
+                        : goVerb.Equals("promote", StringComparison.OrdinalIgnoreCase) ? "promote"
+                        : goVerb.Equals("confirm", StringComparison.OrdinalIgnoreCase) ? "confirm"
+                        : goVerb.Equals("reject", StringComparison.OrdinalIgnoreCase) ? "reject"
+                        : "board");
                 }
 
                 goResult = IdeTaskManager.Handle(workspaceStore, workspaceState, tmArgs);
@@ -611,7 +621,7 @@ internal static class IdeCockpit
         };
 
         var goVerbs = GoMap.Keys
-            .Concat(["quality", "gates", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "report", "evidence", "alert", "eicas"])
+            .Concat(["quality", "gates", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "confirm", "reject", "report", "evidence", "alert", "eicas"])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
             .ToArray();
