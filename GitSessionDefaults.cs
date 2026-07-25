@@ -24,6 +24,38 @@ internal static class GitSessionDefaults
         }
     }
 
+    /// <summary>
+    /// When <paramref name="scmRoot"/> is a strict ancestor of <paramref name="projectRoot"/>,
+    /// agents can accidentally mutate the parent monorepo via defaulted <c>git_*</c>.
+    /// </summary>
+    public static string? DescribeAncestorScmRisk(string? projectRoot, string? scmRoot)
+    {
+        if (string.IsNullOrWhiteSpace(projectRoot) || string.IsNullOrWhiteSpace(scmRoot))
+            return null;
+
+        string proj;
+        string scm;
+        try
+        {
+            proj = Path.GetFullPath(projectRoot);
+            scm = Path.GetFullPath(scmRoot);
+        }
+        catch
+        {
+            return null;
+        }
+
+        var rel = Path.GetRelativePath(scm, proj);
+        if (string.IsNullOrEmpty(rel) || rel is ".")
+            return null;
+        if (Path.IsPathRooted(rel) || rel.StartsWith("..", StringComparison.Ordinal))
+            return null;
+
+        return "scm_root is an ancestor of project_root (no local .git) — git_* defaults hit the parent repo. " +
+               "Prefer git init in the project, or pass workspace_path= explicitly.";
+    }
+
+
     public static bool HasSlices(IReadOnlyDictionary<string, JsonElement> args) =>
         args.TryGetValue("slices", out var el)
         && el.ValueKind == JsonValueKind.Array

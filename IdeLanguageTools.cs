@@ -49,6 +49,12 @@ internal static class IdeLanguageTools
         LspPool.Configure(lspPresets ?? LspLaunchPreset.BuiltInDefaults);
     }
 
+    /// <summary>Hot-reload LSP presets after Options install/add (no MCP remount).</summary>
+    public static void ReconfigureLsp(IReadOnlyList<LspLaunchPreset> presets) =>
+        LspPool.Configure(presets.Count > 0 ? presets : LspLaunchPreset.BuiltInDefaults);
+
+    public static IReadOnlyList<LspLaunchPreset> CurrentLspPresets => LspPool.Presets;
+
     public static void BindDocumentStore(DocumentBufferStore store) => _docStore = store;
 
     public static LanguageRegistry Languages => _langs;
@@ -283,7 +289,7 @@ internal static class IdeLanguageTools
         InputSchema = JsonSerializer.SerializeToElement(schema)
     };
 
-    public static string ApplyOpen(SessionContext session, ProjectOpenResult open)
+        public static string ApplyOpen(SessionContext session, ProjectOpenResult open)
     {
         session.ProjectRoot = open.Root;
         session.ProjectKind = open.Kind;
@@ -296,6 +302,7 @@ internal static class IdeLanguageTools
         var recentPath = open.SolutionOrProjectPath ?? open.TsConfigPath ?? open.Anchors.FirstOrDefault() ?? open.Root;
         if (!string.IsNullOrWhiteSpace(recentPath))
             OpenRecentStore.Push(recentPath!, open.Root, open.Kind, open.Language);
+        var scmNote = GitSessionDefaults.DescribeAncestorScmRisk(open.Root, session.ScmRoot);
         return JsonSerializer.Serialize(new
         {
             root = open.Root,
@@ -305,6 +312,8 @@ internal static class IdeLanguageTools
             solution_or_project_path = open.SolutionOrProjectPath,
             tsconfig_path = open.TsConfigPath,
             scm_root = session.ScmRoot,
+            scm_risk = scmNote is null ? null : "ancestor",
+            scm_note = scmNote,
             session_phase = CdpEnumParse.ToWire(session.Phase),
             session_object = CdpEnumParse.ToWire(session.Object),
             recent_count = OpenRecentStore.List().Count,
@@ -312,6 +321,7 @@ internal static class IdeLanguageTools
             lsp_preset = LspPool.TryGetPreset(open.Language ?? "", out var p) ? p.Id : null
         }, new JsonSerializerOptions { WriteIndented = true });
     }
+
 
     public static async Task CloseProjectAsync()
     {
