@@ -419,7 +419,8 @@ internal static class DocumentEditPlane
         var wire = OptString(args, "anchor") ?? OptString(args, "at")
             ?? throw new ArgumentException("edit_op=anchor requires anchor= (or at=) bracket wire [F:;M:;K:] or [F:;X:;A:].");
         var replacement = OptString(args, "text") ?? OptString(args, "new_string")
-            ?? throw new ArgumentException("edit_op=anchor requires text= (replacement for resolved locus).");
+            ?? throw new ArgumentException("edit_op=anchor requires text= (body for place=; default place=replace overwrites locus).");
+        var place = NormalizeAnchorPlace(OptString(args, "place") ?? OptString(args, "at_place"));
 
         BracketLocate.Span span;
         try
@@ -457,12 +458,9 @@ internal static class DocumentEditPlane
             if (!BracketSyntaxResolve.TryResolve(buf.Path, buf.Text, span, out var range, out var detail))
                 throw new ArgumentException($"Anchor resolve failed ({detail}): {wire}");
 
-            store.ApplyReplaceRange(
-                buf,
-                range.LineStart,
-                range.ColumnStart,
-                range.LineEnd,
-                range.ColumnEnd,
+            ApplyPlacedRange(
+                store, buf, place,
+                range.LineStart, range.ColumnStart, range.LineEnd, range.ColumnEnd,
                 replacement);
 
             return new
@@ -470,6 +468,7 @@ internal static class DocumentEditPlane
                 family = "csharp",
                 wire = BracketLocate.Format(span),
                 resolve = detail,
+                place,
                 range = new
                 {
                     start_line = range.LineStart,
@@ -491,6 +490,11 @@ internal static class DocumentEditPlane
         var textToWrite = replacement;
         if (xml.Insert)
         {
+            // +K:Element insert is its own place semantics — do not also honor place=before/after
+            // as a second axis (would double-apply). place= must be omit/replace.
+            if (place is not "replace")
+                throw new ArgumentException(
+                    "xml +K:Element insert already places the node; omit place= or use place=replace.");
             if (string.IsNullOrWhiteSpace(xml.InsertElementName))
                 throw new ArgumentException("xml_insert_missing_element_name");
             textToWrite = BracketXmlResolve.BuildInsertElement(
@@ -499,12 +503,9 @@ internal static class DocumentEditPlane
                 xml.InsertIndent ?? "  ");
         }
 
-        store.ApplyReplaceRange(
-            buf,
-            xml.Range.LineStart,
-            xml.Range.ColumnStart,
-            xml.Range.LineEnd,
-            xml.Range.ColumnEnd,
+        ApplyPlacedRange(
+            store, buf, place,
+            xml.Range.LineStart, xml.Range.ColumnStart, xml.Range.LineEnd, xml.Range.ColumnEnd,
             textToWrite);
 
         return new
@@ -513,6 +514,7 @@ internal static class DocumentEditPlane
             wire = BracketLocate.Format(span),
             resolve = xml.Detail,
             insert = xml.Insert,
+            place,
             range = new
             {
                 start_line = xml.Range.LineStart,
@@ -521,6 +523,55 @@ internal static class DocumentEditPlane
                 end_column = xml.Range.ColumnEnd
             }
         };
+    }
+
+    /// <summary>
+    /// <c>place=</c> for <c>edit_op=anchor</c>: before|after insert at locus edges; replace (default) overwrites.
+    /// Silent ignore was ultra-critical — agents passed place=before and wiped the member.
+    /// </summary>
+    static string NormalizeAnchorPlace(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return "replace";
+        var p = raw.Trim().ToLowerInvariant();
+        return p switch
+        {
+            "before" or "pre" or "b" => "before",
+            "after" or "post" or "a" => "after",
+            "replace" or "over" or "r" or "into" => "replace",
+            "sniper" or "hold" or "target" => throw new ArgumentException(
+                "place=sniper is paste/put only — for anchor use place=before|after|replace."),
+            _ => throw new ArgumentException(
+                $"Unknown place='{raw}' for edit_op=anchor — use before|after|replace.")
+        };
+    }
+
+    static void ApplyPlacedRange(
+        DocumentBufferStore store,
+        DocBuffer buf,
+        string place,
+        int lineStart,
+        int colStart,
+        int lineEnd,
+        int colEnd,
+        string text)
+    {
+        if (place == "replace")
+        {
+            store.ApplyReplaceRange(buf, lineStart, colStart, lineEnd, colEnd, text);
+            return;
+        }
+
+        if (place == "before")
+        {
+            // Insert at line start (col 1), not member token col — otherwise leading
+            // indent of the locus sticks to the inserted text and the old member loses it.
+            store.ApplyReplaceRange(buf, lineStart, 1, lineStart, 1, text);
+            return;
+        }
+
+        // after — exclusive end point of resolved locus
+        store.ApplyReplaceRange(buf, lineEnd, colEnd, lineEnd, colEnd, text);
     }
 
     /// <summary>
