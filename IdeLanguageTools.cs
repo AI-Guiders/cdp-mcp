@@ -289,7 +289,10 @@ internal static class IdeLanguageTools
         InputSchema = JsonSerializer.SerializeToElement(schema)
     };
 
-        public static string ApplyOpen(SessionContext session, ProjectOpenResult open)
+    public static string ApplyOpen(
+        SessionContext session,
+        ProjectOpenResult open,
+        DocumentBufferStore.BufferParkResult? bufferPark = null)
     {
         session.ProjectRoot = open.Root;
         session.ProjectKind = open.Kind;
@@ -303,6 +306,7 @@ internal static class IdeLanguageTools
         if (!string.IsNullOrWhiteSpace(recentPath))
             OpenRecentStore.Push(recentPath!, open.Root, open.Kind, open.Language);
         var scmNote = GitSessionDefaults.DescribeAncestorScmRisk(open.Root, session.ScmRoot);
+        var park = bufferPark ?? DocumentBufferStore.BufferParkResult.Empty;
         return JsonSerializer.Serialize(new
         {
             root = open.Root,
@@ -314,6 +318,10 @@ internal static class IdeLanguageTools
             scm_root = session.ScmRoot,
             scm_risk = scmNote is null ? null : "ancestor",
             scm_note = scmNote,
+            buffers_parked = park.ClosedClean,
+            buffers_kept_dirty = park.KeptDirty.Count,
+            buffers_kept_dirty_paths = park.KeptDirty.Count == 0 ? null : park.KeptDirty,
+            buffer_note = park.Note,
             session_phase = CdpEnumParse.ToWire(session.Phase),
             session_object = CdpEnumParse.ToWire(session.Object),
             recent_count = OpenRecentStore.List().Count,

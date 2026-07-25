@@ -143,6 +143,77 @@ internal sealed class DocumentBufferStore
         return _byPath.Remove(buf.Path);
     }
 
+    /// <summary>
+    /// On project switch: drop clean buffers outside the new root; keep dirty foreign ones
+    /// (agent must flush/close) so work is not silently lost.
+    /// </summary>
+    public BufferParkResult ParkOutsideProject(string? projectRoot)
+    {
+        if (string.IsNullOrWhiteSpace(projectRoot))
+            return BufferParkResult.Empty;
+
+        string root;
+        try
+        {
+            root = Path.GetFullPath(projectRoot);
+        }
+        catch
+        {
+            return BufferParkResult.Empty;
+        }
+
+        var keptDirty = new List<string>();
+        var closed = 0;
+        foreach (var buf in _byPath.Values.ToList())
+        {
+            if (IsUnderProjectRoot(buf.Path, root))
+                continue;
+            if (buf.Dirty)
+            {
+                keptDirty.Add(buf.Path);
+                continue;
+            }
+
+            _byPath.Remove(buf.Path);
+            EditorComfort.ClearStack(buf.Path);
+            closed++;
+        }
+
+        return new BufferParkResult(closed, keptDirty);
+    }
+
+    public static bool IsUnderProjectRoot(string path, string projectRoot)
+    {
+        string full;
+        string root;
+        try
+        {
+            full = Path.GetFullPath(path);
+            root = Path.GetFullPath(projectRoot);
+        }
+        catch
+        {
+            return false;
+        }
+
+        var rel = Path.GetRelativePath(root, full);
+        if (string.IsNullOrEmpty(rel) || rel is ".")
+            return true;
+        return !Path.IsPathRooted(rel) && !rel.StartsWith("..", StringComparison.Ordinal);
+    }
+
+    public readonly record struct BufferParkResult(int ClosedClean, IReadOnlyList<string> KeptDirty)
+    {
+        public static BufferParkResult Empty { get; } = new(0, Array.Empty<string>());
+
+        public string? Note =>
+            KeptDirty.Count > 0
+                ? $"Parked {ClosedClean} clean foreign buffer(s); kept {KeptDirty.Count} dirty outside project — flush/close before discard."
+                : ClosedClean > 0
+                    ? $"Parked {ClosedClean} clean foreign buffer(s) outside new project_root."
+                    : null;
+    }
+
     public void ApplySetText(DocBuffer buf, string text)
     {
         buf.Text = text ?? "";

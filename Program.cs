@@ -1260,7 +1260,8 @@ async Task<string> DispatchMetaAsync(
             }
 
             var open = settings.Languages.Detect(openPath);
-            var payload = IdeLanguageTools.ApplyOpen(session, open);
+            var park = docStore.ParkOutsideProject(open.Root);
+            var payload = IdeLanguageTools.ApplyOpen(session, open, park);
             shellHabitat.SyncSessionCwd(session.ProjectRoot);
             DeskBookmark.Save(session, docStore);
             NotifyListChanged();
@@ -1452,7 +1453,9 @@ async Task<string> DispatchMetaAsync(
                 {
                     EnsureOpenRecentWired();
                     var open = settings.Languages.Detect(openPath);
-                    IdeLanguageTools.ApplyOpen(session, open);
+                    var park = docStore.ParkOutsideProject(open.Root);
+                    IdeLanguageTools.ApplyOpen(session, open, park);
+                    shellHabitat.SyncSessionCwd(session.ProjectRoot);
                     NotifyListChanged();
                 }
             }
@@ -1513,7 +1516,9 @@ async Task<string> DispatchMetaAsync(
                 {
                     EnsureOpenRecentWired();
                     var open = settings.Languages.Detect(openPath);
-                    IdeLanguageTools.ApplyOpen(session, open);
+                    var park = docStore.ParkOutsideProject(open.Root);
+                    IdeLanguageTools.ApplyOpen(session, open, park);
+                    shellHabitat.SyncSessionCwd(session.ProjectRoot);
                     NotifyListChanged();
                 }
             }
@@ -1772,7 +1777,8 @@ async Task<string> DispatchMetaAsync(
                     if (string.IsNullOrWhiteSpace(path))
                         throw new ArgumentException("path required for cdp.session_open");
                     var open = settings.Languages.Detect(path!);
-                    var payload = IdeLanguageTools.ApplyOpen(session, open);
+                    var park = docStore.ParkOutsideProject(open.Root);
+                    var payload = IdeLanguageTools.ApplyOpen(session, open, park);
                     // Keep Plan in sync with session for rest of this CSX.
                     plan.Rebind(
                         open.Root,
