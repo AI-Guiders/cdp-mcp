@@ -5,7 +5,8 @@ using Cdp.ScriptableIde;
 namespace CdpMcp;
 
 /// <summary>
-/// Verify-then-ship: inverse of <c>put</c>. Body + chat_markdown for the human reply.
+/// Verify-then-ship into agent context (inverse of <c>put</c>). Body + chat_markdown.
+/// For operator delivery without loading body into the agent — use <see cref="IdeShare"/> / <c>share</c>.
 /// </summary>
 internal static class TakeShip
 {
@@ -231,6 +232,7 @@ internal static class TakeShip
             next = BuildTakeNext(plantLike, wantVision),
             hint =
                 "Paste chat_markdown into the assistant reply (MCP cannot push chat). " +
+                "Prefer share with=operator to deliver to human without loading body here. " +
                 "Inverse of put. check=false skips verify; force=true ships despite errors. " +
                 (plantLike
                     ? "Diagram: vision=true|see=true attaches ImageContent for the agent; else Read preview_path."

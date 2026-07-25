@@ -572,7 +572,8 @@ internal static class EditorComfort
             clipboard = SessionClipboard.Summary(),
             next = new object[]
             {
-                new { go = "take", label = "Take / ship", why = "verify then chat_markdown — inverse of put" },
+                new { go = "share", label = "Share with operator", why = "inbox + thin chat — not into agent" },
+                new { go = "take", label = "Take into agent", why = "verify then chat_markdown — rare" },
                 new { go = "scope", label = "Sniper refine", why = "from=/till= then edit" },
                 new { go = "edit_draft", label = "Edit plan", why = "surgical slices" },
                 new { go = "find", label = "Find in draft", why = "query= inside buffer" },

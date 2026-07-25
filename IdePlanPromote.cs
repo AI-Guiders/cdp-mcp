@@ -6,7 +6,8 @@ using CdpMcp.IntentWorkspace;
 namespace CdpMcp;
 
 /// <summary>
-/// Spike: promote Task Manager board → human-inbox markdown; confirm/reject without pasting plan into chat.
+/// Plan inbox markdown + confirm/reject. Prefer calling via <see cref="IdeShare.SharePlan"/>
+/// (<c>share with=operator what=plan ask=confirm</c>); <c>promote</c> remains an alias.
 /// Agent chat line = <c>chat</c> only (path). Harness owns the MD render.
 /// </summary>
 internal static class IdePlanPromote

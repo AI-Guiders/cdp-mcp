@@ -67,13 +67,14 @@ internal static class DocumentEditPlane
             "take" => await TakeShip.TakeAsync(
                     store, session, byDomain, args, TryDiagnoseScopedAsync, cancellationToken)
                 .ConfigureAwait(false),
+            "share" => IdeShare.ShareBuffer(store, session, args),
             "close" => Close(store, session, args),
             "reload" => Reload(store, session, args),
             "keep_disk" => KeepDisk(store, session, args),
             "disk_peek" => DiskPeek(store, session, args),
             _ when EditorComfort.IsComfortOp(op) => EditorComfort.Dispatch(store, session, op, args),
             _ => throw new ArgumentException(
-                "cdp_buffer op must be scene|open|create|read|edit|diagnostics|take|close|reload|keep_disk|disk_peek|" +
+                "cdp_buffer op must be scene|open|create|read|edit|diagnostics|take|share|close|reload|keep_disk|disk_peek|" +
                 "undo|redo|history|copy|cut|paste|put|clipboard|find|find_all|replace_all|back|forward|nav|recent_files|scratch.")
         };
     }

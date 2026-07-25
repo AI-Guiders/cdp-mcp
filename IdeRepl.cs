@@ -253,6 +253,94 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        if (head is "share")
+        {
+            var with = "operator";
+            string? what = null;
+            string? ask = null;
+            var notesParts = new List<string>();
+            for (var i = 1; i < tokens.Count; i++)
+            {
+                var t = tokens[i];
+                if (t.StartsWith("with=", StringComparison.OrdinalIgnoreCase))
+                {
+                    with = t["with=".Length..];
+                    continue;
+                }
+
+                if (t.Equals("with", StringComparison.OrdinalIgnoreCase) && i + 1 < tokens.Count)
+                {
+                    with = tokens[++i];
+                    continue;
+                }
+
+                if (t.StartsWith("what=", StringComparison.OrdinalIgnoreCase))
+                {
+                    what = t["what=".Length..];
+                    continue;
+                }
+
+                if (t.Equals("what", StringComparison.OrdinalIgnoreCase) && i + 1 < tokens.Count)
+                {
+                    what = tokens[++i];
+                    continue;
+                }
+
+                if (t.StartsWith("ask=", StringComparison.OrdinalIgnoreCase))
+                {
+                    ask = t["ask=".Length..];
+                    continue;
+                }
+
+                if (t.Equals("ask", StringComparison.OrdinalIgnoreCase) && i + 1 < tokens.Count)
+                {
+                    ask = tokens[++i];
+                    continue;
+                }
+
+                if (t is "plan" or "buffer")
+                {
+                    what ??= t;
+                    continue;
+                }
+
+                if (t is "operator" or "human" or "user" or "me")
+                {
+                    with = t;
+                    continue;
+                }
+
+                notesParts.Add(t);
+            }
+
+            what ??= "buffer";
+            var notes = notesParts.Count > 0 ? string.Join(' ', notesParts) : null;
+            if (what.Equals("plan", StringComparison.OrdinalIgnoreCase))
+            {
+                merged["go"] = JsonSerializer.SerializeToElement("plan");
+                merged["tm_op"] = JsonSerializer.SerializeToElement("share");
+                merged["go_args"] = JsonSerializer.SerializeToElement(new
+                {
+                    op = "share",
+                    with,
+                    what = "plan",
+                    ask = ask ?? "confirm",
+                    notes
+                });
+                return (merged, null);
+            }
+
+            merged["go"] = JsonSerializer.SerializeToElement("share");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new
+            {
+                with,
+                what = "buffer",
+                ask = ask ?? "none",
+                notes
+            });
+            return (merged, null);
+        }
+
         if (head is "confirm" or "approved")
         {
             merged["go"] = JsonSerializer.SerializeToElement("plan");
@@ -430,6 +518,9 @@ internal static class IdeRepl
                 "feature desk-comfort",
                 "task ship-omit",
                 "promote",
+                "share",
+                "share with operator",
+                "share plan",
                 "confirm",
                 "reject",
                 "plan",

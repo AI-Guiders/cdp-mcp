@@ -132,6 +132,7 @@ internal static class IdeCockpit
             ["take"] = ("take", null),
             ["get_take"] = ("get_take", null),
             ["ship"] = ("take", null),
+            ["share"] = ("cdp_buffer", Dict(("op", "share"))),
             ["paste_sniper"] = ("cdp_buffer", Dict(("op", "paste"), ("sniper", "true"), ("place", "replace"))),
             ["put_sniper"] = ("cdp_buffer", Dict(("op", "put"), ("sniper", "true"), ("place", "replace"))),
             ["clipboard"] = ("cdp_buffer", Dict(("op", "clipboard"))),
@@ -472,6 +473,7 @@ internal static class IdeCockpit
             goVerb = null;
 
         // Soft organ: Plan / Task Manager (Feature → Task tree, WitDB sticky focus).
+        // Plan share: cmd="share plan" / go=plan tm_op=share. Bare go=share → buffer (GoMap).
         if (goVerb is { Length: > 0 }
             && (goVerb.Equals("plan", StringComparison.OrdinalIgnoreCase)
                 || goVerb.Equals("work", StringComparison.OrdinalIgnoreCase)
@@ -621,7 +623,7 @@ internal static class IdeCockpit
         };
 
         var goVerbs = GoMap.Keys
-            .Concat(["quality", "gates", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "confirm", "reject", "report", "evidence", "alert", "eicas"])
+            .Concat(["quality", "gates", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas"])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -1495,7 +1497,10 @@ internal static class IdeCockpit
             if (session.ProjectRoot is not null)
                 Add("n-put", "put", "Put draft file", "path= + text=/frame= — one-shot dump");
             if (buffer.Count > 0)
-                Add("n-take", "take", "Take / ship", "verify → chat_markdown (inverse of put)");
+            {
+                Add("n-share", "share", "Share with operator", "inbox file + thin chat= (not into agent)");
+                Add("n-take", "take", "Take into agent", "rare — body + chat_markdown into context");
+            }
         }
 
         if (buffer.Count > 0 && !EditSniper.HasHold)
