@@ -135,7 +135,7 @@ internal static class IdeLanguageTools
             "IDE: find all hits — buffer by default; scope=project = Find in Files.",
             FindSchema());
         yield return Tool("take",
-            "IDE: verify-then-ship (inverse of put). Buffer/span → body + chat_markdown. Paste chat_markdown into reply. Alias: get_take. check=false skips verify; force=true ships despite errors.",
+            "IDE: verify-then-ship (inverse of put). Buffer/span → body + chat_markdown. Paste chat_markdown into reply. Alias: get_take. check=false skips verify; force=true ships despite errors. PlantUML: PNG on preview_path by default; vision=true|see=true attaches ImageContent for the agent (opt-in).",
             TakeSchema());
         yield return Tool("get_take",
             "Alias of take (discoverability next to get_completions).",
@@ -255,6 +255,8 @@ internal static class IdeLanguageTools
             kind = new { type = "string", description = "alias of fence" },
             check = new { type = "boolean", description = "default true — run available verify" },
             force = new { type = "boolean", description = "ship despite verify errors" },
+            vision = new { type = "boolean", description = "opt-in: attach ImageContent (agent vision). Default false — use preview_path + Read instead" },
+            see = new { type = "boolean", description = "alias of vision=" },
             sniper = new { type = "boolean", description = "take sniper hold span" },
             scope = new { type = "string", description = "diagnostics scope; default: project if path under open root (not .cdp/scratch), else syntax" }
         }

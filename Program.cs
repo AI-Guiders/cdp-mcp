@@ -222,7 +222,10 @@ List<Tool> BuildMetaTools() =>
             preserve = new { type = "boolean", description = "paste|put: keep frame after use (default true); false = burn" },
             body = new { type = "string", description = "put: alias of text= draft body" },
             content = new { type = "string", description = "put: alias of text=" },
-            ext = new { type = "string", description = "scratch: file extension (default cs)" }
+            ext = new { type = "string", description = "scratch: file extension (default cs)" },
+            check = new { type = "boolean", description = "take: default true — run available verify" },
+            vision = new { type = "boolean", description = "take: opt-in ImageContent for agent (default false; use preview_path)" },
+            see = new { type = "boolean", description = "take: alias of vision=" }
         },
         required = new[] { "op" }
     }),

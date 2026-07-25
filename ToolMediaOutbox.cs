@@ -5,7 +5,8 @@ namespace CdpMcp;
 
 /// <summary>
 /// Side-channel images for the current MCP tool call (AsyncLocal).
-/// CallToolHandler drains into <see cref="ImageContentBlock"/> so Cursor can attach vision.
+/// CallToolHandler drains into <see cref="ImageContentBlock"/> when the agent opted in
+/// (<c>vision=true</c> / <c>see=true</c>) — never auto-inject without that flag.
 /// </summary>
 internal static class ToolMediaOutbox
 {
@@ -45,9 +46,17 @@ internal static class ToolMediaOutbox
         if (list is null || list.Count == 0)
             return blocks;
 
-        // PNG last — text card first, vision after (host / model comfort).
+        // PNG last — text card first. Audience=assistant: for the model, not a user-only UI dump.
         foreach (var (bytes, mime) in list)
-            blocks.Add(ImageContentBlock.FromBytes(bytes, mime));
+        {
+            var img = ImageContentBlock.FromBytes(bytes, mime);
+            img.Annotations = new Annotations
+            {
+                Audience = [Role.Assistant],
+                Priority = 0.85f
+            };
+            blocks.Add(img);
+        }
 
         return blocks;
     }

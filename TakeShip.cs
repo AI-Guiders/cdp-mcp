@@ -100,25 +100,36 @@ internal static class TakeShip
             verify = new { status = verifyStatus, error_count = 0, note = verifyNote };
         }
 
-        // PlantUML: render PNG → MCP ImageContent (vision). Also acts as verify when no Roslyn.
+        // PlantUML: render PNG for verify + preview_path. ImageContent only if agent asks (vision|see).
         object preview;
         string? previewAscii = null;
+        var wantVision = BoolOr(args, "vision", defaultValue: false) || BoolOr(args, "see", defaultValue: false);
         var plantLike = PlantUmlRender.LooksLikePlantUml(body, buf.Path, fence);
         if (plantLike)
         {
             var rendered = PlantUmlRender.RenderPng(body, cancellationToken);
             if (rendered.Ok && rendered.Png is { Length: > 0 } png)
             {
-                var attached = ToolMediaOutbox.TryAdd(png, "image/png");
+                var previewPath = TryWritePreviewPng(buf.Path, png);
+                var attached = false;
+                if (wantVision)
+                    attached = ToolMediaOutbox.TryAdd(png, "image/png");
+
                 preview = new
                 {
                     status = "ok",
                     kind = "plantuml_png",
                     bytes = png.Length,
                     mime = "image/png",
+                    preview_path = previewPath,
                     attached_image = attached,
+                    vision_requested = wantVision,
                     jar = rendered.Jar,
-                    note = attached ? "ImageContent for host vision" : "png_ok_but_outbox_full"
+                    note = wantVision
+                        ? (attached
+                            ? "ImageContent attached (agent vision=true)"
+                            : "vision=true but outbox full — Read preview_path")
+                        : "PNG on disk; agent: vision=true to attach ImageContent, or Read preview_path"
                 };
                 if (doCheck && verifyStatus is "skipped")
                 {
@@ -217,16 +228,54 @@ internal static class TakeShip
             lines = CountLines(body),
             chars = body.Length,
             meta = buf.ToMeta(),
-            next = new object[]
-            {
-                new { go = "copy", label = "Copy to clipboard", why = "frame for paste elsewhere" },
-                new { go = "put", label = "Put rewrite", why = "inverse — dump new draft" },
-                new { go = "edit_draft", label = "Keep editing", why = "not done" }
-            },
+            next = BuildTakeNext(plantLike, wantVision),
             hint =
                 "Paste chat_markdown into the assistant reply (MCP cannot push chat). " +
-                "Inverse of put. check=false skips verify; force=true ships despite errors."
+                "Inverse of put. check=false skips verify; force=true ships despite errors. " +
+                (plantLike
+                    ? "Diagram: vision=true|see=true attaches ImageContent for the agent; else Read preview_path."
+                    : "")
         }, Pretty);
+    }
+
+    static object[] BuildTakeNext(bool plantLike, bool wantVision)
+    {
+        var list = new List<object>
+        {
+            new { go = "copy", label = "Copy to clipboard", why = "frame for paste elsewhere" },
+            new { go = "put", label = "Put rewrite", why = "inverse — dump new draft" },
+            new { go = "edit_draft", label = "Keep editing", why = "not done" }
+        };
+        if (plantLike && !wantVision)
+        {
+            list.Insert(0, new
+            {
+                go = "take",
+                label = "See diagram",
+                why = "vision=true — ImageContent for agent (opt-in)"
+            });
+        }
+
+        return list.ToArray();
+    }
+
+    /// <summary>Sidecar PNG next to source so the agent can Read when she wants pixels.</summary>
+    static string? TryWritePreviewPng(string sourcePath, byte[] png)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(sourcePath);
+            if (string.IsNullOrEmpty(dir))
+                return null;
+            Directory.CreateDirectory(dir);
+            var path = Path.ChangeExtension(sourcePath, ".png");
+            File.WriteAllBytes(path, png);
+            return path;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     static int CountLines(string text)
