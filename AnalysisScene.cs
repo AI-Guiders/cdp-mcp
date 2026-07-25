@@ -1,11 +1,12 @@
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Backends;
 
 namespace CdpMcp;
 
 /// <summary>
 /// Code Analysis domain scene — peer of <c>git_scene</c> / <c>test_scene</c>.
-/// On demand; feature menu grows in-domain (clones first).
+/// On demand; feature menu grows in-domain (correspondence, semantic_map, clones).
 /// </summary>
 internal static class AnalysisScene
 {
@@ -17,29 +18,33 @@ internal static class AnalysisScene
     public static bool IsAnalysisTool(string name) =>
         string.Equals(name, ToolName, StringComparison.OrdinalIgnoreCase);
 
-    public static string Dispatch(
+    public static Task<string> DispatchAsync(
         DocumentBufferStore store,
         SessionContext session,
-        IReadOnlyDictionary<string, JsonElement> args)
+        IReadOnlyDictionary<string, ICdpBackendModule> byDomain,
+        IReadOnlyDictionary<string, JsonElement> args,
+        CancellationToken ct = default)
     {
         var feature = (OptString(args, "feature") ?? OptString(args, "op") ?? "").Trim().ToLowerInvariant();
         if (feature is "" or "scene" or "map" or "status")
-            return SceneMap(session);
+            return Task.FromResult(SceneMap(session));
 
         return feature switch
         {
             "clones" or "clone" or "duplicates" or "code_clones" =>
-                CodeClones.Run(store, session, args),
-            "correspondence" or "corr" or "docs" or "adr_map" =>
-                Correspondence.Run(store, session, args),
-            _ => JsonSerializer.Serialize(new
+                Task.FromResult(CodeClones.Run(store, session, args)),
+            "correspondence" or "corr" or "docs" or "adr_map" or "context" =>
+                Task.FromResult(Correspondence.Run(store, session, args)),
+            "semantic_map" or "semantic" or "related" or "nav_map" =>
+                SemanticMap.RunAsync(store, session, byDomain, args, ct),
+            _ => Task.FromResult(JsonSerializer.Serialize(new
             {
                 schema = Schema,
                 ok = false,
                 error = "unknown_feature",
                 feature,
-                hint = "feature omit → scene map; feature=clones|correspondence"
-            }, Pretty)
+                hint = "feature omit → scene map; feature=correspondence|semantic_map|clones"
+            }, Pretty))
         };
     }
 
@@ -59,22 +64,22 @@ internal static class AnalysisScene
                     {
                         go = "analysis_scene",
                         label = "Correspondence",
-                        why = "path= → ADR/docs + reverse anchors",
+                        why = "path= → ADR/docs + reverse (toml|doc_body)",
                         go_args = new { feature = "correspondence" }
                     },
                     new
                     {
                         go = "analysis_scene",
-                        label = "Clones in file",
-                        why = "go_args: { feature:\"clones\", scope:\"file\", path?:\"…\" }",
-                        go_args = new { feature = "clones", scope = "file" }
+                        label = "Semantic map",
+                        why = "related neighbors around path=",
+                        go_args = new { feature = "semantic_map", mode = "related" }
                     },
                     new
                     {
                         go = "analysis_scene",
-                        label = "Clones in project",
-                        why = "min 10 statements (VS Analyze Solution analogue)",
-                        go_args = new { feature = "clones", scope = "project" }
+                        label = "Clones in file",
+                        why = "go_args: { feature:\"clones\", scope:\"file\" }",
+                        go_args = new { feature = "clones", scope = "file" }
                     }
                 ]
                 : (object[])
@@ -86,11 +91,19 @@ internal static class AnalysisScene
                 new
                 {
                     id = "correspondence",
-                    title = "Doc↔code correspondence (L1)",
+                    title = "Doc↔code correspondence (L1 + doc_body)",
                     hint =
-                        "Forward ADR/feature docs + reverse code_anchors from .cascade/workspace.toml. " +
-                        "Results = anchors. path= or open buffer.",
+                        "Forward ADR/feature + reverse from workspace.toml and ADR prose. " +
+                        "Unified context= embedded. path= or open buffer.",
                     go_args = new { feature = "correspondence" }
+                },
+                new
+                {
+                    id = "semantic_map",
+                    title = "Semantic / related map",
+                    hint =
+                        "Roslyn navigation neighbors around a file. mode=related|…; path=/anchor=; results=anchors.",
+                    go_args = new { feature = "semantic_map", mode = "related" }
                 },
                 new
                 {
@@ -99,11 +112,11 @@ internal static class AnalysisScene
                     hint =
                         "Structural duplicates: exact / strong. Results = anchors, not paths. " +
                         "scope=file|method|selection|project|solution; optional anchor=/from= seed.",
-                    go_args = new { feature = "clones", scope = hasProject ? "file" : "file" }
+                    go_args = new { feature = "clones", scope = "file" }
                 }
             ],
             hint =
-                "Domain scene (not MFD). feature=correspondence|clones; more analysis features land here."
+                "Domain scene (not MFD). feature=correspondence|semantic_map|clones; project-aware when overlays/solution exist."
         }, Pretty);
     }
 

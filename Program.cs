@@ -387,17 +387,22 @@ List<Tool> BuildMetaTools() =>
             peek = new { type = "boolean", description = "Auto open+peek top code hit (default true)" }
         }
     }),
-    Meta("cdp_analysis_scene", "Code Analysis domain scene (git_scene/test_scene peer). On demand — not MFD. feature omit → map; feature=correspondence → ADR/docs↔code from .cascade/workspace.toml (anchors); feature=clones → VS-style duplicates. scope= for clones; path=/anchor= for both.", new
+    Meta("cdp_analysis_scene", "Code Analysis domain scene (git_scene/test_scene peer). On demand — not MFD. feature omit → map; correspondence → ADR/docs↔code (+ doc_body reverse, unified context=); semantic_map → related neighbors; clones → VS-style duplicates. path=/anchor=; mode= for semantic_map.", new
     {
         type = "object",
         properties = new
         {
-            feature = new { type = "string", description = "omit|scene → map; correspondence → doc↔code L1; clones → code clone analysis" },
+            feature = new { type = "string", description = "omit|scene → map; correspondence|semantic_map|clones" },
             op = new { type = "string", description = "Alias of feature" },
             scope = new { type = "string", description = "clones: file|method|selection|project|solution" },
-            path = new { type = "string", description = "correspondence/clones: file under analysis" },
+            path = new { type = "string", description = "file under analysis" },
             anchor = new { type = "string", description = "seed wire [F:;M:;L:]" },
             from = new { type = "string", description = "Alias of anchor" },
+            mode = new { type = "string", description = "semantic_map: related|subgraph|… (default related)" },
+            preset = new { type = "string", description = "semantic_map: navigation preset id" },
+            max_related = new { type = "integer", description = "semantic_map hit cap" },
+            line = new { type = "integer", description = "semantic_map optional line" },
+            column = new { type = "integer", description = "semantic_map optional column" },
             search_in = new { type = "string", description = "When seed set: file|project|solution (default project if open)" },
             min_statements = new { type = "integer", description = "Default 10 project/solution, 3 local" },
             max_files = new { type = "integer" },
@@ -882,7 +887,8 @@ async Task<string> DispatchAsync(
             .ConfigureAwait(false);
 
     if (AnalysisScene.IsAnalysisTool(name))
-        return AnalysisScene.Dispatch(docStore, session, callArgs);
+        return await AnalysisScene.DispatchAsync(docStore, session, byDomain, callArgs, cancellationToken)
+            .ConfigureAwait(false);
 
     if (GoToAll.IsGoToTool(name))
         return GoToAll.Dispatch(docStore, session, callArgs);

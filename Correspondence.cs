@@ -77,6 +77,8 @@ internal static class Correspondence
                 title = r.DocTitle,
                 kind = r.Kind,
                 provenance = r.Provenance,
+                doc_line = r.DocLineHint,
+                excerpt = r.Excerpt,
                 role = "reverse"
             })
             .ToArray();
@@ -121,18 +123,19 @@ internal static class Correspondence
             adr_line = result.AdrLine,
             forward_docs = docAnchors,
             reverse_anchors = reverse,
+            context = WorkspaceCorrespondence.BuildContext(result),
             count = docAnchors.Length + reverse.Length,
             land,
             next = new object[]
             {
                 new { go = "peek", label = "Peek ADR", why = "wire= from forward_docs[].anchor" },
                 new { go = "scope", label = "Sniper reverse", why = "from= reverse_anchors[].anchor" },
-                new { go = "analysis_scene", label = "Clones", why = "feature=clones same zone" },
+                new { go = "semantic_map", label = "Semantic map", why = "related neighbors same path" },
                 new { go = "goto", label = "Go To", why = "jump related type/file" }
             },
             hint =
-                "L1 correspondence: forward = ADR/docs for this path; reverse = explicit code_anchors. " +
-                "Anchors not table rows. linked auto_include expands primary ADR markdown links."
+                "L1 correspondence: forward ADR/docs; reverse = workspace_toml | bracket | doc_body. " +
+                "context= unified get_correspondence_context shape. Anchors not table rows."
         }, Pretty);
     }
 

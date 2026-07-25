@@ -1,0 +1,25 @@
+# CDP agent comfort — project correspondence (wave1)
+# Lights up go=correspondence for this repo.
+
+[workspace.adr]
+auto_include = "linked"
+max_related = 8
+root_dir = "docs"
+
+[workspace.adr.map]
+"*" = []
+
+[workspace.features]
+[[workspace.features.feature]]
+id = "cdp.analysis"
+title = "Analysis scene (correspondence / semantic_map / clones)"
+paths = ["Correspondence.cs", "SemanticMap.cs", "AnalysisScene.cs", "CodeClones.cs"]
+docs = []
+tags = ["analysis", "correspondence", "semantic_map"]
+
+[[workspace.features.feature]]
+id = "cdp.editor.comfort"
+title = "Editor comfort (put / clipboard / sniper)"
+paths = ["EditorComfort.cs", "EditSniper.cs", "SessionClipboard.cs", "FindInFiles.cs", "GoToAll.cs"]
+docs = []
+tags = ["editor", "put", "clipboard"]
