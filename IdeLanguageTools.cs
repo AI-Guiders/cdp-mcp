@@ -21,6 +21,8 @@ internal static class IdeLanguageTools
         "get_document_symbols",
         "get_symbol_at_position",
         "get_diagnostics",
+        "get_completions",
+        "get_signature_help",
         "resolve_project_root",
         "get_workspace_navigation_context",
         "rename_symbol",
@@ -81,6 +83,38 @@ internal static class IdeLanguageTools
                     language = new { type = "string", description = "optional override" }
                 },
                 required = new[] { "file_path" }
+            });
+        yield return Tool("get_completions",
+            "IDE: IntelliSense (Ctrl+Space). Completions at caret with rendered XML docs (summary/params). csharp first; injects open buffer text.",
+            new
+            {
+                type = "object",
+                properties = new
+                {
+                    file_path = new { type = "string" },
+                    line = new { type = "integer", description = "1-based caret" },
+                    column = new { type = "integer", description = "1-based caret" },
+                    prefix = new { type = "string", description = "optional filter" },
+                    max = new { type = "integer", description = "cap (default 40)" },
+                    language = new { type = "string" },
+                    solution_or_project_path = new { type = "string" }
+                },
+                required = new[] { "file_path", "line", "column" }
+            });
+        yield return Tool("get_signature_help",
+            "IDE: signature help inside a call — overloads + parameter XML docs (VS tip, text). csharp first.",
+            new
+            {
+                type = "object",
+                properties = new
+                {
+                    file_path = new { type = "string" },
+                    line = new { type = "integer", description = "1-based inside call" },
+                    column = new { type = "integer", description = "1-based inside call" },
+                    language = new { type = "string" },
+                    solution_or_project_path = new { type = "string" }
+                },
+                required = new[] { "file_path", "line", "column" }
             });
         yield return Tool("resolve_project_root",
             "Resolve project root / language markers from a path (or return session project after cdp_open).",
@@ -302,6 +336,8 @@ internal static class IdeLanguageTools
             "get_document_symbols" => "roslyn_get_document_symbols",
             "get_symbol_at_position" => "roslyn_get_symbol_at_position",
             "get_diagnostics" => "roslyn_get_diagnostics",
+            "get_completions" => "roslyn_get_completions",
+            "get_signature_help" => "roslyn_get_signature_help",
             "get_workspace_navigation_context" => "roslyn_get_workspace_navigation_context",
             _ => throw new ArgumentException($"Unsupported bare verb for csharp: {name}")
         };
@@ -320,7 +356,8 @@ internal static class IdeLanguageTools
             dict[kv.Key] = kv.Value;
         }
 
-        if (name is "go_to_definition" or "find_usages" or "get_workspace_navigation_context")
+        if (name is "go_to_definition" or "find_usages" or "get_workspace_navigation_context"
+            or "get_completions" or "get_signature_help")
         {
             if (!dict.ContainsKey("solution_or_project_path")
                 || dict["solution_or_project_path"].ValueKind != JsonValueKind.String
@@ -336,6 +373,26 @@ internal static class IdeLanguageTools
                  && !dict.ContainsKey("solution_or_project_path"))
         {
             dict["solution_or_project_path"] = JsonSerializer.SerializeToElement(sol);
+        }
+
+        if ((name is "get_completions" or "get_signature_help" or "get_diagnostics")
+            && !dict.ContainsKey("source_text")
+            && dict.TryGetValue("file_path", out var fpEl)
+            && fpEl.GetString() is { Length: > 0 } fp
+            && _docStore is not null)
+        {
+            try
+            {
+                var full = Path.GetFullPath(fp);
+                var buf = _docStore.All.FirstOrDefault(b =>
+                    string.Equals(b.Path, full, StringComparison.OrdinalIgnoreCase));
+                if (buf is not null)
+                    dict["source_text"] = JsonSerializer.SerializeToElement(buf.Text);
+            }
+            catch
+            {
+                // keep disk text
+            }
         }
 
         return dict;
@@ -369,6 +426,8 @@ internal static class IdeLanguageTools
                 cancellationToken).ConfigureAwait(false),
             "get_diagnostics" => await client.GetDiagnosticsAsync(
                 RequireString(args, "file_path"), cancellationToken).ConfigureAwait(false),
+            "get_completions" or "get_signature_help" => throw new ArgumentException(
+                $"{name} is csharp-first (Roslyn). Open a .csproj/.sln with cdp_open; TS/LSP completion later."),
             _ => throw new ArgumentException($"Unsupported bare verb for typescript: {name}")
         };
         return result.GetRawText();
