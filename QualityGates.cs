@@ -113,12 +113,28 @@ internal static partial class QualityGates
 
         var findings = new List<QualityFinding>();
         foreach (var buf in store.All)
+        {
+            // Cockpit alert must not thrash on foreign buffers left from a prior project.
+            if (projectRoot is { Length: > 0 } pr
+                && !DocumentBufferStore.IsUnderProjectRoot(buf.Path, pr))
+                continue;
             findings.AddRange(EvaluateBuffer(buf, policy));
-        var warn = findings.Count(f => f.Severity == "warn");
-        var fail = findings.Count(f => f.Severity == "fail");
+        }
+
+        // Sit pulse: unique files with findings — not every method_lines card (×8 noise).
+        var warnFiles = findings
+            .Where(f => f.Severity == "warn")
+            .Select(f => f.Path)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count();
+        var failFiles = findings
+            .Where(f => f.Severity == "fail")
+            .Select(f => f.Path)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count();
         var suggestSniper = !EditSniper.HasHold && findings.Any(f => f.Id == "suggest_sniper");
-        var pulse = fail > 0 ? $"FAIL×{fail}" : warn > 0 ? $"WARN×{warn}" : "ok";
-        return new QualitySnap(true, warn, fail, suggestSniper, pulse);
+        var pulse = failFiles > 0 ? $"FAIL×{failFiles}" : warnFiles > 0 ? $"WARN×{warnFiles}" : "ok";
+        return new QualitySnap(true, warnFiles, failFiles, suggestSniper, pulse);
     }
 
     public static void InvalidateCache()
@@ -201,6 +217,7 @@ internal static partial class QualityGates
 
         if (policy.SuggestSniperFileLines > 0
             && lines >= policy.SuggestSniperFileLines
+            && (policy.FileLinesWarn <= 0 || lines < policy.FileLinesWarn)
             && !EditSniper.HasHold)
         {
             list.Add(new QualityFinding(
@@ -246,11 +263,13 @@ internal static partial class QualityGates
             || buf.Path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)
             || buf.Path.EndsWith(".csx", StringComparison.OrdinalIgnoreCase))
         {
+            QualityFinding? worstMethod = null;
             foreach (var m in ScanCsharpMethods(buf.Text))
             {
+                QualityFinding? hit = null;
                 if (policy.MethodLinesFail > 0 && m.Lines >= policy.MethodLinesFail)
                 {
-                    list.Add(new QualityFinding(
+                    hit = new QualityFinding(
                         "method_lines",
                         "fail",
                         buf.Path,
@@ -259,11 +278,11 @@ internal static partial class QualityGates
                         m.Lines,
                         policy.MethodLinesFail,
                         $"{shortPath}::{m.Name}: {m.Lines} ≥ fail {policy.MethodLinesFail}",
-                        "go=scope from=/till= → extract"));
+                        "go=scope from=/till= → extract");
                 }
                 else if (policy.MethodLinesWarn > 0 && m.Lines >= policy.MethodLinesWarn)
                 {
-                    list.Add(new QualityFinding(
+                    hit = new QualityFinding(
                         "method_lines",
                         "warn",
                         buf.Path,
@@ -272,9 +291,19 @@ internal static partial class QualityGates
                         m.Lines,
                         policy.MethodLinesWarn,
                         $"{shortPath}::{m.Name}: {m.Lines} ≥ warn {policy.MethodLinesWarn}",
-                        "go=scope from=/till= → consider extract"));
+                        "go=scope from=/till= → consider extract");
                 }
+
+                if (hit is null)
+                    continue;
+                if (worstMethod is null
+                    || hit.Value > worstMethod.Value
+                    || (hit.Value == worstMethod.Value && hit.Severity == "fail" && worstMethod.Severity != "fail"))
+                    worstMethod = hit;
             }
+
+            if (worstMethod is not null)
+                list.Add(worstMethod);
         }
 
         if (string.Equals(policy.Mode, "warn", StringComparison.OrdinalIgnoreCase))
