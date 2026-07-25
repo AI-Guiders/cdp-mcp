@@ -256,7 +256,7 @@ internal static class IdeLanguageTools
             check = new { type = "boolean", description = "default true — run available verify" },
             force = new { type = "boolean", description = "ship despite verify errors" },
             sniper = new { type = "boolean", description = "take sniper hold span" },
-            scope = new { type = "string", description = "diagnostics scope when verifying csharp" }
+            scope = new { type = "string", description = "diagnostics scope; default: project if path under open root (not .cdp/scratch), else syntax" }
         }
     };
 
