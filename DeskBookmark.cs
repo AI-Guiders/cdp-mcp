@@ -212,7 +212,7 @@ internal static class DeskBookmark
             },
             hint =
                 "Desk restored (project + buffers from disk). LLM chat context is NOT restored — separate follow-up. " +
-                "Dual-instance: hard deploy on A → Restore Previous on B.",
+                "Dual-instance: switch survivor → go=deploy (sticky warm). Explicit restore still available.",
             note = doc.Note
         }, JsonOpts);
     }
