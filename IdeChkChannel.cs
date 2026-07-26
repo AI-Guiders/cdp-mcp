@@ -154,7 +154,7 @@ internal static class IdeChkChannel
             [
                 new("git-known", "auto", "Git scene available", Probe: "git.known", Action: "git_scene"),
                 new("commits", "do", "Logical commits (git_plan)", Probe: "git.clean", Action: "git_plan"),
-                new("push", "confirm", "Push when operator asked (ack after push/defer)", Action: "git_push", Required: false)
+                new("push", "allow", "Standing allow — push after ship commits (ecl unack ship push to revoke)", Action: "git_push", Required: false)
             ]),
         new(
             "dap-hold",
@@ -301,7 +301,7 @@ internal static class IdeChkChannel
         mode,
         pulse = snap.Pulse,
         title = "ECL",
-        note = "Electronic Checklist (ECL) — Memory first, AUTO probes, DO/CONFIRM via ack or probe. Alias: go=chk.",
+        note = "Electronic Checklist (ECL) — Memory first, AUTO probes, DO/CONFIRM via ack, ALLOW = standing. Alias: go=chk.",
         active_count = snap.ActiveCount,
         open_required = snap.OpenRequired,
         hot = snap.HotId,
@@ -366,9 +366,12 @@ internal static class IdeChkChannel
         var acked = acks.Contains(key);
         var probed = def.Probe is { Length: > 0 } && Probe(def.Probe, ctx);
         // Memory with probe (e.g. dap.not_stopped): auto-clear when safe; else need ack.
+        // allow = standing operator consent (always clear; revoke by changing kind / overlay).
         var done = def.Kind.Equals("auto", StringComparison.OrdinalIgnoreCase)
             ? probed || (def.Probe is null or { Length: 0 } && acked)
-            : acked || probed;
+            : def.Kind.Equals("allow", StringComparison.OrdinalIgnoreCase)
+                ? true
+                : acked || probed;
         return new ItemSnap(def.Id, def.Kind, def.Text, done, def.Required, def.Probe, def.Action, acked);
     }
 

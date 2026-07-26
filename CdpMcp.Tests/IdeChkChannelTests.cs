@@ -52,9 +52,10 @@ public sealed class IdeChkChannelTests
         var commits = Assert.Single(ship.Items, i => i.Id == "commits");
         Assert.True(commits.Done);
         Assert.Equal(0, snap.OpenRequired);
-        // confirm push optional until ack
+        // standing allow — push clears without per-run ack
         var push = Assert.Single(ship.Items, i => i.Id == "push");
-        Assert.False(push.Done);
+        Assert.Equal("allow", push.Kind);
+        Assert.True(push.Done);
     }
 
     [Fact]
