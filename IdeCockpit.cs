@@ -109,6 +109,11 @@ internal static class IdeCockpit
         ["crm"] = "crm",
         ["callout"] = "crm",
         ["crm_panel"] = "crm",
+        ["files_desk"] = "files_desk",
+        ["files"] = "files_desk",
+        ["explorer"] = "files_desk",
+        ["fm"] = "files_desk",
+        ["file_manager"] = "files_desk",
         ["alert"] = "alert",
         ["eicas"] = "alert",
         ["sa"] = "alert",
@@ -204,6 +209,12 @@ internal static class IdeCockpit
             ["callout"] = (IdeCrmChannel.ToolName, null),
             ["crm_panel"] = (IdeCrmChannel.ToolName, null),
             ["cdp_crm"] = (IdeCrmChannel.ToolName, null),
+            ["files_desk"] = (IdeFilesChannel.ToolName, null),
+            ["files"] = (IdeFilesChannel.ToolName, null),
+            ["explorer"] = (IdeFilesChannel.ToolName, null),
+            ["fm"] = (IdeFilesChannel.ToolName, null),
+            ["file_manager"] = (IdeFilesChannel.ToolName, null),
+            ["cdp_files"] = (IdeFilesChannel.ToolName, null),
             ["replace_all"] = ("cdp_buffer", Dict(("op", "replace_all"))),
             ["back"] = ("cdp_buffer", Dict(("op", "back"))),
             ["forward"] = ("cdp_buffer", Dict(("op", "forward"))),
@@ -615,6 +626,20 @@ internal static class IdeCockpit
             goResult = IdeCrmChannel.Handle(session, workspaceStore, workspaceState, args);
             if (IdeDeskSeats.IsSeatsMode())
                 IdeDeskSeats.PlaceOrgan("crm");
+            goVerb = null;
+        }
+
+        // Soft organ: File Manager (ADR-0016) — utility browse project|external; not shell ls.
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("files_desk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("files", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("explorer", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("fm", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("file_manager", StringComparison.OrdinalIgnoreCase)))
+        {
+            goResult = IdeFilesChannel.Handle(docStore, session, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("files_desk");
             goVerb = null;
         }
 
@@ -1085,6 +1110,21 @@ internal static class IdeCockpit
                             ok = true,
                             go = "crm",
                             tool = IdeCrmChannel.ToolName,
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : board;
+                }
+                else if (planPin is "files_desk" or "files" or "explorer" or "fm" or "file_manager")
+                {
+                    var board = IdeFilesChannel.Handle(docStore, session, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "files_desk",
+                            tool = IdeFilesChannel.ToolName,
                             detail = "full",
                             truncated = false,
                             result = board

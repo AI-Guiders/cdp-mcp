@@ -743,6 +743,35 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        if (head is "files" or "files_desk" or "explorer" or "fm" or "ls" or "dir")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("files_desk");
+            if (head is "ls" or "dir")
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "list" });
+            else if (tokens.Count >= 2)
+            {
+                var sub = tokens[1].ToLowerInvariant();
+                if (sub is "scene" or "list" or "ls" or "up" or "tree" or "roots" or "clear" or "stat" or "open" or "search" or "cd")
+                {
+                    var op = sub is "ls" ? "list" : sub;
+                    if (tokens.Count >= 3)
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op, path = string.Join(' ', tokens.Skip(2)) });
+                    else
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op });
+                }
+                else
+                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "cd", path = string.Join(' ', tokens.Skip(1)) });
+            }
+            return (merged, null);
+        }
+
+        if (head is "cd" && tokens.Count >= 2)
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("files_desk");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "cd", path = string.Join(' ', tokens.Skip(1)) });
+            return (merged, null);
+        }
+
         if (head is "drop" or "rm" or "delete")
         {
             // drop feature X | drop task X | drop X | drop

@@ -226,6 +226,22 @@ internal static class IdeQrhChannel
             [],
             "Am I searching through the desk — or reinventing archaeology in shell?"),
         new(
+            "files-via-desk",
+            "abnormal",
+            "Shell used for filesystem browse",
+            "ls/dir/Get-ChildItem/tree via shell while cdp_files / go=files_desk are available — desk bypass. FM is a utility (project|external), not project-only.",
+            ["ls", "dir", "Get-ChildItem", "gci", "tree", "shell", "files", "explorer", "cdp_files"],
+            ["Prefer cdp_files / go=files_desk (where=project|external) over shell ls", "Shell only if files plane dead"],
+            [
+                new("cdp_files / go=files_desk — scene|list|cd|open", "files_desk", "cdp_files"),
+                new("cdp_files where=external path= — any disk tree", Action: "cdp_files"),
+                new("op=search → find_desk facet", "find_desk", "cdp_search"),
+                new("go=ecl — memory files-desk", "ecl")
+            ],
+            ["find-via-desk", "path-mutate-gate", "tool-result-tax", "scm-via-desk"],
+            [],
+            "Am I browsing through the desk — or reinventing archaeology in shell?"),
+        new(
             "barriers-fail",
             "emergency",
             "Barriers failed — core integrity",

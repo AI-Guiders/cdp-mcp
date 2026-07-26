@@ -523,6 +523,23 @@ List<Tool> BuildMetaTools() =>
             why = new { type = "string", description = "respond: short code ≤80 chars, not essay" }
         }
     }),
+    Meta("cdp_files", "Agent-native File Manager (ADR-0016). Utility — not project-bound. where=cwd|project|external (+path=). op=scene|list|cd|up|stat|tree|open|search|roots|clear. shape=slim|list. Alias go=files_desk. Prefer over shell ls/dir. Search facet → find_desk.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|list|cd|up|stat|tree|open|search|roots|clear" },
+            where = new { type = "string", description = "cwd|project|external" },
+            path = new { type = "string", description = "absolute (external) or relative to cwd" },
+            name = new { type = "string", description = "cd/open/stat relative name" },
+            filter = new { type = "string", description = "glob or substring" },
+            kind = new { type = "string", description = "all|file|dir" },
+            shape = new { type = "string", description = "slim (default)|list|raw" },
+            depth = new { type = "integer", description = "tree depth 1..4" },
+            query = new { type = "string", description = "search facet → find_desk" },
+            hidden = new { type = "boolean", description = "include hidden entries" }
+        }
+    }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell. Default detail=auto: green→pulse; fail→errors[].",
     new
     {
@@ -1478,6 +1495,8 @@ async Task<string> DispatchMetaAsync(
             return IdeBuildSaChannel.HandleJson(session, callArgs);
         case "cdp_crm":
             return IdeCrmChannel.HandleJson(session, workspaceStore, workspaceState, callArgs);
+        case "cdp_files":
+            return IdeFilesChannel.HandleJson(docStore, session, callArgs);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();
