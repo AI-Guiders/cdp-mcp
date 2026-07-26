@@ -523,7 +523,8 @@ List<Tool> BuildMetaTools() =>
             why = new { type = "string", description = "respond: short code ≤80 chars, not essay" }
         }
     }),
-    Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell.", new
+    Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell. Default detail=auto: green→pulse; fail→errors[].",
+    new
     {
         type = "object",
         properties = new
@@ -533,7 +534,8 @@ List<Tool> BuildMetaTools() =>
             configuration = new { type = "string", description = "Debug|Release (csharp)" },
             framework = new { type = "string" },
             no_restore = new { type = "boolean" },
-            include_raw_output = new { type = "boolean" },
+            detail = new { type = "string", description = "auto (default: green→pulse, fail→slim) | pulse | slim | full" },
+            include_raw_output = new { type = "boolean", description = "forces detail=full" },
             timeout_seconds = new { type = "integer" }
         }
     }),
@@ -554,7 +556,8 @@ List<Tool> BuildMetaTools() =>
             }
         }
     }),
-    Meta("cdp_test", "IDE Test: session project. csharp→dotnet test; typescript→npm test. Prefer over shell. Prefer cdp_test_scene first to list FQNs.", new
+    Meta("cdp_test", "IDE Test: session project. csharp→dotnet test; typescript→npm test. Prefer over shell. Prefer cdp_test_scene first. Default detail=auto: green→pulse only; fail→failed_tests[].",
+    new
     {
         type = "object",
         properties = new
@@ -563,7 +566,8 @@ List<Tool> BuildMetaTools() =>
             solution_path = new { type = "string", description = "Alias of path (csharp)" },
             configuration = new { type = "string" },
             filter = new { type = "string", description = "VSTest --filter" },
-            include_raw_output = new { type = "boolean" },
+            detail = new { type = "string", description = "auto (default: green→pulse, fail→slim) | pulse | slim | full" },
+            include_raw_output = new { type = "boolean", description = "forces detail=full" },
             timeout_seconds = new { type = "integer" }
         }
     }),
@@ -646,6 +650,7 @@ List<Tool> BuildMetaTools() =>
             failed_first = new { type = "boolean", description = "Re-run last_run failed set" },
             filter = new { type = "string", description = "Raw VSTest --filter" },
             configuration = new { type = "string" },
+            detail = new { type = "string", description = "auto|pulse|slim|full (same as cdp_test)" },
             include_raw_output = new { type = "boolean" },
             timeout_seconds = new { type = "integer" }
         }
