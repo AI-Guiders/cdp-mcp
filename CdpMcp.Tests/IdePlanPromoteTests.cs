@@ -5,6 +5,31 @@ namespace CdpMcp.Tests;
 public sealed class IdePlanPromoteTests
 {
     [Fact]
+    public void FormatTodos_uses_status_marks()
+    {
+        var activeId = Guid.NewGuid();
+        var stages = new IdeTaskManager.StageNode[]
+        {
+            new(Guid.NewGuid(), null, "done one", "done", 0),
+            new(activeId, null, "ship inbox", "active", 1),
+            new(Guid.NewGuid(), null, "later", "pending", 2),
+            new(Guid.NewGuid(), null, "parked bit", "parked", 3),
+        };
+        var snap = new IdeTaskManager.Snapshot(
+            Guid.NewGuid(),
+            "promote-spike",
+            activeId,
+            "ship inbox",
+            [new IdeTaskManager.FeatureNode(Guid.NewGuid(), "promote-spike", true, activeId, stages)]);
+
+        var todos = IdePlanPromote.FormatTodos(snap);
+        Assert.Contains("- [x] done one", todos, StringComparison.Ordinal);
+        Assert.Contains("- [>] ship inbox", todos, StringComparison.Ordinal);
+        Assert.Contains("- [ ] later", todos, StringComparison.Ordinal);
+        Assert.Contains("- [-] parked bit", todos, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ResolveInbox_prefers_project_dot_cdp_plans()
     {
         var root = Path.Combine(Path.GetTempPath(), "cdp-promote-" + Guid.NewGuid().ToString("N"));

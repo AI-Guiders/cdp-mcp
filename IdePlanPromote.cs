@@ -186,22 +186,24 @@ internal static class IdePlanPromote
         string? notes,
         string? projectRoot)
     {
+        _ = board; // pulse board stays in cockpit; inbox prefers short todos
         var sb = new StringBuilder();
-        sb.AppendLine($"# Plan: {feature}");
+        sb.AppendLine($"# {feature}");
         sb.AppendLine();
-        sb.AppendLine($"- plan_id: `{planId}`");
-        sb.AppendLine($"- status: `{Awaiting}`");
-        sb.AppendLine($"- promoted_utc: `{DateTime.UtcNow:O}`");
+        sb.AppendLine("## Plan Meta");
+        sb.AppendLine();
+        sb.AppendLine("| Name | Value |");
+        sb.AppendLine("| --- | --- |");
+        sb.AppendLine($"| Id | `{planId}` |");
+        sb.AppendLine($"| Status | `{Awaiting}` |");
+        sb.AppendLine($"| Promoted | `{DateTime.UtcNow:O}` |");
         if (projectRoot is { Length: > 0 })
-            sb.AppendLine($"- project_root: `{projectRoot}`");
-        if (snap.ActiveStageTitle is { Length: > 0 } task)
-            sb.AppendLine($"- focus_task: `{task}`");
+            sb.AppendLine($"| Project | `{projectRoot}` |");
         sb.AppendLine();
-        sb.AppendLine("## Board");
+        sb.AppendLine("## Todos");
         sb.AppendLine();
-        sb.AppendLine("```");
-        sb.AppendLine(board.View is null ? "(empty)" : GetAscii(board));
-        sb.AppendLine("```");
+        var todos = FormatTodos(snap);
+        sb.AppendLine(todos.Length == 0 ? "- (empty — add tasks first)" : todos);
         if (!string.IsNullOrWhiteSpace(notes))
         {
             sb.AppendLine();
@@ -211,28 +213,61 @@ internal static class IdePlanPromote
         }
 
         sb.AppendLine();
-        sb.AppendLine("## Confirm");
-        sb.AppendLine();
-        sb.AppendLine("In agent IDE cockpit: `cmd=confirm` or `cmd=reject`.");
-        sb.AppendLine("Do not require the agent to paste this file into chat.");
+        sb.AppendLine("---");
+        sb.AppendLine("`cmd=confirm` | `cmd=reject` — do not paste this file into chat.");
         return sb.ToString();
     }
 
-    static string GetAscii(IdeTaskManager.Board board)
+    /// <summary>Active feature → markdown todo lines from stage statuses.</summary>
+    internal static string FormatTodos(IdeTaskManager.Snapshot snap)
     {
-        try
+        var feature = snap.Features.FirstOrDefault(f => f.IsActive)
+                      ?? snap.Features.FirstOrDefault();
+        if (feature is null || feature.Stages.Count == 0)
+            return "";
+
+        var stages = feature.Stages;
+        var ids = stages.Select(s => s.Id).ToHashSet();
+        var sb = new StringBuilder();
+        foreach (var line in WalkTodos(stages, feature.ActiveStageId, parentId: null, indent: 0))
+            sb.AppendLine(line);
+        // Orphans (parent missing) — still list
+        foreach (var orphan in stages.Where(s => s.ParentId is { } p && !ids.Contains(p)).OrderBy(s => s.Ordinal))
         {
-            var json = JsonSerializer.Serialize(board.View);
-            using var doc = JsonDocument.Parse(json);
-            if (doc.RootElement.TryGetProperty("ascii", out var a) && a.GetString() is { Length: > 0 } s)
-                return s;
-        }
-        catch
-        {
-            /* fall through */
+            sb.AppendLine($"- [{TodoMark(orphan, feature.ActiveStageId)}] {orphan.Title}");
+            foreach (var line in WalkTodos(stages, feature.ActiveStageId, orphan.Id, indent: 1))
+                sb.AppendLine(line);
         }
 
-        return board.Pulse;
+        return sb.ToString().TrimEnd();
+    }
+
+    static IEnumerable<string> WalkTodos(
+        IReadOnlyList<IdeTaskManager.StageNode> stages,
+        Guid? activeStageId,
+        Guid? parentId,
+        int indent)
+    {
+        foreach (var node in stages.Where(s => s.ParentId == parentId).OrderBy(s => s.Ordinal))
+        {
+            var pad = new string(' ', indent * 2);
+            var mark = TodoMark(node, activeStageId);
+            yield return $"{pad}- [{mark}] {node.Title}";
+            foreach (var child in WalkTodos(stages, activeStageId, node.Id, indent + 1))
+                yield return child;
+        }
+    }
+
+    static char TodoMark(IdeTaskManager.StageNode node, Guid? activeStageId)
+    {
+        if (node.Status.Equals("done", StringComparison.OrdinalIgnoreCase))
+            return 'x';
+        if (node.Status.Equals("parked", StringComparison.OrdinalIgnoreCase))
+            return '-';
+        if (activeStageId == node.Id
+            || node.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
+            return '>';
+        return ' ';
     }
 
     static void WriteStatus(string path, PlanStatus status)
