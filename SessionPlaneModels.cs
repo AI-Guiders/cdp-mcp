@@ -60,6 +60,26 @@ internal sealed record PackPlaneResult
         Reason = reason
     };
 
+    /// <summary>A-path stub: pack not embedded; escalate with include_pack=true.</summary>
+    public static PackPlaneResult Omitted(string packId, string processId, string? procedureId) => new()
+    {
+        Available = true,
+        PackId = packId,
+        ProcessId = processId,
+        ProcedureId = procedureId,
+        Reason = "omitted_A",
+        SuggestedNext = new SuggestedNextDto
+        {
+            Policy = "ask",
+            Note = "Pack dump omitted (A). Need dogfood → include_pack=true (C/W).",
+            Candidates =
+            [
+                SuggestedCandidateDto.Tool("cdp_session", hint: "include_pack=true"),
+                SuggestedCandidateDto.Cue("Or memory_world_list_pack / get_process — one card, not full embed.")
+            ]
+        }
+    };
+
     public static PackPlaneResult Failed(string facet, string packId, string error) => new()
     {
         Available = true,
@@ -276,6 +296,36 @@ internal sealed record ContinuityDto
 
     [JsonPropertyName("agent_env")]
     public required string AgentEnv { get; init; }
+
+    /// <summary>EICAS-like W/C/A context-cost hierarchy (same attention model as CIDE ADR 0021).</summary>
+    [JsonPropertyName("context_budget")]
+    public required ContextBudgetDto ContextBudget { get; init; }
+}
+
+/// <summary>
+/// Context-cost tiers for agent tools — EICAS W/C/A (not TCAS).
+/// W = do not by default; C = opt-in awareness; A = prefer / Dark Cockpit quiet path.
+/// </summary>
+internal sealed record ContextBudgetDto
+{
+    [JsonPropertyName("canon")]
+    public string Canon { get; init; } =
+        "EICAS W/C/A · cascade-ide ADR 0021 (not TCAS TA/RA)";
+
+    /// <summary>Warning — burns session hard; avoid unless intentional.</summary>
+    [JsonPropertyName("W")]
+    public required string Warning { get; init; }
+
+    /// <summary>Caution — opt-in dump; know the cost.</summary>
+    [JsonPropertyName("C")]
+    public required string Caution { get; init; }
+
+    /// <summary>Advisory — quiet/default path (Dark Cockpit).</summary>
+    [JsonPropertyName("A")]
+    public required string Advisory { get; init; }
+
+    [JsonPropertyName("habit")]
+    public required string Habit { get; init; }
 }
 
 internal sealed record DebugStopDto

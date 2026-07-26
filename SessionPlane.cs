@@ -6,6 +6,29 @@ namespace CdpMcp;
 /// <summary>Agent-IDE session plane helpers (pillars 1 + 6 + pack dogfood).</summary>
 internal static class SessionPlane
 {
+    public static readonly ContextBudgetDto DefaultContextBudget = new()
+    {
+        Warning =
+            "seats_detail=full spray · ListTools/schemas thrash · " +
+            "include_pack=true when A session would do · unread shell_history walls",
+        Caution =
+            "go_detail=full · pane_full= · desk_detail=nav/full · shell_last tails · " +
+            "buffer take/read whole files · include_pack=true — opt-in when you need the dump",
+        Advisory =
+            "cdp_cockpit slim/pulse · cdp_session (pack omitted) · cdp_context · cdp_tools · cdp_health · " +
+            "git/shell pulse · buffer scene|diagnostics — Dark Cockpit default",
+        Habit =
+            "Stay A; escalate one C; never spray W. Tags on tool Meta: [A]/[C]/[W]. man tool=context_budget."
+    };
+
+    /// <summary>Shared W/C/A cheat sheet (continuity + cdp_man tool=context_budget).</summary>
+    public static string ContextBudgetManual =>
+        "Context budget — EICAS W/C/A (CIDE ADR 0021; not TCAS):\n" +
+        $"W Warning (red) — {DefaultContextBudget.Warning}\n" +
+        $"C Caution (amber) — {DefaultContextBudget.Caution}\n" +
+        $"A Advisory (blue/quiet) — {DefaultContextBudget.Advisory}\n" +
+        $"Habit — {DefaultContextBudget.Habit}";
+
     private static readonly ContinuityDto DefaultContinuity = new()
     {
         DefaultMove =
@@ -13,7 +36,8 @@ internal static class SessionPlane
         AgentIdeCanon =
             "knowledge/work/projects/door-to-singularity/cascade-ide/note-cdp-agent-ide-six-pillars-v0.md",
         AgentEnv =
-            "Agent Env first (CDP packs + radius gate); CIDE projector later. Self-continuation policy=ask until host enqueue exists."
+            "Agent Env first (CDP packs + radius gate); CIDE projector later. Self-continuation policy=ask until host enqueue exists.",
+        ContextBudget = DefaultContextBudget
     };
 
     public static ExplainToolResult ExplainTool(
@@ -154,9 +178,13 @@ internal static class SessionPlane
             debugStop = new DebugStopDto { Available = false };
         }
 
-        var includePack = true;
-        if (callArgs.TryGetValue("include_pack", out var ip) && ip.ValueKind is JsonValueKind.False)
-            includePack = false;
+        var includePack = false;
+        if (callArgs.TryGetValue("include_pack", out var ip))
+        {
+            includePack = ip.ValueKind is JsonValueKind.True
+                || (ip.ValueKind == JsonValueKind.String
+                    && bool.TryParse(ip.GetString(), out var pb) && pb);
+        }
 
         var packId = "epistemic-scene";
         if (callArgs.TryGetValue("pack_id", out var pid) && pid.GetString() is { Length: > 0 } p)
@@ -172,9 +200,10 @@ internal static class SessionPlane
         else if (string.Equals(processId, "curiosity-kolb-loop", StringComparison.OrdinalIgnoreCase))
             procedureId = "kolb-journal-park";
 
-        PackPlaneResult? packPlane = null;
-        if (includePack)
-            packPlane = await BuildPackPlaneAsync(byDomain, packId, processId, procedureId).ConfigureAwait(false);
+        // A default: no pack dump. Opt-in include_pack=true is C/W (fat definitions).
+        PackPlaneResult? packPlane = includePack
+            ? await BuildPackPlaneAsync(byDomain, packId, processId, procedureId).ConfigureAwait(false)
+            : PackPlaneResult.Omitted(packId, processId, procedureId);
 
         return new SessionPlaneResult
         {
