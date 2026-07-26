@@ -59,32 +59,36 @@ internal static class IdeQrhChannel
         new(
             "path-mutate-gate",
             "abnormal",
-            "Cursor Write bypassed PathMutateGate",
-            "Edits via host Write skip CDP Instant Save / gate — desk and disk diverge.",
-            ["buffer", "write", "mutate", "path_mutate"],
-            ["Prefer cdp_buffer over Cursor Write on project paths"],
+            "Host Read/Write bypassed desk",
+            "Cursor Write skips PathMutateGate; Cursor Read dumps file bodies into chat context (~1%/read).",
+            ["buffer", "write", "read", "mutate", "path_mutate", "context"],
+            [
+                "Prefer cdp_buffer over Cursor Write on project paths",
+                "Prefer cdp_buffer open/find/read over Cursor Read (context tax)"
+            ],
             [
                 new("cdp_buffer op=open|edit (anchor) — mutate SSOT", "buffer", "cdp_buffer"),
+                new("cdp_buffer find/read — peek without host Read dump", "buffer", "cdp_buffer"),
                 new("If large file: go=scope → sniper before thick edit", "scope", "cdp_edit_sniper"),
                 new("disk_peek / reload if outside change", "disk_peek", "cdp_buffer")
             ],
-            ["intake-brief", "ship-dirty"],
+            ["intake-brief", "ship-dirty", "test-via-desk", "scm-via-desk"],
             ["procedure:mutate-plan-then-act", "definition:blast-radius"],
-            "Did this write go through the buffer plane — or around the desk?"),
+            "Did this go through the buffer plane — or around the desk into chat context?"),
         new(
             "ship-dirty",
             "abnormal",
             "Verified work, dirty tree, no ship",
             "phase handoff / intent ship with uncommitted changes — ECL ship open.",
             ["git.dirty", "phase:handoff", "intent:ship", "commit", "push"],
-            ["No secrets/.env in slices"],
+            ["No secrets/.env in slices", "SCM via desk — not shell status/diff/log"],
             [
                 new("git_preflight — classify noise", Action: "git_preflight"),
                 new("git_plan draft→validate→apply — logical commits", Action: "git_plan"),
                 new("git_push when operator asked (or ECL ack defer)", Action: "git_push"),
                 new("go=ecl — track ship checklist", "ecl")
             ],
-            ["intake-brief", "path-mutate-gate"],
+            ["intake-brief", "path-mutate-gate", "scm-via-desk"],
             [],
             "Is ship still open because dirty — or because I never opened ECL?"),
         new(
@@ -147,9 +151,41 @@ internal static class IdeQrhChannel
                 new("go=ecl — review checklist", "ecl"),
                 new("Only then phase=handoff / ship", "ecl")
             ],
-            ["ship-dirty", "intake-brief"],
+            ["ship-dirty", "intake-brief", "scm-via-desk"],
             [],
             "Did verify prove green — or did I skip the judgment gate?"),
+        new(
+            "scm-via-desk",
+            "abnormal",
+            "Shell used for SCM archaeology",
+            "status/diff/log/commit prep via shell while CDP git organs are available — desk bypass.",
+            ["git status", "git diff", "git log", "shell", "scm", "git_plan", "git_scene"],
+            ["Prefer git_scene / git_plan / git MCP over shell for SCM", "Shell only if git MCP dead"],
+            [
+                new("git_scene — status/dirty", Action: "git_scene"),
+                new("git_plan — logical slices draft→validate→apply", Action: "git_plan"),
+                new("git_preflight — classify noise/secrets", Action: "git_preflight"),
+                new("go=ecl — review/ship memory scm-desk", "ecl")
+            ],
+            ["ship-dirty", "skip-review", "path-mutate-gate", "test-via-desk"],
+            [],
+            "Am I reading git through the desk — or reinventing archaeology in shell?"),
+        new(
+            "test-via-desk",
+            "abnormal",
+            "Shell used for test archaeology",
+            "dotnet test / list-tests via shell while cdp_test_scene / cdp_test / cdp_test_plan are available — desk bypass.",
+            ["dotnet test", "list-tests", "shell", "test", "cdp_test", "cdp_test_scene"],
+            ["Prefer cdp_test_scene → cdp_test / cdp_test_plan over shell", "Shell only if test plane dead"],
+            [
+                new("cdp_test_scene — map FQNs + last_run", Action: "cdp_test_scene"),
+                new("cdp_test_plan preview|apply — select then run", Action: "cdp_test_plan"),
+                new("cdp_test filter= — targeted run", Action: "cdp_test"),
+                new("go=ecl — verify/review memory tests-desk", "ecl")
+            ],
+            ["scm-via-desk", "path-mutate-gate", "skip-review"],
+            [],
+            "Am I running tests through the desk — or reinventing archaeology in shell?"),
         new(
             "barriers-fail",
             "emergency",
@@ -187,13 +223,29 @@ internal static class IdeQrhChannel
 
         if (ctx.Phase is "explore" or "clarify" or "recall") Hit("intake-brief", 50);
         if (ctx.Phase is "act") Hit("path-mutate-gate", 45);
+        if (ctx.Phase is "verify") Hit("test-via-desk", 50);
         if (ctx.Phase is "handoff") Hit("skip-review", 70);
-        if (ctx.Phase is "review") Hit("skip-review", 20);
+        if (ctx.Phase is "review")
+        {
+            Hit("skip-review", 20);
+            Hit("scm-via-desk", 45);
+            Hit("test-via-desk", 40);
+        }
 
         if (ecl is { HotId: { } hot })
         {
-            if (hot.Equals("ship", StringComparison.OrdinalIgnoreCase)) Hit("ship-dirty", 95);
-            if (hot.Equals("review", StringComparison.OrdinalIgnoreCase)) Hit("skip-review", 90);
+            if (hot.Equals("ship", StringComparison.OrdinalIgnoreCase))
+            {
+                Hit("ship-dirty", 95);
+                Hit("scm-via-desk", 55);
+            }
+            if (hot.Equals("review", StringComparison.OrdinalIgnoreCase))
+            {
+                Hit("skip-review", 90);
+                Hit("scm-via-desk", 60);
+                Hit("test-via-desk", 50);
+            }
+            if (hot.Equals("verify", StringComparison.OrdinalIgnoreCase)) Hit("test-via-desk", 85);
             if (hot.Equals("dap-hold", StringComparison.OrdinalIgnoreCase)) Hit("dap-pdb-lock", 95);
             if (hot.Equals("intake", StringComparison.OrdinalIgnoreCase)) Hit("intake-brief", 80);
             if (hot.Equals("mutate", StringComparison.OrdinalIgnoreCase)) Hit("path-mutate-gate", 80);

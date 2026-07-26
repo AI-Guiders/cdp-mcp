@@ -116,7 +116,9 @@ internal static class IdeChkChannel
             "verify",
             "After verify",
             ["phase:verify"],
-            [],
+            [
+                new("tests-desk", "memory", "Tests via desk (cdp_test_scene/cdp_test) — not shell dotnet test", Action: "cdp_test_scene", Required: false)
+            ],
             [
                 new("problems", "auto", "Problems: no errors", Probe: "problems.clean", Action: "go=problems"),
                 new("tests", "auto", "Tests not failing (or not run yet)", Probe: "tests.not_failed", Action: "cdp_test"),
@@ -129,7 +131,9 @@ internal static class IdeChkChannel
             ["phase:review"],
             [
                 new("intent-match", "memory", "Diff matches what was asked", Required: false),
-                new("blast", "memory", "Blast radius / callers considered", Required: false)
+                new("blast", "memory", "Blast radius / callers considered", Required: false),
+                new("scm-desk", "memory", "SCM via desk (git_scene/git_plan) — not shell status/diff/log", Action: "git_scene", Required: false),
+                new("tests-desk", "memory", "Tests via desk (cdp_test_scene/cdp_test) — not shell", Action: "cdp_test_scene", Required: false)
             ],
             [
                 new("board", "do", "Open review board (file cards)", Action: "go=review"),
@@ -142,7 +146,8 @@ internal static class IdeChkChannel
             "Ship (commit/push)",
             ["phase:handoff", "intent:ship"],
             [
-                new("secrets", "memory", "No secrets/.env in commit slices", Action: "git_preflight", Required: false)
+                new("secrets", "memory", "No secrets/.env in commit slices", Action: "git_preflight", Required: false),
+                new("scm-desk", "memory", "SCM via desk (git_scene/git_plan) — not shell archaeology", Action: "git_scene", Required: false)
             ],
             [
                 new("git-known", "auto", "Git scene available", Probe: "git.known", Action: "git_scene"),

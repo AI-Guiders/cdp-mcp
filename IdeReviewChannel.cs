@@ -121,6 +121,8 @@ internal static class IdeReviewChannel
             new { id = "intent", label = "Diff matches what was asked", go = "ecl", why = "ECL review · intent-match" },
             new { id = "blast", label = "Blast radius / callers", go = "qrh", why = "qrh open skip-review · or find_usages" },
             new { id = "slices", label = "Logical commit slices", go = "git_draft", why = "git_plan before handoff" },
+            new { id = "scm", label = "SCM via desk — not shell", go = "git_scene", why = "git_scene / git_plan; shell only if git MCP dead" },
+            new { id = "tests", label = "Tests via desk — not shell", go = "test_scene", why = "cdp_test_scene → cdp_test" },
             new { id = "secrets", label = "No secrets in slices", go = "git_scene", why = "git_preflight" }
         };
 

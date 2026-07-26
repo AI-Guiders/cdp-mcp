@@ -75,6 +75,53 @@ public sealed class IdeQrhChannelTests
     }
 
     [Fact]
+    public void Suggest_review_ecl_related_includes_scm_via_desk()
+    {
+        var ecl = IdeChkChannel.Build(Ctx(phase: "review"));
+        var s = IdeQrhChannel.SuggestFor(Ctx(phase: "review"), ecl);
+        Assert.Contains("scm-via-desk", s.RelatedIds);
+    }
+
+    [Fact]
+    public void Search_scm_via_desk_by_id()
+    {
+        var board = IdeQrhChannel.Handle(
+            Ctx(),
+            new Dictionary<string, System.Text.Json.JsonElement>
+            {
+                ["op"] = System.Text.Json.JsonSerializer.SerializeToElement("search"),
+                ["q"] = System.Text.Json.JsonSerializer.SerializeToElement("scm-via-desk")
+            });
+        var json = System.Text.Json.JsonSerializer.Serialize(board);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var hits = doc.RootElement.GetProperty("hits");
+        Assert.Contains(hits.EnumerateArray(), h => h.GetProperty("id").GetString() == "scm-via-desk");
+    }
+
+    [Fact]
+    public void Suggest_verify_phase_includes_test_via_desk()
+    {
+        var s = IdeQrhChannel.SuggestFor(Ctx(phase: "verify"));
+        Assert.Contains("test-via-desk", s.RelatedIds);
+    }
+
+    [Fact]
+    public void Search_test_via_desk_by_id()
+    {
+        var board = IdeQrhChannel.Handle(
+            Ctx(),
+            new Dictionary<string, System.Text.Json.JsonElement>
+            {
+                ["op"] = System.Text.Json.JsonSerializer.SerializeToElement("search"),
+                ["q"] = System.Text.Json.JsonSerializer.SerializeToElement("test-via-desk")
+            });
+        var json = System.Text.Json.JsonSerializer.Serialize(board);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var hits = doc.RootElement.GetProperty("hits");
+        Assert.Contains(hits.EnumerateArray(), h => h.GetProperty("id").GetString() == "test-via-desk");
+    }
+
+    [Fact]
     public void Builtins_cover_three_shelves()
     {
         var shelves = IdeQrhChannel.Builtins().Select(p => p.Shelf).Distinct().OrderBy(s => s).ToArray();
