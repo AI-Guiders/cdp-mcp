@@ -97,6 +97,9 @@ internal static class IdeCockpit
         ["code_sa"] = "sa_desk",
         ["pre_sa"] = "sa_desk",
         ["sa_code"] = "sa_desk",
+        ["debug_desk"] = "debug_desk",
+        ["dap_sa"] = "debug_desk",
+        ["debug_sa"] = "debug_desk",
         ["alert"] = "alert",
         ["eicas"] = "alert",
         ["sa"] = "alert",
@@ -176,6 +179,10 @@ internal static class IdeCockpit
             ["pre_sa"] = (IdeSaChannel.ToolName, null),
             ["sa_code"] = (IdeSaChannel.ToolName, null),
             ["cdp_sa"] = (IdeSaChannel.ToolName, null),
+            ["debug_desk"] = (IdeDebugSaChannel.ToolName, null),
+            ["dap_sa"] = (IdeDebugSaChannel.ToolName, null),
+            ["debug_sa"] = (IdeDebugSaChannel.ToolName, null),
+            ["cdp_debug_sa"] = (IdeDebugSaChannel.ToolName, null),
             ["replace_all"] = ("cdp_buffer", Dict(("op", "replace_all"))),
             ["back"] = ("cdp_buffer", Dict(("op", "back"))),
             ["forward"] = ("cdp_buffer", Dict(("op", "forward"))),
@@ -539,6 +546,18 @@ internal static class IdeCockpit
             goResult = IdeSaChannel.Handle(docStore, session, args);
             if (IdeDeskSeats.IsSeatsMode())
                 IdeDeskSeats.PlaceOrgan("sa_desk");
+            goVerb = null;
+        }
+
+        // Soft organ: agent-native Debug-SA (ADR-0011) — not go=debug raw scene.
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("debug_desk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("dap_sa", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("debug_sa", StringComparison.OrdinalIgnoreCase)))
+        {
+            goResult = IdeDebugSaChannel.Handle(session, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("debug_desk");
             goVerb = null;
         }
 
@@ -949,6 +968,21 @@ internal static class IdeCockpit
                             ok = true,
                             go = "sa_desk",
                             tool = IdeSaChannel.ToolName,
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : board;
+                }
+                else if (planPin is "debug_desk" or "dap_sa" or "debug_sa")
+                {
+                    var board = IdeDebugSaChannel.Handle(session, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "debug_desk",
+                            tool = IdeDebugSaChannel.ToolName,
                             detail = "full",
                             truncated = false,
                             result = board

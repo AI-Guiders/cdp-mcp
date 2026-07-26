@@ -481,6 +481,15 @@ List<Tool> BuildMetaTools() =>
             depth = new { type = "string", description = "pulse|slim (default)|full" }
         }
     }),
+    Meta("cdp_debug_sa", "Agent-native Debug-SA (ADR-0011). Fuse DAP+bp+launch → verdict idle|continue|step|fix_bp|stop_rebuild|attach|need_more. Axes: scope=session|bp|stop, depth=pulse|slim|full. Alias go=debug_desk (NOT go=debug raw scene; NOT go=sa EICAS).", new
+    {
+        type = "object",
+        properties = new
+        {
+            scope = new { type = "string", description = "session (default) | bp | stop" },
+            depth = new { type = "string", description = "pulse|slim (default)|full" }
+        }
+    }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell.", new
     {
         type = "object",
@@ -1423,6 +1432,8 @@ async Task<string> DispatchMetaAsync(
             return IdeFindChannel.HandleJson(docStore, session, callArgs);
         case "cdp_sa":
             return IdeSaChannel.HandleJson(docStore, session, callArgs);
+        case "cdp_debug_sa":
+            return IdeDebugSaChannel.HandleJson(session, callArgs);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();

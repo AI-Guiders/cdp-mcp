@@ -49,6 +49,7 @@ internal static class IdeQrhChannel
             ["dap.stopped", "dap.active", "rebuild", "pdb"],
             ["debug_stop before rebuild", "do not taskkill netcoredbg from outside"],
             [
+                new("cdp_debug_sa / go=debug_desk — fuse before act", "debug_desk", "cdp_debug_sa"),
                 new("cdp_debug op=stop_context — evidence before guess", "debug", "cdp_debug"),
                 new("cdp_debug / debug_stop — release PDB", "debug", "cdp_debug"),
                 new("Then rebuild / cdp_build", "build", "cdp_build")
