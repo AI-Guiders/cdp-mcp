@@ -772,6 +772,25 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        if (head is "ignite" or "ignite_desk" or "autoignite" or "cdt_ignite" or "cdp_ignite")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("ignite_desk");
+            if (tokens.Count >= 2)
+            {
+                var sub = tokens[1].ToLowerInvariant();
+                if (sub is "scene" or "probe" or "chats" or "send" or "fire")
+                {
+                    if ((sub is "send" or "fire") && tokens.Count >= 3)
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "send", message = string.Join(' ', tokens.Skip(2)) });
+                    else
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op = sub is "fire" ? "send" : sub });
+                }
+                else
+                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "send", message = string.Join(' ', tokens.Skip(1)) });
+            }
+            return (merged, null);
+        }
+
         if (head is "drop" or "rm" or "delete")
         {
             // drop feature X | drop task X | drop X | drop

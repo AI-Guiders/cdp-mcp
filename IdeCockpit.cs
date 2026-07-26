@@ -114,6 +114,10 @@ internal static class IdeCockpit
         ["explorer"] = "files_desk",
         ["fm"] = "files_desk",
         ["file_manager"] = "files_desk",
+        ["ignite_desk"] = "ignite_desk",
+        ["ignite"] = "ignite_desk",
+        ["autoignite"] = "ignite_desk",
+        ["cdt_ignite"] = "ignite_desk",
         ["alert"] = "alert",
         ["eicas"] = "alert",
         ["sa"] = "alert",
@@ -215,6 +219,11 @@ internal static class IdeCockpit
             ["fm"] = (IdeFilesChannel.ToolName, null),
             ["file_manager"] = (IdeFilesChannel.ToolName, null),
             ["cdp_files"] = (IdeFilesChannel.ToolName, null),
+            ["ignite_desk"] = (IdeIgniteChannel.ToolName, null),
+            ["ignite"] = (IdeIgniteChannel.ToolName, null),
+            ["autoignite"] = (IdeIgniteChannel.ToolName, null),
+            ["cdt_ignite"] = (IdeIgniteChannel.ToolName, null),
+            ["cdp_ignite"] = (IdeIgniteChannel.ToolName, null),
             ["replace_all"] = ("cdp_buffer", Dict(("op", "replace_all"))),
             ["back"] = ("cdp_buffer", Dict(("op", "back"))),
             ["forward"] = ("cdp_buffer", Dict(("op", "forward"))),
@@ -640,6 +649,20 @@ internal static class IdeCockpit
             goResult = IdeFilesChannel.Handle(docStore, session, args);
             if (IdeDeskSeats.IsSeatsMode())
                 IdeDeskSeats.PlaceOrgan("files_desk");
+            goVerb = null;
+        }
+
+        // Soft organ: AutoIgnition CDT → Cursor Composer (Voice→Send).
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("ignite_desk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("ignite", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("autoignite", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("cdt_ignite", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("cdp_ignite", StringComparison.OrdinalIgnoreCase)))
+        {
+            goResult = IdeIgniteChannel.Handle(args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("ignite_desk");
             goVerb = null;
         }
 
@@ -1125,6 +1148,21 @@ internal static class IdeCockpit
                             ok = true,
                             go = "files_desk",
                             tool = IdeFilesChannel.ToolName,
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : board;
+                }
+                else if (planPin is "ignite_desk" or "ignite" or "autoignite" or "cdt_ignite" or "cdp_ignite")
+                {
+                    var board = IdeIgniteChannel.Handle(tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "ignite_desk",
+                            tool = IdeIgniteChannel.ToolName,
                             detail = "full",
                             truncated = false,
                             result = board

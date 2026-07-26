@@ -242,6 +242,21 @@ internal static class IdeQrhChannel
             [],
             "Am I browsing through the desk — or reinventing archaeology in shell?"),
         new(
+            "autoignite-cdt",
+            "abnormal",
+            "Need overnight Composer turn without operator",
+            "AutoIgnition: inject user message into open Cursor chat via Chrome DevTools (CDT port 9222), not MCP sampling and not UIA. Requires Cursor launched with remote-debugging-port. Never click Voice/Stop — wait idle then Send.",
+            ["ignite", "autoignite", "cdt", "composer", "overnight", "inject", "cdp_ignite"],
+            ["cdp_ignite / go=ignite_desk op=scene first", "op=send message=… only when submit_kind≠stop", "Start via tools/Start-Cursor-WithCdt.ps1 if cdt down"],
+            [
+                new("cdp_ignite / go=ignite_desk — scene|probe|chats|send", "ignite_desk", "cdp_ignite"),
+                new("op=send message= [chat=title][port=9222]", Action: "cdp_ignite"),
+                new("tools/Start-Cursor-WithCdt.ps1 — CDT :9222", Action: null)
+            ],
+            ["tool-result-tax", "scm-via-desk"],
+            [],
+            "Am I igniting Composer via CDT desk — or reinventing UIA?"),
+        new(
             "barriers-fail",
             "emergency",
             "Barriers failed — core integrity",

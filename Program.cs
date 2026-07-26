@@ -540,6 +540,18 @@ List<Tool> BuildMetaTools() =>
             hidden = new { type = "boolean", description = "include hidden entries" }
         }
     }),
+    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor launched with --remote-debugging-port=9222. op=scene|probe|chats|send. send: message= + optional chat=title. Voice→Send state machine. Alias go=ignite_desk.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|probe|chats|send" },
+            message = new { type = "string", description = "send: user message to inject" },
+            chat = new { type = "string", description = "optional chat title substring (e.g. CCR script report desk)" },
+            port = new { type = "integer", description = "CDT port (default 9222)" },
+            wait_seconds = new { type = "integer", description = "max wait for idle (not Stop/Queue), default 90" }
+        }
+    }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell. Default detail=auto: green→pulse; fail→errors[].",
     new
     {
@@ -1497,6 +1509,8 @@ async Task<string> DispatchMetaAsync(
             return IdeCrmChannel.HandleJson(session, workspaceStore, workspaceState, callArgs);
         case "cdp_files":
             return IdeFilesChannel.HandleJson(docStore, session, callArgs);
+        case "cdp_ignite":
+            return await IdeIgniteChannel.HandleJsonAsync(callArgs, cancellationToken);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();

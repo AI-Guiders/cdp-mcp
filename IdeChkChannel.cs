@@ -96,7 +96,8 @@ internal static class IdeChkChannel
             [
                 new("what-why", "memory", "Name what+why (or ask) before thrash", Action: "procedure:intake-brief-plan", Required: false),
                 new("find-desk", "memory", "Search via desk (cdp_search / buffer find / index) — not shell/Cursor Grep", Action: "cdp_search", Required: false),
-                new("files-desk", "memory", "Browse via desk (cdp_files / go=files_desk, where=project|external) — not shell ls", Action: "cdp_files", Required: false)
+                new("files-desk", "memory", "Browse via desk (cdp_files / go=files_desk, where=project|external) — not shell ls", Action: "cdp_files", Required: false),
+                new("ignite-desk", "memory", "Overnight Composer inject via CDT (cdp_ignite / go=ignite_desk) — not UIA", Action: "cdp_ignite", Required: false)
             ],
             [
                 new("project", "auto", "cdp_open / project rooted", Probe: "project.open", Action: "cdp_open"),
