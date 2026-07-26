@@ -366,6 +366,16 @@ List<Tool> BuildMetaTools() =>
             no_nudge = new { type = "boolean", description = "skip CDP_RELOAD_NUDGE bump" }
         }
     }),
+    Meta("cdp_elicit", "Spike: MCP elicitation/create → host UI (path 2). op=peek (client caps) | ask (form Да/Нет/Обсудить). Proves whether Cursor advertises elicitation.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "peek|ask (default ask)" },
+            message = new { type = "string", description = "ask: prompt shown to operator" },
+            ask = new { type = "string", description = "alias of message" }
+        }
+    }),
     Meta("cdp_land", "Land via Family:navigation Anchor wire (ADR 0186). NOT Deep-Link/URI. Pass anchor=[Family:navigation;Command:open|goto|restore|show|go;…]. Nested Anchor:[…] reuses code/xml resolve. Alias go=land.", new
     {
         type = "object",
@@ -1330,6 +1340,8 @@ async Task<string> DispatchMetaAsync(
         }
         case "cdp_deploy":
             return IdeDeploy.Run(session, callArgs);
+        case "cdp_elicit":
+            return await IdeElicit.RunAsync(serverRef, callArgs, cancellationToken).ConfigureAwait(false);
         case "cdp_land":
         {
             return await NavigationLand.RunAsync(
