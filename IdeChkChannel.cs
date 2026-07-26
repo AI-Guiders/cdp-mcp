@@ -95,7 +95,7 @@ internal static class IdeChkChannel
             ["phase:explore", "phase:clarify", "phase:recall"],
             [
                 new("what-why", "memory", "Name what+why (or ask) before thrash", Action: "procedure:intake-brief-plan", Required: false),
-                new("find-desk", "memory", "Search via desk (cdp_buffer find / index) — not shell rg/grep", Action: "cdp_buffer", Required: false)
+                new("find-desk", "memory", "Search via desk (cdp_buffer find project|external / index) — not shell/Cursor Grep", Action: "cdp_buffer", Required: false)
             ],
             [
                 new("project", "auto", "cdp_open / project rooted", Probe: "project.open", Action: "cdp_open"),

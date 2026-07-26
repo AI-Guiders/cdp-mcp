@@ -212,7 +212,7 @@ List<Tool> BuildMetaTools() =>
         properties = new
         {
             op = new { type = "string", description = "scene|open|create|put|take|read|edit|diagnostics|close|reload|keep_disk|disk_peek|undo|redo|history|copy|cut|paste|clipboard|clipboard_clear|find|find_all|replace_all|back|forward|nav|recent_files|scratch" },
-            path = new { type = "string", description = "reload|keep_disk|disk_peek: optional (omit = all drifted); find scope=project: optional subdir; otherwise file path" },
+            path = new { type = "string", description = "reload|keep_disk|disk_peek: optional (omit = all drifted); find scope=project: optional subdir; find scope=external: required absolute root; otherwise file path" },
             pad = new { type = "integer", description = "disk_peek: ± context lines around first diff (default 2)" },
             doc_id = new { type = "string" },
             diagnose = new { type = "boolean", description = "open default false; create/edit default true (csharp: syntax)" },
@@ -220,7 +220,7 @@ List<Tool> BuildMetaTools() =>
             discard = new { type = "boolean", description = "close only: with flush=false, required to drop dirty buffer without writing." },
             refresh = new { type = "boolean", description = "open: reload from disk; diagnostics: soft prefer-cache when false" },
             force = new { type = "boolean", description = "diagnostics: recompute even if version unchanged" },
-            scope = new { type = "string", description = "diagnostics: syntax|project|solution; find: buffer|project|files (default buffer)" },
+            scope = new { type = "string", description = "diagnostics: syntax|project|solution; find: buffer|project|files|external (default buffer)" },
             overwrite = new { type = "boolean", description = "create: allow replace existing file" },
             allow_shrink = new { type = "boolean", description = "edit set_text: required when new body is shorter than on-disk file" },
             start_line = new { type = "integer" },
@@ -237,7 +237,7 @@ List<Tool> BuildMetaTools() =>
             pattern = new { type = "string", description = "Alias of query (regex when regex=true)" },
             regex = new { type = "boolean", description = "find/replace_all: Use Regular Expressions (VS toggle)" },
             ignore_case = new { type = "boolean" },
-            glob = new { type = "string", description = "find scope=project: rg --glob (e.g. *.cs)" },
+            glob = new { type = "string", description = "find scope=project|external: rg --glob (e.g. *.cs); required for volume-root external" },
             max = new { type = "integer", description = "find scope=project: hit cap" },
             peek = new { type = "boolean", description = "find scope=project: auto open+peek top hit (default true)" },
             clear = new { type = "boolean", description = "clipboard: true = clear (all, or frame= one)" },

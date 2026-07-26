@@ -221,7 +221,7 @@ internal static class IdeLanguageTools
             query = new { type = "string", description = "needle (aliases: text, pattern)" },
             path = new { type = "string", description = "file; default open buffer / project-relative" },
             file_path = new { type = "string", description = "alias of path" },
-            scope = new { type = "string", description = "buffer|project|files (default buffer)" },
+            scope = new { type = "string", description = "buffer|project|files|external (default buffer)" },
             regex = new { type = "boolean" },
             ignore_case = new { type = "boolean" },
             glob = new { type = "string", description = "find_in_files: rg --glob" },
@@ -236,8 +236,8 @@ internal static class IdeLanguageTools
         properties = new
         {
             query = new { type = "string" },
-            path = new { type = "string", description = "optional subdir under project" },
-            scope = new { type = "string", description = "project|files (default project)" },
+            path = new { type = "string", description = "optional subdir under project; absolute for scope=external" },
+            scope = new { type = "string", description = "project|files|external (default project)" },
             regex = new { type = "boolean" },
             ignore_case = new { type = "boolean" },
             glob = new { type = "string" },

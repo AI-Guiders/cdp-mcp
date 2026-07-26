@@ -206,11 +206,12 @@ internal static class IdeQrhChannel
             "find-via-desk",
             "abnormal",
             "Shell used for grep/rg archaeology",
-            "rg/grep/findstr via shell while cdp_buffer find (buffer|project) / codebase_index are available — desk bypass + thick stdout tax.",
+            "rg/grep/findstr via shell (or Cursor Grep) while cdp_buffer find (buffer|project|external) / codebase_index are available — desk bypass + thick stdout tax.",
             ["rg", "grep", "findstr", "shell", "search", "find", "codebase_index"],
-            ["Prefer cdp_buffer find scope=project (anchors) over shell rg", "Index when corpus large; shell only if desk find dead"],
+            ["Prefer cdp_buffer find scope=project|external (anchors) over shell/Cursor Grep", "Index when corpus large; shell only if desk find dead"],
             [
                 new("cdp_buffer op=find scope=project query= — anchors + land", "buffer", "cdp_buffer"),
+                new("cdp_buffer find scope=external path= — any disk tree, no cdp_open", "buffer", "cdp_buffer"),
                 new("cdp_buffer find scope=buffer — in open file", "buffer", "cdp_buffer"),
                 new("codebase_index_search — FTS when indexed", Action: "codebase_index_search"),
                 new("go=ecl — intake/mutate memory find-desk", "ecl")

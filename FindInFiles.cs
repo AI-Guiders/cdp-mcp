@@ -8,13 +8,14 @@ namespace CdpMcp;
 
 /// <summary>
 /// VS Find in Files — corpus text search via ripgrep, results as anchors.
-/// Called from EditorComfort find when scope=project|files|… (regex= is Use Regular Expressions).
+/// Called from EditorComfort find when scope=project|files|external|… (regex= is Use Regular Expressions).
 /// </summary>
 internal static class FindInFiles
 {
     public const int DefaultMax = 40;
     public const int HardMax = 200;
     public const int TimeoutMs = 20_000;
+    public const int ExternalTimeoutMs = 60_000;
 
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
     static readonly HashSet<string> SkipGlobs = new(StringComparer.OrdinalIgnoreCase)
@@ -24,10 +25,17 @@ internal static class FindInFiles
         "!**/publish/**", "!**/publish-release/**", "!**/dist/**"
     };
 
+    public static bool IsExternalScope(string? scope)
+    {
+        var s = (scope ?? "").Trim().ToLowerInvariant();
+        return s is "external" or "disk" or "system" or "fs" or "anywhere";
+    }
+
     public static bool IsFilesScope(string? scope)
     {
         var s = (scope ?? "").Trim().ToLowerInvariant();
-        return s is "project" or "files" or "solution" or "workspace" or "all" or "repo";
+        return s is "project" or "files" or "solution" or "workspace" or "all" or "repo"
+            || IsExternalScope(s);
     }
 
     public static string Dispatch(
@@ -36,6 +44,10 @@ internal static class FindInFiles
         IReadOnlyDictionary<string, JsonElement> args,
         bool all)
     {
+        var scopeRaw = Opt(args, "scope") ?? Opt(args, "in") ?? "project";
+        var external = IsExternalScope(scopeRaw);
+        var scopeWire = external ? "external" : "project";
+
         var query = Opt(args, "query") ?? Opt(args, "text") ?? Opt(args, "pattern");
         if (string.IsNullOrEmpty(query))
         {
@@ -44,23 +56,22 @@ internal static class FindInFiles
                 schema = EditorComfort.Schema,
                 ok = false,
                 op = all ? "find_all" : "find",
-                scope = "project",
+                scope = scopeWire,
                 error = "query_required",
-                hint = "query= + scope=project (Find in Files). regex=true = Use Regular Expressions."
+                hint = "query= + scope=project|external. regex=true = Use Regular Expressions."
             }, Pretty);
         }
 
-        var root = session.ProjectRoot;
-        if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
+        if (!TryResolveSearchRoot(session, args, external, out var searchRoot, out var cwd, out var rootError, out var rootHint))
         {
             return JsonSerializer.Serialize(new
             {
                 schema = EditorComfort.Schema,
                 ok = false,
                 op = all ? "find_all" : "find",
-                scope = "project",
-                error = "no_project",
-                hint = "cdp_open first"
+                scope = scopeWire,
+                error = rootError,
+                hint = rootHint
             }, Pretty);
         }
 
@@ -72,7 +83,7 @@ internal static class FindInFiles
                 schema = EditorComfort.Schema,
                 ok = false,
                 op = all ? "find_all" : "find",
-                scope = "project",
+                scope = scopeWire,
                 error = "rg_not_found",
                 hint = "Install ripgrep on PATH, or set env CDP_RG to rg.exe"
             }, Pretty);
@@ -85,11 +96,20 @@ internal static class FindInFiles
             1,
             HardMax);
 
-        var searchRoot = Opt(args, "path") ?? Opt(args, "search_in") ?? root!;
-        if (!Path.IsPathRooted(searchRoot))
-            searchRoot = Path.GetFullPath(Path.Combine(root!, searchRoot));
-        if (!Directory.Exists(searchRoot) && !File.Exists(searchRoot))
-            searchRoot = root!;
+        var glob = Opt(args, "glob") ?? Opt(args, "g");
+        if (external && IsVolumeRoot(searchRoot) && glob is not { Length: > 0 })
+        {
+            return JsonSerializer.Serialize(new
+            {
+                schema = EditorComfort.Schema,
+                ok = false,
+                op = all ? "find_all" : "find",
+                scope = scopeWire,
+                error = "glob_required_for_volume_root",
+                path = searchRoot,
+                hint = "Volume root search needs glob= (e.g. *.cs) or a narrower path=."
+            }, Pretty);
+        }
 
         var argv = new List<string>
         {
@@ -106,7 +126,6 @@ internal static class FindInFiles
         foreach (var g in SkipGlobs)
             argv.AddRange(["--glob", g]);
 
-        var glob = Opt(args, "glob") ?? Opt(args, "g");
         if (glob is { Length: > 0 })
             argv.AddRange(["--glob", glob]);
 
@@ -118,14 +137,15 @@ internal static class FindInFiles
         argv.Add(query!);
         argv.Add(searchRoot);
 
-        if (!TryRunRg(rg, argv, root!, out var stdout, out var stderr, out var exit, out var runError))
+        var timeout = external ? ExternalTimeoutMs : TimeoutMs;
+        if (!TryRunRg(rg, argv, cwd, timeout, out var stdout, out var stderr, out var exit, out var runError))
         {
             return JsonSerializer.Serialize(new
             {
                 schema = EditorComfort.Schema,
                 ok = false,
                 op = all ? "find_all" : "find",
-                scope = "project",
+                scope = scopeWire,
                 error = "rg_failed",
                 detail = runError,
                 hint = "Check CDP_RG / PATH and query (regex syntax)."
@@ -140,7 +160,7 @@ internal static class FindInFiles
                 schema = EditorComfort.Schema,
                 ok = false,
                 op = all ? "find_all" : "find",
-                scope = "project",
+                scope = scopeWire,
                 error = "rg_exit",
                 exit_code = exit,
                 stderr = Trim(stderr, 800),
@@ -165,7 +185,8 @@ internal static class FindInFiles
             schema = EditorComfort.Schema,
             ok = true,
             op = all ? "find_all" : "find",
-            scope = "project",
+            scope = scopeWire,
+            path = searchRoot,
             query,
             regex,
             ignore_case = ignoreCase,
@@ -176,6 +197,7 @@ internal static class FindInFiles
             hits = hits.Select(h => new
             {
                 anchor = h.Anchor,
+                path = h.AbsolutePath,
                 line = h.Line,
                 column = h.Column,
                 preview = h.Preview
@@ -188,16 +210,117 @@ internal static class FindInFiles
                     new { go = "signature_help", label = "Signature help", why = "near hit" },
                     new { go = "scope", label = "Sniper from land", why = $"from={hits[0].Anchor}" },
                     new { go = "edit_draft", label = "Edit here", why = "land open+peeked" },
-                    new { go = "find_all", label = "More hits", why = "same query + scope=project" }
+                    new { go = "find_all", label = "More hits", why = $"same query + scope={scopeWire}" }
                 ]
                 : (object[])
                 [
-                    new { go = "find", label = "Retry", why = "regex= / glob= / scope=project" }
+                    new { go = "find", label = "Retry", why = $"regex= / glob= / scope={scopeWire} / path=" }
                 ],
             hint =
-                "VS Find in Files. scope=project|files → rg → anchors. " +
+                "VS Find in Files. scope=project|files|external → rg → anchors. " +
+                "external requires path= (any disk tree; no cdp_open). " +
                 "regex=true = Use Regular Expressions. find = first; find_all = capped list."
         }, Pretty);
+    }
+
+    static bool TryResolveSearchRoot(
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args,
+        bool external,
+        out string searchRoot,
+        out string cwd,
+        out string error,
+        out string hint)
+    {
+        searchRoot = "";
+        cwd = "";
+        error = "";
+        hint = "";
+
+        var pathArg = Opt(args, "path") ?? Opt(args, "search_in") ?? Opt(args, "root");
+
+        if (external)
+        {
+            if (pathArg is not { Length: > 0 })
+            {
+                error = "path_required";
+                hint = "scope=external needs path= absolute dir/file (or ~). Prefer narrower than volume root; else glob=.";
+                return false;
+            }
+
+            searchRoot = ExpandPath(pathArg);
+            if (!Path.IsPathRooted(searchRoot))
+            {
+                error = "path_not_rooted";
+                hint = "scope=external path= must be absolute (e.g. D:\\Experiments\\agent-notes).";
+                return false;
+            }
+
+            if (!Directory.Exists(searchRoot) && !File.Exists(searchRoot))
+            {
+                error = "path_not_found";
+                hint = $"path= not found: {searchRoot}";
+                return false;
+            }
+
+            cwd = Directory.Exists(searchRoot)
+                ? searchRoot
+                : (Path.GetDirectoryName(searchRoot) ?? searchRoot);
+            return true;
+        }
+
+        var root = session.ProjectRoot;
+        if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
+        {
+            error = "no_project";
+            hint = "cdp_open first — or use scope=external path= for disk-wide find";
+            return false;
+        }
+
+        searchRoot = pathArg ?? root!;
+        if (!Path.IsPathRooted(searchRoot))
+            searchRoot = Path.GetFullPath(Path.Combine(root!, searchRoot));
+        else
+            searchRoot = Path.GetFullPath(searchRoot);
+
+        if (!Directory.Exists(searchRoot) && !File.Exists(searchRoot))
+            searchRoot = root!;
+
+        cwd = root!;
+        return true;
+    }
+
+    static string ExpandPath(string raw)
+    {
+        var s = raw.Trim().Trim('"');
+        if (s.StartsWith("~/", StringComparison.Ordinal) || s.StartsWith("~\\", StringComparison.Ordinal))
+        {
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            s = Path.Combine(home, s[2..]);
+        }
+        else if (s == "~")
+        {
+            s = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        }
+
+        return Path.GetFullPath(s);
+    }
+
+    static bool IsVolumeRoot(string path)
+    {
+        try
+        {
+            var full = Path.GetFullPath(path)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var root = Path.GetPathRoot(full)?
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            return root is { Length: > 0 } &&
+                   full.Equals(root, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     static List<Hit> ParseJsonHits(SessionContext session, string stdout, int max)
@@ -288,6 +411,7 @@ internal static class FindInFiles
         string rg,
         List<string> argv,
         string cwd,
+        int timeoutMs,
         out string stdout,
         out string stderr,
         out int exit,
@@ -322,7 +446,7 @@ internal static class FindInFiles
 
             var outTask = p.StandardOutput.ReadToEndAsync();
             var errTask = p.StandardError.ReadToEndAsync();
-            if (!p.WaitForExit(TimeoutMs))
+            if (!p.WaitForExit(timeoutMs))
             {
                 try { p.Kill(entireProcessTree: true); } catch { /* ignore */ }
                 error = "timeout";
@@ -393,7 +517,8 @@ internal static class FindInFiles
             }
         }
 
-        return Path.GetFileName(absolutePath);
+        // Outside project: keep rooted path so anchors stay unique (F: value may contain drive ':').
+        return Path.GetFullPath(absolutePath).Replace('\\', '/');
     }
 
     static List<string> SplitLines(string text)
