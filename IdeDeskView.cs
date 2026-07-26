@@ -57,6 +57,8 @@ internal static class IdeDeskView
             "report" or "evidence" or "pfd" => "report",
             "alert" or "eicas" => "alert",
             "quality" or "gates" => "gates",
+            "sys" => "sys",
+            "chk" => "chk",
             "analysis" => "analysis",
             "script" or "probe" => "script",
             "semantic_map" or "semantic" => "semantic",

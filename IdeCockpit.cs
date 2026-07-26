@@ -9,12 +9,12 @@ using TerminalMcp.Core;
 namespace CdpMcp;
 
 /// <summary>
-/// Agent IDE cockpit — MFD + loci + desk dispatcher + <b>scan-pattern seats</b> (ADR 0191)
-/// + tile manager (ADR 0189). Modes: nav | sys | chk. <c>cmd=</c> REPL; <c>go=</c> places organ in seat.
+/// Agent IDE cockpit — seats desk + soft organs (ADR 0191/0193).
+/// Legacy MFD aliases: go=sys|chk|gates; desk_detail=nav. <c>cmd=</c> REPL; <c>go=</c> places organ in seat.
 /// </summary>
 internal static class IdeCockpit
 {
-    public const string SchemaVersion = "cockpit/v1.15";
+    public const string SchemaVersion = "cockpit/v1.16";
     public const int GoResultCapChars = 24_000;
     public const int GoPulseCapChars = 1_200;
     public const int MaxTiles = 4;
@@ -202,6 +202,9 @@ internal static class IdeCockpit
             ["restore_previous"] = ("cdp_restore", null),
             ["previous"] = ("cdp_restore", null),
             ["desk_restore"] = ("cdp_restore", null),
+            ["deploy"] = ("cdp_deploy", null),
+            ["hard_deploy"] = ("cdp_deploy", Dict(("mode", "hard"))),
+            ["soft_deploy"] = ("cdp_deploy", Dict(("mode", "soft"))),
             ["navigate"] = ("cdp_land", null),
             ["land"] = ("cdp_land", null),
             ["deep_link"] = ("cdp_land", null),
@@ -381,8 +384,12 @@ internal static class IdeCockpit
             }
         }
 
-        var mfd = OptString(args, "mfd") ?? OptString(args, "page") ?? IdeSettingsHabitat.EffectiveDeskMfd();
-        mfd = mfd.Trim().ToLowerInvariant();
+        var mfdExplicit = OptString(args, "mfd") ?? OptString(args, "page");
+        // Seats: desk.default_mfd deprecated — do not auto-steer organs from settings.
+        var mfd = (mfdExplicit
+                   ?? (IdeDeskSeats.IsSeatsMode() ? "nav" : IdeSettingsHabitat.EffectiveDeskMfd())
+                   ?? "nav")
+            .Trim().ToLowerInvariant();
         if (!MfdPages.Contains(mfd))
             mfd = "nav";
 
@@ -390,11 +397,24 @@ internal static class IdeCockpit
         var includeSubmodules = BoolOr(args, "include_submodules", false);
         var goVerb = OptString(args, "go") ?? OptString(args, "do");
 
-        // Soft MFD switches via go=chk|sys|nav (no organ dispatch).
+        // Legacy MFD pages → seats: nav=desk_detail; sys|chk|gates=soft organs (not root page).
         if (goVerb is { Length: > 0 } && MfdPages.Contains(goVerb.Trim()))
         {
-            mfd = goVerb.Trim().ToLowerInvariant();
-            goVerb = null;
+            var pageVerb = goVerb.Trim().ToLowerInvariant();
+            mfd = pageVerb;
+            if (pageVerb == "nav")
+            {
+                args = WithStringArg(args, "desk_detail", "nav");
+                goVerb = null;
+            }
+            // else keep goVerb for soft-organ handlers below
+        }
+        else if (goVerb is null
+                 && mfdExplicit is not null
+                 && mfd is "sys" or "chk" or "gates")
+        {
+            // bare mfd=/page= (explicit) → same as go=
+            goVerb = mfd;
         }
 
         // Soft tile / seat verbs: go=tiles|layout|seats|repl (no organ).
@@ -465,7 +485,17 @@ internal static class IdeCockpit
             goVerb = null;
         }
 
-        // Defer alert soft organ until after Collect* (needs buffer/debug snaps).
+        // Defer sys/chk/alert until after Collect* snaps.
+        var wantSys = goVerb is { Length: > 0 }
+            && goVerb.Equals("sys", StringComparison.OrdinalIgnoreCase);
+        if (wantSys)
+            goVerb = null;
+
+        var wantChk = goVerb is { Length: > 0 }
+            && goVerb.Equals("chk", StringComparison.OrdinalIgnoreCase);
+        if (wantChk)
+            goVerb = null;
+
         var wantAlert = goVerb is { Length: > 0 }
             && (goVerb.Equals("alert", StringComparison.OrdinalIgnoreCase)
                 || goVerb.Equals("eicas", StringComparison.OrdinalIgnoreCase));
@@ -580,6 +610,20 @@ internal static class IdeCockpit
                 IdeDeskSeats.PlaceOrgan("alert");
         }
 
+        if (wantSys)
+        {
+            goResult = BuildSysOrgan(session, git, shell, buffer, debug, test, work);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("sys");
+        }
+
+        if (wantChk)
+        {
+            goResult = BuildChkOrgan(session, git, buffer, debug, test);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("chk");
+        }
+
         var loci = BuildLoci(session, git, shell, browser, settingsPulse, buffer, debug, test, work, quality);
         var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId, quality, alertSnap);
 
@@ -614,16 +658,10 @@ internal static class IdeCockpit
                 };
         }
 
-        object? page = mfd switch
-        {
-            "sys" => BuildSysPage(session, git, shell, buffer, debug, test, work),
-            "chk" => BuildChkPage(session, git, shell, buffer, debug, test),
-            "gates" => QualityGates.EvaluateStore(docStore, session.ProjectRoot),
-            _ => BuildNavPage(loci, focus)
-        };
+        // No parallel MFD root page — soft organs carry sys/chk/gates.
 
         var goVerbs = GoMap.Keys
-            .Concat(["quality", "gates", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas"])
+            .Concat(["quality", "gates", "sys", "chk", "nav", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas"])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -774,6 +812,20 @@ internal static class IdeCockpit
                         ? new { ok = true, go = "quality", tool = "quality_gates", detail = "full", truncated = false, result = q }
                         : new { ok = true, go = "quality", detail = "pulse", pulse = QualityGates.Snap(docStore, session.ProjectRoot).Pulse, result = q };
                 }
+                else if (planPin is "sys")
+                {
+                    var board = BuildSysOrgan(session, git, shell, buffer, debug, test, work);
+                    pane = wantFull
+                        ? new { ok = true, go = "sys", tool = "sys_organ", detail = "full", truncated = false, result = board }
+                        : board;
+                }
+                else if (planPin is "chk")
+                {
+                    var board = BuildChkOrgan(session, git, buffer, debug, test);
+                    pane = wantFull
+                        ? new { ok = true, go = "chk", tool = "chk_organ", detail = "full", truncated = false, result = board }
+                        : board;
+                }
                 else if (!wantFull && IdeWorldChannel.IsWorldOrgan(planPin))
                 {
                     // World channel: reuse cockpit snaps — never re-dispatch scene on every desk pulse.
@@ -822,7 +874,7 @@ internal static class IdeCockpit
                 ["mode"] = "seats",
                 ["view"] = view,
                 ["mfd"] = mfd,
-                ["mfd_pages"] = new[] { "nav", "sys", "chk", "gates" },
+                ["mfd_note"] = "legacy alias — go=sys|chk|gates|nav (soft organs / desk_detail); no root page",
                 ["session"] = SessionPulse(session),
                 ["desk_detail"] = deskDetail,
                 ["seats"] = seats,
@@ -831,15 +883,15 @@ internal static class IdeCockpit
                 ["layouts"] = LayoutPresetIds,
                 ["next"] = next,
                 ["focus"] = focus,
-                ["page"] = page,
+                ["page"] = null,
                 ["go"] = goResult,
                 ["warm"] = warm,
                 ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
                 ["hint"] = wantNav
                     ? "Read view.banner / view.ascii first. Steer: cmd=\"go alert\" | layout=agent. " +
                       "seats_detail=full or pane_full= for organ dump."
-                    : "Slim desk (cockpit/v1.15): view + seats + next + alert. " +
-                      "Cold auto-restore. desk_detail=nav for loci[]; cmd=alert|probe|report|plan (CCL)."
+                    : "Slim desk (cockpit/v1.16): view + seats + next + alert. " +
+                      "go=sys|chk soft organs; desk_detail=nav for loci[]; cmd=alert|probe|report|plan (CCL)."
             };
             if (wantNav)
             {
@@ -878,7 +930,7 @@ internal static class IdeCockpit
             ["role"] = "desk",
             ["mode"] = "tiles",
             ["mfd"] = mfd,
-            ["mfd_pages"] = new[] { "nav", "sys", "chk", "gates" },
+            ["mfd_note"] = "legacy alias — go=sys|chk|gates|nav; seats preferred; no root page",
             ["session"] = SessionPulse(session),
             ["desk_detail"] = deskDetailTiles,
             ["seats"] = null,
@@ -887,11 +939,11 @@ internal static class IdeCockpit
             ["layouts"] = LayoutPresetIds,
             ["next"] = next,
             ["focus"] = focus,
-            ["page"] = page,
+            ["page"] = null,
             ["go"] = goResult,
             ["warm"] = warm,
             ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
-            ["hint"] = "desk.mode=tiles (legacy). Prefer seats. desk_detail=nav for loci/go_verbs."
+            ["hint"] = "desk.mode=tiles (legacy). Prefer seats. go=sys|chk soft organs; desk_detail=nav for loci."
         };
         if (wantNavTiles)
         {
@@ -1172,7 +1224,7 @@ internal static class IdeCockpit
         return pin is "editor_scene" or "buffer_scene" or "browser" or "shell_scene" or "git_scene"
             or "debug_scene" or "test_scene" or "mcp_scene" or "settings" or "project_scene"
             or "plan" or "work" or "report" or "evidence" or "pfd" or "alert" or "eicas"
-            or "correspondence" or "quality" or "gates" or "analysis_scene"
+            or "correspondence" or "quality" or "gates" or "sys" or "chk" or "analysis_scene"
             or "script_scene" or "semantic_map";
     }
 
@@ -1447,9 +1499,10 @@ internal static class IdeCockpit
         Add("n-goto", "goto", "Go To (Ctrl+T)", "query= type/member/file — land on anchor");
         Add("n-editor", "editor_scene", "Editor map", "Buffer/desk loop");
 
-        // Dual-instance / post hard-deploy: Restore Previous desk bookmark.
+        // Dual-instance: sticky warm + go=deploy from survivor.
         if (File.Exists(DeskBookmark.FilePath))
-            Add("n-restore", "restore", "Restore Previous", "desk bookmark — project + buffers (not LLM chat)");
+            Add("n-restore", "restore", "Restore Previous", "desk bookmark — usually auto on cold tools");
+        Add("n-deploy", "deploy", "Deploy", "hard → sibling install; dry_run= to preview");
 
         if (EditorComfort.AnyUndo())
             Add("n-undo", "undo", "Undo last edit", "buffer edit stack");
@@ -1538,7 +1591,7 @@ internal static class IdeCockpit
         else
             Add("n-plan", "plan", "Task Manager", "no plan — feature <name>");
 
-        Add("n-chk", "chk", "Checklists", "mfd=chk");
+        Add("n-chk", "chk", "Checklists", "go=chk");
         return list.ToArray();
     }
 
@@ -1552,43 +1605,44 @@ internal static class IdeCockpit
         solution_or_project_path = session.SolutionOrProjectPath
     };
 
-    static object BuildNavPage(IReadOnlyList<Locus> loci, object? focus) => new
-    {
-        title = "NAV",
-        note = "Pick locus= for detail, or go=<verb> from next[] / locus.go.",
-        locus_count = loci.Count,
-        focus
-    };
-
-    static object BuildSysPage(
+    static object BuildSysOrgan(
         SessionContext session,
         JsonElement? gitRoot,
         ShellSnap shell,
         BufferSnap buffer,
         DebugSnap debug,
         TestSnap test,
-        WorkSnap work) => new
+        WorkSnap work)
     {
-        title = "SYS",
-        project = session.ProjectRoot is null ? "no_project — cdp_open" : session.ProjectRoot,
-        git = GitPulseLine(gitRoot),
-        shell = $"tabs={shell.TabCount} running={shell.Running} failed={shell.Failed}",
-        buffer = $"open={buffer.Count} dirty={buffer.DirtyCount} disk_changed={buffer.DiskChangedCount}",
-        debug = debug.ActiveDap
-            ? $"dap stopped={debug.Stopped} bp={debug.BreakpointCount}"
-            : $"idle bp={debug.BreakpointCount}",
-        test = test.Available
-            ? test.LastRun is null
-                ? "no last_run — cdp_test_scene"
-                : $"last {(test.Success ? "ok" : "FAIL")} {test.Passed}/{test.Total}"
-            : test.Reason,
-        work = work.Pulse ?? "no plan"
-    };
+        var git = GitPulseLine(gitRoot);
+        var pulse = $"{git} · buf={buffer.Count} dirty={buffer.DirtyCount}";
+        return new
+        {
+            ok = true,
+            go = "sys",
+            schema = "sys_organ/v0",
+            pulse,
+            title = "SYS",
+            project = session.ProjectRoot is null ? "no_project — cdp_open" : session.ProjectRoot,
+            git,
+            shell = $"tabs={shell.TabCount} running={shell.Running} failed={shell.Failed}",
+            buffer = $"open={buffer.Count} dirty={buffer.DirtyCount} disk_changed={buffer.DiskChangedCount}",
+            debug = debug.ActiveDap
+                ? $"dap stopped={debug.Stopped} bp={debug.BreakpointCount}"
+                : $"idle bp={debug.BreakpointCount}",
+            test = test.Available
+                ? test.LastRun is null
+                    ? "no last_run — go=test"
+                    : $"last {(test.Success ? "ok" : "FAIL")} {test.Passed}/{test.Total}"
+                : test.Reason,
+            work = work.Pulse ?? "no plan",
+            hint = "Soft organ (legacy mfd=sys). Slim status already in view.banner/board."
+        };
+    }
 
-    static object BuildChkPage(
+    static object BuildChkOrgan(
         SessionContext session,
         JsonElement? gitRoot,
-        ShellSnap shell,
         BufferSnap buffer,
         DebugSnap debug,
         TestSnap test)
@@ -1598,63 +1652,89 @@ internal static class IdeCockpit
         var testOk = test is { Available: true, LastRun: not null, Success: true };
         var testFail = test is { Available: true, LastRun: not null, Success: false };
 
-        return new
+        var lists = new object[]
         {
-            title = "CHK",
-            note = "Living checklists — mark via work, not export ritual.",
-            lists = new object[]
+            new
             {
-                new
+                id = "habitat",
+                title = "Stay in agent IDE",
+                items = new object[]
                 {
-                    id = "habitat",
-                    title = "Stay in agent IDE",
-                    items = new object[]
-                    {
-                        Item("cdp_open / cockpit before thrash", hasProject),
-                        Item("prefer cdp_editor_scene → cdp_edit_plan for multi-step", true),
-                        Item("prefer cdp_buffer over Cursor Write", buffer.DirtyCount == 0 || hasProject),
-                        Item("cdp_shell_* primary; terminal_* escape only", true),
-                        Item("no Cursor Write when buffer plane fits", true)
-                    }
-                },
-                new
+                    Item("cdp_open / cockpit before thrash", hasProject),
+                    Item("prefer go=editor → go=edit_draft for multi-step", true),
+                    Item("prefer cdp_buffer over Cursor Write", buffer.DirtyCount == 0 || hasProject),
+                    Item("cdp_shell_* primary; terminal_* escape only", true),
+                    Item("sticky warm: cold tools restore desk once/process", true)
+                }
+            },
+            new
+            {
+                id = "ship",
+                title = "Ship loop",
+                items = new object[]
                 {
-                    id = "ship",
-                    title = "Ship loop",
-                    items = new object[]
-                    {
-                        Item("tests green (or failed_first plan)", testOk || (!testFail && hasProject)),
-                        Item("git dirty understood (scene/plan)", gitRoot is not null),
-                        Item("logical commits (git_plan slices)", !gitDirty || gitRoot is not null),
-                        Item("push when asked", true)
-                    }
-                },
-                new
+                    Item("tests green (or failed_first plan)", testOk || (!testFail && hasProject)),
+                    Item("git dirty understood (scene/plan)", gitRoot is not null),
+                    Item("logical commits (git_plan slices)", !gitDirty || gitRoot is not null),
+                    Item("push when asked", true)
+                }
+            },
+            new
+            {
+                id = "deploy",
+                title = "Hard deploy",
+                items = new object[]
                 {
-                    id = "deploy",
-                    title = "Hard deploy recovery",
-                    items = new object[]
-                    {
-                        Item("publish -Mode hard (external; auto CDP_RELOAD_NUDGE)", true),
-                        Item("cdp_health version check", true),
-                        Item("cdp_cockpit reorient", hasProject)
-                    }
-                },
-                new
+                    Item("go=deploy from survivor seat (sibling Target)", true),
+                    Item("cdp_health version check", true),
+                    Item("view/seats reorient after remount", hasProject)
+                }
+            },
+            new
+            {
+                id = "debug",
+                title = "Debug stop",
+                items = new object[]
                 {
-                    id = "debug",
-                    title = "Debug stop",
-                    items = new object[]
-                    {
-                        Item("stop_context before guess", !debug.Stopped || debug.ActiveDap),
-                        Item("debug_stop before rebuild", true)
-                    }
+                    Item("stop_context before guess", !debug.Stopped || debug.ActiveDap),
+                    Item("debug_stop before rebuild", true)
                 }
             }
+        };
+
+        var done = 0;
+        var total = 0;
+        // Rough pulse from known bools above (not re-walking lists).
+        total = 14;
+        done = (hasProject ? 1 : 0) + 3 + (testOk || (!testFail && hasProject) ? 1 : 0)
+               + (gitRoot is not null ? 1 : 0) + (!gitDirty || gitRoot is not null ? 1 : 0) + 1
+               + 2 + (hasProject ? 1 : 0)
+               + (!debug.Stopped || debug.ActiveDap ? 1 : 0) + 1;
+
+        return new
+        {
+            ok = true,
+            go = "chk",
+            schema = "chk_organ/v0",
+            pulse = $"chk · {done}/{total}",
+            title = "CHK",
+            note = "Living checklists as soft organ — mark via work, not export ritual.",
+            lists,
+            hint = "Soft organ (legacy mfd=chk). Place on seat via go=chk."
         };
     }
 
     static object Item(string text, bool done) => new { text, done };
+
+    static IReadOnlyDictionary<string, JsonElement> WithStringArg(
+        IReadOnlyDictionary<string, JsonElement> args,
+        string key,
+        string value)
+    {
+        var d = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
+        d[key] = JsonSerializer.SerializeToElement(value);
+        return d;
+    }
 
     static List<Locus> BuildLoci(
         SessionContext session,
@@ -1850,7 +1930,7 @@ internal static class IdeCockpit
                 quality.Fail > 0 || quality.Warn > 0
                     ? $"quality {quality.Pulse}"
                     : "quality gates ok",
-                "go=quality / mfd=gates — project-tunable",
+                "go=quality — project-tunable",
                 "quality",
                 quality));
         }

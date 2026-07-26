@@ -78,7 +78,7 @@ internal static class IdeRepl
         if (head is "mfd" or "page")
         {
             if (tokens.Count < 2)
-                return (merged, Err("mfd needs page", "mfd nav | mfd chk"));
+                return (merged, Err("mfd needs alias", "mfd nav | mfd chk → prefer go=sys|chk"));
             merged["mfd"] = JsonSerializer.SerializeToElement(tokens[1]);
             return (merged, null);
         }
@@ -154,6 +154,30 @@ internal static class IdeRepl
         if (head is "alert" or "eicas")
         {
             merged["go"] = JsonSerializer.SerializeToElement("alert");
+            return (merged, null);
+        }
+
+        if (head is "sys")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("sys");
+            return (merged, null);
+        }
+
+        if (head is "chk")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("chk");
+            return (merged, null);
+        }
+
+        if (head is "nav")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("nav");
+            return (merged, null);
+        }
+
+        if (head is "gates" or "quality")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("quality");
             return (merged, null);
         }
 
@@ -236,6 +260,62 @@ internal static class IdeRepl
             }
             else
                 merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "park" });
+            return (merged, null);
+        }
+
+        if (head is "deploy" or "hard_deploy" or "soft_deploy")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement(
+                head is "soft_deploy" ? "soft_deploy" : head is "hard_deploy" ? "hard_deploy" : "deploy");
+            var mode = head is "soft_deploy" ? "soft" : "hard";
+            string? target = null;
+            var dry = false;
+            for (var i = 1; i < tokens.Count; i++)
+            {
+                var t = tokens[i];
+                if (t.StartsWith("target=", StringComparison.OrdinalIgnoreCase))
+                {
+                    target = t["target=".Length..];
+                    continue;
+                }
+
+                if (t.Equals("target", StringComparison.OrdinalIgnoreCase) && i + 1 < tokens.Count)
+                {
+                    target = tokens[++i];
+                    continue;
+                }
+
+                if (t is "soft")
+                {
+                    mode = "soft";
+                    continue;
+                }
+
+                if (t is "hard")
+                {
+                    mode = "hard";
+                    continue;
+                }
+
+                if (t is "dry" or "dry_run" or "peek")
+                {
+                    dry = true;
+                    continue;
+                }
+
+                if (t is "sibling" or "self" or "release" or "debug")
+                {
+                    target ??= t;
+                    continue;
+                }
+            }
+
+            merged["go_args"] = JsonSerializer.SerializeToElement(new
+            {
+                mode,
+                target,
+                dry_run = dry ? true : (bool?)null
+            });
             return (merged, null);
         }
 
@@ -512,6 +592,10 @@ internal static class IdeRepl
                 "run",
                 "report",
                 "alert",
+                "sys",
+                "chk",
+                "nav",
+                "gates",
                 "go report",
                 "go alert",
                 "full report",
@@ -521,6 +605,8 @@ internal static class IdeRepl
                 "share",
                 "share with operator",
                 "share plan",
+                "deploy",
+                "deploy dry",
                 "confirm",
                 "reject",
                 "plan",
@@ -528,7 +614,7 @@ internal static class IdeRepl
                 "seat m git",
                 "clear",
             },
-        hint = "CCL (cmd=). Channels: sit/plan · work/editor · probe/script · report · alert. CCC=help."
+        hint = "CCL (cmd=). Channels: sit/plan · work/editor · probe/script · report · alert · sys/chk. CCC=help."
     };
 
     static object Err(string error, string hint) => new

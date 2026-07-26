@@ -344,12 +344,26 @@ List<Tool> BuildMetaTools() =>
             take = new { type = "integer", description = "Max entries (default 12)." }
         }
     }),
-    Meta("cdp_restore", "Restore Previous desk after MCP kill/reload (dual-instance comfort). Reopens last project + buffer paths from disk bookmark (%LocalAppData%/cdp-mcp/desk-previous.json). Autosaved on cdp_open / buffer open. NOT full LLM chat context. op=peek|restore (default restore). Alias cockpit go=restore.", new
+    Meta("cdp_restore", "Restore Previous desk after MCP kill/reload (dual-instance comfort). Reopens last project + buffer paths from disk bookmark (%LocalAppData%/cdp-mcp/desk-previous.json). Autosaved on cdp_open / buffer open. NOT full LLM chat context. op=peek|restore (default restore). Alias cockpit go=restore. Cold tools also auto-warm once/process.", new
     {
         type = "object",
         properties = new
         {
             op = new { type = "string", description = "restore (default) | peek" }
+        }
+    }),
+    Meta("cdp_deploy", "Dual-instance Deploy — runs publish-and-deploy.ps1. Hard defaults to sibling install (D:\\cdp-mcp ↔ D:\\cdp-mcp-debug) so KillRunning does not target self. Soft stages .next. Crystal: switch seat → go=deploy (desk auto-warms). dry_run= to preview. Alias go=deploy.", new
+    {
+        type = "object",
+        properties = new
+        {
+            mode = new { type = "string", description = "soft|hard (default hard)" },
+            target = new { type = "string", description = "sibling|self|release|debug|path (default sibling)" },
+            force = new { type = "boolean", description = "allow hard deploy onto self install (escape)" },
+            dry_run = new { type = "boolean", description = "resolve policy only — no powershell" },
+            script = new { type = "string", description = "optional path to publish-and-deploy.ps1" },
+            use_nuget = new { type = "boolean", description = "pass -UseNuGet to aid-publish" },
+            no_nudge = new { type = "boolean", description = "skip CDP_RELOAD_NUDGE bump" }
         }
     }),
     Meta("cdp_land", "Land via Family:navigation Anchor wire (ADR 0186). NOT Deep-Link/URI. Pass anchor=[Family:navigation;Command:open|goto|restore|show|go;…]. Nested Anchor:[…] reuses code/xml resolve. Alias go=land.", new
@@ -711,7 +725,7 @@ List<Tool> BuildMetaTools() =>
         type = "object",
         properties = new
         {
-            mfd = new { type = "string", description = "MFD page: nav (default) | sys | chk. Alias: page=. Also go=chk|sys|nav." },
+            mfd = new { type = "string", description = "Legacy alias: nav→desk_detail=nav; sys|chk|gates→soft organs (same as go=). Prefer go=sys|chk|gates. Alias: page=." },
             page = new { type = "string", description = "Alias of mfd." },
             locus = new { type = "string", description = "Focus locus id from loci[] (e.g. git:scm, shell:main, buffer:doc-1, browser:net)." },
             focus = new { type = "string", description = "Alias of locus." },
@@ -957,7 +971,7 @@ var options = new McpServerOptions
         "Cold ListTools = recall+kb (known memory pull; not browse). " +
         "After MCP restart: call cdp_session or cdp_context first so ListTools refreshes (pack tools). " +
         "Pack dogfood: memory_world_get_definition|get_process|get_procedure|list_pack|radius_gate_check (epistemic-scene). " +
-        "Always: cdp_cockpit (desk seats P|F|M + cmd= REPL: next[]+go=) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_restore (Restore Previous desk) / cdp_land (Family:navigation Anchor land) / cdp_mcp (MCP outlet scene/mount/call) / cdp_browser (internet lynx: scene_internet_browser) / cdp_settings (Tools→Options: go=options) / cdp_editor_scene|cdp_edit_plan / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
+        "Always: cdp_cockpit (desk seats P|F|M + cmd= REPL: next[]+go=) / cdp_session (omnibus) / cdp_context / cdp_open / cdp_restore (Restore Previous desk) / cdp_deploy (dual-instance publish; go=deploy) / cdp_land (Family:navigation Anchor land) / cdp_mcp (MCP outlet scene/mount/call) / cdp_browser (internet lynx: scene_internet_browser) / cdp_settings (Tools→Options: go=options) / cdp_editor_scene|cdp_edit_plan / cdp_buffer(op) / cdp_debug(op) / cdp_recent / cdp_build|cdp_run|cdp_test / cdp_pkg_* / cdp_work (intent scenes) / cdp_tools (palette) / cdp_health (explain_tool?). " +
         "Mutate SSOT: cdp_buffer (open|create|edit); Instant Save flush=true on edit/close (flush=false batches; close discard=true to drop). Relative path= → ProjectRoot after cdp_open. Prefer edit_op=anchor [F:;M:;K:] for csharp. Cursor host Write bypasses PathMutateGate. " +
         "Buffer plane: cdp_buffer op=open|edit|… — edit returns diagnostics in-result (almost-online while you keep the turn). " +
         "Debug plane: cdp_debug op=bp_add|launch|stop_context|… — session defaults after cdp_open; .csproj is BP key, launch resolves dll under bin/; JSON file is storage only. " +
@@ -1017,6 +1031,16 @@ async Task<string> DispatchAsync(
     IReadOnlyDictionary<string, JsonElement> callArgs,
     CancellationToken cancellationToken)
 {
+    // Sticky desk: cold tools hydrate bookmark under the hood (once/process).
+    var warm = DeskWarm.TryWarm(
+        name,
+        session,
+        docStore,
+        detectOpen: p => settings.Languages.Detect(p),
+        syncShellCwd: () => shellHabitat.SyncSessionCwd(session.ProjectRoot),
+        notifyListChanged: NotifyListChanged,
+        callArgs);
+
     if (DocumentEditPlane.IsDocTool(name))
         return await DocumentEditPlane.DispatchAsync(name, docStore, session, byDomain, callArgs, cancellationToken)
             .ConfigureAwait(false);
@@ -1031,7 +1055,9 @@ async Task<string> DispatchAsync(
 
     if (ScriptScene.IsScriptTool(name))
         return await ScriptScene.DispatchAsync(
-                docStore, session, byDomain, callArgs, DispatchMetaAsync, cancellationToken)
+                docStore, session, byDomain, callArgs,
+                (n, a, ct) => DispatchMetaAsync(n, a, ct),
+                cancellationToken)
             .ConfigureAwait(false);
 
     if (GoToAll.IsGoToTool(name))
@@ -1042,7 +1068,7 @@ async Task<string> DispatchAsync(
             .ConfigureAwait(false);
 
     if (name.StartsWith("cdp_", StringComparison.Ordinal))
-        return await DispatchMetaAsync(name, callArgs, cancellationToken).ConfigureAwait(false);
+        return await DispatchMetaAsync(name, callArgs, cancellationToken, warm).ConfigureAwait(false);
 
     if (IdeLanguageTools.IsBareVerb(name))
         return await IdeLanguageTools.DispatchBareAsync(name, session, byDomain, callArgs, cancellationToken)
@@ -1060,7 +1086,8 @@ async Task<string> DispatchAsync(
 async Task<string> DispatchMetaAsync(
     string name,
     IReadOnlyDictionary<string, JsonElement> callArgs,
-    CancellationToken cancellationToken)
+    CancellationToken cancellationToken,
+    object? warm = null)
 {
     switch (name)
     {
@@ -1142,10 +1169,10 @@ async Task<string> DispatchMetaAsync(
                 },
                 explain_tool = explain,
                 recovery_note =
-                    "After hard deploy KillRunning: Cursor owns the process — agent has no Reload button. " +
-                    "publish-and-deploy.ps1 -Mode hard auto-bumps ~/.cursor/mcp.json CDP_RELOAD_NUDGE (kj-1349) unless -NoNudgeMcp. " +
-                    "Fallback: edit nudge manually or human Reload. Soft deploy stages to <target>.next + cdp-pending-update.json. " +
-                    "Prefer cdp_health + explain_tool before guessing missing tools."
+                    "Prefer go=deploy / cdp_deploy from the survivor seat (sibling Target). " +
+                    "Hard KillRunning + CDP_RELOAD_NUDGE (kj-1349) unless -NoNudgeMcp. " +
+                    "Fallback: human Reload. Soft stages <target>.next + cdp-pending-update.json. " +
+                    "Cold tools auto-warm desk bookmark once/process. Prefer cdp_health + explain_tool before guessing."
             }, Pretty);
         }
         case "cdp_capabilities":
@@ -1301,6 +1328,8 @@ async Task<string> DispatchMetaAsync(
                 syncShellCwd: () => shellHabitat.SyncSessionCwd(session.ProjectRoot),
                 notifyListChanged: NotifyListChanged) + "\n# list_changed: shortlist refreshed after cdp_restore";
         }
+        case "cdp_deploy":
+            return IdeDeploy.Run(session, callArgs);
         case "cdp_land":
         {
             return await NavigationLand.RunAsync(
@@ -1588,43 +1617,6 @@ async Task<string> DispatchMetaAsync(
         {
             cancellationToken.ThrowIfCancellationRequested();
             EnsureWorkspaceDb(); // desk_seats + script_last_run (WitDB)
-            object? warm = null;
-            var skipRestore = false;
-            if (callArgs.TryGetValue("no_restore", out var nrEl))
-            {
-                skipRestore = nrEl.ValueKind == JsonValueKind.True
-                    || (nrEl.ValueKind == JsonValueKind.String
-                        && bool.TryParse(nrEl.GetString(), out var nrBool) && nrBool)
-                    || (nrEl.ValueKind == JsonValueKind.Number
-                        && nrEl.TryGetInt32(out var nrInt) && nrInt != 0);
-            }
-
-            // Cold desk: once per process, hydrate bookmark so banner isn't sad after remount.
-            if (!skipRestore
-                && string.IsNullOrWhiteSpace(session.ProjectRoot)
-                && DeskWarm.TryConsume()
-                && DeskBookmark.TryLoad() is not null)
-            {
-                try
-                {
-                    _ = DeskBookmark.Restore(
-                        session,
-                        docStore,
-                        detectOpen: p => settings.Languages.Detect(p),
-                        syncShellCwd: () => shellHabitat.SyncSessionCwd(session.ProjectRoot),
-                        notifyListChanged: NotifyListChanged);
-                    warm = new
-                    {
-                        ok = true,
-                        source = "desk_bookmark",
-                        note = "auto-restore on cold cockpit (once/process)"
-                    };
-                }
-                catch (Exception ex)
-                {
-                    warm = new { ok = false, source = "desk_bookmark", error = ex.Message };
-                }
-            }
 
             return await IdeCockpit.BuildAsync(
                     session,

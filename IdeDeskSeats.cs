@@ -107,6 +107,8 @@ internal static class IdeDeskSeats
         ["eicas"] = "p",
         ["quality"] = "p",
         ["gates"] = "p",
+        ["sys"] = "m",
+        ["chk"] = "m",
         ["debug_scene"] = "p",
         ["debug"] = "p",
         ["analysis_scene"] = "p",
