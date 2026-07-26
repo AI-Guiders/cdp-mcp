@@ -152,6 +152,7 @@ internal static class IdeChkChannel
             [
                 new("secrets", "memory", "No secrets/.env in commit slices", Action: "git_preflight", Required: false),
                 new("build-sa-before-ship", "memory", "Before ship: cdp_build_sa / go=build_desk (DAP lock + dirty fuse)", Action: "cdp_build_sa", Required: false),
+                new("crm-gate", "memory", "Gates via CRM codes (go=crm / approved|go_around|…) — not reject essays in chat", Action: "cdp_crm", Required: false),
                 new("scm-desk", "memory", "SCM via desk (git_scene/git_plan) — not shell archaeology", Action: "git_scene", Required: false)
             ],
             [

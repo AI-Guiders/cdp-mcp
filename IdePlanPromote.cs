@@ -214,7 +214,7 @@ internal static class IdePlanPromote
 
         sb.AppendLine();
         sb.AppendLine("---");
-        sb.AppendLine("`cmd=confirm` | `cmd=reject` — do not paste this file into chat.");
+        sb.AppendLine("`cmd=approved` | `cmd=go around` | `cmd=stabilized` | `cmd=hold` — CRM panel (not chat reject essays).");
         return sb.ToString();
     }
 

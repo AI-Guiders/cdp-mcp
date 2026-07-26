@@ -661,19 +661,85 @@ internal static class IdeRepl
             return (merged, null);
         }
 
-        if (head is "confirm" or "approved")
+        if (head is "confirm" or "approved" or "cleared")
         {
-            merged["go"] = JsonSerializer.SerializeToElement("plan");
-            merged["tm_op"] = JsonSerializer.SerializeToElement("confirm");
-            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "confirm" });
+            merged["go"] = JsonSerializer.SerializeToElement("crm");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "respond", code = "approved" });
             return (merged, null);
         }
 
-        if (head is "reject" or "denied")
+        if (head is "reject" or "denied" or "go_around" or "goaround")
         {
-            merged["go"] = JsonSerializer.SerializeToElement("plan");
-            merged["tm_op"] = JsonSerializer.SerializeToElement("reject");
-            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "reject" });
+            merged["go"] = JsonSerializer.SerializeToElement("crm");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "respond", code = "go_around" });
+            return (merged, null);
+        }
+
+        if (head is "stabilized" or "stable")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("crm");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "respond", code = "stabilized" });
+            return (merged, null);
+        }
+
+        if (head is "hold" or "standby")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("crm");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "respond", code = "hold" });
+            return (merged, null);
+        }
+
+        if (head is "unable")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("crm");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "respond", code = "unable" });
+            return (merged, null);
+        }
+
+        if (head is "negative")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("crm");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "respond", code = "negative" });
+            return (merged, null);
+        }
+
+        if (head is "say_again" or "sayagain")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("crm");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "respond", code = "say_again" });
+            return (merged, null);
+        }
+
+        if (head is "roger" or "wilco" or "continue")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("crm");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "respond", code = head });
+            return (merged, null);
+        }
+
+        // "go around" two-token
+        if (head is "go" && tokens.Count >= 2 && tokens[1] is "around")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("crm");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "respond", code = "go_around" });
+            return (merged, null);
+        }
+
+        if (head is "crm" or "callout")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("crm");
+            if (tokens.Count >= 2)
+            {
+                var sub = string.Join('_', tokens.Skip(1)).ToLowerInvariant();
+                if (sub is "scene" or "last" or "clear" or "lexicon" or "call")
+                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = sub });
+                else
+                {
+                    var code = IdeCrmChannel.NormCode(sub);
+                    if (code is not null)
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "respond", code });
+                }
+            }
             return (merged, null);
         }
 

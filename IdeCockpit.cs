@@ -106,6 +106,9 @@ internal static class IdeCockpit
         ["ship_desk"] = "build_desk",
         ["build_sa"] = "build_desk",
         ["ship_sa"] = "build_desk",
+        ["crm"] = "crm",
+        ["callout"] = "crm",
+        ["crm_panel"] = "crm",
         ["alert"] = "alert",
         ["eicas"] = "alert",
         ["sa"] = "alert",
@@ -197,6 +200,10 @@ internal static class IdeCockpit
             ["build_sa"] = (IdeBuildSaChannel.ToolName, null),
             ["ship_sa"] = (IdeBuildSaChannel.ToolName, null),
             ["cdp_build_sa"] = (IdeBuildSaChannel.ToolName, null),
+            ["crm"] = (IdeCrmChannel.ToolName, null),
+            ["callout"] = (IdeCrmChannel.ToolName, null),
+            ["crm_panel"] = (IdeCrmChannel.ToolName, null),
+            ["cdp_crm"] = (IdeCrmChannel.ToolName, null),
             ["replace_all"] = ("cdp_buffer", Dict(("op", "replace_all"))),
             ["back"] = ("cdp_buffer", Dict(("op", "back"))),
             ["forward"] = ("cdp_buffer", Dict(("op", "forward"))),
@@ -596,6 +603,18 @@ internal static class IdeCockpit
             goResult = IdeBuildSaChannel.Handle(session, args);
             if (IdeDeskSeats.IsSeatsMode())
                 IdeDeskSeats.PlaceOrgan("build_desk");
+            goVerb = null;
+        }
+
+        // Soft organ: CRM callout panel (ADR-0014) — closed codes, not chat reject essays.
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("crm", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("callout", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("crm_panel", StringComparison.OrdinalIgnoreCase)))
+        {
+            goResult = IdeCrmChannel.Handle(session, workspaceStore, workspaceState, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("crm");
             goVerb = null;
         }
 
@@ -1051,6 +1070,21 @@ internal static class IdeCockpit
                             ok = true,
                             go = "build_desk",
                             tool = IdeBuildSaChannel.ToolName,
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : board;
+                }
+                else if (planPin is "crm" or "callout" or "crm_panel")
+                {
+                    var board = IdeCrmChannel.Handle(session, workspaceStore, workspaceState, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "crm",
+                            tool = IdeCrmChannel.ToolName,
                             detail = "full",
                             truncated = false,
                             result = board

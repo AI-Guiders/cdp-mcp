@@ -84,6 +84,7 @@ internal static class IdeQrhChannel
             ["git.dirty", "phase:handoff", "intent:ship", "commit", "push"],
             ["No secrets/.env in slices", "SCM via desk — not shell status/diff/log"],
             [
+                new("cdp_crm / go=crm — Approved|Go Around|Hold (not chat reject)", "crm", "cdp_crm"),
                 new("cdp_build_sa / go=build_desk — fuse before ship", "build_desk", "cdp_build_sa"),
                 new("git_preflight — classify noise", Action: "git_preflight"),
                 new("git_plan draft→validate→apply — logical commits", Action: "git_plan"),

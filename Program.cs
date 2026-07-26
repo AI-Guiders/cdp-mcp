@@ -510,6 +510,19 @@ List<Tool> BuildMetaTools() =>
             depth = new { type = "string", description = "pulse|slim (default)|full" }
         }
     }),
+    Meta("cdp_crm", "CRM callout panel (ADR-0014). Closed codes: approved|stabilized|go_around|hold|unable|negative|say_again|continue|roger|wilco. op=scene|call|respond|last|clear|lexicon. Alias go=crm. Operator act → SSOT; agent reads pulse — no reject essays in chat.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|call|respond|last|clear|lexicon" },
+            code = new { type = "string", description = "respond: approved|stabilized|go_around|hold|…" },
+            ask = new { type = "string", description = "call: what operator should answer" },
+            kind = new { type = "string", description = "call: general|plan|…" },
+            ref_id = new { type = "string", description = "call: correlation id" },
+            why = new { type = "string", description = "respond: short code ≤80 chars, not essay" }
+        }
+    }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell.", new
     {
         type = "object",
@@ -1458,6 +1471,8 @@ async Task<string> DispatchMetaAsync(
             return IdeTestSaChannel.HandleJson(session, callArgs);
         case "cdp_build_sa":
             return IdeBuildSaChannel.HandleJson(session, callArgs);
+        case "cdp_crm":
+            return IdeCrmChannel.HandleJson(session, workspaceStore, workspaceState, callArgs);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();
