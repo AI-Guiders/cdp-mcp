@@ -42,6 +42,7 @@ internal static class IdeIgniteChannel
         IReadOnlyDictionary<string, JsonElement>? args = null,
         CancellationToken cancellationToken = default)
     {
+        IdeIgniteArmHost.EnsureStarted();
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var op = (Opt(args, "op") ?? Opt(args, "cmd") ?? "scene").Trim().ToLowerInvariant();
         var port = OptInt(args, "port") ?? DefaultPort;
@@ -56,6 +57,12 @@ internal static class IdeIgniteChannel
                     await ChatsAsync(port, cancellationToken).ConfigureAwait(false),
                 "send" or "ignite" or "fire" =>
                     await SendAsync(port, args, cancellationToken).ConfigureAwait(false),
+                "arm" or "schedule" or "wake" =>
+                    IdeIgniteArmHost.Arm(args),
+                "disarm" or "cancel" or "unarm" =>
+                    IdeIgniteArmHost.Disarm(args),
+                "list" or "arms" or "alarms" =>
+                    IdeIgniteArmHost.List(),
                 _ => await ProbeAsync(port, cancellationToken).ConfigureAwait(false)
             };
         }
@@ -90,6 +97,7 @@ internal static class IdeIgniteChannel
         }
 
         var kind = AriaKind(state?.SubmitAria);
+        var arms = IdeIgniteArmHost.SceneSlice();
         return new
         {
             schema = Schema,
@@ -104,11 +112,12 @@ internal static class IdeIgniteChannel
             page_title = pageTitle,
             submit_kind = kind,
             state,
+            arms,
             version,
             pages,
             error,
             hint = error is null
-                ? "op=send message=… [chat=title][port=9222]. Idle=Voice; type→Send; never click Voice/Stop."
+                ? "op=send|arm when=build_finished|timer in=5m message=… [task=…]. Idle=Voice; never click Voice/Stop."
                 : "Start Cursor via tools/Start-Cursor-WithCdt.ps1 (remote-debugging-port + allow-origins)."
         };
     }
@@ -143,7 +152,18 @@ internal static class IdeIgniteChannel
 
         var chat = Opt(args, "chat") ?? Opt(args, "title") ?? Opt(args, "agent");
         var waitSec = OptInt(args, "wait_seconds") ?? OptInt(args, "timeout") ?? 90;
+        return await FireAsync(port, message!, chat, waitSec, ct).ConfigureAwait(false);
+    }
 
+    /// <summary>CDT inject used by send= and by ARM host after event/timer.</summary>
+    public static async Task<object> FireAsync(
+        int port,
+        string message,
+        string? chat,
+        int waitSec,
+        CancellationToken ct)
+    {
+        waitSec = Math.Clamp(waitSec, 5, 600);
         await using var session = await CdtSession.ConnectPageAsync(port, ct).ConfigureAwait(false);
 
         if (!string.IsNullOrWhiteSpace(chat))

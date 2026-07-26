@@ -102,18 +102,30 @@ internal static class IdeSessionLifecycle
             throw new ArgumentException(err);
 
         var lang = ResolveLanguage(session);
-        if (LooksTypescript(target, lang))
-            return await TypescriptBuildAsync(target, session.ProjectRoot, args, ct).ConfigureAwait(false);
-
-        if (LooksCsharp(target, lang))
+        string result;
+        try
         {
-            if (buildMod is null)
-                throw new InvalidOperationException("build backend not mounted.");
-            var buildArgs = WithSolution(args, target);
-            return await buildMod.CallAsync("build_structured", buildArgs).ConfigureAwait(false);
+            if (LooksTypescript(target, lang))
+                result = await TypescriptBuildAsync(target, session.ProjectRoot, args, ct).ConfigureAwait(false);
+            else if (LooksCsharp(target, lang))
+            {
+                if (buildMod is null)
+                    throw new InvalidOperationException("build backend not mounted.");
+                var buildArgs = WithSolution(args, target);
+                result = await buildMod.CallAsync("build_structured", buildArgs).ConfigureAwait(false);
+            }
+            else
+                result = Fail("cdp.build", $"No build projection for language '{lang}'. Open csharp/ts project via cdp_open.", target);
+        }
+        catch (Exception ex)
+        {
+            IdeIgniteArmHost.Notify("build_finished", ok: false, pulse: "exception", detail: ex.Message);
+            throw;
         }
 
-        return Fail("cdp.build", $"No build projection for language '{lang}'. Open csharp/ts project via cdp_open.", target);
+        var ok = LooksLifecycleOk(result);
+        IdeIgniteArmHost.Notify("build_finished", ok, pulse: ok ? "ok" : "fail", detail: target);
+        return result;
     }
 
     public static async Task<string> TestAsync(
@@ -126,19 +138,31 @@ internal static class IdeSessionLifecycle
             throw new ArgumentException(err);
 
         var lang = ResolveLanguage(session);
-        if (LooksTypescript(target, lang))
-            return await TypescriptNpmScriptAsync("test", "cdp.test", target, session.ProjectRoot, args, ct)
-                .ConfigureAwait(false);
-
-        if (LooksCsharp(target, lang))
+        string result;
+        try
         {
-            if (buildMod is null)
-                throw new InvalidOperationException("build backend not mounted.");
-            var testArgs = WithSolution(args, target);
-            return await buildMod.CallAsync("run_tests", testArgs).ConfigureAwait(false);
+            if (LooksTypescript(target, lang))
+                result = await TypescriptNpmScriptAsync("test", "cdp.test", target, session.ProjectRoot, args, ct)
+                    .ConfigureAwait(false);
+            else if (LooksCsharp(target, lang))
+            {
+                if (buildMod is null)
+                    throw new InvalidOperationException("build backend not mounted.");
+                var testArgs = WithSolution(args, target);
+                result = await buildMod.CallAsync("run_tests", testArgs).ConfigureAwait(false);
+            }
+            else
+                result = Fail("cdp.test", $"No test projection for language '{lang}'.", target);
+        }
+        catch (Exception ex)
+        {
+            IdeIgniteArmHost.Notify("test_finished", ok: false, pulse: "exception", detail: ex.Message);
+            throw;
         }
 
-        return Fail("cdp.test", $"No test projection for language '{lang}'.", target);
+        var ok = LooksLifecycleOk(result);
+        IdeIgniteArmHost.Notify("test_finished", ok, pulse: ok ? "ok" : "fail", detail: target);
+        return result;
     }
 
     public static async Task<string> TestSceneAsync(
@@ -482,6 +506,29 @@ internal static class IdeSessionLifecycle
             stderr = Trim(stderr.ToString()),
             extra
         });
+    }
+
+    private static bool LooksLifecycleOk(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("ok", out var ok))
+                return ok.ValueKind == JsonValueKind.True;
+            if (root.TryGetProperty("success", out var success))
+                return success.ValueKind == JsonValueKind.True;
+            if (root.TryGetProperty("exit_code", out var code) && code.TryGetInt32(out var n))
+                return n == 0;
+            // build_structured pulse often has error_count
+            if (root.TryGetProperty("error_count", out var ec) && ec.TryGetInt32(out var errors))
+                return errors == 0;
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static string Fail(string kind, string error, string? path) =>

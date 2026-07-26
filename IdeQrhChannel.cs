@@ -245,13 +245,14 @@ internal static class IdeQrhChannel
             "autoignite-cdt",
             "abnormal",
             "Need overnight Composer turn without operator",
-            "AutoIgnition: inject user message into open Cursor chat via Chrome DevTools (CDT port 9222), not MCP sampling and not UIA. Requires Cursor launched with remote-debugging-port. Never click Voice/Stop — wait idle then Send.",
-            ["ignite", "autoignite", "cdt", "composer", "overnight", "inject", "cdp_ignite"],
-            ["cdp_ignite / go=ignite_desk op=scene first", "op=send message=… only when submit_kind≠stop", "Start via tools/Start-Cursor-WithCdt.ps1 if cdt down"],
+            "AutoIgnition: inject user message into open Cursor chat via Chrome DevTools (CDT port 9222). Prefer ARM in harness — op=arm when=build_finished|timer — not shell loops / UIA. Never click Voice/Stop.",
+            ["ignite", "autoignite", "cdt", "composer", "overnight", "inject", "cdp_ignite", "arm", "build_finished"],
+            ["cdp_ignite op=arm when=… message=/task=", "Kick cdp_build then end turn — harness fires", "No Cursor Shell watchers for wake"],
             [
-                new("cdp_ignite / go=ignite_desk — scene|probe|chats|send", "ignite_desk", "cdp_ignite"),
-                new("op=send message= [chat=title][port=9222]", Action: "cdp_ignite"),
-                new("tools/Start-Cursor-WithCdt.ps1 — CDT :9222", Action: null)
+                new("cdp_ignite op=arm when=build_finished task=", "ignite_desk", "cdp_ignite"),
+                new("cdp_ignite op=arm when=timer in=5m message=", Action: "cdp_ignite"),
+                new("cdp_ignite op=list|disarm — inspect/cancel", Action: "cdp_ignite"),
+                new("tools/Start-Cursor-WithCdt.ps1 — CDT :9222")
             ],
             ["tool-result-tax", "scm-via-desk"],
             [],

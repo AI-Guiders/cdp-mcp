@@ -540,14 +540,22 @@ List<Tool> BuildMetaTools() =>
             hidden = new { type = "boolean", description = "include hidden entries" }
         }
     }),
-    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor launched with --remote-debugging-port=9222. op=scene|probe|chats|send. send: message= + optional chat=title. Voice→Send state machine. Alias go=ignite_desk.", new
+    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list. ARM: when=build_finished|test_finished|timer in=5m message=/task= — harness waits & injects (no shell loops). Alias go=ignite_desk.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|probe|chats|send" },
-            message = new { type = "string", description = "send: user message to inject" },
-            chat = new { type = "string", description = "optional chat title substring (e.g. CCR script report desk)" },
+            op = new { type = "string", description = "scene|probe|chats|send|arm|disarm|list" },
+            message = new { type = "string", description = "send/arm: user message (templates {event}{task}{ok}{pulse})" },
+            task = new { type = "string", description = "arm: next-task label; default message uses {task}" },
+            when = new { type = "string", description = "arm: build_finished|test_finished|timer" },
+            @event = new { type = "string", description = "alias of when=" },
+            @in = new { type = "string", description = "arm timer: 30s|5m|2h" },
+            chat = new { type = "string", description = "optional chat title substring" },
+            id = new { type = "string", description = "disarm id= / arm custom id" },
+            all = new { type = "boolean", description = "disarm all=true" },
+            ok_only = new { type = "boolean", description = "arm: fire only on green build/test (default true)" },
+            settle_seconds = new { type = "integer", description = "arm: delay before CDT send after event (default 8)" },
             port = new { type = "integer", description = "CDT port (default 9222)" },
             wait_seconds = new { type = "integer", description = "max wait for idle (not Stop/Queue), default 90" }
         }

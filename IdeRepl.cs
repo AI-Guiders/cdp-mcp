@@ -778,16 +778,115 @@ internal static class IdeRepl
             if (tokens.Count >= 2)
             {
                 var sub = tokens[1].ToLowerInvariant();
-                if (sub is "scene" or "probe" or "chats" or "send" or "fire")
+                if (sub is "scene" or "probe" or "chats" or "list" or "arms" or "disarm")
                 {
-                    if ((sub is "send" or "fire") && tokens.Count >= 3)
-                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "send", message = string.Join(' ', tokens.Skip(2)) });
+                    if (sub is "disarm" && tokens.Count >= 3)
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "disarm", id = tokens[2] });
+                    else if (sub is "arms")
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "list" });
                     else
-                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op = sub is "fire" ? "send" : sub });
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op = sub });
+                }
+                else if (sub is "arm" or "send" or "fire")
+                {
+                    var rest = string.Join(' ', tokens.Skip(2));
+                    if (sub is "arm")
+                    {
+                        // arm build_finished … | arm 5m … | arm timer 5m …
+                        var when = "timer";
+                        var inRaw = (string?)null;
+                        var msgStart = 2;
+                        if (tokens.Count >= 3)
+                        {
+                            var t2 = tokens[2].ToLowerInvariant();
+                            if (t2 is "build" or "build_finished" or "test" or "test_finished" or "timer")
+                            {
+                                when = IdeIgniteArmHost.NormalizeEvent(t2);
+                                msgStart = 3;
+                                if (when == "timer" && tokens.Count >= 4
+                                    && IdeIgniteArmHost.TryParseDuration(tokens[3], out _))
+                                {
+                                    inRaw = tokens[3];
+                                    msgStart = 4;
+                                }
+                            }
+                            else if (IdeIgniteArmHost.TryParseDuration(t2, out _))
+                            {
+                                when = "timer";
+                                inRaw = t2;
+                                msgStart = 3;
+                            }
+                        }
+
+                        var body = string.Join(' ', tokens.Skip(msgStart));
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new
+                        {
+                            op = "arm",
+                            when,
+                            @in = inRaw,
+                            message = string.IsNullOrWhiteSpace(body) ? null : body,
+                            task = string.IsNullOrWhiteSpace(body) ? null : body
+                        });
+                    }
+                    else if (!string.IsNullOrWhiteSpace(rest))
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "send", message = rest });
+                    else
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "send" });
                 }
                 else
                     merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "send", message = string.Join(' ', tokens.Skip(1)) });
             }
+            return (merged, null);
+        }
+
+        if (head is "arm")
+        {
+            // shorthand: arm 5m do X | arm build_finished do X
+            merged["go"] = JsonSerializer.SerializeToElement("ignite_desk");
+            var when = "timer";
+            var inRaw = (string?)null;
+            var msgStart = 1;
+            if (tokens.Count >= 2)
+            {
+                var t1 = tokens[1].ToLowerInvariant();
+                if (t1 is "build" or "build_finished" or "test" or "test_finished" or "timer")
+                {
+                    when = IdeIgniteArmHost.NormalizeEvent(t1);
+                    msgStart = 2;
+                    if (when == "timer" && tokens.Count >= 3 && IdeIgniteArmHost.TryParseDuration(tokens[2], out _))
+                    {
+                        inRaw = tokens[2];
+                        msgStart = 3;
+                    }
+                }
+                else if (IdeIgniteArmHost.TryParseDuration(t1, out _))
+                {
+                    inRaw = t1;
+                    msgStart = 2;
+                }
+            }
+
+            var body = string.Join(' ', tokens.Skip(msgStart));
+            merged["go_args"] = JsonSerializer.SerializeToElement(new
+            {
+                op = "arm",
+                when,
+                @in = inRaw,
+                message = string.IsNullOrWhiteSpace(body) ? null : body,
+                task = string.IsNullOrWhiteSpace(body) ? null : body
+            });
+            return (merged, null);
+        }
+
+        if (head is "disarm")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("ignite_desk");
+            if (tokens.Count >= 2 && tokens[1].Equals("all", StringComparison.OrdinalIgnoreCase))
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "disarm", all = true });
+            else if (tokens.Count >= 2)
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "disarm", id = tokens[1] });
+            else
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "list" });
             return (merged, null);
         }
 
