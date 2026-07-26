@@ -39,7 +39,9 @@ internal static class IdeAlertChannel
         int ShellFailed = 0,
         bool GitDirty = false,
         Sit? Sit = null,
-        string? StagePhaseMismatch = null);
+        string? StagePhaseMismatch = null,
+        int ChkOpenRequired = 0,
+        string? ChkPulse = null);
 
     public sealed record Snap(
         Level Level,
@@ -137,6 +139,15 @@ internal static class IdeAlertChannel
             lines.Add($"{Mark()}{mismatch}");
         }
 
+        if (i.ChkOpenRequired > 0)
+        {
+            Raise(Level.Warn);
+            var chkLine = i.ChkPulse is { Length: > 0 } p
+                ? p
+                : $"ecl open×{i.ChkOpenRequired}";
+            lines.Add($"{Mark()}{chkLine}");
+        }
+
         if (i.Sit?.SeatNote is { Length: > 0 } note)
             lines.Add($"·{note}");
 
@@ -202,6 +213,8 @@ internal static class IdeAlertChannel
             return "sa WARN · git dirty";
         if (i.StagePhaseMismatch is { Length: > 0 })
             return "sa WARN · phase mismatch";
+        if (i.ChkOpenRequired > 0)
+            return i.ChkPulse is { Length: > 0 } p ? $"sa WARN · {p}" : $"sa WARN · ecl×{i.ChkOpenRequired}";
         return "sa WARN";
     }
 
@@ -333,5 +346,5 @@ internal static class IdeAlertChannel
         pin is "browser" or "scene_internet_browser" or "internet_browser";
 
     static bool IsShellOrGitOrTest(string? pin) =>
-        pin is "shell_scene" or "shell" or "git_scene" or "git" or "test_scene" or "test" or "chk";
+        pin is "shell_scene" or "shell" or "git_scene" or "git" or "test_scene" or "test" or "ecl" or "chk";
 }

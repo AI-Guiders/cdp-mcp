@@ -5,14 +5,17 @@ namespace CdpMcp.Tests;
 public sealed class IdeMfdSeatsFoldTests
 {
     [Fact]
-    public void Schema_is_cockpit_v1_18()
+    public void Schema_is_cockpit_v1_19()
     {
-        Assert.Equal("cockpit/v1.18", IdeCockpit.SchemaVersion);
+        Assert.Equal("cockpit/v1.19", IdeCockpit.SchemaVersion);
     }
 
     [Theory]
     [InlineData("sys", "m")]
     [InlineData("chk", "m")]
+    [InlineData("ecl", "m")]
+    [InlineData("qrh", "m")]
+    [InlineData("eqrh", "m")]
     [InlineData("gates", "p")]
     [InlineData("quality", "p")]
     [InlineData("problems", "p")]
@@ -25,7 +28,10 @@ public sealed class IdeMfdSeatsFoldTests
 
     [Theory]
     [InlineData("sys", "sys")]
-    [InlineData("chk", "chk")]
+    [InlineData("chk", "ecl")]
+    [InlineData("ecl", "ecl")]
+    [InlineData("qrh", "qrh")]
+    [InlineData("eqrh", "qrh")]
     [InlineData("gates", "gates")]
     [InlineData("problems", "problems")]
     [InlineData("err", "problems")]
@@ -47,13 +53,56 @@ public sealed class IdeMfdSeatsFoldTests
     }
 
     [Fact]
-    public void Ccl_bare_chk_sets_go()
+    public void Ccl_bare_chk_sets_go_ecl()
     {
         var applied = IdeRepl.Apply("chk", new Dictionary<string, System.Text.Json.JsonElement>());
         Assert.NotNull(applied);
         Assert.Null(applied!.Value.Direct);
         Assert.True(applied.Value.Args.TryGetValue("go", out var go));
-        Assert.Equal("chk", go.GetString());
+        Assert.Equal("ecl", go.GetString());
+    }
+
+    [Fact]
+    public void Ccl_bare_ecl_sets_go()
+    {
+        var applied = IdeRepl.Apply("ecl", new Dictionary<string, System.Text.Json.JsonElement>());
+        Assert.NotNull(applied);
+        Assert.Null(applied!.Value.Direct);
+        Assert.True(applied.Value.Args.TryGetValue("go", out var go));
+        Assert.Equal("ecl", go.GetString());
+    }
+
+    [Fact]
+    public void Ccl_bare_qrh_sets_go()
+    {
+        var applied = IdeRepl.Apply("qrh", new Dictionary<string, System.Text.Json.JsonElement>());
+        Assert.NotNull(applied);
+        Assert.Null(applied!.Value.Direct);
+        Assert.True(applied.Value.Args.TryGetValue("go", out var go));
+        Assert.Equal("qrh", go.GetString());
+    }
+
+    [Fact]
+    public void Ccl_qrh_open_sets_args()
+    {
+        var applied = IdeRepl.Apply("qrh open dap-pdb-lock", new Dictionary<string, System.Text.Json.JsonElement>());
+        Assert.NotNull(applied);
+        Assert.Null(applied!.Value.Direct);
+        Assert.True(applied.Value.Args.TryGetValue("go", out var go));
+        Assert.Equal("qrh", go.GetString());
+        Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
+        Assert.Equal("open", ga.GetProperty("op").GetString());
+        Assert.Equal("dap-pdb-lock", ga.GetProperty("id").GetString());
+    }
+
+    [Fact]
+    public void Ccl_eqrh_alias_sets_go_qrh()
+    {
+        var applied = IdeRepl.Apply("eqrh", new Dictionary<string, System.Text.Json.JsonElement>());
+        Assert.NotNull(applied);
+        Assert.Null(applied!.Value.Direct);
+        Assert.True(applied.Value.Args.TryGetValue("go", out var go));
+        Assert.Equal("qrh", go.GetString());
     }
 
     [Fact]

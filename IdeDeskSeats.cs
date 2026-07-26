@@ -78,7 +78,7 @@ internal static class IdeDeskSeats
             },
             ["verify"] = new(StringComparer.OrdinalIgnoreCase)
             {
-                ["p"] = "chk",
+                ["p"] = "ecl",
                 ["forward"] = "editor_scene",
                 ["m"] = "shell_scene",
             },
@@ -142,7 +142,11 @@ internal static class IdeDeskSeats
         ["plugin"] = "p",
         ["vsix"] = "p",
         ["sys"] = "m",
+        ["ecl"] = "m",
         ["chk"] = "m",
+        ["qrh"] = "m",
+        ["eqrh"] = "m",
+        ["handbook"] = "m",
         ["debug_scene"] = "p",
         ["debug"] = "p",
         ["analysis_scene"] = "p",

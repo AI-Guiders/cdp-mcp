@@ -502,7 +502,7 @@ internal sealed class IdeSettingsHabitat
                 "user", true, true, false,
                 "When true, cdp_context phase= does not retune seats (escape). Explicit layout= still works.", "false", null),
             new("desk.default_mfd", "desk", "desk", "Default MFD (deprecated)", "enum",
-                ["nav", "sys", "chk", "gates"],
+                ["nav", "sys", "chk", "ecl", "gates"],
                 "user", true, true, false,
                 "Deprecated in seats: use go=sys|chk|gates or desk_detail=nav. Kept for tiles/legacy.", "nav", null),
             new("desk.seat.p", "desk", "desk", "Default P seat organ", "string", null,

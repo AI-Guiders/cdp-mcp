@@ -93,6 +93,11 @@ internal static class IdeCockpit
         ["alert"] = "alert",
         ["eicas"] = "alert",
         ["sa"] = "alert",
+        ["ecl"] = "ecl",
+        ["chk"] = "ecl",
+        ["qrh"] = "qrh",
+        ["eqrh"] = "qrh",
+        ["handbook"] = "qrh",
         ["problems"] = "problems",
         ["problem"] = "problems",
         ["errlist"] = "problems",
@@ -110,7 +115,7 @@ internal static class IdeCockpit
     static readonly JsonSerializerOptions Compact = new() { WriteIndented = false };
     static readonly HashSet<string> MfdPages = new(StringComparer.OrdinalIgnoreCase)
     {
-        "nav", "sys", "chk", "gates"
+        "nav", "sys", "chk", "ecl", "qrh", "gates"
     };
 
     /// <summary>Allowlist desk verbs → organ tools. Cockpit stays a пульт, not the organ.</summary>
@@ -421,7 +426,7 @@ internal static class IdeCockpit
         }
         else if (goVerb is null
                  && mfdExplicit is not null
-                 && mfd is "sys" or "chk" or "gates")
+                 && mfd is "sys" or "chk" or "ecl" or "gates")
         {
             // bare mfd=/page= (explicit) → same as go=
             goVerb = mfd;
@@ -502,8 +507,16 @@ internal static class IdeCockpit
             goVerb = null;
 
         var wantChk = goVerb is { Length: > 0 }
-            && goVerb.Equals("chk", StringComparison.OrdinalIgnoreCase);
+            && (goVerb.Equals("chk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("ecl", StringComparison.OrdinalIgnoreCase));
         if (wantChk)
+            goVerb = null;
+
+        var wantQrh = goVerb is { Length: > 0 }
+            && (goVerb.Equals("qrh", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("eqrh", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("handbook", StringComparison.OrdinalIgnoreCase));
+        if (wantQrh)
             goVerb = null;
 
         var wantAlert = goVerb is { Length: > 0 }
@@ -629,6 +642,15 @@ internal static class IdeCockpit
         var work = CollectWork(workspaceStore, workspaceState, session);
         var quality = QualityGates.Snap(docStore, session.ProjectRoot);
         var problems = IdeProblemsChannel.Build(docStore, session);
+        var gitKnown = git is not null;
+        var gitDirty = GitIsDirty(git);
+        var testsGreen = test is { Available: true, LastRun: not null, Success: true };
+        var testsFailed = test is { Available: true, LastRun: not null, Success: false };
+        var sniperOk = !quality.SuggestSniper || EditSniper.HasHold;
+        var chkCtx = IdeChkChannel.CtxFrom(
+            session, gitKnown, gitDirty, testsGreen, testsFailed,
+            problems.Errors == 0, debug.Stopped, debug.ActiveDap, sniperOk);
+        var chkSnap = IdeChkChannel.Build(chkCtx);
 
         // Soft organs that own a seat: place BEFORE SA fuse so same-turn map matches desk.
         // Alert/sa is root EICAS (PulseCard) — do not PlaceOrgan (steals P, frame skew).
@@ -655,20 +677,27 @@ internal static class IdeCockpit
 
         if (wantChk)
         {
-            goResult = BuildChkOrgan(session, git, buffer, debug, test);
+            goResult = IdeChkChannel.Handle(chkCtx, args);
             if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("chk");
+                IdeDeskSeats.PlaceOrgan("ecl");
+        }
+
+        if (wantQrh)
+        {
+            goResult = IdeQrhChannel.Handle(chkCtx, args, chkSnap);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("qrh");
         }
 
         var alertInputs = BuildAlertInputs(
-            session, quality, buffer, debug, shell, git, problems, work, workspaceStore, workspaceState);
+            session, quality, buffer, debug, shell, git, problems, work, workspaceStore, workspaceState, chkSnap);
         var alertSnap = IdeAlertChannel.Build(alertInputs);
 
         if (wantAlert)
             goResult = IdeAlertChannel.Handle(alertInputs, args);
 
         var loci = BuildLoci(session, git, shell, browser, settingsPulse, buffer, debug, test, work, quality);
-        var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId, quality, alertSnap);
+        var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId, quality, alertSnap, chkSnap, chkCtx);
 
         // Sniper locus appears when a corridor is held (desk pulse, not organ dump).
         if (EditSniper.HasHold)
@@ -704,7 +733,7 @@ internal static class IdeCockpit
         // No parallel MFD root page — soft organs carry sys/chk/gates.
 
         var goVerbs = GoMap.Keys
-            .Concat(["quality", "gates", "sys", "chk", "nav", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas", "sa", "problems", "problem", "errlist", "errorlist", "err", "diags", "plugins", "plugin", "vsix"])
+            .Concat(["quality", "gates", "sys", "chk", "ecl", "qrh", "eqrh", "nav", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas", "sa", "problems", "problem", "errlist", "errorlist", "err", "diags", "plugins", "plugin", "vsix"])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -907,11 +936,18 @@ internal static class IdeCockpit
                         ? new { ok = true, go = "sys", tool = "sys_organ", detail = "full", truncated = false, result = board }
                         : board;
                 }
-                else if (planPin is "chk")
+                else if (planPin is "ecl")
                 {
-                    var board = BuildChkOrgan(session, git, buffer, debug, test);
+                    var board = IdeChkChannel.Handle(chkCtx, tileArgs);
                     pane = wantFull
-                        ? new { ok = true, go = "chk", tool = "chk_organ", detail = "full", truncated = false, result = board }
+                        ? new { ok = true, go = "ecl", tool = "ecl_organ", detail = "full", truncated = false, result = board }
+                        : board;
+                }
+                else if (planPin is "qrh")
+                {
+                    var board = IdeQrhChannel.Handle(chkCtx, tileArgs, chkSnap);
+                    pane = wantFull
+                        ? new { ok = true, go = "qrh", tool = "qrh_organ", detail = "full", truncated = false, result = board }
                         : board;
                 }
                 else if (!wantFull && IdeWorldChannel.IsWorldOrgan(planPin))
@@ -1314,7 +1350,7 @@ internal static class IdeCockpit
             or "debug_scene" or "test_scene" or "mcp_scene" or "settings" or "project_scene"
             or "plan" or "work" or "report" or "evidence" or "pfd" or "alert" or "eicas" or "sa"
             or "problems" or "plugins"
-            or "correspondence" or "quality" or "gates" or "sys" or "chk" or "analysis_scene"
+            or "correspondence" or "quality" or "gates" or "sys" or "chk" or "ecl" or "analysis_scene"
             or "script_scene" or "semantic_map";
     }
 
@@ -1558,7 +1594,9 @@ internal static class IdeCockpit
         WorkSnap work,
         string? focusId,
         QualityGates.QualitySnap quality,
-        IdeAlertChannel.Snap alert)
+        IdeAlertChannel.Snap alert,
+        IdeChkChannel.Snap? chk = null,
+        IdeChkChannel.ProbeCtx? chkCtx = null)
     {
         var list = new List<object>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -1585,6 +1623,14 @@ internal static class IdeCockpit
         // EICAS/SA: surface alert before comfort next when something beeps.
         if (alert.Level != IdeAlertChannel.Level.Clear)
             Add("n-alert", "alert", "SA board", alert.Pulse);
+        if (chk is { OpenRequired: > 0 })
+            Add("n-ecl", "ecl", "ECL", chk.Pulse);
+        if (chkCtx is { } qCtx)
+        {
+            var qSuggest = IdeQrhChannel.SuggestFor(qCtx, chk);
+            if (qSuggest.HotId is { Length: > 0 })
+                Add("n-qrh", "qrh", "eQRH", qSuggest.Pulse);
+        }
         if (alert.Sit?.LayoutHint is { Length: > 0 } layoutHint)
             Add("n-layout", "layout", $"Layout {layoutHint}",
                 $"cmd=\"layout {layoutHint}\" — {alert.Sit.SeatNote ?? layoutHint}");
@@ -1686,7 +1732,8 @@ internal static class IdeCockpit
         else
             Add("n-plan", "plan", "Task Manager", "no plan — feature <name>");
 
-        Add("n-chk", "chk", "Checklists", "go=chk");
+        if (chk is null || chk.OpenRequired == 0)
+            Add("n-ecl", "ecl", "ECL", "go=ecl");
         return list.ToArray();
     }
 
@@ -1710,7 +1757,8 @@ internal static class IdeCockpit
         IdeProblemsChannel.Snap problems,
         WorkSnap work,
         IntentWorkspaceStore? workspaceStore,
-        IntentWorkspaceState workspaceState)
+        IntentWorkspaceState workspaceState,
+        IdeChkChannel.Snap? chk = null)
     {
         var seats = IdeDeskSeats.IsSeatsMode()
             ? IdeDeskSeats.Snapshot()
@@ -1748,7 +1796,9 @@ internal static class IdeCockpit
             shell.Failed,
             GitIsDirty(git),
             sit,
-            stageMismatch);
+            stageMismatch,
+            chk?.OpenRequired ?? 0,
+            chk?.Pulse);
     }
 
     static string? ResolveLocusLine(BufferSnap buffer, string? projectRoot)
@@ -1806,92 +1856,6 @@ internal static class IdeCockpit
             hint = "Soft organ (legacy mfd=sys). Slim status already in view.banner/board."
         };
     }
-
-    static object BuildChkOrgan(
-        SessionContext session,
-        JsonElement? gitRoot,
-        BufferSnap buffer,
-        DebugSnap debug,
-        TestSnap test)
-    {
-        var hasProject = !string.IsNullOrWhiteSpace(session.ProjectRoot);
-        var gitDirty = GitIsDirty(gitRoot);
-        var testOk = test is { Available: true, LastRun: not null, Success: true };
-        var testFail = test is { Available: true, LastRun: not null, Success: false };
-
-        var lists = new object[]
-        {
-            new
-            {
-                id = "habitat",
-                title = "Stay in agent IDE",
-                items = new object[]
-                {
-                    Item("cdp_open / cockpit before thrash", hasProject),
-                    Item("prefer go=editor → go=edit_draft for multi-step", true),
-                    Item("prefer cdp_buffer over Cursor Write", buffer.DirtyCount == 0 || hasProject),
-                    Item("cdp_shell_* primary; terminal_* escape only", true),
-                    Item("sticky warm: cold tools restore desk once/process", true)
-                }
-            },
-            new
-            {
-                id = "ship",
-                title = "Ship loop",
-                items = new object[]
-                {
-                    Item("tests green (or failed_first plan)", testOk || (!testFail && hasProject)),
-                    Item("git dirty understood (scene/plan)", gitRoot is not null),
-                    Item("logical commits (git_plan slices)", !gitDirty || gitRoot is not null),
-                    Item("push when asked", true)
-                }
-            },
-            new
-            {
-                id = "deploy",
-                title = "Hard deploy",
-                items = new object[]
-                {
-                    Item("go=deploy from survivor seat (sibling Target)", true),
-                    Item("cdp_health version check", true),
-                    Item("view/seats reorient after remount", hasProject)
-                }
-            },
-            new
-            {
-                id = "debug",
-                title = "Debug stop",
-                items = new object[]
-                {
-                    Item("stop_context before guess", !debug.Stopped || debug.ActiveDap),
-                    Item("debug_stop before rebuild", true)
-                }
-            }
-        };
-
-        var done = 0;
-        var total = 0;
-        // Rough pulse from known bools above (not re-walking lists).
-        total = 14;
-        done = (hasProject ? 1 : 0) + 3 + (testOk || (!testFail && hasProject) ? 1 : 0)
-               + (gitRoot is not null ? 1 : 0) + (!gitDirty || gitRoot is not null ? 1 : 0) + 1
-               + 2 + (hasProject ? 1 : 0)
-               + (!debug.Stopped || debug.ActiveDap ? 1 : 0) + 1;
-
-        return new
-        {
-            ok = true,
-            go = "chk",
-            schema = "chk_organ/v0",
-            pulse = $"chk · {done}/{total}",
-            title = "CHK",
-            note = "Living checklists as soft organ — mark via work, not export ritual.",
-            lists,
-            hint = "Soft organ (legacy mfd=chk). Place on seat via go=chk."
-        };
-    }
-
-    static object Item(string text, bool done) => new { text, done };
 
     static IReadOnlyDictionary<string, JsonElement> WithStringArg(
         IReadOnlyDictionary<string, JsonElement> args,
@@ -2082,12 +2046,12 @@ internal static class IdeCockpit
             work));
 
         list.Add(new Locus(
-            "mfd:chk",
+            "mfd:ecl",
             "mfd",
-            "checklists (ship/deploy/habitat)",
-            "go=chk",
-            "chk",
-            new { switch_to = "chk" }));
+            "ECL (electronic checklist)",
+            "go=ecl",
+            "ecl",
+            new { switch_to = "ecl" }));
 
         if (quality.Enabled)
         {
