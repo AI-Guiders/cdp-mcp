@@ -108,6 +108,7 @@ internal static class IdeChkChannel
             [
                 new("buffer", "memory", "Mutate via cdp_buffer — not Cursor Write", Action: "cdp_buffer", Required: false),
                 new("find-desk", "memory", "Search via desk (cdp_search / buffer find / index) — not shell rg", Action: "cdp_search", Required: false),
+                new("sa-before-refactor", "memory", "Before structural extract/split: cdp_sa / go=sa_desk (not EICAS go=sa)", Action: "cdp_sa", Required: false),
                 new("dap-rebuild", "memory", "debug_stop before rebuild if DAP holds PDB", Action: "cdp_debug", Probe: "dap.not_stopped", Required: false)
             ],
             [

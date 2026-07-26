@@ -93,6 +93,10 @@ internal static class IdeCockpit
         ["find_desk"] = "find_desk",
         ["search_desk"] = "find_desk",
         ["code_search"] = "find_desk",
+        ["sa_desk"] = "sa_desk",
+        ["code_sa"] = "sa_desk",
+        ["pre_sa"] = "sa_desk",
+        ["sa_code"] = "sa_desk",
         ["alert"] = "alert",
         ["eicas"] = "alert",
         ["sa"] = "alert",
@@ -167,6 +171,11 @@ internal static class IdeCockpit
             ["search_desk"] = (IdeFindChannel.ToolName, null),
             ["code_search"] = (IdeFindChannel.ToolName, null),
             ["cdp_search"] = (IdeFindChannel.ToolName, null),
+            ["sa_desk"] = (IdeSaChannel.ToolName, null),
+            ["code_sa"] = (IdeSaChannel.ToolName, null),
+            ["pre_sa"] = (IdeSaChannel.ToolName, null),
+            ["sa_code"] = (IdeSaChannel.ToolName, null),
+            ["cdp_sa"] = (IdeSaChannel.ToolName, null),
             ["replace_all"] = ("cdp_buffer", Dict(("op", "replace_all"))),
             ["back"] = ("cdp_buffer", Dict(("op", "back"))),
             ["forward"] = ("cdp_buffer", Dict(("op", "forward"))),
@@ -517,6 +526,19 @@ internal static class IdeCockpit
             goResult = IdeFindChannel.Handle(docStore, session, args);
             if (IdeDeskSeats.IsSeatsMode())
                 IdeDeskSeats.PlaceOrgan("find_desk");
+            goVerb = null;
+        }
+
+        // Soft organ: agent-native code SA (ADR-0010) — not EICAS go=sa.
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("sa_desk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("code_sa", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("pre_sa", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("sa_code", StringComparison.OrdinalIgnoreCase)))
+        {
+            goResult = IdeSaChannel.Handle(docStore, session, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("sa_desk");
             goVerb = null;
         }
 
@@ -912,6 +934,21 @@ internal static class IdeCockpit
                             ok = true,
                             go = "find_desk",
                             tool = IdeFindChannel.ToolName,
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : board;
+                }
+                else if (planPin is "sa_desk" or "code_sa" or "pre_sa" or "sa_code")
+                {
+                    var board = IdeSaChannel.Handle(docStore, session, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "sa_desk",
+                            tool = IdeSaChannel.ToolName,
                             detail = "full",
                             truncated = false,
                             result = board

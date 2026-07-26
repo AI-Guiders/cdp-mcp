@@ -467,6 +467,20 @@ List<Tool> BuildMetaTools() =>
             only_dirty = new { type = "boolean", description = "where=buffers: only Dirty buffers" }
         }
     }),
+    Meta("cdp_sa", "Agent-native code SA before refactor (ADR-0010). Fuse gates+dirty+clones → verdict leave|touch|split|need_more. Axes: locus/path/line, scope=file|buffer|dirty|project, depth=pulse|slim|full. Alias go=sa_desk (NOT go=sa EICAS).", new
+    {
+        type = "object",
+        properties = new
+        {
+            path = new { type = "string", description = "file locus (opens buffer for gates)" },
+            locus = new { type = "string", description = "alias of path= or seat locus id" },
+            anchor = new { type = "string", description = "[F:;L:;C:] wire" },
+            line = new { type = "integer", description = "for find_usages next" },
+            column = new { type = "integer" },
+            scope = new { type = "string", description = "file|buffer|dirty|project" },
+            depth = new { type = "string", description = "pulse|slim (default)|full" }
+        }
+    }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell.", new
     {
         type = "object",
@@ -1407,6 +1421,8 @@ async Task<string> DispatchMetaAsync(
             return ideSettings.Dispatch(callArgs);
         case "cdp_search":
             return IdeFindChannel.HandleJson(docStore, session, callArgs);
+        case "cdp_sa":
+            return IdeSaChannel.HandleJson(docStore, session, callArgs);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();

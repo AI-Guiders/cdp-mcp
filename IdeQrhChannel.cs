@@ -213,6 +213,7 @@ internal static class IdeQrhChannel
                 new("cdp_search query= where=project — slim desk hits", Action: "cdp_search"),
                 new("cdp_search where=external path= — any disk tree", Action: "cdp_search"),
                 new("cdp_search where=dirty — SCM changed files only", Action: "cdp_search"),
+                new("cdp_sa path= — pre-refactor SA verdict", Action: "cdp_sa"),
                 new("cdp_buffer op=find scope=buffer — in open file", "buffer", "cdp_buffer"),
                 new("codebase_index_search — FTS when indexed", Action: "codebase_index_search"),
                 new("go=ecl — intake/mutate memory find-desk", "ecl")
