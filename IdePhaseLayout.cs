@@ -18,6 +18,7 @@ internal static class IdePhaseLayout
         CdpPhase.Plan => "agent",
         CdpPhase.Act => "bug",
         CdpPhase.Verify => "verify",
+        CdpPhase.Review => "phase-review",
         CdpPhase.Handoff => "phase-handoff",
         _ => "phase-explore"
     };

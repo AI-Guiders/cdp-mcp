@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.207</Version>
+    <Version>0.5.208</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -33,7 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\cdp-core\Cdp.Core.csproj" Condition="'$(AidUseNuGet)' != 'true' AND Exists('..\cdp-core\Cdp.Core.csproj')" />
-    <PackageReference Include="AIGuiders.Cdp.Core" Version="0.4.18" Condition="'$(AidUseNuGet)' == 'true' OR !Exists('..\cdp-core\Cdp.Core.csproj')" />
+    <PackageReference Include="AIGuiders.Cdp.Core" Version="0.4.19" Condition="'$(AidUseNuGet)' == 'true' OR !Exists('..\cdp-core\Cdp.Core.csproj')" />
     <ProjectReference Include="..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj" Condition="'$(AidUseNuGet)' != 'true' AND Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
     <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.52" Condition="'$(AidUseNuGet)' == 'true' OR !Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
     <ProjectReference Include="..\terminal-mcp-core\TerminalMcp.Core.csproj" />

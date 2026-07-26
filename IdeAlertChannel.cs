@@ -313,7 +313,7 @@ internal static class IdeAlertChannel
                 : ("agent", "P=plugins stale — layout=agent");
         }
 
-        if ((phase is CdpPhase.Verify or CdpPhase.Act) && codeish)
+        if ((phase is CdpPhase.Verify or CdpPhase.Act or CdpPhase.Review) && codeish)
         {
             if (m is not null && IsBrowser(m))
                 return ("code+shell", "M=browser — layout=code+shell for act/verify");

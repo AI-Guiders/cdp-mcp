@@ -82,6 +82,12 @@ internal static class IdeDeskSeats
                 ["forward"] = "editor_scene",
                 ["m"] = "shell_scene",
             },
+            ["phase-review"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["p"] = "review",
+                ["forward"] = "editor_scene",
+                ["m"] = "git_scene",
+            },
             ["phase-explore"] = new(StringComparer.OrdinalIgnoreCase)
             {
                 ["p"] = "project_scene",
@@ -147,6 +153,7 @@ internal static class IdeDeskSeats
         ["qrh"] = "m",
         ["eqrh"] = "m",
         ["handbook"] = "m",
+        ["review"] = "p",
         ["debug_scene"] = "p",
         ["debug"] = "p",
         ["analysis_scene"] = "p",

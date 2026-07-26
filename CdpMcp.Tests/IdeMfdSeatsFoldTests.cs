@@ -16,6 +16,7 @@ public sealed class IdeMfdSeatsFoldTests
     [InlineData("ecl", "m")]
     [InlineData("qrh", "m")]
     [InlineData("eqrh", "m")]
+    [InlineData("review", "p")]
     [InlineData("gates", "p")]
     [InlineData("quality", "p")]
     [InlineData("problems", "p")]

@@ -10,6 +10,7 @@ public sealed class IdePhaseLayoutTests
     [InlineData(CdpPhase.Plan, "agent")]
     [InlineData(CdpPhase.Act, "bug")]
     [InlineData(CdpPhase.Verify, "verify")]
+    [InlineData(CdpPhase.Review, "phase-review")]
     [InlineData(CdpPhase.Handoff, "phase-handoff")]
     public void LayoutIdFor_maps_cycle(CdpPhase phase, string expected) =>
         Assert.Equal(expected, IdePhaseLayout.LayoutIdFor(phase));

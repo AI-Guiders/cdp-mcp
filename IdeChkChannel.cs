@@ -120,7 +120,22 @@ internal static class IdeChkChannel
             [
                 new("problems", "auto", "Problems: no errors", Probe: "problems.clean", Action: "go=problems"),
                 new("tests", "auto", "Tests not failing (or not run yet)", Probe: "tests.not_failed", Action: "cdp_test"),
-                new("evidence", "do", "Claims have evidence/VC", Action: "go=report", Required: false)
+                new("evidence", "do", "Claims have evidence/VC", Action: "go=report", Required: false),
+                new("to-review", "do", "Then phase=review (judgment)", Action: "cdp_context", Required: false)
+            ]),
+        new(
+            "review",
+            "After review",
+            ["phase:review"],
+            [
+                new("intent-match", "memory", "Diff matches what was asked", Required: false),
+                new("blast", "memory", "Blast radius / callers considered", Required: false)
+            ],
+            [
+                new("board", "do", "Open review board (file cards)", Action: "go=review"),
+                new("problems", "auto", "Problems still clean", Probe: "problems.clean", Action: "go=problems"),
+                new("tests", "auto", "Tests not failing", Probe: "tests.not_failed", Action: "cdp_test"),
+                new("slices", "do", "Logical commit slices named", Action: "git_plan", Required: false)
             ]),
         new(
             "ship",
@@ -679,7 +694,7 @@ internal static class IdeChkChannel
         if (!s.Contains(':', StringComparison.Ordinal))
         {
             var low = s.ToLowerInvariant();
-            if (low is "explore" or "clarify" or "recall" or "plan" or "act" or "verify" or "handoff")
+            if (low is "explore" or "clarify" or "recall" or "plan" or "act" or "verify" or "review" or "handoff")
                 return "phase:" + low;
             if (low is "ship" or "fix" or "deploy")
                 return "intent:" + low;

@@ -62,6 +62,7 @@ internal static class IdeDeskView
             "sys" => "sys",
             "ecl" or "chk" => "ecl",
             "qrh" or "eqrh" or "handbook" => "qrh",
+            "review" => "review",
             "analysis" => "analysis",
             "script" or "probe" => "script",
             "semantic_map" or "semantic" => "semantic",

@@ -135,6 +135,22 @@ internal static class IdeQrhChannel
             ["procedure:intake-brief-plan", "definition:harness-model-first"],
             "Did I name what+why — or start exploring to avoid admitting the ask is fuzzy?"),
         new(
+            "skip-review",
+            "abnormal",
+            "Verify → handoff without review",
+            "Machine green (or dirty tree) and jumping to ship — judgment board never opened.",
+            ["phase:handoff", "phase:review", "review", "judgment", "ship"],
+            ["cdp_context phase=review before ship", "go=review — file cards + judgment lane"],
+            [
+                new("cdp_context phase=review", Action: "cdp_context"),
+                new("go=review — machine + judgment + files", "review"),
+                new("go=ecl — review checklist", "ecl"),
+                new("Only then phase=handoff / ship", "ecl")
+            ],
+            ["ship-dirty", "intake-brief"],
+            [],
+            "Did verify prove green — or did I skip the judgment gate?"),
+        new(
             "barriers-fail",
             "emergency",
             "Barriers failed — core integrity",
@@ -171,10 +187,13 @@ internal static class IdeQrhChannel
 
         if (ctx.Phase is "explore" or "clarify" or "recall") Hit("intake-brief", 50);
         if (ctx.Phase is "act") Hit("path-mutate-gate", 45);
+        if (ctx.Phase is "handoff") Hit("skip-review", 70);
+        if (ctx.Phase is "review") Hit("skip-review", 20);
 
         if (ecl is { HotId: { } hot })
         {
             if (hot.Equals("ship", StringComparison.OrdinalIgnoreCase)) Hit("ship-dirty", 95);
+            if (hot.Equals("review", StringComparison.OrdinalIgnoreCase)) Hit("skip-review", 90);
             if (hot.Equals("dap-hold", StringComparison.OrdinalIgnoreCase)) Hit("dap-pdb-lock", 95);
             if (hot.Equals("intake", StringComparison.OrdinalIgnoreCase)) Hit("intake-brief", 80);
             if (hot.Equals("mutate", StringComparison.OrdinalIgnoreCase)) Hit("path-mutate-gate", 80);

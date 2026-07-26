@@ -98,6 +98,7 @@ internal static class IdeCockpit
         ["qrh"] = "qrh",
         ["eqrh"] = "qrh",
         ["handbook"] = "qrh",
+        ["review"] = "review",
         ["problems"] = "problems",
         ["problem"] = "problems",
         ["errlist"] = "problems",
@@ -543,6 +544,11 @@ internal static class IdeCockpit
         if (wantPlugins)
             goVerb = null;
 
+        var wantReview = goVerb is { Length: > 0 }
+            && goVerb.Equals("review", StringComparison.OrdinalIgnoreCase);
+        if (wantReview)
+            goVerb = null;
+
         // Soft organ: Plan / Task Manager (Feature → Task tree, WitDB sticky focus).
         // Plan share: cmd="share plan" / go=plan tm_op=share. Bare go=share → buffer (GoMap).
         if (goVerb is { Length: > 0 }
@@ -668,6 +674,21 @@ internal static class IdeCockpit
                 IdeDeskSeats.PlaceOrgan("plugins");
         }
 
+        if (wantReview)
+        {
+            var reviewInputs = new IdeReviewChannel.Inputs(
+                session,
+                gitDirty,
+                problems.Errors,
+                testsFailed,
+                quality.Fail,
+                quality.Warn,
+                chkSnap);
+            goResult = IdeReviewChannel.Handle(reviewInputs, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("review");
+        }
+
         if (wantSys)
         {
             goResult = BuildSysOrgan(session, git, shell, buffer, debug, test, work);
@@ -733,7 +754,7 @@ internal static class IdeCockpit
         // No parallel MFD root page — soft organs carry sys/chk/gates.
 
         var goVerbs = GoMap.Keys
-            .Concat(["quality", "gates", "sys", "chk", "ecl", "qrh", "eqrh", "nav", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas", "sa", "problems", "problem", "errlist", "errorlist", "err", "diags", "plugins", "plugin", "vsix"])
+            .Concat(["quality", "gates", "sys", "chk", "ecl", "qrh", "eqrh", "review", "nav", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas", "sa", "problems", "problem", "errlist", "errorlist", "err", "diags", "plugins", "plugin", "vsix"])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -948,6 +969,15 @@ internal static class IdeCockpit
                     var board = IdeQrhChannel.Handle(chkCtx, tileArgs, chkSnap);
                     pane = wantFull
                         ? new { ok = true, go = "qrh", tool = "qrh_organ", detail = "full", truncated = false, result = board }
+                        : board;
+                }
+                else if (planPin is "review")
+                {
+                    var reviewInputs = new IdeReviewChannel.Inputs(
+                        session, gitDirty, problems.Errors, testsFailed, quality.Fail, quality.Warn, chkSnap);
+                    var board = IdeReviewChannel.Handle(reviewInputs, tileArgs);
+                    pane = wantFull
+                        ? new { ok = true, go = "review", tool = "review_organ", detail = "full", truncated = false, result = board }
                         : board;
                 }
                 else if (!wantFull && IdeWorldChannel.IsWorldOrgan(planPin))
@@ -1625,6 +1655,8 @@ internal static class IdeCockpit
             Add("n-alert", "alert", "SA board", alert.Pulse);
         if (chk is { OpenRequired: > 0 })
             Add("n-ecl", "ecl", "ECL", chk.Pulse);
+        if (session.Phase is CdpPhase.Review or CdpPhase.Verify)
+            Add("n-review", "review", "Review", session.Phase is CdpPhase.Review ? "Judgment board" : "After verify — judgment before ship");
         if (chkCtx is { } qCtx)
         {
             var qSuggest = IdeQrhChannel.SuggestFor(qCtx, chk);

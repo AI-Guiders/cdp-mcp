@@ -371,6 +371,26 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        if (head is "review")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("review");
+            if (tokens.Count >= 2)
+            {
+                var sub = tokens[1].ToLowerInvariant();
+                if (sub is "files" or "list" or "index")
+                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "files" });
+                else if (sub is "open")
+                {
+                    var path = tokens.Count >= 3 ? string.Join(' ', tokens.Skip(2)) : null;
+                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "open", path });
+                }
+                else
+                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "open", path = tokens[1] });
+            }
+
+            return (merged, null);
+        }
+
         if (head is "nav")
         {
             merged["go"] = JsonSerializer.SerializeToElement("nav");
@@ -830,6 +850,8 @@ internal static class IdeRepl
                 "qrh open dap-pdb-lock",
                 "qrh search pdb",
                 "eqrh",
+                "review",
+                "review files",
                 "nav",
                 "gates",
                 "go report",
@@ -851,7 +873,7 @@ internal static class IdeRepl
                 "seat m git",
                 "clear",
             },
-        hint = "CCL (cmd=). Channels: sit/plan · work/editor · probe/script · report · alert · sys/ecl/qrh. CCC=help."
+        hint = "CCL (cmd=). Channels: sit/plan · work/editor · probe/script · report · alert · sys/ecl/qrh/review. CCC=help."
     };
 
     /// <summary>Split trailing <c>@act</c> phase affinity from task title tokens.</summary>
