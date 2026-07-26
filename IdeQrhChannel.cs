@@ -72,7 +72,7 @@ internal static class IdeQrhChannel
                 new("If large file: go=scope → sniper before thick edit", "scope", "cdp_edit_sniper"),
                 new("disk_peek / reload if outside change", "disk_peek", "cdp_buffer")
             ],
-            ["intake-brief", "ship-dirty", "test-via-desk", "scm-via-desk"],
+            ["intake-brief", "ship-dirty", "test-via-desk", "scm-via-desk", "find-via-desk"],
             ["procedure:mutate-plan-then-act", "definition:blast-radius"],
             "Did this go through the buffer plane — or around the desk into chat context?"),
         new(
@@ -135,7 +135,7 @@ internal static class IdeQrhChannel
                 new("Only then explore — go=ecl intake", "ecl"),
                 new("Pack: intake-brief-plan", Action: "memory_world_get_procedure")
             ],
-            ["path-mutate-gate", "ship-dirty"],
+            ["path-mutate-gate", "ship-dirty", "find-via-desk"],
             ["procedure:intake-brief-plan", "definition:harness-model-first"],
             "Did I name what+why — or start exploring to avoid admitting the ask is fuzzy?"),
         new(
@@ -199,9 +199,25 @@ internal static class IdeQrhChannel
                 new("cdp_shell_last max_chars= only when AgentBodyChars insufficient", Action: "cdp_shell_last"),
                 new("go=qrh open path-mutate-gate — host Read tax", "qrh")
             ],
-            ["path-mutate-gate", "test-via-desk", "scm-via-desk"],
+            ["path-mutate-gate", "test-via-desk", "scm-via-desk", "find-via-desk"],
             [],
             "Did I need the whole pipe — or just the locus?"),
+        new(
+            "find-via-desk",
+            "abnormal",
+            "Shell used for grep/rg archaeology",
+            "rg/grep/findstr via shell while cdp_buffer find (buffer|project) / codebase_index are available — desk bypass + thick stdout tax.",
+            ["rg", "grep", "findstr", "shell", "search", "find", "codebase_index"],
+            ["Prefer cdp_buffer find scope=project (anchors) over shell rg", "Index when corpus large; shell only if desk find dead"],
+            [
+                new("cdp_buffer op=find scope=project query= — anchors + land", "buffer", "cdp_buffer"),
+                new("cdp_buffer find scope=buffer — in open file", "buffer", "cdp_buffer"),
+                new("codebase_index_search — FTS when indexed", Action: "codebase_index_search"),
+                new("go=ecl — intake/mutate memory find-desk", "ecl")
+            ],
+            ["path-mutate-gate", "tool-result-tax", "scm-via-desk", "test-via-desk"],
+            [],
+            "Am I searching through the desk — or reinventing archaeology in shell?"),
         new(
             "barriers-fail",
             "emergency",
@@ -237,8 +253,16 @@ internal static class IdeQrhChannel
             Hit("ship-dirty", 85);
         else if (ctx.GitDirty) Hit("ship-dirty", 35);
 
-        if (ctx.Phase is "explore" or "clarify" or "recall") Hit("intake-brief", 50);
-        if (ctx.Phase is "act") Hit("path-mutate-gate", 45);
+        if (ctx.Phase is "explore" or "clarify" or "recall")
+        {
+            Hit("intake-brief", 50);
+            Hit("find-via-desk", 35);
+        }
+        if (ctx.Phase is "act")
+        {
+            Hit("path-mutate-gate", 45);
+            Hit("find-via-desk", 40);
+        }
         if (ctx.Phase is "verify") Hit("test-via-desk", 50);
         if (ctx.Phase is "handoff") Hit("skip-review", 70);
         if (ctx.Phase is "review")
@@ -263,8 +287,16 @@ internal static class IdeQrhChannel
             }
             if (hot.Equals("verify", StringComparison.OrdinalIgnoreCase)) Hit("test-via-desk", 85);
             if (hot.Equals("dap-hold", StringComparison.OrdinalIgnoreCase)) Hit("dap-pdb-lock", 95);
-            if (hot.Equals("intake", StringComparison.OrdinalIgnoreCase)) Hit("intake-brief", 80);
-            if (hot.Equals("mutate", StringComparison.OrdinalIgnoreCase)) Hit("path-mutate-gate", 80);
+            if (hot.Equals("intake", StringComparison.OrdinalIgnoreCase))
+            {
+                Hit("intake-brief", 80);
+                Hit("find-via-desk", 55);
+            }
+            if (hot.Equals("mutate", StringComparison.OrdinalIgnoreCase))
+            {
+                Hit("path-mutate-gate", 80);
+                Hit("find-via-desk", 60);
+            }
         }
 
         var ordered = hits.OrderByDescending(h => h.Score).Select(h => h.Id).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();

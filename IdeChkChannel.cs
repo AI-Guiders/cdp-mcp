@@ -94,7 +94,8 @@ internal static class IdeChkChannel
             "Before explore",
             ["phase:explore", "phase:clarify", "phase:recall"],
             [
-                new("what-why", "memory", "Name what+why (or ask) before thrash", Action: "procedure:intake-brief-plan", Required: false)
+                new("what-why", "memory", "Name what+why (or ask) before thrash", Action: "procedure:intake-brief-plan", Required: false),
+                new("find-desk", "memory", "Search via desk (cdp_buffer find / index) — not shell rg/grep", Action: "cdp_buffer", Required: false)
             ],
             [
                 new("project", "auto", "cdp_open / project rooted", Probe: "project.open", Action: "cdp_open"),
@@ -106,6 +107,7 @@ internal static class IdeChkChannel
             ["phase:act"],
             [
                 new("buffer", "memory", "Mutate via cdp_buffer — not Cursor Write", Action: "cdp_buffer", Required: false),
+                new("find-desk", "memory", "Search via desk (cdp_buffer find / index) — not shell rg", Action: "cdp_buffer", Required: false),
                 new("dap-rebuild", "memory", "debug_stop before rebuild if DAP holds PDB", Action: "cdp_debug", Probe: "dap.not_stopped", Required: false)
             ],
             [
