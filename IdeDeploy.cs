@@ -1,5 +1,6 @@
 #nullable enable
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using Cdp.Core;
@@ -91,12 +92,17 @@ internal static class IdeDeploy
         var started = DateTime.UtcNow;
         var (exit, stdout, stderr) = RunPowerShell(psiArgs);
         var elapsedMs = (int)(DateTime.UtcNow - started).TotalMilliseconds;
+        var includeRaw = IsTruthy(args, "include_raw") || IsTruthy(args, "include_raw_output");
+        var okLine = ExtractOkLine(stdout);
 
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
             ok = exit == 0,
             op = "deploy",
+            pulse = exit == 0
+                ? $"deploy {mode} ok → {resolved.Target}" + (okLine is null ? "" : $" · {okLine}")
+                : $"deploy {mode} fail exit={exit}",
             mode,
             self = selfRoot,
             seat,
@@ -105,8 +111,8 @@ internal static class IdeDeploy
             script,
             exit_code = exit,
             elapsed_ms = elapsedMs,
-            stdout_tail = Tail(stdout, 4000),
-            stderr_tail = Tail(stderr, 2000),
+            stdout_tail = includeRaw ? Tail(stdout, 4000) : null,
+            stderr_tail = includeRaw || exit != 0 ? Tail(stderr, includeRaw ? 2000 : 800) : null,
             next = exit == 0
                 ? new object[]
                 {
@@ -116,10 +122,27 @@ internal static class IdeDeploy
                 : null,
             hint = exit == 0
                 ? (mode == "hard"
-                    ? "Hard deploy done. Sibling remounts via CDP_RELOAD_NUDGE; stay on survivor or switch back."
+                    ? (includeRaw
+                        ? "Hard deploy done. Sibling remounts via CDP_RELOAD_NUDGE; stay on survivor or switch back."
+                        : "Hard deploy done. include_raw=true for stdout_tail; sibling remounts via nudge.")
                     : "Soft staged (.next + pending_update). Apply with mode=hard when ready.")
-                : "Deploy failed — see stderr_tail / exit_code."
+                : "Deploy failed — see stderr_tail / exit_code. include_raw=true for full tails."
         }, Pretty);
+    }
+
+    static string? ExtractOkLine(string stdout)
+    {
+        if (string.IsNullOrEmpty(stdout)) return null;
+        foreach (var line in stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).Reverse())
+        {
+            var t = line.Trim();
+            if (t.StartsWith("OK:", StringComparison.OrdinalIgnoreCase)
+                || t.StartsWith("HARD deployed:", StringComparison.OrdinalIgnoreCase)
+                || t.StartsWith("SOFT staged:", StringComparison.OrdinalIgnoreCase))
+                return Tail(t, 160);
+        }
+
+        return null;
     }
 
     internal static string? ResolveSelfInstallRoot()

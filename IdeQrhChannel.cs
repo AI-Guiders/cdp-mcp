@@ -183,9 +183,25 @@ internal static class IdeQrhChannel
                 new("cdp_test filter= — targeted run", Action: "cdp_test"),
                 new("go=ecl — verify/review memory tests-desk", "ecl")
             ],
-            ["scm-via-desk", "path-mutate-gate", "skip-review"],
+            ["scm-via-desk", "path-mutate-gate", "skip-review", "tool-result-tax"],
             [],
             "Am I running tests through the desk — or reinventing archaeology in shell?"),
+        new(
+            "tool-result-tax",
+            "abnormal",
+            "Thick tool-result burned chat context",
+            "deploy/test/shell returned full tails or warning dumps into Conversation — desk does not strip host tool payloads.",
+            ["context", "stdout_tail", "include_raw", "evidence", "tool-result", "CS8600"],
+            ["Prefer pulse + locus; include_raw only when needed", "cdp_test/build default slim evidence"],
+            [
+                new("Read pulse / exit / failed_tests / evidence.items[locus] — not full tail"),
+                new("include_raw_output / include_raw only for diagnosis"),
+                new("cdp_shell_last max_chars= only when AgentBodyChars insufficient", Action: "cdp_shell_last"),
+                new("go=qrh open path-mutate-gate — host Read tax", "qrh")
+            ],
+            ["path-mutate-gate", "test-via-desk", "scm-via-desk"],
+            [],
+            "Did I need the whole pipe — or just the locus?"),
         new(
             "barriers-fail",
             "emergency",

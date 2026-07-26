@@ -365,7 +365,9 @@ List<Tool> BuildMetaTools() =>
             dry_run = new { type = "boolean", description = "resolve policy only — no powershell" },
             script = new { type = "string", description = "optional path to publish-and-deploy.ps1" },
             use_nuget = new { type = "boolean", description = "pass -UseNuGet to aid-publish" },
-            no_nudge = new { type = "boolean", description = "skip CDP_RELOAD_NUDGE bump" }
+            no_nudge = new { type = "boolean", description = "skip CDP_RELOAD_NUDGE bump" },
+            include_raw = new { type = "boolean", description = "include stdout_tail/stderr_tail (default slim pulse+locus)" },
+            include_raw_output = new { type = "boolean", description = "alias of include_raw" }
         }
     }),
     Meta("cdp_elicit", "Spike: MCP elicitation/create → host UI (path 2). op=peek (client caps) | ask (form Да/Нет/Обсудить). Proves whether Cursor advertises elicitation.", new

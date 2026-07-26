@@ -122,6 +122,22 @@ public sealed class IdeQrhChannelTests
     }
 
     [Fact]
+    public void Search_tool_result_tax_by_id()
+    {
+        var board = IdeQrhChannel.Handle(
+            Ctx(),
+            new Dictionary<string, System.Text.Json.JsonElement>
+            {
+                ["op"] = System.Text.Json.JsonSerializer.SerializeToElement("search"),
+                ["q"] = System.Text.Json.JsonSerializer.SerializeToElement("tool-result-tax")
+            });
+        var json = System.Text.Json.JsonSerializer.Serialize(board);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var hits = doc.RootElement.GetProperty("hits");
+        Assert.Contains(hits.EnumerateArray(), h => h.GetProperty("id").GetString() == "tool-result-tax");
+    }
+
+    [Fact]
     public void Builtins_cover_three_shelves()
     {
         var shelves = IdeQrhChannel.Builtins().Select(p => p.Shelf).Distinct().OrderBy(s => s).ToArray();
