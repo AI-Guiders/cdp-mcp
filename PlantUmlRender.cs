@@ -5,7 +5,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// PlantUML → PNG via <c>java -jar plantuml.jar -tpng -pipe</c>.
-/// Jar: env <c>PLANTUML_JAR</c>, then well-known paths.
+/// Jar: env <c>PLANTUML_JAR</c>, then CDP plugin quarantine, then well-known paths.
 /// </summary>
 internal static class PlantUmlRender
 {
@@ -163,6 +163,10 @@ internal static class PlantUmlRender
         var env = Environment.GetEnvironmentVariable("PLANTUML_JAR");
         if (env is { Length: > 0 } && File.Exists(env))
             return env;
+
+        var quarantined = CdpPluginQuarantine.ResolvePlantUmlJar();
+        if (quarantined is { Length: > 0 })
+            return quarantined;
 
         foreach (var cand in new[]
                  {
