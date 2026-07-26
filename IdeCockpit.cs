@@ -100,6 +100,12 @@ internal static class IdeCockpit
         ["debug_desk"] = "debug_desk",
         ["dap_sa"] = "debug_desk",
         ["debug_sa"] = "debug_desk",
+        ["test_desk"] = "test_desk",
+        ["test_sa"] = "test_desk",
+        ["build_desk"] = "build_desk",
+        ["ship_desk"] = "build_desk",
+        ["build_sa"] = "build_desk",
+        ["ship_sa"] = "build_desk",
         ["alert"] = "alert",
         ["eicas"] = "alert",
         ["sa"] = "alert",
@@ -183,6 +189,14 @@ internal static class IdeCockpit
             ["dap_sa"] = (IdeDebugSaChannel.ToolName, null),
             ["debug_sa"] = (IdeDebugSaChannel.ToolName, null),
             ["cdp_debug_sa"] = (IdeDebugSaChannel.ToolName, null),
+            ["test_desk"] = (IdeTestSaChannel.ToolName, null),
+            ["test_sa"] = (IdeTestSaChannel.ToolName, null),
+            ["cdp_test_sa"] = (IdeTestSaChannel.ToolName, null),
+            ["build_desk"] = (IdeBuildSaChannel.ToolName, null),
+            ["ship_desk"] = (IdeBuildSaChannel.ToolName, null),
+            ["build_sa"] = (IdeBuildSaChannel.ToolName, null),
+            ["ship_sa"] = (IdeBuildSaChannel.ToolName, null),
+            ["cdp_build_sa"] = (IdeBuildSaChannel.ToolName, null),
             ["replace_all"] = ("cdp_buffer", Dict(("op", "replace_all"))),
             ["back"] = ("cdp_buffer", Dict(("op", "back"))),
             ["forward"] = ("cdp_buffer", Dict(("op", "forward"))),
@@ -558,6 +572,30 @@ internal static class IdeCockpit
             goResult = IdeDebugSaChannel.Handle(session, args);
             if (IdeDeskSeats.IsSeatsMode())
                 IdeDeskSeats.PlaceOrgan("debug_desk");
+            goVerb = null;
+        }
+
+        // Soft organ: agent-native Test-SA (ADR-0012) — not go=test raw scene.
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("test_desk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("test_sa", StringComparison.OrdinalIgnoreCase)))
+        {
+            goResult = IdeTestSaChannel.Handle(session, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("test_desk");
+            goVerb = null;
+        }
+
+        // Soft organ: agent-native Build-Ship-SA (ADR-0013) — not go=build/ship actuators.
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("build_desk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("ship_desk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("build_sa", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("ship_sa", StringComparison.OrdinalIgnoreCase)))
+        {
+            goResult = IdeBuildSaChannel.Handle(session, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("build_desk");
             goVerb = null;
         }
 
@@ -983,6 +1021,36 @@ internal static class IdeCockpit
                             ok = true,
                             go = "debug_desk",
                             tool = IdeDebugSaChannel.ToolName,
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : board;
+                }
+                else if (planPin is "test_desk" or "test_sa")
+                {
+                    var board = IdeTestSaChannel.Handle(session, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "test_desk",
+                            tool = IdeTestSaChannel.ToolName,
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : board;
+                }
+                else if (planPin is "build_desk" or "ship_desk" or "build_sa" or "ship_sa")
+                {
+                    var board = IdeBuildSaChannel.Handle(session, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "build_desk",
+                            tool = IdeBuildSaChannel.ToolName,
                             detail = "full",
                             truncated = false,
                             result = board

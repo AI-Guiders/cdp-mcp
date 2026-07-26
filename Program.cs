@@ -490,6 +490,26 @@ List<Tool> BuildMetaTools() =>
             depth = new { type = "string", description = "pulse|slim (default)|full" }
         }
     }),
+    Meta("cdp_test_sa", "Agent-native Test-SA (ADR-0012). Fuse last_run → verdict need_more|discover|run|retest|green. Axes: scope=session|failed|last, depth=pulse|slim|full. Alias go=test_desk (NOT go=test/test_scene raw).", new
+    {
+        type = "object",
+        properties = new
+        {
+            path = new { type = "string", description = "optional .sln/.csproj override" },
+            scope = new { type = "string", description = "session (default) | failed | last" },
+            depth = new { type = "string", description = "pulse|slim (default)|full" }
+        }
+    }),
+    Meta("cdp_build_sa", "Agent-native Build-Ship-SA (ADR-0013). Fuse DAP+dirty+ahead → verdict need_more|stop_rebuild|build|preflight|ship|push|clean. Axes: scope=session|build|ship, depth=pulse|slim|full. Alias go=build_desk (NOT go=build actuator; NOT go=ship take).", new
+    {
+        type = "object",
+        properties = new
+        {
+            path = new { type = "string", description = "optional .sln/.csproj override" },
+            scope = new { type = "string", description = "session (default) | build | ship" },
+            depth = new { type = "string", description = "pulse|slim (default)|full" }
+        }
+    }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell.", new
     {
         type = "object",
@@ -1434,6 +1454,10 @@ async Task<string> DispatchMetaAsync(
             return IdeSaChannel.HandleJson(docStore, session, callArgs);
         case "cdp_debug_sa":
             return IdeDebugSaChannel.HandleJson(session, callArgs);
+        case "cdp_test_sa":
+            return IdeTestSaChannel.HandleJson(session, callArgs);
+        case "cdp_build_sa":
+            return IdeBuildSaChannel.HandleJson(session, callArgs);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();

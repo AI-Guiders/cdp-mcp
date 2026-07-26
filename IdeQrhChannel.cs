@@ -84,6 +84,7 @@ internal static class IdeQrhChannel
             ["git.dirty", "phase:handoff", "intent:ship", "commit", "push"],
             ["No secrets/.env in slices", "SCM via desk — not shell status/diff/log"],
             [
+                new("cdp_build_sa / go=build_desk — fuse before ship", "build_desk", "cdp_build_sa"),
                 new("git_preflight — classify noise", Action: "git_preflight"),
                 new("git_plan draft→validate→apply — logical commits", Action: "git_plan"),
                 new("git_push when operator asked (or ECL ack defer)", Action: "git_push"),
@@ -179,6 +180,7 @@ internal static class IdeQrhChannel
             ["dotnet test", "list-tests", "shell", "test", "cdp_test", "cdp_test_scene"],
             ["Prefer cdp_test_scene → cdp_test / cdp_test_plan over shell", "Shell only if test plane dead"],
             [
+                new("cdp_test_sa / go=test_desk — fuse last_run", "test_desk", "cdp_test_sa"),
                 new("cdp_test_scene — map FQNs + last_run", Action: "cdp_test_scene"),
                 new("cdp_test_plan preview|apply — select then run", Action: "cdp_test_plan"),
                 new("cdp_test filter= — targeted run", Action: "cdp_test"),

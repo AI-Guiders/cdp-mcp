@@ -121,7 +121,7 @@ internal static class IdeChkChannel
             "After verify",
             ["phase:verify"],
             [
-                new("tests-desk", "memory", "Tests via desk (cdp_test_scene/cdp_test) — not shell dotnet test", Action: "cdp_test_scene", Required: false)
+                new("tests-desk", "memory", "Tests via desk (cdp_test_sa / go=test_desk → cdp_test*) — not shell dotnet test", Action: "cdp_test_sa", Required: false)
             ],
             [
                 new("problems", "auto", "Problems: no errors", Probe: "problems.clean", Action: "go=problems"),
@@ -137,7 +137,7 @@ internal static class IdeChkChannel
                 new("intent-match", "memory", "Diff matches what was asked", Required: false),
                 new("blast", "memory", "Blast radius / callers considered", Required: false),
                 new("scm-desk", "memory", "SCM via desk (git_scene/git_plan) — not shell status/diff/log", Action: "git_scene", Required: false),
-                new("tests-desk", "memory", "Tests via desk (cdp_test_scene/cdp_test) — not shell", Action: "cdp_test_scene", Required: false)
+                new("tests-desk", "memory", "Tests via desk (cdp_test_sa / go=test_desk → cdp_test*) — not shell", Action: "cdp_test_sa", Required: false)
             ],
             [
                 new("board", "do", "Open review board (file cards)", Action: "go=review"),
@@ -151,6 +151,7 @@ internal static class IdeChkChannel
             ["phase:handoff", "intent:ship"],
             [
                 new("secrets", "memory", "No secrets/.env in commit slices", Action: "git_preflight", Required: false),
+                new("build-sa-before-ship", "memory", "Before ship: cdp_build_sa / go=build_desk (DAP lock + dirty fuse)", Action: "cdp_build_sa", Required: false),
                 new("scm-desk", "memory", "SCM via desk (git_scene/git_plan) — not shell archaeology", Action: "git_scene", Required: false)
             ],
             [
