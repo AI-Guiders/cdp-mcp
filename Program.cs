@@ -446,6 +446,27 @@ List<Tool> BuildMetaTools() =>
             writable_only = new { type = "boolean", description = "catalog: only hot user keys" }
         }
     }),
+    Meta("cdp_search", "Agent-native search organ (ADR-0009). Prefer over shell/Cursor Grep. Axes: what=text|index|symbol, where=buffer|project|external|dirty|buffers (+roots[]/path=), shape=slim|list|raw. op=run|refine|last|clear. Alias go=find_desk.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "run|refine|last|clear (default run)" },
+            what = new { type = "string", description = "text (default) | index | symbol" },
+            where = new { type = "string", description = "project|external|dirty|buffers|buffer" },
+            shape = new { type = "string", description = "slim (default) | list | raw" },
+            query = new { type = "string", description = "needle (aliases text= pattern= q=)" },
+            path = new { type = "string", description = "subdir or absolute (external requires rooted)" },
+            roots = new { description = "string[] multi-root / file list" },
+            exclude = new { description = "refine: string[] path substrings to drop" },
+            glob = new { type = "string", description = "rg --glob" },
+            regex = new { type = "boolean" },
+            ignore_case = new { type = "boolean" },
+            max = new { type = "integer" },
+            peek = new { type = "boolean", description = "auto land top hit (default true)" },
+            only_dirty = new { type = "boolean", description = "where=buffers: only Dirty buffers" }
+        }
+    }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell.", new
     {
         type = "object",
@@ -1384,6 +1405,8 @@ async Task<string> DispatchMetaAsync(
             return internetBrowser.Dispatch(callArgs);
         case "cdp_settings":
             return ideSettings.Dispatch(callArgs);
+        case "cdp_search":
+            return IdeFindChannel.HandleJson(docStore, session, callArgs);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();

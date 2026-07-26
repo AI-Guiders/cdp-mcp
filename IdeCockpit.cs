@@ -90,6 +90,9 @@ internal static class IdeCockpit
         ["report"] = "report",
         ["evidence"] = "report",
         ["pfd"] = "report",
+        ["find_desk"] = "find_desk",
+        ["search_desk"] = "find_desk",
+        ["code_search"] = "find_desk",
         ["alert"] = "alert",
         ["eicas"] = "alert",
         ["sa"] = "alert",
@@ -160,6 +163,10 @@ internal static class IdeCockpit
             ["find_all"] = ("find_all", null),
             ["find_in_files"] = ("find_in_files", null),
             ["fif"] = ("find_in_files", null),
+            ["find_desk"] = (IdeFindChannel.ToolName, null),
+            ["search_desk"] = (IdeFindChannel.ToolName, null),
+            ["code_search"] = (IdeFindChannel.ToolName, null),
+            ["cdp_search"] = (IdeFindChannel.ToolName, null),
             ["replace_all"] = ("cdp_buffer", Dict(("op", "replace_all"))),
             ["back"] = ("cdp_buffer", Dict(("op", "back"))),
             ["forward"] = ("cdp_buffer", Dict(("op", "forward"))),
@@ -498,6 +505,18 @@ internal static class IdeCockpit
             goResult = IdeReportBoard.Handle(session, args);
             if (IdeDeskSeats.IsSeatsMode())
                 IdeDeskSeats.PlaceOrgan("report");
+            goVerb = null;
+        }
+
+        // Soft organ: agent-native search (ADR-0009).
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("find_desk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("search_desk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("code_search", StringComparison.OrdinalIgnoreCase)))
+        {
+            goResult = IdeFindChannel.Handle(docStore, session, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("find_desk");
             goVerb = null;
         }
 
@@ -878,6 +897,21 @@ internal static class IdeCockpit
                             ok = true,
                             go = "report",
                             tool = "report_board",
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : board;
+                }
+                else if (planPin is "find_desk" or "search_desk" or "code_search")
+                {
+                    var board = IdeFindChannel.Handle(docStore, session, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "find_desk",
+                            tool = IdeFindChannel.ToolName,
                             detail = "full",
                             truncated = false,
                             result = board

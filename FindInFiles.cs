@@ -38,6 +38,30 @@ internal static class FindInFiles
             || IsExternalScope(s);
     }
 
+    /// <summary>Optional multi-root / file list (dirty, buffers, roots[]). When set, overrides single searchRoot as rg paths.</summary>
+    public static List<string>? OptPaths(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!args.TryGetValue("paths", out var el) && !args.TryGetValue("roots", out el))
+            return null;
+
+        var list = new List<string>();
+        if (el.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in el.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String && item.GetString() is { Length: > 0 } s)
+                    list.Add(Path.GetFullPath(s.Trim()));
+            }
+        }
+        else if (el.ValueKind == JsonValueKind.String && el.GetString() is { Length: > 0 } csv)
+        {
+            foreach (var part in csv.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                list.Add(Path.GetFullPath(part));
+        }
+
+        return list.Count > 0 ? list : null;
+    }
+
     public static string Dispatch(
         DocumentBufferStore store,
         SessionContext session,
@@ -62,7 +86,21 @@ internal static class FindInFiles
             }, Pretty);
         }
 
-        if (!TryResolveSearchRoot(session, args, external, out var searchRoot, out var cwd, out var rootError, out var rootHint))
+        var multiPaths = OptPaths(args);
+        string searchRoot;
+        string cwd;
+        if (multiPaths is { Count: > 0 })
+        {
+            searchRoot = multiPaths[0];
+            cwd = Directory.Exists(searchRoot)
+                ? searchRoot
+                : (Path.GetDirectoryName(searchRoot)
+                   ?? session.ProjectRoot
+                   ?? Environment.CurrentDirectory);
+            if (!external && session.ProjectRoot is { Length: > 0 } && Directory.Exists(session.ProjectRoot))
+                cwd = session.ProjectRoot!;
+        }
+        else if (!TryResolveSearchRoot(session, args, external, out searchRoot, out cwd, out var rootError, out var rootHint))
         {
             return JsonSerializer.Serialize(new
             {
@@ -97,7 +135,8 @@ internal static class FindInFiles
             HardMax);
 
         var glob = Opt(args, "glob") ?? Opt(args, "g");
-        if (external && IsVolumeRoot(searchRoot) && glob is not { Length: > 0 })
+        var volumeProbe = multiPaths is { Count: > 0 } ? multiPaths[0] : searchRoot;
+        if (external && IsVolumeRoot(volumeProbe) && glob is not { Length: > 0 } && multiPaths is not { Count: > 1 })
         {
             return JsonSerializer.Serialize(new
             {
@@ -106,7 +145,7 @@ internal static class FindInFiles
                 op = all ? "find_all" : "find",
                 scope = scopeWire,
                 error = "glob_required_for_volume_root",
-                path = searchRoot,
+                path = volumeProbe,
                 hint = "Volume root search needs glob= (e.g. *.cs) or a narrower path=."
             }, Pretty);
         }
@@ -135,7 +174,10 @@ internal static class FindInFiles
 
         argv.Add("--");
         argv.Add(query!);
-        argv.Add(searchRoot);
+        if (multiPaths is { Count: > 0 })
+            argv.AddRange(multiPaths);
+        else
+            argv.Add(searchRoot);
 
         var timeout = external ? ExternalTimeoutMs : TimeoutMs;
         if (!TryRunRg(rg, argv, cwd, timeout, out var stdout, out var stderr, out var exit, out var runError))
