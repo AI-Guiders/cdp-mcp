@@ -151,9 +151,93 @@ internal static class IdeRepl
             return (merged, null);
         }
 
-        if (head is "alert" or "eicas")
+        if (head is "alert" or "eicas" or "sa")
         {
             merged["go"] = JsonSerializer.SerializeToElement("alert");
+            return (merged, null);
+        }
+
+        if (head is "problems" or "problem" or "errlist" or "errorlist" or "err" or "diags")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("problems");
+            if (tokens.Count >= 2)
+            {
+                var pick = tokens[1];
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { row = pick, aim = true });
+            }
+            return (merged, null);
+        }
+
+        if (head is "plugins" or "plugin" or "vsix")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plugins");
+            if (tokens.Count >= 2)
+            {
+                var sub = tokens[1].ToLowerInvariant();
+                if (sub is "search" or "find" or "query")
+                {
+                    var q = tokens.Count >= 3 ? string.Join(' ', tokens.Skip(2)) : "";
+                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "search", q });
+                }
+                else if (sub is "install" or "add")
+                {
+                    merged["go_args"] = JsonSerializer.SerializeToElement(ParsePluginsInstall(tokens));
+                }
+                else if (sub is "want" or "need" or "get")
+                {
+                    var q = tokens.Count >= 3 ? string.Join(' ', tokens.Skip(2)) : "";
+                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "want", q });
+                }
+                else if (sub is "preview" or "render" or "png")
+                {
+                    var path = tokens.Count >= 3 ? tokens[2] : null;
+                    merged["go_args"] = path is { Length: > 0 }
+                        ? JsonSerializer.SerializeToElement(new { op = "preview", path })
+                        : JsonSerializer.SerializeToElement(new { op = "preview" });
+                }
+                else if (sub is "list" or "installed")
+                {
+                    var all = tokens.Count >= 3 && tokens[2].Equals("all", StringComparison.OrdinalIgnoreCase);
+                    merged["go_args"] = all
+                        ? JsonSerializer.SerializeToElement(new { op = "list", all = true })
+                        : JsonSerializer.SerializeToElement(new { op = "list" });
+                }
+                else if (sub is "reharvest" or "rescan" or "reclassify")
+                {
+                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "reharvest" });
+                }
+                else if (sub is "groups" or "grouplist")
+                {
+                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "groups" });
+                }
+                else if (sub is "enable" or "on" or "disable" or "off")
+                {
+                    merged["go_args"] = JsonSerializer.SerializeToElement(ParsePluginsEnableDisable(tokens, sub));
+                }
+                else if (sub is "group" or "tag")
+                {
+                    merged["go_args"] = JsonSerializer.SerializeToElement(ParsePluginsGroup(tokens));
+                }
+                else
+                {
+                    // "plugins s1" → install from last search; "plugins plantuml" → search
+                    if (tokens[1].StartsWith('s') && int.TryParse(tokens[1].AsSpan(1), out _))
+                    {
+                        merged["go_args"] = JsonSerializer.SerializeToElement(
+                            new { op = "install", row = tokens[1] });
+                    }
+                    else if (tokens[1].StartsWith('g') && int.TryParse(tokens[1].AsSpan(1), out _)
+                             || int.TryParse(tokens[1], out _))
+                    {
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { row = tokens[1] });
+                    }
+                    else
+                    {
+                        var q = string.Join(' ', tokens.Skip(1));
+                        merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "search", q });
+                    }
+                }
+            }
             return (merged, null);
         }
 
@@ -199,21 +283,39 @@ internal static class IdeRepl
                 && tokens[1].Equals("under", StringComparison.OrdinalIgnoreCase))
             {
                 var parent = tokens[2];
-                var title = string.Join(' ', tokens.Skip(3));
-                if (title.Length == 0)
-                    return (merged, Err("task under needs child title", "task under omit-tiles ship-omit"));
+                var rest = tokens.Skip(3).ToList();
+                var (childTitle, underPhase) = SplitTitlePhase(rest);
+                if (childTitle.Length == 0)
+                    return (merged, Err("task under needs child title", "task under omit-tiles ship-omit @act"));
                 merged["go"] = JsonSerializer.SerializeToElement("plan");
-                merged["go_args"] = JsonSerializer.SerializeToElement(new { title, under = parent, op = "task" });
+                merged["go_args"] = underPhase is null
+                    ? JsonSerializer.SerializeToElement(new { title = childTitle, under = parent, op = "task" })
+                    : JsonSerializer.SerializeToElement(new { title = childTitle, under = parent, op = "task", phase = underPhase });
                 merged["tm_op"] = JsonSerializer.SerializeToElement("task");
                 return (merged, null);
             }
 
             if (tokens.Count < 2)
-                return (merged, Err("task needs title", "task omit-tiles | task under parent child"));
+                return (merged, Err("task needs title", "task omit-tiles | task ship @act"));
             merged["go"] = JsonSerializer.SerializeToElement("plan");
-            var taskTitle = string.Join(' ', tokens.Skip(1));
-            merged["go_args"] = JsonSerializer.SerializeToElement(new { title = taskTitle, op = "task" });
+            var (taskTitle, taskPhase) = SplitTitlePhase(tokens.Skip(1).ToList());
+            if (taskTitle.Length == 0)
+                return (merged, Err("task needs title", "task omit-tiles | task ship @act"));
+            merged["go_args"] = taskPhase is null
+                ? JsonSerializer.SerializeToElement(new { title = taskTitle, op = "task" })
+                : JsonSerializer.SerializeToElement(new { title = taskTitle, op = "task", phase = taskPhase });
             merged["tm_op"] = JsonSerializer.SerializeToElement("task");
+            return (merged, null);
+        }
+
+        if (head is "phase")
+        {
+            // phase act — set affinity on active task (soft). Session phase: cdp_context.
+            if (tokens.Count < 2)
+                return (merged, Err("phase needs value", "phase act | phase verify"));
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { phase = tokens[1], op = "phase" });
+            merged["tm_op"] = JsonSerializer.SerializeToElement("phase");
             return (merged, null);
         }
 
@@ -592,6 +694,17 @@ internal static class IdeRepl
                 "run",
                 "report",
                 "alert",
+                "sa",
+                "problems",
+                "problems 1",
+                "plugins",
+                "plugins search plantuml",
+                "plugins want plantuml",
+                "plugins install jebbs.plantuml",
+                "plugins groups",
+                "plugins disable group diagrams",
+                "plugins group add jebbs.plantuml work",
+                "plugins preview",
                 "sys",
                 "chk",
                 "nav",
@@ -600,7 +713,8 @@ internal static class IdeRepl
                 "go alert",
                 "full report",
                 "feature desk-comfort",
-                "task ship-omit",
+                "task ship-omit @act",
+                "phase act",
                 "promote",
                 "share",
                 "share with operator",
@@ -616,6 +730,103 @@ internal static class IdeRepl
             },
         hint = "CCL (cmd=). Channels: sit/plan · work/editor · probe/script · report · alert · sys/chk. CCC=help."
     };
+
+    /// <summary>Split trailing <c>@act</c> phase affinity from task title tokens.</summary>
+    static (string Title, string? Phase) SplitTitlePhase(IReadOnlyList<string> tokens)
+    {
+        if (tokens.Count == 0)
+            return ("", null);
+        var last = tokens[^1];
+        if (last.StartsWith('@')
+            && last.Length > 1
+            && Cdp.Core.CdpEnumParse.TryParsePhase(last[1..], out var p))
+        {
+            var title = string.Join(' ', tokens.Take(tokens.Count - 1));
+            return (title.Trim(), Cdp.Core.CdpEnumParse.ToWire(p));
+        }
+
+        return (string.Join(' ', tokens).Trim(), null);
+    }
+
+    /// <summary>
+    /// <c>plugins disable group javascript</c> | <c>plugins enable g1</c> | <c>plugins disable jebbs.plantuml</c>
+    /// </summary>
+    static object ParsePluginsEnableDisable(IReadOnlyList<string> tokens, string sub)
+    {
+        var op = sub is "on" or "enable" ? "enable" : "disable";
+        if (tokens.Count < 3)
+            return new { op };
+
+        if (tokens[2].Equals("group", StringComparison.OrdinalIgnoreCase)
+            || tokens[2].Equals("grp", StringComparison.OrdinalIgnoreCase))
+        {
+            var group = tokens.Count >= 4 ? tokens[3] : "";
+            return new { op, group };
+        }
+
+        var target = tokens[2];
+        if (target.StartsWith('g') && int.TryParse(target.AsSpan(1), out _))
+            return new { op, row = target };
+        return new { op, id = target };
+    }
+
+    /// <summary><c>plugins group add jebbs.plantuml work</c> | <c>plugins group remove …</c></summary>
+    static object ParsePluginsGroup(IReadOnlyList<string> tokens)
+    {
+        // plugins group add|remove <id> <group>
+        if (tokens.Count < 5)
+            return new { op = "group" };
+        var sub = tokens[2].ToLowerInvariant();
+        if (sub is not ("add" or "remove" or "rm" or "del"))
+            return new { op = "group", id = tokens[2], group = tokens[3], sub = "add" };
+        return new { op = "group", sub, id = tokens[3], group = tokens[4] };
+    }
+
+    /// <summary>
+    /// <c>plugins install jebbs.plantuml</c> | <c>… id version</c> | <c>… path.vsix</c> | <c>… s1</c>
+    /// </summary>
+    static object ParsePluginsInstall(IReadOnlyList<string> tokens)
+    {
+        if (tokens.Count < 3)
+            return new { op = "install" };
+
+        var target = tokens[2];
+        var version = tokens.Count >= 4 ? tokens[3] : null;
+
+        // row from last search
+        if (target.StartsWith('s') && int.TryParse(target.AsSpan(1), out _))
+            return version is { Length: > 0 }
+                ? new { op = "install", row = target, version }
+                : new { op = "install", row = target };
+
+        // local path / vsix
+        if (LooksLikeLocalPluginPath(target))
+            return new { op = "install", path = target };
+
+        // Open VSX id
+        return version is { Length: > 0 }
+            ? new { op = "install", id = target, version }
+            : new { op = "install", id = target };
+    }
+
+    static bool LooksLikeLocalPluginPath(string target)
+    {
+        if (target.EndsWith(".vsix", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (target.Contains('/') || target.Contains('\\') || target.Contains(':'))
+            return true;
+        try
+        {
+            if (File.Exists(target) || Directory.Exists(target))
+                return true;
+        }
+        catch
+        {
+            /* ignore */
+        }
+
+        return false;
+    }
 
     static object Err(string error, string hint) => new
     {

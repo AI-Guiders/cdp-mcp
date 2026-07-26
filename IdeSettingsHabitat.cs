@@ -498,6 +498,9 @@ internal sealed class IdeSettingsHabitat
             new("desk.default_layout", "desk", "desk", "Default seat/tile preset", "enum", layouts,
                 "user", true, true, false,
                 "Cold fill when seats empty (cockpit = P+F+M)", null, null),
+            new("desk.layout.hold", "desk", "desk", "Hold phase→desk auto-layout", "bool", null,
+                "user", true, true, false,
+                "When true, cdp_context phase= does not retune seats (escape). Explicit layout= still works.", "false", null),
             new("desk.default_mfd", "desk", "desk", "Default MFD (deprecated)", "enum",
                 ["nav", "sys", "chk", "gates"],
                 "user", true, true, false,
@@ -598,6 +601,12 @@ internal sealed class IdeSettingsHabitat
 
     public static string? EffectiveDeskLayout() =>
         IdeSettingsStore.GetOrNull("desk.default_layout");
+
+    public static bool EffectiveDeskLayoutHold()
+    {
+        var v = IdeSettingsStore.GetOrNull("desk.layout.hold");
+        return v is not null && bool.TryParse(v, out var b) && b;
+    }
 
     public static string EffectiveDeskMfd() =>
         IdeSettingsStore.GetOrNull("desk.default_mfd") ?? "nav";

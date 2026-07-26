@@ -166,7 +166,8 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
         string title,
         Guid? stageId,
         Guid? parentId,
-        string? sceneName)
+        string? sceneName,
+        string? phaseAffinity = null)
     {
         var intentId = RequireIntent(state);
         using var db = Open();
@@ -179,6 +180,8 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
             sceneId = scene.Id;
         }
 
+        string? affinity = NormalizePhaseAffinity(phaseAffinity);
+
         StageEntity entity;
         if (stageId is { } id)
         {
@@ -190,6 +193,8 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
                 entity.ParentId = parentId;
             if (sceneId.HasValue)
                 entity.SceneId = sceneId;
+            if (phaseAffinity is not null)
+                entity.PhaseAffinity = affinity;
             entity.UpdatedUtc = now;
         }
         else
@@ -206,13 +211,39 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
                 Status = "pending",
                 SceneId = sceneId,
                 Ordinal = ordinal,
+                PhaseAffinity = affinity,
                 UpdatedUtc = now
             };
             db.Stages.Add(entity);
         }
 
         db.SaveChanges();
-        return new StageUpsertResult(stage_id: entity.Id, title: entity.Title, status: entity.Status, parent_id: entity.ParentId, scene_id: entity.SceneId, ordinal: entity.Ordinal);
+        return new StageUpsertResult(
+            stage_id: entity.Id,
+            title: entity.Title,
+            status: entity.Status,
+            parent_id: entity.ParentId,
+            scene_id: entity.SceneId,
+            ordinal: entity.Ordinal,
+            phase_affinity: entity.PhaseAffinity);
+    }
+
+    static string? NormalizePhaseAffinity(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+        return Cdp.Core.CdpEnumParse.TryParsePhase(raw, out var p)
+            ? Cdp.Core.CdpEnumParse.ToWire(p)
+            : throw new ArgumentException($"phase affinity must be recall|explore|clarify|plan|act|verify|handoff — got '{raw}'");
+    }
+
+    public string? TryGetStagePhaseAffinity(Guid stageId)
+    {
+        return WithDb(db =>
+            db.Stages.AsNoTracking()
+                .Where(x => x.Id == stageId)
+                .Select(x => x.PhaseAffinity)
+                .FirstOrDefault());
     }
 
     public object StageList(IntentWorkspaceState state)
@@ -230,6 +261,7 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
                 status = x.Status,
                 scene_id = x.SceneId,
                 ordinal = x.Ordinal,
+                phase_affinity = x.PhaseAffinity,
                 has_loot = x.Loot != null,
                 has_job = x.JobJson != null,
                 job_error = x.JobError
@@ -673,6 +705,23 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
         });
     }
 
+    /// <summary>Existing WitDB may predate Stage.PhaseAffinity — ALTER if missing.</summary>
+    public void EnsureStagePhaseAffinityColumn()
+    {
+        WithDb(db =>
+        {
+            try
+            {
+                db.Database.ExecuteSqlRaw(
+                    "ALTER TABLE stages ADD COLUMN PhaseAffinity TEXT NULL;");
+            }
+            catch
+            {
+                // column already exists
+            }
+        });
+    }
+
     public void DeskSeatsSave(IReadOnlyDictionary<string, string?> seats)
     {
         var now = DateTimeOffset.UtcNow;
@@ -997,15 +1046,21 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
             var stages = db.Stages.AsNoTracking().ToList();
             string? activeFeatureTitle = null;
             string? activeStageTitle = null;
+            string? activeStagePhase = null;
             if (state.ActiveIntentId is { } aid)
                 activeFeatureTitle = intents.FirstOrDefault(x => x.Id == aid)?.Title;
             if (state.ActiveStageId is { } sid)
-                activeStageTitle = stages.FirstOrDefault(x => x.Id == sid)?.Title;
+            {
+                var st = stages.FirstOrDefault(x => x.Id == sid);
+                activeStageTitle = st?.Title;
+                activeStagePhase = st?.PhaseAffinity;
+            }
 
             var features = intents.Select(i =>
             {
                 var st = stages.Where(s => s.IntentId == i.Id)
-                    .Select(s => new IdeTaskManager.StageNode(s.Id, s.ParentId, s.Title, s.Status, s.Ordinal))
+                    .Select(s => new IdeTaskManager.StageNode(
+                        s.Id, s.ParentId, s.Title, s.Status, s.Ordinal, s.PhaseAffinity))
                     .ToList();
                 return new IdeTaskManager.FeatureNode(
                     i.Id,
@@ -1020,6 +1075,7 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
                 activeFeatureTitle,
                 state.ActiveStageId,
                 activeStageTitle,
+                activeStagePhase,
                 features);
         });
     }

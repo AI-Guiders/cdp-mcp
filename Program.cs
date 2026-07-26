@@ -40,6 +40,7 @@ void EnsureWorkspaceDb()
     workspaceStore.MigrateLegacyOpenRecentJsonIfPresent();
     workspaceStore.EnsureDeskSeatsTable();
     workspaceStore.MigrateLegacyDeskSeatsJsonIfPresent();
+    workspaceStore.EnsureStagePhaseAffinityColumn();
     workspaceStore.EnsureWorkFocusTable();
     workspaceStore.WorkFocusHydrate(workspaceState);
     workspaceStore.EnsureScriptLastRunTable();
@@ -169,12 +170,12 @@ Tool? ResolveSchema(string domain, string underlying) => domain switch
 
 List<Tool> BuildMetaTools() =>
 [
-    Meta("cdp_man", "CDP ops manual. tool= omit for TOC; or cdp_health|cdp_capabilities|cdp_context|cdp_tools|cdp_session|cdp_shell_*.", new
+    Meta("cdp_man", "[A] CDP ops manual. tool= omit for TOC; or context_budget|cdp_health|cdp_capabilities|cdp_context|cdp_tools|cdp_session|cdp_shell_*.", new
     {
         type = "object",
         properties = new { tool = new { type = "string" } }
     }),
-    Meta("cdp_health", "Backend health + runtime (version/exe/build_utc/pending_update). Optional explain_tool=prefixed name → why missing from shortlist.", new
+    Meta("cdp_health", "[A] Backend health + runtime (version/exe/build_utc/pending_update). Optional explain_tool=prefixed name → why missing from shortlist.", new
     {
         type = "object",
         properties = new
@@ -183,15 +184,16 @@ List<Tool> BuildMetaTools() =>
         }
     }),
     Meta("cdp_capabilities", "Mounted domains + layers.memory facets/roots + affordance counts.", new { type = "object", properties = new { } }),
-    Meta("cdp_context", "Get/set session phase+object(+intent[+language]). Triggers tools/list_changed.", new
+    Meta("cdp_context", "[A] Get/set session phase+object(+intent[+language]). Phase change auto-applies desk layout (SA). Hold: layout_hold= or desk.layout.hold. Triggers tools/list_changed.", new
     {
         type = "object",
         properties = new
         {
-            phase = new { type = "string", description = "recall|explore|clarify|plan|act|verify|handoff" },
+            phase = new { type = "string", description = "recall|explore|clarify|plan|act|verify|handoff — also retunes desk seats unless hold" },
             @object = new { type = "string", description = "kb|code|repo|task|finding|process|issue|session" },
             intent = new { type = "string", description = "optional find|cite|change|verify|record|ship" },
             language = new { type = "string", description = "optional language id/alias from [languages] config; empty clears" },
+            layout_hold = new { type = "boolean", description = "Skip phase→desk auto-layout this call (or set desk.layout.hold)" },
             get = new { type = "boolean", description = "If true, only return current context." }
         }
     }),
@@ -718,7 +720,7 @@ List<Tool> BuildMetaTools() =>
         },
         required = new[] { "project" }
     }),
-    Meta("cdp_tools", "Shortlist catalog=f(phase,object[,intent][,language]) — agent command palette preview.", new
+    Meta("cdp_tools", "[A] Shortlist catalog=f(phase,object[,intent][,language]) — agent command palette preview.", new
     {
         type = "object",
         properties = new
@@ -730,7 +732,7 @@ List<Tool> BuildMetaTools() =>
             limit = new { type = "integer" }
         }
     }),
-    Meta("cdp_cockpit", "Agent IDE desk — Scan Pattern seats + view once (ADR 0191/0193). Slim default. World channel (git/shell/browser/mcp) replaces on M without organ thrash. Cold auto-restore. seats_detail=full for panes.", new
+    Meta("cdp_cockpit", "[A] Agent IDE desk — Scan Pattern seats + view once (ADR 0191/0193). Slim alert=sa pulse (sit/locus/layout). [C] go_detail=full|pane_full=. [W] seats_detail=full spray. World channel replaces on M. Cold auto-restore.", new
     {
         type = "object",
         properties = new
@@ -745,7 +747,7 @@ List<Tool> BuildMetaTools() =>
             line = new { type = "string", description = "Alias of cmd." },
             repl = new { type = "string", description = "Alias of cmd." },
             go_args = new { type = "object", description = "Optional args merged into the target organ tool." },
-            go_detail = new { type = "string", description = "pulse (default, quiet) | full (organ dump in go.result)." },
+            go_detail = new { type = "string", description = "[A] pulse (default) | [C] full (organ dump in go.result)." },
             layout = new { type = "string", description = "Seat preset: cockpit | code+net | code+shell | code+git | desk. Sticky replace-in-seat." },
             seat = new { type = "string", description = "Explicit seat: p|forward|m (with organ=)." },
             organ = new { type = "string", description = "Organ pin for seat= (or pin=)." },
@@ -755,9 +757,9 @@ List<Tool> BuildMetaTools() =>
             pin_clear = new { type = "boolean", description = "Clear seats/pins." },
             clear_pins = new { type = "boolean", description = "Alias of pin_clear." },
             seat_clear = new { type = "boolean", description = "Alias of pin_clear (seats)." },
-            pane_full = new { type = "string", description = "Which seat/pin gets go_detail=full (also forces panes)." },
+            pane_full = new { type = "string", description = "[C] Which seat/pin gets go_detail=full (also forces panes)." },
             full_pane = new { type = "string", description = "Alias of pane_full." },
-            seats_detail = new { type = "string", description = "compact (default: view+slots) | full (include panes[])." },
+            seats_detail = new { type = "string", description = "[A] compact (default: view+slots) | [W] full (include panes[])." },
             view_detail = new { type = "string", description = "Alias of seats_detail." },
             desk_detail = new { type = "string", description = "slim (default: omit loci[]/go_verbs[]) | nav | full. Alias: nav_detail=." },
             nav_detail = new { type = "string", description = "Alias of desk_detail." },
@@ -765,17 +767,17 @@ List<Tool> BuildMetaTools() =>
             no_restore = new { type = "boolean", description = "Skip once-per-process cold auto desk bookmark restore (default false)." }
         }
     }),
-    Meta("cdp_session", "Agent-IDE session plane: context + shortlist + health + optional debug stop_context + pack dogfood (definitions/process/procedure) + continuity hint.", new
+    Meta("cdp_session", "[A] Session plane: context + shortlist + health + continuity (pack omitted by default). [C/W] include_pack=true embeds definitions/process/procedure dogfood.", new
     {
         type = "object",
         properties = new
         {
             explain_tool = new { type = "string", description = "Optional: why this tool is hidden/visible." },
-            include_debug = new { type = "boolean", description = "Include debug_stop_context when debug mounted (default true)." },
-            include_pack = new { type = "boolean", description = "Embed LLM-native pack process+procedure+debug-radius (default true)." },
-            pack_id = new { type = "string", description = "Pack id (default epistemic-scene)." },
-            process_id = new { type = "string", description = "Process id (default bug-radius-shrink; try applicability-then-infer / curiosity-kolb-loop)." },
-            procedure_id = new { type = "string", description = "Optional when-card id (default kolb-journal-park when process is curiosity-kolb-loop)." },
+            include_debug = new { type = "boolean", description = "[C] Include debug_stop_context when debug mounted (default true)." },
+            include_pack = new { type = "boolean", description = "[C/W] Embed LLM-native pack process+procedure+debug-radius (default false = A)." },
+            pack_id = new { type = "string", description = "Pack id when include_pack=true (default epistemic-scene)." },
+            process_id = new { type = "string", description = "Process id when include_pack=true (default bug-radius-shrink)." },
+            procedure_id = new { type = "string", description = "Optional when-card id when include_pack=true." },
             shortlist_limit = new { type = "integer", description = "Shortlist size in snapshot (default 12)." }
         }
     }),
@@ -888,7 +890,7 @@ List<Tool> BuildMetaTools() =>
         },
         required = new[] { "plan_id" }
     }),
-    Meta("cdp_shell_scene", "Agent terminal habitat map: all tabs (id, shell, cwd, state, last cmd/exit, preview). Prefer over switch→watch→switch.", new
+    Meta("cdp_shell_scene", "[A] Agent terminal habitat map: all tabs (id, shell, cwd, state, last cmd/exit, preview). Prefer over switch→watch→switch.", new
     {
         type = "object",
         properties = new { }
@@ -913,7 +915,7 @@ List<Tool> BuildMetaTools() =>
             background = new { type = "boolean", description = "true = long-run in CDP process; poll scene/last; kill to stop." }
         }
     }),
-    Meta("cdp_shell_history", "Last N commands for a tab (cmd/cwd/exit/preview; no full stdout dump).", new
+    Meta("cdp_shell_history", "[A] Last N commands for a tab (cmd/cwd/exit/preview; no full stdout dump).", new
     {
         type = "object",
         properties = new
@@ -933,7 +935,7 @@ List<Tool> BuildMetaTools() =>
             background = new { type = "boolean" }
         }
     }),
-    Meta("cdp_shell_last", "Last result body for a tab (capped stdout/stderr). While running: live buffers.", new
+    Meta("cdp_shell_last", "[C] Last result body for a tab (capped stdout/stderr). While running: live buffers.", new
     {
         type = "object",
         properties = new
@@ -942,7 +944,7 @@ List<Tool> BuildMetaTools() =>
             max_chars = new { type = "integer", description = "Cap per stream (default 12000)." }
         }
     }),
-    Meta("cdp_shell_which", "Active shell kind + exe + cwd (+ pid/state) for a tab.", new
+    Meta("cdp_shell_which", "[A] Active shell kind + exe + cwd (+ pid/state) for a tab.", new
     {
         type = "object",
         properties = new { tab = new { type = "string" } }
@@ -991,7 +993,7 @@ var options = new McpServerOptions
         "CSX: cdp_script_scene (put→diags→check→run) | cdp_csx_help | cdp_csx_check | cdp_csx_run | cdp_csx_run_plan | promote | discard | cdp_evidence. " +
         "Domain tools prefixed " + DomainPrefixHint + " (roslyn_* = legacy aliases; prefer bare IDE verbs). " +
         "ListTools = meta + bare IDE verbs + ≤10 domain shortlist (deduped underlying; not full union). " +
-        "Too many tools = agent thrash — use cdp_context to retarget, cdp_tools to preview, cdp_session for pack embed. " +
+        "Too many tools = agent thrash — use cdp_context to retarget, cdp_tools to preview, cdp_session (A; include_pack=true only when needed). " +
         "Continuity: route/handoff before deep topic; evidence-first (stop_context), PNG last.",
     Capabilities = new ServerCapabilities
     {
@@ -1103,8 +1105,12 @@ async Task<string> DispatchMetaAsync(
     {
         case "cdp_man":
             if (callArgs.TryGetValue("tool", out var t) && t.GetString() is { Length: > 0 } tool)
+            {
+                if (tool is "context_budget" or "budget" or "context")
+                    return SessionPlane.ContextBudgetManual;
                 return $"Manual: {tool} — see tool description; domain ops via prefixed tools / sibling man.";
-            return "TOC: cdp_cockpit (hub where-am-I), cdp_session (omnibus plane + pack dogfood), cdp_health(explain_tool?), cdp_capabilities, " +
+            }
+            return "TOC: cdp_cockpit (hub where-am-I), cdp_session (A omnibus; include_pack=true for pack dogfood), cdp_health(explain_tool?), cdp_capabilities, " +
                    "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_editor_scene|cdp_edit_sniper|cdp_edit_plan (map→aim→slices), " +
                    "cdp_build|cdp_run|cdp_test|cdp_test_scene|cdp_test_plan (session IDE lifecycle), " +
                    "cdp_analysis_scene (code analysis domain; feature=clones), " +
@@ -1122,7 +1128,8 @@ async Task<string> DispatchMetaAsync(
                    "Domain prefixes: memory_world_ memory_project_ memory_task_ memory_session_ memory_skill_ " +
                    "memory_self_finding_ memory_self_failure_ debug_ build_ roslyn_ git_ codebase_index_ anui_. " +
                    "Agent-IDE pillars: session plane, shared truth, affordance nav, continuity, evidence-first, self-ops. " +
-                   "Order: Agent Env first; CIDE projector later.";
+                   "Order: Agent Env first; CIDE projector later. " +
+                   "Context: man tool=context_budget (EICAS W/C/A).";
         case "cdp_health":
         {
             object? explain = null;
@@ -1245,10 +1252,17 @@ async Task<string> DispatchMetaAsync(
             if (callArgs.TryGetValue("get", out var g) && g.ValueKind == JsonValueKind.True)
                 return session.ToJson();
             var changed = false;
+            string? layoutApplied = null;
             if (callArgs.TryGetValue("phase", out var ph) && CdpEnumParse.TryParsePhase(ph.GetString(), out var newPhase))
             {
+                var phaseChanged = newPhase != session.Phase;
                 session.Phase = newPhase;
                 changed = true;
+                if (phaseChanged)
+                {
+                    EnsureWorkspaceDb();
+                    layoutApplied = IdePhaseLayout.TryApplyForPhase(newPhase, callArgs);
+                }
             }
             if (callArgs.TryGetValue("object", out var ob) && CdpEnumParse.TryParseObject(ob.GetString(), out var newObj))
             {
@@ -1275,7 +1289,14 @@ async Task<string> DispatchMetaAsync(
             }
             if (changed)
                 NotifyListChanged();
-            return session.ToJson() + (changed ? "\n# list_changed: shortlist refreshed for new context" : "");
+            var ctxTail = changed ? "\n# list_changed: shortlist refreshed for new context" : "";
+            if (layoutApplied is { Length: > 0 })
+                ctxTail += $"\n# desk_layout: {layoutApplied} (phase SA; hold=layout_hold|desk.layout.hold)";
+            else if (changed
+                     && callArgs.ContainsKey("phase")
+                     && IdePhaseLayout.IsHold(callArgs))
+                ctxTail += "\n# desk_layout: held";
+            return session.ToJson() + ctxTail;
         case "cdp_open":
         {
             EnsureOpenRecentWired();

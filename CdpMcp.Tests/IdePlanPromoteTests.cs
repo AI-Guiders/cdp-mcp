@@ -20,6 +20,7 @@ public sealed class IdePlanPromoteTests
             "promote-spike",
             activeId,
             "ship inbox",
+            null,
             [new IdeTaskManager.FeatureNode(Guid.NewGuid(), "promote-spike", true, activeId, stages)]);
 
         var todos = IdePlanPromote.FormatTodos(snap);

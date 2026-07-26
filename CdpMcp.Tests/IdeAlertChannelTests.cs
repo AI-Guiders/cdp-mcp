@@ -1,3 +1,4 @@
+using Cdp.Core;
 using Xunit;
 
 namespace CdpMcp.Tests;
@@ -25,7 +26,7 @@ public sealed class IdeAlertChannelTests
             dapActive: false,
             dapStopped: false);
         Assert.Equal(IdeAlertChannel.Level.Warn, snap.Level);
-        Assert.Equal("alert WARN · gates×2", snap.Pulse);
+        Assert.Equal("sa WARN · gates×2", snap.Pulse);
     }
 
     [Fact]
@@ -38,5 +39,66 @@ public sealed class IdeAlertChannelTests
             dapStopped: false);
         Assert.Equal(IdeAlertChannel.Level.Fail, snap.Level);
         Assert.Contains("FAIL", snap.Pulse, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Build_problems_errors_are_fail()
+    {
+        var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(
+            new QualityGates.QualitySnap(true, 0, 0, false, "ok"),
+            DiskChanged: 0,
+            DapActive: false,
+            DapStopped: false,
+            ProblemErrors: 2,
+            ProblemWarnings: 1));
+        Assert.Equal(IdeAlertChannel.Level.Fail, snap.Level);
+        Assert.Equal("sa FAIL · pe×2", snap.Pulse);
+    }
+
+    [Fact]
+    public void Build_git_dirty_and_shell_running_fuse()
+    {
+        var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(
+            new QualityGates.QualitySnap(true, 0, 0, false, "ok"),
+            DiskChanged: 0,
+            DapActive: false,
+            DapStopped: false,
+            ShellRunning: 1,
+            GitDirty: true,
+            Sit: new IdeAlertChannel.Sit("act/code", "change", "IdeAlertChannel.cs", null, null)));
+        Assert.Equal(IdeAlertChannel.Level.Warn, snap.Level);
+        Assert.Equal("sa WARN · git dirty", snap.Pulse);
+        Assert.Contains(snap.Lines, l => l.Contains("shell run", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void SuggestLayout_flags_stale_plugins_on_P()
+    {
+        var seats = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["p"] = "plugins",
+            ["forward"] = "editor_scene",
+            ["m"] = "browser",
+        };
+        var (hint, note) = IdeAlertChannel.SuggestLayout(CdpPhase.Act, CdpObjectKind.Code, seats);
+        Assert.Equal("agent", hint);
+        Assert.Contains("plugins", note, StringComparison.OrdinalIgnoreCase);
+
+        var (exploreHint, _) = IdeAlertChannel.SuggestLayout(CdpPhase.Explore, CdpObjectKind.Code, seats);
+        Assert.Equal("code+net", exploreHint);
+    }
+
+    [Fact]
+    public void PulseCard_omits_zero_counts()
+    {
+        var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(
+            new QualityGates.QualitySnap(true, 0, 0, false, "ok"),
+            0, false, false,
+            Sit: new IdeAlertChannel.Sit("explore/code", "find", "a.cs", "code+net", null)));
+        var card = IdeAlertChannel.PulseCard(snap);
+        var json = System.Text.Json.JsonSerializer.Serialize(card);
+        Assert.Contains("explore/code", json, StringComparison.Ordinal);
+        Assert.Contains("a.cs", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"pe\"", json, StringComparison.Ordinal);
     }
 }

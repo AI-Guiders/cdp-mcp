@@ -9,7 +9,7 @@ namespace CdpMcp;
 /// </summary>
 internal static class IdeTaskManager
 {
-    public const string SchemaVersion = "task_manager/v1.2";
+    public const string SchemaVersion = "task_manager/v1.3";
 
     public static object Handle(
         IntentWorkspaceStore store,
@@ -31,7 +31,8 @@ internal static class IdeTaskManager
                 "feature" or "intent" or "feature_add" => FeatureAdd(store, state, Title(args)),
                 "feature_focus" or "intent_select" => FeatureFocus(store, state, args),
                 "feature_drop" or "feature_rm" or "feature_delete" => FeatureDrop(store, state, args),
-                "task" or "task_add" or "add" => TaskAdd(store, state, Title(args), ResolveParent(store, state, args)),
+                "task" or "task_add" or "add" => TaskAdd(
+                    store, state, Title(args), ResolveParent(store, state, args), PhaseArg(args)),
                 "focus" or "task_focus" => TaskFocus(store, state, args),
                 "task_drop" or "task_rm" or "task_delete" => TaskDrop(store, state, args),
                 "drop" or "rm" or "delete" => DropSmart(store, state, args),
@@ -39,6 +40,7 @@ internal static class IdeTaskManager
                 "pending" or "reopen" => TaskStatus(store, state, args, "pending"),
                 "park" or "parked" => TaskStatus(store, state, args, "parked"),
                 "active" => TaskStatus(store, state, args, "active"),
+                "phase" or "task_phase" => TaskSetPhase(store, state, args),
                 "promote" or "promote_plan" or "ask_confirm"
                 or "share" or "share_plan" => IdeShare.SharePlan(
                     store, state, Opt(args, "project_root") ?? OptGoArg(args, "project_root"),
@@ -72,7 +74,7 @@ internal static class IdeTaskManager
             };
         }
 
-        var board = BuildBoard(store, state);
+        var board = BuildBoard(store, state, Opt(args, "session_phase") ?? OptGoArg(args, "session_phase"));
         return new
         {
             ok = true,
@@ -93,18 +95,22 @@ internal static class IdeTaskManager
                     Opt(args, "project_root") ?? OptGoArg(args, "project_root"),
                     Opt(args, "dir") ?? OptGoArg(args, "dir")),
             hint =
-                "Feature=Intent, Task=Stage (WitDB). Sticky focus survives remount. " +
-                "REPL: feature|task|focus|done|park|drop|share|promote|confirm|reject|plan. pane_full=plan for JSON tree."
+                "Feature=Intent, Task=Stage (WitDB). Stage @phase = soft affinity (not status). " +
+                "REPL: feature|task Y @act|focus|done|park|drop|phase act|share|promote|confirm|reject. " +
+                "Session phase drives desk layout (hold: desk.layout.hold / layout_hold=)."
         };
     }
 
-    public static string PulseLine(IntentWorkspaceStore? store, IntentWorkspaceState state)
+    public static string PulseLine(
+        IntentWorkspaceStore? store,
+        IntentWorkspaceState state,
+        string? sessionPhase = null)
     {
         if (store is null)
             return "no task store";
         try
         {
-            return BuildBoard(store, state).Pulse;
+            return BuildBoard(store, state, sessionPhase).Pulse;
         }
         catch
         {
@@ -112,7 +118,10 @@ internal static class IdeTaskManager
         }
     }
 
-    public static Board BuildBoard(IntentWorkspaceStore store, IntentWorkspaceState state)
+    public static Board BuildBoard(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        string? sessionPhase = null)
     {
         var snap = store.TaskManagerSnapshot(state);
         var lines = new List<string>();
@@ -120,7 +129,6 @@ internal static class IdeTaskManager
         {
             var mark = feature.IsActive ? "*" : " ";
             lines.Add($"{mark}{feature.Title}");
-            // Active feature: full tree. Others: collapsed (title only) to keep board scannable.
             if (!feature.IsActive)
                 continue;
             foreach (var line in FormatStageTree(feature.Stages, feature.ActiveStageId, indent: 0))
@@ -130,15 +138,23 @@ internal static class IdeTaskManager
         if (lines.Count == 0)
             lines.Add("(empty — cmd=\"feature <name>\")");
 
+        var phaseWire = sessionPhase is { Length: > 0 } ? sessionPhase : "—";
         var pulse = snap.ActiveFeatureTitle is { Length: > 0 } f
             ? snap.ActiveStageTitle is { Length: > 0 } t
-                ? $"{f} › {t}"
-                : $"{f} › (pick task)"
-            : "no plan — feature <name>";
+                ? $"{f} › {t} · {phaseWire}"
+                : $"{f} › (pick task) · {phaseWire}"
+            : $"no plan — feature <name> · {phaseWire}";
 
         var banner = snap.ActiveFeatureTitle is { Length: > 0 }
-            ? $"| plan:{Trim(snap.ActiveFeatureTitle, 18)} | task:{Trim(snap.ActiveStageTitle ?? "—", 18)} |"
-            : "| plan:— | task:— |";
+            ? $"| plan:{Trim(snap.ActiveFeatureTitle, 18)} | task:{Trim(snap.ActiveStageTitle ?? "—", 18)} | phase:{phaseWire} |"
+            : $"| plan:— | task:— | phase:{phaseWire} |";
+
+        if (snap.ActiveStagePhaseAffinity is { Length: > 0 } aff
+            && sessionPhase is { Length: > 0 }
+            && !aff.Equals(sessionPhase, StringComparison.OrdinalIgnoreCase))
+        {
+            lines.Insert(0, $"!phase mismatch task@{aff} · session={sessionPhase}");
+        }
 
         return new Board(
             Pulse: pulse,
@@ -148,14 +164,16 @@ internal static class IdeTaskManager
                 banner,
                 board = lines.ToArray(),
                 ascii = string.Join('\n', lines),
-                hint = "Scan board. * = active feature; [>] active task; [x] done; [ ] pending."
+                hint = "Scan board. * = active feature; [>] active task; [x] done; @phase = affinity."
             },
             Focus: new
             {
                 feature_id = snap.ActiveFeatureId,
                 feature = snap.ActiveFeatureTitle,
                 task_id = snap.ActiveStageId,
-                task = snap.ActiveStageTitle
+                task = snap.ActiveStageTitle,
+                task_phase = snap.ActiveStagePhaseAffinity,
+                session_phase = sessionPhase
             });
     }
 
@@ -191,7 +209,7 @@ internal static class IdeTaskManager
             : node.Status.Equals("parked", StringComparison.OrdinalIgnoreCase) ? "[-]"
             : activeStageId == node.Id || node.Status.Equals("active", StringComparison.OrdinalIgnoreCase) ? "[>]"
             : "[ ]";
-        yield return $"{pad}|--- {box} {node.Title}";
+        yield return $"{pad}|--- {box} {node.Title}{(node.PhaseAffinity is { Length: > 0 } pa ? $" @{pa}" : "")}";
         foreach (var child in all.Where(s => s.ParentId == node.Id).OrderBy(s => s.Ordinal))
         {
             foreach (var line in Walk(child, all, activeStageId, indent + 1))
@@ -306,23 +324,66 @@ internal static class IdeTaskManager
         IntentWorkspaceStore store,
         IntentWorkspaceState state,
         string title,
-        Guid? parentId)
+        Guid? parentId,
+        string? phaseAffinity)
     {
         if (string.IsNullOrWhiteSpace(title))
-            throw new ArgumentException("task needs title — task ship-omit");
+            throw new ArgumentException("task needs title — task ship-omit | task ship @act");
         if (state.ActiveIntentId is null)
             throw new ArgumentException("no active feature — feature <name> first");
 
         if (store.FindStageMatching(state, title, parentId, matchParent: true) is { } existing)
         {
             store.FocusStage(state, existing);
-            return new { op = "task_focus", task_id = existing, title, parent_id = parentId, deduped = true };
+            if (phaseAffinity is not null)
+                store.StageUpsert(state, title: "", existing, parentId: null, sceneName: null, phaseAffinity);
+            return new
+            {
+                op = "task_focus",
+                task_id = existing,
+                title,
+                parent_id = parentId,
+                phase_affinity = phaseAffinity,
+                deduped = true
+            };
         }
 
-        var r = store.StageUpsert(state, title, null, parentId, null);
+        var r = store.StageUpsert(state, title, null, parentId, null, phaseAffinity);
         store.FocusStage(state, r.stage_id);
-        return new { op = "task", task_id = r.stage_id, title = r.title, parent_id = r.parent_id };
+        return new
+        {
+            op = "task",
+            task_id = r.stage_id,
+            title = r.title,
+            parent_id = r.parent_id,
+            phase_affinity = r.phase_affinity
+        };
     }
+
+    static object TaskSetPhase(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var phase = PhaseArg(args)
+                    ?? throw new ArgumentException("phase needs value — phase act | task phase act");
+        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id") ?? state.ActiveStageId;
+        if (id is null)
+        {
+            var title = Title(args);
+            if (title.Length > 0)
+                id = store.FindStageIdByTitle(state, title);
+        }
+
+        if (id is null)
+            throw new ArgumentException("no active task — focus <task> first");
+
+        var r = store.StageUpsert(state, title: "", id, parentId: null, sceneName: null, phase);
+        return new { op = "phase", task_id = r.stage_id, phase_affinity = r.phase_affinity };
+    }
+
+    static string? PhaseArg(IReadOnlyDictionary<string, JsonElement> args) =>
+        Opt(args, "phase") ?? OptGoArg(args, "phase") ?? Opt(args, "phase_affinity") ?? OptGoArg(args, "phase_affinity");
 
     static object TaskFocus(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
     {
@@ -462,7 +523,8 @@ internal static class IdeTaskManager
         Guid? ParentId,
         string Title,
         string Status,
-        int Ordinal);
+        int Ordinal,
+        string? PhaseAffinity = null);
 
     public sealed record FeatureNode(
         Guid Id,
@@ -476,5 +538,6 @@ internal static class IdeTaskManager
         string? ActiveFeatureTitle,
         Guid? ActiveStageId,
         string? ActiveStageTitle,
+        string? ActiveStagePhaseAffinity,
         IReadOnlyList<FeatureNode> Features);
 }

@@ -23,6 +23,8 @@ internal sealed class StageEntity
     public string? Loot { get; set; }
     public string? JobJson { get; set; }
     public string? JobError { get; set; }
+    /// <summary>Optional epistemic phase affinity (wire: explore|plan|act|…). Soft — not Stage status.</summary>
+    public string? PhaseAffinity { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }
 
     public IntentEntity? Intent { get; set; }

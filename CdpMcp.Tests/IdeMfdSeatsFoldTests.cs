@@ -5,9 +5,9 @@ namespace CdpMcp.Tests;
 public sealed class IdeMfdSeatsFoldTests
 {
     [Fact]
-    public void Schema_is_cockpit_v1_16()
+    public void Schema_is_cockpit_v1_18()
     {
-        Assert.Equal("cockpit/v1.16", IdeCockpit.SchemaVersion);
+        Assert.Equal("cockpit/v1.18", IdeCockpit.SchemaVersion);
     }
 
     [Theory]
@@ -15,6 +15,9 @@ public sealed class IdeMfdSeatsFoldTests
     [InlineData("chk", "m")]
     [InlineData("gates", "p")]
     [InlineData("quality", "p")]
+    [InlineData("problems", "p")]
+    [InlineData("plugins", "p")]
+    [InlineData("errlist", "p")]
     public void Soft_organ_seat_policy(string organ, string seat)
     {
         Assert.Equal(seat, IdeDeskSeats.ResolveSeatForOrgan(organ));
@@ -24,6 +27,10 @@ public sealed class IdeMfdSeatsFoldTests
     [InlineData("sys", "sys")]
     [InlineData("chk", "chk")]
     [InlineData("gates", "gates")]
+    [InlineData("problems", "problems")]
+    [InlineData("err", "problems")]
+    [InlineData("plugins", "plugins")]
+    [InlineData("vsix", "plugins")]
     public void ShortOrgan_labels(string organ, string label)
     {
         Assert.Equal(label, IdeDeskView.ShortOrgan(organ));
@@ -47,6 +54,19 @@ public sealed class IdeMfdSeatsFoldTests
         Assert.Null(applied!.Value.Direct);
         Assert.True(applied.Value.Args.TryGetValue("go", out var go));
         Assert.Equal("chk", go.GetString());
+    }
+
+    [Fact]
+    public void Ccl_problems_row_sets_aim_args()
+    {
+        var applied = IdeRepl.Apply("problems 1", new Dictionary<string, System.Text.Json.JsonElement>());
+        Assert.NotNull(applied);
+        Assert.Null(applied!.Value.Direct);
+        Assert.True(applied.Value.Args.TryGetValue("go", out var go));
+        Assert.Equal("problems", go.GetString());
+        Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
+        Assert.Equal("1", ga.GetProperty("row").GetString());
+        Assert.True(ga.GetProperty("aim").GetBoolean());
     }
 
     [Fact]

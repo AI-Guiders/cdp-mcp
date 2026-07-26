@@ -70,6 +70,30 @@ internal static class IdeDeskSeats
                 ["forward"] = "editor_scene",
                 ["m"] = "script_scene",
             },
+            ["bug"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["p"] = "problems",
+                ["forward"] = "editor_scene",
+                ["m"] = "shell_scene",
+            },
+            ["verify"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["p"] = "chk",
+                ["forward"] = "editor_scene",
+                ["m"] = "shell_scene",
+            },
+            ["phase-explore"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["p"] = "project_scene",
+                ["forward"] = "editor_scene",
+                ["m"] = "browser",
+            },
+            ["phase-handoff"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["p"] = "plan",
+                ["forward"] = "editor_scene",
+                ["m"] = "git_scene",
+            },
         };
 
     static readonly Dictionary<string, string> DefaultPolicy = new(StringComparer.OrdinalIgnoreCase)
@@ -105,8 +129,18 @@ internal static class IdeDeskSeats
         ["pfd"] = "p",
         ["alert"] = "p",
         ["eicas"] = "p",
+        ["sa"] = "p",
         ["quality"] = "p",
         ["gates"] = "p",
+        ["problems"] = "p",
+        ["problem"] = "p",
+        ["errlist"] = "p",
+        ["errorlist"] = "p",
+        ["err"] = "p",
+        ["diags"] = "p",
+        ["plugins"] = "p",
+        ["plugin"] = "p",
+        ["vsix"] = "p",
         ["sys"] = "m",
         ["chk"] = "m",
         ["debug_scene"] = "p",
@@ -163,13 +197,13 @@ internal static class IdeDeskSeats
         }
     }
 
-    public static bool TryApplyPreset(string layoutId)
+    public static bool TryApplyPreset(string layoutId, bool merge = false)
     {
         if (!SeatPresets.TryGetValue(layoutId.Trim(), out var map))
             return false;
         lock (Gate)
         {
-            ApplyPresetUnlocked(map);
+            ApplyPresetUnlocked(map, merge);
             PersistUnlocked();
         }
 
@@ -200,7 +234,7 @@ internal static class IdeDeskSeats
             if (layout is { Length: > 0 }
                 && SeatPresets.TryGetValue(layout.Trim(), out var map))
             {
-                ApplyPresetUnlocked(map);
+                ApplyPresetUnlocked(map, merge: false);
                 PersistUnlocked();
                 return;
             }
@@ -212,10 +246,14 @@ internal static class IdeDeskSeats
         }
     }
 
-    static void ApplyPresetUnlocked(Dictionary<string, string> map)
+    static void ApplyPresetUnlocked(Dictionary<string, string> map, bool merge)
     {
-        foreach (var s in Order)
-            Sticky[s] = null;
+        if (!merge)
+        {
+            foreach (var s in Order)
+                Sticky[s] = null;
+        }
+
         foreach (var (seat, pin) in map)
         {
             if (Order.Contains(seat, StringComparer.OrdinalIgnoreCase))

@@ -14,7 +14,7 @@ namespace CdpMcp;
 /// </summary>
 internal static class IdeCockpit
 {
-    public const string SchemaVersion = "cockpit/v1.16";
+    public const string SchemaVersion = "cockpit/v1.19";
     public const int GoResultCapChars = 24_000;
     public const int GoPulseCapChars = 1_200;
     public const int MaxTiles = 4;
@@ -92,6 +92,16 @@ internal static class IdeCockpit
         ["pfd"] = "report",
         ["alert"] = "alert",
         ["eicas"] = "alert",
+        ["sa"] = "alert",
+        ["problems"] = "problems",
+        ["problem"] = "problems",
+        ["errlist"] = "problems",
+        ["errorlist"] = "problems",
+        ["err"] = "problems",
+        ["diags"] = "problems",
+        ["plugins"] = "plugins",
+        ["plugin"] = "plugins",
+        ["vsix"] = "plugins",
         ["project"] = "project_scene",
         ["project_scene"] = "project_scene",
     };
@@ -498,8 +508,26 @@ internal static class IdeCockpit
 
         var wantAlert = goVerb is { Length: > 0 }
             && (goVerb.Equals("alert", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("eicas", StringComparison.OrdinalIgnoreCase));
+                || goVerb.Equals("eicas", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("sa", StringComparison.OrdinalIgnoreCase));
         if (wantAlert)
+            goVerb = null;
+
+        var wantProblems = goVerb is { Length: > 0 }
+            && (goVerb.Equals("problems", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("problem", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("errlist", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("errorlist", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("err", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("diags", StringComparison.OrdinalIgnoreCase));
+        if (wantProblems)
+            goVerb = null;
+
+        var wantPlugins = goVerb is { Length: > 0 }
+            && (goVerb.Equals("plugins", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("plugin", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("vsix", StringComparison.OrdinalIgnoreCase));
+        if (wantPlugins)
             goVerb = null;
 
         // Soft organ: Plan / Task Manager (Feature → Task tree, WitDB sticky focus).
@@ -513,7 +541,8 @@ internal static class IdeCockpit
                 || goVerb.Equals("feature", StringComparison.OrdinalIgnoreCase)
                 || goVerb.Equals("promote", StringComparison.OrdinalIgnoreCase)
                 || goVerb.Equals("confirm", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("reject", StringComparison.OrdinalIgnoreCase)))
+                || goVerb.Equals("reject", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("phase", StringComparison.OrdinalIgnoreCase)))
         {
             if (workspaceStore is null)
             {
@@ -530,6 +559,7 @@ internal static class IdeCockpit
                 var tmArgs = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
                 if (session.ProjectRoot is { Length: > 0 } pr)
                     tmArgs["project_root"] = JsonSerializer.SerializeToElement(pr);
+                tmArgs["session_phase"] = JsonSerializer.SerializeToElement(CdpEnumParse.ToWire(session.Phase));
                 if (!tmArgs.ContainsKey("tm_op")
                     && goVerb is "feature" or "task" or "promote" or "confirm" or "reject"
                     && (!tmArgs.TryGetValue("go_args", out var gax)
@@ -596,18 +626,24 @@ internal static class IdeCockpit
 
         var debug = CollectDebug(session);
         var test = CollectTest(session);
-        var work = CollectWork(workspaceStore, workspaceState);
+        var work = CollectWork(workspaceStore, workspaceState, session);
         var quality = QualityGates.Snap(docStore, session.ProjectRoot);
-        var alertSnap = IdeAlertChannel.Build(
-            quality, buffer.DiskChangedCount, debug.ActiveDap, debug.Stopped);
+        var problems = IdeProblemsChannel.Build(docStore, session);
 
-        // Soft organ: alert after snaps exist (quality + disk + DAP).
-        if (wantAlert)
+        // Soft organs that own a seat: place BEFORE SA fuse so same-turn map matches desk.
+        // Alert/sa is root EICAS (PulseCard) — do not PlaceOrgan (steals P, frame skew).
+        if (wantProblems)
         {
-            goResult = IdeAlertChannel.Handle(
-                quality, buffer.DiskChangedCount, debug.ActiveDap, debug.Stopped, args);
+            goResult = IdeProblemsChannel.Handle(docStore, session, args);
             if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("alert");
+                IdeDeskSeats.PlaceOrgan("problems");
+        }
+
+        if (wantPlugins)
+        {
+            goResult = IdePluginsChannel.Handle(docStore, session, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("plugins");
         }
 
         if (wantSys)
@@ -623,6 +659,13 @@ internal static class IdeCockpit
             if (IdeDeskSeats.IsSeatsMode())
                 IdeDeskSeats.PlaceOrgan("chk");
         }
+
+        var alertInputs = BuildAlertInputs(
+            session, quality, buffer, debug, shell, git, problems, work, workspaceStore, workspaceState);
+        var alertSnap = IdeAlertChannel.Build(alertInputs);
+
+        if (wantAlert)
+            goResult = IdeAlertChannel.Handle(alertInputs, args);
 
         var loci = BuildLoci(session, git, shell, browser, settingsPulse, buffer, debug, test, work, quality);
         var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId, quality, alertSnap);
@@ -661,7 +704,7 @@ internal static class IdeCockpit
         // No parallel MFD root page — soft organs carry sys/chk/gates.
 
         var goVerbs = GoMap.Keys
-            .Concat(["quality", "gates", "sys", "chk", "nav", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas"])
+            .Concat(["quality", "gates", "sys", "chk", "nav", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas", "sa", "problems", "problem", "errlist", "errorlist", "err", "diags", "plugins", "plugin", "vsix"])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -760,6 +803,8 @@ internal static class IdeCockpit
                     }
                     else
                     {
+                        tileArgs["session_phase"] = JsonSerializer.SerializeToElement(
+                            CdpEnumParse.ToWire(session.Phase));
                         var board = IdeTaskManager.Handle(workspaceStore, workspaceState, tileArgs);
                         pane = wantFull
                             ? new
@@ -789,10 +834,9 @@ internal static class IdeCockpit
                         }
                         : board;
                 }
-                else if (planPin is "alert" or "eicas")
+                else if (planPin is "alert" or "eicas" or "sa")
                 {
-                    var board = IdeAlertChannel.Handle(
-                        quality, buffer.DiskChangedCount, debug.ActiveDap, debug.Stopped, tileArgs);
+                    var board = IdeAlertChannel.Handle(alertInputs, tileArgs);
                     pane = wantFull
                         ? new
                         {
@@ -804,6 +848,50 @@ internal static class IdeCockpit
                             result = board
                         }
                         : board;
+                }
+                else if (planPin is "problems" or "problem" or "errlist" or "errorlist" or "err" or "diags")
+                {
+                    var board = IdeProblemsChannel.Handle(docStore, session, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "problems",
+                            tool = "problems_channel",
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : new
+                        {
+                            ok = true,
+                            go = "problems",
+                            detail = "pulse",
+                            pulse = IdeProblemsChannel.Build(docStore, session).Pulse,
+                            result = board
+                        };
+                }
+                else if (planPin is "plugins" or "plugin" or "vsix")
+                {
+                    var board = IdePluginsChannel.Handle(docStore, session, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "plugins",
+                            tool = "plugins_channel",
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : new
+                        {
+                            ok = true,
+                            go = "plugins",
+                            detail = "pulse",
+                            pulse = IdePluginsChannel.Build().Pulse,
+                            result = board
+                        };
                 }
                 else if (planPin is "quality" or "gates")
                 {
@@ -888,10 +976,11 @@ internal static class IdeCockpit
                 ["warm"] = warm,
                 ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
                 ["hint"] = wantNav
-                    ? "Read view.banner / view.ascii first. Steer: cmd=\"go alert\" | layout=agent. " +
-                      "seats_detail=full or pane_full= for organ dump."
-                    : "Slim desk (cockpit/v1.16): view + seats + next + alert. " +
-                      "go=sys|chk soft organs; desk_detail=nav for loci[]; cmd=alert|probe|report|plan (CCL)."
+                    ? "Read view.banner / view.ascii first. Steer: cmd=\"go sa\" | layout=agent. " +
+                      "C: pane_full= one dump; W: seats_detail=full spray."
+                    : "Slim desk (cockpit/v1.19): view + seats + next + alert(sa). " +
+                      "go=sys|chk soft organs; desk_detail=nav for loci[]; cmd=sa|alert|probe|report|plan (CCL). " +
+                      "Context W/C/A: A=pulse; C=go_detail=full|pane_full=; W=seats_detail=full."
             };
             if (wantNav)
             {
@@ -1223,7 +1312,8 @@ internal static class IdeCockpit
         // Scene-like go verbs that own a seat pulse (not clipboard / find one-shots).
         return pin is "editor_scene" or "buffer_scene" or "browser" or "shell_scene" or "git_scene"
             or "debug_scene" or "test_scene" or "mcp_scene" or "settings" or "project_scene"
-            or "plan" or "work" or "report" or "evidence" or "pfd" or "alert" or "eicas"
+            or "plan" or "work" or "report" or "evidence" or "pfd" or "alert" or "eicas" or "sa"
+            or "problems" or "plugins"
             or "correspondence" or "quality" or "gates" or "sys" or "chk" or "analysis_scene"
             or "script_scene" or "semantic_map";
     }
@@ -1492,9 +1582,14 @@ internal static class IdeCockpit
             return list.ToArray();
         }
 
-        // EICAS-lite: surface alert before comfort next when something beeps.
+        // EICAS/SA: surface alert before comfort next when something beeps.
         if (alert.Level != IdeAlertChannel.Level.Clear)
-            Add("n-alert", "alert", "Alert board", alert.Pulse);
+            Add("n-alert", "alert", "SA board", alert.Pulse);
+        if (alert.Sit?.LayoutHint is { Length: > 0 } layoutHint)
+            Add("n-layout", "layout", $"Layout {layoutHint}",
+                $"cmd=\"layout {layoutHint}\" — {alert.Sit.SeatNote ?? layoutHint}");
+        if (alert.ProblemErrors > 0)
+            Add("n-problems", "problems", "Error List", $"E×{alert.ProblemErrors} — aim row, don't dump");
 
         Add("n-goto", "goto", "Go To (Ctrl+T)", "query= type/member/file — land on anchor");
         Add("n-editor", "editor_scene", "Editor map", "Buffer/desk loop");
@@ -1604,6 +1699,78 @@ internal static class IdeCockpit
         scm_root = session.ScmRoot,
         solution_or_project_path = session.SolutionOrProjectPath
     };
+
+    static IdeAlertChannel.Inputs BuildAlertInputs(
+        SessionContext session,
+        QualityGates.QualitySnap quality,
+        BufferSnap buffer,
+        DebugSnap debug,
+        ShellSnap shell,
+        JsonElement? git,
+        IdeProblemsChannel.Snap problems,
+        WorkSnap work,
+        IntentWorkspaceStore? workspaceStore,
+        IntentWorkspaceState workspaceState)
+    {
+        var seats = IdeDeskSeats.IsSeatsMode()
+            ? IdeDeskSeats.Snapshot()
+            : new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        var (layoutHint, seatNote) = IdeAlertChannel.SuggestLayout(session.Phase, session.Object, seats);
+        var intent = session.Intent is { } i
+            ? CdpEnumParse.ToWire(i)
+            : work.Pulse;
+        var locus = ResolveLocusLine(buffer, session.ProjectRoot);
+        var sit = new IdeAlertChannel.Sit(
+            $"{CdpEnumParse.ToWire(session.Phase)}/{CdpEnumParse.ToWire(session.Object)}",
+            intent,
+            locus,
+            layoutHint,
+            seatNote);
+
+        string? stageMismatch = null;
+        if (workspaceStore is not null
+            && workspaceState.ActiveStageId is { } sid
+            && workspaceStore.TryGetStagePhaseAffinity(sid) is { Length: > 0 } aff)
+        {
+            var sessionPhase = CdpEnumParse.ToWire(session.Phase);
+            if (!aff.Equals(sessionPhase, StringComparison.OrdinalIgnoreCase))
+                stageMismatch = $"phase mismatch task@{aff} · session={sessionPhase}";
+        }
+
+        return new IdeAlertChannel.Inputs(
+            quality,
+            buffer.DiskChangedCount,
+            debug.ActiveDap,
+            debug.Stopped,
+            problems.Errors,
+            problems.Warnings,
+            shell.Running,
+            shell.Failed,
+            GitIsDirty(git),
+            sit,
+            stageMismatch);
+    }
+
+    static string? ResolveLocusLine(BufferSnap buffer, string? projectRoot)
+    {
+        if (buffer.Docs.Count == 0)
+            return null;
+        var hot = buffer.Docs.FirstOrDefault(d => d.DiskChanged)
+            ?? buffer.Docs.FirstOrDefault(d => d.Dirty)
+            ?? buffer.Docs[0];
+        var path = hot.Path;
+        if (projectRoot is { Length: > 0 }
+            && path.StartsWith(projectRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            var rel = path[projectRoot.Length..].TrimStart('\\', '/');
+            if (rel.Length > 0) path = rel;
+        }
+
+        if (path.Length > 64)
+            path = "…" + path[^60..];
+        var mark = hot.DiskChanged ? " disk" : hot.Dirty ? " dirty" : "";
+        return $"{path}{mark}";
+    }
 
     static object BuildSysOrgan(
         SessionContext session,
@@ -2172,11 +2339,14 @@ internal static class IdeCockpit
 
     sealed record WorkSnap(string? IntentId, string? StageId, string? Pulse);
 
-    static WorkSnap CollectWork(IntentWorkspaceStore? store, IntentWorkspaceState state)
+    static WorkSnap CollectWork(
+        IntentWorkspaceStore? store,
+        IntentWorkspaceState state,
+        SessionContext session)
     {
         if (store is null)
             return new WorkSnap(null, null, "no task store");
-        var pulse = IdeTaskManager.PulseLine(store, state);
+        var pulse = IdeTaskManager.PulseLine(store, state, CdpEnumParse.ToWire(session.Phase));
         return new WorkSnap(
             state.ActiveIntentId?.ToString("D"),
             state.ActiveStageId?.ToString("D"),
