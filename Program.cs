@@ -560,6 +560,20 @@ List<Tool> BuildMetaTools() =>
             wait_seconds = new { type = "integer", description = "max wait for idle (not Stop/Queue), default 90" }
         }
     }),
+    Meta("cdp_webcam", "Sense desk — in-proc AIGuiders.WebcamMcp.Shared + OpenCv (not parked Cursor webcam-mcp). op=scene|frame. frame: camera_index=, file_name=. Saves under .cascade-ide/webcam-captures. Alias go=webcam_desk.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|frame" },
+            camera_index = new { type = "integer", description = "default 0" },
+            file_name = new { type = "string", description = "output base name without extension" },
+            workspace_path = new { type = "string", description = "override; default = session project root" },
+            width = new { type = "integer" },
+            height = new { type = "integer" },
+            jpeg_quality = new { type = "integer" }
+        }
+    }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell. Default detail=auto: green→pulse; fail→errors[].",
     new
     {
@@ -1519,6 +1533,8 @@ async Task<string> DispatchMetaAsync(
             return IdeFilesChannel.HandleJson(docStore, session, callArgs);
         case "cdp_ignite":
             return await IdeIgniteChannel.HandleJsonAsync(callArgs, cancellationToken);
+        case "cdp_webcam":
+            return IdeWebcamChannel.HandleJson(session, callArgs);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();

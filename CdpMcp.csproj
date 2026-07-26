@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.222</Version>
+    <Version>0.5.223</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -30,6 +30,9 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
     <PackageReference Include="OutWit.Database.EntityFramework" Version="1.0.3" />
+    <PackageReference Include="AIGuiders.WebcamMcp.Shared" Version="0.1.0" />
+    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260225" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260225" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\cdp-core\Cdp.Core.csproj" Condition="'$(AidUseNuGet)' != 'true' AND Exists('..\cdp-core\Cdp.Core.csproj')" />

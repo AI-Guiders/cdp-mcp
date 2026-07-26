@@ -258,6 +258,20 @@ internal static class IdeQrhChannel
             [],
             "Am I igniting Composer via CDT desk — or reinventing UIA?"),
         new(
+            "webcam-via-desk",
+            "abnormal",
+            "Need camera/mic/screen sense",
+            "Webcam sense belongs in CDP cockpit (cdp_webcam / go=webcam_desk) via AIGuiders.WebcamMcp.Shared in-proc — not parked Cursor webcam-mcp and not ffmpeg shell.",
+            ["webcam", "camera", "mic", "screen", "capture", "sense", "cdp_webcam"],
+            ["cdp_webcam op=frame", "go=webcam_desk", "Burst/analyze/transcribe — next slice"],
+            [
+                new("cdp_webcam / go=webcam_desk — scene|frame", "webcam_desk", "cdp_webcam"),
+                new("op=frame file_name= — snap to .cascade-ide/webcam-captures", Action: "cdp_webcam")
+            ],
+            ["autoignite-cdt", "tool-result-tax"],
+            [],
+            "Am I sensing through the desk — or reinventing capture in shell?"),
+        new(
             "barriers-fail",
             "emergency",
             "Barriers failed — core integrity",

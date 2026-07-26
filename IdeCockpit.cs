@@ -118,6 +118,10 @@ internal static class IdeCockpit
         ["ignite"] = "ignite_desk",
         ["autoignite"] = "ignite_desk",
         ["cdt_ignite"] = "ignite_desk",
+        ["webcam_desk"] = "webcam_desk",
+        ["webcam"] = "webcam_desk",
+        ["camera"] = "webcam_desk",
+        ["sense"] = "webcam_desk",
         ["alert"] = "alert",
         ["eicas"] = "alert",
         ["sa"] = "alert",
@@ -224,6 +228,11 @@ internal static class IdeCockpit
             ["autoignite"] = (IdeIgniteChannel.ToolName, null),
             ["cdt_ignite"] = (IdeIgniteChannel.ToolName, null),
             ["cdp_ignite"] = (IdeIgniteChannel.ToolName, null),
+            ["webcam_desk"] = (IdeWebcamChannel.ToolName, null),
+            ["webcam"] = (IdeWebcamChannel.ToolName, null),
+            ["camera"] = (IdeWebcamChannel.ToolName, null),
+            ["sense"] = (IdeWebcamChannel.ToolName, null),
+            ["cdp_webcam"] = (IdeWebcamChannel.ToolName, null),
             ["replace_all"] = ("cdp_buffer", Dict(("op", "replace_all"))),
             ["back"] = ("cdp_buffer", Dict(("op", "back"))),
             ["forward"] = ("cdp_buffer", Dict(("op", "forward"))),
@@ -663,6 +672,20 @@ internal static class IdeCockpit
             goResult = IdeIgniteChannel.Handle(args);
             if (IdeDeskSeats.IsSeatsMode())
                 IdeDeskSeats.PlaceOrgan("ignite_desk");
+            goVerb = null;
+        }
+
+        // Soft organ: webcam sense (Shared Core in-proc).
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("webcam_desk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("webcam", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("camera", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("sense", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("cdp_webcam", StringComparison.OrdinalIgnoreCase)))
+        {
+            goResult = IdeWebcamChannel.Handle(session, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("webcam_desk");
             goVerb = null;
         }
 
@@ -1163,6 +1186,21 @@ internal static class IdeCockpit
                             ok = true,
                             go = "ignite_desk",
                             tool = IdeIgniteChannel.ToolName,
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : board;
+                }
+                else if (planPin is "webcam_desk" or "webcam" or "camera" or "sense" or "cdp_webcam")
+                {
+                    var board = IdeWebcamChannel.Handle(session, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "webcam_desk",
+                            tool = IdeWebcamChannel.ToolName,
                             detail = "full",
                             truncated = false,
                             result = board
