@@ -7,11 +7,12 @@ namespace CdpMcp;
 
 /// <summary>
 /// Compositor role for cockpit BuildAsync (CIDE ADR 0036 / arch_desk wire).
-/// Seats surface via <see cref="SeatsSurfaceCompositor"/> — not Avalonia.
+/// Seats/tiles via Cockpit <see cref="SeatsSurfaceCompositor"/> / <see cref="TilesSurfaceCompositor"/>.
 /// </summary>
 internal static partial class IdeCockpit
 {
     static readonly SeatsSurfaceCompositor SeatsCompositor = new();
+    static readonly TilesSurfaceCompositor TilesCompositor = new();
 
     /// <summary>Seats-mode desk surface (cockpit/v1.20): view once + seats + alert/pressure.</summary>
     private static string ComposeSeatsSurface(
@@ -82,36 +83,26 @@ internal static partial class IdeCockpit
         IReadOnlyDictionary<string, JsonElement> args,
         string? focusId)
     {
-        var deskDetail = ResolveDeskDetail(args, focusId);
-        var wantNav = deskDetail is "nav" or "full";
-        var payload = new Dictionary<string, object?>
-        {
-            ["schema"] = SchemaVersion,
-            ["ok"] = true,
-            ["role"] = "desk",
-            ["mode"] = "tiles",
-            ["mfd"] = mfd,
-            ["mfd_note"] = "legacy alias — go=sys|chk|gates|nav; seats preferred; no root page",
-            ["session"] = SessionPulse(session),
-            ["desk_detail"] = deskDetail,
-            ["seats"] = null,
-            ["tiles"] = tiles,
-            ["pins"] = pins.ToArray(),
-            ["layouts"] = LayoutPresetIds,
-            ["next"] = next,
-            ["focus"] = focus,
-            ["page"] = null,
-            ["go"] = goResult,
-            ["warm"] = warm,
-            ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
-            ["hint"] = "desk.mode=tiles (legacy). Prefer seats. go=sys|chk soft organs; desk_detail=nav for loci."
-        };
-        if (wantNav)
-        {
-            payload["loci"] = loci.Select(l => l.Card()).ToArray();
-            payload["go_verbs"] = goVerbs;
-        }
+        var decision = ResolveDeskDetailSnap(args, focusId);
+        var scene = new TilesSurfaceScene(
+            SchemaVersion: SchemaVersion,
+            Mfd: mfd,
+            Session: SessionPulse(session),
+            Tiles: tiles,
+            Alert: IdeAlertChannel.PulseCard(alertSnap),
+            Next: next,
+            Focus: focus,
+            Go: goResult,
+            Warm: warm,
+            Pins: pins.ToArray(),
+            Layouts: LayoutPresetIds,
+            Loci: decision.WantNav ? loci.Select(l => l.Card()).ToArray() : null,
+            GoVerbs: decision.WantNav ? goVerbs : null);
 
+        var payload = TilesCompositor.Compose(
+            scene,
+            new TilesSurfacePayload(pins.Count),
+            decision);
         return JsonSerializer.Serialize(payload, Pretty);
     }
 }

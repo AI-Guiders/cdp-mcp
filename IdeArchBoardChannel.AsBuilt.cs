@@ -154,9 +154,10 @@ internal static partial class IdeArchBoardChannel
              ("IdeCockpit.Ids.cs", "SearchFeatures")])
             ?? AddSeedRole(doc, "ids-peel", "ids", "SearchFeatures peel", root,
                 [("IdeCockpit.Ids.cs", "SearchFeatures")]);
-        var comp = AddSeedRole(doc, "comp-core", "compositor", "ISurfaceCompositor + SeatsSurfaceCompositor", root,
+        var comp = AddSeedRole(doc, "comp-core", "compositor", "ISurfaceCompositor + Seats/Tiles compositors", root,
             [("Cockpit/Composition/ISurfaceCompositor.cs", (string?)null),
              ("Cockpit/Composition/SeatsSurfaceCompositor.cs", "Compose"),
+             ("Cockpit/Composition/TilesSurfaceCompositor.cs", "Compose"),
              ("IdeCockpit.Compositor.cs", "ComposeSeatsSurface")])
             ?? AddSeedRole(doc, "comp-cockpit", "compositor", "IdeCockpit.Compositor peel", root,
                 [("IdeCockpit.Compositor.cs", "ComposeSeatsSurface"),

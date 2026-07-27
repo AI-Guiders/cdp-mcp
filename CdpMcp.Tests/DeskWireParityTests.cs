@@ -101,4 +101,22 @@ public sealed class DeskWireParityTests
         Assert.Equal("system", hits[1].Go);
         Assert.Equal(800, hits[1].Score);
     }
+
+    [Fact]
+    public void TilesSurfaceCompositor_sets_tiles_mode_without_seats()
+    {
+        var comp = new TilesSurfaceCompositor();
+        var decision = new DeskDetailUnit.Snapshot("slim", false);
+        var dict = comp.Compose(
+            new TilesSurfaceScene(
+                "cockpit/v1.20", "sa", new { }, new { pin = "git" }, null,
+                new { }, null, null, null,
+                ["git"], ["agent"], null, null),
+            new TilesSurfacePayload(1),
+            decision);
+        Assert.Equal("tiles", dict["mode"]);
+        Assert.Null(dict["seats"]);
+        Assert.NotNull(dict["tiles"]);
+        Assert.False(dict.ContainsKey("loci"));
+    }
 }
