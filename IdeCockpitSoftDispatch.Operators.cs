@@ -87,6 +87,20 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
+    static bool TryDispatchOnboard(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsGo(goVerb, "onboard_desk", "explore_desk", "onboard", "explore", "cdp_onboard"))
+            return false;
+
+        goResult = IdeOnboardChannel.Handle(session, args);
+        PlaceAndClear(ref goVerb, "onboard_desk");
+        return true;
+    }
+
     static bool TryDispatchFiles(
         ref string? goVerb,
         ref object? goResult,

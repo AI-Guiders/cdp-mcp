@@ -334,6 +334,35 @@ internal static partial class IdeCockpit
                         hint = "pane_full= / go_detail=full for checklist dump"
                     };
             }
+            else if (planPin is "onboard_desk" or "explore_desk" or "onboard" or "explore" or "cdp_onboard")
+            {
+                if (wantFull)
+                {
+                    var board = IdeOnboardChannel.Handle(session, tileArgs);
+                    pane = new
+                    {
+                        ok = true,
+                        go = "onboard_desk",
+                        tool = IdeOnboardChannel.ToolName,
+                        detail = "full",
+                        truncated = false,
+                        result = board
+                    };
+                }
+                else
+                {
+                    pane = new
+                    {
+                        ok = true,
+                        go = "onboard_desk",
+                        tool = IdeOnboardChannel.ToolName,
+                        detail = "pulse",
+                        pulse = IdeOnboardChannel.PulseLine(session),
+                        schema = IdeOnboardChannel.SchemaVersion,
+                        hint = "pane_full= / go_detail=full · op=scan to refresh"
+                    };
+                }
+            }
             else if (planPin is "alert" or "eicas" or "sa")
             {
                 var board = IdeAlertChannel.Handle(alertInputs, tileArgs);

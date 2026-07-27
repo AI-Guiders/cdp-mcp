@@ -92,7 +92,7 @@ internal static class IdeDeskSeats
             {
                 ["p"] = "project_scene",
                 ["forward"] = "editor_scene",
-                ["m"] = "browser",
+                ["m"] = "onboard_desk",
             },
             ["phase-handoff"] = new(StringComparer.OrdinalIgnoreCase)
             {
@@ -105,6 +105,18 @@ internal static class IdeDeskSeats
                 ["p"] = "plan",
                 ["forward"] = "editor_scene",
                 ["m"] = "arch_desk",
+            },
+            ["onboard"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["p"] = "project_scene",
+                ["forward"] = "editor_scene",
+                ["m"] = "onboard_desk",
+            },
+            ["explore"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["p"] = "project_scene",
+                ["forward"] = "editor_scene",
+                ["m"] = "onboard_desk",
             },
         };
 
@@ -224,6 +236,11 @@ internal static class IdeDeskSeats
         ["board"] = "m",
         ["sketch_desk"] = "m",
         ["cdp_arch"] = "m",
+        ["onboard_desk"] = "m",
+        ["explore_desk"] = "m",
+        ["onboard"] = "m",
+        ["explore"] = "m",
+        ["cdp_onboard"] = "m",
         ["restore"] = "m",
     };
 

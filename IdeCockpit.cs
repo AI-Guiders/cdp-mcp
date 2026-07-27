@@ -916,6 +916,11 @@ internal static partial class IdeCockpit
         if (IdeArchBoardChannel.HasActiveWork(session))
             Add("n-arch", "arch_desk", "Arch board", IdeArchBoardChannel.PulseLine(session));
 
+        if (IdeOnboardChannel.HasScan(session))
+            Add("n-onboard", "onboard_desk", "Onboard map", IdeOnboardChannel.PulseLine(session));
+        else if (session.ProjectRoot is not null)
+            Add("n-onboard", "onboard_desk", "Onboard scan", "op=scan — cold-start map of ProjectRoot");
+
         // VS-style: File Modified Outside the Environment — Reload?
         if (buffer.DiskChangedCount > 0)
         {
