@@ -15,6 +15,7 @@ internal static partial class IdeCockpit
 {
     static readonly SoftOrganAliasCatalog SoftOrganAliases = new();
     static readonly SoftOrganBoardMetaCatalog SoftOrganMeta = new();
+    static readonly SeatFallbackSnapUnit SeatFallbackSnap = new();
 
     static async Task<object> ResolveSeatOrganPaneAsync(
         string organ,
@@ -49,39 +50,51 @@ internal static partial class IdeCockpit
             return kind switch
             {
                 SoftOrganKind.Plan => ResolvePlanPane(wantFull, tileArgs, session, workspaceStore, workspaceState),
-                SoftOrganKind.Report => PresentFullOr(
+                SoftOrganKind.Report => Present(
                     kind, IdeReportBoard.Handle(session, tileArgs), wantFull),
-                SoftOrganKind.FindDesk => PresentFullOr(
+                SoftOrganKind.FindDesk => Present(
                     kind, IdeFindChannel.Handle(docStore, session, tileArgs), wantFull),
-                SoftOrganKind.SaDesk => PresentFullOr(
+                SoftOrganKind.SaDesk => Present(
                     kind, IdeSaChannel.Handle(docStore, session, tileArgs), wantFull),
-                SoftOrganKind.DebugDesk => PresentFullOr(
+                SoftOrganKind.DebugDesk => Present(
                     kind, IdeDebugSaChannel.Handle(session, tileArgs), wantFull),
-                SoftOrganKind.TestDesk => PresentFullOr(
+                SoftOrganKind.TestDesk => Present(
                     kind, IdeTestSaChannel.Handle(session, tileArgs), wantFull),
-                SoftOrganKind.BuildDesk => PresentFullOr(
+                SoftOrganKind.BuildDesk => Present(
                     kind, IdeBuildSaChannel.Handle(session, tileArgs), wantFull),
-                SoftOrganKind.Crm => PresentFullOr(
+                SoftOrganKind.Crm => Present(
                     kind, IdeCrmChannel.Handle(session, workspaceStore, workspaceState, tileArgs), wantFull),
-                SoftOrganKind.FilesDesk => PresentFullOr(
+                SoftOrganKind.FilesDesk => Present(
                     kind, IdeFilesChannel.Handle(docStore, session, tileArgs), wantFull),
-                SoftOrganKind.IgniteDesk => PresentFullOr(
+                SoftOrganKind.IgniteDesk => Present(
                     kind, IdeIgniteChannel.Handle(tileArgs), wantFull),
-                SoftOrganKind.WebcamDesk => PresentFullOr(
+                SoftOrganKind.WebcamDesk => Present(
                     kind, IdeWebcamChannel.Handle(session, tileArgs), wantFull),
-                SoftOrganKind.PressureDesk => ResolvePressurePane(wantFull, session, tileArgs),
-                SoftOrganKind.OnboardDesk => ResolveOnboardPane(wantFull, session, tileArgs),
-                SoftOrganKind.Toolchain => ResolveToolchainPane(wantFull, session, tileArgs),
-                SoftOrganKind.Alert => PresentFullOr(
+                SoftOrganKind.PressureDesk => Present(
+                    kind, IdePressureChannel.Handle(session, tileArgs), wantFull,
+                    IdePressureChannel.PulseLine(), IdePressureChannel.SchemaVersion),
+                SoftOrganKind.OnboardDesk => Present(
+                    kind, IdeOnboardChannel.Handle(session, tileArgs), wantFull,
+                    IdeOnboardChannel.PulseLine(session), IdeOnboardChannel.SchemaVersion),
+                SoftOrganKind.Toolchain => Present(
+                    kind, IdeToolchainChannel.Handle(session, tileArgs), wantFull,
+                    IdeToolchainChannel.PulseLine(session), IdeToolchainChannel.SchemaVersion),
+                SoftOrganKind.Alert => Present(
                     kind, IdeAlertChannel.Handle(alertInputs, tileArgs), wantFull),
-                SoftOrganKind.Problems => ResolveProblemsPane(wantFull, docStore, session, tileArgs),
-                SoftOrganKind.Plugins => ResolvePluginsPane(wantFull, docStore, session, tileArgs),
-                SoftOrganKind.Quality => ResolveQualityPane(wantFull, docStore, session),
-                SoftOrganKind.Sys => PresentFullOr(
+                SoftOrganKind.Problems => Present(
+                    kind, IdeProblemsChannel.Handle(docStore, session, tileArgs), wantFull,
+                    IdeProblemsChannel.Build(docStore, session).Pulse),
+                SoftOrganKind.Plugins => Present(
+                    kind, IdePluginsChannel.Handle(docStore, session, tileArgs), wantFull,
+                    IdePluginsChannel.Build().Pulse),
+                SoftOrganKind.Quality => Present(
+                    kind, QualityGates.EvaluateStore(docStore, session.ProjectRoot), wantFull,
+                    QualityGates.Snap(docStore, session.ProjectRoot).Pulse),
+                SoftOrganKind.Sys => Present(
                     kind, BuildSysOrgan(session, git, shell, buffer, debug, test, work), wantFull),
-                SoftOrganKind.Ecl => PresentFullOr(
+                SoftOrganKind.Ecl => Present(
                     kind, IdeChkChannel.Handle(chkCtx, tileArgs), wantFull),
-                SoftOrganKind.Qrh => PresentFullOr(
+                SoftOrganKind.Qrh => Present(
                     kind, IdeQrhChannel.Handle(chkCtx, tileArgs, chkSnap), wantFull),
                 SoftOrganKind.Review => ResolveReviewPane(
                     wantFull, session, tileArgs, gitDirty, problems, testsFailed, quality, chkSnap),
@@ -89,26 +102,30 @@ internal static partial class IdeCockpit
             };
         }
 
-        if (!wantFull && IdeWorldChannel.IsWorldOrgan(planPin))
-            return WorldSnapPane(planPin, git, shell, browser, mcpPulse);
-
-        if (!wantFull && planPin is ("editor_scene" or "buffer_scene" or "editor" or "buffer"))
-            return EditorSnapPane(buffer);
-
-        if (!wantFull && planPin is ("script_scene" or "script" or "probe"))
+        var snap = SeatFallbackSnap.Classify(new SeatFallbackSnapUnit.Input(
+            planPin, wantFull, IdeWorldChannel.IsWorldOrgan(planPin)));
+        return snap switch
         {
-            var (sok, sp) = ScriptScene.Pulse(session);
-            return new { ok = sok, go = "script_scene", detail = "pulse", pulse = sp, snap = true };
-        }
-
-        return await DispatchGoAsync(organ, tileArgs, buffer, focusId, dispatch, cancellationToken)
-            .ConfigureAwait(false);
+            SeatFallbackSnapUnit.SnapKind.World => WorldSnapPane(planPin, git, shell, browser, mcpPulse),
+            SeatFallbackSnapUnit.SnapKind.Editor => EditorSnapPane(buffer),
+            SeatFallbackSnapUnit.SnapKind.Script => BuildScriptSnapPane(session),
+            _ => await DispatchGoAsync(organ, tileArgs, buffer, focusId, dispatch, cancellationToken)
+                .ConfigureAwait(false)
+        };
     }
 
-    static object PresentFullOr(SoftOrganKind kind, object board, bool wantFull)
+    static object Present(
+        SoftOrganKind kind,
+        object board,
+        bool wantFull,
+        string? pulse = null,
+        string? schema = null) =>
+        SeatOrganPanePresenter.Present(SoftOrganMeta.Require(kind), wantFull, board, pulse, schema);
+
+    static object BuildScriptSnapPane(SessionContext session)
     {
-        var m = SoftOrganMeta.Require(kind);
-        return SeatOrganPanePresenter.FullOr(board, wantFull, m.Go, m.Tool);
+        var (sok, sp) = ScriptScene.Pulse(session);
+        return new { ok = sok, go = "script_scene", detail = "pulse", pulse = sp, snap = true };
     }
 
     static object ResolvePlanPane(
@@ -131,83 +148,7 @@ internal static partial class IdeCockpit
 
         tileArgs["session_phase"] = JsonSerializer.SerializeToElement(
             CdpEnumParse.ToWire(session.Phase));
-        var board = IdeTaskManager.Handle(workspaceStore, workspaceState, tileArgs);
-        return PresentFullOr(SoftOrganKind.Plan, board, wantFull);
-    }
-
-    static object ResolvePressurePane(
-        bool wantFull, SessionContext session, Dictionary<string, JsonElement> tileArgs)
-    {
-        var m = SoftOrganMeta.Require(SoftOrganKind.PressureDesk);
-        var board = IdePressureChannel.Handle(session, tileArgs);
-        return SeatOrganPanePresenter.PulseOrFull(
-            wantFull, board, m.Go, m.Tool, IdePressureChannel.PulseLine(),
-            IdePressureChannel.SchemaVersion, "pane_full= / go_detail=full for checklist dump");
-    }
-
-    static object ResolveOnboardPane(
-        bool wantFull, SessionContext session, Dictionary<string, JsonElement> tileArgs)
-    {
-        var m = SoftOrganMeta.Require(SoftOrganKind.OnboardDesk);
-        return SeatOrganPanePresenter.PulseOrFull(
-            wantFull,
-            IdeOnboardChannel.Handle(session, tileArgs),
-            m.Go, m.Tool,
-            IdeOnboardChannel.PulseLine(session),
-            IdeOnboardChannel.SchemaVersion,
-            "pane_full= / go_detail=full · op=scan to refresh");
-    }
-
-    static object ResolveToolchainPane(
-        bool wantFull, SessionContext session, Dictionary<string, JsonElement> tileArgs)
-    {
-        var m = SoftOrganMeta.Require(SoftOrganKind.Toolchain);
-        return SeatOrganPanePresenter.PulseOrFull(
-            wantFull,
-            IdeToolchainChannel.Handle(session, tileArgs),
-            m.Go, m.Tool,
-            IdeToolchainChannel.PulseLine(session),
-            IdeToolchainChannel.SchemaVersion,
-            "pane_full= / go_detail=full · op=ensure id=python|gcc|…");
-    }
-
-    static object ResolveProblemsPane(
-        bool wantFull,
-        DocumentBufferStore docStore,
-        SessionContext session,
-        Dictionary<string, JsonElement> tileArgs)
-    {
-        var m = SoftOrganMeta.Require(SoftOrganKind.Problems);
-        var board = IdeProblemsChannel.Handle(docStore, session, tileArgs);
-        return wantFull
-            ? SeatOrganPanePresenter.Full(board, m.Go, m.Tool)
-            : SeatOrganPanePresenter.PulseWithResult(
-                board, m.Go, IdeProblemsChannel.Build(docStore, session).Pulse, m.Tool);
-    }
-
-    static object ResolvePluginsPane(
-        bool wantFull,
-        DocumentBufferStore docStore,
-        SessionContext session,
-        Dictionary<string, JsonElement> tileArgs)
-    {
-        var m = SoftOrganMeta.Require(SoftOrganKind.Plugins);
-        var board = IdePluginsChannel.Handle(docStore, session, tileArgs);
-        return wantFull
-            ? SeatOrganPanePresenter.Full(board, m.Go, m.Tool)
-            : SeatOrganPanePresenter.PulseWithResult(
-                board, m.Go, IdePluginsChannel.Build().Pulse, m.Tool);
-    }
-
-    static object ResolveQualityPane(
-        bool wantFull, DocumentBufferStore docStore, SessionContext session)
-    {
-        var m = SoftOrganMeta.Require(SoftOrganKind.Quality);
-        var q = QualityGates.EvaluateStore(docStore, session.ProjectRoot);
-        return wantFull
-            ? SeatOrganPanePresenter.Full(q, m.Go, m.Tool)
-            : SeatOrganPanePresenter.PulseWithResult(
-                q, m.Go, QualityGates.Snap(docStore, session.ProjectRoot).Pulse, m.Tool);
+        return Present(SoftOrganKind.Plan, IdeTaskManager.Handle(workspaceStore, workspaceState, tileArgs), wantFull);
     }
 
     static object ResolveReviewPane(
@@ -222,7 +163,6 @@ internal static partial class IdeCockpit
     {
         var reviewInputs = new IdeReviewChannel.Inputs(
             session, gitDirty, problems.Errors, testsFailed, quality.Fail, quality.Warn, chkSnap);
-        return PresentFullOr(
-            SoftOrganKind.Review, IdeReviewChannel.Handle(reviewInputs, tileArgs), wantFull);
+        return Present(SoftOrganKind.Review, IdeReviewChannel.Handle(reviewInputs, tileArgs), wantFull);
     }
 }

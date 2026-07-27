@@ -358,6 +358,55 @@ public sealed class DeskWireParityTests
         }
         Assert.Equal("cdp_search", cat.Require(SoftOrganKind.FindDesk).Tool);
         Assert.Equal("plan", cat.Require(SoftOrganKind.Plan).Go);
+        Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.PressureDesk).Mode);
+        Assert.Equal(SoftOrganPresentMode.PulseWithResult, cat.Require(SoftOrganKind.Problems).Mode);
+        Assert.Equal(SoftOrganPresentMode.FullOr, cat.Require(SoftOrganKind.Plan).Mode);
+    }
+
+    [Fact]
+    public void SeatOrganPanePresenter_Present_modes()
+    {
+        var board = new { ok = true };
+        var fullOr = new SoftOrganBoardMetaCatalog.Meta("x", "t");
+        dynamic asIs = SeatOrganPanePresenter.Present(fullOr, false, board);
+        Assert.True((bool)asIs.ok);
+        dynamic wrapped = SeatOrganPanePresenter.Present(fullOr, true, board);
+        Assert.Equal("full", (string)wrapped.detail);
+
+        var pulseLine = new SoftOrganBoardMetaCatalog.Meta(
+            "pressure_desk", "cdp_pressure", SoftOrganPresentMode.PulseLine, "hint");
+        dynamic pulse = SeatOrganPanePresenter.Present(pulseLine, false, board, "armed", "pressure_channel/v1");
+        Assert.Equal("pulse", (string)pulse.detail);
+        Assert.Equal("armed", (string)pulse.pulse);
+        Assert.Equal("hint", (string)pulse.hint);
+
+        var withResult = new SoftOrganBoardMetaCatalog.Meta(
+            "problems", "problems_channel", SoftOrganPresentMode.PulseWithResult);
+        dynamic pr = SeatOrganPanePresenter.Present(withResult, false, board, "E×1");
+        Assert.Equal("pulse", (string)pr.detail);
+        Assert.Equal("E×1", (string)pr.pulse);
+        Assert.NotNull(pr.result);
+    }
+
+    [Fact]
+    public void SeatFallbackSnapUnit_classifies_pins()
+    {
+        var unit = new SeatFallbackSnapUnit();
+        Assert.Equal(
+            SeatFallbackSnapUnit.SnapKind.None,
+            unit.Classify(new SeatFallbackSnapUnit.Input("git_scene", true, true)));
+        Assert.Equal(
+            SeatFallbackSnapUnit.SnapKind.World,
+            unit.Classify(new SeatFallbackSnapUnit.Input("git_scene", false, true)));
+        Assert.Equal(
+            SeatFallbackSnapUnit.SnapKind.Editor,
+            unit.Classify(new SeatFallbackSnapUnit.Input("buffer", false, false)));
+        Assert.Equal(
+            SeatFallbackSnapUnit.SnapKind.Script,
+            unit.Classify(new SeatFallbackSnapUnit.Input("probe", false, false)));
+        Assert.Equal(
+            SeatFallbackSnapUnit.SnapKind.None,
+            unit.Classify(new SeatFallbackSnapUnit.Input("unknown", false, false)));
     }
 
     [Fact]
