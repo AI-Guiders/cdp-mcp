@@ -1,3 +1,4 @@
+#nullable enable
 using System.Text.Json;
 using Cdp.Core;
 using CdpMcp.IntentWorkspace;
@@ -7,8 +8,9 @@ namespace CdpMcp;
 /// <summary>
 /// Durable "Restore Previous" desk bookmark — survives MCP kill/reload.
 /// Restores project + session plane + open buffer paths (from disk). Not LLM chat context.
+/// Partials: Restore (apply project / buffers / payload).
 /// </summary>
-internal static class DeskBookmark
+internal static partial class DeskBookmark
 {
     public const string Schema = "desk_bookmark/v1";
     public const int MaxBuffers = 24;
@@ -120,99 +122,6 @@ internal static class DeskBookmark
             open_path = doc.OpenPath,
             buffer_count = doc.Buffers.Count,
             buffers = doc.Buffers.Select(b => b.Path),
-            note = doc.Note
-        }, JsonOpts);
-    }
-
-    /// <summary>
-    /// Restore desk into this MCP process (second instance / after hard deploy).
-    /// </summary>
-    public static string Restore(
-        SessionContext session,
-        DocumentBufferStore buffers,
-        Func<string, ProjectOpenResult> detectOpen,
-        Action? syncShellCwd,
-        Action? notifyListChanged)
-    {
-        var doc = TryLoad()
-                  ?? throw new InvalidOperationException(
-                      $"No desk bookmark at {FilePath}. Open a project first (autosave), then restore after reload.");
-
-        string? openPayload = null;
-        var openedBuffers = new List<object>();
-        var skipped = new List<object>();
-
-        if (doc.OpenPath is { Length: > 0 } && (File.Exists(doc.OpenPath) || Directory.Exists(doc.OpenPath)))
-        {
-            var open = detectOpen(doc.OpenPath);
-            openPayload = IdeLanguageTools.ApplyOpen(session, open);
-            syncShellCwd?.Invoke();
-            notifyListChanged?.Invoke();
-        }
-        else if (!string.IsNullOrWhiteSpace(doc.SessionJson))
-        {
-            // No open path on disk — still apply plane fields if present.
-            SessionSnapshot.Apply(session, doc.SessionJson);
-            notifyListChanged?.Invoke();
-        }
-
-        // Re-apply phase/object/intent from bookmark after ApplyOpen (which sets explore/code).
-        if (!string.IsNullOrWhiteSpace(doc.SessionJson))
-            SessionSnapshot.Apply(session, doc.SessionJson);
-
-        string? focusPath = null;
-        foreach (var b in doc.Buffers)
-        {
-            if (string.IsNullOrWhiteSpace(b.Path) || !File.Exists(b.Path))
-            {
-                skipped.Add(new { path = b.Path, reason = "missing" });
-                continue;
-            }
-
-            try
-            {
-                var buf = buffers.Open(b.Path, refresh: false);
-                EditorComfort.RememberFile(buf.Path);
-                if (b.Focus || focusPath is null)
-                    focusPath = buf.Path;
-                openedBuffers.Add(new { path = buf.Path, doc_id = buf.DocId });
-            }
-            catch (Exception ex)
-            {
-                skipped.Add(new { path = b.Path, reason = ex.Message });
-            }
-        }
-
-        if (focusPath is { Length: > 0 })
-            EditorComfort.PushLocus(session, focusPath);
-
-        // Refresh bookmark with what we actually restored (alive desk).
-        Save(session, buffers);
-
-        return JsonSerializer.Serialize(new
-        {
-            schema = Schema,
-            ok = true,
-            op = "restore",
-            bookmark_path = FilePath,
-            saved_utc = doc.SavedUtc,
-            open_path = doc.OpenPath,
-            open = openPayload is null
-                ? (object?)null
-                : JsonSerializer.Deserialize<JsonElement>(openPayload),
-            session = JsonSerializer.Deserialize<JsonElement>(session.ToJson()),
-            buffers_opened = openedBuffers,
-            buffers_skipped = skipped,
-            focus = focusPath,
-            next = new object[]
-            {
-                new { go = "cockpit", label = "Desk pulse", why = "cdp_cockpit after restore" },
-                new { go = "editor_scene", label = "Editor map", why = "see restored buffers" },
-                new { go = "buffer_scene", label = "Buffer scene", why = "doc list" }
-            },
-            hint =
-                "Desk restored (project + buffers from disk). LLM chat context is NOT restored — separate follow-up. " +
-                "Dual-instance: switch survivor → go=deploy (sticky warm). Explicit restore still available.",
             note = doc.Note
         }, JsonOpts);
     }

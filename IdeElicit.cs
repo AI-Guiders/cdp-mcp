@@ -9,7 +9,7 @@ namespace CdpMcp;
 /// Spike: MCP elicitation/create → host UI (path 2).
 /// Dogfood whether Cursor advertises elicitation and shows a form.
 /// </summary>
-internal static class IdeElicit
+internal static partial class IdeElicit
 {
     public const string Schema = "elicit/v0";
 
@@ -36,107 +36,22 @@ internal static class IdeElicit
         var caps = CapsPulse(server);
 
         if (op is "peek" or "caps" or "status")
-        {
-            return JsonSerializer.Serialize(new
-            {
-                schema = Schema,
-                ok = true,
-                op = "peek",
-                client = ClientPulse(server),
-                elicitation = caps,
-                hint = caps.Supported
-                    ? "Client advertises elicitation — try op=ask."
-                    : "Client did not advertise elicitation — path 2 blocked at host."
-            }, Pretty);
-        }
+            return Peek(server, caps);
 
         var message = Opt(args, "message") ?? Opt(args, "ask")
             ?? "CDP elicit spike (path 2): подтверди?";
 
         try
         {
-            var result = await server.ElicitAsync(new ElicitRequestParams
-            {
-                Message = message,
-                RequestedSchema = new ElicitRequestParams.RequestSchema
-                {
-                    Properties = new Dictionary<string, ElicitRequestParams.PrimitiveSchemaDefinition>
-                    {
-                        ["choice"] = new ElicitRequestParams.TitledSingleSelectEnumSchema
-                        {
-                            Description = "Да / Нет / Обсудить",
-                            OneOf =
-                            [
-                                new() { Const = "yes", Title = "Да" },
-                                new() { Const = "no", Title = "Нет" },
-                                new() { Const = "discuss", Title = "Обсудить" },
-                            ],
-                            Default = "discuss"
-                        }
-                    },
-                    Required = ["choice"]
-                }
-            }, cancellationToken).ConfigureAwait(false);
-
-            return JsonSerializer.Serialize(new
-            {
-                schema = Schema,
-                ok = true,
-                op = "ask",
-                action = result.Action,
-                accepted = result.IsAccepted,
-                content = result.Content,
-                elicitation = caps,
-                hint = "Host answered elicitation/create."
-            }, Pretty);
+            return await AskAsync(server, message, caps, cancellationToken).ConfigureAwait(false);
         }
         catch (InvalidOperationException ex)
         {
-            return JsonSerializer.Serialize(new
-            {
-                schema = Schema,
-                ok = false,
-                op = "ask",
-                error = "client_no_elicitation",
-                detail = ex.Message,
-                elicitation = caps,
-                client = ClientPulse(server),
-                hint = "Cursor likely lacks elicitation capability — path 2 needs host support."
-            }, Pretty);
+            return ClientNoElicitation(server, caps, ex.Message);
         }
         catch (Exception ex)
         {
-            return JsonSerializer.Serialize(new
-            {
-                schema = Schema,
-                ok = false,
-                op = "ask",
-                error = "elicit_failed",
-                detail = ex.Message,
-                type = ex.GetType().FullName,
-                elicitation = caps,
-                client = ClientPulse(server)
-            }, Pretty);
+            return ElicitFailed(server, caps, ex);
         }
     }
-
-    static object ClientPulse(McpServer server) => new
-    {
-        name = server.ClientInfo?.Name,
-        version = server.ClientInfo?.Version,
-        protocol = server.NegotiatedProtocolVersion
-    };
-
-    static (bool Supported, object? Raw) CapsPulse(McpServer server)
-    {
-        var e = server.ClientCapabilities?.Elicitation;
-        if (e is null)
-            return (false, null);
-        return (true, new { form = e.Form is not null, url = e.Url is not null });
-    }
-
-    static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key) =>
-        args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String
-            ? el.GetString()
-            : null;
 }

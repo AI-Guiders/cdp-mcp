@@ -1,0 +1,84 @@
+#nullable enable
+using CdpMcp.IntentWorkspace;
+
+namespace CdpMcp;
+
+/// <summary>Task Manager board view — partials: Tree (format), Models (DTOs).</summary>
+internal static partial class IdeTaskManager
+{
+    public static string PulseLine(
+        IntentWorkspaceStore? store,
+        IntentWorkspaceState state,
+        string? sessionPhase = null)
+    {
+        if (store is null)
+            return "no task store";
+        try
+        {
+            return BuildBoard(store, state, sessionPhase).Pulse;
+        }
+        catch
+        {
+            return "task manager error";
+        }
+    }
+
+    public static Board BuildBoard(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        string? sessionPhase = null)
+    {
+        var snap = store.TaskManagerSnapshot(state);
+        var lines = new List<string>();
+        foreach (var feature in snap.Features)
+        {
+            var mark = feature.IsActive ? "*" : " ";
+            lines.Add($"{mark}{feature.Title}");
+            if (!feature.IsActive)
+                continue;
+            foreach (var line in FormatStageTree(feature.Stages, feature.ActiveStageId, indent: 0))
+                lines.Add(line);
+        }
+
+        if (lines.Count == 0)
+            lines.Add("(empty — cmd=\"feature <name>\")");
+
+        var phaseWire = sessionPhase is { Length: > 0 } ? sessionPhase : "—";
+        var pulse = snap.ActiveFeatureTitle is { Length: > 0 } f
+            ? snap.ActiveStageTitle is { Length: > 0 } t
+                ? $"{f} › {t} · {phaseWire}"
+                : $"{f} › (pick task) · {phaseWire}"
+            : $"no plan — feature <name> · {phaseWire}";
+
+        var banner = snap.ActiveFeatureTitle is { Length: > 0 }
+            ? $"| plan:{Trim(snap.ActiveFeatureTitle, 18)} | task:{Trim(snap.ActiveStageTitle ?? "—", 18)} | phase:{phaseWire} |"
+            : $"| plan:— | task:— | phase:{phaseWire} |";
+
+        if (snap.ActiveStagePhaseAffinity is { Length: > 0 } aff
+            && sessionPhase is { Length: > 0 }
+            && !aff.Equals(sessionPhase, StringComparison.OrdinalIgnoreCase))
+        {
+            lines.Insert(0, $"!phase mismatch task@{aff} · session={sessionPhase}");
+        }
+
+        return new Board(
+            Pulse: pulse,
+            View: new
+            {
+                schema = SchemaVersion,
+                banner,
+                board = lines.ToArray(),
+                ascii = string.Join('\n', lines),
+                hint = "Scan board. * = active feature; [>] active task; [x] done; @phase = affinity."
+            },
+            Focus: new
+            {
+                feature_id = snap.ActiveFeatureId,
+                feature = snap.ActiveFeatureTitle,
+                task_id = snap.ActiveStageId,
+                task = snap.ActiveStageTitle,
+                task_phase = snap.ActiveStagePhaseAffinity,
+                session_phase = sessionPhase
+            });
+    }
+}

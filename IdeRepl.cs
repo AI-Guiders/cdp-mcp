@@ -406,9 +406,11 @@ internal static class IdeRepl
         if (head is "feature" or "intent")
         {
             if (tokens.Count < 2)
-                return (merged, Err("feature needs name", "feature desk-comfort"));
+                return (merged, Err("feature needs name", "feature desk-comfort | feature Y @focus"));
             merged["go"] = JsonSerializer.SerializeToElement("plan");
-            var title = string.Join(' ', tokens.Skip(1));
+            var (title, _) = SplitTitlePhase(tokens.Skip(1).ToList());
+            if (title.Length == 0)
+                return (merged, Err("feature needs name", "feature desk-comfort | feature Y @focus"));
             merged["go_args"] = JsonSerializer.SerializeToElement(new { title, op = "feature" });
             merged["tm_op"] = JsonSerializer.SerializeToElement("feature");
             return (merged, null);
@@ -1089,22 +1091,39 @@ internal static class IdeRepl
         hint = "CCL (cmd=). Channels: sit/plan · work/editor · probe/script · report · alert · sys/ecl/qrh/review. CCC=help."
     };
 
-    /// <summary>Split trailing <c>@act</c> phase affinity from task title tokens.</summary>
-    static (string Title, string? Phase) SplitTitlePhase(IReadOnlyList<string> tokens)
+    /// <summary>Split trailing <c>@act</c> phase affinity or TM directive (<c>@focus</c>/<c>@done</c>/…) from title tokens.</summary>
+    internal static (string Title, string? Phase) SplitTitlePhase(IReadOnlyList<string> tokens)
     {
         if (tokens.Count == 0)
             return ("", null);
         var last = tokens[^1];
         if (last.StartsWith('@')
-            && last.Length > 1
-            && Cdp.Core.CdpEnumParse.TryParsePhase(last[1..], out var p))
+            && last.Length > 1)
         {
-            var title = string.Join(' ', tokens.Take(tokens.Count - 1));
-            return (title.Trim(), Cdp.Core.CdpEnumParse.ToWire(p));
+            var tag = last[1..];
+            if (Cdp.Core.CdpEnumParse.TryParsePhase(tag, out var p))
+            {
+                var title = string.Join(' ', tokens.Take(tokens.Count - 1));
+                return (title.Trim(), Cdp.Core.CdpEnumParse.ToWire(p));
+            }
+
+            // feature Y @focus → title "Y" (do not bake @focus into the name)
+            if (IsTitleDirective(tag))
+            {
+                var title = string.Join(' ', tokens.Take(tokens.Count - 1));
+                return (title.Trim(), null);
+            }
         }
 
         return (string.Join(' ', tokens).Trim(), null);
     }
+
+    static bool IsTitleDirective(string tag) =>
+        tag.Equals("focus", StringComparison.OrdinalIgnoreCase)
+        || tag.Equals("done", StringComparison.OrdinalIgnoreCase)
+        || tag.Equals("complete", StringComparison.OrdinalIgnoreCase)
+        || tag.Equals("park", StringComparison.OrdinalIgnoreCase)
+        || tag.Equals("drop", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// <c>plugins disable group javascript</c> | <c>plugins enable g1</c> | <c>plugins disable jebbs.plantuml</c>

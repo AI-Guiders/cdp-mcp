@@ -2,16 +2,15 @@
 using System.Text;
 using System.Text.Json;
 using Cdp.Core;
-using CdpMcp.IntentWorkspace;
 
 namespace CdpMcp;
 
 /// <summary>
 /// Share with… — outward delivery to operator without loading body into agent context.
+/// Partials: Plan (promote alias), Util (inbox/norms/slug).
 /// Sibling of <c>put</c> (into IDE) and inverse of <c>take</c> (into agent).
-/// Plan + ask=confirm reuses <see cref="IdePlanPromote"/>; promote remains an alias.
 /// </summary>
-internal static class IdeShare
+internal static partial class IdeShare
 {
     public const string SchemaVersion = "share/v0";
 
@@ -118,114 +117,5 @@ internal static class IdeShare
                 "Not take — take pulls body into agent context (token-expensive). " +
                 (ask == "confirm" ? "ask=confirm → cmd=confirm|reject after human reads." : "")
         }, Pretty);
-    }
-
-    /// <summary>Wrap plan promote as share with=operator what=plan.</summary>
-    public static object SharePlan(
-        IntentWorkspaceStore store,
-        IntentWorkspaceState state,
-        string? projectRoot,
-        string? notes,
-        string? dirOverride,
-        string? ask)
-    {
-        var askNorm = NormalizeAsk(ask);
-        if (askNorm is "none")
-            askNorm = "confirm";
-        var promoted = IdePlanPromote.Promote(store, state, projectRoot, notes, dirOverride);
-        return new
-        {
-            schema = SchemaVersion,
-            ok = true,
-            op = "share",
-            with = "operator",
-            what = "plan",
-            ask = askNorm,
-            alias_of = "promote",
-            result = promoted,
-            chat = ExtractChat(promoted),
-            hint =
-                "share with=operator what=plan ask=confirm (alias: promote). " +
-                "Human reads path; agent relays chat= only — do not paste plan body."
-        };
-    }
-
-    public static string ResolveShareInbox(string? projectRoot, string? dirOverride)
-    {
-        if (!string.IsNullOrWhiteSpace(dirOverride))
-            return Path.GetFullPath(dirOverride);
-        if (!string.IsNullOrWhiteSpace(projectRoot))
-            return Path.GetFullPath(Path.Combine(projectRoot, ".cdp", "share"));
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "cdp-mcp",
-            "share");
-    }
-
-    static string? ExtractChat(object promoted)
-    {
-        try
-        {
-            var json = JsonSerializer.Serialize(promoted);
-            using var doc = JsonDocument.Parse(json);
-            return doc.RootElement.TryGetProperty("chat", out var c) ? c.GetString() : null;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    static string NormalizeWith(string raw)
-    {
-        var s = raw.Trim().ToLowerInvariant();
-        if (s is "operator" or "human" or "user" or "me" or "host")
-            return "operator";
-        return s;
-    }
-
-    static string NormalizeAsk(string? raw)
-    {
-        if (string.IsNullOrWhiteSpace(raw))
-            return "none";
-        var s = raw.Trim().ToLowerInvariant();
-        return s is "confirm" or "approve" or "yes" or "ask" ? "confirm"
-            : s is "none" or "no" or "off" ? "none"
-            : s;
-    }
-
-    static string Slug(string title)
-    {
-        var sb = new StringBuilder(title.Length);
-        foreach (var ch in title.Trim().ToLowerInvariant())
-        {
-            if (char.IsAsciiLetterOrDigit(ch))
-                sb.Append(ch);
-            else if (ch is ' ' or '-' or '_' && sb.Length > 0 && sb[^1] != '-')
-                sb.Append('-');
-        }
-
-        var s = sb.ToString().Trim('-');
-        return s.Length == 0 ? "share" : s.Length <= 32 ? s : s[..32];
-    }
-
-    static int CountLines(string text)
-    {
-        if (text.Length == 0) return 1;
-        var n = 1;
-        for (var i = 0; i < text.Length; i++)
-        {
-            if (text[i] == '\n') n++;
-        }
-
-        return n;
-    }
-
-    static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)
-    {
-        if (!args.TryGetValue(key, out var el) || el.ValueKind != JsonValueKind.String)
-            return null;
-        var s = el.GetString();
-        return string.IsNullOrWhiteSpace(s) ? null : s.Trim();
     }
 }
