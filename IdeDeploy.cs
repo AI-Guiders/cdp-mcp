@@ -10,8 +10,9 @@ namespace CdpMcp;
 /// <summary>
 /// Dual-instance Deploy — thin wrapper over <c>publish-and-deploy.ps1</c>.
 /// Hard defaults to the sibling install path so KillRunning does not target self.
+/// Partials: Resolve (target/script/seat), Execute (payloads).
 /// </summary>
-internal static class IdeDeploy
+internal static partial class IdeDeploy
 {
     public const string Schema = "deploy/v0";
     public const string ReleaseTarget = @"D:\cdp-mcp";
@@ -19,6 +20,7 @@ internal static class IdeDeploy
     public const string ScriptName = "publish-and-deploy.ps1";
 
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly object PublishGate = new();
 
     public static string Run(
         SessionContext session,
@@ -30,104 +32,40 @@ internal static class IdeDeploy
         var useNuGet = IsTruthy(args, "use_nuget") || IsTruthy(args, "UseNuGet");
         var noNudge = IsTruthy(args, "no_nudge") || IsTruthy(args, "NoNudgeMcp");
 
+        if (mode == "rollout")
+            return Rollout(session, args);
+
         var selfRoot = ResolveSelfInstallRoot();
         var seat = ClassifySeat(selfRoot);
-        var targetRaw = Opt(args, "target") ?? Opt(args, "to");
-        var resolved = ResolveTarget(selfRoot, seat, targetRaw, mode, force);
+        var resolved = ResolveTarget(selfRoot, seat, Opt(args, "target") ?? Opt(args, "to"), mode, force);
         if (!resolved.Ok)
-        {
-            return JsonSerializer.Serialize(new
-            {
-                schema = Schema,
-                ok = false,
-                op = "deploy",
-                error = resolved.Error,
-                mode,
-                self = selfRoot,
-                seat,
-                target = resolved.Target,
-                hint = resolved.Hint
-            }, Pretty);
-        }
+            return Fail(mode, selfRoot, seat, resolved.Target, resolved.Error!, resolved.Hint);
 
         var script = ResolveScript(session, Opt(args, "script"));
         if (script is null)
         {
-            return JsonSerializer.Serialize(new
-            {
-                schema = Schema,
-                ok = false,
-                op = "deploy",
-                error = "script_not_found",
-                mode,
-                self = selfRoot,
-                seat,
-                target = resolved.Target,
-                hint =
-                    $"Open cdp-mcp (or pass script= path to {ScriptName}). " +
-                    "Sticky warm restores last desk — then retry go=deploy."
-            }, Pretty);
+            return Fail(mode, selfRoot, seat, resolved.Target, "script_not_found",
+                $"Open cdp-mcp (or pass script= path to {ScriptName}). Sticky warm restores last desk — then retry go=deploy.");
         }
 
         var psiArgs = BuildPsArgs(script, mode, resolved.Target!, useNuGet, noNudge);
         if (dryRun)
+            return DryRunPayload(mode, selfRoot, seat, resolved, script, psiArgs);
+
+        if (!Monitor.TryEnter(PublishGate))
         {
-            return JsonSerializer.Serialize(new
-            {
-                schema = Schema,
-                ok = true,
-                op = "deploy",
-                dry_run = true,
-                mode,
-                self = selfRoot,
-                seat,
-                target = resolved.Target,
-                sibling = resolved.Sibling,
-                script,
-                argv = psiArgs,
-                hint = "dry_run — no process started. Drop dry_run= to execute."
-            }, Pretty);
+            return Fail(mode, selfRoot, seat, resolved.Target, "deploy_in_flight",
+                "Another cdp_deploy is still publishing — wait for it, then retry (soft/hard sequential).");
         }
 
-        var started = DateTime.UtcNow;
-        var (exit, stdout, stderr) = RunPowerShell(psiArgs);
-        var elapsedMs = (int)(DateTime.UtcNow - started).TotalMilliseconds;
-        var includeRaw = IsTruthy(args, "include_raw") || IsTruthy(args, "include_raw_output");
-        var okLine = ExtractOkLine(stdout);
-
-        return JsonSerializer.Serialize(new
+        try
         {
-            schema = Schema,
-            ok = exit == 0,
-            op = "deploy",
-            pulse = exit == 0
-                ? $"deploy {mode} ok → {resolved.Target}" + (okLine is null ? "" : $" · {okLine}")
-                : $"deploy {mode} fail exit={exit}",
-            mode,
-            self = selfRoot,
-            seat,
-            target = resolved.Target,
-            sibling = resolved.Sibling,
-            script,
-            exit_code = exit,
-            elapsed_ms = elapsedMs,
-            stdout_tail = includeRaw ? Tail(stdout, 4000) : null,
-            stderr_tail = includeRaw || exit != 0 ? Tail(stderr, includeRaw ? 2000 : 800) : null,
-            next = exit == 0
-                ? new object[]
-                {
-                    new { go = "health", label = "cdp_health", why = "confirm version after remount" },
-                    new { go = "cockpit", label = "Desk", why = "reorient after deploy" }
-                }
-                : null,
-            hint = exit == 0
-                ? (mode == "hard"
-                    ? (includeRaw
-                        ? "Hard deploy done. Sibling remounts via CDP_RELOAD_NUDGE; stay on survivor or switch back."
-                        : "Hard deploy done. include_raw=true for stdout_tail; sibling remounts via nudge.")
-                    : "Soft staged (.next + pending_update). Apply with mode=hard when ready.")
-                : "Deploy failed — see stderr_tail / exit_code. include_raw=true for full tails."
-        }, Pretty);
+            return Execute(mode, selfRoot, seat, resolved, script, psiArgs, args);
+        }
+        finally
+        {
+            Monitor.Exit(PublishGate);
+        }
     }
 
     static string? ExtractOkLine(string stdout)
@@ -140,148 +78,6 @@ internal static class IdeDeploy
                 || t.StartsWith("HARD deployed:", StringComparison.OrdinalIgnoreCase)
                 || t.StartsWith("SOFT staged:", StringComparison.OrdinalIgnoreCase))
                 return Tail(t, 160);
-        }
-
-        return null;
-    }
-
-    internal static string? ResolveSelfInstallRoot()
-    {
-        var exe = Environment.ProcessPath;
-        if (string.IsNullOrWhiteSpace(exe))
-            return AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        return Path.GetDirectoryName(Path.GetFullPath(exe));
-    }
-
-    internal static string ClassifySeat(string? selfRoot)
-    {
-        if (SamePath(selfRoot, ReleaseTarget))
-            return "cdp";
-        if (SamePath(selfRoot, DebugTarget))
-            return "cdp-debug";
-        return "other";
-    }
-
-    internal readonly record struct TargetDecision(
-        bool Ok,
-        string? Target,
-        string? Sibling,
-        string? Error,
-        string? Hint);
-
-    internal static TargetDecision ResolveTarget(
-        string? selfRoot,
-        string seat,
-        string? targetRaw,
-        string mode,
-        bool force)
-    {
-        var sibling = seat switch
-        {
-            "cdp" => DebugTarget,
-            "cdp-debug" => ReleaseTarget,
-            _ => ReleaseTarget
-        };
-
-        string target;
-        var raw = (targetRaw ?? "").Trim();
-        if (raw.Length == 0 || raw.Equals("sibling", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("other", StringComparison.OrdinalIgnoreCase))
-        {
-            target = sibling;
-        }
-        else if (raw.Equals("self", StringComparison.OrdinalIgnoreCase)
-                 || raw.Equals("here", StringComparison.OrdinalIgnoreCase))
-        {
-            target = selfRoot ?? ReleaseTarget;
-        }
-        else if (raw.Equals("release", StringComparison.OrdinalIgnoreCase)
-                 || raw.Equals("cdp", StringComparison.OrdinalIgnoreCase))
-        {
-            target = ReleaseTarget;
-        }
-        else if (raw.Equals("debug", StringComparison.OrdinalIgnoreCase)
-                 || raw.Equals("cdp-debug", StringComparison.OrdinalIgnoreCase))
-        {
-            target = DebugTarget;
-        }
-        else
-        {
-            target = Path.GetFullPath(raw);
-        }
-
-        if (mode == "hard" && SamePath(target, selfRoot) && !force)
-        {
-            return new TargetDecision(
-                false,
-                target,
-                sibling,
-                "refuse_hard_self",
-                "Hard KillRunning cannot reliably kill this process from inside. " +
-                "Default: target=sibling (or switch seats). force=true to override.");
-        }
-
-        return new TargetDecision(true, target, sibling, null, null);
-    }
-
-    internal static string? ResolveScript(SessionContext session, string? explicitPath)
-    {
-        if (explicitPath is { Length: > 0 })
-        {
-            var p = Path.GetFullPath(explicitPath);
-            return File.Exists(p) ? p : null;
-        }
-
-        var env = Environment.GetEnvironmentVariable("CDP_DEPLOY_SCRIPT");
-        if (env is { Length: > 0 } && File.Exists(env))
-            return Path.GetFullPath(env);
-
-        foreach (var root in CandidateRoots(session))
-        {
-            var hit = FindScriptUp(root);
-            if (hit is not null)
-                return hit;
-        }
-
-        return null;
-    }
-
-    static IEnumerable<string> CandidateRoots(SessionContext session)
-    {
-        if (session.ProjectRoot is { Length: > 0 } pr)
-            yield return pr;
-        if (session.SolutionOrProjectPath is { Length: > 0 } sp)
-        {
-            var dir = Path.GetDirectoryName(sp);
-            if (dir is { Length: > 0 })
-                yield return dir;
-        }
-
-        // Common monorepo layout: …/open/cdp-mcp next to lab / other projects.
-        if (session.ProjectRoot is { Length: > 0 } root)
-        {
-            var open = Directory.GetParent(root)?.FullName;
-            if (open is not null)
-                yield return Path.Combine(open, "cdp-mcp");
-        }
-    }
-
-    static string? FindScriptUp(string start)
-    {
-        try
-        {
-            var dir = new DirectoryInfo(Path.GetFullPath(start));
-            for (var i = 0; i < 8 && dir is not null; i++, dir = dir.Parent)
-            {
-                var script = Path.Combine(dir.FullName, ScriptName);
-                var csproj = Path.Combine(dir.FullName, "CdpMcp.csproj");
-                if (File.Exists(script) && File.Exists(csproj))
-                    return script;
-            }
-        }
-        catch
-        {
-            /* ignore */
         }
 
         return null;
@@ -318,22 +114,6 @@ internal static class IdeDeploy
         var stderr = proc.StandardError.ReadToEnd();
         proc.WaitForExit();
         return (proc.ExitCode, stdout, stderr);
-    }
-
-    static string NormalizeMode(string mode)
-    {
-        var m = mode.Trim().ToLowerInvariant();
-        return m is "soft" or "hard" ? m : "hard";
-    }
-
-    static bool SamePath(string? a, string? b)
-    {
-        if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b))
-            return false;
-        return string.Equals(
-            Path.GetFullPath(a).TrimEnd('\\', '/'),
-            Path.GetFullPath(b).TrimEnd('\\', '/'),
-            StringComparison.OrdinalIgnoreCase);
     }
 
     static string Quote(string path) => "\"" + path.Replace("\"", "\\\"", StringComparison.Ordinal) + "\"";
