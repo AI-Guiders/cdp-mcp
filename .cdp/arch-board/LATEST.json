@@ -1,0 +1,107 @@
+{
+  "schema": "arch_board/v0",
+  "title": "architecture",
+  "updated_utc": "2026-07-27T17:16:44.883786+00:00",
+  "roles": [
+    {
+      "id": "ccu-build",
+      "role": "ccu",
+      "status": "promoted",
+      "note": "BuildAsync ownership \u2014 IdeCockpit peel target",
+      "elected_candidate_id": "c-62d559e9",
+      "candidates": [
+        {
+          "id": "c-62d559e9",
+          "label": "BuildAsync",
+          "anchor": "[F:IdeCockpit.Build.cs;M:BuildAsync]",
+          "path": "IdeCockpit.Build.cs",
+          "symbol": "BuildAsync",
+          "status": "elected"
+        }
+      ],
+      "created_utc": "2026-07-27T16:45:03.2611899+00:00"
+    },
+    {
+      "id": "ch-build",
+      "role": "channel",
+      "status": "promoted",
+      "note": "Build channel soft organ",
+      "elected_candidate_id": "c-87bbd19d",
+      "candidates": [
+        {
+          "id": "c-1993569e",
+          "label": "BuildAsync",
+          "anchor": "[F:IdeCockpit.Build.cs;M:BuildAsync]",
+          "path": "IdeCockpit.Build.cs",
+          "symbol": "BuildAsync",
+          "status": "candidate"
+        },
+        {
+          "id": "c-87bbd19d",
+          "label": "ApplyDeferredSoftOrgans",
+          "anchor": "[F:IdeCockpit.Channel.cs;M:ApplyDeferredSoftOrgans]",
+          "path": "IdeCockpit.Channel.cs",
+          "symbol": "ApplyDeferredSoftOrgans",
+          "status": "elected"
+        },
+        {
+          "id": "c-9ac6f9b4",
+          "label": "TryDispatchPlan",
+          "anchor": "[F:IdeCockpitSoftDispatch.Operators.cs;M:TryDispatchPlan]",
+          "path": "IdeCockpitSoftDispatch.Operators.cs",
+          "symbol": "TryDispatchPlan",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-27T16:45:04.5092141+00:00"
+    },
+    {
+      "id": "comp-cockpit",
+      "role": "compositor",
+      "status": "promoted",
+      "note": "Cockpit composition of build pulse",
+      "elected_candidate_id": "c-b2a5e7f0",
+      "candidates": [
+        {
+          "id": "c-b2a5e7f0",
+          "label": "ComposeSeatsSurface",
+          "anchor": "[F:IdeCockpit.Compositor.cs;M:ComposeSeatsSurface]",
+          "path": "IdeCockpit.Compositor.cs",
+          "symbol": "ComposeSeatsSurface",
+          "status": "elected"
+        },
+        {
+          "id": "c-0698ae70",
+          "label": "ComposeTilesSurface",
+          "anchor": "[F:IdeCockpit.Compositor.cs;M:ComposeTilesSurface]",
+          "path": "IdeCockpit.Compositor.cs",
+          "symbol": "ComposeTilesSurface",
+          "status": "candidate"
+        },
+        {
+          "id": "c-21da365d",
+          "label": "BuildAsync",
+          "anchor": "[F:IdeCockpit.Build.cs;M:BuildAsync]",
+          "path": "IdeCockpit.Build.cs",
+          "symbol": "BuildAsync",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-27T16:45:04.5793263+00:00"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-332b1013",
+      "from_role_id": "ccu-build",
+      "to_role_id": "ch-build",
+      "kind": "feeds"
+    },
+    {
+      "id": "e-ae2499ca",
+      "from_role_id": "ch-build",
+      "to_role_id": "comp-cockpit",
+      "kind": "projects"
+    }
+  ]
+}
