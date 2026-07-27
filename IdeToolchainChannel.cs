@@ -1,8 +1,8 @@
 #nullable enable
-using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Cdp.Core;
+using CdpMcp.Cockpit.DataAcquisition;
 using TerminalMcp.Core;
 
 namespace CdpMcp;
@@ -340,59 +340,7 @@ internal static class IdeToolchainChannel
         return new Row(id, ok, bins, recipe.SearchQuery, recipe.PairsLsp, ok ? null : "missing_bin");
     }
 
-    static string? ResolveOnPath(string bin)
-    {
-        try
-        {
-            if (Path.IsPathRooted(bin) && File.Exists(bin))
-                return bin;
-
-            var name = bin;
-            if (!name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) &&
-                OperatingSystem.IsWindows())
-                name += ".exe";
-
-            var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? "";
-            foreach (var dir in pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
-            {
-                try
-                {
-                    var candidate = Path.Combine(dir.Trim(), name);
-                    if (File.Exists(candidate))
-                        return candidate;
-                    var bare = Path.Combine(dir.Trim(), bin);
-                    if (File.Exists(bare))
-                        return bare;
-                }
-                catch
-                {
-                    /* skip bad PATH entry */
-                }
-            }
-
-            // where.exe fallback
-            var psi = new ProcessStartInfo
-            {
-                FileName = OperatingSystem.IsWindows() ? "where.exe" : "which",
-                Arguments = bin,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            using var p = Process.Start(psi);
-            if (p is null) return null;
-            var stdout = p.StandardOutput.ReadToEnd();
-            p.WaitForExit(5000);
-            if (p.ExitCode != 0) return null;
-            var line = stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-            return string.IsNullOrWhiteSpace(line) ? null : line.Trim();
-        }
-        catch
-        {
-            return null;
-        }
-    }
+    static string? ResolveOnPath(string bin) => ToolchainPathProbe.Resolve(bin);
 
     static object[] NextAfterOk(Row row)
     {
