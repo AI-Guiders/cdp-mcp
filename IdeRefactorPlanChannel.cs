@@ -6,12 +6,12 @@ namespace CdpMcp;
 
 /// <summary>
 /// Soft organ <c>go=refactor_plan</c> / Meta <c>cdp_refactor</c> — decide before cut.
-/// Axes: debt map · before/after budget · blast next · partials seam.
+/// Axes: debt · budget · blast · partials · <b>recommend</b> (one package next cut).
 /// After SA verdict; does not replace go=sa_desk.
 /// </summary>
 internal static partial class IdeRefactorPlanChannel
 {
-    public const string Schema = "refactor_plan/v0";
+    public const string Schema = "refactor_plan/v0.1";
     public const string ToolName = "cdp_refactor";
     public const string GoName = "refactor_plan";
 
@@ -36,6 +36,7 @@ internal static partial class IdeRefactorPlanChannel
             "budget" or "what_if" => Budget(store, session, args),
             "blast" or "radius" => Blast(args),
             "partials" or "seam" => Partials(session, args),
+            "recommend" or "next_cut" or "cut" => Recommend(store, session, args),
             "pulse" => Pulse(store, session, args),
             _ => Plan(store, session, args)
         };
@@ -68,10 +69,12 @@ internal static partial class IdeRefactorPlanChannel
         var budget = BuildBudget(store, session, args, debt);
         var blast = BuildBlast(args);
         var partials = BuildPartials(session, args);
+        var recommend = BuildRecommend(store, session, args, debt, budget, partials);
         var top = debt.Items.FirstOrDefault();
-        var pulse = top is null
-            ? "refactor_plan · no hotspots in scope"
-            : $"refactor_plan · top {Rel(session.ProjectRoot, top.Path)} · {top.Metric}={top.Value}";
+        var pulse = TryRecommendPulse(recommend)
+            ?? (top is null
+                ? "refactor_plan · no hotspots in scope"
+                : $"refactor_plan · top {Rel(session.ProjectRoot, top.Path)} · {top.Metric}={top.Value}");
 
         return new
         {
@@ -81,13 +84,69 @@ internal static partial class IdeRefactorPlanChannel
             tool = ToolName,
             op = "plan",
             pulse,
+            recommend,
             debt = debt.Card(),
             budget,
             blast,
             partials,
-            next = BuildNext(top, blast),
-            hint = "Decide: do / skip / defer. Prefer go=scope sniper before extract; sa_desk for leave|touch|split."
+            next = PreferRecommendNext(recommend, BuildNext(top, blast)),
+            hint = "Act on recommend.cut — detail axes below only if needed. sa_desk still for dirty/clones."
         };
+    }
+
+    static object Recommend(
+        DocumentBufferStore store,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var debt = BuildDebt(store, session, args, max: 8);
+        var budget = BuildBudget(store, session, args, debt);
+        var partials = BuildPartials(session, args);
+        var recommend = BuildRecommend(store, session, args, debt, budget, partials);
+        return new
+        {
+            ok = true,
+            schema = Schema,
+            go = GoName,
+            tool = ToolName,
+            op = "recommend",
+            pulse = TryRecommendPulse(recommend) ?? "refactor_plan · recommend",
+            recommend,
+            hint = "Slim card — same recommend as op=plan without full debt dump."
+        };
+    }
+
+    static string? TryRecommendPulse(object recommend)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(recommend));
+            return doc.RootElement.TryGetProperty("pulse", out var p) ? p.GetString() : null;
+        }
+        catch { return null; }
+    }
+
+    static object[] PreferRecommendNext(object recommend, object[] fallback)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(recommend));
+            if (doc.RootElement.TryGetProperty("next", out var narr) && narr.ValueKind == JsonValueKind.Array
+                && narr.GetArrayLength() > 0)
+            {
+                return narr.EnumerateArray()
+                    .Select(n => (object)new
+                    {
+                        go = n.TryGetProperty("go", out var g) ? g.GetString() : null,
+                        label = n.TryGetProperty("label", out var lab) ? lab.GetString() : null,
+                        why = n.TryGetProperty("why", out var w) ? w.GetString() : null
+                    })
+                    .ToArray();
+            }
+        }
+        catch { /* fall through */ }
+
+        return fallback;
     }
 
     static object Debt(

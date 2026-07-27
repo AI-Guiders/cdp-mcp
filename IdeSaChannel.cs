@@ -304,7 +304,15 @@ internal static class IdeSaChannel
         }
 
         if (verdict is "split" or "touch")
+        {
+            list.Insert(0, new
+            {
+                go = "refactor_plan",
+                label = "Recommended next cut",
+                why = "op=plan|recommend — one package before extract"
+            });
             list.Add(new { go = "scope", label = "Sniper corridor", why = "aim before extract" });
+        }
 
         if (scope != "project")
             list.Add(new { go = "sa_desk", label = "Widen SA", why = "scope=project depth=full" });

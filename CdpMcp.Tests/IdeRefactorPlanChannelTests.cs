@@ -56,4 +56,57 @@ public class IdeRefactorPlanChannelTests
             doc.RootElement.GetProperty("partials").GetProperty("suggested_rel").GetString() ?? "",
             StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void Recommend_Program_is_top_level_design()
+    {
+        var path = Path.Combine(RepoRoot, "Program.cs");
+        Assert.True(File.Exists(path), path);
+
+        var store = new DocumentBufferStore();
+        store.Open(path);
+        var session = new SessionContext { ProjectRoot = RepoRoot };
+
+        var result = IdeRefactorPlanChannel.Handle(store, session, new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("recommend"),
+            ["path"] = JsonSerializer.SerializeToElement(path),
+            ["scope"] = JsonSerializer.SerializeToElement("file")
+        });
+
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        var rec = doc.RootElement.GetProperty("recommend");
+        Assert.Equal("design", rec.GetProperty("verdict").GetString());
+        Assert.Equal("top_level_statements", rec.GetProperty("shape").GetProperty("kind").GetString());
+        Assert.Equal("introduce_program_class", rec.GetProperty("cut").GetProperty("kind").GetString());
+    }
+
+    [Fact]
+    public void Plan_includes_recommend_for_Build_partial()
+    {
+        var path = Path.Combine(RepoRoot, "IdeCockpit.Build.cs");
+        Assert.True(File.Exists(path), path);
+
+        var store = new DocumentBufferStore();
+        store.Open(path);
+        var session = new SessionContext { ProjectRoot = RepoRoot };
+
+        var result = IdeRefactorPlanChannel.Handle(store, session, new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("plan"),
+            ["path"] = JsonSerializer.SerializeToElement(path),
+            ["scope"] = JsonSerializer.SerializeToElement("file")
+        });
+
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal(IdeRefactorPlanChannel.Schema, doc.RootElement.GetProperty("schema").GetString());
+        Assert.True(doc.RootElement.TryGetProperty("recommend", out var rec));
+        Assert.True(rec.GetProperty("ok").GetBoolean());
+        var kind = rec.GetProperty("cut").GetProperty("kind").GetString();
+        Assert.True(
+            kind is "extract_method" or "peel_partial" or "leave" or "none",
+            $"unexpected cut kind: {kind}");
+    }
 }
