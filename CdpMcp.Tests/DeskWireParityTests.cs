@@ -2,6 +2,7 @@
 using CdpMcp.Cockpit.Composition;
 using CdpMcp.Cockpit.ComputingUnits;
 using CdpMcp.Cockpit.DataBus;
+using CdpMcp.Cockpit.Ids;
 using CdpMcp.Cockpit.Instrument;
 using CdpMcp.Cockpit.Transport;
 using Xunit;
@@ -80,5 +81,24 @@ public sealed class DeskWireParityTests
         Assert.NotNull(dict["loci"]);
         Assert.NotNull(got);
         Assert.Equal(2, got!.Value.SeatCount);
+    }
+
+    [Fact]
+    public void FeatureSearchUnit_ranks_exact_prefix_contains()
+    {
+        var unit = new FeatureSearchUnit();
+        var catalog = new (string Go, string Tool)[]
+        {
+            ("sa", "cockpit"),
+            ("sys", "soft"),
+            ("system", "soft"),
+            ("plan", "tasks")
+        };
+        var hits = unit.Search("sys", 10, catalog);
+        Assert.Equal(2, hits.Length);
+        Assert.Equal("sys", hits[0].Go);
+        Assert.Equal(1000, hits[0].Score);
+        Assert.Equal("system", hits[1].Go);
+        Assert.Equal(800, hits[1].Score);
     }
 }

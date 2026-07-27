@@ -148,8 +148,12 @@ internal static partial class IdeArchBoardChannel
             ?? AddSeedRole(doc, "cds-route", "cds", "NormalizeAttentionRouting / ResolveDeskDetail", root,
                 [("IdeCockpit.Cds.cs", "NormalizeAttentionRouting"),
                  ("IdeCockpit.Cds.cs", "ResolveDeskDetail")]);
-        var ids = AddSeedRole(doc, "ids-palette", "ids", "SearchFeatures — agent Ctrl+Q analog", root,
-            [("IdeCockpit.Ids.cs", "SearchFeatures")]);
+        var ids = AddSeedRole(doc, "ids-palette", "ids", "IIdsFeatureSearch + FeatureSearchUnit", root,
+            [("Cockpit/Ids/IIdsFeatureSearch.cs", (string?)null),
+             ("Cockpit/Ids/FeatureSearchUnit.cs", "Search"),
+             ("IdeCockpit.Ids.cs", "SearchFeatures")])
+            ?? AddSeedRole(doc, "ids-peel", "ids", "SearchFeatures peel", root,
+                [("IdeCockpit.Ids.cs", "SearchFeatures")]);
         var comp = AddSeedRole(doc, "comp-core", "compositor", "ISurfaceCompositor + SeatsSurfaceCompositor", root,
             [("Cockpit/Composition/ISurfaceCompositor.cs", (string?)null),
              ("Cockpit/Composition/SeatsSurfaceCompositor.cs", "Compose"),

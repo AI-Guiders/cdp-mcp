@@ -83,6 +83,8 @@ internal static class DeskLayerPaths
         var file = System.IO.Path.GetFileName(n);
         if (EqualsFile(file, "IdeCockpit.Ids.cs"))
             return true;
+        if (HasSegment(n, "/Cockpit/Ids/"))
+            return true;
         return HasSegment(n, "/IdeDisplay/");
     }
 
