@@ -3,7 +3,7 @@ using CdpMcp.Cockpit.ComputingUnits;
 
 namespace CdpMcp.Cockpit.Surface;
 
-/// <summary>Surface CCU: planPin / go aliases → SoftOrganKind (Handle still peel).</summary>
+/// <summary>Surface CCU: planPin / go aliases → SoftOrganKind.</summary>
 public sealed class SoftOrganAliasCatalog : ICockpitComputeUnit
 {
     public SoftOrganKind? TryResolve(string? planPin) => planPin switch

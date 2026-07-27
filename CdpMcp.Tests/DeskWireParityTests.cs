@@ -1,4 +1,5 @@
 #nullable enable
+using CdpMcp.Cockpit.Cds;
 using CdpMcp.Cockpit.Composition;
 using CdpMcp.Cockpit.ComputingUnits;
 using CdpMcp.Cockpit.DataBus;
@@ -405,6 +406,20 @@ public sealed class DeskWireParityTests
         Assert.Contains("plan", pins);
         Assert.Contains("editor_scene", pins);
         Assert.Contains(cat.Ids, id => id == "desk");
+    }
+
+    [Fact]
+    public void DeskGoMapCatalog_resolves_verbs_and_defaults()
+    {
+        var cat = new DeskGoMapCatalog();
+        Assert.True(cat.Contains("buffer"));
+        Assert.True(cat.TryGet("toolchain_ensure", out var ensure));
+        Assert.Equal("cdp_toolchain", ensure.Tool);
+        Assert.NotNull(ensure.Defaults);
+        Assert.Equal("ensure", ensure.Defaults!["op"].GetString());
+        Assert.True(cat.TryGet("plan", out var plan));
+        Assert.Equal("cdp_work", plan.Tool);
+        Assert.False(cat.Contains("not_a_real_verb_xyz"));
     }
 
     [Fact]

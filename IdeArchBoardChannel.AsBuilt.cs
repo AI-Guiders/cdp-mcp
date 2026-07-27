@@ -155,6 +155,7 @@ internal static partial class IdeArchBoardChannel
         var cds = AddSeedRole(doc, "cds-core", "cds", "ICdsRouter + AttentionCdsRouter", root,
             [("Cockpit/Cds/ICdsRouter.cs", (string?)null),
              ("Cockpit/Cds/AttentionCdsRouter.cs", "Route"),
+             ("Cockpit/Cds/DeskGoMapCatalog.cs", "TryGet"),
              ("IdeCockpit.Cds.cs", "NormalizeAttentionRouting")])
             ?? AddSeedRole(doc, "cds-route", "cds", "NormalizeAttentionRouting / ResolveDeskDetail", root,
                 [("IdeCockpit.Cds.cs", "NormalizeAttentionRouting"),
