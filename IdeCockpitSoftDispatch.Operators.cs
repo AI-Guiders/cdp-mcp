@@ -51,7 +51,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.ArchDesk))
             return false;
 
-        goResult = SoftBoard(SoftOrganKind.ArchDesk, session, null, null, null, args);
+        goResult = SoftBoard(SoftOrganKind.ArchDesk, session, null, null, null, args, flattenOrganArgs: true);
         PlaceSoft(ref goVerb, SoftOrganKind.ArchDesk);
         return true;
     }
@@ -151,7 +151,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.Ps1Desk))
             return false;
 
-        goResult = SoftBoard(SoftOrganKind.Ps1Desk, session, null, null, null, args);
+        goResult = SoftBoard(SoftOrganKind.Ps1Desk, session, null, null, null, args, flattenOrganArgs: true);
         PlaceSoft(ref goVerb, SoftOrganKind.Ps1Desk);
         return true;
     }
