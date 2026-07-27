@@ -234,4 +234,30 @@ public sealed class DeskWireParityTests
         Assert.Equal("end turn", snap.Hint);
     }
 
+    [Fact]
+    public void DeskLociBuildUnit_emits_core_loci()
+    {
+        var unit = new DeskLociBuildUnit();
+        var loci = unit.Build(new DeskLociBuildUnit.Input(
+            Session: new DeskLociBuildUnit.SessionFact(@"D:\proj", "csharp", new { ok = true }),
+            Settings: new DeskLociBuildUnit.SettingsFact("settings ok", true, 1, "u", "p"),
+            Git: new DeskLociBuildUnit.GitFact(true, true, "main", new { dirty = true }),
+            ShellTabs: [],
+            Browser: new DeskLociBuildUnit.BrowserFact(true, "browser · 1", "main", 1, null, null, null),
+            Buffers: [],
+            BufferCount: 0,
+            Clipboard: null,
+            Debug: new DeskLociBuildUnit.DebugFact(false, false, 0, new { }),
+            Test: new DeskLociBuildUnit.TestFact(true, null, null, false, 0, 0, 0, new { }),
+            Work: new DeskLociBuildUnit.WorkFact("plan · X", new { }),
+            Quality: new DeskLociBuildUnit.QualityFact(true, 0, 0, "gates ok", new { }),
+            Analysis: new DeskLociBuildUnit.AnalysisFact(true)));
+        Assert.Contains(loci, l => l.Id == "session:project");
+        Assert.Contains(loci, l => l.Id == "git:scm" && l.Pulse.Contains("dirty"));
+        Assert.Contains(loci, l => l.Id == "buffer:none");
+        Assert.Contains(loci, l => l.Id == "mfd:gates");
+        Assert.Equal("Experiments/proj", DeskLociBuildUnit.ShortPath(@"D:\Experiments\proj"));
+    }
+
+
 }

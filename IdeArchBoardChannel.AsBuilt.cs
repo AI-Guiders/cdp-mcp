@@ -127,15 +127,18 @@ internal static partial class IdeArchBoardChannel
     static BoardDoc BuildCdpDeskAsBuilt(string root, string name)
     {
         var doc = NewAsBuiltDoc(name, "cdp_desk");
-        var ccu = AddSeedRole(doc, "ccu-core", "ccu", "ComputingUnits + Build peel (ADR 0097)", root,
+        var ccu = AddSeedRole(doc, "ccu-core", "ccu", "ComputingUnits + Build/Loci peel (ADR 0097)", root,
             [("Cockpit/ComputingUnits/ICockpitComputeUnit.cs", (string?)null),
              ("Cockpit/ComputingUnits/AttentionRoutingUnit.cs", "Compute"),
              ("Cockpit/ComputingUnits/DeskDetailUnit.cs", "Compute"),
              ("Cockpit/ComputingUnits/WorldSceneGoUnit.cs", "Compute"),
              ("Cockpit/ComputingUnits/FocusLocusUnit.cs", "Build"),
+             ("Cockpit/ComputingUnits/DeskLociBuildUnit.cs", "Build"),
              ("Cockpit/ComputingUnits/GoVerbsCatalogUnit.cs", "Merge"),
              ("Cockpit/ComputingUnits/GoResultSlimUnit.cs", "Slim"),
-             ("IdeCockpit.Build.cs", "BuildAsync")])
+             ("Cockpit/ComputingUnits/OrganJsonPulseUnit.cs", "FromJson"),
+             ("IdeCockpit.Build.cs", "BuildAsync"),
+             ("IdeCockpit.Loci.cs", "BuildLoci")])
             ?? AddSeedRole(doc, "ccu-build", "ccu", "IdeCockpit.Build peel", root,
                 [("IdeCockpit.Build.cs", "BuildAsync")]);
         var ch = AddSeedRole(doc, "ch-core", "channel", "IChannel + DeferredSoftOrgan (ADR 0036)", root,
