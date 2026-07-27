@@ -12,7 +12,12 @@ internal static partial class IdeArchBoardChannel
     public static string PulseLine(SessionContext session)
     {
         lock (Gate)
+        {
+            var asBuilt = LoadUnlockedAt(AsBuiltPath(session));
+            if (asBuilt.Mode == "as_built" && asBuilt.Roles.Count > 0)
+                return Pulse(asBuilt);
             return Pulse(LoadUnlocked(session));
+        }
     }
 
     /// <summary>True when board has open/elected work — hint on slim desk.</summary>

@@ -7,12 +7,15 @@ internal static partial class IdeArchBoardChannel
 {
     static string Pulse(BoardDoc doc)
     {
+        var prefix = doc.Mode == "as_built"
+            ? $"as_built · {doc.Profile ?? "?"}"
+            : "arch_board";
         if (doc.Roles.Count == 0)
-            return "arch_board · empty";
+            return $"{prefix} · empty";
         var open = doc.Roles.Count(r => r.Status == "open");
         var elected = doc.Roles.Count(r => r.Status == "elected");
         var promoted = doc.Roles.Count(r => r.Status == "promoted");
-        return $"arch_board · {doc.Roles.Count} roles · open={open} elect={elected} promo={promoted} · edges={doc.Edges.Count}";
+        return $"{prefix} · {doc.Roles.Count} roles · open={open} elect={elected} promo={promoted} · edges={doc.Edges.Count}";
     }
 
     static object OkCard(
