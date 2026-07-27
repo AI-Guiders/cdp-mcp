@@ -59,6 +59,7 @@ internal static partial class IdeCockpit
             ["go"] = goResult,
             ["warm"] = warm,
             ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
+            ["instrument"] = InstrumentPulse(),
             ["pressure"] = IsPressureGoResult(goResult)
                 ? null
                 : IdePressureChannel.PulseCardOrNull(),

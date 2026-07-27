@@ -30,8 +30,9 @@ internal static partial class IdeCockpit
         object? warm = null)
     {
         object? replDirect = null;
-        var cmdLine = OptString(args, "cmd") ?? OptString(args, "line") ?? OptString(args, "repl")
-            ?? OptString(args, "ccl") ?? OptString(args, "ccc");
+        var transport = IngestCockpitRequest(args);
+        args = transport.Args;
+        var cmdLine = transport.CmdLine;
         if (cmdLine is { Length: > 0 })
         {
             var applied = IdeRepl.Apply(cmdLine, args);
