@@ -11,6 +11,8 @@ internal static partial class IdeArchBoardChannel
         public string Schema { get; set; } = SchemaVersion;
         public string Title { get; set; } = "architecture";
         public DateTimeOffset UpdatedUtc { get; set; } = DateTimeOffset.UtcNow;
+        /// <summary>Last focused role id — promote/elect without role= uses this.</summary>
+        public string? FocusRoleId { get; set; }
         public List<RoleSlot> Roles { get; set; } = [];
         public List<BoardEdge> Edges { get; set; } = [];
     }
@@ -113,6 +115,7 @@ internal static partial class IdeArchBoardChannel
         {
             "compute" or "compute_unit" or "cockpit_compute_unit" => "ccu",
             "display" or "cds_contract" => "cds",
+            "ide_display" or "overlay" or "ids_overlay" or "ide_overlays" => "ids",
             "compose" or "composition" => "compositor",
             "view" or "pixels" or "json_surface" => "surface",
             "instr" => "instrument",

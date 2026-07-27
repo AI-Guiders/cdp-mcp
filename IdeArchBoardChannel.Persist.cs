@@ -8,39 +8,75 @@ internal static partial class IdeArchBoardChannel
 {
     static readonly object Gate = new();
 
-    static BoardDoc Load(SessionContext session)
+    /// <summary>Pulse for desk next[] without full card.</summary>
+    public static string PulseLine(SessionContext session)
+    {
+        lock (Gate)
+            return Pulse(LoadUnlocked(session));
+    }
+
+    /// <summary>True when board has open/elected work — hint on slim desk.</summary>
+    public static bool HasActiveWork(SessionContext session)
     {
         lock (Gate)
         {
-            var path = LatestPath(session);
-            if (!File.Exists(path))
-                return new BoardDoc();
-            try
-            {
-                var doc = JsonSerializer.Deserialize<BoardDoc>(File.ReadAllText(path), Pretty);
-                return doc ?? new BoardDoc();
-            }
-            catch
-            {
-                return new BoardDoc();
-            }
+            var doc = LoadUnlocked(session);
+            return doc.Roles.Any(r => r.Status is "open" or "elected");
         }
+    }
+
+    static BoardDoc Load(SessionContext session)
+    {
+        lock (Gate)
+            return LoadUnlocked(session);
     }
 
     static void Save(SessionContext session, BoardDoc doc)
     {
         lock (Gate)
+            SaveUnlocked(session, doc);
+    }
+
+    /// <summary>Load → optional save under one lock (no TOCTOU race on LATEST.json).</summary>
+    static object Mutate(SessionContext session, Func<BoardDoc, (bool Save, object Card)> fn)
+    {
+        lock (Gate)
         {
-            doc.UpdatedUtc = DateTimeOffset.UtcNow;
-            doc.Schema = SchemaVersion;
-            var dir = BoardDir(session);
-            Directory.CreateDirectory(dir);
-            var json = JsonSerializer.Serialize(doc, Pretty);
-            File.WriteAllText(LatestPath(session), json);
-            File.WriteAllText(
-                Path.Combine(dir, $"board-{DateTime.UtcNow:yyyyMMdd-HHmmss}.json"),
-                json);
+            var doc = LoadUnlocked(session);
+            var (save, card) = fn(doc);
+            if (save)
+                SaveUnlocked(session, doc);
+            return card;
         }
+    }
+
+    static BoardDoc LoadUnlocked(SessionContext session)
+    {
+        var path = LatestPath(session);
+        if (!File.Exists(path))
+            return new BoardDoc();
+        try
+        {
+            var doc = JsonSerializer.Deserialize<BoardDoc>(File.ReadAllText(path), Pretty);
+            return doc ?? new BoardDoc();
+        }
+        catch
+        {
+            return new BoardDoc();
+        }
+    }
+
+    static void SaveUnlocked(SessionContext session, BoardDoc doc)
+    {
+        doc.UpdatedUtc = DateTimeOffset.UtcNow;
+        doc.Schema = SchemaVersion;
+        var dir = BoardDir(session);
+        Directory.CreateDirectory(dir);
+        var json = JsonSerializer.Serialize(doc, Pretty);
+        File.WriteAllText(LatestPath(session), json);
+        File.WriteAllText(
+            Path.Combine(dir, $"board-{DateTime.UtcNow:yyyyMMdd-HHmmss}.json"),
+            json);
     }
 
     static string LatestPath(SessionContext session) =>

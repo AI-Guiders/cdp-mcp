@@ -100,6 +100,12 @@ internal static class IdeDeskSeats
                 ["forward"] = "editor_scene",
                 ["m"] = "git_scene",
             },
+            ["arch"] = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["p"] = "plan",
+                ["forward"] = "editor_scene",
+                ["m"] = "arch_desk",
+            },
         };
 
     static readonly Dictionary<string, string> DefaultPolicy = new(StringComparer.OrdinalIgnoreCase)
@@ -212,6 +218,12 @@ internal static class IdeDeskSeats
         ["semantic"] = "m",
         ["test_scene"] = "m",
         ["test"] = "m",
+        ["arch_desk"] = "m",
+        ["arch_board"] = "m",
+        ["arch"] = "m",
+        ["board"] = "m",
+        ["sketch_desk"] = "m",
+        ["cdp_arch"] = "m",
         ["restore"] = "m",
     };
 

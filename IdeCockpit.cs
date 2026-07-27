@@ -962,6 +962,9 @@ internal static partial class IdeCockpit
         if (quality.SuggestSniper && !EditSniper.HasHold)
             Add("n-scope", "scope", "Sniper aim", "Large open file — aim corridor before thick edit");
 
+        if (IdeArchBoardChannel.HasActiveWork(session))
+            Add("n-arch", "arch_desk", "Arch board", IdeArchBoardChannel.PulseLine(session));
+
         // VS-style: File Modified Outside the Environment — Reload?
         if (buffer.DiskChangedCount > 0)
         {

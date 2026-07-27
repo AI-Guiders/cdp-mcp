@@ -17,27 +17,32 @@ internal static partial class IdeArchBoardChannel
     {
         var roleRaw = Opt(args, "role") ?? Opt(args, "kind");
         if (roleRaw is null or { Length: 0 })
-            return Err("role_required", "op=add_role role=ccu|channel|cds|compositor|surface|…");
+            return Err("role_required", "op=add_role role=ccu|channel|cds|ids|compositor|surface|…");
 
         var role = NormRole(roleRaw);
         if (!RoleLexicon.Contains(role))
             return Err("unknown_role", $"role={role} — lexicon: {string.Join('|', RoleLexicon)}");
 
-        var doc = Load(session);
-        var id = Opt(args, "id") ?? Opt(args, "role_id") ?? ShortId(role);
-        if (doc.Roles.Any(r => r.Id.Equals(id, StringComparison.OrdinalIgnoreCase)))
-            return Err("role_id_exists", $"id={id} already on board — pick another id=");
+        var idHint = Opt(args, "id") ?? Opt(args, "role_id");
+        var note = Opt(args, "note") ?? Opt(args, "why");
 
-        var slot = new RoleSlot
+        return Mutate(session, doc =>
         {
-            Id = id,
-            Role = role,
-            Note = Opt(args, "note") ?? Opt(args, "why"),
-            Status = "open"
-        };
-        doc.Roles.Add(slot);
-        Save(session, doc);
-        return OkCard(session, doc, "add_role", pulse: $"arch_board · +{role} · {id}", focus: slot.Id);
+            var id = idHint ?? ShortId(role);
+            if (doc.Roles.Any(r => r.Id.Equals(id, StringComparison.OrdinalIgnoreCase)))
+                return (false, Err("role_id_exists", $"id={id} already on board — pick another id="));
+
+            var slot = new RoleSlot
+            {
+                Id = id,
+                Role = role,
+                Note = note,
+                Status = "open"
+            };
+            doc.Roles.Add(slot);
+            doc.FocusRoleId = slot.Id;
+            return (true, OkCard(session, doc, "add_role", pulse: $"arch_board · +{role} · {id}", focus: slot.Id));
+        });
     }
 
     static object AddCandidates(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
@@ -75,32 +80,34 @@ internal static partial class IdeArchBoardChannel
 
     static object Elect(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
-        var doc = Load(session);
-        var slot = FindRole(doc, args);
-        if (slot is null)
-            return Err("role_not_found", "op=elect role=… candidate=…");
-
         var candKey = Opt(args, "candidate") ?? Opt(args, "candidate_id") ?? Opt(args, "anchor") ?? Opt(args, "label");
         if (candKey is null or { Length: 0 })
             return Err("candidate_required", "op=elect role=ccu candidate=IdOrLabel");
 
-        var cand = slot.Candidates.FirstOrDefault(c =>
-            c.Id.Equals(candKey, StringComparison.OrdinalIgnoreCase) ||
-            c.Label.Equals(candKey, StringComparison.OrdinalIgnoreCase) ||
-            (c.Anchor?.Equals(candKey, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (c.Symbol?.Equals(candKey, StringComparison.OrdinalIgnoreCase) ?? false));
-        if (cand is null)
-            return Err("candidate_not_found", $"no candidate matching '{candKey}' on {slot.Id}");
+        return Mutate(session, doc =>
+        {
+            var slot = FindRole(doc, args);
+            if (slot is null)
+                return (false, Err("role_not_found", "op=elect role=… candidate=…"));
 
-        foreach (var c in slot.Candidates)
-            c.Status = c.Id == cand.Id ? "elected" : c.Status == "elected" ? "candidate" : c.Status;
+            var cand = slot.Candidates.FirstOrDefault(c =>
+                c.Id.Equals(candKey, StringComparison.OrdinalIgnoreCase) ||
+                c.Label.Equals(candKey, StringComparison.OrdinalIgnoreCase) ||
+                (c.Anchor?.Equals(candKey, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (c.Symbol?.Equals(candKey, StringComparison.OrdinalIgnoreCase) ?? false));
+            if (cand is null)
+                return (false, Err("candidate_not_found", $"no candidate matching '{candKey}' on {slot.Id}"));
 
-        slot.ElectedCandidateId = cand.Id;
-        slot.Status = "elected";
-        Save(session, doc);
-        return OkCard(session, doc, "elect",
-            pulse: $"arch_board · {slot.Role} elect {cand.Label}",
-            focus: slot.Id);
+            foreach (var c in slot.Candidates)
+                c.Status = c.Id == cand.Id ? "elected" : c.Status == "elected" ? "candidate" : c.Status;
+
+            slot.ElectedCandidateId = cand.Id;
+            slot.Status = "elected";
+            doc.FocusRoleId = slot.Id;
+            return (true, OkCard(session, doc, "elect",
+                pulse: $"arch_board · {slot.Role} elect {cand.Label}",
+                focus: slot.Id));
+        });
     }
 
     static object Reject(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
@@ -167,36 +174,50 @@ internal static partial class IdeArchBoardChannel
 
     static object Promote(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
-        var doc = Load(session);
-        var slot = FindRole(doc, args);
-        if (slot is null)
-            return Err("role_not_found", "op=promote role=… — elect first");
+        return Mutate(session, doc =>
+        {
+            var slot = FindRole(doc, args);
+            if (slot is null)
+                return (false, Err("role_not_found", "op=promote role=… — or elect first (uses focus)"));
 
-        if (slot.ElectedCandidateId is null)
-            return Err("not_elected", "elect a candidate before promote (v0 does not mutate code)");
+            if (slot.ElectedCandidateId is null)
+                return (false, Err("not_elected", "elect a candidate before promote (v0 does not mutate code)"));
 
-        var elected = slot.Candidates.FirstOrDefault(c => c.Id == slot.ElectedCandidateId);
-        slot.Status = "promoted";
-        Save(session, doc);
-
-        var primary = PromoteGo(slot, elected);
-        return OkCard(session, doc, "promote",
-            pulse: $"arch_board · promote {slot.Role}/{elected?.Label} (plan only)",
-            focus: slot.Id,
-            primaryGo: primary);
+            var elected = slot.Candidates.FirstOrDefault(c => c.Id == slot.ElectedCandidateId);
+            slot.Status = "promoted";
+            doc.FocusRoleId = slot.Id;
+            var primary = PromoteGo(slot, elected);
+            return (true, OkCard(session, doc, "promote",
+                pulse: $"arch_board · promote {slot.Role}/{elected?.Label} (plan only)",
+                focus: slot.Id,
+                primaryGo: primary));
+        });
     }
 
     static object Clear(SessionContext session)
     {
-        var empty = new BoardDoc();
-        Save(session, empty);
-        return OkCard(session, empty, "clear", pulse: "arch_board · cleared");
+        return Mutate(session, doc =>
+        {
+            doc.Roles.Clear();
+            doc.Edges.Clear();
+            doc.FocusRoleId = null;
+            return (true, OkCard(session, doc, "clear", pulse: "arch_board · cleared"));
+        });
     }
 
     static RoleSlot? FindRole(BoardDoc doc, IReadOnlyDictionary<string, JsonElement> args)
     {
         var key = Opt(args, "role_id") ?? Opt(args, "id") ?? Opt(args, "role") ?? Opt(args, "kind");
-        return key is null or { Length: 0 } ? null : FindRoleByKey(doc, key);
+        if (key is { Length: > 0 })
+            return FindRoleByKey(doc, key);
+
+        // Focus / last elected — op=promote with no role= after elect.
+        if (doc.FocusRoleId is { Length: > 0 } f
+            && FindRoleByKey(doc, f) is { } focused)
+            return focused;
+
+        return doc.Roles.LastOrDefault(r => r.Status == "elected")
+               ?? doc.Roles.LastOrDefault(r => r.Status == "open");
     }
 
     static RoleSlot? FindRoleByKey(BoardDoc doc, string key)

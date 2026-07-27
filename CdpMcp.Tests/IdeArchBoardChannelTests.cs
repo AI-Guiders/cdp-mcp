@@ -117,6 +117,52 @@ public class IdeArchBoardChannelTests
         }
     }
 
+    [Fact]
+    public void Promote_without_role_uses_focus_after_elect()
+    {
+        var tmp = Directory.CreateTempSubdirectory("cdp-arch-focus-");
+        try
+        {
+            var session = new SessionContext { ProjectRoot = tmp.FullName };
+            IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("add_role"),
+                ["role"] = JsonSerializer.SerializeToElement("ids"),
+                ["id"] = JsonSerializer.SerializeToElement("ids-overlay")
+            });
+            IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("add_candidates"),
+                ["role"] = JsonSerializer.SerializeToElement("ids-overlay"),
+                ["anchors"] = JsonSerializer.SerializeToElement("IdeDisplay/Palette.cs::Compose")
+            });
+            AssertOk(IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("elect"),
+                ["role"] = JsonSerializer.SerializeToElement("ids-overlay"),
+                ["candidate"] = JsonSerializer.SerializeToElement("Compose")
+            }));
+
+            var promote = IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("promote")
+            });
+            var json = JsonSerializer.Serialize(promote);
+            using var doc = JsonDocument.Parse(json);
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
+            Assert.Equal("ids-overlay", doc.RootElement.GetProperty("focus_role_id").GetString());
+            Assert.Contains("plan only", doc.RootElement.GetProperty("pulse").GetString());
+
+            var board = doc.RootElement.GetProperty("board").GetProperty("roles")[0];
+            Assert.True(board.TryGetProperty("id", out _), "roles[].id snake_case");
+            Assert.False(board.TryGetProperty("Id", out _), "no PascalCase Id");
+        }
+        finally
+        {
+            try { tmp.Delete(recursive: true); } catch { /* ignore */ }
+        }
+    }
+
     static void AssertOk(object result)
     {
         var json = JsonSerializer.Serialize(result);
