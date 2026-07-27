@@ -10,4 +10,4 @@ Normative: cascade-ide ADR [0197](../../cascade-ide/docs/adr/0197-cdp-mcp-cockpi
 | **CDPCOPE016** | Error | `IdeCockpit.Ids` / `IdeDisplay/` must not `using Avalonia*` |
 | **CDPCOPE020** | Warning | Same peels + `IdeCockpit.Build` / `ComputingUnits`: no direct `File`/`Process`/`HttpClient`/… — I/O in `Cockpit/DataAcquisition` |
 
-Wired into `CdpMcp.csproj` as Analyzer (`ReferenceOutputAssembly=false`).
+Wired into `CdpMcp.csproj` as Analyzer (`ReferenceOutputAssembly=false`), **except** when MSBuild property `RoslynMcpWorkspace=true` (Roslyn MCP / CDP in-proc) — then the ProjectReference is omitted so the MCP process does not lock `bin\…\CdpMcp.ArchitectureAnalyzers.dll` and break `dotnet build`/`test` (same opt-in as CascadeIDE; see roslyn-mcp README).
