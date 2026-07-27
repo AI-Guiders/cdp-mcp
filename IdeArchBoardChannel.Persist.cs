@@ -50,9 +50,23 @@ internal static partial class IdeArchBoardChannel
         }
     }
 
-    static BoardDoc LoadUnlocked(SessionContext session)
+    static BoardDoc LoadAsBuilt(SessionContext session)
     {
-        var path = LatestPath(session);
+        lock (Gate)
+            return LoadUnlockedAt(AsBuiltPath(session));
+    }
+
+    static void SaveAsBuilt(SessionContext session, BoardDoc doc)
+    {
+        lock (Gate)
+            SaveUnlockedAt(session, doc, AsBuiltPath(session), stampPrefix: "as-built");
+    }
+
+    static BoardDoc LoadUnlocked(SessionContext session) =>
+        LoadUnlockedAt(LatestPath(session));
+
+    static BoardDoc LoadUnlockedAt(string path)
+    {
         if (!File.Exists(path))
             return new BoardDoc();
         try
@@ -66,21 +80,27 @@ internal static partial class IdeArchBoardChannel
         }
     }
 
-    static void SaveUnlocked(SessionContext session, BoardDoc doc)
+    static void SaveUnlocked(SessionContext session, BoardDoc doc) =>
+        SaveUnlockedAt(session, doc, LatestPath(session), stampPrefix: "board");
+
+    static void SaveUnlockedAt(SessionContext session, BoardDoc doc, string path, string stampPrefix)
     {
         doc.UpdatedUtc = DateTimeOffset.UtcNow;
         doc.Schema = SchemaVersion;
         var dir = BoardDir(session);
         Directory.CreateDirectory(dir);
         var json = JsonSerializer.Serialize(doc, Pretty);
-        File.WriteAllText(LatestPath(session), json);
+        File.WriteAllText(path, json);
         File.WriteAllText(
-            Path.Combine(dir, $"board-{DateTime.UtcNow:yyyyMMdd-HHmmss}.json"),
+            Path.Combine(dir, $"{stampPrefix}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.json"),
             json);
     }
 
     static string LatestPath(SessionContext session) =>
         Path.Combine(BoardDir(session), "LATEST.json");
+
+    static string AsBuiltPath(SessionContext session) =>
+        Path.Combine(BoardDir(session), "AS_BUILT.json");
 
     static string BoardDir(SessionContext session)
     {

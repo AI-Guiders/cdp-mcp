@@ -21,7 +21,8 @@ internal static partial class IdeArchBoardChannel
         string op,
         string pulse,
         string? focus = null,
-        object? primaryGo = null)
+        object? primaryGo = null,
+        string? boardPath = null)
     {
         if (focus is { Length: > 0 })
             doc.FocusRoleId = focus;
@@ -37,11 +38,15 @@ internal static partial class IdeArchBoardChannel
             op,
             pulse,
             detail = "full",
-            board_path = LatestPath(session),
+            mode = doc.Mode,
+            profile = doc.Profile,
+            board_path = boardPath ?? LatestPath(session),
             focus_role_id = focus ?? doc.FocusRoleId,
             board = new
             {
                 title = doc.Title,
+                mode = doc.Mode,
+                profile = doc.Profile,
                 updated_utc = doc.UpdatedUtc,
                 focus_role_id = doc.FocusRoleId,
                 roles = doc.Roles.Select(r => new
@@ -72,7 +77,9 @@ internal static partial class IdeArchBoardChannel
             },
             roles_lexicon = RoleLexicon,
             next,
-            hint = "Board ≠ code. Soft organ: go=arch_desk / layout=arch (M seat). Candidates = [F:;M:;K:]. elect → op=promote (focus). CIDE: CCU→Channel→CDS|IDS→Compositor→Surface."
+            hint = doc.Mode == "as_built"
+                ? "As-built of open ProjectRoot. Soft organ: go=arch_desk op=as_built | view=as_built. Anchors auto. Plan board = LATEST.json."
+                : "Board ≠ code. Soft organ: go=arch_desk / layout=arch (M seat). Candidates = [F:;M:;K:]. elect → op=promote (focus). op=as_built scans open project."
         };
     }
 
@@ -106,6 +113,8 @@ internal static partial class IdeArchBoardChannel
         }
 
         next.Add(new { go = GoName, label = "Scene", why = "op=scene" });
+        next.Add(new { go = GoName, label = "As-built", why = "op=as_built — scan open ProjectRoot → AS_BUILT.json" });
+        next.Add(new { go = GoName, label = "Scene as-built", why = "op=scene view=as_built" });
         next.Add(new { go = GoName, label = "Add role", why = "op=add_role role=ccu|channel|cds|ids|…" });
         next.Add(new { go = GoName, label = "Candidates", why = "op=add_candidates role=… anchors=…" });
         next.Add(new { go = "layout", label = "Layout arch", why = "cmd=\"layout arch\" — M=arch_desk" });

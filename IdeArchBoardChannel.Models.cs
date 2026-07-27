@@ -10,6 +10,10 @@ internal static partial class IdeArchBoardChannel
     {
         public string Schema { get; set; } = SchemaVersion;
         public string Title { get; set; } = "architecture";
+        /// <summary>plan (manual staging) | as_built (scanned open project).</summary>
+        public string Mode { get; set; } = "plan";
+        /// <summary>Detected profile: cide | cdp_desk | unknown.</summary>
+        public string? Profile { get; set; }
         public DateTimeOffset UpdatedUtc { get; set; } = DateTimeOffset.UtcNow;
         /// <summary>Last focused role id — promote/elect without role= uses this.</summary>
         public string? FocusRoleId { get; set; }

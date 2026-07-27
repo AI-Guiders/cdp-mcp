@@ -53,6 +53,7 @@ internal static partial class IdeArchBoardChannel
             "edge" or "wire" or "link" => AddEdge(session, args),
             "promote" => Promote(session, args),
             "clear" => Clear(session),
+            "as_built" or "asbuilt" or "built" or "scan" => AsBuilt(session, args),
             "roles" or "lexicon" => new
             {
                 ok = true,
@@ -61,9 +62,9 @@ internal static partial class IdeArchBoardChannel
                 tool = ToolName,
                 roles = RoleLexicon,
                 edge_kinds = EdgeKinds,
-                hint = "add_role role=ccu · add_candidates role=ccu anchors=[F:File.cs;M:Member]"
+                hint = "add_role role=ccu · as_built — scan open project · add_candidates anchors=[F:;M:]"
             },
-            _ => Scene(session)
+            _ => Scene(session, args)
         };
     }
 }

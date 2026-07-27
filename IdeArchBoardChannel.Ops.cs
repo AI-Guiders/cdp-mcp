@@ -7,10 +7,15 @@ namespace CdpMcp;
 
 internal static partial class IdeArchBoardChannel
 {
-    static object Scene(SessionContext session)
+    static object Scene(SessionContext session, IReadOnlyDictionary<string, JsonElement>? args = null)
     {
-        var doc = Load(session);
-        return OkCard(session, doc, "scene", pulse: Pulse(doc));
+        args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        var view = (Opt(args, "view") ?? Opt(args, "board") ?? Opt(args, "mode") ?? "plan")
+            .Trim().ToLowerInvariant();
+        var asBuilt = view is "as_built" or "asbuilt" or "built";
+        var doc = asBuilt ? LoadAsBuilt(session) : Load(session);
+        var path = asBuilt ? AsBuiltPath(session) : LatestPath(session);
+        return OkCard(session, doc, "scene", pulse: Pulse(doc), boardPath: path);
     }
 
     static object AddRole(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)

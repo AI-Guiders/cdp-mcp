@@ -163,6 +163,111 @@ public class IdeArchBoardChannelTests
         }
     }
 
+    [Fact]
+    public void AsBuilt_cide_profile_writes_AS_BUILT_leaves_plan()
+    {
+        var tmp = Directory.CreateTempSubdirectory("cdp-arch-cide-");
+        try
+        {
+            var root = tmp.FullName;
+            Touch(root, "Cockpit/Channels/IChannel.cs");
+            Touch(root, "Cockpit/Composition/ISurfaceCompositor.cs");
+            Touch(root, "Cockpit/Cds/ICdsRouter.cs");
+            Touch(root, "Cockpit/ComputingUnits/ICockpitComputeUnit.cs");
+            Touch(root, "IdeDisplay/IIdsSurfaceCompositor.cs");
+            Touch(root, "Cockpit/Surface/UiLayoutSnapshot.cs");
+
+            var session = new SessionContext { ProjectRoot = root };
+            IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("add_role"),
+                ["role"] = JsonSerializer.SerializeToElement("ccu"),
+                ["id"] = JsonSerializer.SerializeToElement("plan-only")
+            });
+
+            var built = IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("as_built")
+            });
+            var json = JsonSerializer.Serialize(built);
+            using var doc = JsonDocument.Parse(json);
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
+            Assert.Equal("as_built", doc.RootElement.GetProperty("mode").GetString());
+            Assert.Equal("cide", doc.RootElement.GetProperty("profile").GetString());
+            Assert.True(doc.RootElement.GetProperty("board").GetProperty("roles").GetArrayLength() >= 4, json);
+
+            Assert.True(File.Exists(Path.Combine(root, ".cdp", "arch-board", "AS_BUILT.json")));
+            Assert.True(File.Exists(Path.Combine(root, ".cdp", "arch-board", "LATEST.json")));
+
+            var plan = IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("scene")
+            });
+            using var planDoc = JsonDocument.Parse(JsonSerializer.Serialize(plan));
+            var planRoles = planDoc.RootElement.GetProperty("board").GetProperty("roles");
+            Assert.Equal(1, planRoles.GetArrayLength());
+            Assert.Equal("plan-only", planRoles[0].GetProperty("id").GetString());
+        }
+        finally
+        {
+            try { tmp.Delete(recursive: true); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
+    public void AsBuilt_cdp_desk_profile_anchors_BuildAsync()
+    {
+        var tmp = Directory.CreateTempSubdirectory("cdp-arch-desk-");
+        try
+        {
+            var root = tmp.FullName;
+            File.WriteAllText(Path.Combine(root, "IdeCockpit.cs"), "// stub\n");
+            File.WriteAllText(Path.Combine(root, "IdeCockpit.Build.cs"), "class X { void BuildAsync() {} }\n");
+            File.WriteAllText(Path.Combine(root, "IdeCockpit.Channel.cs"), "class X { void PeekDeferredSoftWants() {} }\n");
+            File.WriteAllText(Path.Combine(root, "IdeCockpit.Cds.cs"), "class X { void NormalizeAttentionRouting() {} }\n");
+            File.WriteAllText(Path.Combine(root, "IdeCockpit.Ids.cs"), "class X { void SearchFeatures() {} }\n");
+            File.WriteAllText(Path.Combine(root, "IdeCockpit.Compositor.cs"), "class X { void ComposeSeatsSurface() {} }\n");
+            File.WriteAllText(Path.Combine(root, "IdeCockpit.Surface.cs"), "class X { void BuildSeatsDeskSurfaceAsync() {} }\n");
+
+            var session = new SessionContext { ProjectRoot = root };
+            var built = IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("as_built")
+            });
+            var json = JsonSerializer.Serialize(built);
+            using var doc = JsonDocument.Parse(json);
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
+            Assert.Equal("cdp_desk", doc.RootElement.GetProperty("profile").GetString());
+
+            var roles = doc.RootElement.GetProperty("board").GetProperty("roles");
+            Assert.True(roles.GetArrayLength() >= 5, json);
+            JsonElement? ccu = null;
+            foreach (var r in roles.EnumerateArray())
+            {
+                if (r.GetProperty("id").GetString() == "ccu-build")
+                {
+                    ccu = r;
+                    break;
+                }
+            }
+
+            Assert.True(ccu.HasValue, json);
+            var anchor = ccu.Value.GetProperty("candidates")[0].GetProperty("anchor").GetString();
+            Assert.Contains("BuildAsync", anchor, StringComparison.Ordinal);
+        }
+        finally
+        {
+            try { tmp.Delete(recursive: true); } catch { /* ignore */ }
+        }
+    }
+
+    static void Touch(string root, string rel)
+    {
+        var full = Path.Combine(root, rel.Replace('/', Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(Path.GetDirectoryName(full)!);
+        File.WriteAllText(full, $"// {rel}\n");
+    }
+
     static void AssertOk(object result)
     {
         var json = JsonSerializer.Serialize(result);
