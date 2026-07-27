@@ -262,7 +262,7 @@ public class IdeArchBoardChannelTests
             {
                 var id = r.GetProperty("id").GetString();
                 if (id == "dal-gap") dal = r;
-                if (id == "ccu-build") ccu = r;
+                if (id is "ccu-build" or "ccu-core") ccu = r;
             }
 
             Assert.True(dal.HasValue, json);
@@ -335,6 +335,8 @@ public class IdeArchBoardChannelTests
                 "class X { void IngestCockpitRequest() {} void TransportPulse() {} }\n");
             File.WriteAllText(Path.Combine(root, "IdeCockpit.Instrument.cs"),
                 "class X { void DescribeSeatsInstrumentDeck() {} void InstrumentPulse() {} }\n");
+            Touch(root, "Cockpit/Transport/DeskIngestionBus.cs");
+            Touch(root, "Cockpit/Instrument/DeskInstrumentMountRegistry.cs");
 
             var session = new SessionContext { ProjectRoot = root };
             var built = IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
@@ -351,8 +353,8 @@ public class IdeArchBoardChannelTests
             foreach (var r in roles.EnumerateArray())
             {
                 var id = r.GetProperty("id").GetString();
-                if (id == "transport-ingest") transport = r;
-                if (id == "instr-seats") instrument = r;
+                if (id is "transport-core" or "transport-ingest") transport = r;
+                if (id is "instr-core" or "instr-seats") instrument = r;
             }
 
             Assert.True(transport.HasValue, json);

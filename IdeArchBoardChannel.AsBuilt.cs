@@ -127,26 +127,40 @@ internal static partial class IdeArchBoardChannel
     static BoardDoc BuildCdpDeskAsBuilt(string root, string name)
     {
         var doc = NewAsBuiltDoc(name, "cdp_desk");
-        var ccu = AddSeedRole(doc, "ccu-build", "ccu", "IdeCockpit.Build peel", root,
-            [("IdeCockpit.Build.cs", "BuildAsync")]);
-        var ch = AddSeedRole(doc, "ch-desk", "channel", "IdeCockpit.Channel peel", root,
-            [("IdeCockpit.Channel.cs", "PeekDeferredSoftWants"),
-             ("IdeCockpit.Channel.cs", "ApplyDeferredSoftOrgans")]);
-        var cds = AddSeedRole(doc, "cds-route", "cds", "NormalizeAttentionRouting / ResolveDeskDetail", root,
-            [("IdeCockpit.Cds.cs", "NormalizeAttentionRouting"),
-             ("IdeCockpit.Cds.cs", "ResolveDeskDetail")]);
+        var ccu = AddSeedRole(doc, "ccu-core", "ccu", "ComputingUnits + Build peel (ADR 0097)", root,
+            [("Cockpit/ComputingUnits/ICockpitComputeUnit.cs", (string?)null),
+             ("Cockpit/ComputingUnits/AttentionRoutingUnit.cs", "Compute"),
+             ("IdeCockpit.Build.cs", "BuildAsync")])
+            ?? AddSeedRole(doc, "ccu-build", "ccu", "IdeCockpit.Build peel", root,
+                [("IdeCockpit.Build.cs", "BuildAsync")]);
+        var ch = AddSeedRole(doc, "ch-core", "channel", "IChannel + DeferredSoftOrgan (ADR 0036)", root,
+            [("Cockpit/Channels/IChannel.cs", (string?)null),
+             ("Cockpit/Channels/DeferredSoftOrganChannel.cs", "Peek"),
+             ("IdeCockpit.Channel.cs", "PeekDeferredSoftWants")])
+            ?? AddSeedRole(doc, "ch-desk", "channel", "IdeCockpit.Channel peel", root,
+                [("IdeCockpit.Channel.cs", "PeekDeferredSoftWants"),
+                 ("IdeCockpit.Channel.cs", "ApplyDeferredSoftOrgans")]);
+        var cds = AddSeedRole(doc, "cds-core", "cds", "ICdsRouter + AttentionCdsRouter", root,
+            [("Cockpit/Cds/ICdsRouter.cs", (string?)null),
+             ("Cockpit/Cds/AttentionCdsRouter.cs", "Route"),
+             ("IdeCockpit.Cds.cs", "NormalizeAttentionRouting")])
+            ?? AddSeedRole(doc, "cds-route", "cds", "NormalizeAttentionRouting / ResolveDeskDetail", root,
+                [("IdeCockpit.Cds.cs", "NormalizeAttentionRouting"),
+                 ("IdeCockpit.Cds.cs", "ResolveDeskDetail")]);
         var ids = AddSeedRole(doc, "ids-palette", "ids", "SearchFeatures — agent Ctrl+Q analog", root,
             [("IdeCockpit.Ids.cs", "SearchFeatures")]);
-        var comp = AddSeedRole(doc, "comp-cockpit", "compositor", "IdeCockpit.Compositor peel", root,
-            [("IdeCockpit.Compositor.cs", "ComposeSeatsSurface"),
-             ("IdeCockpit.Compositor.cs", "ComposeTilesSurface")]);
+        var comp = AddSeedRole(doc, "comp-core", "compositor", "ISurfaceCompositor + seats compose", root,
+            [("Cockpit/Composition/ISurfaceCompositor.cs", (string?)null),
+             ("IdeCockpit.Compositor.cs", "ComposeSeatsSurface")])
+            ?? AddSeedRole(doc, "comp-cockpit", "compositor", "IdeCockpit.Compositor peel", root,
+                [("IdeCockpit.Compositor.cs", "ComposeSeatsSurface"),
+                 ("IdeCockpit.Compositor.cs", "ComposeTilesSurface")]);
         var surf = AddSeedRole(doc, "surf-seats", "surface", "BuildSeatsDeskSurfaceAsync", root,
             [("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync")]);
 
-        // Orthogonal / acquisition seams — seed when present, else visible GAP (ADR 0197 / 0200)
-        var transport = AddSeedRole(doc, "transport-ingest", "transport", "IdeCockpit.Transport peel (ADR 0094)", root,
-            [("IdeCockpit.Transport.cs", "IngestCockpitRequest"),
-             ("IdeCockpit.Transport.cs", "TransportPulse")])
+        var transport = AddSeedRole(doc, "transport-core", "transport", "DeskIngestionBus Channel<T> (ADR 0094)", root,
+            ["Cockpit/Transport/DeskIngestionBus.cs",
+             "IdeCockpit.Transport.cs"])
             ?? AddGapRole(doc, "transport-gap", "transport",
                 "GAP — no IdeCockpit.Transport peel (CIDE ADR 0094)");
         var dal = AddSeedRole(doc, "dal-core", "dal", "DataAcquisition + toolchain (ADR 0102/0198)", root,
@@ -154,14 +168,15 @@ internal static partial class IdeArchBoardChannel
              "IdeToolchainChannel.cs"])
             ?? AddGapRole(doc, "dal-gap", "dal",
                 "GAP — DAL missing; toolchain ensure hangs here (ADR 0198)");
-        var databus = AddSeedRole(doc, "databus-core", "databus", "IDE DataBus thin desk (ADR 0099)", root,
+        var databus = AddSeedRole(doc, "databus-core", "databus", "IDE DataBus + DeskDataBusHost (ADR 0099)", root,
             ["Cockpit/DataBus/IDataBus.cs",
-             "Cockpit/DataBus/InMemoryDataBus.cs"])
+             "Cockpit/DataBus/InMemoryDataBus.cs",
+             "Cockpit/DataBus/DeskDataBusHost.cs"])
             ?? AddGapRole(doc, "databus-gap", "databus",
                 "GAP — no IDataBus in cdp-mcp desk (CIDE ADR 0099)");
-        var instrument = AddSeedRole(doc, "instr-seats", "instrument", "IdeCockpit.Instrument peel (ADR 0063)", root,
-            [("IdeCockpit.Instrument.cs", "DescribeSeatsInstrumentDeck"),
-             ("IdeCockpit.Instrument.cs", "InstrumentPulse")])
+        var instrument = AddSeedRole(doc, "instr-core", "instrument", "DeskInstrumentMountRegistry (ADR 0063)", root,
+            ["Cockpit/Instrument/DeskInstrumentMountRegistry.cs",
+             "IdeCockpit.Instrument.cs"])
             ?? AddGapRole(doc, "instr-gap", "instrument",
                 "GAP — no instrument deck peel in desk profile");
 
