@@ -7,6 +7,17 @@ public static class SeatOrganPanePresenter
     public static object FullOr(object board, bool wantFull, string go, string tool) =>
         wantFull ? Full(board, go, tool) : board;
 
+    public static object PulseOrFull(
+        bool wantFull,
+        object board,
+        string go,
+        string tool,
+        string pulse,
+        string? schema,
+        string? hint) =>
+        wantFull ? Full(board, go, tool) : Pulse(go, tool, pulse, schema, hint);
+
+
     public static object Full(object board, string go, string tool) => new
     {
         ok = true,

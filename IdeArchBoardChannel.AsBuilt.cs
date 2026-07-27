@@ -177,6 +177,7 @@ internal static partial class IdeArchBoardChannel
              ("Cockpit/Surface/SeatFullPaneMatchUnit.cs", "Matches"),
              ("Cockpit/Surface/SeatOrganPanePresenter.cs", "FullOr"),
              ("Cockpit/Surface/SoftOrganAliasCatalog.cs", "TryResolve"),
+             ("Cockpit/Surface/SoftOrganBoardMetaCatalog.cs", "Require"),
              ("Cockpit/Surface/WorldSnapPaneUnit.cs", "Build"),
              ("Cockpit/Surface/EditorSnapPaneUnit.cs", "Build"),
              ("Cockpit/ComputingUnits/OrganJsonPulseUnit.cs", "FromJson"),

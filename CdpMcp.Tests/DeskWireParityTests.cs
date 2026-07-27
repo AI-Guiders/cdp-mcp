@@ -333,6 +333,34 @@ public sealed class DeskWireParityTests
         Assert.Equal("3 buf · dirty×2", (string)dirty.pulse);
     }
 
+    [Fact]
+    public void SoftOrganBoardMetaCatalog_covers_all_kinds()
+    {
+        var cat = new SoftOrganBoardMetaCatalog();
+        foreach (SoftOrganKind kind in Enum.GetValues<SoftOrganKind>())
+        {
+            var m = cat.Require(kind);
+            Assert.False(string.IsNullOrWhiteSpace(m.Go));
+            Assert.False(string.IsNullOrWhiteSpace(m.Tool));
+        }
+        Assert.Equal("cdp_search", cat.Require(SoftOrganKind.FindDesk).Tool);
+        Assert.Equal("plan", cat.Require(SoftOrganKind.Plan).Go);
+    }
+
+    [Fact]
+    public void SeatOrganPanePresenter_pulse_or_full()
+    {
+        var board = new { ok = true };
+        dynamic pulse = SeatOrganPanePresenter.PulseOrFull(
+            false, board, "x", "t", "line", "sch", "hint");
+        Assert.Equal("pulse", (string)pulse.detail);
+        Assert.Equal("line", (string)pulse.pulse);
+        dynamic full = SeatOrganPanePresenter.PulseOrFull(
+            true, board, "x", "t", "line", "sch", "hint");
+        Assert.Equal("full", (string)full.detail);
+    }
+
+
 
 
 
