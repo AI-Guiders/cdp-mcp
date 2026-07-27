@@ -163,7 +163,8 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "cdp_onboard",
     "cdp_toolchain",
     "cdp_files",
-    "cdp_webcam"
+    "cdp_webcam",
+    "cdp_ps1_scene"
 };
 
 List<Tool> BuildVisibleTools()
@@ -825,6 +826,25 @@ List<Tool> BuildMetaTools() =>
             refresh = new { type = "boolean", description = "open: reload from disk" }
         }
     }),
+    Meta("cdp_ps1_scene", "PowerShell ISE-analogue habitat (put → buffer → AST check → pwsh -File run → last). Scripts under .cdp/ps1/*.ps1. op omit → map; put|open|check|run|last|help. dry_run = AST-only.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "omit|scene|put|open|check|run|last|help" },
+            feature = new { type = "string", description = "Alias of op" },
+            name = new { type = "string", description = "put/open/check/run: file name under .cdp/ps1" },
+            path = new { type = "string", description = "script path (absolute or project-relative)" },
+            file = new { type = "string", description = "Alias of path/name" },
+            text = new { type = "string", description = "put: draft body" },
+            body = new { type = "string", description = "put: alias of text" },
+            code = new { type = "string", description = "put: alias of text" },
+            overwrite = new { type = "boolean", description = "put: replace existing" },
+            mode = new { type = "string", description = "run: run|dry_run (dry_run=AST check)" },
+            refresh = new { type = "boolean", description = "open: reload from disk" },
+            timeout_seconds = new { type = "integer", description = "run: process timeout (default 120)" }
+        }
+    }),
     Meta("cdp_test_plan", "Select tests then preview|apply. include[] FQNs, failed_first=true (from last_run), or filter=. op=preview|apply → structured test_run/v0 + evidence.", new
     {
         type = "object",
@@ -1262,6 +1282,7 @@ var options = new McpServerOptions
         "Prefer cdp_build/cdp_run/cdp_test/cdp_pkg_*/cdp_project_*/cdp_sln_* over shell for session project. " +
         "Agent shell habitat: cdp_shell_* = primary IDE terminal; sibling terminal-mcp (terminal_*) = escape only. " +
         "CSX: cdp_script_scene (put→diags→check→run) | cdp_csx_help | cdp_csx_check | cdp_csx_run | cdp_csx_run_plan | promote | discard | cdp_evidence. " +
+        "PS1: cdp_ps1_scene (ISE put→AST check→pwsh -File→last). " +
         "Domain tools prefixed " + DomainPrefixHint + " (roslyn_* = legacy aliases; prefer bare IDE verbs). " +
         "ListTools = core meta + bare IDE verbs + ≤10 domain shortlist (soft-organ Metas via go=/CallTool; not always-ListTools). " +
         "Too many tools = agent thrash — use cdp_context to retarget, cdp_tools to preview, cdp_session (A; include_pack=true only when needed). " +
@@ -1347,6 +1368,10 @@ async Task<string> DispatchAsync(
                 cancellationToken)
             .ConfigureAwait(false);
 
+    if (Ps1Scene.IsPs1Tool(name))
+        return await Ps1Scene.DispatchAsync(docStore, session, byDomain, callArgs, cancellationToken)
+            .ConfigureAwait(false);
+
     if (GoToAll.IsGoToTool(name))
         return GoToAll.Dispatch(docStore, session, callArgs);
 
@@ -1390,6 +1415,7 @@ async Task<string> DispatchMetaAsync(
                    "cdp_build|cdp_run|cdp_test|cdp_test_scene|cdp_test_plan (session IDE lifecycle), " +
                    "cdp_analysis_scene (code analysis domain; feature=clones), " +
                    "cdp_script_scene (script habitat put→diags→run), " +
+                   "cdp_ps1_scene (PS ISE put→check→run), " +
                    "cdp_goto (Ctrl+T code + Ctrl+Q features → land/peek), " +
                    "cdp_buffer(op=scene|open|read|edit|diagnostics|close) file buffer SSOT; edit returns diagnostics, " +
                    "cdp_debug(op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|…) debug plane; session defaults, not breakpoints JSON, " +
