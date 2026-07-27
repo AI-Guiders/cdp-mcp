@@ -1,13 +1,20 @@
 #nullable enable
 using System.Text.Json;
+using CdpMcp.Cockpit.Surface;
 
 namespace CdpMcp;
 
 internal static partial class IdeCockpitSoftDispatch
 {
+    static readonly SoftOrganAliasCatalog SoftAliases = new();
+    static readonly SoftOrganBoardMetaCatalog SoftMeta = new();
+
     static bool IsGo(string? goVerb, params string[] aliases) =>
         goVerb is { Length: > 0 } &&
         aliases.Any(alias => goVerb.Equals(alias, StringComparison.OrdinalIgnoreCase));
+
+    static bool IsSoft(string? goVerb, SoftOrganKind kind) =>
+        SoftAliases.TryResolve(goVerb) == kind;
 
     static void PlaceAndClear(ref string? goVerb, string organ)
     {
@@ -15,6 +22,9 @@ internal static partial class IdeCockpitSoftDispatch
             IdeDeskSeats.PlaceOrgan(organ);
         goVerb = null;
     }
+
+    static void PlaceSoft(ref string? goVerb, SoftOrganKind kind) =>
+        PlaceAndClear(ref goVerb, SoftMeta.Require(kind).Go);
 
     static string? OptString(IReadOnlyDictionary<string, JsonElement> args, string key) =>
         args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String

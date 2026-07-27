@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Cockpit.Surface;
 using CdpMcp.IntentWorkspace;
 
 namespace CdpMcp;
@@ -15,11 +16,11 @@ internal static partial class IdeCockpitSoftDispatch
         IntentWorkspaceState workspaceState,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "crm", "callout", "crm_panel"))
+        if (!IsSoft(goVerb, SoftOrganKind.Crm))
             return false;
 
         goResult = IdeCrmChannel.Handle(session, workspaceStore, workspaceState, args);
-        PlaceAndClear(ref goVerb, "crm");
+        PlaceSoft(ref goVerb, SoftOrganKind.Crm);
         return true;
     }
 
@@ -31,7 +32,7 @@ internal static partial class IdeCockpitSoftDispatch
         IntentWorkspaceState workspaceState,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "plan", "work", "tasks", "tm", "task", "feature", "promote", "confirm", "reject", "phase"))
+        if (!IsSoft(goVerb, SoftOrganKind.Plan))
             return false;
 
         if (workspaceStore is null)
@@ -68,10 +69,9 @@ internal static partial class IdeCockpitSoftDispatch
             goResult = IdeTaskManager.Handle(workspaceStore, workspaceState, tmArgs);
         }
 
-        PlaceAndClear(ref goVerb, "plan");
+        PlaceSoft(ref goVerb, SoftOrganKind.Plan);
         return true;
     }
-
 
     static bool TryDispatchArch(
         ref string? goVerb,
@@ -93,11 +93,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "onboard_desk", "explore_desk", "onboard", "explore", "cdp_onboard"))
+        if (!IsSoft(goVerb, SoftOrganKind.OnboardDesk))
             return false;
 
         goResult = IdeOnboardChannel.Handle(session, args);
-        PlaceAndClear(ref goVerb, "onboard_desk");
+        PlaceSoft(ref goVerb, SoftOrganKind.OnboardDesk);
         return true;
     }
 
@@ -107,13 +107,12 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "toolchain", "toolchain_desk", "toolchain_ensure", "toolchain_probe",
-                "toolchain_install", "toolchain_add", "cdp_toolchain"))
+        if (!IsSoft(goVerb, SoftOrganKind.Toolchain))
             return false;
 
         // GoMap defaults already merge op= for ensure/probe/…; Handle reads args.
         goResult = IdeToolchainChannel.Handle(session, args);
-        PlaceAndClear(ref goVerb, "toolchain");
+        PlaceSoft(ref goVerb, SoftOrganKind.Toolchain);
         return true;
     }
 
@@ -124,11 +123,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "files_desk", "files", "explorer", "fm", "file_manager"))
+        if (!IsSoft(goVerb, SoftOrganKind.FilesDesk))
             return false;
 
         goResult = IdeFilesChannel.Handle(docStore, session, args);
-        PlaceAndClear(ref goVerb, "files_desk");
+        PlaceSoft(ref goVerb, SoftOrganKind.FilesDesk);
         return true;
     }
 
@@ -137,11 +136,11 @@ internal static partial class IdeCockpitSoftDispatch
         ref object? goResult,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "ignite_desk", "ignite", "autoignite", "cdt_ignite", "cdp_ignite"))
+        if (!IsSoft(goVerb, SoftOrganKind.IgniteDesk))
             return false;
 
         goResult = IdeIgniteChannel.Handle(args);
-        PlaceAndClear(ref goVerb, "ignite_desk");
+        PlaceSoft(ref goVerb, SoftOrganKind.IgniteDesk);
         return true;
     }
 
@@ -151,11 +150,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "webcam_desk", "webcam", "camera", "sense", "cdp_webcam"))
+        if (!IsSoft(goVerb, SoftOrganKind.WebcamDesk))
             return false;
 
         goResult = IdeWebcamChannel.Handle(session, args);
-        PlaceAndClear(ref goVerb, "webcam_desk");
+        PlaceSoft(ref goVerb, SoftOrganKind.WebcamDesk);
         return true;
     }
 
@@ -165,11 +164,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "pressure_desk", "pressure", "compact_prep", "pre_compact", "cdp_pressure"))
+        if (!IsSoft(goVerb, SoftOrganKind.PressureDesk))
             return false;
 
         goResult = IdePressureChannel.Handle(session, args);
-        PlaceAndClear(ref goVerb, "pressure_desk");
+        PlaceSoft(ref goVerb, SoftOrganKind.PressureDesk);
         return true;
     }
 }

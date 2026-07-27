@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Cockpit.Surface;
 
 namespace CdpMcp;
 
@@ -14,7 +15,7 @@ internal static partial class IdeCockpitSoftDispatch
         DocumentBufferStore docStore,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "quality", "gates"))
+        if (!IsSoft(goVerb, SoftOrganKind.Quality))
             return false;
 
         mfd = "gates";
@@ -34,7 +35,7 @@ internal static partial class IdeCockpitSoftDispatch
             truncated = false,
             result = q
         };
-        PlaceAndClear(ref goVerb, "quality");
+        PlaceSoft(ref goVerb, SoftOrganKind.Quality);
         return true;
     }
 
@@ -44,11 +45,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "report", "evidence", "pfd"))
+        if (!IsSoft(goVerb, SoftOrganKind.Report))
             return false;
 
         goResult = IdeReportBoard.Handle(session, OrganArgs(args));
-        PlaceAndClear(ref goVerb, "report");
+        PlaceSoft(ref goVerb, SoftOrganKind.Report);
         return true;
     }
 
@@ -59,11 +60,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "find_desk", "search_desk", "code_search"))
+        if (!IsSoft(goVerb, SoftOrganKind.FindDesk))
             return false;
 
         goResult = IdeFindChannel.Handle(docStore, session, OrganArgs(args));
-        PlaceAndClear(ref goVerb, "find_desk");
+        PlaceSoft(ref goVerb, SoftOrganKind.FindDesk);
         return true;
     }
 
@@ -74,11 +75,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "sa_desk", "code_sa", "pre_sa", "sa_code"))
+        if (!IsSoft(goVerb, SoftOrganKind.SaDesk))
             return false;
 
         goResult = IdeSaChannel.Handle(docStore, session, OrganArgs(args));
-        PlaceAndClear(ref goVerb, "sa_desk");
+        PlaceSoft(ref goVerb, SoftOrganKind.SaDesk);
         return true;
     }
 
@@ -103,11 +104,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "debug_desk", "dap_sa", "debug_sa"))
+        if (!IsSoft(goVerb, SoftOrganKind.DebugDesk))
             return false;
 
         goResult = IdeDebugSaChannel.Handle(session, args);
-        PlaceAndClear(ref goVerb, "debug_desk");
+        PlaceSoft(ref goVerb, SoftOrganKind.DebugDesk);
         return true;
     }
 
@@ -117,11 +118,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "test_desk", "test_sa"))
+        if (!IsSoft(goVerb, SoftOrganKind.TestDesk))
             return false;
 
         goResult = IdeTestSaChannel.Handle(session, args);
-        PlaceAndClear(ref goVerb, "test_desk");
+        PlaceSoft(ref goVerb, SoftOrganKind.TestDesk);
         return true;
     }
 
@@ -131,11 +132,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "build_desk", "ship_desk", "build_sa", "ship_sa"))
+        if (!IsSoft(goVerb, SoftOrganKind.BuildDesk))
             return false;
 
         goResult = IdeBuildSaChannel.Handle(session, args);
-        PlaceAndClear(ref goVerb, "build_desk");
+        PlaceSoft(ref goVerb, SoftOrganKind.BuildDesk);
         return true;
     }
 }

@@ -218,10 +218,16 @@ public sealed class DeskWireParityTests
     {
         var cat = new SoftOrganAliasCatalog();
         Assert.Equal(SoftOrganKind.Plan, cat.TryResolve("plan"));
+        Assert.Equal(SoftOrganKind.Plan, cat.TryResolve("work"));
+        Assert.Equal(SoftOrganKind.Plan, cat.TryResolve("promote"));
         Assert.Equal(SoftOrganKind.FindDesk, cat.TryResolve("code_search"));
+        Assert.Equal(SoftOrganKind.FindDesk, cat.TryResolve("cdp_search"));
         Assert.Equal(SoftOrganKind.Toolchain, cat.TryResolve("toolchain_ensure"));
+        Assert.Equal(SoftOrganKind.Toolchain, cat.TryResolve("toolchain_install"));
+        Assert.Equal(SoftOrganKind.Ecl, cat.TryResolve("chk"));
         Assert.Null(cat.TryResolve("editor_scene"));
         Assert.Null(cat.TryResolve("git_scene"));
+        Assert.Null(cat.TryResolve("arch_desk"));
     }
 
     [Fact]
