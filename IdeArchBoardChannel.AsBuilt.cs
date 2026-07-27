@@ -134,6 +134,7 @@ internal static partial class IdeArchBoardChannel
              ("Cockpit/ComputingUnits/WorldSceneGoUnit.cs", "Compute"),
              ("Cockpit/ComputingUnits/FocusLocusUnit.cs", "Build"),
              ("Cockpit/ComputingUnits/GoVerbsCatalogUnit.cs", "Merge"),
+             ("Cockpit/ComputingUnits/GoResultSlimUnit.cs", "Slim"),
              ("IdeCockpit.Build.cs", "BuildAsync")])
             ?? AddSeedRole(doc, "ccu-build", "ccu", "IdeCockpit.Build peel", root,
                 [("IdeCockpit.Build.cs", "BuildAsync")]);
@@ -165,8 +166,12 @@ internal static partial class IdeArchBoardChannel
             ?? AddSeedRole(doc, "comp-cockpit", "compositor", "IdeCockpit.Compositor peel", root,
                 [("IdeCockpit.Compositor.cs", "ComposeSeatsSurface"),
                  ("IdeCockpit.Compositor.cs", "ComposeTilesSurface")]);
-        var surf = AddSeedRole(doc, "surf-seats", "surface", "BuildSeatsDeskSurfaceAsync", root,
-            [("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync")]);
+        var surf = AddSeedRole(doc, "surf-seats", "surface", "SeatsDetailGate + Surface peel", root,
+            [("Cockpit/Surface/SeatsDetailGateUnit.cs", "Compute"),
+             ("Cockpit/Surface/SeatOrganArgsSanitizer.cs", "Sanitize"),
+             ("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync")])
+            ?? AddSeedRole(doc, "surf-peel", "surface", "BuildSeatsDeskSurfaceAsync", root,
+                [("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync")]);
 
         var transport = AddSeedRole(doc, "transport-core", "transport", "DeskIngestionBus Channel<T> (ADR 0094)", root,
             ["Cockpit/Transport/DeskIngestionBus.cs",

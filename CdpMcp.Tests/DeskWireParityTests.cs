@@ -4,7 +4,9 @@ using CdpMcp.Cockpit.ComputingUnits;
 using CdpMcp.Cockpit.DataBus;
 using CdpMcp.Cockpit.Ids;
 using CdpMcp.Cockpit.Instrument;
+using CdpMcp.Cockpit.Surface;
 using CdpMcp.Cockpit.Transport;
+using System.Text.Json;
 using Xunit;
 
 namespace CdpMcp.Tests;
@@ -150,5 +152,42 @@ public sealed class DeskWireParityTests
         var unit = new GoVerbsCatalogUnit();
         var verbs = unit.Merge(["zz", "sa"], ["aa"]);
         Assert.Equal(["aa", "sa", "zz"], verbs);
+    }
+
+    [Fact]
+    public void SeatsDetailGateUnit_refuses_wspray_without_pane_full()
+    {
+        var unit = new SeatsDetailGateUnit();
+        var snap = unit.Compute(new SeatsDetailGateUnit.Input("full", null, false, true));
+        Assert.Equal("compact", snap.SeatsDetail);
+        Assert.NotNull(snap.ThrashNote);
+        Assert.False(snap.WantPanes);
+    }
+
+    [Fact]
+    public void SeatOrganArgsSanitizer_strips_steer_keys()
+    {
+        var sanitizer = new SeatOrganArgsSanitizer();
+        var args = new Dictionary<string, JsonElement>
+        {
+            ["go"] = JsonSerializer.SerializeToElement("browser"),
+            ["op"] = JsonSerializer.SerializeToElement("scene")
+        };
+        var clean = sanitizer.Sanitize(args, wantFull: false);
+        Assert.False(clean.ContainsKey("go"));
+        Assert.True(clean.ContainsKey("op"));
+        Assert.Equal("pulse", clean["go_detail"].GetString());
+    }
+
+    [Fact]
+    public void GoResultSlimUnit_keeps_full_and_slims_fat()
+    {
+        var unit = new GoResultSlimUnit();
+        var fat = new { ok = true, go = "arch_desk", board = new { roles = 1 }, pulse = "x" };
+        var kept = unit.Slim(fat, "full", _ => new GoResultSlimUnit.OrganPulseSnap(true, "p", null, null, null));
+        Assert.Same(fat, kept);
+        dynamic slimmed = unit.Slim(fat, "pulse", _ => new GoResultSlimUnit.OrganPulseSnap(true, "arch · ok", null, null, null))!;
+        Assert.True((bool)slimmed.slimmed);
+        Assert.Equal("arch · ok", (string)slimmed.pulse);
     }
 }

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Cockpit.ComputingUnits;
 using CdpMcp.IntentWorkspace;
 using DotNetBuildTest.Core;
 using DotnetDebug.Core;
@@ -715,90 +716,17 @@ internal static partial class IdeCockpit
     }
 
     /// <summary>
+    static readonly GoResultSlimUnit GoResultSlim = new();
+
+    /// <summary>
     /// Soft-organ Handle() often ignores go_detail — slim fat dumps to pulse when A (default).
     /// </summary>
-    static object? SlimGoResult(object? goResult, string? goDetailRaw)
-    {
-        if (goResult is null)
-            return null;
-        var detail = (goDetailRaw ?? "pulse").Trim().ToLowerInvariant();
-        if (detail is "full")
-            return goResult;
-
-        string raw;
-        try
+    static object? SlimGoResult(object? goResult, string? goDetailRaw) =>
+        GoResultSlim.Slim(goResult, goDetailRaw, raw =>
         {
-            raw = JsonSerializer.Serialize(goResult);
-        }
-        catch
-        {
-            return goResult;
-        }
-
-        try
-        {
-            using var doc = JsonDocument.Parse(raw);
-            var root = doc.RootElement;
-            if (root.TryGetProperty("detail", out var d)
-                && d.ValueKind == JsonValueKind.String
-                && d.GetString() is "pulse"
-                && root.TryGetProperty("pulse", out var p)
-                && p.ValueKind == JsonValueKind.String
-                && !GoResultHasFatDump(root))
-            {
-                return goResult;
-            }
-
-            var pulse = PulseFromOrgan(raw);
-            var go = PropStr(root, "go") ?? "go";
-            var tool = PropStr(root, "tool");
-            return new
-            {
-                ok = pulse.Ok,
-                go,
-                tool,
-                detail = "pulse",
-                pulse = pulse.Line,
-                schema = pulse.Schema,
-                next = pulse.Next,
-                slimmed = true,
-                hint = pulse.Hint ?? "go_detail=full for organ dump; or call organ tool directly."
-            };
-        }
-        catch
-        {
-            var pulse = PulseFromOrgan(raw);
-            return new
-            {
-                ok = pulse.Ok,
-                go = "go",
-                detail = "pulse",
-                pulse = pulse.Line,
-                slimmed = true,
-                hint = "go_detail=full for organ dump"
-            };
-        }
-    }
-
-    static bool GoResultHasFatDump(JsonElement root)
-    {
-        if (root.TryGetProperty("view", out var view) && view.ValueKind == JsonValueKind.Object)
-            return true;
-        if (root.TryGetProperty("result", out var result)
-            && result.ValueKind is JsonValueKind.Object or JsonValueKind.Array)
-            return true;
-        if (root.TryGetProperty("board", out _))
-            return true;
-        if (root.TryGetProperty("lines", out var lines)
-            && lines.ValueKind == JsonValueKind.Array
-            && lines.GetArrayLength() > 2)
-            return true;
-        if (root.TryGetProperty("panes", out var panes)
-            && panes.ValueKind == JsonValueKind.Array
-            && panes.GetArrayLength() > 0)
-            return true;
-        return false;
-    }
+            var p = PulseFromOrgan(raw);
+            return new GoResultSlimUnit.OrganPulseSnap(p.Ok, p.Line, p.Schema, p.Next, p.Hint);
+        });
 
     static bool IsPressureGoResult(object? goResult)
     {

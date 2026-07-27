@@ -72,6 +72,12 @@ internal static class DeskLayerPaths
             return true;
         }
 
+        if (EqualsFile(file, "IdeCockpit.Surface.cs") || HasSegment(n, "/Cockpit/Surface/"))
+        {
+            layer = "surface";
+            return true;
+        }
+
         return false;
     }
 

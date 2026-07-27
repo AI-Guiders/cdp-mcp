@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Cockpit.Surface;
 using CdpMcp.IntentWorkspace;
 using DotNetBuildTest.Core;
 using DotnetDebug.Core;
@@ -16,6 +17,8 @@ namespace CdpMcp;
 /// </summary>
 internal static partial class IdeCockpit
 {
+    static readonly SeatsDetailGateUnit SeatsDetailGate = new();
+    static readonly SeatOrganArgsSanitizer SeatOrganArgs = new();
     /// <summary>Collect seat organ panes + compose seats desk surface.</summary>
     private static async Task<string> BuildSeatsDeskSurfaceAsync(
         SessionContext session,
@@ -53,19 +56,13 @@ internal static partial class IdeCockpit
         var seatMap = IdeDeskSeats.Snapshot();
         var seatPinList = IdeDeskSeats.Order.Select(s => seatMap[s]).ToArray();
         var fullPane = OptString(args, "pane_full") ?? OptString(args, "full_pane");
-        var seatsDetail = (OptString(args, "seats_detail") ?? OptString(args, "view_detail") ?? "compact")
-            .Trim().ToLowerInvariant();
-        string? thrashNote = null;
-        // W-spray: seats_detail=full without pane_full= dumps every organ body — refuse.
-        if ((seatsDetail is "full" or "panes") && fullPane is not { Length: > 0 })
-        {
-            thrashNote =
-                "W-spray refused: seats_detail=full needs pane_full=<seat|organ>; using compact (A).";
-            seatsDetail = "compact";
-        }
-        var wantPanes = seatsDetail is "full" or "panes"
-            || BoolOr(args, "seats_panes", false)
-            || BoolOr(args, "compact", true) == false;
+        var detailGate = SeatsDetailGate.Compute(new SeatsDetailGateUnit.Input(
+            SeatsDetailRaw: OptString(args, "seats_detail") ?? OptString(args, "view_detail"),
+            FullPane: fullPane,
+            SeatsPanesFlag: BoolOr(args, "seats_panes", false),
+            CompactDefaultTrue: BoolOr(args, "compact", true)));
+        var thrashNote = detailGate.ThrashNote;
+        var wantPanes = detailGate.WantPanes;
         var hasProject = !string.IsNullOrWhiteSpace(session.ProjectRoot);
         var seatPanes = new List<SeatPane>();
         foreach (var seatId in IdeDeskSeats.Order)
@@ -93,38 +90,7 @@ internal static partial class IdeCockpit
                 continue;
             }
 
-            var tileArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
-            foreach (var kv in args)
-                tileArgs[kv.Key] = kv.Value;
-            tileArgs["go_detail"] = JsonSerializer.SerializeToElement(wantFull ? "full" : "pulse");
-            // Cockpit steer must not leak into organ dispatch (else browser gets op=feature → unknown_op).
-            tileArgs.Remove("go");
-            tileArgs.Remove("do");
-            tileArgs.Remove("cmd");
-            tileArgs.Remove("line");
-            tileArgs.Remove("repl");
-            tileArgs.Remove("go_args");
-            tileArgs.Remove("tm_op");
-            tileArgs.Remove("seat");
-            tileArgs.Remove("organ");
-            tileArgs.Remove("pin");
-            tileArgs.Remove("layout");
-            tileArgs.Remove("pins");
-            tileArgs.Remove("tiles");
-            tileArgs.Remove("pane_full");
-            tileArgs.Remove("full_pane");
-            tileArgs.Remove("seats_detail");
-            tileArgs.Remove("view_detail");
-            tileArgs.Remove("desk_detail");
-            tileArgs.Remove("nav_detail");
-            tileArgs.Remove("locus");
-            tileArgs.Remove("focus");
-            tileArgs.Remove("mfd");
-            tileArgs.Remove("page");
-            tileArgs.Remove("pin_clear");
-            tileArgs.Remove("clear_pins");
-            tileArgs.Remove("seat_clear");
-            tileArgs.Remove("clear_seats");
+            var tileArgs = SeatOrganArgs.Sanitize(args, wantFull);
 
             object pane;
             var planPin = CanonicalOrganPin(organ);
