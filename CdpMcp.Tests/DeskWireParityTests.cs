@@ -553,6 +553,8 @@ public sealed class DeskWireParityTests
     {
         var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
         Assert.True(File.Exists(Path.Combine(root, "IdeCockpit.Build.cs")), root);
+        Assert.True(File.Exists(Path.Combine(root, "IdeCockpit.Build.Ingress.cs")), root);
+        Assert.True(File.Exists(Path.Combine(root, "IdeCockpit.Build.Nav.cs")), root);
         Assert.True(File.Exists(Path.Combine(root, "IdeCockpit.Build.WorldGo.cs")), root);
         Assert.True(File.Exists(Path.Combine(root, "IdeCockpit.Build.LegacyTiles.cs")), root);
         Assert.True(File.Exists(Path.Combine(root, "IdeCockpit.Build.Probes.cs")), root);

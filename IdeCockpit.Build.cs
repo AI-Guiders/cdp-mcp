@@ -11,7 +11,7 @@ using TerminalMcp.Core;
 namespace CdpMcp;
 
 /// <summary>
-/// Cockpit BuildAsync orchestrator — peels: Probes / WorldGo / LegacyTiles / Surface.
+/// Cockpit BuildAsync orchestrator — peels: Ingress / Probes / WorldGo / Nav / LegacyTiles / Surface.
 /// CCU units under Cockpit/ComputingUnits.
 /// </summary>
 internal static partial class IdeCockpit
@@ -36,39 +36,14 @@ internal static partial class IdeCockpit
         CancellationToken cancellationToken,
         object? warm = null)
     {
-        object? replDirect = null;
-        var transport = IngestCockpitRequest(args);
-        args = transport.Args;
-        var cmdLine = transport.CmdLine;
-        if (cmdLine is { Length: > 0 })
-        {
-            var applied = IdeRepl.Apply(cmdLine, args);
-            if (applied is { } a)
-            {
-                args = a.Args;
-                replDirect = a.Direct;
-            }
-        }
+        var ingress = PrepareBuildIngress(session, args);
+        args = ingress.Args;
+        var focusId = ingress.FocusId;
+        var includeSubmodules = ingress.IncludeSubmodules;
+        var mfd = ingress.Mfd;
+        var goVerb = ingress.GoVerb;
 
-        var focusId = OptString(args, "locus") ?? OptString(args, "focus");
-        var includeSubmodules = BoolOr(args, "include_submodules", false);
-        string mfd;
-        string? goVerb;
-        (mfd, goVerb, args) = NormalizeAttentionRouting(args);
-
-        ApplyDeskMutation(args);
-        var deskCleared = BoolOr(args, "pin_clear", false) || BoolOr(args, "clear_pins", false)
-            || BoolOr(args, "seat_clear", false) || BoolOr(args, "clear_seats", false);
-        if (IdeDeskSeats.IsSeatsMode())
-        {
-            if (!deskCleared)
-                IdeDeskSeats.EnsureDefaultsFromSettings();
-            CheerIdleReportSeat(session);
-        }
-        else
-            EnsureDefaultLayoutFromSettings();
-
-        object? goResult = replDirect;
+        object? goResult = ingress.ReplDirect;
         var buffer = CollectBuffer(docStore.Scene());
         IdeCockpitSoftDispatch.TryDispatch(
             ref goVerb, ref goResult, ref mfd,
@@ -101,25 +76,10 @@ internal static partial class IdeCockpit
 
         goResult = SlimGoResult(goResult, OptString(args, "go_detail"));
 
-        var loci = BuildLoci(
+        var (loci, next, focus, goVerbs) = BuildDeskNavigation(
             session, git, shell, browser, settingsPulse, buffer,
-            probes.Debug, probes.Test, probes.Work, probes.Quality);
-        var next = BuildNext(
-            session, git, shell, buffer, probes.Debug, probes.Test, probes.Work, focusId,
-            probes.Quality, alertSnap, probes.ChkSnap, probes.ChkCtx);
-
-        if (DeskSniperLocus.TryBuild(new DeskSniperLocusUnit.Input(
-                EditSniper.HasHold, EditSniper.PulseLine, EditSniper.HoldCard())) is { } sniper)
-        {
-            loci.Insert(Math.Min(1, loci.Count), new Locus(
-                sniper.Id, sniper.Kind, sniper.Pulse, sniper.Drill, sniper.Go, sniper.Detail));
-        }
-
-        object? focus = FocusLocus.Build(
-            focusId,
-            loci.Select(l => new FocusLocusUnit.LocusRef(l.Id, l.Kind, l.Pulse, l.Drill, l.Go, l.Detail)).ToArray());
-
-        var goVerbs = GoVerbsCatalog.Merge(GoMap.Keys);
+            probes.Debug, probes.Test, probes.Work, probes.Quality, focusId,
+            alertSnap, probes.ChkSnap, probes.ChkCtx);
 
         if (IdeDeskSeats.IsSeatsMode())
         {

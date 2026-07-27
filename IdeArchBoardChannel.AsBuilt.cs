@@ -141,6 +141,8 @@ internal static partial class IdeArchBoardChannel
              ("Cockpit/ComputingUnits/GoResultSlimUnit.cs", "Slim"),
              ("Cockpit/ComputingUnits/OrganJsonPulseUnit.cs", "FromJson"),
              ("IdeCockpit.Build.cs", "BuildAsync"),
+             ("IdeCockpit.Build.Ingress.cs", "PrepareBuildIngress"),
+             ("IdeCockpit.Build.Nav.cs", "BuildDeskNavigation"),
              ("IdeCockpit.Build.WorldGo.cs", "ApplyWorldOrGoAsync"),
              ("IdeCockpit.Build.LegacyTiles.cs", "BuildLegacyTilesDeskAsync"),
              ("IdeCockpit.Loci.cs", "BuildLoci"),
