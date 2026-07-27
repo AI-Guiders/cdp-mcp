@@ -363,6 +363,36 @@ internal static partial class IdeCockpit
                     };
                 }
             }
+            else if (planPin is "toolchain" or "toolchain_desk" or "cdp_toolchain"
+                     or "toolchain_ensure" or "toolchain_probe")
+            {
+                if (wantFull)
+                {
+                    var board = IdeToolchainChannel.Handle(session, tileArgs);
+                    pane = new
+                    {
+                        ok = true,
+                        go = "toolchain",
+                        tool = IdeToolchainChannel.ToolName,
+                        detail = "full",
+                        truncated = false,
+                        result = board
+                    };
+                }
+                else
+                {
+                    pane = new
+                    {
+                        ok = true,
+                        go = "toolchain",
+                        tool = IdeToolchainChannel.ToolName,
+                        detail = "pulse",
+                        pulse = IdeToolchainChannel.PulseLine(session),
+                        schema = IdeToolchainChannel.SchemaVersion,
+                        hint = "pane_full= / go_detail=full · op=ensure id=python|gcc|…"
+                    };
+                }
+            }
             else if (planPin is "alert" or "eicas" or "sa")
             {
                 var board = IdeAlertChannel.Handle(alertInputs, tileArgs);

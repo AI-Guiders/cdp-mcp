@@ -101,6 +101,22 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
+    static bool TryDispatchToolchain(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsGo(goVerb, "toolchain", "toolchain_desk", "toolchain_ensure", "toolchain_probe",
+                "toolchain_install", "toolchain_add", "cdp_toolchain"))
+            return false;
+
+        // GoMap defaults already merge op= for ensure/probe/…; Handle reads args.
+        goResult = IdeToolchainChannel.Handle(session, args);
+        PlaceAndClear(ref goVerb, "toolchain");
+        return true;
+    }
+
     static bool TryDispatchFiles(
         ref string? goVerb,
         ref object? goResult,

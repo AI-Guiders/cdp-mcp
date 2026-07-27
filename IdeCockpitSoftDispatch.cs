@@ -33,6 +33,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (TryDispatchPlan(ref goVerb, ref goResult, session, workspaceStore, workspaceState, args)) return;
         if (TryDispatchArch(ref goVerb, ref goResult, session, args)) return;
         if (TryDispatchOnboard(ref goVerb, ref goResult, session, args)) return;
+        if (TryDispatchToolchain(ref goVerb, ref goResult, session, args)) return;
         if (TryDispatchFiles(ref goVerb, ref goResult, docStore, session, args)) return;
         if (TryDispatchIgnite(ref goVerb, ref goResult, args)) return;
         if (TryDispatchWebcam(ref goVerb, ref goResult, session, args)) return;

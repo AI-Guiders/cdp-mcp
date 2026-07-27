@@ -916,6 +916,8 @@ internal static partial class IdeCockpit
         if (IdeArchBoardChannel.HasActiveWork(session))
             Add("n-arch", "arch_desk", "Arch board", IdeArchBoardChannel.PulseLine(session));
 
+        Add("n-toolchain", "toolchain", "Toolchain", IdeToolchainChannel.PulseLine(session));
+
         if (IdeOnboardChannel.HasScan(session))
             Add("n-onboard", "onboard_desk", "Onboard map", IdeOnboardChannel.PulseLine(session));
         else if (session.ProjectRoot is not null)
