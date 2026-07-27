@@ -136,6 +136,7 @@ internal static partial class IdeArchBoardChannel
              ("Cockpit/ComputingUnits/DeskLociBuildUnit.cs", "Build"),
              ("Cockpit/ComputingUnits/DeskNextBuildUnit.cs", "Build"),
              ("Cockpit/ComputingUnits/DeskSniperLocusUnit.cs", "TryBuild"),
+             ("Cockpit/ComputingUnits/DeskSysOrganUnit.cs", "Build"),
              ("Cockpit/ComputingUnits/GoVerbsCatalogUnit.cs", "Merge"),
              ("Cockpit/ComputingUnits/GoResultSlimUnit.cs", "Slim"),
              ("Cockpit/ComputingUnits/OrganJsonPulseUnit.cs", "FromJson"),

@@ -347,6 +347,36 @@ public sealed class DeskWireParityTests
     }
 
     [Fact]
+    public void DeskSysOrganUnit_builds_pulse()
+    {
+        var unit = new DeskSysOrganUnit();
+        dynamic board = unit.Build(new DeskSysOrganUnit.Input(
+            ProjectRoot: @"D:\proj",
+            OpsPulse: "ops · ok",
+            GitPulse: "clean (main)",
+            BufferCount: 2,
+            BufferDirty: 1,
+            BufferDiskChanged: 0,
+            ShellTabCount: 1,
+            ShellRunning: 0,
+            ShellFailed: 0,
+            DebugActiveDap: false,
+            DebugStopped: false,
+            DebugBreakpointCount: 0,
+            TestAvailable: true,
+            TestReason: null,
+            TestLastRun: true,
+            TestSuccess: true,
+            TestPassed: 3,
+            TestTotal: 3,
+            WorkPulse: "plan · X"));
+        Assert.True((bool)board.ok);
+        Assert.Equal("sys", (string)board.go);
+        Assert.Contains("ops · ok", (string)board.pulse);
+        Assert.Contains("buf=2", (string)board.pulse);
+    }
+
+    [Fact]
     public void DeskPlaceableOrganUnit_alias_and_scene()
     {
         var unit = new DeskPlaceableOrganUnit();
