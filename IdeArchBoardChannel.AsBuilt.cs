@@ -150,7 +150,8 @@ internal static partial class IdeArchBoardChannel
         var ch = AddSeedRole(doc, "ch-core", "channel", "IChannel + DeferredSoftOrgan (ADR 0036)", root,
             [("Cockpit/Channels/IChannel.cs", (string?)null),
              ("Cockpit/Channels/DeferredSoftOrganChannel.cs", "Peek"),
-             ("IdeCockpit.Channel.cs", "PeekDeferredSoftWants")])
+             ("IdeCockpit.Channel.cs", "PeekDeferredSoftWants"),
+             ("IdeCockpit.Channel.cs", "ApplyDeferredSoftOrgans")])
             ?? AddSeedRole(doc, "ch-desk", "channel", "IdeCockpit.Channel peel", root,
                 [("IdeCockpit.Channel.cs", "PeekDeferredSoftWants"),
                  ("IdeCockpit.Channel.cs", "ApplyDeferredSoftOrgans")]);

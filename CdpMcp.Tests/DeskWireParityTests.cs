@@ -465,6 +465,19 @@ public sealed class DeskWireParityTests
         Assert.Equal(SoftOrganPresentMode.FullOr, cat.Require(SoftOrganKind.Plan).Mode);
     }
     [Fact]
+    public void SoftOrganBoardMeta_deferred_kinds_have_placeable_go()
+    {
+        var cat = new SoftOrganBoardMetaCatalog();
+        Assert.Equal("problems", cat.Require(SoftOrganKind.Problems).Go);
+        Assert.Equal("plugins", cat.Require(SoftOrganKind.Plugins).Go);
+        Assert.Equal("review", cat.Require(SoftOrganKind.Review).Go);
+        Assert.Equal("sys", cat.Require(SoftOrganKind.Sys).Go);
+        Assert.Equal("ecl", cat.Require(SoftOrganKind.Ecl).Go);
+        Assert.Equal("qrh", cat.Require(SoftOrganKind.Qrh).Go);
+        Assert.Equal("alert", cat.Require(SoftOrganKind.Alert).Go);
+    }
+
+    [Fact]
     public void SoftOrganPresentMode_Quality_wantFull_matches_dispatch_envelope()
     {
         var meta = new SoftOrganBoardMetaCatalog().Require(SoftOrganKind.Quality);

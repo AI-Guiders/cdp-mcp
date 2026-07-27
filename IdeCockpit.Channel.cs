@@ -2,17 +2,19 @@
 using System.Text.Json;
 using Cdp.Core;
 using CdpMcp.Cockpit.Channels;
+using CdpMcp.Cockpit.Surface;
 using CdpMcp.IntentWorkspace;
 
 namespace CdpMcp;
 
 /// <summary>
 /// Channel role for cockpit BuildAsync (CIDE ADR 0036 / arch_desk wire).
-/// Deferred soft organs via <see cref="DeferredSoftOrganChannel"/>.
+/// Deferred soft organs via <see cref="DeferredSoftOrganChannel"/> → <see cref="IdeSoftOrganBoard"/>.
 /// </summary>
 internal static partial class IdeCockpit
 {
     static readonly DeferredSoftOrganChannel SoftOrganChannel = new();
+    static readonly SoftOrganBoardMetaCatalog DeferredSoftMeta = new();
 
     private readonly record struct DeferredSoftWants(
         bool Sys,
@@ -58,64 +60,52 @@ internal static partial class IdeCockpit
         var gitDirty = GitIsDirty(git);
         var testsFailed = test is { Available: true, LastRun: not null, Success: false };
 
-        // Soft organs that own a seat: place BEFORE SA fuse so same-turn map matches desk.
-        if (wants.Problems)
-        {
-            goResult = IdeProblemsChannel.Handle(docStore, session, args);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("problems");
-        }
-
-        if (wants.Plugins)
-        {
-            goResult = IdePluginsChannel.Handle(docStore, session, args);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("plugins");
-        }
-
-        if (wants.Review)
-        {
-            var reviewInputs = new IdeReviewChannel.Inputs(
-                session,
-                gitDirty,
-                problems.Errors,
-                testsFailed,
-                quality.Fail,
-                quality.Warn,
-                chkSnap);
-            goResult = IdeReviewChannel.Handle(reviewInputs, args);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("review");
-        }
-
-        if (wants.Sys)
-        {
-            goResult = BuildSysOrgan(session, git, shell, buffer, debug, test, work);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("sys");
-        }
-
-        if (wants.Chk)
-        {
-            goResult = IdeChkChannel.Handle(chkCtx, args);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("ecl");
-        }
-
-        if (wants.Qrh)
-        {
-            goResult = IdeQrhChannel.Handle(chkCtx, args, chkSnap);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("qrh");
-        }
-
         var alertInputs = BuildAlertInputs(
             session, quality, buffer, debug, shell, git, problems, work, workspaceStore, workspaceState, chkSnap);
         var alertSnap = IdeAlertChannel.Build(alertInputs);
 
+        var tile = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
+        var board = new IdeSoftOrganBoard(new SoftOrganSeatBag(
+            tile,
+            session,
+            docStore,
+            workspaceStore,
+            workspaceState,
+            Extras: new SoftOrganSeatExtras(
+                alertInputs,
+                () => BuildSysOrgan(session, git, shell, buffer, debug, test, work),
+                chkCtx,
+                chkSnap,
+                gitDirty,
+                problems,
+                testsFailed,
+                quality)));
+
+        // Soft organs that own a seat: place BEFORE SA fuse so same-turn map matches desk.
+        if (wants.Problems)
+            goResult = PlaceDeferred(board, SoftOrganKind.Problems);
+        if (wants.Plugins)
+            goResult = PlaceDeferred(board, SoftOrganKind.Plugins);
+        if (wants.Review)
+            goResult = PlaceDeferred(board, SoftOrganKind.Review);
+        if (wants.Sys)
+            goResult = PlaceDeferred(board, SoftOrganKind.Sys);
+        if (wants.Chk)
+            goResult = PlaceDeferred(board, SoftOrganKind.Ecl);
+        if (wants.Qrh)
+            goResult = PlaceDeferred(board, SoftOrganKind.Qrh);
+
         if (wants.Alert)
-            goResult = IdeAlertChannel.Handle(alertInputs, args);
+            goResult = board.Build(SoftOrganKind.Alert).Board;
 
         return (goResult, alertSnap, alertInputs);
+    }
+
+    static object PlaceDeferred(IdeSoftOrganBoard board, SoftOrganKind kind)
+    {
+        var hit = board.Build(kind);
+        if (IdeDeskSeats.IsSeatsMode())
+            IdeDeskSeats.PlaceOrgan(DeferredSoftMeta.Require(kind).Go);
+        return hit.Board;
     }
 }
