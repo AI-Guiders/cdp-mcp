@@ -347,6 +347,16 @@ public sealed class DeskWireParityTests
     }
 
     [Fact]
+    public void DeskPlaceableOrganUnit_alias_and_scene()
+    {
+        var unit = new DeskPlaceableOrganUnit();
+        var aliases = new DeskPinAliasCatalog().Map;
+        Assert.True(unit.IsPlaceable("code_search", aliases));
+        Assert.True(unit.IsPlaceable("script_scene", aliases));
+        Assert.False(unit.IsPlaceable("clipboard", aliases));
+    }
+
+    [Fact]
     public void DeskPinAliasCatalog_canonicalizes()
     {
         var cat = new DeskPinAliasCatalog();
