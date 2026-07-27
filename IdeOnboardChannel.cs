@@ -237,6 +237,7 @@ internal static class IdeOnboardChannel
         doc.Truncated = truncated;
         doc.Entrypoints = entrypoints
             .OrderByDescending(e => e.Score)
+            .ThenBy(e => Depth(e.Path))
             .ThenBy(e => e.Path, StringComparer.OrdinalIgnoreCase)
             .Take(12)
             .ToList();
@@ -370,6 +371,9 @@ internal static class IdeOnboardChannel
             return true;
         if (fileName.Contains("Hosting", StringComparison.OrdinalIgnoreCase))
             return false;
+        if (fileName.Contains("Tests", StringComparison.OrdinalIgnoreCase) ||
+            fileName.EndsWith("Test.cs", StringComparison.OrdinalIgnoreCase))
+            return false;
         return EntrypointName.IsMatch(fileName);
     }
 
@@ -384,6 +388,18 @@ internal static class IdeOnboardChannel
         if (fileName.Contains("MainWindow", StringComparison.OrdinalIgnoreCase)) return 60;
         if (fileName.Contains("Bootstrap", StringComparison.OrdinalIgnoreCase)) return 55;
         return 40;
+    }
+
+    static int Depth(string? rel)
+    {
+        if (rel is null or { Length: 0 }) return 0;
+        var n = 0;
+        foreach (var c in rel)
+        {
+            if (c is '/' or '\\') n++;
+        }
+
+        return n;
     }
 
     static bool IsNoiseVertical(string name) =>
