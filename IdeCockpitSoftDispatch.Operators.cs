@@ -23,6 +23,20 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
+    static bool TryDispatchArch(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsGo(goVerb, "arch_desk", "arch_board", "board", "sketch_desk", "cdp_arch"))
+            return false;
+
+        goResult = IdeArchBoardChannel.Handle(session, args);
+        PlaceAndClear(ref goVerb, "arch_desk");
+        return true;
+    }
+
     static bool TryDispatchFiles(
         ref string? goVerb,
         ref object? goResult,

@@ -138,6 +138,7 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "cdp_test_sa",
     "cdp_build_sa",
     "cdp_crm",
+    "cdp_arch",
     "cdp_files",
     "cdp_webcam"
 };
@@ -558,6 +559,25 @@ List<Tool> BuildMetaTools() =>
             why = new { type = "string", description = "respond: short code ≤80 chars, not essay" }
         }
     }),
+    Meta("cdp_arch", "Architecture staging board (ADR 0196) — ontological kneeboard, not Miro. Roles CCU|Channel|CDS|Compositor|Surface + candidates as CodeAnchor wires [F:;M:;K:]. op=scene|add_role|add_candidates|elect|reject|edge|promote|clear|roles. Alias go=arch_desk|board. Board ≠ code until promote (plan-only v0).",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|add_role|add_candidates|elect|reject|edge|promote|clear|roles" },
+                role = new { type = "string", description = "ccu|channel|cds|compositor|surface|instrument|dal|transport" },
+                role_id = new { type = "string", description = "optional stable id for the role slot" },
+                id = new { type = "string", description = "alias of role_id" },
+                anchors = new { type = "string", description = "CodeAnchor wires [F:;M:;K:] (array or comma-separated); not bare paths" },
+                candidates = new { type = "string", description = "alias of anchors" },
+                candidate = new { type = "string", description = "elect/reject: candidate id|label|wire" },
+                from = new { type = "string", description = "edge: from role id|kind" },
+                to = new { type = "string", description = "edge: to role id|kind" },
+                kind = new { type = "string", description = "edge: feeds|mounts|projects|wires; or alias of role on add_role" },
+                note = new { type = "string", description = "optional why on role" }
+            }
+        }),
     Meta("cdp_files", "Agent-native File Manager (ADR-0016). Utility — not project-bound. where=cwd|project|external (+path=). op=scene|list|cd|up|stat|tree|open|search|roots|clear. shape=slim|list. Alias go=files_desk. Prefer over shell ls/dir. Search facet → find_desk.", new
     {
         type = "object",
@@ -1609,6 +1629,8 @@ async Task<string> DispatchMetaAsync(
             return IdeBuildSaChannel.HandleJson(session, callArgs);
         case "cdp_crm":
             return IdeCrmChannel.HandleJson(session, workspaceStore, workspaceState, callArgs);
+        case "cdp_arch":
+            return IdeArchBoardChannel.HandleJson(session, callArgs);
         case "cdp_files":
             return IdeFilesChannel.HandleJson(docStore, session, callArgs);
         case "cdp_ignite":
