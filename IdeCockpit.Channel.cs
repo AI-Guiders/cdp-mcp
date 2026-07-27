@@ -1,16 +1,19 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Cockpit.Channels;
 using CdpMcp.IntentWorkspace;
 
 namespace CdpMcp;
 
 /// <summary>
 /// Channel role for cockpit BuildAsync (CIDE ADR 0036 / arch_desk wire).
-/// Deferred soft organs need Collect* snaps — CCU peeks wants early, Channel applies after CDS.
+/// Deferred soft organs via <see cref="DeferredSoftOrganChannel"/>.
 /// </summary>
 internal static partial class IdeCockpit
 {
+    static readonly DeferredSoftOrganChannel SoftOrganChannel = new();
+
     private readonly record struct DeferredSoftWants(
         bool Sys,
         bool Chk,
@@ -23,54 +26,11 @@ internal static partial class IdeCockpit
     /// <summary>Peek go=sys|chk|qrh|alert|problems|plugins|review and clear goVerb.</summary>
     private static DeferredSoftWants PeekDeferredSoftWants(ref string? goVerb)
     {
-        var wantSys = goVerb is { Length: > 0 }
-            && goVerb.Equals("sys", StringComparison.OrdinalIgnoreCase);
-        if (wantSys)
-            goVerb = null;
-
-        var wantChk = goVerb is { Length: > 0 }
-            && (goVerb.Equals("chk", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("ecl", StringComparison.OrdinalIgnoreCase));
-        if (wantChk)
-            goVerb = null;
-
-        var wantQrh = goVerb is { Length: > 0 }
-            && (goVerb.Equals("qrh", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("eqrh", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("handbook", StringComparison.OrdinalIgnoreCase));
-        if (wantQrh)
-            goVerb = null;
-
-        var wantAlert = goVerb is { Length: > 0 }
-            && (goVerb.Equals("alert", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("eicas", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("sa", StringComparison.OrdinalIgnoreCase));
-        if (wantAlert)
-            goVerb = null;
-
-        var wantProblems = goVerb is { Length: > 0 }
-            && (goVerb.Equals("problems", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("problem", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("errlist", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("errorlist", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("err", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("diags", StringComparison.OrdinalIgnoreCase));
-        if (wantProblems)
-            goVerb = null;
-
-        var wantPlugins = goVerb is { Length: > 0 }
-            && (goVerb.Equals("plugins", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("plugin", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("vsix", StringComparison.OrdinalIgnoreCase));
-        if (wantPlugins)
-            goVerb = null;
-
-        var wantReview = goVerb is { Length: > 0 }
-            && goVerb.Equals("review", StringComparison.OrdinalIgnoreCase);
-        if (wantReview)
-            goVerb = null;
-
-        return new DeferredSoftWants(wantSys, wantChk, wantQrh, wantAlert, wantProblems, wantPlugins, wantReview);
+        var (payload, residual) = SoftOrganChannel.Peek(goVerb);
+        goVerb = residual;
+        return new DeferredSoftWants(
+            payload.Sys, payload.Chk, payload.Qrh, payload.Alert,
+            payload.Problems, payload.Plugins, payload.Review);
     }
 
     /// <summary>

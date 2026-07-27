@@ -1,12 +1,11 @@
 #nullable enable
 using System.Text.Json;
+using CdpMcp.Cockpit.Transport;
 
 namespace CdpMcp;
 
 /// <summary>
-/// Transport peel — desk ingress of cockpit requests (CIDE ADR 0094 spirit, no Avalonia).
-/// Delivery into CCU (<c>BuildAsync</c>), not cabin Channel/CDS routing.
-/// Peel: typed envelope; not full System.Threading.Channel bus yet.
+/// Transport peel — desk ingress via <see cref="DeskIngestionBus"/> (ADR 0094, Channel&lt;T&gt;).
 /// </summary>
 internal static partial class IdeCockpit
 {
@@ -16,7 +15,7 @@ internal static partial class IdeCockpit
         string Source,
         DateTimeOffset IngestedUtc);
 
-    /// <summary>Ingest MCP/cockpit args before CCU — one predictable entry (ADR 0094).</summary>
+    /// <summary>Ingest MCP/cockpit args before CCU — publish onto Channel&lt;T&gt; bus.</summary>
     public static TransportEnvelope IngestCockpitRequest(
         IReadOnlyDictionary<string, JsonElement> args)
     {
@@ -24,18 +23,26 @@ internal static partial class IdeCockpit
         var cmd = OptString(args, "cmd") ?? OptString(args, "line") ?? OptString(args, "repl")
             ?? OptString(args, "ccl") ?? OptString(args, "ccc");
         var source = OptString(args, "transport_source") ?? "mcp_cockpit";
-        return new TransportEnvelope(args, cmd, source, DateTimeOffset.UtcNow);
+        var go = OptString(args, "go") ?? OptString(args, "do");
+        var utc = DateTimeOffset.UtcNow;
+        DeskIngestionHost.Current.TryPublish(new DeskIngressEvent(source, cmd, go, utc));
+        return new TransportEnvelope(args, cmd, source, utc);
     }
 
-    /// <summary>Pulse for arch/debug — queue is sync peel (no bounded channel yet).</summary>
-    public static object TransportPulse(TransportEnvelope? last = null) => new
+    /// <summary>Pulse — real Channel&lt;T&gt; bus counters.</summary>
+    public static object TransportPulse(TransportEnvelope? last = null)
     {
-        seam = "transport",
-        adr = "0094",
-        peel = true,
-        queue = "sync",
-        last_source = last?.Source,
-        last_cmd = last?.CmdLine is { Length: > 0 },
-        ingested_utc = last?.IngestedUtc
-    };
+        var bus = DeskIngestionHost.Current.Pulse();
+        return new
+        {
+            seam = "transport",
+            adr = "0094",
+            peel = true,
+            real = true,
+            last_source = last?.Source,
+            last_cmd = last?.CmdLine is { Length: > 0 },
+            ingested_utc = last?.IngestedUtc,
+            bus
+        };
+    }
 }

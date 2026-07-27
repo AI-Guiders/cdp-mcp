@@ -1,10 +1,10 @@
 #nullable enable
+using CdpMcp.Cockpit.Instrument;
 
 namespace CdpMcp;
 
 /// <summary>
-/// Instrument peel — desk seat mounts as instrument deck (CIDE ADR 0047/0063 spirit, no Avalonia).
-/// Seats P|F|M are semantic anchors; organs are ordered instrument ids on the desk surface.
+/// Instrument peel — desk seat mounts via <see cref="DeskInstrumentMountRegistry"/> (ADR 0063).
 /// </summary>
 internal static partial class IdeCockpit
 {
@@ -20,39 +20,33 @@ internal static partial class IdeCockpit
         string LayoutPattern,
         IReadOnlyList<DeskInstrument> Instruments);
 
-    /// <summary>Describe current seats mode as an instrument deck for surface mounts.</summary>
+    /// <summary>Sync seats → registry and describe instrument deck.</summary>
     public static DeskInstrumentDeck DescribeSeatsInstrumentDeck()
     {
+        var reg = DeskInstrumentHost.Current;
         if (!IdeDeskSeats.IsSeatsMode())
         {
-            return new DeskInstrumentDeck(
-                "desk-tiles",
-                "tiles",
-                "tiles",
-                Array.Empty<DeskInstrument>());
+            reg.SyncFromSeats(new Dictionary<string, string?>(), Array.Empty<string>());
+            var empty = reg.Describe("desk-tiles", "tiles", "tiles");
+            return ToDesk(empty);
         }
 
-        var snap = IdeDeskSeats.Snapshot();
-        var instruments = new List<DeskInstrument>(IdeDeskSeats.Order.Length);
-        foreach (var seat in IdeDeskSeats.Order)
-        {
-            if (!snap.TryGetValue(seat, out var organ) || string.IsNullOrWhiteSpace(organ))
-                continue;
-            instruments.Add(new DeskInstrument(
-                Id: seat + ":" + organ,
-                Seat: seat,
-                Organ: organ!,
-                Anchor: "seat/" + seat));
-        }
-
-        return new DeskInstrumentDeck(
-            DeckId: "desk-seats",
-            SemanticAnchorId: "seats",
-            LayoutPattern: "seats-row",
-            Instruments: instruments);
+        reg.SyncFromSeats(IdeDeskSeats.Snapshot(), IdeDeskSeats.Order);
+        return ToDesk(reg.Describe());
     }
 
-    /// <summary>Compact pulse for arch board / SA — instrument mount count.</summary>
+    static DeskInstrumentDeck ToDesk(InstrumentDeckDescriptor d)
+    {
+        var instruments = d.OrderedInstrumentIds.Select(id =>
+        {
+            var parts = id.Split(':', 2);
+            var seat = parts.Length > 0 ? parts[0] : "";
+            var organ = parts.Length > 1 ? parts[1] : "";
+            return new DeskInstrument(id, seat, organ, "seat/" + seat);
+        }).ToArray();
+        return new DeskInstrumentDeck(d.DeckId, d.SemanticAnchorId, d.LayoutPattern, instruments);
+    }
+
     public static object InstrumentPulse()
     {
         var deck = DescribeSeatsInstrumentDeck();
@@ -61,6 +55,7 @@ internal static partial class IdeCockpit
             seam = "instrument",
             adr = "0063",
             peel = true,
+            real = true,
             deck_id = deck.DeckId,
             anchor = deck.SemanticAnchorId,
             layout = deck.LayoutPattern,

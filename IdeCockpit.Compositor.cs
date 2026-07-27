@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Cockpit.DataBus;
 
 namespace CdpMcp;
 
@@ -76,6 +77,12 @@ internal static partial class IdeCockpit
             payload["loci"] = loci.Select(l => l.Card()).ToArray();
             payload["go_verbs"] = goVerbs;
         }
+
+        DeskDataBusHost.Current.Publish(new DeskSurfaceBuiltEvent(
+            Mode: "seats",
+            SeatCount: seatPanes.Count,
+            Go: goResult?.GetType().Name,
+            Utc: DateTimeOffset.UtcNow));
 
         return JsonSerializer.Serialize(payload, Pretty);
     }
