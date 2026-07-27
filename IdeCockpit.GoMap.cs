@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace CdpMcp;
 
 /// <summary>
-/// Desk go-verb allowlist + Dict helper — peeled from IdeCockpit root.
+/// CDS go-verb allowlist (CIDE ADR 0036) — where desk verbs may land; not IDS overlays.
 /// </summary>
 internal static partial class IdeCockpit
 {

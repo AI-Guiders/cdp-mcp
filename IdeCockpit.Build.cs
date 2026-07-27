@@ -42,51 +42,11 @@ internal static partial class IdeCockpit
             }
         }
 
-        var mfdExplicit = OptString(args, "mfd") ?? OptString(args, "page");
-        // Seats: desk.default_mfd deprecated — do not auto-steer organs from settings.
-        var mfd = (mfdExplicit
-                   ?? (IdeDeskSeats.IsSeatsMode() ? "nav" : IdeSettingsHabitat.EffectiveDeskMfd())
-                   ?? "nav")
-            .Trim().ToLowerInvariant();
-        if (!MfdPages.Contains(mfd))
-            mfd = "nav";
-
         var focusId = OptString(args, "locus") ?? OptString(args, "focus");
         var includeSubmodules = BoolOr(args, "include_submodules", false);
-        var goVerb = OptString(args, "go") ?? OptString(args, "do");
-
-        // Legacy MFD pages → seats: nav=desk_detail; sys|chk|gates=soft organs (not root page).
-        if (goVerb is { Length: > 0 } && MfdPages.Contains(goVerb.Trim()))
-        {
-            var pageVerb = goVerb.Trim().ToLowerInvariant();
-            mfd = pageVerb;
-            if (pageVerb == "nav")
-            {
-                args = WithStringArg(args, "desk_detail", "nav");
-                goVerb = null;
-            }
-            // else keep goVerb for soft-organ handlers below
-        }
-        else if (goVerb is null
-                 && mfdExplicit is not null
-                 && mfd is "sys" or "chk" or "ecl" or "gates")
-        {
-            // bare mfd=/page= (explicit) → same as go=
-            goVerb = mfd;
-        }
-
-        // Soft tile / seat verbs: go=tiles|layout|seats|repl (no organ).
-        if (goVerb is { Length: > 0 }
-            && (goVerb.Equals("tiles", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("layout", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("tile", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("seats", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("seat", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("repl", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("ccl", StringComparison.OrdinalIgnoreCase)))
-        {
-            goVerb = null;
-        }
+        string mfd;
+        string? goVerb;
+        (mfd, goVerb, args) = NormalizeAttentionRouting(args);
 
         ApplyDeskMutation(args);
         var deskCleared = BoolOr(args, "pin_clear", false) || BoolOr(args, "clear_pins", false)

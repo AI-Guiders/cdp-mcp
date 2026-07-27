@@ -154,40 +154,6 @@ internal static partial class IdeCockpit
 
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
     static readonly JsonSerializerOptions Compact = new() { WriteIndented = false };
-    static readonly HashSet<string> MfdPages = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "nav", "sys", "chk", "ecl", "qrh", "gates"
-    };
-
-    /// <summary>VS Ctrl+Q — fuzzy desk verbs / organs (not code).</summary>
-    public static FeatureHit[] SearchFeatures(string query, int max)
-    {
-        var q = (query ?? "").Trim();
-        if (q.Length == 0)
-            return [];
-
-        static int Score(string name, string query)
-        {
-            if (name.Equals(query, StringComparison.OrdinalIgnoreCase))
-                return 1000;
-            if (name.StartsWith(query, StringComparison.OrdinalIgnoreCase))
-                return 800;
-            if (name.Contains(query, StringComparison.OrdinalIgnoreCase))
-                return 500;
-            return 0;
-        }
-
-        return GoMap.Keys
-            .Select(go => (go, score: Score(go, q)))
-            .Where(x => x.score > 0)
-            .OrderByDescending(x => x.score)
-            .ThenBy(x => x.go, StringComparer.OrdinalIgnoreCase)
-            .Take(max)
-            .Select(x => new FeatureHit(x.go, x.score, GoMap[x.go].Tool))
-            .ToArray();
-    }
-
-    public readonly record struct FeatureHit(string Go, int Score, string Tool);
 
     readonly record struct SeatPane(
         string Seat,
@@ -256,21 +222,6 @@ internal static partial class IdeCockpit
             go = Go
         };
     }
-
-    static string ResolveDeskDetail(IReadOnlyDictionary<string, JsonElement> args, string? focusId)
-    {
-        var raw = (OptString(args, "desk_detail") ?? OptString(args, "nav_detail") ?? "slim")
-            .Trim().ToLowerInvariant();
-        if (raw is "compact")
-            raw = "slim";
-        // Focused locus needs the nav catalog.
-        if (focusId is { Length: > 0 } && raw is "slim" or "omit")
-            return "nav";
-        if (raw is "slim" or "omit" or "nav" or "full")
-            return raw is "omit" ? "slim" : raw;
-        return "slim";
-    }
-
 
     static object WorldSnapPane(
         string organ,
