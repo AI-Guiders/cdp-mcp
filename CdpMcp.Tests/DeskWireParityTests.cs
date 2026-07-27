@@ -1,4 +1,5 @@
 #nullable enable
+using CdpMcp.Cockpit.Composition;
 using CdpMcp.Cockpit.ComputingUnits;
 using CdpMcp.Cockpit.DataBus;
 using CdpMcp.Cockpit.Instrument;
@@ -49,5 +50,35 @@ public sealed class DeskWireParityTests
         Assert.NotNull(got);
         Assert.Equal("seats", got!.Value.Mode);
         Assert.Equal(3, got.Value.SeatCount);
+    }
+
+    [Fact]
+    public void DeskDetailUnit_focus_forces_nav()
+    {
+        var unit = new DeskDetailUnit();
+        var snap = unit.Compute(new DeskDetailUnit.Input("slim", "buf"));
+        Assert.Equal("nav", snap.DeskDetail);
+        Assert.True(snap.WantNav);
+    }
+
+    [Fact]
+    public void SeatsSurfaceCompositor_publishes_and_sets_desk_detail()
+    {
+        DeskSurfaceBuiltEvent? got = null;
+        using var sub = DeskDataBusHost.Current.Subscribe<DeskSurfaceBuiltEvent>(e => got = e);
+        var comp = new SeatsSurfaceCompositor();
+        var decision = new DeskDetailUnit.Snapshot("nav", true);
+        var dict = comp.Compose(
+            new SeatsSurfaceScene(
+                "cockpit/v1.20", "sa", new { }, new { }, new { },
+                null, null, null, new { }, null,
+                null, null, ["p"], ["agent"], null,
+                Array.Empty<object>(), ["sa"]),
+            new SeatsSurfacePayload(2),
+            decision);
+        Assert.Equal("nav", dict["desk_detail"]);
+        Assert.NotNull(dict["loci"]);
+        Assert.NotNull(got);
+        Assert.Equal(2, got!.Value.SeatCount);
     }
 }

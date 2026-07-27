@@ -130,6 +130,7 @@ internal static partial class IdeArchBoardChannel
         var ccu = AddSeedRole(doc, "ccu-core", "ccu", "ComputingUnits + Build peel (ADR 0097)", root,
             [("Cockpit/ComputingUnits/ICockpitComputeUnit.cs", (string?)null),
              ("Cockpit/ComputingUnits/AttentionRoutingUnit.cs", "Compute"),
+             ("Cockpit/ComputingUnits/DeskDetailUnit.cs", "Compute"),
              ("IdeCockpit.Build.cs", "BuildAsync")])
             ?? AddSeedRole(doc, "ccu-build", "ccu", "IdeCockpit.Build peel", root,
                 [("IdeCockpit.Build.cs", "BuildAsync")]);
@@ -149,8 +150,9 @@ internal static partial class IdeArchBoardChannel
                  ("IdeCockpit.Cds.cs", "ResolveDeskDetail")]);
         var ids = AddSeedRole(doc, "ids-palette", "ids", "SearchFeatures — agent Ctrl+Q analog", root,
             [("IdeCockpit.Ids.cs", "SearchFeatures")]);
-        var comp = AddSeedRole(doc, "comp-core", "compositor", "ISurfaceCompositor + seats compose", root,
+        var comp = AddSeedRole(doc, "comp-core", "compositor", "ISurfaceCompositor + SeatsSurfaceCompositor", root,
             [("Cockpit/Composition/ISurfaceCompositor.cs", (string?)null),
+             ("Cockpit/Composition/SeatsSurfaceCompositor.cs", "Compose"),
              ("IdeCockpit.Compositor.cs", "ComposeSeatsSurface")])
             ?? AddSeedRole(doc, "comp-cockpit", "compositor", "IdeCockpit.Compositor peel", root,
                 [("IdeCockpit.Compositor.cs", "ComposeSeatsSurface"),

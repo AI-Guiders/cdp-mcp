@@ -30,16 +30,15 @@ internal static partial class IdeCockpit
         return (snap.Mfd, goVerb, args);
     }
 
-    static string ResolveDeskDetail(IReadOnlyDictionary<string, JsonElement> args, string? focusId)
+    static readonly DeskDetailUnit DeskDetail = new();
+
+    static DeskDetailUnit.Snapshot ResolveDeskDetailSnap(
+        IReadOnlyDictionary<string, JsonElement> args, string? focusId)
     {
-        var raw = (OptString(args, "desk_detail") ?? OptString(args, "nav_detail") ?? "slim")
-            .Trim().ToLowerInvariant();
-        if (raw is "compact")
-            raw = "slim";
-        if (focusId is { Length: > 0 } && raw is "slim" or "omit")
-            return "nav";
-        if (raw is "slim" or "omit" or "nav" or "full")
-            return raw is "omit" ? "slim" : raw;
-        return "slim";
+        var raw = OptString(args, "desk_detail") ?? OptString(args, "nav_detail");
+        return DeskDetail.Compute(new DeskDetailUnit.Input(raw, focusId));
     }
+
+    static string ResolveDeskDetail(IReadOnlyDictionary<string, JsonElement> args, string? focusId) =>
+        ResolveDeskDetailSnap(args, focusId).DeskDetail;
 }

@@ -1,16 +1,18 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
-using CdpMcp.Cockpit.DataBus;
+using CdpMcp.Cockpit.Composition;
 
 namespace CdpMcp;
 
 /// <summary>
 /// Compositor role for cockpit BuildAsync (CIDE ADR 0036 / arch_desk wire).
-/// Projects CDS + channel goResult into desk surface JSON — not organ thrash.
+/// Seats surface via <see cref="SeatsSurfaceCompositor"/> — not Avalonia.
 /// </summary>
 internal static partial class IdeCockpit
 {
+    static readonly SeatsSurfaceCompositor SeatsCompositor = new();
+
     /// <summary>Seats-mode desk surface (cockpit/v1.20): view once + seats + alert/pressure.</summary>
     private static string ComposeSeatsSurface(
         SessionContext session,
@@ -37,53 +39,30 @@ internal static partial class IdeCockpit
             seatPanes.Select(s => s.ToSlot()).ToList(),
             wantPanes ? seatPanes.Select(s => s.ToCard(true)).ToList() : null);
 
-        var deskDetail = ResolveDeskDetail(args, focusId);
-        var wantNav = deskDetail is "nav" or "full";
-        var payload = new Dictionary<string, object?>
-        {
-            ["schema"] = SchemaVersion,
-            ["ok"] = true,
-            ["role"] = "desk",
-            ["mode"] = "seats",
-            ["view"] = view,
-            ["mfd"] = mfd,
-            ["mfd_note"] = "legacy alias — go=sys|chk|gates|nav (soft organs / desk_detail); no root page",
-            ["session"] = SessionPulse(session),
-            ["desk_detail"] = deskDetail,
-            ["seats"] = seats,
-            ["tiles"] = null,
-            ["pins"] = seatPinList.Where(x => x is { Length: > 0 }).ToArray(),
-            ["layouts"] = LayoutPresetIds,
-            ["next"] = next,
-            ["focus"] = focus,
-            ["page"] = null,
-            ["go"] = goResult,
-            ["warm"] = warm,
-            ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
-            ["instrument"] = InstrumentPulse(),
-            ["pressure"] = IsPressureGoResult(goResult)
-                ? null
-                : IdePressureChannel.PulseCardOrNull(),
-            ["thrash"] = thrashNote,
-            ["hint"] = wantNav
-                ? "Read view.banner / view.ascii first. Steer: cmd=\"go sa\" | layout=agent. " +
-                  "C: pane_full= one dump; W: seats_detail=full spray."
-                : "Slim desk (cockpit/v1.20): view + seats + next + alert(sa) + pressure?. " +
-                  "go=sys|chk|pressure soft organs; desk_detail=nav for loci[]; cmd=sa|alert|pressure|probe|report|plan (CCL). " +
-                  "Context W/C/A: A=pulse; C=go_detail=full|pane_full=; W=seats_detail=full."
-        };
-        if (wantNav)
-        {
-            payload["loci"] = loci.Select(l => l.Card()).ToArray();
-            payload["go_verbs"] = goVerbs;
-        }
+        var decision = ResolveDeskDetailSnap(args, focusId);
+        var scene = new SeatsSurfaceScene(
+            SchemaVersion: SchemaVersion,
+            Mfd: mfd,
+            View: view,
+            Seats: seats,
+            Session: SessionPulse(session),
+            Instrument: InstrumentPulse(),
+            Alert: IdeAlertChannel.PulseCard(alertSnap),
+            Pressure: IsPressureGoResult(goResult) ? null : IdePressureChannel.PulseCardOrNull(),
+            Next: next,
+            Focus: focus,
+            Go: goResult,
+            Warm: warm,
+            Pins: seatPinList,
+            Layouts: LayoutPresetIds,
+            ThrashNote: thrashNote,
+            Loci: decision.WantNav ? loci.Select(l => l.Card()).ToArray() : null,
+            GoVerbs: decision.WantNav ? goVerbs : null);
 
-        DeskDataBusHost.Current.Publish(new DeskSurfaceBuiltEvent(
-            Mode: "seats",
-            SeatCount: seatPanes.Count,
-            Go: goResult?.GetType().Name,
-            Utc: DateTimeOffset.UtcNow));
-
+        var payload = SeatsCompositor.Compose(
+            scene,
+            new SeatsSurfacePayload(seatPanes.Count),
+            decision);
         return JsonSerializer.Serialize(payload, Pretty);
     }
 
