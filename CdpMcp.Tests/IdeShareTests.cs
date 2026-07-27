@@ -51,4 +51,30 @@ public sealed class IdeShareTests
         Assert.Equal("plan", ga.GetProperty("what").GetString());
         Assert.Equal("confirm", ga.GetProperty("ask").GetString());
     }
+
+    [Fact]
+    public void Repl_share_report_routes_tm_report()
+    {
+        var empty = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        var applied = IdeRepl.Apply("share report", empty);
+        Assert.NotNull(applied);
+        Assert.Null(applied.Value.Direct);
+        Assert.True(applied.Value.Args.TryGetValue("go", out var go));
+        Assert.Equal("plan", go.GetString());
+        Assert.True(applied.Value.Args.TryGetValue("tm_op", out var tm));
+        Assert.Equal("report", tm.GetString());
+        Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
+        Assert.Equal("report", ga.GetProperty("what").GetString());
+        Assert.Equal("none", ga.GetProperty("ask").GetString());
+    }
+
+    [Fact]
+    public void Repl_share_digest_alias_routes_tm_report()
+    {
+        var empty = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        var applied = IdeRepl.Apply("share digest", empty);
+        Assert.NotNull(applied);
+        Assert.True(applied.Value.Args.TryGetValue("tm_op", out var tm));
+        Assert.Equal("report", tm.GetString());
+    }
 }

@@ -12,6 +12,16 @@ internal static partial class IdeTaskManager
             or "confirm" or "plan_confirm" or "approved"
             or "reject" or "plan_reject" or "denied";
 
+    static bool IsShareReportOp(string op, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (op is "report" or "digest" or "share_report" or "status_report")
+            return true;
+        if (op is not ("share" or "share_plan"))
+            return false;
+        var what = (Opt(args, "what") ?? OptGoArg(args, "what") ?? "").Trim().ToLowerInvariant();
+        return what is "report" or "digest" or "status";
+    }
+
     static object? Dispatch(
         IntentWorkspaceStore store,
         IntentWorkspaceState state,
@@ -34,7 +44,16 @@ internal static partial class IdeTaskManager
             "active" => TaskStatus(store, state, args, "active"),
             "phase" or "task_phase" => TaskSetPhase(store, state, args),
             "promote" or "promote_plan" or "ask_confirm"
-                or "share" or "share_plan" => IdeShare.SharePlan(
+                or "share" or "share_plan"
+                or "report" or "digest" or "share_report" or "status_report" =>
+                IsShareReportOp(op, args)
+                    ? IdeShare.ShareReport(
+                        store, state,
+                        Opt(args, "project_root") ?? OptGoArg(args, "project_root"),
+                        Opt(args, "notes") ?? OptGoArg(args, "notes") ?? Opt(args, "body") ?? OptGoArg(args, "body"),
+                        Opt(args, "dir") ?? OptGoArg(args, "dir") ?? Opt(args, "inbox") ?? OptGoArg(args, "inbox"),
+                        Opt(args, "session_phase") ?? OptGoArg(args, "session_phase"))
+                    : IdeShare.SharePlan(
                 store, state, Opt(args, "project_root") ?? OptGoArg(args, "project_root"),
                 Opt(args, "notes") ?? OptGoArg(args, "notes") ?? Opt(args, "body") ?? OptGoArg(args, "body"),
                 Opt(args, "dir") ?? OptGoArg(args, "dir") ?? Opt(args, "inbox") ?? OptGoArg(args, "inbox"),
@@ -50,6 +69,6 @@ internal static partial class IdeTaskManager
                 Opt(args, "plan_id") ?? OptGoArg(args, "plan_id"),
                 reject: true),
             _ => throw new ArgumentException(
-                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|drop|share|promote|confirm|reject.")
+                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|drop|share|report|promote|confirm|reject.")
         };
 }

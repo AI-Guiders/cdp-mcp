@@ -35,7 +35,7 @@ internal static partial class IdeTaskManager
                 role = "task_manager",
                 error = ex.Message,
                 hint =
-                    "cmd=\"feature X\" | task Y | share | promote | confirm | reject | drop | done | go=plan"
+                    "cmd=\"feature X\" | task Y | share report | share plan | promote | confirm | reject | drop | done | go=plan"
             };
         }
 
@@ -51,14 +51,14 @@ internal static partial class IdeTaskManager
             view = board.View,
             focus = board.Focus,
             mutation,
-            promoted = IsPromoteOp(op)
+            promoted = IsPromoteOp(op) && !IsShareReportOp(op, args)
                 ? mutation
                 : IdePlanPromote.TryPulse(
                     Opt(args, "project_root") ?? OptGoArg(args, "project_root"),
                     Opt(args, "dir") ?? OptGoArg(args, "dir")),
             hint =
                 "Feature=Intent, Task=Stage (WitDB). Stage @phase = soft affinity (not status). " +
-                "REPL: feature|task Y @act|focus|done|park|drop|phase act|share|promote|confirm|reject. " +
+                "REPL: feature|task Y @act|focus|done|park|drop|phase act|share report|share plan|promote|confirm|reject. " +
                 "Session phase drives desk layout (hold: desk.layout.hold / layout_hold=)."
         };
     }

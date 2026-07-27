@@ -620,7 +620,7 @@ internal static class IdeRepl
                     continue;
                 }
 
-                if (t is "plan" or "buffer")
+                if (t is "plan" or "buffer" or "report" or "digest" or "status")
                 {
                     what ??= t;
                     continue;
@@ -647,6 +647,23 @@ internal static class IdeRepl
                     with,
                     what = "plan",
                     ask = ask ?? "confirm",
+                    notes
+                });
+                return (merged, null);
+            }
+
+            if (what.Equals("report", StringComparison.OrdinalIgnoreCase)
+                || what.Equals("digest", StringComparison.OrdinalIgnoreCase)
+                || what.Equals("status", StringComparison.OrdinalIgnoreCase))
+            {
+                merged["go"] = JsonSerializer.SerializeToElement("plan");
+                merged["tm_op"] = JsonSerializer.SerializeToElement("report");
+                merged["go_args"] = JsonSerializer.SerializeToElement(new
+                {
+                    op = "report",
+                    with,
+                    what = "report",
+                    ask = "none",
                     notes
                 });
                 return (merged, null);
@@ -1079,6 +1096,7 @@ internal static class IdeRepl
                 "share",
                 "share with operator",
                 "share plan",
+                "share report",
                 "deploy",
                 "deploy dry",
                 "confirm",
