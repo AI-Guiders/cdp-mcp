@@ -515,6 +515,16 @@ public sealed class DeskWireParityTests
             true, board, "x", "t", "line", "sch", "hint");
         Assert.Equal("full", (string)full.detail);
     }
+    [Fact]
+    public void BuildAsync_peels_WorldGo_and_LegacyTiles_exist()
+    {
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        Assert.True(File.Exists(Path.Combine(root, "IdeCockpit.Build.cs")), root);
+        Assert.True(File.Exists(Path.Combine(root, "IdeCockpit.Build.WorldGo.cs")), root);
+        Assert.True(File.Exists(Path.Combine(root, "IdeCockpit.Build.LegacyTiles.cs")), root);
+        Assert.True(File.Exists(Path.Combine(root, "IdeCockpit.Build.Probes.cs")), root);
+    }
+
 
 
 

@@ -141,6 +141,8 @@ internal static partial class IdeArchBoardChannel
              ("Cockpit/ComputingUnits/GoResultSlimUnit.cs", "Slim"),
              ("Cockpit/ComputingUnits/OrganJsonPulseUnit.cs", "FromJson"),
              ("IdeCockpit.Build.cs", "BuildAsync"),
+             ("IdeCockpit.Build.WorldGo.cs", "ApplyWorldOrGoAsync"),
+             ("IdeCockpit.Build.LegacyTiles.cs", "BuildLegacyTilesDeskAsync"),
              ("IdeCockpit.Loci.cs", "BuildLoci"),
              ("IdeCockpit.Next.cs", "BuildNext")])
             ?? AddSeedRole(doc, "ccu-build", "ccu", "IdeCockpit.Build peel", root,
