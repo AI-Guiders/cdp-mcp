@@ -18,6 +18,8 @@ internal static partial class IdeCockpit
     static readonly WorldSceneGoUnit WorldSceneGo = new();
     static readonly FocusLocusUnit FocusLocus = new();
     static readonly GoVerbsCatalogUnit GoVerbsCatalog = new();
+    static readonly DeskSniperLocusUnit DeskSniperLocus = new();
+
     public static async Task<string> BuildAsync(
         SessionContext session,
         DocumentBufferStore docStore,
@@ -60,31 +62,107 @@ internal static partial class IdeCockpit
         {
             if (!deskCleared)
                 IdeDeskSeats.EnsureDefaultsFromSettings();
-            // Cheerful sit: sticky report without evidence → plan (not !report).
             CheerIdleReportSeat(session);
         }
         else
             EnsureDefaultLayoutFromSettings();
 
         object? goResult = replDirect;
-        // Buffer before go= so locus=buffer:doc-N can inject path= into reload/keep_disk/disk_peek.
         var buffer = CollectBuffer(docStore.Scene());
-        // Soft organs: quality → pressure_desk (extracted).
         IdeCockpitSoftDispatch.TryDispatch(
             ref goVerb, ref goResult, ref mfd,
             session, docStore, workspaceStore, workspaceState, args);
 
-        // Channel: defer soft organs that need Collect* CDS snaps (CIDE wire).
         var deferred = PeekDeferredSoftWants(ref goVerb);
 
-        // World snaps early — seat pulse + scene-only go= reuse (no double/triple organ thrash).
         var git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken).ConfigureAwait(false);
         var shell = CollectShell(shellHabitat.Scene());
         var browser = internetBrowser.Pulse();
         var mcpPulse = mcpOutlet.Pulse();
         var settingsPulse = ideSettings.Pulse();
 
-        // Soft world scene go= (pulse only): place seat, skip DispatchGoAsync.
+        (goResult, goVerb, git, shell, browser, mcpPulse) = await ApplyWorldOrGoAsync(
+            goVerb, goResult, args, buffer, focusId, session, byDomain, includeSubmodules,
+            shellHabitat, internetBrowser, mcpOutlet, git, shell, browser, mcpPulse,
+            dispatch, cancellationToken).ConfigureAwait(false);
+
+        // Re-collect buffers after go= may have mutated them.
+        buffer = CollectBuffer(docStore.Scene());
+
+        var probes = CollectProbeBundle(session, docStore, workspaceStore, workspaceState, git);
+
+        IdeAlertChannel.Snap alertSnap;
+        IdeAlertChannel.Inputs alertInputs;
+        (goResult, alertSnap, alertInputs) = ApplyDeferredSoftOrgans(
+            deferred, goResult, session, docStore, workspaceStore, workspaceState, args,
+            git, shell, buffer, probes.Debug, probes.Test, probes.Work, probes.Quality,
+            probes.Problems, probes.ChkCtx, probes.ChkSnap);
+
+        goResult = SlimGoResult(goResult, OptString(args, "go_detail"));
+
+        var loci = BuildLoci(
+            session, git, shell, browser, settingsPulse, buffer,
+            probes.Debug, probes.Test, probes.Work, probes.Quality);
+        var next = BuildNext(
+            session, git, shell, buffer, probes.Debug, probes.Test, probes.Work, focusId,
+            probes.Quality, alertSnap, probes.ChkSnap, probes.ChkCtx);
+
+        if (DeskSniperLocus.TryBuild(new DeskSniperLocusUnit.Input(
+                EditSniper.HasHold, EditSniper.PulseLine, EditSniper.HoldCard())) is { } sniper)
+        {
+            loci.Insert(Math.Min(1, loci.Count), new Locus(
+                sniper.Id, sniper.Kind, sniper.Pulse, sniper.Drill, sniper.Go, sniper.Detail));
+        }
+
+        object? focus = FocusLocus.Build(
+            focusId,
+            loci.Select(l => new FocusLocusUnit.LocusRef(l.Id, l.Kind, l.Pulse, l.Drill, l.Go, l.Detail)).ToArray());
+
+        var goVerbs = GoVerbsCatalog.Merge(GoMap.Keys);
+
+        if (IdeDeskSeats.IsSeatsMode())
+        {
+            return await BuildSeatsDeskSurfaceAsync(
+                session, docStore, workspaceStore, workspaceState, args,
+                mfd, focusId, goResult, warm, next, focus, alertSnap, alertInputs,
+                loci, goVerbs, git, shell, browser, mcpPulse, buffer,
+                probes.Debug, probes.Test, probes.Work,
+                probes.Quality, probes.Problems, probes.ChkCtx, probes.ChkSnap,
+                probes.GitDirty, probes.TestsFailed,
+                dispatch, cancellationToken).ConfigureAwait(false);
+        }
+
+        return await BuildLegacyTilesDeskAsync(
+            session, args, mfd, goResult, warm, next, focus, alertSnap,
+            loci, goVerbs, buffer, focusId, dispatch, cancellationToken).ConfigureAwait(false);
+    }
+
+    static async Task<(
+        object? GoResult,
+        string? GoVerb,
+        JsonElement? Git,
+        ShellSnap Shell,
+        InternetBrowserHabitat.BrowserPulse Browser,
+        McpOutletHabitat.McpPulse Mcp)>
+        ApplyWorldOrGoAsync(
+            string? goVerb,
+            object? goResult,
+            IReadOnlyDictionary<string, JsonElement> args,
+            BufferSnap buffer,
+            string? focusId,
+            SessionContext session,
+            IReadOnlyDictionary<string, ICdpBackendModule> byDomain,
+            bool includeSubmodules,
+            ShellHabitat shellHabitat,
+            InternetBrowserHabitat internetBrowser,
+            McpOutletHabitat mcpOutlet,
+            JsonElement? git,
+            ShellSnap shell,
+            InternetBrowserHabitat.BrowserPulse browser,
+            McpOutletHabitat.McpPulse mcpPulse,
+            Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> dispatch,
+            CancellationToken cancellationToken)
+    {
         var worldSnap = WorldSceneGo.Compute(new WorldSceneGoUnit.Input(
             GoVerb: goVerb,
             GoDetail: OptString(args, "go_detail"),
@@ -96,110 +174,57 @@ internal static partial class IdeCockpit
             goResult = WorldSnapPane(pin, git, shell, browser, mcpPulse);
             if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(pin))
                 IdeDeskSeats.PlaceOrgan(pin);
-            goVerb = null;
+            return (goResult, null, git, shell, browser, mcpPulse);
         }
 
-        if (goVerb is { Length: > 0 })
+        if (goVerb is not { Length: > 0 })
+            return (goResult, goVerb, git, shell, browser, mcpPulse);
+
+        var pinGo = ResolvePinName(goVerb.Trim()) ?? goVerb.Trim();
+        goResult = await DispatchGoAsync(goVerb.Trim(), args, buffer, focusId, dispatch, cancellationToken)
+            .ConfigureAwait(false);
+        if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(pinGo))
+            IdeDeskSeats.PlaceOrgan(pinGo);
+
+        if (IdeWorldChannel.IsWorldOrgan(pinGo))
         {
-            var pin = ResolvePinName(goVerb.Trim()) ?? goVerb.Trim();
-            goResult = await DispatchGoAsync(goVerb.Trim(), args, buffer, focusId, dispatch, cancellationToken)
-                .ConfigureAwait(false);
-            if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(pin))
-                IdeDeskSeats.PlaceOrgan(pin);
-            // Re-collect after organ may have mutated buffers (reload/keep_disk/edit…).
-            buffer = CollectBuffer(docStore.Scene());
-            // World organs may have mutated habitat — refresh cheap pulses.
-            if (IdeWorldChannel.IsWorldOrgan(pin))
-            {
-                shell = CollectShell(shellHabitat.Scene());
-                browser = internetBrowser.Pulse();
-                mcpPulse = mcpOutlet.Pulse();
-                if (CanonicalOrganPin(pin) is "git_scene")
-                    git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken).ConfigureAwait(false);
-            }
+            shell = CollectShell(shellHabitat.Scene());
+            browser = internetBrowser.Pulse();
+            mcpPulse = mcpOutlet.Pulse();
+            if (CanonicalOrganPin(pinGo) is "git_scene")
+                git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken).ConfigureAwait(false);
         }
 
-        var debug = CollectDebug(session);
-        var test = CollectTest(session);
-        var work = CollectWork(workspaceStore, workspaceState, session);
-        var quality = QualityGates.Snap(docStore, session.ProjectRoot);
-        var problems = IdeProblemsChannel.Build(docStore, session);
-        var gitKnown = git is not null;
-        var gitDirty = GitIsDirty(git);
-        var testsGreen = test is { Available: true, LastRun: not null, Success: true };
-        var testsFailed = test is { Available: true, LastRun: not null, Success: false };
-        var sniperOk = !quality.SuggestSniper || EditSniper.HasHold;
-        var chkCtx = IdeChkChannel.CtxFrom(
-            session, gitKnown, gitDirty, testsGreen, testsFailed,
-            problems.Errors == 0, debug.Stopped, debug.ActiveDap, sniperOk);
-        var chkSnap = IdeChkChannel.Build(chkCtx);
+        return (goResult, null, git, shell, browser, mcpPulse);
+    }
 
-        // Channel applies deferred soft organs from CDS snaps.
-        IdeAlertChannel.Snap alertSnap;
-        IdeAlertChannel.Inputs alertInputs;
-        (goResult, alertSnap, alertInputs) = ApplyDeferredSoftOrgans(
-            deferred, goResult, session, docStore, workspaceStore, workspaceState, args,
-            git, shell, buffer, debug, test, work, quality, problems, chkCtx, chkSnap);
-
-        // Soft organs often return full Handle() — honor go_detail=pulse (default) before desk spray.
-        goResult = SlimGoResult(goResult, OptString(args, "go_detail"));
-
-        var loci = BuildLoci(session, git, shell, browser, settingsPulse, buffer, debug, test, work, quality);
-        var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId, quality, alertSnap, chkSnap, chkCtx);
-
-        // Sniper locus appears when a corridor is held (desk pulse, not organ dump).
-        if (EditSniper.HasHold)
-        {
-            loci.Insert(Math.Min(1, loci.Count), new Locus(
-                "edit:sniper",
-                "sniper",
-                $"aim {EditSniper.PulseLine}",
-                "go=target → go=edit_draft | go=scope_clear",
-                "target",
-                EditSniper.HoldCard()));
-        }
-
-        object? focus = FocusLocus.Build(
-            focusId,
-            loci.Select(l => new FocusLocusUnit.LocusRef(l.Id, l.Kind, l.Pulse, l.Drill, l.Go, l.Detail)).ToArray());
-
-        // No parallel MFD root page — soft organs carry sys/chk/gates.
-
-        var goVerbs = GoVerbsCatalog.Merge(GoMap.Keys);
-
-        var seatsMode = IdeDeskSeats.IsSeatsMode();
+    static async Task<string> BuildLegacyTilesDeskAsync(
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args,
+        string mfd,
+        object? goResult,
+        object? warm,
+        object[] next,
+        object? focus,
+        IdeAlertChannel.Snap alertSnap,
+        List<Locus> loci,
+        string[] goVerbs,
+        BufferSnap buffer,
+        string? focusId,
+        Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> dispatch,
+        CancellationToken cancellationToken)
+    {
         object? tiles = null;
         var pins = SnapshotPins();
         var tileLayout = OptString(args, "layout");
-
-        if (seatsMode)
+        var requestPins = ResolveRequestedPins(args);
+        var tilePins = requestPins.Count > 0 ? requestPins : pins;
+        if (tilePins.Count > 0)
         {
-            return await BuildSeatsDeskSurfaceAsync(
-                session, docStore, workspaceStore, workspaceState, args,
-                mfd, focusId, goResult, warm, next, focus, alertSnap, alertInputs,
-                loci, goVerbs, git, shell, browser, mcpPulse, buffer, debug, test, work,
-                quality, problems, chkCtx, chkSnap, gitDirty, testsFailed,
-                dispatch, cancellationToken).ConfigureAwait(false);
-        }
-
-
-        {
-            var requestPins = ResolveRequestedPins(args);
-            var tilePins = requestPins.Count > 0 ? requestPins : pins;
-            if (tilePins.Count > 0)
-            {
-                var fullPane = OptString(args, "pane_full") ?? OptString(args, "full_pane");
-                tiles = await BuildTilesAsync(
-                        tilePins,
-                        tileLayout,
-                        fullPane,
-                        args,
-                        buffer,
-                        focusId,
-                        dispatch,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            var fullPane = OptString(args, "pane_full") ?? OptString(args, "full_pane");
+            tiles = await BuildTilesAsync(
+                    tilePins, tileLayout, fullPane, args, buffer, focusId, dispatch, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         return ComposeTilesSurface(
