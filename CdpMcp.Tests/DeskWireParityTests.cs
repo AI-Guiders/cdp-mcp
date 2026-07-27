@@ -309,6 +309,31 @@ public sealed class DeskWireParityTests
         Assert.Equal(cards.Length, cards.Select(c => c.Go).Distinct(StringComparer.OrdinalIgnoreCase).Count());
     }
 
+    [Fact]
+    public void WorldSnapPaneUnit_builds_git_and_shell()
+    {
+        var unit = new WorldSnapPaneUnit();
+        var h = new WorldSnapPaneUnit.Habitat(true, "clean (main)", 2, 1, true, "browser · 1", true, "mcp · ok");
+        dynamic git = unit.Build("git_scene", h);
+        Assert.True((bool)git.ok);
+        Assert.Equal("git_scene", (string)git.go);
+        Assert.Equal("clean (main)", (string)git.pulse);
+        Assert.True((bool)git.world);
+        dynamic shell = unit.Build("shell_scene", h);
+        Assert.Contains("running", (string)shell.pulse);
+    }
+
+    [Fact]
+    public void EditorSnapPaneUnit_pulse_from_counts()
+    {
+        var unit = new EditorSnapPaneUnit();
+        dynamic empty = unit.Build(new EditorSnapPaneUnit.BufferCounts(0, 0, 0));
+        Assert.Equal("—", (string)empty.pulse);
+        dynamic dirty = unit.Build(new EditorSnapPaneUnit.BufferCounts(3, 2, 0));
+        Assert.Equal("3 buf · dirty×2", (string)dirty.pulse);
+    }
+
+
 
 
 }
