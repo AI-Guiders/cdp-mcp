@@ -144,8 +144,11 @@ internal static partial class IdeArchBoardChannel
             [("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync")]);
 
         // Orthogonal / acquisition seams — seed when present, else visible GAP (ADR 0197 / 0200)
-        var transport = AddGapRole(doc, "transport-gap", "transport",
-            "GAP — no IdeCockpit.Transport peel (CIDE ADR 0094)");
+        var transport = AddSeedRole(doc, "transport-ingest", "transport", "IdeCockpit.Transport peel (ADR 0094)", root,
+            [("IdeCockpit.Transport.cs", "IngestCockpitRequest"),
+             ("IdeCockpit.Transport.cs", "TransportPulse")])
+            ?? AddGapRole(doc, "transport-gap", "transport",
+                "GAP — no IdeCockpit.Transport peel (CIDE ADR 0094)");
         var dal = AddSeedRole(doc, "dal-core", "dal", "DataAcquisition + toolchain (ADR 0102/0198)", root,
             ["Cockpit/DataAcquisition/ToolchainPathProbe.cs",
              "IdeToolchainChannel.cs"])
@@ -156,8 +159,11 @@ internal static partial class IdeArchBoardChannel
              "Cockpit/DataBus/InMemoryDataBus.cs"])
             ?? AddGapRole(doc, "databus-gap", "databus",
                 "GAP — no IDataBus in cdp-mcp desk (CIDE ADR 0099)");
-        var instrument = AddGapRole(doc, "instr-gap", "instrument",
-            "GAP — no instrument deck peel in desk profile");
+        var instrument = AddSeedRole(doc, "instr-seats", "instrument", "IdeCockpit.Instrument peel (ADR 0063)", root,
+            [("IdeCockpit.Instrument.cs", "DescribeSeatsInstrumentDeck"),
+             ("IdeCockpit.Instrument.cs", "InstrumentPulse")])
+            ?? AddGapRole(doc, "instr-gap", "instrument",
+                "GAP — no instrument deck peel in desk profile");
 
         Wire(doc, transport, ccu, "feeds");
         Wire(doc, dal, ccu, "feeds");
