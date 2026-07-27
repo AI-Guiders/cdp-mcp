@@ -323,6 +323,45 @@ public class IdeArchBoardChannelTests
     }
 
     [Fact]
+    public void AsBuilt_profile_arg_overrides_auto_detect()
+    {
+        var tmp = Directory.CreateTempSubdirectory("cdp-arch-force-");
+        try
+        {
+            var root = tmp.FullName;
+            // Tree looks like cdp_desk, but force cide → unknown-ish wire (no Cockpit/) → still uses cide builder.
+            File.WriteAllText(Path.Combine(root, "IdeCockpit.cs"), "// stub\n");
+            File.WriteAllText(Path.Combine(root, "IdeCockpit.Build.cs"), "class X { void BuildAsync() {} }\n");
+
+            var session = new SessionContext { ProjectRoot = root };
+            var built = IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("as_built"),
+                ["profile"] = JsonSerializer.SerializeToElement("cdp_desk")
+            });
+            var json = JsonSerializer.Serialize(built);
+            using var doc = JsonDocument.Parse(json);
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
+            Assert.Equal("cdp_desk", doc.RootElement.GetProperty("profile").GetString());
+
+            // Force unknown even when desk markers exist
+            var unk = IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("as_built"),
+                ["profile"] = JsonSerializer.SerializeToElement("unknown")
+            });
+            var unkJson = JsonSerializer.Serialize(unk);
+            using var unkDoc = JsonDocument.Parse(unkJson);
+            Assert.True(unkDoc.RootElement.GetProperty("ok").GetBoolean(), unkJson);
+            Assert.Equal("unknown", unkDoc.RootElement.GetProperty("profile").GetString());
+        }
+        finally
+        {
+            try { tmp.Delete(recursive: true); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
     public void AsBuilt_cdp_desk_promotes_transport_and_instrument_when_present()
     {
         var tmp = Directory.CreateTempSubdirectory("cdp-arch-desk-peels-");

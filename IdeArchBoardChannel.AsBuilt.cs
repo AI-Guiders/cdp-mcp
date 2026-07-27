@@ -14,13 +14,12 @@ internal static partial class IdeArchBoardChannel
 {
     static object AsBuilt(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
-        _ = args;
         var root = session.ProjectRoot ?? session.ScmRoot;
         if (root is null or { Length: 0 })
             return Err("project_required", "cdp_open a project first — as_built scans that ProjectRoot");
 
         root = Path.GetFullPath(root);
-        var profile = DetectArchProfile(root);
+        var profile = ResolveArchProfile(root, args);
         var name = Path.GetFileName(root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
         var doc = profile switch
         {
@@ -42,6 +41,15 @@ internal static partial class IdeArchBoardChannel
                 label = "Scene as-built",
                 why = "op=scene view=as_built"
             });
+    }
+
+    /// <summary>Explicit <c>profile=cide|cdp_desk</c> wins; else auto-detect from tree.</summary>
+    static string ResolveArchProfile(string root, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var forced = (Opt(args, "profile") ?? Opt(args, "arch_profile") ?? "").Trim().ToLowerInvariant();
+        if (forced is "cide" or "cdp_desk" or "unknown")
+            return forced;
+        return DetectArchProfile(root);
     }
 
     static string DetectArchProfile(string root)

@@ -600,7 +600,8 @@ List<Tool> BuildMetaTools() =>
                 to = new { type = "string", description = "edge: to role id|kind" },
                 kind = new { type = "string", description = "edge: feeds|mounts|projects|wires; or alias of role on add_role" },
                 note = new { type = "string", description = "optional why on role" },
-                view = new { type = "string", description = "scene: plan|as_built" }
+                view = new { type = "string", description = "scene: plan|as_built" },
+                profile = new { type = "string", description = "as_built: cide|cdp_desk|unknown — overrides auto-detect" }
             }
         }),
     Meta("cdp_onboard", "Cold-start explore/onboard desk — no ADR required. Scans open ProjectRoot for entrypoints, top folders, verticals, docs presence + next[]. Not a VS Code Map. op=scene|scan|clear. Alias go=onboard_desk|explore_desk. layout=onboard|explore → M seat.",
