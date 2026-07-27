@@ -635,60 +635,13 @@ internal static partial class IdeCockpit
                     wantPanes = true;
             }
 
-            var viewSlots = seatPanes
-                .Select(s => new IdeDeskView.Slot(s.Seat, s.Organ, s.Empty, s.Ok, s.Line, s.Full))
-                .ToArray();
-            var view = IdeDeskView.Build(viewSlots);
-            var includePanes = wantPanes;
-            // Root payload owns view once — seats/tiles keep slots only (cockpit/v1.8).
-            seats = IdeDeskSeats.Card(
-                seatPanes.Select(s => s.ToSlot()).ToList(),
-                includePanes ? seatPanes.Select(s => s.ToCard(true)).ToList() : null);
-            // Seats mode: no legacy tiles blob (view once at root).
-            tiles = null;
-
-            var deskDetail = ResolveDeskDetail(args, focusId);
-            var wantNav = deskDetail is "nav" or "full";
-            var payload = new Dictionary<string, object?>
-            {
-                ["schema"] = SchemaVersion,
-                ["ok"] = true,
-                ["role"] = "desk",
-                ["mode"] = "seats",
-                ["view"] = view,
-                ["mfd"] = mfd,
-                ["mfd_note"] = "legacy alias — go=sys|chk|gates|nav (soft organs / desk_detail); no root page",
-                ["session"] = SessionPulse(session),
-                ["desk_detail"] = deskDetail,
-                ["seats"] = seats,
-                ["tiles"] = tiles,
-                ["pins"] = seatPinList.Where(x => x is { Length: > 0 }).ToArray(),
-                ["layouts"] = LayoutPresetIds,
-                ["next"] = next,
-                ["focus"] = focus,
-                ["page"] = null,
-                ["go"] = goResult,
-                ["warm"] = warm,
-                ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
-                ["pressure"] = IsPressureGoResult(goResult)
-                    ? null
-                    : IdePressureChannel.PulseCardOrNull(),
-                ["thrash"] = thrashNote,
-                ["hint"] = wantNav
-                    ? "Read view.banner / view.ascii first. Steer: cmd=\"go sa\" | layout=agent. " +
-                      "C: pane_full= one dump; W: seats_detail=full spray."
-                    : "Slim desk (cockpit/v1.20): view + seats + next + alert(sa) + pressure?. " +
-                      "go=sys|chk|pressure soft organs; desk_detail=nav for loci[]; cmd=sa|alert|pressure|probe|report|plan (CCL). " +
-                      "Context W/C/A: A=pulse; C=go_detail=full|pane_full=; W=seats_detail=full."
-            };
-            if (wantNav)
-            {
-                payload["loci"] = loci.Select(l => l.Card()).ToArray();
-                payload["go_verbs"] = goVerbs;
-            }
-
-            return JsonSerializer.Serialize(payload, Pretty);
+            // Compositor: project seat panes + CDS pulses into desk surface.
+            return ComposeSeatsSurface(
+                session, mfd, seatPanes, wantPanes, seatPinList,
+                goResult, warm, next, focus, alertSnap, thrashNote,
+                loci, goVerbs, args, focusId);
         }
+
 
         {
             var requestPins = ResolveRequestedPins(args);
@@ -709,37 +662,8 @@ internal static partial class IdeCockpit
             }
         }
 
-        var deskDetailTiles = ResolveDeskDetail(args, focusId);
-        var wantNavTiles = deskDetailTiles is "nav" or "full";
-        var tilesPayload = new Dictionary<string, object?>
-        {
-            ["schema"] = SchemaVersion,
-            ["ok"] = true,
-            ["role"] = "desk",
-            ["mode"] = "tiles",
-            ["mfd"] = mfd,
-            ["mfd_note"] = "legacy alias — go=sys|chk|gates|nav; seats preferred; no root page",
-            ["session"] = SessionPulse(session),
-            ["desk_detail"] = deskDetailTiles,
-            ["seats"] = null,
-            ["tiles"] = tiles,
-            ["pins"] = pins.ToArray(),
-            ["layouts"] = LayoutPresetIds,
-            ["next"] = next,
-            ["focus"] = focus,
-            ["page"] = null,
-            ["go"] = goResult,
-            ["warm"] = warm,
-            ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
-            ["hint"] = "desk.mode=tiles (legacy). Prefer seats. go=sys|chk soft organs; desk_detail=nav for loci."
-        };
-        if (wantNavTiles)
-        {
-            tilesPayload["loci"] = loci.Select(l => l.Card()).ToArray();
-            tilesPayload["go_verbs"] = goVerbs;
-        }
-
-        return JsonSerializer.Serialize(tilesPayload, Pretty);
+        return ComposeTilesSurface(
+            session, mfd, tiles, pins, goResult, warm, next, focus, alertSnap,
+            loci, goVerbs, args, focusId);
     }
 }
-
