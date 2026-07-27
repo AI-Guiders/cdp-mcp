@@ -91,7 +91,7 @@ internal static class IdeToolchainChannel
                 new { go = "lsp_ensure", label = "LSP (other axis)", why = "intelligence ≠ toolchain" }
             },
             hint =
-                "Any id: op=ensure id=python|gcc|javac|go (or add custom). " +
+                "Any id: op=ensure id=python|gcc|javac|go|rust (or add custom). " +
                 "Not lsp_ensure — runtime/compiler on PATH (DAL-adjacent)."
         };
     }
@@ -160,9 +160,30 @@ internal static class IdeToolchainChannel
             };
         }
 
-        var via = Opt(args, "via") ?? Opt(args, "manager") ?? recipe.Vias[0].Name;
+        var viaForced = Opt(args, "via") ?? Opt(args, "manager");
+        var via = viaForced ?? recipe.Vias[0].Name;
         var install = InstallCore(recipe, via!);
         var after = ProbeOne(id);
+
+        // Multilang comfort: first via failed PATH probe and user did not pin via= → try remaining.
+        object? fallbackInstall = null;
+        if (!after.Ok && string.IsNullOrWhiteSpace(viaForced) && recipe.Vias.Length > 1)
+        {
+            foreach (var alt in recipe.Vias.Skip(1))
+            {
+                if (alt.Name.Equals(via, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                fallbackInstall = InstallCore(recipe, alt.Name);
+                after = ProbeOne(id);
+                if (after.Ok)
+                {
+                    via = alt.Name;
+                    install = fallbackInstall;
+                    break;
+                }
+            }
+        }
+
         return new
         {
             schema = SchemaVersion,
@@ -170,8 +191,10 @@ internal static class IdeToolchainChannel
             op = "ensure",
             id,
             status = after.Ok ? "installed_ok" : "still_missing",
+            via,
             before = RowCard(before),
             install,
+            fallback_install = fallbackInstall,
             after = RowCard(after),
             next = after.Ok
                 ? NextAfterOk(after)
@@ -518,6 +541,16 @@ internal static class IdeToolchainChannel
             [
                 new("winget", ["winget", "install", "-e", "--id", "GoLang.Go"]),
                 new("scoop", ["scoop", "install", "go"])
+            ]),
+        ["rust"] = new(
+            "rust",
+            "Rust toolchain (rustc + cargo)",
+            ["rustc", "cargo"],
+            "rustup install rust windows",
+            "rust",
+            [
+                new("winget", ["winget", "install", "-e", "--id", "Rustlang.Rustup"]),
+                new("scoop", ["scoop", "install", "rustup"])
             ]),
     };
 }

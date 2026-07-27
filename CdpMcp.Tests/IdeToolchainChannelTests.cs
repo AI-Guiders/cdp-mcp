@@ -20,12 +20,13 @@ public class IdeToolchainChannelTests
         Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
         Assert.Equal("dal", doc.RootElement.GetProperty("seam").GetString());
         var rows = doc.RootElement.GetProperty("toolchains");
-        Assert.True(rows.GetArrayLength() >= 4, json);
+        Assert.True(rows.GetArrayLength() >= 5, json);
         var ids = rows.EnumerateArray().Select(r => r.GetProperty("id").GetString()).ToHashSet(StringComparer.OrdinalIgnoreCase);
         Assert.Contains("python", ids);
         Assert.Contains("gcc", ids);
         Assert.Contains("javac", ids);
         Assert.Contains("go", ids);
+        Assert.Contains("rust", ids);
     }
 
     [Fact]
