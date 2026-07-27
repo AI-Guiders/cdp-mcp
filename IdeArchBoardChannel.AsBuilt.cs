@@ -166,10 +166,13 @@ internal static partial class IdeArchBoardChannel
             ?? AddSeedRole(doc, "comp-cockpit", "compositor", "IdeCockpit.Compositor peel", root,
                 [("IdeCockpit.Compositor.cs", "ComposeSeatsSurface"),
                  ("IdeCockpit.Compositor.cs", "ComposeTilesSurface")]);
-        var surf = AddSeedRole(doc, "surf-seats", "surface", "SeatsDetailGate + Surface peel", root,
+        var surf = AddSeedRole(doc, "surf-seats", "surface", "SeatsDetailGate + SoftOrgans peel", root,
             [("Cockpit/Surface/SeatsDetailGateUnit.cs", "Compute"),
              ("Cockpit/Surface/SeatOrganArgsSanitizer.cs", "Sanitize"),
-             ("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync")])
+             ("Cockpit/Surface/SeatFullPaneMatchUnit.cs", "Matches"),
+             ("Cockpit/Surface/SeatOrganPanePresenter.cs", "FullOr"),
+             ("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync"),
+             ("IdeCockpit.Surface.SoftOrgans.cs", "ResolveSeatOrganPaneAsync")])
             ?? AddSeedRole(doc, "surf-peel", "surface", "BuildSeatsDeskSurfaceAsync", root,
                 [("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync")]);
 

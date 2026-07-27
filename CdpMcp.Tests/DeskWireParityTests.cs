@@ -190,4 +190,25 @@ public sealed class DeskWireParityTests
         Assert.True((bool)slimmed.slimmed);
         Assert.Equal("arch · ok", (string)slimmed.pulse);
     }
+
+    [Fact]
+    public void SeatFullPaneMatchUnit_matches_seat_organ_alias()
+    {
+        var unit = new SeatFullPaneMatchUnit();
+        var aliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["ed"] = "editor_scene" };
+        Assert.True(unit.Matches("p", "p", "plan", aliases));
+        Assert.True(unit.Matches("plan", "p", "plan", aliases));
+        Assert.True(unit.Matches("ed", "f", "editor_scene", aliases));
+        Assert.False(unit.Matches(null, "p", "plan", aliases));
+    }
+
+    [Fact]
+    public void SeatOrganPanePresenter_full_or_passthrough()
+    {
+        var board = new { ok = true };
+        Assert.Same(board, SeatOrganPanePresenter.FullOr(board, false, "x", "t"));
+        dynamic full = SeatOrganPanePresenter.FullOr(board, true, "x", "t");
+        Assert.Equal("full", (string)full.detail);
+        Assert.Equal("x", (string)full.go);
+    }
 }
