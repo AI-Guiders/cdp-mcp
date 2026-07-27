@@ -13,3 +13,4 @@ config/cdp-mcp.local.toml
 .cdp/scratch/
 # Local script habitat drafts (cdp_script_scene)
 .cdp/scripts/
+.cdp/ps1/
