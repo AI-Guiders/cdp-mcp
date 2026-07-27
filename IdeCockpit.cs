@@ -14,7 +14,7 @@ namespace CdpMcp;
 /// </summary>
 internal static class IdeCockpit
 {
-    public const string SchemaVersion = "cockpit/v1.19";
+    public const string SchemaVersion = "cockpit/v1.20";
     public const int GoResultCapChars = 24_000;
     public const int GoPulseCapChars = 1_200;
     public const int MaxTiles = 4;
@@ -122,6 +122,10 @@ internal static class IdeCockpit
         ["webcam"] = "webcam_desk",
         ["camera"] = "webcam_desk",
         ["sense"] = "webcam_desk",
+        ["pressure_desk"] = "pressure_desk",
+        ["pressure"] = "pressure_desk",
+        ["compact_prep"] = "pressure_desk",
+        ["pre_compact"] = "pressure_desk",
         ["alert"] = "alert",
         ["eicas"] = "alert",
         ["sa"] = "alert",
@@ -233,6 +237,11 @@ internal static class IdeCockpit
             ["camera"] = (IdeWebcamChannel.ToolName, null),
             ["sense"] = (IdeWebcamChannel.ToolName, null),
             ["cdp_webcam"] = (IdeWebcamChannel.ToolName, null),
+            ["pressure_desk"] = (IdePressureChannel.ToolName, null),
+            ["pressure"] = (IdePressureChannel.ToolName, null),
+            ["compact_prep"] = (IdePressureChannel.ToolName, null),
+            ["pre_compact"] = (IdePressureChannel.ToolName, null),
+            ["cdp_pressure"] = (IdePressureChannel.ToolName, null),
             ["replace_all"] = ("cdp_buffer", Dict(("op", "replace_all"))),
             ["back"] = ("cdp_buffer", Dict(("op", "back"))),
             ["forward"] = ("cdp_buffer", Dict(("op", "forward"))),
@@ -689,6 +698,20 @@ internal static class IdeCockpit
             goVerb = null;
         }
 
+        // Soft organ: L1 pre-compact pressure prep (AutoIgnition / Task Manager / CDP stash).
+        if (goVerb is { Length: > 0 }
+            && (goVerb.Equals("pressure_desk", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("pressure", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("compact_prep", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("pre_compact", StringComparison.OrdinalIgnoreCase)
+                || goVerb.Equals("cdp_pressure", StringComparison.OrdinalIgnoreCase)))
+        {
+            goResult = IdePressureChannel.Handle(session, args);
+            if (IdeDeskSeats.IsSeatsMode())
+                IdeDeskSeats.PlaceOrgan("pressure_desk");
+            goVerb = null;
+        }
+
         // Defer sys/chk/alert until after Collect* snaps.
         var wantSys = goVerb is { Length: > 0 }
             && goVerb.Equals("sys", StringComparison.OrdinalIgnoreCase);
@@ -942,7 +965,7 @@ internal static class IdeCockpit
         // No parallel MFD root page — soft organs carry sys/chk/gates.
 
         var goVerbs = GoMap.Keys
-            .Concat(["quality", "gates", "sys", "chk", "ecl", "qrh", "eqrh", "review", "nav", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas", "sa", "problems", "problem", "errlist", "errorlist", "err", "diags", "plugins", "plugin", "vsix"])
+            .Concat(["quality", "gates", "sys", "chk", "ecl", "qrh", "eqrh", "review", "nav", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas", "sa", "pressure", "pressure_desk", "compact_prep", "pre_compact", "problems", "problem", "errlist", "errorlist", "err", "diags", "plugins", "plugin", "vsix"])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -1364,11 +1387,12 @@ internal static class IdeCockpit
                 ["go"] = goResult,
                 ["warm"] = warm,
                 ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
+                ["pressure"] = IdePressureChannel.PulseCardOrNull(),
                 ["hint"] = wantNav
                     ? "Read view.banner / view.ascii first. Steer: cmd=\"go sa\" | layout=agent. " +
                       "C: pane_full= one dump; W: seats_detail=full spray."
-                    : "Slim desk (cockpit/v1.19): view + seats + next + alert(sa). " +
-                      "go=sys|chk soft organs; desk_detail=nav for loci[]; cmd=sa|alert|probe|report|plan (CCL). " +
+                    : "Slim desk (cockpit/v1.20): view + seats + next + alert(sa) + pressure?. " +
+                      "go=sys|chk|pressure soft organs; desk_detail=nav for loci[]; cmd=sa|alert|pressure|probe|report|plan (CCL). " +
                       "Context W/C/A: A=pulse; C=go_detail=full|pane_full=; W=seats_detail=full."
             };
             if (wantNav)
@@ -1702,6 +1726,7 @@ internal static class IdeCockpit
         return pin is "editor_scene" or "buffer_scene" or "browser" or "shell_scene" or "git_scene"
             or "debug_scene" or "test_scene" or "mcp_scene" or "settings" or "project_scene"
             or "plan" or "work" or "report" or "evidence" or "pfd" or "alert" or "eicas" or "sa"
+            or "pressure_desk" or "pressure" or "compact_prep" or "pre_compact"
             or "problems" or "plugins"
             or "correspondence" or "quality" or "gates" or "sys" or "chk" or "ecl" or "analysis_scene"
             or "script_scene" or "semantic_map";
@@ -1976,6 +2001,8 @@ internal static class IdeCockpit
         // EICAS/SA: surface alert before comfort next when something beeps.
         if (alert.Level != IdeAlertChannel.Level.Clear)
             Add("n-alert", "alert", "SA board", alert.Pulse);
+        if (IdePressureChannel.IsArmed())
+            Add("n-pressure", "pressure", "Pressure prep", IdePressureChannel.PulseLine());
         if (chk is { OpenRequired: > 0 })
             Add("n-ecl", "ecl", "ECL", chk.Pulse);
         if (session.Phase is CdpPhase.Review or CdpPhase.Verify)

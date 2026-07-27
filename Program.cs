@@ -560,18 +560,53 @@ List<Tool> BuildMetaTools() =>
             wait_seconds = new { type = "integer", description = "max wait for idle (not Stop/Queue), default 90" }
         }
     }),
-    Meta("cdp_webcam", "Sense desk — in-proc AIGuiders.WebcamMcp.Shared + OpenCv (not parked Cursor webcam-mcp). op=scene|frame. frame: camera_index=, file_name=. Saves under .cascade-ide/webcam-captures. Alias go=webcam_desk.", new
+    Meta("cdp_webcam", "Sense desk — in-proc Shared+OpenCv+NAudio+Whisper. op=scene|frame|burst|av|screen|audio|transcribe|ocr|analyze. av: concurrent cam+mic (capture_av_burst parity). Alias go=webcam_desk.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|frame" },
+            op = new { type = "string", description = "scene|frame|burst|av|screen|audio|transcribe|ocr|analyze" },
             camera_index = new { type = "integer", description = "default 0" },
             file_name = new { type = "string", description = "output base name without extension" },
             workspace_path = new { type = "string", description = "override; default = session project root" },
             width = new { type = "integer" },
             height = new { type = "integer" },
-            jpeg_quality = new { type = "integer" }
+            jpeg_quality = new { type = "integer" },
+            duration_sec = new { type = "integer", description = "burst/av/screen/audio: seconds" },
+            target_fps = new { type = "integer", description = "burst/av/screen: fps" },
+            burst_name = new { type = "string", description = "burst/screen/av: folder/session name" },
+            session_name = new { type = "string", description = "av: session folder name" },
+            save_video = new { type = "boolean", description = "av: write video.mp4 (default true)" },
+            output_subdir = new { type = "string", description = "relative output dir" },
+            sample_rate = new { type = "integer", description = "audio/av: Hz (default 16000)" },
+            channels = new { type = "integer", description = "audio/av: 1|2 (default 1)" },
+            device_number = new { type = "integer", description = "audio/av: WaveIn device index" },
+            audio_path = new { type = "string", description = "transcribe: wav/webm under workspace" },
+            model_path = new { type = "string", description = "transcribe: ggml model; default WHISPER_MODEL_PATH" },
+            language = new { type = "string", description = "transcribe: whisper language or auto" },
+            max_segments = new { type = "integer", description = "transcribe: segment cap" },
+            images_dir = new { type = "string", description = "ocr: folder of images" },
+            file_path = new { type = "string", description = "ocr/transcribe: single file path" },
+            lang = new { type = "string", description = "ocr: tesseract langs; transcribe alias of language=" },
+            sample_every = new { type = "integer", description = "ocr/analyze: every N-th file" },
+            max_images = new { type = "integer", description = "ocr: cap" },
+            max_frames = new { type = "integer", description = "analyze: cap" },
+            burst_dir = new { type = "string", description = "analyze: folder of frames" },
+            scene_cut_threshold = new { type = "number", description = "analyze: motion cut threshold 0..255" },
+            output_json_path = new { type = "string", description = "ocr: write JSON path under workspace" }
+        }
+    }),
+    Meta("cdp_pressure", "L1 pre-compact prep desk. On pressure notify (~2–3 turns before host summarization): op=arm → checklist → op=stash body=. Must axes: AutoIgnition re-ARM, Task Manager, CDP habitat. Alias go=pressure_desk|pressure. Does not offer export ritual to operator.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|arm|stash|clear|disarm|recall" },
+            body = new { type = "string", description = "stash: markdown/text — goal, decisions, open, next, ignite, plan" },
+            text = new { type = "string", description = "alias of body=" },
+            why = new { type = "string", description = "arm: reason (default L1 pressure notify)" },
+            ignite = new { type = "string", description = "stash: AutoIgnition note" },
+            plan = new { type = "string", description = "stash: Task Manager focus note" }
         }
     }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell. Default detail=auto: green→pulse; fail→errors[].",
@@ -1535,6 +1570,8 @@ async Task<string> DispatchMetaAsync(
             return await IdeIgniteChannel.HandleJsonAsync(callArgs, cancellationToken);
         case "cdp_webcam":
             return IdeWebcamChannel.HandleJson(session, callArgs);
+        case "cdp_pressure":
+            return IdePressureChannel.HandleJson(session, callArgs);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();
