@@ -211,4 +211,27 @@ public sealed class DeskWireParityTests
         Assert.Equal("full", (string)full.detail);
         Assert.Equal("x", (string)full.go);
     }
+
+    [Fact]
+    public void SoftOrganAliasCatalog_resolves_aliases()
+    {
+        var cat = new SoftOrganAliasCatalog();
+        Assert.Equal(SoftOrganKind.Plan, cat.TryResolve("plan"));
+        Assert.Equal(SoftOrganKind.FindDesk, cat.TryResolve("code_search"));
+        Assert.Equal(SoftOrganKind.Toolchain, cat.TryResolve("toolchain_ensure"));
+        Assert.Null(cat.TryResolve("editor_scene"));
+        Assert.Null(cat.TryResolve("git_scene"));
+    }
+
+    [Fact]
+    public void OrganJsonPulseUnit_prefers_pulse_property()
+    {
+        var unit = new OrganJsonPulseUnit();
+        var snap = unit.FromJson("""{"ok":true,"pulse":"ignite · armed","schema":"ignite/v0","hint":"end turn"}""");
+        Assert.True(snap.Ok);
+        Assert.Equal("ignite · armed", snap.Line);
+        Assert.Equal("ignite/v0", snap.Schema);
+        Assert.Equal("end turn", snap.Hint);
+    }
+
 }

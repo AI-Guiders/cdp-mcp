@@ -621,79 +621,12 @@ internal static partial class IdeCockpit
 
     sealed record OrganPulse(bool Ok, string Line, string? Schema, object? Next, string? Hint);
 
+    static readonly OrganJsonPulseUnit OrganJsonPulse = new();
+
     static OrganPulse PulseFromOrgan(string raw)
     {
-        try
-        {
-            using var doc = JsonDocument.Parse(raw);
-            var root = doc.RootElement;
-            var ok = !root.TryGetProperty("ok", out var okEl) || okEl.ValueKind != JsonValueKind.False;
-            if (root.TryGetProperty("pulse", out var pulseEl) && pulseEl.ValueKind == JsonValueKind.String)
-            {
-                var pulseLine = pulseEl.GetString() ?? "";
-                if (pulseLine.Length > 0)
-                {
-                    var hintEarly = root.TryGetProperty("hint", out var h0) && h0.ValueKind == JsonValueKind.String
-                        ? Truncate(h0.GetString(), 240)
-                        : null;
-                    var schemaEarly = root.TryGetProperty("schema", out var sch0) && sch0.ValueKind == JsonValueKind.String
-                        ? sch0.GetString()
-                        : null;
-                    return new OrganPulse(ok, Truncate(pulseLine, GoPulseCapChars) ?? pulseLine, schemaEarly, null, hintEarly);
-                }
-            }
-
-            var schema = root.TryGetProperty("schema", out var sch) && sch.ValueKind == JsonValueKind.String
-                ? sch.GetString()
-                : null;
-            var hint = root.TryGetProperty("hint", out var h) && h.ValueKind == JsonValueKind.String
-                ? Truncate(h.GetString(), 240)
-                : null;
-            object? next = null;
-            if (root.TryGetProperty("next", out var n))
-                next = JsonSerializer.Deserialize<JsonElement>(n.GetRawText());
-
-            var bits = new List<string>();
-            if (schema is { Length: > 0 })
-                bits.Add(schema);
-            bits.Add(ok ? "ok" : "FAIL");
-
-            void AddNum(string key, string label)
-            {
-                if (root.TryGetProperty(key, out var el) && el.TryGetInt32(out var n))
-                    bits.Add($"{label}={n}");
-            }
-
-            AddNum("count", "n");
-            AddNum("dirty_count", "dirty");
-            AddNum("disk_changed_count", "disk");
-            AddNum("candidate_count", "cand");
-            AddNum("slice_count", "slices");
-            AddNum("path_count", "paths");
-            AddNum("tab_count", "tabs");
-            AddNum("groups", "groups");
-            AddNum("files_scanned", "files");
-            AddNum("undo_left", "undo");
-            AddNum("redo_left", "redo");
-            AddNum("replaced", "replaced");
-
-            if (root.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String)
-                bits.Add(Truncate(err.GetString(), 80) ?? "error");
-
-            // git_scene often nests roots
-            if (root.TryGetProperty("roots", out var roots) && roots.ValueKind == JsonValueKind.Array)
-                bits.Add($"roots={roots.GetArrayLength()}");
-
-            var line = string.Join(' ', bits);
-            if (line.Length > GoPulseCapChars)
-                line = line[..GoPulseCapChars] + "…";
-            return new OrganPulse(ok, line, schema, next, hint);
-        }
-        catch
-        {
-            var line = Truncate(raw, GoPulseCapChars) ?? "";
-            return new OrganPulse(true, line, null, null, "go_detail=full for parseable dump");
-        }
+        var p = OrganJsonPulse.FromJson(raw, GoPulseCapChars);
+        return new OrganPulse(p.Ok, p.Line, p.Schema, p.Next, p.Hint);
     }
 
     static object? TryParseJson(string text)
