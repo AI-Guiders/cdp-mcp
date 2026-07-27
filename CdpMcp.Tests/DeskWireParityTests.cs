@@ -119,4 +119,36 @@ public sealed class DeskWireParityTests
         Assert.NotNull(dict["tiles"]);
         Assert.False(dict.ContainsKey("loci"));
     }
+
+    [Fact]
+    public void WorldSceneGoUnit_short_circuits_pulse_world_go()
+    {
+        var unit = new WorldSceneGoUnit();
+        var yes = unit.Compute(new WorldSceneGoUnit.Input("git_scene", "pulse", false, true));
+        Assert.True(yes.UseWorldSnap);
+        Assert.Equal("git_scene", yes.Pin);
+        var no = unit.Compute(new WorldSceneGoUnit.Input("git_scene", "full", false, true));
+        Assert.False(no.UseWorldSnap);
+    }
+
+    [Fact]
+    public void FocusLocusUnit_unknown_and_hit()
+    {
+        var unit = new FocusLocusUnit();
+        var loci = new[] { new FocusLocusUnit.LocusRef("buf", "buffer", "open", "drill", "buffer", null) };
+        Assert.Null(unit.Build(null, loci));
+        dynamic miss = unit.Build("nope", loci)!;
+        Assert.False((bool)miss.ok);
+        dynamic hit = unit.Build("buf", loci)!;
+        Assert.True((bool)hit.ok);
+        Assert.Equal("buf", (string)hit.locus);
+    }
+
+    [Fact]
+    public void GoVerbsCatalogUnit_merges_and_sorts()
+    {
+        var unit = new GoVerbsCatalogUnit();
+        var verbs = unit.Merge(["zz", "sa"], ["aa"]);
+        Assert.Equal(["aa", "sa", "zz"], verbs);
+    }
 }

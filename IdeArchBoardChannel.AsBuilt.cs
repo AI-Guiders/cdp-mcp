@@ -131,6 +131,9 @@ internal static partial class IdeArchBoardChannel
             [("Cockpit/ComputingUnits/ICockpitComputeUnit.cs", (string?)null),
              ("Cockpit/ComputingUnits/AttentionRoutingUnit.cs", "Compute"),
              ("Cockpit/ComputingUnits/DeskDetailUnit.cs", "Compute"),
+             ("Cockpit/ComputingUnits/WorldSceneGoUnit.cs", "Compute"),
+             ("Cockpit/ComputingUnits/FocusLocusUnit.cs", "Build"),
+             ("Cockpit/ComputingUnits/GoVerbsCatalogUnit.cs", "Merge"),
              ("IdeCockpit.Build.cs", "BuildAsync")])
             ?? AddSeedRole(doc, "ccu-build", "ccu", "IdeCockpit.Build peel", root,
                 [("IdeCockpit.Build.cs", "BuildAsync")]);

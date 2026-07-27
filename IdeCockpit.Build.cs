@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Cockpit.ComputingUnits;
 using CdpMcp.IntentWorkspace;
 using DotNetBuildTest.Core;
 using DotnetDebug.Core;
@@ -10,10 +11,13 @@ using TerminalMcp.Core;
 namespace CdpMcp;
 
 /// <summary>
-/// Cockpit BuildAsync — peeled from IdeCockpit root.
+/// Cockpit BuildAsync — peeled from IdeCockpit root; CCU units under Cockpit/ComputingUnits.
 /// </summary>
 internal static partial class IdeCockpit
 {
+    static readonly WorldSceneGoUnit WorldSceneGo = new();
+    static readonly FocusLocusUnit FocusLocus = new();
+    static readonly GoVerbsCatalogUnit GoVerbsCatalog = new();
     public static async Task<string> BuildAsync(
         SessionContext session,
         DocumentBufferStore docStore,
@@ -81,13 +85,14 @@ internal static partial class IdeCockpit
         var settingsPulse = ideSettings.Pulse();
 
         // Soft world scene go= (pulse only): place seat, skip DispatchGoAsync.
-        var goDetailEarly = (OptString(args, "go_detail") ?? "pulse").Trim().ToLowerInvariant();
-        if (goVerb is { Length: > 0 }
-            && IdeWorldChannel.IsWorldSceneGo(goVerb)
-            && goDetailEarly is not "full"
-            && !args.ContainsKey("go_args"))
+        var worldSnap = WorldSceneGo.Compute(new WorldSceneGoUnit.Input(
+            GoVerb: goVerb,
+            GoDetail: OptString(args, "go_detail"),
+            HasGoArgs: args.ContainsKey("go_args"),
+            IsWorldSceneGo: goVerb is { Length: > 0 } && IdeWorldChannel.IsWorldSceneGo(goVerb)));
+        if (worldSnap.UseWorldSnap && worldSnap.Pin is { Length: > 0 } pinEarly)
         {
-            var pin = ResolvePinName(goVerb.Trim()) ?? goVerb.Trim();
+            var pin = ResolvePinName(pinEarly) ?? pinEarly;
             goResult = WorldSnapPane(pin, git, shell, browser, mcpPulse);
             if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(pin))
                 IdeDeskSeats.PlaceOrgan(pin);
@@ -154,32 +159,13 @@ internal static partial class IdeCockpit
                 EditSniper.HoldCard()));
         }
 
-        object? focus = null;
-        if (!string.IsNullOrWhiteSpace(focusId))
-        {
-            var hit = loci.FirstOrDefault(l =>
-                string.Equals(l.Id, focusId, StringComparison.OrdinalIgnoreCase));
-            focus = hit is null
-                ? new { ok = false, locus = focusId, reason = "unknown_locus", hint = "Pick id from loci[]." }
-                : new
-                {
-                    ok = true,
-                    locus = hit.Id,
-                    kind = hit.Kind,
-                    pulse = hit.Pulse,
-                    drill = hit.Drill,
-                    go = hit.Go,
-                    detail = hit.Detail
-                };
-        }
+        object? focus = FocusLocus.Build(
+            focusId,
+            loci.Select(l => new FocusLocusUnit.LocusRef(l.Id, l.Kind, l.Pulse, l.Drill, l.Go, l.Detail)).ToArray());
 
         // No parallel MFD root page — soft organs carry sys/chk/gates.
 
-        var goVerbs = GoMap.Keys
-            .Concat(["quality", "gates", "sys", "chk", "ecl", "qrh", "eqrh", "review", "nav", "tiles", "layout", "tile", "seats", "seat", "repl", "ccl", "tasks", "plan", "feature", "task", "promote", "share", "confirm", "reject", "report", "evidence", "alert", "eicas", "sa", "pressure", "pressure_desk", "compact_prep", "pre_compact", "problems", "problem", "errlist", "errorlist", "err", "diags", "plugins", "plugin", "vsix"])
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        var goVerbs = GoVerbsCatalog.Merge(GoMap.Keys);
 
         var seatsMode = IdeDeskSeats.IsSeatsMode();
         object? tiles = null;
