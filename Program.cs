@@ -22,9 +22,7 @@ VendorCatalog.Configure(settings.Vendor);
 IdeIgniteArmHost.EnsureStarted();
 
 var workspaceDbPath = settings.IntentWorkspace.DatabasePath
-    ?? Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "cdp-mcp", "intent-workspace.witdb");
+    ?? Path.Combine(CdpProfile.StateRoot, "intent-workspace.witdb");
 IntentWorkspaceStore? workspaceStore = null;
 var workspaceState = new IntentWorkspaceState { DatabasePath = workspaceDbPath };
 void EnsureWorkspaceDb()
@@ -113,6 +111,7 @@ var ideSettings = new IdeSettingsHabitat(
     session,
     shellHabitat,
     () => ShellDefaults(session));
+IdeToolchainChannel.Configure(shellHabitat, () => ShellDefaults(session));
 if (CdpEnumParse.TryParsePhase(settings.DefaultPhase, out var dp)) session.Phase = dp;
 if (CdpEnumParse.TryParseObject(settings.DefaultObject, out var dobj)) session.Object = dobj;
 // User prefs can override cold phase/object after process defaults.
@@ -140,6 +139,7 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "cdp_crm",
     "cdp_arch",
     "cdp_onboard",
+    "cdp_toolchain",
     "cdp_files",
     "cdp_webcam"
 };
@@ -586,7 +586,20 @@ List<Tool> BuildMetaTools() =>
             type = "object",
             properties = new
             {
-                op = new { type = "string", description = "scene|scan|clear (scene auto-scans when empty)" }
+                op = new { type = "string", description = "scene|scan|clear" }
+            }
+        }),
+    Meta("cdp_toolchain", "Toolchain ensure (ADR 0198) — runtime/compiler/SDK on PATH; DAL-adjacent; NOT lsp_ensure. Any id: python|gcc|javac|go|+custom. op=scene|probe|ensure|install|add|which. Alias go=toolchain|toolchain_ensure.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|probe|ensure|install|add|which" },
+                id = new { type = "string", description = "python|gcc|javac|go|custom" },
+                via = new { type = "string", description = "winget|scoop|..." },
+                bins = new { type = "string", description = "add: comma bins" },
+                pairs_lsp = new { type = "string", description = "optional lsp id after ensure" }
             }
         }),
     Meta("cdp_files", "Agent-native File Manager (ADR-0016). Utility — not project-bound. where=cwd|project|external (+path=). op=scene|list|cd|up|stat|tree|open|search|roots|clear. shape=slim|list. Alias go=files_desk. Prefer over shell ls/dir. Search facet → find_desk.", new
@@ -1644,6 +1657,8 @@ async Task<string> DispatchMetaAsync(
             return IdeArchBoardChannel.HandleJson(session, callArgs);
         case "cdp_onboard":
             return IdeOnboardChannel.HandleJson(session, callArgs);
+        case "cdp_toolchain":
+            return IdeToolchainChannel.HandleJson(session, callArgs);
         case "cdp_files":
             return IdeFilesChannel.HandleJson(docStore, session, callArgs);
         case "cdp_ignite":

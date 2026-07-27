@@ -29,8 +29,7 @@ internal static partial class IdePressureChannel
     static readonly object Gate = new();
 
     public static string FilePath { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "cdp-mcp",
+        CdpProfile.StateRoot,
         "pressure-stash.json");
 
     public static string HandleJson(

@@ -21,8 +21,7 @@ internal static class IdeSettingsStore
     static bool Loaded;
 
     public static string FilePath { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "cdp-mcp",
+        CdpProfile.StateRoot,
         "ide-settings.json");
 
     public static void EnsureLoaded()
