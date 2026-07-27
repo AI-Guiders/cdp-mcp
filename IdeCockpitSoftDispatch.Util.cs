@@ -11,10 +11,6 @@ internal static partial class IdeCockpitSoftDispatch
     static readonly SoftOrganAliasCatalog SoftAliases = new();
     static readonly SoftOrganBoardMetaCatalog SoftMeta = new();
 
-    static bool IsGo(string? goVerb, params string[] aliases) =>
-        goVerb is { Length: > 0 } &&
-        aliases.Any(alias => goVerb.Equals(alias, StringComparison.OrdinalIgnoreCase));
-
     static bool IsSoft(string? goVerb, SoftOrganKind kind) =>
         SoftAliases.TryResolve(goVerb) == kind;
 

@@ -42,19 +42,20 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
-    static bool TryDispatchArch(
+        static bool TryDispatchArch(
         ref string? goVerb,
         ref object? goResult,
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "arch_desk", "arch_board", "board", "sketch_desk", "cdp_arch"))
+        if (!IsSoft(goVerb, SoftOrganKind.ArchDesk))
             return false;
 
-        goResult = IdeArchBoardChannel.Handle(session, args);
-        PlaceAndClear(ref goVerb, "arch_desk");
+        goResult = SoftBoard(SoftOrganKind.ArchDesk, session, null, null, null, args);
+        PlaceSoft(ref goVerb, SoftOrganKind.ArchDesk);
         return true;
     }
+
 
     static bool TryDispatchOnboard(
         ref string? goVerb,

@@ -74,20 +74,23 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
-    static bool TryDispatchRefactorPlan(
+        static bool TryDispatchRefactorPlan(
         ref string? goVerb,
         ref object? goResult,
         DocumentBufferStore docStore,
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsGo(goVerb, "refactor_plan", "refactor", "cdp_refactor", "debt_scene"))
+        if (!IsSoft(goVerb, SoftOrganKind.RefactorPlan))
             return false;
 
-        goResult = IdeRefactorPlanChannel.Handle(docStore, session, OrganArgs(args));
-        PlaceAndClear(ref goVerb, "refactor_plan");
+        goResult = SoftBoard(
+            SoftOrganKind.RefactorPlan, session, docStore, null, null, args,
+            flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftOrganKind.RefactorPlan);
         return true;
     }
+
 
     static bool TryDispatchDebugSa(
         ref string? goVerb,

@@ -22,6 +22,8 @@ public enum SoftOrganKind
     Problems,
     Plugins,
     Quality,
+    ArchDesk,
+    RefactorPlan,
     Sys,
     Ecl,
     Qrh,

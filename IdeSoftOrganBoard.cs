@@ -48,6 +48,9 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
             IdePluginsChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs),
             IdePluginsChannel.Build().Pulse),
         SoftOrganKind.Quality => BuildQuality(),
+        SoftOrganKind.ArchDesk => Hit(IdeArchBoardChannel.Handle(_bag.Session, _bag.TileArgs)),
+        SoftOrganKind.RefactorPlan => Hit(
+            IdeRefactorPlanChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs)),
         SoftOrganKind.Sys => Hit(RequireExtras().SysBoard()),
         SoftOrganKind.Ecl => Hit(IdeChkChannel.Handle(RequireExtras().ChkCtx, _bag.TileArgs)),
         SoftOrganKind.Qrh => Hit(IdeQrhChannel.Handle(

@@ -41,6 +41,8 @@ public sealed class SoftOrganBoardMetaCatalog : ICockpitComputeUnit
         SoftOrganKind.Problems => new("problems", "problems_channel", SoftOrganPresentMode.PulseWithResult),
         SoftOrganKind.Plugins => new("plugins", "plugins_channel", SoftOrganPresentMode.PulseWithResult),
         SoftOrganKind.Quality => new("quality", "quality_gates", SoftOrganPresentMode.PulseWithResult),
+        SoftOrganKind.ArchDesk => new("arch_desk", "cdp_arch"),
+        SoftOrganKind.RefactorPlan => new("refactor_plan", "cdp_refactor"),
         SoftOrganKind.Sys => new("sys", "sys_organ"),
         SoftOrganKind.Ecl => new("ecl", "ecl_organ"),
         SoftOrganKind.Qrh => new("qrh", "qrh_organ"),

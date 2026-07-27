@@ -29,6 +29,8 @@ public sealed class SoftOrganAliasCatalog : ICockpitComputeUnit
         "problems" or "problem" or "errlist" or "errorlist" or "err" or "diags" => SoftOrganKind.Problems,
         "plugins" or "plugin" or "vsix" => SoftOrganKind.Plugins,
         "quality" or "gates" => SoftOrganKind.Quality,
+        "arch_desk" or "arch_board" or "board" or "sketch_desk" or "cdp_arch" => SoftOrganKind.ArchDesk,
+        "refactor_plan" or "refactor" or "cdp_refactor" or "debt_scene" => SoftOrganKind.RefactorPlan,
         "sys" => SoftOrganKind.Sys,
         "ecl" or "chk" => SoftOrganKind.Ecl,
         "qrh" or "eqrh" or "handbook" => SoftOrganKind.Qrh,
