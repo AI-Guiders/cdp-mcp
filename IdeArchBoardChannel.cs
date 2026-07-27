@@ -18,7 +18,7 @@ internal static partial class IdeArchBoardChannel
     public static readonly string[] RoleLexicon =
     [
         "ccu", "channel", "cds", "ids", "compositor", "surface",
-        "instrument", "dal", "transport"
+        "instrument", "databus", "dal", "transport"
     ];
 
     public static readonly string[] EdgeKinds =

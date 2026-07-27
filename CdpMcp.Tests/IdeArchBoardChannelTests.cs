@@ -176,6 +176,9 @@ public class IdeArchBoardChannelTests
             Touch(root, "Cockpit/ComputingUnits/ICockpitComputeUnit.cs");
             Touch(root, "IdeDisplay/IIdsSurfaceCompositor.cs");
             Touch(root, "Cockpit/Surface/UiLayoutSnapshot.cs");
+            Touch(root, "Cockpit/DataBus/IDataBus.cs");
+            Touch(root, "Cockpit/Composition/CockpitInstrumentDescriptor.cs");
+            Touch(root, "Services/BuildLogIngestion.cs");
 
             var session = new SessionContext { ProjectRoot = root };
             IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
@@ -194,7 +197,19 @@ public class IdeArchBoardChannelTests
             Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
             Assert.Equal("as_built", doc.RootElement.GetProperty("mode").GetString());
             Assert.Equal("cide", doc.RootElement.GetProperty("profile").GetString());
-            Assert.True(doc.RootElement.GetProperty("board").GetProperty("roles").GetArrayLength() >= 4, json);
+            Assert.True(doc.RootElement.GetProperty("board").GetProperty("roles").GetArrayLength() >= 8, json);
+            var roles = doc.RootElement.GetProperty("board").GetProperty("roles");
+            var hasDatabus = false;
+            foreach (var r in roles.EnumerateArray())
+            {
+                if (r.GetProperty("role").GetString() == "databus")
+                {
+                    hasDatabus = true;
+                    break;
+                }
+            }
+
+            Assert.True(hasDatabus, json);
 
             Assert.True(File.Exists(Path.Combine(root, ".cdp", "arch-board", "AS_BUILT.json")));
             Assert.True(File.Exists(Path.Combine(root, ".cdp", "arch-board", "LATEST.json")));

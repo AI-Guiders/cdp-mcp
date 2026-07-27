@@ -66,10 +66,17 @@ internal static partial class IdeArchBoardChannel
     static BoardDoc BuildCideAsBuilt(string root, string name)
     {
         var doc = NewAsBuiltDoc(name, "cide");
+        var transport = AddSeedRole(doc, "transport-ingest", "transport", "Ingestion / stream transport (ADR 0094)", root,
+            ["Services/BuildLogIngestion.cs",
+             "Features/Intercom/Transport/IntercomTransportIngest.cs"]);
         var ccu = AddSeedRole(doc, "ccu-core", "ccu", "ComputingUnits (ADR 0097)", root,
             ["Cockpit/ComputingUnits/ICockpitComputeUnit.cs",
              "Cockpit/ComputingUnits/EnvironmentReadiness/EnvironmentReadinessSnapshotUnit.cs",
              "Cockpit/ComputingUnits/IdeHealth/IdeHealthFormattingUnit.cs"]);
+        var databus = AddSeedRole(doc, "databus-core", "databus", "IDE DataBus typed events (ADR 0099)", root,
+            ["Cockpit/DataBus/IDataBus.cs",
+             "Cockpit/DataBus/InMemoryDataBus.cs",
+             "Cockpit/DataBus/DataBusEventPolicy.cs"]);
         var ch = AddSeedRole(doc, "ch-core", "channel", "Channels (IChannel)", root,
             ["Cockpit/Channels/IChannel.cs",
              "Cockpit/Channels/EnvironmentReadiness/EnvironmentReadinessChannel.cs",
@@ -86,17 +93,27 @@ internal static partial class IdeArchBoardChannel
             ["Cockpit/Composition/ISurfaceCompositor.cs",
              "Cockpit/Composition/HostSurface/MainWindowHostSurfaceCompositor.cs",
              "Cockpit/Composition/Shell/MainWindowShellSurfaceCompositor.cs"]);
+        var instrument = AddSeedRole(doc, "instr-core", "instrument", "Instrument deck / descriptor (ADR 0047/0063)", root,
+            ["Cockpit/Composition/CockpitInstrumentDescriptor.cs",
+             "Cockpit/InstrumentDeckDescriptor.cs",
+             "Cockpit/Composition/IdeHealth/IdeHealthInstrumentDeck.cs"]);
         var surf = AddSeedRole(doc, "surf-core", "surface", "Surface snapshot / mounts", root,
             ["Cockpit/Surface/UiLayoutSnapshot.cs",
              "Cockpit/Surface/MainWindowInstrumentMountRegistry.cs"]);
 
+        // transport → CCU → channel → CDS → compositor → surface
+        Wire(doc, transport, ccu, "feeds");
         Wire(doc, ccu, ch, "feeds");
         Wire(doc, ch, cds, "feeds");
         Wire(doc, cds, comp, "projects");
         Wire(doc, comp, surf, "projects");
+        // DataBus: domain events wire into channel/projections (orthogonal to CDS routing)
+        Wire(doc, databus, ch, "wires");
+        // Instruments mount onto surface slots
+        Wire(doc, instrument, surf, "mounts");
         // ids orthogonal — no CDS→IDS edge
         _ = ids;
-        doc.FocusRoleId = ccu?.Id;
+        doc.FocusRoleId = databus?.Id ?? ccu?.Id;
         return doc;
     }
 

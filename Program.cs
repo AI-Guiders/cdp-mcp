@@ -567,7 +567,7 @@ List<Tool> BuildMetaTools() =>
             properties = new
             {
                 op = new { type = "string", description = "scene|add_role|add_candidates|elect|reject|edge|promote|clear|roles|as_built" },
-                role = new { type = "string", description = "ccu|channel|cds|compositor|surface|instrument|dal|transport" },
+                role = new { type = "string", description = "ccu|channel|cds|ids|compositor|surface|instrument|databus|dal|transport" },
                 role_id = new { type = "string", description = "optional stable id for the role slot" },
                 id = new { type = "string", description = "alias of role_id" },
                 anchors = new { type = "string", description = "CodeAnchor wires [F:;M:;K:] (array or comma-separated); not bare paths" },
