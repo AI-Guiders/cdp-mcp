@@ -263,9 +263,10 @@ internal static class IdeQrhChannel
             "Need camera/mic/screen sense",
             "Webcam sense belongs in CDP cockpit (cdp_webcam / go=webcam_desk) via AIGuiders.WebcamMcp.Shared in-proc — not parked Cursor webcam-mcp and not ffmpeg shell.",
             ["webcam", "camera", "mic", "screen", "capture", "sense", "cdp_webcam"],
-            ["cdp_webcam op=frame", "go=webcam_desk", "Burst/analyze/transcribe — next slice"],
+            ["cdp_webcam op=frame|ocr", "go=webcam_desk", "Burst/analyze/transcribe — next slice"],
             [
-                new("cdp_webcam / go=webcam_desk — scene|frame", "webcam_desk", "cdp_webcam"),
+                new("cdp_webcam / go=webcam_desk — scene|frame|ocr", "webcam_desk", "cdp_webcam"),
+                new("op=ocr images_dir= — tesseract in-proc", Action: "cdp_webcam"),
                 new("op=frame file_name= — snap to .cascade-ide/webcam-captures", Action: "cdp_webcam")
             ],
             ["autoignite-cdt", "tool-result-tax"],
