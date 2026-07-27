@@ -19,6 +19,7 @@ var configPath = args.SkipWhile(a => a != "--config").Skip(1).FirstOrDefault()
 var settings = CdpSettings.Load(configPath);
 IdeLanguageTools.Configure(settings.Languages, settings.LspPresets);
 VendorCatalog.Configure(settings.Vendor);
+IdeIgniteArmHost.EnsureStarted();
 
 var workspaceDbPath = settings.IntentWorkspace.DatabasePath
     ?? Path.Combine(
@@ -132,6 +133,7 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 {
     "cdp_search",
     "cdp_sa",
+    "cdp_refactor",
     "cdp_debug_sa",
     "cdp_test_sa",
     "cdp_build_sa",
@@ -371,12 +373,12 @@ List<Tool> BuildMetaTools() =>
             op = new { type = "string", description = "restore (default) | peek" }
         }
     }),
-    Meta("cdp_deploy", "Dual-instance Deploy — runs publish-and-deploy.ps1. Hard defaults to sibling install (D:\\cdp-mcp ↔ D:\\cdp-mcp-debug) so KillRunning does not target self. Soft stages .next. Crystal: switch seat → go=deploy (desk auto-warms). dry_run= to preview. Alias go=deploy.", new
+    Meta("cdp_deploy", "Dual-instance Deploy — runs publish-and-deploy.ps1. Hard defaults to sibling install (D:\\cdp-mcp ↔ D:\\cdp-mcp-debug) so KillRunning does not target self. Soft stages .next. mode=rollout: soft sibling→soft self→hard sibling + hard_self.argv for terminal_*. Crystal: switch seat → go=deploy (desk auto-warms). dry_run= to preview. Alias go=deploy.", new
     {
         type = "object",
         properties = new
         {
-            mode = new { type = "string", description = "soft|hard (default hard)" },
+            mode = new { type = "string", description = "soft|hard|rollout (default hard; rollout=soft sibling→soft self→hard sibling)" },
             target = new { type = "string", description = "sibling|self|release|debug|path (default sibling)" },
             force = new { type = "boolean", description = "allow hard deploy onto self install (escape)" },
             dry_run = new { type = "boolean", description = "resolve policy only — no powershell" },
@@ -498,6 +500,22 @@ List<Tool> BuildMetaTools() =>
             depth = new { type = "string", description = "pulse|slim (default)|full" }
         }
     }),
+    Meta("cdp_refactor", "Refactor decide desk — debt map + before/after budget + blast next + partials seam. op=plan|debt|budget|blast|partials|pulse. After sa_desk; Alias go=refactor_plan.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "plan (default)|debt|budget|blast|partials|pulse" },
+            path = new { type = "string", description = "file locus" },
+            scope = new { type = "string", description = "file|buffer|project" },
+            line = new { type = "integer", description = "blast: find_usages line" },
+            column = new { type = "integer" },
+            topic = new { type = "string", description = "partials: suggested TypeName.Topic.cs" },
+            after_lines = new { type = "integer", description = "budget what-if file lines" },
+            extract_lines = new { type = "integer", description = "budget: before - N" },
+            after_method_lines = new { type = "integer", description = "budget what-if worst method" }
+        }
+    }),
     Meta("cdp_debug_sa", "Agent-native Debug-SA (ADR-0011). Fuse DAP+bp+launch → verdict idle|continue|step|fix_bp|stop_rebuild|attach|need_more. Axes: scope=session|bp|stop, depth=pulse|slim|full. Alias go=debug_desk (NOT go=debug raw scene; NOT go=sa EICAS).", new
     {
         type = "object",
@@ -557,7 +575,7 @@ List<Tool> BuildMetaTools() =>
             hidden = new { type = "boolean", description = "include hidden entries" }
         }
     }),
-    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list. ARM: when=build_finished|test_finished|timer in=5m message=/task= — harness waits & injects (no shell loops). Alias go=ignite_desk.", new
+    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list|hygiene|plateau|continuity|resume. ARM: when=build_finished|test_finished|timer in=5m message=/task= — harness waits & injects (no shell loops). last_once=/await_operator=/mode=await: fire once → awaiting latch (blocks repeat idle re-arms; resume|force|work-arm clears). hygiene/plateau: keep continuity, scrub error/zombie once-arms. Alias go=ignite_desk.", new
     {
         type = "object",
         properties = new
@@ -1360,6 +1378,10 @@ async Task<string> DispatchMetaAsync(
                     build_utc = buildUtc?.ToString("o"),
                     pending_update = pendingUpdate
                 },
+                continuity = IdeIgniteArmHost.ContinuitySlice(),
+                continuity_pulse = IdeIgniteArmHost.ContinuityPulseLine(),
+                ops = IdeOpsPulse.Snap(),
+                ops_pulse = IdeOpsPulse.Line(),
                 backends = modules.Select(m => new { domain = m.Domain, enabled = m.IsEnabled, health = m.HealthSummary }),
                 typescript_worker = IdeLanguageTools.TsHealth(),
                 lsp = IdeLanguageTools.LspHealth(),
@@ -1577,6 +1599,8 @@ async Task<string> DispatchMetaAsync(
             return IdeFindChannel.HandleJson(docStore, session, callArgs);
         case "cdp_sa":
             return IdeSaChannel.HandleJson(docStore, session, callArgs);
+        case "cdp_refactor":
+            return IdeRefactorPlanChannel.HandleJson(docStore, session, callArgs);
         case "cdp_debug_sa":
             return IdeDebugSaChannel.HandleJson(session, callArgs);
         case "cdp_test_sa":
@@ -2243,90 +2267,11 @@ string? OptionalPath(IReadOnlyDictionary<string, JsonElement> callArgs)
     return null;
 }
 
-async Task<string> ResolveCsxSourceAsync(IReadOnlyDictionary<string, JsonElement> callArgs)
-{
-    if (callArgs.TryGetValue("code", out var c) && c.GetString() is { Length: > 0 } code)
-        return code;
-    if (!callArgs.TryGetValue("path", out var p) || p.GetString() is not { Length: > 0 } path)
-        throw new ArgumentException("code or path is required for CSX tools.");
-
-    var candidates = new List<string>();
-    void AddCandidate(string? candidate)
-    {
-        if (string.IsNullOrWhiteSpace(candidate)) return;
-        try
-        {
-            var full = Path.GetFullPath(candidate);
-            if (!candidates.Contains(full, StringComparer.OrdinalIgnoreCase))
-                candidates.Add(full);
-        }
-        catch
-        {
-            // ignore invalid path candidates
-        }
-    }
-
-    AddCandidate(path);
-    // Dual folder spellings on this machine (space vs compacted).
-    if (path.Contains("Personal Cursor Folder", StringComparison.OrdinalIgnoreCase))
-        AddCandidate(path.Replace("Personal Cursor Folder", "PersonalCursorFolder", StringComparison.OrdinalIgnoreCase));
-    if (path.Contains("PersonalCursorFolder", StringComparison.OrdinalIgnoreCase)
-        && !path.Contains("Personal Cursor Folder", StringComparison.OrdinalIgnoreCase))
-        AddCandidate(path.Replace("PersonalCursorFolder", "Personal Cursor Folder", StringComparison.OrdinalIgnoreCase));
-
-    if (callArgs.TryGetValue("workspace_path", out var wp) && wp.GetString() is { Length: > 0 } root)
-    {
-        if (!Path.IsPathRooted(path))
-            AddCandidate(Path.Combine(root, path));
-        AddCandidate(Path.Combine(root, "_dogfood-w23-live", Path.GetFileName(path)));
-    }
-
-    AddCandidate(Path.Combine(Environment.CurrentDirectory, path));
-    AddCandidate(Path.Combine(Environment.CurrentDirectory, "_dogfood-w23-live", Path.GetFileName(path)));
-
-    // Session project → owning git root → sibling dogfood stand.
-    if (session.ProjectRoot is { Length: > 0 } projectRoot)
-    {
-        AddCandidate(Path.Combine(projectRoot, path));
-        AddCandidate(Path.Combine(projectRoot, Path.GetFileName(path)));
-        try
-        {
-            var gitRoot = GitRootResolver.ResolveGitRoot(projectRoot);
-            AddCandidate(Path.Combine(gitRoot, path));
-            AddCandidate(Path.Combine(gitRoot, "_dogfood-w23-live", Path.GetFileName(path)));
-            if (!Path.IsPathRooted(path))
-                AddCandidate(Path.Combine(gitRoot, path));
-        }
-        catch
-        {
-            // not a git path — skip
-        }
-    }
-
-    if (session.SolutionOrProjectPath is { Length: > 0 } sol)
-    {
-        var solDir = Path.GetDirectoryName(sol);
-        if (!string.IsNullOrEmpty(solDir))
-        {
-            AddCandidate(Path.Combine(solDir, Path.GetFileName(path)));
-            try
-            {
-                var gitRoot = GitRootResolver.ResolveGitRoot(solDir);
-                AddCandidate(Path.Combine(gitRoot, "_dogfood-w23-live", Path.GetFileName(path)));
-            }
-            catch { /* ignore */ }
-        }
-    }
-
-    foreach (var candidate in candidates)
-    {
-        if (File.Exists(candidate))
-            return await File.ReadAllTextAsync(candidate).ConfigureAwait(false);
-    }
-
-    throw new ArgumentException(
-        $"CSX path not found: {path}. Tried: {string.Join(" | ", candidates)}");
-}
+async Task<string> ResolveCsxSourceAsync(IReadOnlyDictionary<string, JsonElement> callArgs) =>
+    await IdeCsxSource.ResolveAsync(
+        callArgs,
+        session.ProjectRoot,
+        session.SolutionOrProjectPath).ConfigureAwait(false);
 
 void NotifyListChanged()
 {

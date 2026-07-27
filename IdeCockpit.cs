@@ -97,6 +97,10 @@ internal static class IdeCockpit
         ["code_sa"] = "sa_desk",
         ["pre_sa"] = "sa_desk",
         ["sa_code"] = "sa_desk",
+        ["refactor_plan"] = "refactor_plan",
+        ["refactor"] = "refactor_plan",
+        ["cdp_refactor"] = "refactor_plan",
+        ["debt_scene"] = "refactor_plan",
         ["debug_desk"] = "debug_desk",
         ["dap_sa"] = "debug_desk",
         ["debug_sa"] = "debug_desk",
@@ -201,6 +205,9 @@ internal static class IdeCockpit
             ["code_search"] = (IdeFindChannel.ToolName, null),
             ["cdp_search"] = (IdeFindChannel.ToolName, null),
             ["sa_desk"] = (IdeSaChannel.ToolName, null),
+            ["refactor_plan"] = (IdeRefactorPlanChannel.ToolName, null),
+            ["refactor"] = (IdeRefactorPlanChannel.ToolName, null),
+            ["cdp_refactor"] = (IdeRefactorPlanChannel.ToolName, null),
             ["code_sa"] = (IdeSaChannel.ToolName, null),
             ["pre_sa"] = (IdeSaChannel.ToolName, null),
             ["sa_code"] = (IdeSaChannel.ToolName, null),
@@ -2209,13 +2216,15 @@ internal static class IdeCockpit
         WorkSnap work)
     {
         var git = GitPulseLine(gitRoot);
-        var pulse = $"{git} · buf={buffer.Count} dirty={buffer.DirtyCount}";
+        var ops = IdeOpsPulse.Line();
+        var pulse = $"{ops} · {git} · buf={buffer.Count} dirty={buffer.DirtyCount}";
         return new
         {
             ok = true,
             go = "sys",
             schema = "sys_organ/v0",
             pulse,
+            ops,
             title = "SYS",
             project = session.ProjectRoot is null ? "no_project — cdp_open" : session.ProjectRoot,
             git,
