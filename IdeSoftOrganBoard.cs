@@ -14,7 +14,7 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
 
     public IdeSoftOrganBoard(in SoftOrganSeatBag bag) => _bag = bag;
 
-    public SoftOrganBoardHit Build(SoftOrganKind kind) => kind switch
+        public SoftOrganBoardHit Build(SoftOrganKind kind) => kind switch
     {
         SoftOrganKind.Plan => BuildPlan(),
         SoftOrganKind.Report => Hit(IdeReportBoard.Handle(_bag.Session, _bag.TileArgs)),
@@ -47,9 +47,7 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
         SoftOrganKind.Plugins => Hit(
             IdePluginsChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs),
             IdePluginsChannel.Build().Pulse),
-        SoftOrganKind.Quality => Hit(
-            QualityGates.EvaluateStore(_bag.DocStore!, _bag.Session.ProjectRoot),
-            QualityGates.Snap(_bag.DocStore!, _bag.Session.ProjectRoot).Pulse),
+        SoftOrganKind.Quality => BuildQuality(),
         SoftOrganKind.Sys => Hit(RequireExtras().SysBoard()),
         SoftOrganKind.Ecl => Hit(IdeChkChannel.Handle(RequireExtras().ChkCtx, _bag.TileArgs)),
         SoftOrganKind.Qrh => Hit(IdeQrhChannel.Handle(
@@ -57,6 +55,7 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
         SoftOrganKind.Review => BuildReview(),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
     };
+
 
     static SoftOrganBoardHit Hit(object board, string? pulse = null, string? schema = null) =>
         new(board, pulse, schema);
@@ -102,6 +101,22 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
 
         return Hit(IdeTaskManager.Handle(_bag.WorkspaceStore, _bag.WorkspaceState!, tmArgs));
     }
+    SoftOrganBoardHit BuildQuality()
+    {
+        var store = _bag.DocStore!;
+        var root = _bag.Session.ProjectRoot;
+        var path = OptTileString("path");
+        var board = string.IsNullOrWhiteSpace(path)
+            ? QualityGates.EvaluateStore(store, root)
+            : QualityGates.EvaluatePath(store, root, path!);
+        return Hit(board, QualityGates.Snap(store, root).Pulse);
+    }
+
+    string? OptTileString(string key) =>
+        _bag.TileArgs.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String
+            ? el.GetString()
+            : null;
+
 
     SoftOrganBoardHit BuildReview()
     {

@@ -7,7 +7,7 @@ namespace CdpMcp;
 
 internal static partial class IdeCockpitSoftDispatch
 {
-    static bool TryDispatchQuality(
+        static bool TryDispatchQuality(
         ref string? goVerb,
         ref object? goResult,
         ref string mfd,
@@ -19,25 +19,13 @@ internal static partial class IdeCockpitSoftDispatch
             return false;
 
         mfd = "gates";
-        var path = OptString(args, "path");
-        if (args.TryGetValue("go_args", out var ga) && ga.ValueKind == JsonValueKind.Object
-            && ga.TryGetProperty("path", out var gp) && gp.ValueKind == JsonValueKind.String)
-            path ??= gp.GetString();
-        var q = string.IsNullOrWhiteSpace(path)
-            ? QualityGates.EvaluateStore(docStore, session.ProjectRoot)
-            : QualityGates.EvaluatePath(docStore, session.ProjectRoot, path!);
-        goResult = new
-        {
-            ok = true,
-            go = "quality",
-            tool = "quality_gates",
-            detail = "full",
-            truncated = false,
-            result = q
-        };
+        goResult = SoftBoard(
+            SoftOrganKind.Quality, session, docStore, null, null, args,
+            flattenOrganArgs: true, wantFull: true);
         PlaceSoft(ref goVerb, SoftOrganKind.Quality);
         return true;
     }
+
 
     static bool TryDispatchReport(
         ref string? goVerb,

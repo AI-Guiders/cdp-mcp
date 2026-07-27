@@ -456,6 +456,18 @@ public sealed class DeskWireParityTests
         Assert.Equal(SoftOrganPresentMode.PulseWithResult, cat.Require(SoftOrganKind.Problems).Mode);
         Assert.Equal(SoftOrganPresentMode.FullOr, cat.Require(SoftOrganKind.Plan).Mode);
     }
+    [Fact]
+    public void SoftOrganPresentMode_Quality_wantFull_matches_dispatch_envelope()
+    {
+        var meta = new SoftOrganBoardMetaCatalog().Require(SoftOrganKind.Quality);
+        var board = new { ok = true, pulse = "gates ok" };
+        dynamic full = SeatOrganPanePresenter.Present(meta, wantFull: true, board, "gates ok");
+        Assert.Equal("quality", (string)full.go);
+        Assert.Equal("quality_gates", (string)full.tool);
+        Assert.Equal("full", (string)full.detail);
+        Assert.NotNull(full.result);
+    }
+
 
     [Fact]
     public void SeatOrganPanePresenter_Present_modes()

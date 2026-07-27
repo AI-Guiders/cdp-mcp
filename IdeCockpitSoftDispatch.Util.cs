@@ -29,6 +29,7 @@ internal static partial class IdeCockpitSoftDispatch
         PlaceAndClear(ref goVerb, SoftMeta.Require(kind).Go);
 
     /// <summary>SoftDispatch → IdeSoftOrganBoard (lite bag; no seat extras).</summary>
+        /// <summary>SoftDispatch → IdeSoftOrganBoard (lite bag; no seat extras).</summary>
     static object SoftBoard(
         SoftOrganKind kind,
         SessionContext session,
@@ -37,14 +38,20 @@ internal static partial class IdeCockpitSoftDispatch
         IntentWorkspaceState? workspaceState,
         IReadOnlyDictionary<string, JsonElement> args,
         string? goVerb = null,
-        bool flattenOrganArgs = false)
+        bool flattenOrganArgs = false,
+        bool wantFull = false)
     {
         var tile = flattenOrganArgs
             ? new Dictionary<string, JsonElement>(OrganArgs(args), StringComparer.Ordinal)
             : new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
-        return new IdeSoftOrganBoard(new SoftOrganSeatBag(
-            tile, session, docStore, workspaceStore, workspaceState, goVerb)).Build(kind).Board;
+        var hit = new IdeSoftOrganBoard(new SoftOrganSeatBag(
+            tile, session, docStore, workspaceStore, workspaceState, goVerb)).Build(kind);
+        if (!wantFull)
+            return hit.Board;
+        return SeatOrganPanePresenter.Present(
+            SoftMeta.Require(kind), wantFull: true, hit.Board, hit.Pulse, hit.Schema);
     }
+
 
     static string? OptString(IReadOnlyDictionary<string, JsonElement> args, string key) =>
         args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String
