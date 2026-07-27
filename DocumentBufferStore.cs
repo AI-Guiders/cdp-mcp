@@ -350,7 +350,11 @@ internal sealed class DocumentBufferStore
             count = _byPath.Count,
             dirty_count = _byPath.Values.Count(b => b.Dirty),
             disk_changed_count = drift,
-            docs
+            docs,
+            habitat =
+                "PathMutateGate covers cdp_buffer only — Cursor host Write/Read bypass the desk. Prefer buffer open/edit/find over host Write/Read.",
+            hint =
+                "Mutate SSOT via cdp_buffer. Large files: edit_op=anchor|replace / go=scope — avoid thick set_text."
         };
     }
 

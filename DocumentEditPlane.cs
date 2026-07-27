@@ -340,6 +340,8 @@ internal static class DocumentEditPlane
             (diagnostics, diagNote) = await TryDiagnoseBudgetedAsync(
                 applied.Buf, store, session, byDomain, cancellationToken).ConfigureAwait(false);
 
+        var thrash = ThrashHint(applied);
+
         return JsonSerializer.Serialize(new
         {
             schema = "doc_edit/v0",
@@ -353,9 +355,47 @@ internal static class DocumentEditPlane
             diagnostics_note = diagNote,
             quality = QualityGates.ForEditResult(applied.Buf, session.ProjectRoot),
             comfort = EditorComfort.Snap(),
+            thrash,
+            hint = thrash?.hint,
             mutate = "path_serialized"
         }, Pretty);
     }
+
+    /// <summary>
+    /// Thick set_text on large buffers is legal but stressful — nudge sniper/anchor for next cuts.
+    /// </summary>
+    static ThrashCard? ThrashHint(EditApplied applied)
+    {
+        if (!string.Equals(applied.Op, "set_text", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var beforeLines = CountNewlines(applied.BeforeText);
+        var afterLines = CountNewlines(applied.Buf.Text);
+        const int warnLines = 350;
+        if (beforeLines < warnLines && afterLines < warnLines && applied.Buf.Text.Length < 48_000)
+            return null;
+
+        return new ThrashCard(
+            "set_text_large",
+            beforeLines,
+            afterLines,
+            applied.Buf.Text.Length,
+            "Large set_text — next edits: edit_op=anchor|replace or go=scope sniper (not another whole-file set_text).");
+    }
+
+    static int CountNewlines(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return 0;
+        var n = 1;
+        foreach (var ch in text)
+        {
+            if (ch == '\n') n++;
+        }
+
+        return n;
+    }
+
+    sealed record ThrashCard(string kind, int before_lines, int after_lines, int chars, string hint);
 
     sealed record EditApplied(
         DocBuffer Buf,

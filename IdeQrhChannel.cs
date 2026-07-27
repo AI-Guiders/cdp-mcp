@@ -61,11 +61,12 @@ internal static class IdeQrhChannel
             "path-mutate-gate",
             "abnormal",
             "Host Read/Write bypassed desk",
-            "Cursor Write skips PathMutateGate; Cursor Read dumps file bodies into chat context (~1%/read).",
-            ["buffer", "write", "read", "mutate", "path_mutate", "context"],
+            "Cursor Write skips PathMutateGate; Cursor Read dumps file bodies into chat context (~1%/read). Thick set_text on large files = thrash — prefer edit_op=anchor / go=scope sniper.",
+            ["buffer", "write", "read", "mutate", "path_mutate", "context", "set_text", "thrash"],
             [
                 "Prefer cdp_buffer over Cursor Write on project paths",
-                "Prefer cdp_buffer open/find/read over Cursor Read (context tax)"
+                "Prefer cdp_buffer open/find/read over Cursor Read (context tax)",
+                "Large file: anchor/sniper — not whole-file set_text"
             ],
             [
                 new("cdp_buffer op=open|edit (anchor) — mutate SSOT", "buffer", "cdp_buffer"),
