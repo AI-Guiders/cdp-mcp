@@ -141,7 +141,8 @@ internal sealed class LspOptionsToolkit
             }, Pretty);
         }
 
-        var via = Opt(args, "via") ?? Opt(args, "manager") ?? recipe.Vias[0].Via;
+        var viaForced = Opt(args, "via") ?? Opt(args, "manager");
+        var via = viaForced ?? recipe.Vias[0].Via;
         var installJson = InstallCore(recipe, via!);
         using var installDoc = JsonDocument.Parse(installJson);
         var installOk = installDoc.RootElement.TryGetProperty("ok", out var okEl) && okEl.GetBoolean();
@@ -149,6 +150,28 @@ internal sealed class LspOptionsToolkit
         // Re-merge presets (recipe may register) + probe again.
         ApplyMergedPresets();
         var after = ProbeOne(id);
+
+        // Multilang comfort: if first via failed PATH probe and user did not pin via=, try remaining vias.
+        object? fallbackInstall = null;
+        if (!after.Ok && string.IsNullOrWhiteSpace(viaForced) && recipe.Vias.Length > 1)
+        {
+            foreach (var alt in recipe.Vias.Skip(1))
+            {
+                if (alt.Via.Equals(via, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                var altJson = InstallCore(recipe, alt.Via);
+                fallbackInstall = JsonSerializer.Deserialize<object>(altJson);
+                ApplyMergedPresets();
+                after = ProbeOne(id);
+                if (after.Ok)
+                {
+                    via = alt.Via;
+                    installJson = altJson;
+                    installOk = true;
+                    break;
+                }
+            }
+        }
 
         return JsonSerializer.Serialize(new
         {
@@ -159,6 +182,8 @@ internal sealed class LspOptionsToolkit
             status = after.Ok ? "installed_ok" : "still_missing",
             before = RowCard(before),
             install = JsonSerializer.Deserialize<object>(installJson),
+            fallback_install = fallbackInstall,
+            via,
             after = RowCard(after),
             next = after.Ok
                 ? new object[]

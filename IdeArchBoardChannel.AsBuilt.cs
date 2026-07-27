@@ -207,7 +207,10 @@ internal static partial class IdeArchBoardChannel
              ("Cockpit/ComputingUnits/OrganJsonPulseUnit.cs", "FromJson"),
              ("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync"),
              ("IdeCockpit.Surface.SoftOrgans.cs", "ResolveSeatOrganPaneAsync"),
-             ("IdeCockpit.Dispatch.cs", "DispatchGoAsync")])
+             ("IdeCockpit.Dispatch.cs", "DispatchGoAsync"),
+             ("Cockpit/Surface/SoftOrganKind.cs", "Ps1Desk"),
+             ("Ps1Scene.cs", "Pulse"),
+             ("IdeCockpitSoftDispatch.Operators.cs", "TryDispatchPs1")])
             ?? AddSeedRole(doc, "surf-peel", "surface", "BuildSeatsDeskSurfaceAsync", root,
                 [("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync")]);
 
