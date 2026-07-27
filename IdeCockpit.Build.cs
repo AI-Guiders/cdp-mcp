@@ -109,107 +109,8 @@ internal static partial class IdeCockpit
             ref goVerb, ref goResult, ref mfd,
             session, docStore, workspaceStore, workspaceState, args);
 
-
-        // Defer sys/chk/alert until after Collect* snaps.
-        var wantSys = goVerb is { Length: > 0 }
-            && goVerb.Equals("sys", StringComparison.OrdinalIgnoreCase);
-        if (wantSys)
-            goVerb = null;
-
-        var wantChk = goVerb is { Length: > 0 }
-            && (goVerb.Equals("chk", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("ecl", StringComparison.OrdinalIgnoreCase));
-        if (wantChk)
-            goVerb = null;
-
-        var wantQrh = goVerb is { Length: > 0 }
-            && (goVerb.Equals("qrh", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("eqrh", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("handbook", StringComparison.OrdinalIgnoreCase));
-        if (wantQrh)
-            goVerb = null;
-
-        var wantAlert = goVerb is { Length: > 0 }
-            && (goVerb.Equals("alert", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("eicas", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("sa", StringComparison.OrdinalIgnoreCase));
-        if (wantAlert)
-            goVerb = null;
-
-        var wantProblems = goVerb is { Length: > 0 }
-            && (goVerb.Equals("problems", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("problem", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("errlist", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("errorlist", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("err", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("diags", StringComparison.OrdinalIgnoreCase));
-        if (wantProblems)
-            goVerb = null;
-
-        var wantPlugins = goVerb is { Length: > 0 }
-            && (goVerb.Equals("plugins", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("plugin", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("vsix", StringComparison.OrdinalIgnoreCase));
-        if (wantPlugins)
-            goVerb = null;
-
-        var wantReview = goVerb is { Length: > 0 }
-            && goVerb.Equals("review", StringComparison.OrdinalIgnoreCase);
-        if (wantReview)
-            goVerb = null;
-
-        // Soft organ: Plan / Task Manager (Feature → Task tree, WitDB sticky focus).
-        // Plan share: cmd="share plan" / go=plan tm_op=share. Bare go=share → buffer (GoMap).
-        if (goVerb is { Length: > 0 }
-            && (goVerb.Equals("plan", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("work", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("tasks", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("tm", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("task", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("feature", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("promote", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("confirm", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("reject", StringComparison.OrdinalIgnoreCase)
-                || goVerb.Equals("phase", StringComparison.OrdinalIgnoreCase)))
-        {
-            if (workspaceStore is null)
-            {
-                goResult = new
-                {
-                    ok = false,
-                    go = "plan",
-                    error = "no_workspace",
-                    hint = "Intent workspace WitDB unavailable."
-                };
-            }
-            else
-            {
-                var tmArgs = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
-                if (session.ProjectRoot is { Length: > 0 } pr)
-                    tmArgs["project_root"] = JsonSerializer.SerializeToElement(pr);
-                tmArgs["session_phase"] = JsonSerializer.SerializeToElement(CdpEnumParse.ToWire(session.Phase));
-                if (!tmArgs.ContainsKey("tm_op")
-                    && goVerb is "feature" or "task" or "promote" or "confirm" or "reject"
-                    && (!tmArgs.TryGetValue("go_args", out var gax)
-                        || gax.ValueKind != JsonValueKind.Object
-                        || !gax.TryGetProperty("op", out _)))
-                {
-                    tmArgs["tm_op"] = JsonSerializer.SerializeToElement(
-                        goVerb.Equals("feature", StringComparison.OrdinalIgnoreCase) ? "feature"
-                        : goVerb.Equals("task", StringComparison.OrdinalIgnoreCase) ? "task"
-                        : goVerb.Equals("promote", StringComparison.OrdinalIgnoreCase) ? "promote"
-                        : goVerb.Equals("confirm", StringComparison.OrdinalIgnoreCase) ? "confirm"
-                        : goVerb.Equals("reject", StringComparison.OrdinalIgnoreCase) ? "reject"
-                        : "board");
-                }
-
-                goResult = IdeTaskManager.Handle(workspaceStore, workspaceState, tmArgs);
-            }
-
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("plan");
-            goVerb = null;
-        }
+        // Channel: defer soft organs that need Collect* CDS snaps (CIDE wire).
+        var deferred = PeekDeferredSoftWants(ref goVerb);
 
         // World snaps early — seat pulse + scene-only go= reuse (no double/triple organ thrash).
         var git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken).ConfigureAwait(false);
@@ -267,64 +168,12 @@ internal static partial class IdeCockpit
             problems.Errors == 0, debug.Stopped, debug.ActiveDap, sniperOk);
         var chkSnap = IdeChkChannel.Build(chkCtx);
 
-        // Soft organs that own a seat: place BEFORE SA fuse so same-turn map matches desk.
-        // Alert/sa is root EICAS (PulseCard) — do not PlaceOrgan (steals P, frame skew).
-        if (wantProblems)
-        {
-            goResult = IdeProblemsChannel.Handle(docStore, session, args);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("problems");
-        }
-
-        if (wantPlugins)
-        {
-            goResult = IdePluginsChannel.Handle(docStore, session, args);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("plugins");
-        }
-
-        if (wantReview)
-        {
-            var reviewInputs = new IdeReviewChannel.Inputs(
-                session,
-                gitDirty,
-                problems.Errors,
-                testsFailed,
-                quality.Fail,
-                quality.Warn,
-                chkSnap);
-            goResult = IdeReviewChannel.Handle(reviewInputs, args);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("review");
-        }
-
-        if (wantSys)
-        {
-            goResult = BuildSysOrgan(session, git, shell, buffer, debug, test, work);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("sys");
-        }
-
-        if (wantChk)
-        {
-            goResult = IdeChkChannel.Handle(chkCtx, args);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("ecl");
-        }
-
-        if (wantQrh)
-        {
-            goResult = IdeQrhChannel.Handle(chkCtx, args, chkSnap);
-            if (IdeDeskSeats.IsSeatsMode())
-                IdeDeskSeats.PlaceOrgan("qrh");
-        }
-
-        var alertInputs = BuildAlertInputs(
-            session, quality, buffer, debug, shell, git, problems, work, workspaceStore, workspaceState, chkSnap);
-        var alertSnap = IdeAlertChannel.Build(alertInputs);
-
-        if (wantAlert)
-            goResult = IdeAlertChannel.Handle(alertInputs, args);
+        // Channel applies deferred soft organs from CDS snaps.
+        IdeAlertChannel.Snap alertSnap;
+        IdeAlertChannel.Inputs alertInputs;
+        (goResult, alertSnap, alertInputs) = ApplyDeferredSoftOrgans(
+            deferred, goResult, session, docStore, workspaceStore, workspaceState, args,
+            git, shell, buffer, debug, test, work, quality, problems, chkCtx, chkSnap);
 
         // Soft organs often return full Handle() — honor go_detail=pulse (default) before desk spray.
         goResult = SlimGoResult(goResult, OptString(args, "go_detail"));

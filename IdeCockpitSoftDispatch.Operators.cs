@@ -23,6 +23,56 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
+    static bool TryDispatchPlan(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IntentWorkspaceStore? workspaceStore,
+        IntentWorkspaceState workspaceState,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsGo(goVerb, "plan", "work", "tasks", "tm", "task", "feature", "promote", "confirm", "reject", "phase"))
+            return false;
+
+        if (workspaceStore is null)
+        {
+            goResult = new
+            {
+                ok = false,
+                go = "plan",
+                error = "no_workspace",
+                hint = "Intent workspace WitDB unavailable."
+            };
+        }
+        else
+        {
+            var tmArgs = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
+            if (session.ProjectRoot is { Length: > 0 } pr)
+                tmArgs["project_root"] = JsonSerializer.SerializeToElement(pr);
+            tmArgs["session_phase"] = JsonSerializer.SerializeToElement(CdpEnumParse.ToWire(session.Phase));
+            if (!tmArgs.ContainsKey("tm_op")
+                && goVerb is "feature" or "task" or "promote" or "confirm" or "reject"
+                && (!tmArgs.TryGetValue("go_args", out var gax)
+                    || gax.ValueKind != JsonValueKind.Object
+                    || !gax.TryGetProperty("op", out _)))
+            {
+                tmArgs["tm_op"] = JsonSerializer.SerializeToElement(
+                    goVerb.Equals("feature", StringComparison.OrdinalIgnoreCase) ? "feature"
+                    : goVerb.Equals("task", StringComparison.OrdinalIgnoreCase) ? "task"
+                    : goVerb.Equals("promote", StringComparison.OrdinalIgnoreCase) ? "promote"
+                    : goVerb.Equals("confirm", StringComparison.OrdinalIgnoreCase) ? "confirm"
+                    : goVerb.Equals("reject", StringComparison.OrdinalIgnoreCase) ? "reject"
+                    : "board");
+            }
+
+            goResult = IdeTaskManager.Handle(workspaceStore, workspaceState, tmArgs);
+        }
+
+        PlaceAndClear(ref goVerb, "plan");
+        return true;
+    }
+
+
     static bool TryDispatchArch(
         ref string? goVerb,
         ref object? goResult,
