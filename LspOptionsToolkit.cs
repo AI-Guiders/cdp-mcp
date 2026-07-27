@@ -99,7 +99,7 @@ internal sealed class LspOptionsToolkit
     {
         var id = Opt(args, "id") ?? Opt(args, "language") ?? Opt(args, "lang");
         if (string.IsNullOrWhiteSpace(id))
-            return Fail("id_required", "id=python|go|rust|yaml|json|markdown");
+            return Fail("id_required", "id=python|go|rust|yaml|json|markdown|typescript");
 
         id = id!.Trim().ToLowerInvariant();
         var before = ProbeOne(id);
@@ -184,7 +184,7 @@ internal sealed class LspOptionsToolkit
     {
         var id = Opt(args, "id") ?? Opt(args, "language") ?? Opt(args, "lang");
         if (string.IsNullOrWhiteSpace(id))
-            return Fail("id_required", "id=python|go|rust|yaml|json|markdown");
+            return Fail("id_required", "id=python|go|rust|yaml|json|markdown|typescript");
         id = id!.Trim().ToLowerInvariant();
         if (!Recipes.TryGetValue(id, out var recipe))
             return Fail("no_recipe", "op=page page=languages for recipe list");
@@ -580,5 +580,20 @@ internal sealed class LspOptionsToolkit
                 new("scoop", ["scoop", "install", "marksman"]),
                 new("winget", ["winget", "install", "-e", "--id", "artempyanykh.marksman"])
             ]),
+        ["typescript"] = new(
+            "typescript",
+            "TypeScript (typescript-language-server)",
+            "typescript-language-server",
+            "typescript-language-server npm install",
+            new LspLaunchPreset
+            {
+                Id = "typescript",
+                Command = "typescript-language-server",
+                CommandCandidates = ["typescript-language-server", "typescript-language-server.cmd"],
+                Args = ["--stdio"],
+                LanguageIds = ["typescript", "javascript"],
+                RootMarkers = ["tsconfig.json", "package.json", ".git"]
+            },
+            [new("npm", ["npm", "install", "-g", "typescript-language-server", "typescript"])]),
     };
 }

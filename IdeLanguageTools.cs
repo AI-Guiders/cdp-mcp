@@ -423,8 +423,14 @@ internal static class IdeLanguageTools
 
         if (lang.Equals(CdpLanguages.Typescript, StringComparison.OrdinalIgnoreCase))
         {
+            // Worker covers map/diags/completions; rename/actions need LSP when preset exists.
             if (name is "rename_symbol" or "code_actions" or "apply_code_action")
-                throw new ArgumentException($"{name} not wired for typescript worker yet; use LSP preset languages (e.g. python).");
+            {
+                if (LspPool.TryGetPreset(lang, out _))
+                    return await DispatchLspAsync(name, lang, session, args, cancellationToken).ConfigureAwait(false);
+                throw new ArgumentException(
+                    $"{name} needs TypeScript LSP — cdp_settings op=lsp_ensure id=typescript (worker covers diags/completions).");
+            }
             return await DispatchTypescriptAsync(name, session, args, cancellationToken).ConfigureAwait(false);
         }
 
