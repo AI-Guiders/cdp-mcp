@@ -1,6 +1,8 @@
 #nullable enable
 using System.Text.Json;
+using Cdp.Core;
 using CdpMcp.Cockpit.Surface;
+using CdpMcp.IntentWorkspace;
 
 namespace CdpMcp;
 
@@ -25,6 +27,24 @@ internal static partial class IdeCockpitSoftDispatch
 
     static void PlaceSoft(ref string? goVerb, SoftOrganKind kind) =>
         PlaceAndClear(ref goVerb, SoftMeta.Require(kind).Go);
+
+    /// <summary>SoftDispatch → IdeSoftOrganBoard (lite bag; no seat extras).</summary>
+    static object SoftBoard(
+        SoftOrganKind kind,
+        SessionContext session,
+        DocumentBufferStore? docStore,
+        IntentWorkspaceStore? workspaceStore,
+        IntentWorkspaceState? workspaceState,
+        IReadOnlyDictionary<string, JsonElement> args,
+        string? goVerb = null,
+        bool flattenOrganArgs = false)
+    {
+        var tile = flattenOrganArgs
+            ? new Dictionary<string, JsonElement>(OrganArgs(args), StringComparer.Ordinal)
+            : new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
+        return new IdeSoftOrganBoard(new SoftOrganSeatBag(
+            tile, session, docStore, workspaceStore, workspaceState, goVerb)).Build(kind).Board;
+    }
 
     static string? OptString(IReadOnlyDictionary<string, JsonElement> args, string key) =>
         args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String

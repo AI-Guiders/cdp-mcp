@@ -48,7 +48,8 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.Report))
             return false;
 
-        goResult = IdeReportBoard.Handle(session, OrganArgs(args));
+        goResult = SoftBoard(
+            SoftOrganKind.Report, session, null, null, null, args, flattenOrganArgs: true);
         PlaceSoft(ref goVerb, SoftOrganKind.Report);
         return true;
     }
@@ -63,7 +64,8 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.FindDesk))
             return false;
 
-        goResult = IdeFindChannel.Handle(docStore, session, OrganArgs(args));
+        goResult = SoftBoard(
+            SoftOrganKind.FindDesk, session, docStore, null, null, args, flattenOrganArgs: true);
         PlaceSoft(ref goVerb, SoftOrganKind.FindDesk);
         return true;
     }
@@ -78,7 +80,8 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.SaDesk))
             return false;
 
-        goResult = IdeSaChannel.Handle(docStore, session, OrganArgs(args));
+        goResult = SoftBoard(
+            SoftOrganKind.SaDesk, session, docStore, null, null, args, flattenOrganArgs: true);
         PlaceSoft(ref goVerb, SoftOrganKind.SaDesk);
         return true;
     }
@@ -107,7 +110,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.DebugDesk))
             return false;
 
-        goResult = IdeDebugSaChannel.Handle(session, args);
+        goResult = SoftBoard(SoftOrganKind.DebugDesk, session, null, null, null, args);
         PlaceSoft(ref goVerb, SoftOrganKind.DebugDesk);
         return true;
     }
@@ -121,7 +124,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.TestDesk))
             return false;
 
-        goResult = IdeTestSaChannel.Handle(session, args);
+        goResult = SoftBoard(SoftOrganKind.TestDesk, session, null, null, null, args);
         PlaceSoft(ref goVerb, SoftOrganKind.TestDesk);
         return true;
     }
@@ -135,7 +138,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.BuildDesk))
             return false;
 
-        goResult = IdeBuildSaChannel.Handle(session, args);
+        goResult = SoftBoard(SoftOrganKind.BuildDesk, session, null, null, null, args);
         PlaceSoft(ref goVerb, SoftOrganKind.BuildDesk);
         return true;
     }

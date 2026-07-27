@@ -53,14 +53,15 @@ internal static partial class IdeCockpit
                 docStore,
                 workspaceStore,
                 workspaceState,
-                alertInputs,
-                () => BuildSysOrgan(session, git, shell, buffer, debug, test, work),
-                chkCtx,
-                chkSnap,
-                gitDirty,
-                problems,
-                testsFailed,
-                quality));
+                Extras: new SoftOrganSeatExtras(
+                    alertInputs,
+                    () => BuildSysOrgan(session, git, shell, buffer, debug, test, work),
+                    chkCtx,
+                    chkSnap,
+                    gitDirty,
+                    problems,
+                    testsFailed,
+                    quality)));
             var hit = board.Build(kind);
             return Present(kind, hit.Board, wantFull, hit.Pulse, hit.Schema);
         }

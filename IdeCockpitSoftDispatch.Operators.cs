@@ -19,7 +19,8 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.Crm))
             return false;
 
-        goResult = IdeCrmChannel.Handle(session, workspaceStore, workspaceState, args);
+        goResult = SoftBoard(
+            SoftOrganKind.Crm, session, null, workspaceStore, workspaceState, args);
         PlaceSoft(ref goVerb, SoftOrganKind.Crm);
         return true;
     }
@@ -35,40 +36,8 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.Plan))
             return false;
 
-        if (workspaceStore is null)
-        {
-            goResult = new
-            {
-                ok = false,
-                go = "plan",
-                error = "no_workspace",
-                hint = "Intent workspace WitDB unavailable."
-            };
-        }
-        else
-        {
-            var tmArgs = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
-            if (session.ProjectRoot is { Length: > 0 } pr)
-                tmArgs["project_root"] = JsonSerializer.SerializeToElement(pr);
-            tmArgs["session_phase"] = JsonSerializer.SerializeToElement(CdpEnumParse.ToWire(session.Phase));
-            if (!tmArgs.ContainsKey("tm_op")
-                && goVerb is "feature" or "task" or "promote" or "confirm" or "reject"
-                && (!tmArgs.TryGetValue("go_args", out var gax)
-                    || gax.ValueKind != JsonValueKind.Object
-                    || !gax.TryGetProperty("op", out _)))
-            {
-                tmArgs["tm_op"] = JsonSerializer.SerializeToElement(
-                    goVerb.Equals("feature", StringComparison.OrdinalIgnoreCase) ? "feature"
-                    : goVerb.Equals("task", StringComparison.OrdinalIgnoreCase) ? "task"
-                    : goVerb.Equals("promote", StringComparison.OrdinalIgnoreCase) ? "promote"
-                    : goVerb.Equals("confirm", StringComparison.OrdinalIgnoreCase) ? "confirm"
-                    : goVerb.Equals("reject", StringComparison.OrdinalIgnoreCase) ? "reject"
-                    : "board");
-            }
-
-            goResult = IdeTaskManager.Handle(workspaceStore, workspaceState, tmArgs);
-        }
-
+        goResult = SoftBoard(
+            SoftOrganKind.Plan, session, null, workspaceStore, workspaceState, args, goVerb);
         PlaceSoft(ref goVerb, SoftOrganKind.Plan);
         return true;
     }
@@ -96,7 +65,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.OnboardDesk))
             return false;
 
-        goResult = IdeOnboardChannel.Handle(session, args);
+        goResult = SoftBoard(SoftOrganKind.OnboardDesk, session, null, null, null, args);
         PlaceSoft(ref goVerb, SoftOrganKind.OnboardDesk);
         return true;
     }
@@ -110,8 +79,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.Toolchain))
             return false;
 
-        // GoMap defaults already merge op= for ensure/probe/…; Handle reads args.
-        goResult = IdeToolchainChannel.Handle(session, args);
+        goResult = SoftBoard(SoftOrganKind.Toolchain, session, null, null, null, args);
         PlaceSoft(ref goVerb, SoftOrganKind.Toolchain);
         return true;
     }
@@ -126,7 +94,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.FilesDesk))
             return false;
 
-        goResult = IdeFilesChannel.Handle(docStore, session, args);
+        goResult = SoftBoard(SoftOrganKind.FilesDesk, session, docStore, null, null, args);
         PlaceSoft(ref goVerb, SoftOrganKind.FilesDesk);
         return true;
     }
@@ -134,12 +102,13 @@ internal static partial class IdeCockpitSoftDispatch
     static bool TryDispatchIgnite(
         ref string? goVerb,
         ref object? goResult,
+        SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
         if (!IsSoft(goVerb, SoftOrganKind.IgniteDesk))
             return false;
 
-        goResult = IdeIgniteChannel.Handle(args);
+        goResult = SoftBoard(SoftOrganKind.IgniteDesk, session, null, null, null, args);
         PlaceSoft(ref goVerb, SoftOrganKind.IgniteDesk);
         return true;
     }
@@ -153,7 +122,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.WebcamDesk))
             return false;
 
-        goResult = IdeWebcamChannel.Handle(session, args);
+        goResult = SoftBoard(SoftOrganKind.WebcamDesk, session, null, null, null, args);
         PlaceSoft(ref goVerb, SoftOrganKind.WebcamDesk);
         return true;
     }
@@ -167,7 +136,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.PressureDesk))
             return false;
 
-        goResult = IdePressureChannel.Handle(session, args);
+        goResult = SoftBoard(SoftOrganKind.PressureDesk, session, null, null, null, args);
         PlaceSoft(ref goVerb, SoftOrganKind.PressureDesk);
         return true;
     }
