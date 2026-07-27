@@ -126,9 +126,26 @@ var mcpVersion = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "0.4
 var Pretty = new JsonSerializerOptions { WriteIndented = true };
 McpServer? serverRef = null;
 
+/// Soft organs with go= aliases — schemas stay for CallTool, but omit from ListTools thrash.
+/// Keep cdp_ignite + cdp_pressure visible (autonomy axes).
+var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+{
+    "cdp_search",
+    "cdp_sa",
+    "cdp_debug_sa",
+    "cdp_test_sa",
+    "cdp_build_sa",
+    "cdp_crm",
+    "cdp_files",
+    "cdp_webcam"
+};
+
 List<Tool> BuildVisibleTools()
 {
-    var meta = BuildMetaTools();
+    // Soft-organ Metas stay CallTool-routable but off always-ListTools (go= / cdp_cockpit).
+    var meta = BuildMetaTools()
+        .Where(t => !SoftOrganMetaNames.Contains(t.Name))
+        .ToList();
     var ide = IdeLanguageTools.BuildBareVerbTools().ToList();
     var hits = PhaseObjectCatalog.Query(
         allAffordances, session.Phase, session.Object, session.Intent,
@@ -1162,7 +1179,7 @@ var options = new McpServerOptions
         "Agent shell habitat: cdp_shell_* = primary IDE terminal; sibling terminal-mcp (terminal_*) = escape only. " +
         "CSX: cdp_script_scene (put→diags→check→run) | cdp_csx_help | cdp_csx_check | cdp_csx_run | cdp_csx_run_plan | promote | discard | cdp_evidence. " +
         "Domain tools prefixed " + DomainPrefixHint + " (roslyn_* = legacy aliases; prefer bare IDE verbs). " +
-        "ListTools = meta + bare IDE verbs + ≤10 domain shortlist (deduped underlying; not full union). " +
+        "ListTools = core meta + bare IDE verbs + ≤10 domain shortlist (soft-organ Metas via go=/CallTool; not always-ListTools). " +
         "Too many tools = agent thrash — use cdp_context to retarget, cdp_tools to preview, cdp_session (A; include_pack=true only when needed). " +
         "Continuity: route/handoff before deep topic; evidence-first (stop_context), PNG last.",
     Capabilities = new ServerCapabilities
@@ -1373,7 +1390,11 @@ async Task<string> DispatchMetaAsync(
                 affordances = allAffordances.Length,
                 domains = byDomain.Keys.OrderBy(x => x).ToArray(),
                 list_tools_count = BuildVisibleTools().Count,
-                meta_tool_names = BuildMetaTools().Select(t => t.Name).ToArray(),
+                meta_tool_names = BuildMetaTools()
+                    .Where(t => !SoftOrganMetaNames.Contains(t.Name))
+                    .Select(t => t.Name)
+                    .ToArray(),
+                soft_organ_meta_hidden = SoftOrganMetaNames.OrderBy(x => x).ToArray(),
                 buffer_tool = BuildMetaTools()
                     .Where(t => t.Name == "cdp_buffer")
                     .Select(t => new
