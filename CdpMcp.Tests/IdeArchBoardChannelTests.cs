@@ -279,6 +279,49 @@ public class IdeArchBoardChannelTests
         }
     }
 
+    [Fact]
+    public void AsBuilt_cdp_desk_promotes_dal_and_databus_when_present()
+    {
+        var tmp = Directory.CreateTempSubdirectory("cdp-arch-desk-wire-");
+        try
+        {
+            var root = tmp.FullName;
+            File.WriteAllText(Path.Combine(root, "IdeCockpit.cs"), "// stub\n");
+            File.WriteAllText(Path.Combine(root, "IdeCockpit.Build.cs"), "class X { void BuildAsync() {} }\n");
+            Touch(root, "Cockpit/DataAcquisition/ToolchainPathProbe.cs");
+            Touch(root, "Cockpit/DataBus/IDataBus.cs");
+            Touch(root, "Cockpit/DataBus/InMemoryDataBus.cs");
+
+            var session = new SessionContext { ProjectRoot = root };
+            var built = IdeArchBoardChannel.Handle(session, new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("as_built")
+            });
+            var json = JsonSerializer.Serialize(built);
+            using var doc = JsonDocument.Parse(json);
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
+
+            var roles = doc.RootElement.GetProperty("board").GetProperty("roles");
+            JsonElement? dal = null;
+            JsonElement? databus = null;
+            foreach (var r in roles.EnumerateArray())
+            {
+                var id = r.GetProperty("id").GetString();
+                if (id == "dal-core") dal = r;
+                if (id == "databus-core") databus = r;
+            }
+
+            Assert.True(dal.HasValue, json);
+            Assert.Equal("promoted", dal.Value.GetProperty("status").GetString());
+            Assert.True(databus.HasValue, json);
+            Assert.Equal("promoted", databus.Value.GetProperty("status").GetString());
+        }
+        finally
+        {
+            try { tmp.Delete(recursive: true); } catch { /* ignore */ }
+        }
+    }
+
     static void Touch(string root, string rel)
     {
         var full = Path.Combine(root, rel.Replace('/', Path.DirectorySeparatorChar));

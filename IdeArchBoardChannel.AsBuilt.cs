@@ -100,9 +100,12 @@ internal static partial class IdeArchBoardChannel
         var surf = AddSeedRole(doc, "surf-core", "surface", "Surface snapshot / mounts", root,
             ["Cockpit/Surface/UiLayoutSnapshot.cs",
              "Cockpit/Surface/MainWindowInstrumentMountRegistry.cs"]);
-        // DAL: no stable locus in tree yet — visible GAP (ADR 0197); toolchain hangs here (ADR 0198)
-        var dal = AddGapRole(doc, "dal-gap", "dal",
-            "missing locus — ADR 0102; toolchain ensure hangs here (ADR 0198)");
+        // DAL: Cockpit/DataAcquisition locus (ADR 0102); toolchain ensure hangs here (ADR 0198)
+        var dal = AddSeedRole(doc, "dal-core", "dal", "DataAcquisition (ADR 0102)", root,
+            ["Cockpit/DataAcquisition/ToolchainPathProbe.cs",
+             "IdeToolchainChannel.cs"])
+            ?? AddGapRole(doc, "dal-gap", "dal",
+                "missing locus — ADR 0102; toolchain ensure hangs here (ADR 0198)");
 
         // transport → CCU → channel → CDS → compositor → surface
         Wire(doc, transport, ccu, "feeds");
@@ -140,13 +143,19 @@ internal static partial class IdeArchBoardChannel
         var surf = AddSeedRole(doc, "surf-seats", "surface", "BuildSeatsDeskSurfaceAsync", root,
             [("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync")]);
 
-        // Orthogonal / acquisition seams — visible GAP until real locus (ADR 0197)
+        // Orthogonal / acquisition seams — seed when present, else visible GAP (ADR 0197 / 0200)
         var transport = AddGapRole(doc, "transport-gap", "transport",
             "GAP — no IdeCockpit.Transport peel (CIDE ADR 0094)");
-        var dal = AddGapRole(doc, "dal-gap", "dal",
-            "GAP — DAL missing; toolchain ensure hangs here (ADR 0198)");
-        var databus = AddGapRole(doc, "databus-gap", "databus",
-            "GAP — no IDataBus in cdp-mcp desk (CIDE ADR 0099)");
+        var dal = AddSeedRole(doc, "dal-core", "dal", "DataAcquisition + toolchain (ADR 0102/0198)", root,
+            ["Cockpit/DataAcquisition/ToolchainPathProbe.cs",
+             "IdeToolchainChannel.cs"])
+            ?? AddGapRole(doc, "dal-gap", "dal",
+                "GAP — DAL missing; toolchain ensure hangs here (ADR 0198)");
+        var databus = AddSeedRole(doc, "databus-core", "databus", "IDE DataBus thin desk (ADR 0099)", root,
+            ["Cockpit/DataBus/IDataBus.cs",
+             "Cockpit/DataBus/InMemoryDataBus.cs"])
+            ?? AddGapRole(doc, "databus-gap", "databus",
+                "GAP — no IDataBus in cdp-mcp desk (CIDE ADR 0099)");
         var instrument = AddGapRole(doc, "instr-gap", "instrument",
             "GAP — no instrument deck peel in desk profile");
 
