@@ -134,11 +134,13 @@ internal static partial class IdeArchBoardChannel
              ("Cockpit/ComputingUnits/WorldSceneGoUnit.cs", "Compute"),
              ("Cockpit/ComputingUnits/FocusLocusUnit.cs", "Build"),
              ("Cockpit/ComputingUnits/DeskLociBuildUnit.cs", "Build"),
+             ("Cockpit/ComputingUnits/DeskNextBuildUnit.cs", "Build"),
              ("Cockpit/ComputingUnits/GoVerbsCatalogUnit.cs", "Merge"),
              ("Cockpit/ComputingUnits/GoResultSlimUnit.cs", "Slim"),
              ("Cockpit/ComputingUnits/OrganJsonPulseUnit.cs", "FromJson"),
              ("IdeCockpit.Build.cs", "BuildAsync"),
-             ("IdeCockpit.Loci.cs", "BuildLoci")])
+             ("IdeCockpit.Loci.cs", "BuildLoci"),
+             ("IdeCockpit.Next.cs", "BuildNext")])
             ?? AddSeedRole(doc, "ccu-build", "ccu", "IdeCockpit.Build peel", root,
                 [("IdeCockpit.Build.cs", "BuildAsync")]);
         var ch = AddSeedRole(doc, "ch-core", "channel", "IChannel + DeferredSoftOrgan (ADR 0036)", root,

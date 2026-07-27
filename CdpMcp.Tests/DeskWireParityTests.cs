@@ -259,5 +259,56 @@ public sealed class DeskWireParityTests
         Assert.Equal("Experiments/proj", DeskLociBuildUnit.ShortPath(@"D:\Experiments\proj"));
     }
 
+    [Fact]
+    public void DeskNextBuildUnit_caps_and_dedupes_go()
+    {
+        var unit = new DeskNextBuildUnit();
+        var cards = unit.Build(new DeskNextBuildUnit.Input(
+            HasProject: false,
+            DeskBookmarkExists: false,
+            WorkIntentId: null,
+            WorkPulse: null,
+            AlertBeeping: false,
+            AlertPulse: null,
+            PressureArmed: false,
+            PressurePulse: null,
+            ChkOpenRequired: 0,
+            ChkPulse: null,
+            PhaseReviewOrVerify: false,
+            PhaseIsReview: false,
+            QrhHotId: null,
+            QrhPulse: null,
+            LayoutHint: null,
+            LayoutSeatNote: null,
+            ProblemErrors: 0,
+            AnyUndo: false,
+            AnyClipboard: false,
+            AnyNavBack: false,
+            QualityEnabled: false,
+            QualityFail: 0,
+            QualityWarn: 0,
+            SuggestSniper: false,
+            SniperHasHold: false,
+            SniperPulse: null,
+            ArchHasWork: false,
+            ArchPulse: null,
+            ToolchainPulse: "toolchain",
+            OnboardHasScan: false,
+            OnboardPulse: null,
+            DiskChangedCount: 0,
+            FocusId: null,
+            BufferCount: 0,
+            BufferDirtyCount: 0,
+            GitDirty: false,
+            TestFailed: 0,
+            DebugStopped: false,
+            ShellRunning: 0));
+        Assert.True(cards.Length <= DeskNextBuildUnit.Cap);
+        Assert.Contains(cards, c => c.Go == "project_scene");
+        Assert.Contains(cards, c => c.Go == "plan");
+        Assert.Equal(cards.Length, cards.Select(c => c.Go).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+    }
+
+
 
 }
