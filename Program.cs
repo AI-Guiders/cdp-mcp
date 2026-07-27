@@ -929,7 +929,7 @@ List<Tool> BuildMetaTools() =>
             seat_clear = new { type = "boolean", description = "Alias of pin_clear (seats)." },
             pane_full = new { type = "string", description = "[C] Which seat/pin gets go_detail=full (also forces panes)." },
             full_pane = new { type = "string", description = "Alias of pane_full." },
-            seats_detail = new { type = "string", description = "[A] compact (default: view+slots) | [W] full (include panes[])." },
+            seats_detail = new { type = "string", description = "[A] compact (default: view+slots). [W] full alone is refused — use pane_full=<seat|organ> for one dump." },
             view_detail = new { type = "string", description = "Alias of seats_detail." },
             desk_detail = new { type = "string", description = "slim (default: omit loci[]/go_verbs[]) | nav | full. Alias: nav_detail=." },
             nav_detail = new { type = "string", description = "Alias of desk_detail." },

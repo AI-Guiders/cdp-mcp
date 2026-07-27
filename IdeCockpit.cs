@@ -766,6 +766,9 @@ internal static class IdeCockpit
         if (wantAlert)
             goResult = IdeAlertChannel.Handle(alertInputs, args);
 
+        // Soft organs often return full Handle() — honor go_detail=pulse (default) before desk spray.
+        goResult = SlimGoResult(goResult, OptString(args, "go_detail"));
+
         var loci = BuildLoci(session, git, shell, browser, settingsPulse, buffer, debug, test, work, quality);
         var next = BuildNext(session, git, shell, buffer, debug, test, work, focusId, quality, alertSnap, chkSnap, chkCtx);
 
@@ -822,6 +825,14 @@ internal static class IdeCockpit
             var fullPane = OptString(args, "pane_full") ?? OptString(args, "full_pane");
             var seatsDetail = (OptString(args, "seats_detail") ?? OptString(args, "view_detail") ?? "compact")
                 .Trim().ToLowerInvariant();
+            string? thrashNote = null;
+            // W-spray: seats_detail=full without pane_full= dumps every organ body — refuse.
+            if ((seatsDetail is "full" or "panes") && fullPane is not { Length: > 0 })
+            {
+                thrashNote =
+                    "W-spray refused: seats_detail=full needs pane_full=<seat|organ>; using compact (A).";
+                seatsDetail = "compact";
+            }
             var wantPanes = seatsDetail is "full" or "panes"
                 || BoolOr(args, "seats_panes", false)
                 || BoolOr(args, "compact", true) == false;
@@ -1068,6 +1079,31 @@ internal static class IdeCockpit
                         }
                         : board;
                 }
+                else if (planPin is "pressure_desk" or "pressure" or "compact_prep" or "pre_compact"
+                         or "cdp_pressure")
+                {
+                    var board = IdePressureChannel.Handle(session, tileArgs);
+                    pane = wantFull
+                        ? new
+                        {
+                            ok = true,
+                            go = "pressure_desk",
+                            tool = IdePressureChannel.ToolName,
+                            detail = "full",
+                            truncated = false,
+                            result = board
+                        }
+                        : new
+                        {
+                            ok = true,
+                            go = "pressure_desk",
+                            tool = IdePressureChannel.ToolName,
+                            detail = "pulse",
+                            pulse = IdePressureChannel.PulseLine(),
+                            schema = IdePressureChannel.SchemaVersion,
+                            hint = "pane_full= / go_detail=full for checklist dump"
+                        };
+                }
                 else if (planPin is "alert" or "eicas" or "sa")
                 {
                     var board = IdeAlertChannel.Handle(alertInputs, tileArgs);
@@ -1225,7 +1261,10 @@ internal static class IdeCockpit
                 ["go"] = goResult,
                 ["warm"] = warm,
                 ["alert"] = IdeAlertChannel.PulseCard(alertSnap),
-                ["pressure"] = IdePressureChannel.PulseCardOrNull(),
+                ["pressure"] = IsPressureGoResult(goResult)
+                    ? null
+                    : IdePressureChannel.PulseCardOrNull(),
+                ["thrash"] = thrashNote,
                 ["hint"] = wantNav
                     ? "Read view.banner / view.ascii first. Steer: cmd=\"go sa\" | layout=agent. " +
                       "C: pane_full= one dump; W: seats_detail=full spray."
@@ -1798,6 +1837,124 @@ internal static class IdeCockpit
         if (raw.Length <= cap)
             return (raw, false);
         return (raw[..cap] + "\n…[cockpit go.result truncated]", true);
+    }
+
+    /// <summary>
+    /// Soft-organ Handle() often ignores go_detail — slim fat dumps to pulse when A (default).
+    /// </summary>
+    static object? SlimGoResult(object? goResult, string? goDetailRaw)
+    {
+        if (goResult is null)
+            return null;
+        var detail = (goDetailRaw ?? "pulse").Trim().ToLowerInvariant();
+        if (detail is "full")
+            return goResult;
+
+        string raw;
+        try
+        {
+            raw = JsonSerializer.Serialize(goResult);
+        }
+        catch
+        {
+            return goResult;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(raw);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("detail", out var d)
+                && d.ValueKind == JsonValueKind.String
+                && d.GetString() is "pulse"
+                && root.TryGetProperty("pulse", out var p)
+                && p.ValueKind == JsonValueKind.String
+                && !GoResultHasFatDump(root))
+            {
+                return goResult;
+            }
+
+            var pulse = PulseFromOrgan(raw);
+            var go = PropStr(root, "go") ?? "go";
+            var tool = PropStr(root, "tool");
+            return new
+            {
+                ok = pulse.Ok,
+                go,
+                tool,
+                detail = "pulse",
+                pulse = pulse.Line,
+                schema = pulse.Schema,
+                next = pulse.Next,
+                slimmed = true,
+                hint = pulse.Hint ?? "go_detail=full for organ dump; or call organ tool directly."
+            };
+        }
+        catch
+        {
+            var pulse = PulseFromOrgan(raw);
+            return new
+            {
+                ok = pulse.Ok,
+                go = "go",
+                detail = "pulse",
+                pulse = pulse.Line,
+                slimmed = true,
+                hint = "go_detail=full for organ dump"
+            };
+        }
+    }
+
+    static bool GoResultHasFatDump(JsonElement root)
+    {
+        if (root.TryGetProperty("view", out var view) && view.ValueKind == JsonValueKind.Object)
+            return true;
+        if (root.TryGetProperty("result", out var result)
+            && result.ValueKind is JsonValueKind.Object or JsonValueKind.Array)
+            return true;
+        if (root.TryGetProperty("board", out _))
+            return true;
+        if (root.TryGetProperty("lines", out var lines)
+            && lines.ValueKind == JsonValueKind.Array
+            && lines.GetArrayLength() > 2)
+            return true;
+        if (root.TryGetProperty("panes", out var panes)
+            && panes.ValueKind == JsonValueKind.Array
+            && panes.GetArrayLength() > 0)
+            return true;
+        return false;
+    }
+
+    static bool IsPressureGoResult(object? goResult)
+    {
+        if (goResult is null)
+            return false;
+        try
+        {
+            var raw = JsonSerializer.Serialize(goResult);
+            using var doc = JsonDocument.Parse(raw);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("schema", out var sch)
+                && sch.ValueKind == JsonValueKind.String
+                && string.Equals(sch.GetString(), IdePressureChannel.SchemaVersion, StringComparison.Ordinal))
+                return true;
+            if (root.TryGetProperty("go", out var go)
+                && go.ValueKind == JsonValueKind.String
+                && go.GetString() is { Length: > 0 } g)
+            {
+                return g.Equals("pressure_desk", StringComparison.OrdinalIgnoreCase)
+                       || g.Equals("pressure", StringComparison.OrdinalIgnoreCase)
+                       || g.Equals("compact_prep", StringComparison.OrdinalIgnoreCase)
+                       || g.Equals("pre_compact", StringComparison.OrdinalIgnoreCase)
+                       || g.Equals("cdp_pressure", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+        catch
+        {
+            // ignore
+        }
+
+        return false;
     }
 
     static object[] BuildNext(

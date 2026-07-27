@@ -30,7 +30,7 @@ internal static class IdeDeskView
             banner,
             board,
             ascii,
-            hint = "Scan banner/board first. pane_full=<seat|organ> or seats_detail=full for organ dump."
+            hint = "Scan banner/board first. pane_full=<seat|organ> for one dump; seats_detail=full alone is W-spray (refused)."
         };
     }
 
