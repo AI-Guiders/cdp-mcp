@@ -100,9 +100,13 @@ internal static partial class IdeArchBoardChannel
         var surf = AddSeedRole(doc, "surf-core", "surface", "Surface snapshot / mounts", root,
             ["Cockpit/Surface/UiLayoutSnapshot.cs",
              "Cockpit/Surface/MainWindowInstrumentMountRegistry.cs"]);
+        // DAL: no stable locus in tree yet — visible GAP (ADR 0197); toolchain hangs here (ADR 0198)
+        var dal = AddGapRole(doc, "dal-gap", "dal",
+            "missing locus — ADR 0102; toolchain ensure hangs here (ADR 0198)");
 
         // transport → CCU → channel → CDS → compositor → surface
         Wire(doc, transport, ccu, "feeds");
+        Wire(doc, dal, ccu, "feeds");
         Wire(doc, ccu, ch, "feeds");
         Wire(doc, ch, cds, "feeds");
         Wire(doc, cds, comp, "projects");
@@ -136,12 +140,26 @@ internal static partial class IdeArchBoardChannel
         var surf = AddSeedRole(doc, "surf-seats", "surface", "BuildSeatsDeskSurfaceAsync", root,
             [("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync")]);
 
+        // Orthogonal / acquisition seams — visible GAP until real locus (ADR 0197)
+        var transport = AddGapRole(doc, "transport-gap", "transport",
+            "GAP — no IdeCockpit.Transport peel (CIDE ADR 0094)");
+        var dal = AddGapRole(doc, "dal-gap", "dal",
+            "GAP — DAL missing; toolchain ensure hangs here (ADR 0198)");
+        var databus = AddGapRole(doc, "databus-gap", "databus",
+            "GAP — no IDataBus in cdp-mcp desk (CIDE ADR 0099)");
+        var instrument = AddGapRole(doc, "instr-gap", "instrument",
+            "GAP — no instrument deck peel in desk profile");
+
+        Wire(doc, transport, ccu, "feeds");
+        Wire(doc, dal, ccu, "feeds");
         Wire(doc, ccu, ch, "feeds");
         Wire(doc, ch, cds, "feeds");
         Wire(doc, cds, comp, "projects");
         Wire(doc, comp, surf, "projects");
+        Wire(doc, databus, ch, "wires");
+        Wire(doc, instrument, surf, "mounts");
         _ = ids;
-        doc.FocusRoleId = ccu?.Id;
+        doc.FocusRoleId = dal.Id;
         return doc;
     }
 
@@ -171,7 +189,20 @@ internal static partial class IdeArchBoardChannel
         UpdatedUtc = DateTimeOffset.UtcNow
     };
 
-    static RoleSlot? AddSeedRole(
+static RoleSlot AddGapRole(BoardDoc doc, string id, string role, string note)
+    {
+        var slot = new RoleSlot
+        {
+            Id = id,
+            Role = role,
+            Status = "open",
+            Note = $"as_built · {note}"
+        };
+        doc.Roles.Add(slot);
+        return slot;
+    }
+
+        static RoleSlot? AddSeedRole(
         BoardDoc doc,
         string id,
         string role,

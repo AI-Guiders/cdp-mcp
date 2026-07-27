@@ -255,16 +255,19 @@ public class IdeArchBoardChannelTests
             Assert.Equal("cdp_desk", doc.RootElement.GetProperty("profile").GetString());
 
             var roles = doc.RootElement.GetProperty("board").GetProperty("roles");
-            Assert.True(roles.GetArrayLength() >= 5, json);
+            Assert.True(roles.GetArrayLength() >= 9, json);
+            JsonElement? dal = null;
             JsonElement? ccu = null;
             foreach (var r in roles.EnumerateArray())
             {
-                if (r.GetProperty("id").GetString() == "ccu-build")
-                {
-                    ccu = r;
-                    break;
-                }
+                var id = r.GetProperty("id").GetString();
+                if (id == "dal-gap") dal = r;
+                if (id == "ccu-build") ccu = r;
             }
+
+            Assert.True(dal.HasValue, json);
+            Assert.Equal("open", dal.Value.GetProperty("status").GetString());
+            Assert.Contains("GAP", dal.Value.GetProperty("note").GetString(), StringComparison.Ordinal);
 
             Assert.True(ccu.HasValue, json);
             var anchor = ccu.Value.GetProperty("candidates")[0].GetProperty("anchor").GetString();
