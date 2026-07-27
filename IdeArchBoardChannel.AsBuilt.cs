@@ -210,7 +210,10 @@ internal static partial class IdeArchBoardChannel
              ("IdeCockpit.Dispatch.cs", "DispatchGoAsync"),
              ("Cockpit/Surface/SoftOrganKind.cs", "Ps1Desk"),
              ("Ps1Scene.cs", "Pulse"),
-             ("IdeCockpitSoftDispatch.Operators.cs", "TryDispatchPs1")])
+             ("IdeCockpitSoftDispatch.Operators.cs", "TryDispatchPs1"),
+             ("Cockpit/Surface/SoftOrganKind.cs", "Report"),
+             ("ScriptScene.cs", "Pulse"),
+             ("IdeReportBoard.cs", "Handle")])
             ?? AddSeedRole(doc, "surf-peel", "surface", "BuildSeatsDeskSurfaceAsync", root,
                 [("IdeCockpit.Surface.cs", "BuildSeatsDeskSurfaceAsync")]);
 
