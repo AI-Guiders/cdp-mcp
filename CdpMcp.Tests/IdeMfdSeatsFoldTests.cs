@@ -5,9 +5,9 @@ namespace CdpMcp.Tests;
 public sealed class IdeMfdSeatsFoldTests
 {
     [Fact]
-    public void Schema_is_cockpit_v1_19()
+    public void Schema_is_cockpit_v1_20()
     {
-        Assert.Equal("cockpit/v1.19", IdeCockpit.SchemaVersion);
+        Assert.Equal("cockpit/v1.20", IdeCockpit.SchemaVersion);
     }
 
     [Theory]
