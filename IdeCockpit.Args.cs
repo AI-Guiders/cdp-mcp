@@ -51,4 +51,15 @@ internal static partial class IdeCockpit
             return null;
         return s.Length <= max ? s : s[..max] + "…";
     }
+
+    static IReadOnlyDictionary<string, JsonElement> WithStringArg(
+        IReadOnlyDictionary<string, JsonElement> args,
+        string key,
+        string value)
+    {
+        var d = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
+        d[key] = JsonSerializer.SerializeToElement(value);
+        return d;
+    }
+
 }
