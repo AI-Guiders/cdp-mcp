@@ -408,6 +408,18 @@ public sealed class DeskWireParityTests
     }
 
     [Fact]
+    public void SoftOrganBoardHit_feeds_presenter()
+    {
+        var hit = new SoftOrganBoardHit(new { ok = true }, "armed", "pressure_channel/v1");
+        var meta = new SoftOrganBoardMetaCatalog.Meta(
+            "pressure_desk", "cdp_pressure", SoftOrganPresentMode.PulseLine, "hint");
+        dynamic pulse = SeatOrganPanePresenter.Present(
+            meta, false, hit.Board, hit.Pulse, hit.Schema);
+        Assert.Equal("armed", (string)pulse.pulse);
+        Assert.Equal("pressure_channel/v1", (string)pulse.schema);
+    }
+
+    [Fact]
     public void SoftOrganBoardMetaCatalog_covers_all_kinds()
     {
         var cat = new SoftOrganBoardMetaCatalog();

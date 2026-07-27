@@ -183,6 +183,8 @@ internal static partial class IdeArchBoardChannel
              ("Cockpit/Surface/DeskLayoutPresetCatalog.cs", "TryGet"),
              ("Cockpit/Surface/DeskPlaceableOrganUnit.cs", "IsPlaceable"),
              ("Cockpit/Surface/SoftOrganBoardMetaCatalog.cs", "Require"),
+             ("Cockpit/Surface/ISoftOrganBoard.cs", "Build"),
+             ("IdeSoftOrganBoard.cs", "Build"),
              ("Cockpit/Surface/SoftOrganPresentMode.cs", null),
              ("Cockpit/Surface/SeatFallbackSnapUnit.cs", "Classify"),
              ("Cockpit/Surface/SeatOrganPanePresenter.cs", "Present"),

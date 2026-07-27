@@ -3,7 +3,7 @@ using CdpMcp.Cockpit.ComputingUnits;
 
 namespace CdpMcp.Cockpit.Surface;
 
-/// <summary>Surface CCU: SoftOrganKind → go/tool/present mode (Handle still peel).</summary>
+/// <summary>Surface CCU: SoftOrganKind → go/tool/present mode (boards via ISoftOrganBoard).</summary>
 public sealed class SoftOrganBoardMetaCatalog : ICockpitComputeUnit
 {
     public readonly record struct Meta(
