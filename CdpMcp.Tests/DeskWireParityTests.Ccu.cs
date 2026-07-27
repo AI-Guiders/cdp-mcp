@@ -169,6 +169,8 @@ public sealed partial class DeskWireParityTests
         var aliases = new DeskPinAliasCatalog().Map;
         Assert.True(unit.IsPlaceable("code_search", aliases));
         Assert.True(unit.IsPlaceable("script_scene", aliases));
+        Assert.True(unit.IsPlaceable("ps1_scene", aliases));
+        Assert.True(unit.IsPlaceable("ise", aliases));
         Assert.False(unit.IsPlaceable("clipboard", aliases));
     }
 

@@ -34,6 +34,9 @@ public sealed partial class DeskWireParityTests
         Assert.Equal(SoftOrganKind.ArchDesk, cat.TryResolve("cdp_arch"));
         Assert.Equal(SoftOrganKind.RefactorPlan, cat.TryResolve("refactor_plan"));
         Assert.Equal(SoftOrganKind.RefactorPlan, cat.TryResolve("debt_scene"));
+        Assert.Equal(SoftOrganKind.Ps1Desk, cat.TryResolve("ps1_scene"));
+        Assert.Equal(SoftOrganKind.Ps1Desk, cat.TryResolve("ise"));
+        Assert.Equal(SoftOrganKind.Ps1Desk, cat.TryResolve("cdp_ps1_scene"));
         Assert.Null(cat.TryResolve("editor_scene"));
         Assert.Null(cat.TryResolve("git_scene"));
     }
@@ -66,6 +69,9 @@ public sealed partial class DeskWireParityTests
         Assert.Equal("cdp_arch", cat.Require(SoftOrganKind.ArchDesk).Tool);
         Assert.Equal("refactor_plan", cat.Require(SoftOrganKind.RefactorPlan).Go);
         Assert.Equal("cdp_refactor", cat.Require(SoftOrganKind.RefactorPlan).Tool);
+        Assert.Equal("ps1_scene", cat.Require(SoftOrganKind.Ps1Desk).Go);
+        Assert.Equal("cdp_ps1_scene", cat.Require(SoftOrganKind.Ps1Desk).Tool);
+        Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.Ps1Desk).Mode);
         Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.PressureDesk).Mode);
         Assert.Equal(SoftOrganPresentMode.PulseWithResult, cat.Require(SoftOrganKind.Problems).Mode);
         Assert.Equal(SoftOrganPresentMode.FullOr, cat.Require(SoftOrganKind.Plan).Mode);

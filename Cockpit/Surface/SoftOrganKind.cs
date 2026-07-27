@@ -24,6 +24,7 @@ public enum SoftOrganKind
     Quality,
     ArchDesk,
     RefactorPlan,
+    Ps1Desk,
     Sys,
     Ecl,
     Qrh,

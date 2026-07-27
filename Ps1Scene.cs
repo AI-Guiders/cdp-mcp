@@ -36,6 +36,30 @@ internal static class Ps1Scene
 		return (true, n == 0 ? "ps1 ready — put" : $"{n} ps1");
 	}
 
+	/// <summary>SoftBoard / seat pulse object (not JSON string).</summary>
+	public static object Board(SessionContext session)
+	{
+		var root = ScriptsRoot(session);
+		var hasProject = session.ProjectRoot is { Length: > 0 };
+		var scripts = ListScripts(root);
+		LastByRoot.TryGetValue(SessionKey(session), out var last);
+		return new
+		{
+			schema = Schema,
+			ok = true,
+			scene = "ps1",
+			pulse = !hasProject
+				? "no project — cdp_open first"
+				: scripts.Length == 0
+					? "ps1 dir ready — put a .ps1"
+					: $"{scripts.Length} ps1 script(s)",
+			scripts_root = root,
+			scripts,
+			last = last is null ? null : new { last.Path, last.Mode, last.Ok, last.AtUtc, last.ExitCode },
+			hint = "PS ISE habitat: put → edit buffer → check (AST) → run → last."
+		};
+	}
+
 	public static async Task<string> DispatchAsync(
 		DocumentBufferStore store,
 		SessionContext session,

@@ -141,4 +141,18 @@ internal static partial class IdeCockpitSoftDispatch
         PlaceSoft(ref goVerb, SoftOrganKind.PressureDesk);
         return true;
     }
+
+    static bool TryDispatchPs1(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsSoft(goVerb, SoftOrganKind.Ps1Desk))
+            return false;
+
+        goResult = SoftBoard(SoftOrganKind.Ps1Desk, session, null, null, null, args);
+        PlaceSoft(ref goVerb, SoftOrganKind.Ps1Desk);
+        return true;
+    }
 }

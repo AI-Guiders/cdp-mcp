@@ -18,6 +18,6 @@ public sealed class DeskPlaceableOrganUnit : ICockpitComputeUnit
             or "pressure_desk" or "pressure" or "compact_prep" or "pre_compact"
             or "problems" or "plugins"
             or "correspondence" or "quality" or "gates" or "sys" or "chk" or "ecl" or "analysis_scene"
-            or "script_scene" or "semantic_map";
+            or "script_scene" or "ps1_scene" or "semantic_map";
     }
 }

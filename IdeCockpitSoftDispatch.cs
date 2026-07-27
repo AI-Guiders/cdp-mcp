@@ -37,6 +37,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (TryDispatchFiles(ref goVerb, ref goResult, docStore, session, args)) return;
         if (TryDispatchIgnite(ref goVerb, ref goResult, session, args)) return;
         if (TryDispatchWebcam(ref goVerb, ref goResult, session, args)) return;
+        if (TryDispatchPs1(ref goVerb, ref goResult, session, args)) return;
         TryDispatchPressure(ref goVerb, ref goResult, session, args);
     }
 }

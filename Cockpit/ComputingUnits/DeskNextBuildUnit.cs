@@ -163,6 +163,7 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
             Add("n-buffer", "buffer_scene", "Buffer scene", "No open buffers yet");
 
         Add("n-script", "script_scene", "Script habitat", "put→diags→check→run");
+        Add("n-ps1", "ps1_scene", "PS ISE habitat", "put→AST→pwsh -File");
 
         if (input.GitDirty)
             Add("n-git-draft", "git_draft", "Git plan draft", "Dirty SCM — logical slices");

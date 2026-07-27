@@ -51,6 +51,7 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
         SoftOrganKind.ArchDesk => Hit(IdeArchBoardChannel.Handle(_bag.Session, _bag.TileArgs)),
         SoftOrganKind.RefactorPlan => Hit(
             IdeRefactorPlanChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs)),
+        SoftOrganKind.Ps1Desk => BuildPs1(),
         SoftOrganKind.Sys => Hit(RequireExtras().SysBoard()),
         SoftOrganKind.Ecl => Hit(IdeChkChannel.Handle(RequireExtras().ChkCtx, _bag.TileArgs)),
         SoftOrganKind.Qrh => Hit(IdeQrhChannel.Handle(
@@ -113,6 +114,12 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
             ? QualityGates.EvaluateStore(store, root)
             : QualityGates.EvaluatePath(store, root, path!);
         return Hit(board, QualityGates.Snap(store, root).Pulse);
+    }
+
+    SoftOrganBoardHit BuildPs1()
+    {
+        var (_, pulse) = Ps1Scene.Pulse(_bag.Session);
+        return Hit(Ps1Scene.Board(_bag.Session), pulse, Ps1Scene.Schema);
     }
 
     string? OptTileString(string key) =>

@@ -104,6 +104,17 @@ public sealed class DeskPinAliasCatalog : ICockpitComputeUnit
         ["vsix"] = "plugins",
         ["project"] = "project_scene",
         ["project_scene"] = "project_scene",
+        ["ps1_scene"] = "ps1_scene",
+        ["ps1"] = "ps1_scene",
+        ["ise"] = "ps1_scene",
+        ["ps1_desk"] = "ps1_scene",
+        ["ps1_put"] = "ps1_scene",
+        ["ps1_open"] = "ps1_scene",
+        ["ps1_check"] = "ps1_scene",
+        ["ps1_run"] = "ps1_scene",
+        ["ps1_last"] = "ps1_scene",
+        ["ps1_help"] = "ps1_scene",
+        ["cdp_ps1_scene"] = "ps1_scene",
     };
 
     public IReadOnlyDictionary<string, string> Map => BuiltIns;

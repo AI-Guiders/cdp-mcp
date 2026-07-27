@@ -31,6 +31,7 @@ public sealed class SoftOrganAliasCatalog : ICockpitComputeUnit
         "quality" or "gates" => SoftOrganKind.Quality,
         "arch_desk" or "arch_board" or "board" or "sketch_desk" or "cdp_arch" => SoftOrganKind.ArchDesk,
         "refactor_plan" or "refactor" or "cdp_refactor" or "debt_scene" => SoftOrganKind.RefactorPlan,
+        "ps1_scene" or "ps1" or "ise" or "ps1_desk" or "cdp_ps1_scene" => SoftOrganKind.Ps1Desk,
         "sys" => SoftOrganKind.Sys,
         "ecl" or "chk" => SoftOrganKind.Ecl,
         "qrh" or "eqrh" or "handbook" => SoftOrganKind.Qrh,
