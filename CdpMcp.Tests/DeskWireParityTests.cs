@@ -347,6 +347,27 @@ public sealed class DeskWireParityTests
     }
 
     [Fact]
+    public void DeskPinAliasCatalog_canonicalizes()
+    {
+        var cat = new DeskPinAliasCatalog();
+        Assert.Equal("editor_scene", cat.Canonical("code"));
+        Assert.Equal("find_desk", cat.Canonical("code_search"));
+        Assert.Equal("pressure_desk", cat.Canonical("pre_compact"));
+        Assert.True(cat.Contains("sa"));
+        Assert.Equal("alert", cat.Map["sa"]);
+    }
+
+    [Fact]
+    public void DeskLayoutPresetCatalog_has_agent_desk()
+    {
+        var cat = new DeskLayoutPresetCatalog();
+        Assert.True(cat.TryGet("agent", out var pins));
+        Assert.Contains("plan", pins);
+        Assert.Contains("editor_scene", pins);
+        Assert.Contains(cat.Ids, id => id == "desk");
+    }
+
+    [Fact]
     public void SoftOrganBoardMetaCatalog_covers_all_kinds()
     {
         var cat = new SoftOrganBoardMetaCatalog();

@@ -178,6 +178,8 @@ internal static partial class IdeArchBoardChannel
              ("Cockpit/Surface/SeatFullPaneMatchUnit.cs", "Matches"),
              ("Cockpit/Surface/SeatOrganPanePresenter.cs", "FullOr"),
              ("Cockpit/Surface/SoftOrganAliasCatalog.cs", "TryResolve"),
+             ("Cockpit/Surface/DeskPinAliasCatalog.cs", "Canonical"),
+             ("Cockpit/Surface/DeskLayoutPresetCatalog.cs", "TryGet"),
              ("Cockpit/Surface/SoftOrganBoardMetaCatalog.cs", "Require"),
              ("Cockpit/Surface/SoftOrganPresentMode.cs", null),
              ("Cockpit/Surface/SeatFallbackSnapUnit.cs", "Classify"),
