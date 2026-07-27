@@ -9,7 +9,7 @@ internal sealed class IntentWorkspaceState
     public Guid? ActiveIntentId { get; set; }
     public Guid? ActiveSceneId { get; set; }
     public Guid? ActiveStageId { get; set; }
-    public string DatabasePath { get; init; } = "";
+    public string DatabasePath { get; set; } = "";
 }
 
 internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbContext> options)

@@ -3,8 +3,8 @@ using System.Text.Json;
 namespace CdpMcp;
 
 /// <summary>
-/// Agent-writable IDE prefs (%LocalAppData%/cdp-mcp/ide-settings.json). Hot keys apply without remount.
-/// Process layer = cdp-mcp.toml (read-only via habitat). ADR 0190.
+/// Agent-writable IDE prefs under <see cref="CdpProfile.StateRoot"/>/ide-settings.json.
+/// Hot keys apply without remount. Process layer = cdp-mcp.toml (ADR 0190). Scoped by ADR 0199.
 /// </summary>
 internal static class IdeSettingsStore
 {
@@ -19,21 +19,34 @@ internal static class IdeSettingsStore
     static readonly object Gate = new();
     static Dictionary<string, string> User = new(StringComparer.OrdinalIgnoreCase);
     static bool Loaded;
+    static string? LoadedFromPath;
 
-    public static string FilePath { get; } = Path.Combine(
-        CdpProfile.StateRoot,
-        "ide-settings.json");
+    public static string FilePath => Path.Combine(CdpProfile.StateRoot, "ide-settings.json");
+
+    public static void Invalidate()
+    {
+        lock (Gate)
+        {
+            Loaded = false;
+            LoadedFromPath = null;
+            User = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
 
     public static void EnsureLoaded()
     {
         lock (Gate)
         {
-            if (Loaded) return;
+            var path = FilePath;
+            if (Loaded && string.Equals(LoadedFromPath, path, StringComparison.OrdinalIgnoreCase))
+                return;
             Loaded = true;
-            if (!File.Exists(FilePath)) return;
+            LoadedFromPath = path;
+            User = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (!File.Exists(path)) return;
             try
             {
-                var doc = JsonSerializer.Deserialize<IdeSettingsDoc>(File.ReadAllText(FilePath), JsonOpts);
+                var doc = JsonSerializer.Deserialize<IdeSettingsDoc>(File.ReadAllText(path), JsonOpts);
                 if (doc?.Values is { Count: > 0 })
                     User = new Dictionary<string, string>(doc.Values, StringComparer.OrdinalIgnoreCase);
             }
@@ -109,16 +122,18 @@ internal static class IdeSettingsStore
 
     static void PersistUnlocked()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+        var path = FilePath;
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var doc = new IdeSettingsDoc
         {
             Schema = Schema,
             SavedUtc = DateTime.UtcNow.ToString("O"),
             Values = new Dictionary<string, string>(User, StringComparer.OrdinalIgnoreCase)
         };
-        var tmp = FilePath + ".tmp";
+        var tmp = path + ".tmp";
         File.WriteAllText(tmp, JsonSerializer.Serialize(doc, JsonOpts));
-        File.Move(tmp, FilePath, overwrite: true);
+        File.Move(tmp, path, overwrite: true);
+        LoadedFromPath = path;
     }
 
     sealed class IdeSettingsDoc

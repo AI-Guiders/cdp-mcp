@@ -21,16 +21,38 @@ IdeLanguageTools.Configure(settings.Languages, settings.LspPresets);
 VendorCatalog.Configure(settings.Vendor);
 IdeIgniteArmHost.EnsureStarted();
 
-var workspaceDbPath = settings.IntentWorkspace.DatabasePath
+var workspaceDbPathOverride = settings.IntentWorkspace.DatabasePath;
+var workspaceDbPath = workspaceDbPathOverride
     ?? Path.Combine(CdpProfile.StateRoot, "intent-workspace.witdb");
 IntentWorkspaceStore? workspaceStore = null;
 var workspaceState = new IntentWorkspaceState { DatabasePath = workspaceDbPath };
+string? openedWorkspaceDbPath = null;
+
+void InvalidateWorkspaceScope()
+{
+    IdeSettingsStore.Invalidate();
+    workspaceStore = null;
+    openedWorkspaceDbPath = null;
+}
+
+CdpProfile.OnStateRootChanged(InvalidateWorkspaceScope);
+
+var session = new SessionContext();
+
 void EnsureWorkspaceDb()
 {
-    if (workspaceStore is not null) return;
-    Directory.CreateDirectory(Path.GetDirectoryName(workspaceDbPath)!);
+    CdpClientWorkspace.EnsureSessionFallback(session);
+    var path = workspaceDbPathOverride
+        ?? Path.Combine(CdpProfile.StateRoot, "intent-workspace.witdb");
+    if (workspaceStore is not null &&
+        string.Equals(openedWorkspaceDbPath, path, StringComparison.OrdinalIgnoreCase))
+        return;
+
+    workspaceDbPath = path;
+    workspaceState.DatabasePath = path;
+    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
     var wsOptions = new DbContextOptionsBuilder<IntentWorkspaceDbContext>()
-        .UseWitDb($"Data Source={workspaceDbPath}")
+        .UseWitDb($"Data Source={path}")
         .Options;
     using (var boot = new IntentWorkspaceDbContext(wsOptions))
         boot.Database.EnsureCreated();
@@ -45,7 +67,8 @@ void EnsureWorkspaceDb()
     workspaceStore.EnsureScriptLastRunTable();
     IdeDeskSeats.Bind(workspaceStore);
     ScriptScene.Bind(workspaceStore);
-    OpenRecentStore.Configure(new WitDbOpenRecentBackend(workspaceStore, workspaceDbPath));
+    OpenRecentStore.Configure(new WitDbOpenRecentBackend(workspaceStore, path));
+    openedWorkspaceDbPath = path;
 }
 
 /// <summary>Open Recent lives in WitDB — ensure store before push/list (cdp_open / CSX Open.*).</summary>
@@ -99,7 +122,6 @@ var gitTools = GitMcp.ToolCatalog.Build().ToDictionary(t => t.Name, StringCompar
 var hciTools = HybridCodebaseIndex.Mcp.ToolCatalog.Build().ToDictionary(t => t.Name, StringComparer.Ordinal);
 var anuiTools = Anui.Agent.Mcp.ToolCatalog.Build().ToDictionary(t => t.Name, StringComparer.Ordinal);
 
-var session = new SessionContext();
 var docStore = new DocumentBufferStore();
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
@@ -1260,6 +1282,10 @@ var options = new McpServerOptions
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                // Keep isolation key fresh (client roots when advertised).
+                if (serverRef is not null)
+                    await CdpClientWorkspace.RefreshAsync(serverRef, cancellationToken).ConfigureAwait(false);
+                CdpClientWorkspace.EnsureSessionFallback(session);
                 var text = await DispatchAsync(name, callArgs, cancellationToken);
                 return new CallToolResult
                 {
@@ -1424,6 +1450,7 @@ async Task<string> DispatchMetaAsync(
                 },
                 continuity = IdeIgniteArmHost.ContinuitySlice(),
                 continuity_pulse = IdeIgniteArmHost.ContinuityPulseLine(),
+                isolation = CdpClientWorkspace.StatusCard(),
                 ops = IdeOpsPulse.Snap(),
                 ops_pulse = IdeOpsPulse.Line(),
                 backends = modules.Select(m => new { domain = m.Domain, enabled = m.IsEnabled, health = m.HealthSummary }),
@@ -2472,5 +2499,6 @@ static object ToggleCap(MemoryToggleSettings t) => new { enabled = t.Enabled };
 await using var stdio = new StdioServerTransport("CdpMcp");
 await using var server = McpServer.Create(stdio, options);
 serverRef = server;
-Console.Error.WriteLine($"CdpMcp {mcpVersion} backends=[{string.Join(",", byDomain.Keys)}] context={CdpEnumParse.ToWire(session.Phase)}/{CdpEnumParse.ToWire(session.Object)}");
+CdpClientWorkspace.Wire(server);
+Console.Error.WriteLine($"CdpMcp {mcpVersion} backends=[{string.Join(",", byDomain.Keys)}] context={CdpEnumParse.ToWire(session.Phase)}/{CdpEnumParse.ToWire(session.Object)} isolation={CdpProfile.Kind}");
 await server.RunAsync();

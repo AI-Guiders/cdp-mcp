@@ -28,7 +28,7 @@ internal static partial class IdePressureChannel
 
     static readonly object Gate = new();
 
-    public static string FilePath { get; } = Path.Combine(
+    public static string FilePath => Path.Combine(
         CdpProfile.StateRoot,
         "pressure-stash.json");
 
