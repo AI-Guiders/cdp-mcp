@@ -27,6 +27,7 @@ internal static class IdeChkChannel
 
     public sealed record ProbeCtx(
         bool ProjectOpen,
+        bool TaskOpen,
         bool GitKnown,
         bool GitDirty,
         bool TestsGreen,
@@ -118,6 +119,19 @@ internal static class IdeChkChannel
             [
                 new("project", "auto", "Project open", Probe: "project.open", Action: "cdp_open"),
                 new("sniper", "do", "Aim sniper on large files", Probe: "sniper.ok", Action: "go=scope", Required: false)
+            ]),
+        new(
+            "plateau",
+            "Plateau / no active task",
+            ["phase:act+state:task.none"],
+            [
+                new("no-invented-stage", "memory", "Do not invent empty TM stages just to satisfy AutoIgnition", Action: "plan", Required: false),
+                new("ignite-authorized", "memory", "Re-arm ignite only after operator steer or an authorized TM task exists", Action: "cdp_ignite", Required: false),
+                new("pressure-stash", "memory", "Plateau invariants belong in pressure stash, not only in host summary", Action: "cdp_pressure", Required: false)
+            ],
+            [
+                new("next-task", "do", "Pick/focus the next TM task before continuing flight", Action: "plan"),
+                new("ignite-park", "do", "If no task exists, disarm or leave ignite parked instead of looping", Action: "cdp_ignite")
             ]),
         new(
             "verify",
@@ -276,6 +290,7 @@ internal static class IdeChkChannel
 
     public static ProbeCtx CtxFrom(
         SessionContext session,
+        bool taskOpen,
         bool gitKnown,
         bool gitDirty,
         bool testsGreen,
@@ -288,6 +303,7 @@ internal static class IdeChkChannel
         var intent = session.Intent is { } i ? CdpEnumParse.ToWire(i) : null;
         return new ProbeCtx(
             !string.IsNullOrWhiteSpace(session.ProjectRoot),
+            taskOpen,
             gitKnown,
             gitDirty,
             testsGreen,
@@ -386,6 +402,8 @@ internal static class IdeChkChannel
         probe.Trim().ToLowerInvariant() switch
         {
             "project.open" or "project" => ctx.ProjectOpen,
+            "task.open" or "task" => ctx.TaskOpen,
+            "task.none" or "task.closed" => !ctx.TaskOpen,
             "git.known" or "git" => ctx.GitKnown,
             "git.clean" => !ctx.GitDirty,
             "git.dirty" => ctx.GitDirty,

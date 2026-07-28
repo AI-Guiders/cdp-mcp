@@ -58,6 +58,26 @@ internal static class IdeQrhChannel
             ["procedure:mutate-plan-then-act"],
             "Is DAP still holding the binary — or am I fighting a ghost lock?"),
         new(
+            "plateau-no-task",
+            "abnormal",
+            "Act phase, but TM has no active task",
+            "Cockpit is in act, but Task Manager says (pick task). AutoIgnition or self-wake without an authorized task turns continuity into empty loops and false urgency.",
+            ["phase:act", "task.none", "pick task", "plateau", "ignite", "authorized"],
+            [
+                "No invented TM stage just to satisfy wake",
+                "Pressure stash may remember plateau, but does not authorize new work",
+                "Re-arm ignite only after a real task exists"
+            ],
+            [
+                new("cdp_cockpit go=plan — inspect TM focus", "plan"),
+                new("Either focus/create the next task, or leave plateau explicit", "plan"),
+                new("If no task exists, disarm or park ignite instead of blind 8s loops", "ignite_desk", "cdp_ignite"),
+                new("Stash plateau invariant in pressure if continuity matters", "pressure", "cdp_pressure")
+            ],
+            ["intake-brief", "autoignite-cdt", "path-mutate-gate"],
+            [],
+            "Is this a real authorized next step — or am I manufacturing motion because the habitat can wake itself?"),
+        new(
             "path-mutate-gate",
             "abnormal",
             "Host Read/Write bypassed desk",
@@ -315,6 +335,7 @@ internal static class IdeQrhChannel
         }
         if (ctx.Phase is "act")
         {
+            if (!ctx.TaskOpen) Hit("plateau-no-task", 88);
             Hit("path-mutate-gate", 45);
             Hit("find-via-desk", 40);
         }
@@ -351,6 +372,11 @@ internal static class IdeQrhChannel
             {
                 Hit("path-mutate-gate", 80);
                 Hit("find-via-desk", 60);
+            }
+            if (hot.Equals("plateau", StringComparison.OrdinalIgnoreCase))
+            {
+                Hit("plateau-no-task", 95);
+                Hit("autoignite-cdt", 45);
             }
         }
 

@@ -40,7 +40,7 @@ internal static partial class IdeCockpit
         var testsFailed = test is { Available: true, LastRun: not null, Success: false };
         var sniperOk = !quality.SuggestSniper || EditSniper.HasHold;
         var chkCtx = IdeChkChannel.CtxFrom(
-            session, gitKnown, gitDirty, testsGreen, testsFailed,
+            session, workspaceState.ActiveStageId is not null, gitKnown, gitDirty, testsGreen, testsFailed,
             problems.Errors == 0, debug.Stopped, debug.ActiveDap, sniperOk);
         var chkSnap = IdeChkChannel.Build(chkCtx);
         return new DeskProbeBundle(

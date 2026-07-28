@@ -7,10 +7,12 @@ public sealed class IdeQrhChannelTests
     static IdeChkChannel.ProbeCtx Ctx(
         string phase = "act",
         string? intent = null,
+        bool taskOpen = true,
         bool gitDirty = false,
         bool dapStopped = false) =>
         new(
             ProjectOpen: true,
+            TaskOpen: taskOpen,
             GitKnown: true,
             gitDirty,
             TestsGreen: false,
@@ -158,6 +160,29 @@ public sealed class IdeQrhChannelTests
     {
         var s = IdeQrhChannel.SuggestFor(Ctx(phase: "act"));
         Assert.Contains("find-via-desk", s.RelatedIds);
+    }
+
+    [Fact]
+    public void Suggest_act_without_task_focus_hot_page()
+    {
+        var s = IdeQrhChannel.SuggestFor(Ctx(phase: "act", taskOpen: false));
+        Assert.Equal("plateau-no-task", s.HotId);
+    }
+
+    [Fact]
+    public void Search_plateau_page_by_id()
+    {
+        var board = IdeQrhChannel.Handle(
+            Ctx(),
+            new Dictionary<string, System.Text.Json.JsonElement>
+            {
+                ["op"] = System.Text.Json.JsonSerializer.SerializeToElement("search"),
+                ["q"] = System.Text.Json.JsonSerializer.SerializeToElement("plateau-no-task")
+            });
+        var json = System.Text.Json.JsonSerializer.Serialize(board);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var hits = doc.RootElement.GetProperty("hits");
+        Assert.Contains(hits.EnumerateArray(), h => h.GetProperty("id").GetString() == "plateau-no-task");
     }
 
     [Fact]

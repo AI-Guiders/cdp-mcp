@@ -9,11 +9,13 @@ public sealed class IdeChkChannelTests
         string phase = "act",
         string? intent = null,
         bool projectOpen = true,
+        bool taskOpen = true,
         bool gitKnown = true,
         bool gitDirty = false,
         bool dapStopped = false) =>
         new(
             projectOpen,
+            taskOpen,
             gitKnown,
             gitDirty,
             TestsGreen: false,
@@ -70,6 +72,14 @@ public sealed class IdeChkChannelTests
     {
         var snap = IdeChkChannel.Build(Ctx(phase: "act", intent: "ship"));
         Assert.Contains(snap.Active, r => r.Id == "ship");
+    }
+
+    [Fact]
+    public void Plateau_active_when_act_has_no_task_focus()
+    {
+        var snap = IdeChkChannel.Build(Ctx(phase: "act", taskOpen: false));
+        Assert.Contains(snap.Active, r => r.Id == "plateau");
+        Assert.Contains("plateau", snap.Pulse, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
