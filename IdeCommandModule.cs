@@ -19,6 +19,7 @@ namespace CdpMcp;
 /// <para>
 /// Navigation Anchor (<c>cdp_land</c>) is agent-ready; GUI may project the same
 /// Family:navigation wire later. SoftDispatch stays behind this module.
+/// Human Melody ids use <see cref="ExecuteAliasedAsync"/> + <see cref="IdeCommandAliasMap"/>.
 /// </para>
 /// </remarks>
 public static class IdeCommandModule
@@ -50,5 +51,23 @@ public static class IdeCommandModule
             commandId,
             args ?? FrozenDictionary<string, JsonElement>.Empty,
             cancellationToken);
+    }
+
+    /// <summary>
+    /// Resolve Melody/human <paramref name="commandId"/> via <see cref="IdeCommandAliasMap"/>
+    /// then <see cref="ExecuteAsync"/>. Unknown ids pass through unchanged (CDP-native tools).
+    /// </summary>
+    public static Task<string> ExecuteAliasedAsync(
+        string commandId,
+        IReadOnlyDictionary<string, JsonElement>? args = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (IdeCommandAliasMap.TryResolve(commandId, out var resolved))
+        {
+            var merged = IdeCommandAliasMap.MergeArgs(resolved, args);
+            return ExecuteAsync(resolved.Tool, merged, cancellationToken);
+        }
+
+        return ExecuteAsync(commandId, args, cancellationToken);
     }
 }
