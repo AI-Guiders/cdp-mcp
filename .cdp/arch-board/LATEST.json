@@ -1,13 +1,16 @@
 {
   "schema": "arch_board/v0",
   "title": "architecture",
-  "updated_utc": "2026-07-27T17:16:44.883786+00:00",
+  "mode": "plan",
+  "profile": null,
+  "updated_utc": "2026-07-28T01:19:33.8036690Z",
+  "focus_role_id": "dal-core",
   "roles": [
     {
       "id": "ccu-build",
       "role": "ccu",
       "status": "promoted",
-      "note": "BuildAsync ownership \u2014 IdeCockpit peel target",
+      "note": "BuildAsync ownership — IdeCockpit peel target",
       "elected_candidate_id": "c-62d559e9",
       "candidates": [
         {
@@ -19,7 +22,7 @@
           "status": "elected"
         }
       ],
-      "created_utc": "2026-07-27T16:45:03.2611899+00:00"
+      "created_utc": "2026-07-27T19:45:03.2611899+03:00"
     },
     {
       "id": "ch-build",
@@ -53,7 +56,7 @@
           "status": "candidate"
         }
       ],
-      "created_utc": "2026-07-27T16:45:04.5092141+00:00"
+      "created_utc": "2026-07-27T19:45:04.5092141+03:00"
     },
     {
       "id": "comp-cockpit",
@@ -87,7 +90,197 @@
           "status": "candidate"
         }
       ],
-      "created_utc": "2026-07-27T16:45:04.5793263+00:00"
+      "created_utc": "2026-07-27T19:45:04.5793263+03:00"
+    },
+    {
+      "id": "cds-route",
+      "role": "cds",
+      "status": "promoted",
+      "note": "ADR 0036 attention routing — NormalizeAttentionRouting + GoMap",
+      "elected_candidate_id": "c-16e4a0fc",
+      "candidates": [
+        {
+          "id": "c-16e4a0fc",
+          "label": "NormalizeAttentionRouting",
+          "anchor": "[F:IdeCockpit.Cds.cs;M:NormalizeAttentionRouting]",
+          "path": "IdeCockpit.Cds.cs",
+          "symbol": "NormalizeAttentionRouting",
+          "status": "elected"
+        },
+        {
+          "id": "c-7c1f5ff8",
+          "label": "GoMap",
+          "anchor": "[F:IdeCockpit.GoMap.cs;M:GoMap]",
+          "path": "IdeCockpit.GoMap.cs",
+          "symbol": "GoMap",
+          "status": "candidate"
+        },
+        {
+          "id": "c-510fb966",
+          "label": "ResolveDeskDetail",
+          "anchor": "[F:IdeCockpit.Cds.cs;M:ResolveDeskDetail]",
+          "path": "IdeCockpit.Cds.cs",
+          "symbol": "ResolveDeskDetail",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-27T20:51:55.1724485+03:00"
+    },
+    {
+      "id": "ids-palette",
+      "role": "ids",
+      "status": "promoted",
+      "note": "ADR 0079 agent overlay discoverability — SearchFeatures (Ctrl+Q analog)",
+      "elected_candidate_id": "c-22a8938b",
+      "candidates": [
+        {
+          "id": "c-22a8938b",
+          "label": "SearchFeatures",
+          "anchor": "[F:IdeCockpit.Ids.cs;M:SearchFeatures]",
+          "path": "IdeCockpit.Ids.cs",
+          "symbol": "SearchFeatures",
+          "status": "elected"
+        }
+      ],
+      "created_utc": "2026-07-27T20:52:05.2458954+03:00"
+    },
+    {
+      "id": "surf-seats",
+      "role": "surface",
+      "status": "promoted",
+      "note": "ADR 0036 surface — BuildSeatsDeskSurfaceAsync seat panes",
+      "elected_candidate_id": "c-e1bf9c35",
+      "candidates": [
+        {
+          "id": "c-e1bf9c35",
+          "label": "BuildSeatsDeskSurfaceAsync",
+          "anchor": "[F:IdeCockpit.Surface.cs;M:BuildSeatsDeskSurfaceAsync]",
+          "path": "IdeCockpit.Surface.cs",
+          "symbol": "BuildSeatsDeskSurfaceAsync",
+          "status": "elected"
+        },
+        {
+          "id": "c-8659f5df",
+          "label": "ComposeSeatsSurface",
+          "anchor": "[F:IdeCockpit.Compositor.cs;M:ComposeSeatsSurface]",
+          "path": "IdeCockpit.Compositor.cs",
+          "symbol": "ComposeSeatsSurface",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-27T20:57:07.1796066+03:00"
+    },
+    {
+      "id": "dal-core",
+      "role": "dal",
+      "status": "promoted",
+      "note": "ADR 0102/0198 real-ish DAL — ToolchainPathProbe + IdeToolchainChannel",
+      "elected_candidate_id": "c-3443705c",
+      "candidates": [
+        {
+          "id": "c-3443705c",
+          "label": "ToolchainPathProbe",
+          "anchor": "[F:Cockpit/DataAcquisition/ToolchainPathProbe.cs;M:ToolchainPathProbe]",
+          "path": "Cockpit/DataAcquisition/ToolchainPathProbe.cs",
+          "symbol": "ToolchainPathProbe",
+          "status": "elected"
+        },
+        {
+          "id": "c-58127775",
+          "label": "IdeToolchainChannel",
+          "anchor": "[F:IdeToolchainChannel.cs;M:IdeToolchainChannel]",
+          "path": "IdeToolchainChannel.cs",
+          "symbol": "IdeToolchainChannel",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T04:18:25.9033931+03:00"
+    },
+    {
+      "id": "databus-core",
+      "role": "databus",
+      "status": "promoted",
+      "note": "ADR 0099 IDataBus + DeskDataBusHost — desk surface events",
+      "elected_candidate_id": "c-a1560046",
+      "candidates": [
+        {
+          "id": "c-a1560046",
+          "label": "IDataBus",
+          "anchor": "[F:Cockpit/DataBus/IDataBus.cs;M:IDataBus]",
+          "path": "Cockpit/DataBus/IDataBus.cs",
+          "symbol": "IDataBus",
+          "status": "elected"
+        },
+        {
+          "id": "c-e2bb2dda",
+          "label": "InMemoryDataBus",
+          "anchor": "[F:Cockpit/DataBus/InMemoryDataBus.cs;M:InMemoryDataBus]",
+          "path": "Cockpit/DataBus/InMemoryDataBus.cs",
+          "symbol": "InMemoryDataBus",
+          "status": "candidate"
+        },
+        {
+          "id": "c-0b00bd39",
+          "label": "DeskDataBusHost",
+          "anchor": "[F:Cockpit/DataBus/DeskDataBusHost.cs;M:DeskDataBusHost]",
+          "path": "Cockpit/DataBus/DeskDataBusHost.cs",
+          "symbol": "DeskDataBusHost",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T04:18:58.5362243+03:00"
+    },
+    {
+      "id": "transport-core",
+      "role": "transport",
+      "status": "promoted",
+      "note": "ADR 0094 DeskIngestionBus — bounded Channel ingress",
+      "elected_candidate_id": "c-0a1343c1",
+      "candidates": [
+        {
+          "id": "c-0a1343c1",
+          "label": "DeskIngestionBus",
+          "anchor": "[F:Cockpit/Transport/DeskIngestionBus.cs;M:DeskIngestionBus]",
+          "path": "Cockpit/Transport/DeskIngestionBus.cs",
+          "symbol": "DeskIngestionBus",
+          "status": "elected"
+        },
+        {
+          "id": "c-1f35a0bb",
+          "label": "IdeCockpit.Transport",
+          "anchor": "[F:IdeCockpit.Transport.cs;M:IdeCockpit.Transport]",
+          "path": "IdeCockpit.Transport.cs",
+          "symbol": "IdeCockpit.Transport",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:19:23.3413536Z"
+    },
+    {
+      "id": "instr-core",
+      "role": "instrument",
+      "status": "promoted",
+      "note": "ADR 0063 DeskInstrumentMountRegistry — seats deck pulse",
+      "elected_candidate_id": "c-bfe86823",
+      "candidates": [
+        {
+          "id": "c-bfe86823",
+          "label": "DeskInstrumentMountRegistry",
+          "anchor": "[F:Cockpit/Instrument/DeskInstrumentMountRegistry.cs;M:DeskInstrumentMountRegistry]",
+          "path": "Cockpit/Instrument/DeskInstrumentMountRegistry.cs",
+          "symbol": "DeskInstrumentMountRegistry",
+          "status": "elected"
+        },
+        {
+          "id": "c-13ffb63d",
+          "label": "IdeCockpit.Instrument",
+          "anchor": "[F:IdeCockpit.Instrument.cs;M:IdeCockpit.Instrument]",
+          "path": "IdeCockpit.Instrument.cs",
+          "symbol": "IdeCockpit.Instrument",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:19:23.3449321Z"
     }
   ],
   "edges": [
@@ -102,6 +295,36 @@
       "from_role_id": "ch-build",
       "to_role_id": "comp-cockpit",
       "kind": "projects"
+    },
+    {
+      "id": "e-d9916b12",
+      "from_role_id": "comp-cockpit",
+      "to_role_id": "surf-seats",
+      "kind": "projects"
+    },
+    {
+      "id": "e-62b3d15a",
+      "from_role_id": "dal-core",
+      "to_role_id": "ccu-build",
+      "kind": "feeds"
+    },
+    {
+      "id": "e-47dfdae3",
+      "from_role_id": "transport-core",
+      "to_role_id": "ccu-build",
+      "kind": "feeds"
+    },
+    {
+      "id": "e-2e598019",
+      "from_role_id": "databus-core",
+      "to_role_id": "ch-build",
+      "kind": "wires"
+    },
+    {
+      "id": "e-d36c6c09",
+      "from_role_id": "instr-core",
+      "to_role_id": "surf-seats",
+      "kind": "mounts"
     }
   ]
 }

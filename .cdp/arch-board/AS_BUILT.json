@@ -1,0 +1,712 @@
+{
+  "schema": "arch_board/v0",
+  "title": "as-built \u00B7 cdp-mcp",
+  "mode": "as_built",
+  "profile": "cdp_desk",
+  "updated_utc": "2026-07-28T01:16:39.1688692+00:00",
+  "focus_role_id": "dal-core",
+  "roles": [
+    {
+      "id": "ccu-core",
+      "role": "ccu",
+      "status": "promoted",
+      "note": "as_built \u00B7 ComputingUnits \u002B Build/Loci peel (ADR 0097) \u00B7 auto-promoted",
+      "elected_candidate_id": "c-1cf42d97",
+      "candidates": [
+        {
+          "id": "c-1cf42d97",
+          "label": "ICockpitComputeUnit",
+          "anchor": "[F:Cockpit/ComputingUnits/ICockpitComputeUnit.cs;M:ICockpitComputeUnit]",
+          "path": "Cockpit/ComputingUnits/ICockpitComputeUnit.cs",
+          "symbol": "ICockpitComputeUnit",
+          "status": "elected"
+        },
+        {
+          "id": "c-cb11abfe",
+          "label": "Compute",
+          "anchor": "[F:Cockpit/ComputingUnits/AttentionRoutingUnit.cs;M:Compute]",
+          "path": "Cockpit/ComputingUnits/AttentionRoutingUnit.cs",
+          "symbol": "Compute",
+          "status": "candidate"
+        },
+        {
+          "id": "c-c009ba89",
+          "label": "Compute",
+          "anchor": "[F:Cockpit/ComputingUnits/DeskDetailUnit.cs;M:Compute]",
+          "path": "Cockpit/ComputingUnits/DeskDetailUnit.cs",
+          "symbol": "Compute",
+          "status": "candidate"
+        },
+        {
+          "id": "c-22fbee22",
+          "label": "Compute",
+          "anchor": "[F:Cockpit/ComputingUnits/WorldSceneGoUnit.cs;M:Compute]",
+          "path": "Cockpit/ComputingUnits/WorldSceneGoUnit.cs",
+          "symbol": "Compute",
+          "status": "candidate"
+        },
+        {
+          "id": "c-423da93d",
+          "label": "Build",
+          "anchor": "[F:Cockpit/ComputingUnits/FocusLocusUnit.cs;M:Build]",
+          "path": "Cockpit/ComputingUnits/FocusLocusUnit.cs",
+          "symbol": "Build",
+          "status": "candidate"
+        },
+        {
+          "id": "c-b5556080",
+          "label": "Build",
+          "anchor": "[F:Cockpit/ComputingUnits/DeskLociBuildUnit.cs;M:Build]",
+          "path": "Cockpit/ComputingUnits/DeskLociBuildUnit.cs",
+          "symbol": "Build",
+          "status": "candidate"
+        },
+        {
+          "id": "c-43045a3e",
+          "label": "Build",
+          "anchor": "[F:Cockpit/ComputingUnits/DeskNextBuildUnit.cs;M:Build]",
+          "path": "Cockpit/ComputingUnits/DeskNextBuildUnit.cs",
+          "symbol": "Build",
+          "status": "candidate"
+        },
+        {
+          "id": "c-53b6c818",
+          "label": "TryBuild",
+          "anchor": "[F:Cockpit/ComputingUnits/DeskSniperLocusUnit.cs;M:TryBuild]",
+          "path": "Cockpit/ComputingUnits/DeskSniperLocusUnit.cs",
+          "symbol": "TryBuild",
+          "status": "candidate"
+        },
+        {
+          "id": "c-6fd86519",
+          "label": "Build",
+          "anchor": "[F:Cockpit/ComputingUnits/DeskSysOrganUnit.cs;M:Build]",
+          "path": "Cockpit/ComputingUnits/DeskSysOrganUnit.cs",
+          "symbol": "Build",
+          "status": "candidate"
+        },
+        {
+          "id": "c-8cced72e",
+          "label": "Merge",
+          "anchor": "[F:Cockpit/ComputingUnits/GoVerbsCatalogUnit.cs;M:Merge]",
+          "path": "Cockpit/ComputingUnits/GoVerbsCatalogUnit.cs",
+          "symbol": "Merge",
+          "status": "candidate"
+        },
+        {
+          "id": "c-0583ed83",
+          "label": "Slim",
+          "anchor": "[F:Cockpit/ComputingUnits/GoResultSlimUnit.cs;M:Slim]",
+          "path": "Cockpit/ComputingUnits/GoResultSlimUnit.cs",
+          "symbol": "Slim",
+          "status": "candidate"
+        },
+        {
+          "id": "c-eff7ccdc",
+          "label": "FromJson",
+          "anchor": "[F:Cockpit/ComputingUnits/OrganJsonPulseUnit.cs;M:FromJson]",
+          "path": "Cockpit/ComputingUnits/OrganJsonPulseUnit.cs",
+          "symbol": "FromJson",
+          "status": "candidate"
+        },
+        {
+          "id": "c-89b0270b",
+          "label": "BuildAsync",
+          "anchor": "[F:IdeCockpit.Build.cs;M:BuildAsync]",
+          "path": "IdeCockpit.Build.cs",
+          "symbol": "BuildAsync",
+          "status": "candidate"
+        },
+        {
+          "id": "c-b91b6ae9",
+          "label": "PrepareBuildIngress",
+          "anchor": "[F:IdeCockpit.Build.Ingress.cs;M:PrepareBuildIngress]",
+          "path": "IdeCockpit.Build.Ingress.cs",
+          "symbol": "PrepareBuildIngress",
+          "status": "candidate"
+        },
+        {
+          "id": "c-e4f3d3ce",
+          "label": "BuildDeskNavigation",
+          "anchor": "[F:IdeCockpit.Build.Nav.cs;M:BuildDeskNavigation]",
+          "path": "IdeCockpit.Build.Nav.cs",
+          "symbol": "BuildDeskNavigation",
+          "status": "candidate"
+        },
+        {
+          "id": "c-6e0e4c0f",
+          "label": "ApplyWorldOrGoAsync",
+          "anchor": "[F:IdeCockpit.Build.WorldGo.cs;M:ApplyWorldOrGoAsync]",
+          "path": "IdeCockpit.Build.WorldGo.cs",
+          "symbol": "ApplyWorldOrGoAsync",
+          "status": "candidate"
+        },
+        {
+          "id": "c-c035bb29",
+          "label": "BuildLegacyTilesDeskAsync",
+          "anchor": "[F:IdeCockpit.Build.LegacyTiles.cs;M:BuildLegacyTilesDeskAsync]",
+          "path": "IdeCockpit.Build.LegacyTiles.cs",
+          "symbol": "BuildLegacyTilesDeskAsync",
+          "status": "candidate"
+        },
+        {
+          "id": "c-5187cfff",
+          "label": "BuildLoci",
+          "anchor": "[F:IdeCockpit.Loci.cs;M:BuildLoci]",
+          "path": "IdeCockpit.Loci.cs",
+          "symbol": "BuildLoci",
+          "status": "candidate"
+        },
+        {
+          "id": "c-6f869bab",
+          "label": "BuildNext",
+          "anchor": "[F:IdeCockpit.Next.cs;M:BuildNext]",
+          "path": "IdeCockpit.Next.cs",
+          "symbol": "BuildNext",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:16:39.1683149+00:00"
+    },
+    {
+      "id": "ch-core",
+      "role": "channel",
+      "status": "promoted",
+      "note": "as_built \u00B7 IChannel \u002B DeferredSoftOrgan (ADR 0036) \u00B7 auto-promoted",
+      "elected_candidate_id": "c-07ab4137",
+      "candidates": [
+        {
+          "id": "c-07ab4137",
+          "label": "IChannel",
+          "anchor": "[F:Cockpit/Channels/IChannel.cs;M:IChannel]",
+          "path": "Cockpit/Channels/IChannel.cs",
+          "symbol": "IChannel",
+          "status": "elected"
+        },
+        {
+          "id": "c-6817e31b",
+          "label": "Peek",
+          "anchor": "[F:Cockpit/Channels/DeferredSoftOrganChannel.cs;M:Peek]",
+          "path": "Cockpit/Channels/DeferredSoftOrganChannel.cs",
+          "symbol": "Peek",
+          "status": "candidate"
+        },
+        {
+          "id": "c-b375afbd",
+          "label": "PeekDeferredSoftWants",
+          "anchor": "[F:IdeCockpit.Channel.cs;M:PeekDeferredSoftWants]",
+          "path": "IdeCockpit.Channel.cs",
+          "symbol": "PeekDeferredSoftWants",
+          "status": "candidate"
+        },
+        {
+          "id": "c-f3d4c70c",
+          "label": "ApplyDeferredSoftOrgans",
+          "anchor": "[F:IdeCockpit.Channel.cs;M:ApplyDeferredSoftOrgans]",
+          "path": "IdeCockpit.Channel.cs",
+          "symbol": "ApplyDeferredSoftOrgans",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:16:39.1684945+00:00"
+    },
+    {
+      "id": "cds-core",
+      "role": "cds",
+      "status": "promoted",
+      "note": "as_built \u00B7 ICdsRouter \u002B AttentionCdsRouter \u00B7 auto-promoted",
+      "elected_candidate_id": "c-cbf2b164",
+      "candidates": [
+        {
+          "id": "c-cbf2b164",
+          "label": "ICdsRouter",
+          "anchor": "[F:Cockpit/Cds/ICdsRouter.cs;M:ICdsRouter]",
+          "path": "Cockpit/Cds/ICdsRouter.cs",
+          "symbol": "ICdsRouter",
+          "status": "elected"
+        },
+        {
+          "id": "c-9f01cab7",
+          "label": "Route",
+          "anchor": "[F:Cockpit/Cds/AttentionCdsRouter.cs;M:Route]",
+          "path": "Cockpit/Cds/AttentionCdsRouter.cs",
+          "symbol": "Route",
+          "status": "candidate"
+        },
+        {
+          "id": "c-6e87e04d",
+          "label": "TryGet",
+          "anchor": "[F:Cockpit/Cds/DeskGoMapCatalog.cs;M:TryGet]",
+          "path": "Cockpit/Cds/DeskGoMapCatalog.cs",
+          "symbol": "TryGet",
+          "status": "candidate"
+        },
+        {
+          "id": "c-58628582",
+          "label": "NormalizeAttentionRouting",
+          "anchor": "[F:IdeCockpit.Cds.cs;M:NormalizeAttentionRouting]",
+          "path": "IdeCockpit.Cds.cs",
+          "symbol": "NormalizeAttentionRouting",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:16:39.1685195+00:00"
+    },
+    {
+      "id": "ids-palette",
+      "role": "ids",
+      "status": "promoted",
+      "note": "as_built \u00B7 IIdsFeatureSearch \u002B FeatureSearchUnit \u00B7 auto-promoted",
+      "elected_candidate_id": "c-c6c98c40",
+      "candidates": [
+        {
+          "id": "c-c6c98c40",
+          "label": "IIdsFeatureSearch",
+          "anchor": "[F:Cockpit/Ids/IIdsFeatureSearch.cs;M:IIdsFeatureSearch]",
+          "path": "Cockpit/Ids/IIdsFeatureSearch.cs",
+          "symbol": "IIdsFeatureSearch",
+          "status": "elected"
+        },
+        {
+          "id": "c-ee144af9",
+          "label": "Search",
+          "anchor": "[F:Cockpit/Ids/FeatureSearchUnit.cs;M:Search]",
+          "path": "Cockpit/Ids/FeatureSearchUnit.cs",
+          "symbol": "Search",
+          "status": "candidate"
+        },
+        {
+          "id": "c-5e74fda5",
+          "label": "SearchFeatures",
+          "anchor": "[F:IdeCockpit.Ids.cs;M:SearchFeatures]",
+          "path": "IdeCockpit.Ids.cs",
+          "symbol": "SearchFeatures",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:16:39.1685458+00:00"
+    },
+    {
+      "id": "comp-core",
+      "role": "compositor",
+      "status": "promoted",
+      "note": "as_built \u00B7 ISurfaceCompositor \u002B Seats/Tiles compositors \u00B7 auto-promoted",
+      "elected_candidate_id": "c-d95e6108",
+      "candidates": [
+        {
+          "id": "c-d95e6108",
+          "label": "ISurfaceCompositor",
+          "anchor": "[F:Cockpit/Composition/ISurfaceCompositor.cs;M:ISurfaceCompositor]",
+          "path": "Cockpit/Composition/ISurfaceCompositor.cs",
+          "symbol": "ISurfaceCompositor",
+          "status": "elected"
+        },
+        {
+          "id": "c-8de142d5",
+          "label": "Compose",
+          "anchor": "[F:Cockpit/Composition/SeatsSurfaceCompositor.cs;M:Compose]",
+          "path": "Cockpit/Composition/SeatsSurfaceCompositor.cs",
+          "symbol": "Compose",
+          "status": "candidate"
+        },
+        {
+          "id": "c-0d901a8a",
+          "label": "Compose",
+          "anchor": "[F:Cockpit/Composition/TilesSurfaceCompositor.cs;M:Compose]",
+          "path": "Cockpit/Composition/TilesSurfaceCompositor.cs",
+          "symbol": "Compose",
+          "status": "candidate"
+        },
+        {
+          "id": "c-2aad7c0b",
+          "label": "ComposeSeatsSurface",
+          "anchor": "[F:IdeCockpit.Compositor.cs;M:ComposeSeatsSurface]",
+          "path": "IdeCockpit.Compositor.cs",
+          "symbol": "ComposeSeatsSurface",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:16:39.1685771+00:00"
+    },
+    {
+      "id": "surf-seats",
+      "role": "surface",
+      "status": "promoted",
+      "note": "as_built \u00B7 SeatsDetailGate \u002B SoftOrganAlias \u002B SoftOrgans \u00B7 auto-promoted",
+      "elected_candidate_id": "c-6280cd92",
+      "candidates": [
+        {
+          "id": "c-6280cd92",
+          "label": "Compute",
+          "anchor": "[F:Cockpit/Surface/SeatsDetailGateUnit.cs;M:Compute]",
+          "path": "Cockpit/Surface/SeatsDetailGateUnit.cs",
+          "symbol": "Compute",
+          "status": "elected"
+        },
+        {
+          "id": "c-f11e555a",
+          "label": "Sanitize",
+          "anchor": "[F:Cockpit/Surface/SeatOrganArgsSanitizer.cs;M:Sanitize]",
+          "path": "Cockpit/Surface/SeatOrganArgsSanitizer.cs",
+          "symbol": "Sanitize",
+          "status": "candidate"
+        },
+        {
+          "id": "c-fd1370d7",
+          "label": "Matches",
+          "anchor": "[F:Cockpit/Surface/SeatFullPaneMatchUnit.cs;M:Matches]",
+          "path": "Cockpit/Surface/SeatFullPaneMatchUnit.cs",
+          "symbol": "Matches",
+          "status": "candidate"
+        },
+        {
+          "id": "c-8bbe42b2",
+          "label": "FullOr",
+          "anchor": "[F:Cockpit/Surface/SeatOrganPanePresenter.cs;M:FullOr]",
+          "path": "Cockpit/Surface/SeatOrganPanePresenter.cs",
+          "symbol": "FullOr",
+          "status": "candidate"
+        },
+        {
+          "id": "c-78741650",
+          "label": "TryResolve",
+          "anchor": "[F:Cockpit/Surface/SoftOrganAliasCatalog.cs;M:TryResolve]",
+          "path": "Cockpit/Surface/SoftOrganAliasCatalog.cs",
+          "symbol": "TryResolve",
+          "status": "candidate"
+        },
+        {
+          "id": "c-72b262df",
+          "label": "Canonical",
+          "anchor": "[F:Cockpit/Surface/DeskPinAliasCatalog.cs;M:Canonical]",
+          "path": "Cockpit/Surface/DeskPinAliasCatalog.cs",
+          "symbol": "Canonical",
+          "status": "candidate"
+        },
+        {
+          "id": "c-bc7da304",
+          "label": "TryGet",
+          "anchor": "[F:Cockpit/Surface/DeskLayoutPresetCatalog.cs;M:TryGet]",
+          "path": "Cockpit/Surface/DeskLayoutPresetCatalog.cs",
+          "symbol": "TryGet",
+          "status": "candidate"
+        },
+        {
+          "id": "c-9f79b49a",
+          "label": "IsPlaceable",
+          "anchor": "[F:Cockpit/Surface/DeskPlaceableOrganUnit.cs;M:IsPlaceable]",
+          "path": "Cockpit/Surface/DeskPlaceableOrganUnit.cs",
+          "symbol": "IsPlaceable",
+          "status": "candidate"
+        },
+        {
+          "id": "c-56ec0cdb",
+          "label": "Require",
+          "anchor": "[F:Cockpit/Surface/SoftOrganBoardMetaCatalog.cs;M:Require]",
+          "path": "Cockpit/Surface/SoftOrganBoardMetaCatalog.cs",
+          "symbol": "Require",
+          "status": "candidate"
+        },
+        {
+          "id": "c-91a55e23",
+          "label": "Build",
+          "anchor": "[F:Cockpit/Surface/ISoftOrganBoard.cs;M:Build]",
+          "path": "Cockpit/Surface/ISoftOrganBoard.cs",
+          "symbol": "Build",
+          "status": "candidate"
+        },
+        {
+          "id": "c-ef18d2b6",
+          "label": "Build",
+          "anchor": "[F:IdeSoftOrganBoard.cs;M:Build]",
+          "path": "IdeSoftOrganBoard.cs",
+          "symbol": "Build",
+          "status": "candidate"
+        },
+        {
+          "id": "c-653fd336",
+          "label": "SoftOrganPresentMode",
+          "anchor": "[F:Cockpit/Surface/SoftOrganPresentMode.cs;M:SoftOrganPresentMode]",
+          "path": "Cockpit/Surface/SoftOrganPresentMode.cs",
+          "symbol": "SoftOrganPresentMode",
+          "status": "candidate"
+        },
+        {
+          "id": "c-eb2e5771",
+          "label": "Classify",
+          "anchor": "[F:Cockpit/Surface/SeatFallbackSnapUnit.cs;M:Classify]",
+          "path": "Cockpit/Surface/SeatFallbackSnapUnit.cs",
+          "symbol": "Classify",
+          "status": "candidate"
+        },
+        {
+          "id": "c-397ded36",
+          "label": "Present",
+          "anchor": "[F:Cockpit/Surface/SeatOrganPanePresenter.cs;M:Present]",
+          "path": "Cockpit/Surface/SeatOrganPanePresenter.cs",
+          "symbol": "Present",
+          "status": "candidate"
+        },
+        {
+          "id": "c-dc542288",
+          "label": "Build",
+          "anchor": "[F:Cockpit/Surface/WorldSnapPaneUnit.cs;M:Build]",
+          "path": "Cockpit/Surface/WorldSnapPaneUnit.cs",
+          "symbol": "Build",
+          "status": "candidate"
+        },
+        {
+          "id": "c-370f8f89",
+          "label": "Build",
+          "anchor": "[F:Cockpit/Surface/EditorSnapPaneUnit.cs;M:Build]",
+          "path": "Cockpit/Surface/EditorSnapPaneUnit.cs",
+          "symbol": "Build",
+          "status": "candidate"
+        },
+        {
+          "id": "c-400ebb3d",
+          "label": "FromJson",
+          "anchor": "[F:Cockpit/ComputingUnits/OrganJsonPulseUnit.cs;M:FromJson]",
+          "path": "Cockpit/ComputingUnits/OrganJsonPulseUnit.cs",
+          "symbol": "FromJson",
+          "status": "candidate"
+        },
+        {
+          "id": "c-93eccdcc",
+          "label": "BuildSeatsDeskSurfaceAsync",
+          "anchor": "[F:IdeCockpit.Surface.cs;M:BuildSeatsDeskSurfaceAsync]",
+          "path": "IdeCockpit.Surface.cs",
+          "symbol": "BuildSeatsDeskSurfaceAsync",
+          "status": "candidate"
+        },
+        {
+          "id": "c-8166ad58",
+          "label": "ResolveSeatOrganPaneAsync",
+          "anchor": "[F:IdeCockpit.Surface.SoftOrgans.cs;M:ResolveSeatOrganPaneAsync]",
+          "path": "IdeCockpit.Surface.SoftOrgans.cs",
+          "symbol": "ResolveSeatOrganPaneAsync",
+          "status": "candidate"
+        },
+        {
+          "id": "c-8a8784ac",
+          "label": "DispatchGoAsync",
+          "anchor": "[F:IdeCockpit.Dispatch.cs;M:DispatchGoAsync]",
+          "path": "IdeCockpit.Dispatch.cs",
+          "symbol": "DispatchGoAsync",
+          "status": "candidate"
+        },
+        {
+          "id": "c-ac21eb97",
+          "label": "Ps1Desk",
+          "anchor": "[F:Cockpit/Surface/SoftOrganKind.cs;M:Ps1Desk]",
+          "path": "Cockpit/Surface/SoftOrganKind.cs",
+          "symbol": "Ps1Desk",
+          "status": "candidate"
+        },
+        {
+          "id": "c-bb0a46f5",
+          "label": "Pulse",
+          "anchor": "[F:Ps1Scene.cs;M:Pulse]",
+          "path": "Ps1Scene.cs",
+          "symbol": "Pulse",
+          "status": "candidate"
+        },
+        {
+          "id": "c-ef80c043",
+          "label": "TryDispatchPs1",
+          "anchor": "[F:IdeCockpitSoftDispatch.Operators.cs;M:TryDispatchPs1]",
+          "path": "IdeCockpitSoftDispatch.Operators.cs",
+          "symbol": "TryDispatchPs1",
+          "status": "candidate"
+        },
+        {
+          "id": "c-9d09bf6f",
+          "label": "Report",
+          "anchor": "[F:Cockpit/Surface/SoftOrganKind.cs;M:Report]",
+          "path": "Cockpit/Surface/SoftOrganKind.cs",
+          "symbol": "Report",
+          "status": "candidate"
+        },
+        {
+          "id": "c-1e538a64",
+          "label": "Pulse",
+          "anchor": "[F:ScriptScene.cs;M:Pulse]",
+          "path": "ScriptScene.cs",
+          "symbol": "Pulse",
+          "status": "candidate"
+        },
+        {
+          "id": "c-c33cefda",
+          "label": "Handle",
+          "anchor": "[F:IdeReportBoard.cs;M:Handle]",
+          "path": "IdeReportBoard.cs",
+          "symbol": "Handle",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:16:39.1686025+00:00"
+    },
+    {
+      "id": "transport-core",
+      "role": "transport",
+      "status": "promoted",
+      "note": "as_built \u00B7 DeskIngestionBus Channel\u003CT\u003E (ADR 0094) \u00B7 auto-promoted",
+      "elected_candidate_id": "c-cbbafcbf",
+      "candidates": [
+        {
+          "id": "c-cbbafcbf",
+          "label": "DeskIngestionBus",
+          "anchor": "[F:Cockpit/Transport/DeskIngestionBus.cs;M:DeskIngestionBus]",
+          "path": "Cockpit/Transport/DeskIngestionBus.cs",
+          "symbol": "DeskIngestionBus",
+          "status": "elected"
+        },
+        {
+          "id": "c-075d84cd",
+          "label": "IdeCockpit.Transport",
+          "anchor": "[F:IdeCockpit.Transport.cs;M:IdeCockpit.Transport]",
+          "path": "IdeCockpit.Transport.cs",
+          "symbol": "IdeCockpit.Transport",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:16:39.1687776+00:00"
+    },
+    {
+      "id": "dal-core",
+      "role": "dal",
+      "status": "promoted",
+      "note": "as_built \u00B7 DataAcquisition \u002B toolchain (ADR 0102/0198) \u00B7 auto-promoted",
+      "elected_candidate_id": "c-617a4033",
+      "candidates": [
+        {
+          "id": "c-617a4033",
+          "label": "ToolchainPathProbe",
+          "anchor": "[F:Cockpit/DataAcquisition/ToolchainPathProbe.cs;M:ToolchainPathProbe]",
+          "path": "Cockpit/DataAcquisition/ToolchainPathProbe.cs",
+          "symbol": "ToolchainPathProbe",
+          "status": "elected"
+        },
+        {
+          "id": "c-4466c709",
+          "label": "IdeToolchainChannel",
+          "anchor": "[F:IdeToolchainChannel.cs;M:IdeToolchainChannel]",
+          "path": "IdeToolchainChannel.cs",
+          "symbol": "IdeToolchainChannel",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:16:39.1687933+00:00"
+    },
+    {
+      "id": "databus-core",
+      "role": "databus",
+      "status": "promoted",
+      "note": "as_built \u00B7 IDE DataBus \u002B DeskDataBusHost (ADR 0099) \u00B7 auto-promoted",
+      "elected_candidate_id": "c-ce2d35f6",
+      "candidates": [
+        {
+          "id": "c-ce2d35f6",
+          "label": "IDataBus",
+          "anchor": "[F:Cockpit/DataBus/IDataBus.cs;M:IDataBus]",
+          "path": "Cockpit/DataBus/IDataBus.cs",
+          "symbol": "IDataBus",
+          "status": "elected"
+        },
+        {
+          "id": "c-cf4b0c0f",
+          "label": "InMemoryDataBus",
+          "anchor": "[F:Cockpit/DataBus/InMemoryDataBus.cs;M:InMemoryDataBus]",
+          "path": "Cockpit/DataBus/InMemoryDataBus.cs",
+          "symbol": "InMemoryDataBus",
+          "status": "candidate"
+        },
+        {
+          "id": "c-458b5fbe",
+          "label": "DeskDataBusHost",
+          "anchor": "[F:Cockpit/DataBus/DeskDataBusHost.cs;M:DeskDataBusHost]",
+          "path": "Cockpit/DataBus/DeskDataBusHost.cs",
+          "symbol": "DeskDataBusHost",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:16:39.1688218+00:00"
+    },
+    {
+      "id": "instr-core",
+      "role": "instrument",
+      "status": "promoted",
+      "note": "as_built \u00B7 DeskInstrumentMountRegistry (ADR 0063) \u00B7 auto-promoted",
+      "elected_candidate_id": "c-1e884057",
+      "candidates": [
+        {
+          "id": "c-1e884057",
+          "label": "DeskInstrumentMountRegistry",
+          "anchor": "[F:Cockpit/Instrument/DeskInstrumentMountRegistry.cs;M:DeskInstrumentMountRegistry]",
+          "path": "Cockpit/Instrument/DeskInstrumentMountRegistry.cs",
+          "symbol": "DeskInstrumentMountRegistry",
+          "status": "elected"
+        },
+        {
+          "id": "c-1b10ec4f",
+          "label": "IdeCockpit.Instrument",
+          "anchor": "[F:IdeCockpit.Instrument.cs;M:IdeCockpit.Instrument]",
+          "path": "IdeCockpit.Instrument.cs",
+          "symbol": "IdeCockpit.Instrument",
+          "status": "candidate"
+        }
+      ],
+      "created_utc": "2026-07-28T01:16:39.1688491+00:00"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-d5c9f701",
+      "from_role_id": "transport-core",
+      "to_role_id": "ccu-core",
+      "kind": "feeds"
+    },
+    {
+      "id": "e-6f5faea4",
+      "from_role_id": "dal-core",
+      "to_role_id": "ccu-core",
+      "kind": "feeds"
+    },
+    {
+      "id": "e-96680b62",
+      "from_role_id": "ccu-core",
+      "to_role_id": "ch-core",
+      "kind": "feeds"
+    },
+    {
+      "id": "e-2a10bddb",
+      "from_role_id": "ch-core",
+      "to_role_id": "cds-core",
+      "kind": "feeds"
+    },
+    {
+      "id": "e-a8065df2",
+      "from_role_id": "cds-core",
+      "to_role_id": "comp-core",
+      "kind": "projects"
+    },
+    {
+      "id": "e-9ef79d30",
+      "from_role_id": "comp-core",
+      "to_role_id": "surf-seats",
+      "kind": "projects"
+    },
+    {
+      "id": "e-2159053c",
+      "from_role_id": "databus-core",
+      "to_role_id": "ch-core",
+      "kind": "wires"
+    },
+    {
+      "id": "e-c5f3aff9",
+      "from_role_id": "instr-core",
+      "to_role_id": "surf-seats",
+      "kind": "mounts"
+    }
+  ]
+}
