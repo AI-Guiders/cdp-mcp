@@ -11,6 +11,7 @@ internal static partial class IdeIgniteArmHost
         @event = a.Event,
         status = a.Status,
         task = a.Task,
+        charge_mode = a.ChargeMode,
         message = a.Message.Length > 160 ? a.Message[..160] + "…" : a.Message,
         chat = a.Chat,
         port = a.Port,
@@ -30,6 +31,7 @@ internal static partial class IdeIgniteArmHost
         Id = a.Id,
         Event = a.Event,
         Message = a.Message,
+        ChargeMode = a.ChargeMode,
         Task = a.Task,
         Chat = a.Chat,
         Port = a.Port,
@@ -78,6 +80,22 @@ internal static partial class IdeIgniteArmHost
         catch { return null; }
     }
 
+    static string? TryGetDetail(object? result)
+    {
+        if (result is null) return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            if (doc.RootElement.TryGetProperty("detail", out var d))
+                return d.GetString();
+            if (doc.RootElement.TryGetProperty("phase", out var p))
+                return p.GetString();
+        }
+        catch { /* ignore */ }
+
+        return null;
+    }
+
     static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key) =>
         args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String ? el.GetString() : null;
 
@@ -103,6 +121,8 @@ internal static partial class IdeIgniteArmHost
         public string Id { get; set; } = "";
         public string Event { get; set; } = "timer";
         public string Message { get; set; } = "";
+        /// <summary>minimal (default): fire canonical wake charge; custom/expand/legacy: stored message templates (discouraged).</summary>
+        public string ChargeMode { get; set; } = "minimal";
         public string? Task { get; set; }
         public string? Chat { get; set; }
         public int Port { get; set; } = IdeIgniteChannel.DefaultPort;

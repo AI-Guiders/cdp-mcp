@@ -13,7 +13,7 @@ internal static partial class IdeIgniteArmHost
 
     public static object SceneSlice()
     {
-        var list = Snapshot().Where(a => a.Status is "armed" or "firing" or "error" or "awaiting").ToList();
+        var list = Snapshot().Where(a => a.Status is "armed" or "firing" or "error" or "awaiting" or ProviderBlockedStatus).ToList();
         return new
         {
             count = list.Count,
@@ -30,26 +30,58 @@ internal static partial class IdeIgniteArmHost
         var force = OptBool(args, "force") == true;
         lock (Gate)
         {
-            var awaiting = Arms.Where(a => a.Status == "awaiting").ToList();
-            if (arm.LastOnce && awaiting.Count > 0 && !force)
+            if (!force)
             {
-                var latch = awaiting[0];
+                var blockedOnly = Arms.FirstOrDefault(a => a.Status == ProviderBlockedStatus);
+                if (blockedOnly is not null)
+                {
+                    return new
+                    {
+                        schema = IdeIgniteChannel.Schema,
+                        ok = true,
+                        op = "arm",
+                        skipped = true,
+                        error = NewThreadRequiredError,
+                        continuity = ProviderBlockedStatus,
+                        pulse = $"ignite · {ProviderBlockedStatus} · skip re-arm · {blockedOnly.Id}",
+                        arm = Slim(blockedOnly),
+                        arms = SceneSliceUnlocked(),
+                        hint = "Provider blocked after fire — new chat required for PF. op=resume after handoff; force=true to replace."
+                    };
+                }
+            }
+
+            var latched = Arms.Where(a => a.Status is "awaiting" or ProviderBlockedStatus).ToList();
+            if (arm.LastOnce && latched.Count > 0 && !force)
+            {
+                var latch = latched[0];
+                var latchErr = IsProviderBlockedStatus(latch.Status)
+                    ? NewThreadRequiredError
+                    : "awaiting_operator";
                 return new
                 {
                     schema = IdeIgniteChannel.Schema,
                     ok = true,
                     op = "arm",
                     skipped = true,
-                    error = "awaiting_operator",
-                    pulse = $"ignite · awaiting · skip re-arm · {latch.Id}",
+                    error = latchErr,
+                    continuity = IsProviderBlockedStatus(latch.Status) ? ProviderBlockedStatus : "awaiting_operator",
+                    pulse = IsProviderBlockedStatus(latch.Status)
+                        ? $"ignite · {ProviderBlockedStatus} · skip re-arm · {latch.Id}"
+                        : $"ignite · awaiting · skip re-arm · {latch.Id}",
                     arm = Slim(latch),
                     arms = SceneSliceUnlocked(),
-                    hint = "last_once already awaiting operator — do not repeat. force=true to replace, or disarm/resume to fly again."
+                    hint = IsProviderBlockedStatus(latch.Status)
+                        ? "provider blocked — open new chat for PF; op=resume after handoff. force=true to replace."
+                        : "last_once already awaiting operator — do not repeat. force=true to replace, or disarm/resume to fly again."
                 };
             }
 
             if (!arm.LastOnce || force)
+            {
                 Arms.RemoveAll(a => a.Status == "awaiting");
+                Arms.RemoveAll(a => a.Status == ProviderBlockedStatus);
+            }
 
             Arms.RemoveAll(a => a.Id.Equals(arm.Id, StringComparison.OrdinalIgnoreCase));
             Arms.Add(arm);
@@ -71,14 +103,14 @@ internal static partial class IdeIgniteArmHost
             hint = arm.LastOnce
                 ? "last_once: fires once → awaiting latch; harness blocks repeat idle re-arms until force/disarm/work arm."
                 : arm.Event == "timer"
-                    ? "Harness fires when due — end your turn; no shell watcher."
+                    ? "Harness fires when due — end your turn; no terminal poll loop."
                     : $"Harness fires on {arm.Event} (ok_only={arm.OkOnly}). Kick cdp_build/cdp_test then end turn."
         };
     }
 
     static object SceneSliceUnlocked()
     {
-        var list = Arms.Where(a => a.Status is "armed" or "firing" or "error" or "awaiting").Select(Clone).ToList();
+        var list = Arms.Where(a => a.Status is "armed" or "firing" or "error" or "awaiting" or ProviderBlockedStatus).Select(Clone).ToList();
         return new
         {
             count = list.Count,
@@ -142,7 +174,7 @@ internal static partial class IdeIgniteArmHost
             seat = Seat,
             arms = list.Select(Slim).ToList(),
             store = StorePath,
-            hint = "op=arm when=build_finished|test_finished|timer in=5m message=… [task=…]; op=hygiene|plateau to clear noise"
+            hint = "op=arm when=build_finished|test_finished|timer in=5m task=… [last_once]; charge=minimal (default) fires canonical wake + amnesia postfix; op=hygiene|plateau"
         };
     }
 
@@ -212,7 +244,7 @@ internal static partial class IdeIgniteArmHost
         int removed;
         lock (Gate)
         {
-            removed = Arms.RemoveAll(a => a.Status == "awaiting");
+            removed = Arms.RemoveAll(a => a.Status is "awaiting" or ProviderBlockedStatus);
             if (removed > 0) PersistUnlocked();
         }
 
@@ -224,13 +256,13 @@ internal static partial class IdeIgniteArmHost
             op = "resume",
             go = IdeIgniteChannel.GoName,
             tool = IdeIgniteChannel.ToolName,
-            pulse = $"ignite · resume · cleared awaiting={removed}",
+            pulse = $"ignite · resume · cleared latch={removed}",
             removed,
             continuity = ContinuitySlice(list),
             arms = SceneSlice(),
             hint = removed > 0
-                ? "Await latch cleared — re-ARM work timer if needed."
-                : "No awaiting latch. op=arm last_once=true for Await Operator mode."
+                ? "Latch cleared (awaiting and/or provider_blocked) — re-ARM on NEW chat title after PF handoff."
+                : "No latch. op=arm last_once=true for Await Operator mode."
         };
     }
 
@@ -239,6 +271,7 @@ internal static partial class IdeIgniteArmHost
         list ??= Snapshot();
         var armed = list.Where(a => a.Status is "armed" or "firing").ToList();
         var awaiting = list.Where(a => a.Status == "awaiting").ToList();
+        var providerBlocked = list.Where(a => a.Status == ProviderBlockedStatus).ToList();
         var errors = list.Count(a => a.Status == "error");
         var next = armed
             .Where(a => a.DueUtc is not null)
@@ -250,9 +283,12 @@ internal static partial class IdeIgniteArmHost
             armed = armed.Count,
             firing = list.Count(a => a.Status == "firing"),
             awaiting = awaiting.Count,
+            provider_blocked = providerBlocked.Count > 0,
+            new_thread_required = providerBlocked.Count > 0,
             error = errors,
             await_operator = awaiting.Count > 0,
             await_arm = awaiting.Select(Slim).FirstOrDefault(),
+            blocked_arm = providerBlocked.Select(Slim).FirstOrDefault(),
             next_due = next,
             tasks = armed.Select(a => a.Task).Where(t => !string.IsNullOrWhiteSpace(t)).Distinct().ToList()
         };
@@ -261,6 +297,9 @@ internal static partial class IdeIgniteArmHost
     internal static string ContinuityPulseLine(IReadOnlyList<IgniteArm>? list = null)
     {
         list ??= Snapshot();
+        var blocked = list.Where(a => a.Status == ProviderBlockedStatus).ToList();
+        if (blocked.Count > 0)
+            return $"ignite · continuity · {ProviderBlockedStatus} · new_thread_required · latch={blocked.Count}";
         var awaiting = list.Count(a => a.Status == "awaiting");
         if (awaiting > 0)
             return $"ignite · continuity · awaiting_operator · latch={awaiting}";

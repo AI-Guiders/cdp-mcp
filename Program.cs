@@ -125,6 +125,11 @@ var anuiTools = Anui.Agent.Mcp.ToolCatalog.Build().ToDictionary(t => t.Name, Str
 var docStore = new DocumentBufferStore();
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
+shellHabitat.Finished += info => IdeIgniteArmHost.Notify(
+    "shell_finished",
+    ok: info.ExitCode == 0,
+    pulse: info.Tab,
+    detail: info.Command.Length > 120 ? info.Command[..120] : info.Command);
 var mcpOutlet = new McpOutletHabitat();
 var internetBrowser = new InternetBrowserHabitat();
 var ideSettings = new IdeSettingsHabitat(
@@ -643,15 +648,16 @@ List<Tool> BuildMetaTools() =>
             hidden = new { type = "boolean", description = "include hidden entries" }
         }
     }),
-    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list|hygiene|plateau|continuity|resume. ARM: when=build_finished|test_finished|timer in=5m message=/task= — harness waits & injects (no shell loops). last_once=/await_operator=/mode=await: fire once → awaiting latch (blocks repeat idle re-arms; resume|force|work-arm clears). hygiene/plateau: keep continuity, scrub error/zombie once-arms. Alias go=ignite_desk.", new
+    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list|hygiene|plateau|continuity|resume. ARM: when=build_finished|test_finished|shell_finished|timer task= (TM label only). Default charge=minimal: canonical wake text + amnesia/compaction postfix at fire (no TM body in composer). charge=custom only for legacy templates. last_once=/await_operator: fire once → awaiting latch. Alias go=ignite_desk.", new
     {
         type = "object",
         properties = new
         {
             op = new { type = "string", description = "scene|probe|chats|send|arm|disarm|list" },
-            message = new { type = "string", description = "send/arm: user message (templates {event}{task}{ok}{pulse})" },
-            task = new { type = "string", description = "arm: next-task label; default message uses {task}" },
-            when = new { type = "string", description = "arm: build_finished|test_finished|timer" },
+            message = new { type = "string", description = "send: optional override; arm: ignored unless charge=custom" },
+            task = new { type = "string", description = "arm: Task Manager label (SSOT); not injected into composer" },
+            charge = new { type = "string", description = "arm: minimal (default)|custom|legacy — minimal fires canonical+amnesia postfix" },
+            when = new { type = "string", description = "arm: build_finished|test_finished|shell_finished|timer" },
             @event = new { type = "string", description = "alias of when=" },
             @in = new { type = "string", description = "arm timer: 30s|5m|2h" },
             chat = new { type = "string", description = "optional chat title substring" },

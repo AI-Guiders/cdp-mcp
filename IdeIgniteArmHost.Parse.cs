@@ -16,7 +16,7 @@ internal static partial class IdeIgniteArmHost
         var task = Opt(args, "task") ?? Opt(args, "next") ?? Opt(args, "label");
         if (string.IsNullOrWhiteSpace(message) && string.IsNullOrWhiteSpace(task))
         {
-            err = Err("arm", "message_or_task_required", "arm message=… and/or task=…");
+            err = Err("arm", "message_or_task_required", "arm task=… (TM label) and/or when=…; composer charge is canonical wake text");
             return false;
         }
 
@@ -50,13 +50,16 @@ internal static partial class IdeIgniteArmHost
         }
 
         if (string.IsNullOrWhiteSpace(message))
-            message = "[autoignite/{event}] Next: {task}";
+            message = IdeIgniteChannel.CanonicalComposerCharge;
+
+        var chargeMode = (Opt(args, "charge") ?? "minimal").Trim().ToLowerInvariant();
 
         arm = new IgniteArm
         {
             Id = id!,
             Event = when,
-            Message = message!,
+            Message = chargeMode is "custom" or "expand" or "legacy" ? message! : IdeIgniteChannel.CanonicalComposerCharge,
+            ChargeMode = chargeMode,
             Task = task,
             Chat = chat,
             Port = port,
@@ -89,6 +92,7 @@ internal static partial class IdeIgniteArmHost
         {
             "build" or "build_done" or "build_ok" or "build_finished" or "on_build" => "build_finished",
             "test" or "tests" or "test_done" or "test_finished" or "on_test" => "test_finished",
+            "shell" or "shell_done" or "shell_finished" or "on_shell" => "shell_finished",
             "time" or "delay" or "sleep" or "timer" or "in" => "timer",
             "manual" or "now" or "fire" => "manual",
             _ when e.Length == 0 => "timer",

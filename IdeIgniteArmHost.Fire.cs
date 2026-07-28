@@ -5,6 +5,10 @@ namespace CdpMcp;
 
 internal static partial class IdeIgniteArmHost
 {
+    /// <summary>Fail-closed latch: provider refusal after fire → explicit continuity state.</summary>
+    internal static bool ShouldLatchAwaitingOnFireError(string? error) =>
+        ShouldEnterProviderBlockedContinuity(error);
+
     static void QueueFire(IgniteArm arm, bool ok, string? pulse, string? detail)
     {
         if (!Firing.TryAdd(arm.Id, 0)) return;
@@ -16,7 +20,9 @@ internal static partial class IdeIgniteArmHost
                 if (arm.SettleSeconds > 0)
                     await Task.Delay(TimeSpan.FromSeconds(arm.SettleSeconds)).ConfigureAwait(false);
 
-                var msg = Expand(arm.Message, arm, ok, pulse, detail);
+                var msg = IsCustomChargeMode(arm.ChargeMode)
+                    ? IdeIgniteChannel.SanitizeComposerCharge(Expand(arm.Message, arm, ok, pulse, detail))
+                    : IdeIgniteChannel.ComposeArmFireCharge();
                 var result = await IdeIgniteChannel.FireAsync(
                     arm.Port, msg, arm.Chat, arm.WaitSeconds, CancellationToken.None).ConfigureAwait(false);
 
@@ -35,6 +41,8 @@ internal static partial class IdeIgniteArmHost
                     var err = TryGetError(result) ?? "fire_failed";
                     if (ShouldRequeueBusy(arm.Event, err))
                         RequeueAfterBusy(arm.Id, err, BusyBackoff(arm.WaitSeconds));
+                    else if (ShouldEnterProviderBlockedContinuity(err))
+                        EnterProviderBlockedContinuity(arm, TryGetDetail(result));
                     else if (arm.Once || arm.LastOnce)
                         Remove(arm.Id); // terminal once — do not leave error zombies for reclaim/hygiene
                     else
@@ -123,10 +131,16 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
+    static bool IsCustomChargeMode(string? mode)
+    {
+        var m = (mode ?? "minimal").Trim().ToLowerInvariant();
+        return m is "custom" or "expand" or "legacy";
+    }
+
     static string Expand(string template, IgniteArm arm, bool ok, string? pulse, string? detail)
     {
         var t = template
-            .Replace("{event}", arm.Event, StringComparison.OrdinalIgnoreCase)
+            .Replace("{event}", IdeIgniteChannel.EventTokenForCharge(arm.Event), StringComparison.OrdinalIgnoreCase)
             .Replace("{task}", arm.Task ?? "", StringComparison.OrdinalIgnoreCase)
             .Replace("{ok}", ok ? "ok" : "fail", StringComparison.OrdinalIgnoreCase)
             .Replace("{pulse}", pulse ?? "", StringComparison.OrdinalIgnoreCase)
