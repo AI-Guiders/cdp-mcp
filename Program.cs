@@ -1329,7 +1329,7 @@ var options = new McpServerOptions
                 if (serverRef is not null)
                     await CdpClientWorkspace.RefreshAsync(serverRef, cancellationToken).ConfigureAwait(false);
                 CdpClientWorkspace.EnsureSessionFallback(session);
-                var text = await DispatchAsync(name, callArgs, cancellationToken);
+                var text = await IdeCommandModule.ExecuteAsync(name, callArgs, cancellationToken);
                 return new CallToolResult
                 {
                     Content = ToolMediaOutbox.BuildContent(text)
@@ -2552,6 +2552,8 @@ object EnqueueStageJob(
 
 static object FacetCap(MemoryFacetSettings f) => new { enabled = f.Enabled, roots = f.Roots };
 static object ToggleCap(MemoryToggleSettings t) => new { enabled = t.Enabled };
+
+IdeCommandModule.Bind(DispatchAsync);
 
 await using var stdio = new StdioServerTransport("CdpMcp");
 await using var server = McpServer.Create(stdio, options);
