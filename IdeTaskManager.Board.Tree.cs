@@ -61,7 +61,7 @@ internal static partial class IdeTaskManager
             : $"{(int)span.TotalHours}h{span.Minutes:D2}m";
     }
 
-    static string FormatWallClockSuffix(DateTimeOffset? started, DateTimeOffset? completed, DateTimeOffset now)
+    internal static string FormatWallClockSuffix(DateTimeOffset? started, DateTimeOffset? completed, DateTimeOffset now)
     {
         if (started is null)
             return "";

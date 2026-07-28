@@ -50,9 +50,18 @@ internal static partial class IdeTaskManager
             return new { op = "active", task_id = id };
         }
 
+        object? clock = null;
+        if (status == "parked")
+        {
+            IdeStageCycle.TryPhaseComplete(); // close open phase visit before freeze
+            clock = store.StageClockParkFreeze(state, id);
+        }
+
         var r = store.StageSetStatus(state, id, status);
         store.WorkFocusSave(state);
-        return new { op = status, task_id = r.stage_id, status = r.status };
+        return clock is null
+            ? new { op = status, task_id = r.stage_id, status = r.status }
+            : new { op = status, task_id = r.stage_id, status = r.status, clock };
     }
 
     static object TaskClockStart(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)

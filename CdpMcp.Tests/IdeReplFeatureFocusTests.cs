@@ -97,6 +97,17 @@ public class IdeReplFeatureFocusTests
     }
 
     [Fact]
+    public void FormatWallSuffix_frozen_completed_has_no_ellipsis()
+    {
+        var start = DateTimeOffset.Parse("2026-07-28T04:00:00Z");
+        var done = start.AddMinutes(47);
+        var frozen = IdeTaskManager.FormatWallClockSuffix(start, done, done);
+        var open = IdeTaskManager.FormatWallClockSuffix(start, null, done);
+        Assert.Equal(" · wall 47m", frozen);
+        Assert.Equal(" · wall …47m", open);
+    }
+
+    [Fact]
     public void Feature_at_focus_strips_directive_from_title()
     {
         var applied = IdeRepl.Apply("feature night-refactor @focus", Empty);

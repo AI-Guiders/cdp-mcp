@@ -901,6 +901,34 @@ internal sealed partial class IntentWorkspaceStore(
         });
     }
 
+    /// <summary>Park freezes an open wall clock — calendar stop without claiming ship. Resume via explicit start (restarts cycle).</summary>
+    public object? StageClockParkFreeze(IntentWorkspaceState state, Guid stageId)
+    {
+        var intentId = RequireIntent(state);
+        var now = DateTimeOffset.UtcNow;
+        return WithDb(db =>
+        {
+            var entity = db.Stages.FirstOrDefault(x => x.Id == stageId && x.IntentId == intentId)
+                         ?? throw new ArgumentException($"stage_id not found: {stageId}");
+            if (entity.StartedUtc is null || entity.CompletedUtc is not null)
+                return null;
+            entity.CompletedUtc = now;
+            entity.UpdatedUtc = now;
+            db.SaveChanges();
+            var elapsed = IdeTaskManager.FormatWallElapsed(entity.StartedUtc.Value, entity.CompletedUtc.Value);
+            return new
+            {
+                op = "park_freeze",
+                task_id = entity.Id,
+                started_utc = entity.StartedUtc,
+                completed_utc = entity.CompletedUtc,
+                elapsed,
+                kind = "wall",
+                hint = "park froze open wall — not shipped; start again to resume measurable cycle"
+            };
+        });
+    }
+
     public void DeskSeatsSave(IReadOnlyDictionary<string, string?> seats)
     {
         var now = DateTimeOffset.UtcNow;
