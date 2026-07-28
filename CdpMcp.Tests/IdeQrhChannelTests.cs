@@ -195,27 +195,58 @@ public sealed class IdeQrhChannelTests
     }
 
     [Fact]
-    public void Search_vague_criteria_page_by_id()
+    public void Overlay_add_page_searchable_and_suggests_on_explore()
     {
-        var board = IdeQrhChannel.Handle(
-            Ctx(),
-            new Dictionary<string, System.Text.Json.JsonElement>
-            {
-                ["op"] = System.Text.Json.JsonSerializer.SerializeToElement("search"),
-                ["q"] = System.Text.Json.JsonSerializer.SerializeToElement("vague-criteria")
-            });
-        var json = System.Text.Json.JsonSerializer.Serialize(board);
-        using var doc = System.Text.Json.JsonDocument.Parse(json);
-        var hits = doc.RootElement.GetProperty("hits");
-        Assert.Contains(hits.EnumerateArray(), h => h.GetProperty("id").GetString() == "vague-criteria");
-    }
+        IdeSettingsStore.Unset(IdeQrhChannel.OverlayKey);
+        try
+        {
+            var pageJson = """
+                {
+                  "id": "vague-criteria",
+                  "shelf": "abnormal",
+                  "title": "Vague ask — act without C/S",
+                  "condition": "No success axes before act",
+                  "signals": ["vague", "criteria"],
+                  "memory_items": ["Check P/S/C"],
+                  "steps": [{ "text": "Clarify axes before deliverable" }],
+                  "related": ["intake-brief"],
+                  "suggest": [
+                    { "phases": ["explore", "clarify", "recall"], "score": 55 },
+                    { "ecl": ["intake"], "score": 75 }
+                  ]
+                }
+                """;
+            var add = IdeQrhChannel.Handle(
+                Ctx(),
+                new Dictionary<string, System.Text.Json.JsonElement>
+                {
+                    ["op"] = System.Text.Json.JsonSerializer.SerializeToElement("add"),
+                    ["page"] = System.Text.Json.JsonSerializer.SerializeToElement(pageJson)
+                });
+            var addJson = System.Text.Json.JsonSerializer.Serialize(add);
+            using (var addDoc = System.Text.Json.JsonDocument.Parse(addJson))
+                Assert.True(addDoc.RootElement.GetProperty("ok").GetBoolean());
 
-    [Fact]
-    public void Suggest_explore_prefers_vague_criteria_over_intake_alone()
-    {
-        var s = IdeQrhChannel.SuggestFor(Ctx(phase: "explore"));
-        Assert.Equal("vague-criteria", s.HotId);
-        Assert.Contains("intake-brief", s.RelatedIds);
+            var board = IdeQrhChannel.Handle(
+                Ctx(),
+                new Dictionary<string, System.Text.Json.JsonElement>
+                {
+                    ["op"] = System.Text.Json.JsonSerializer.SerializeToElement("search"),
+                    ["q"] = System.Text.Json.JsonSerializer.SerializeToElement("vague-criteria")
+                });
+            var json = System.Text.Json.JsonSerializer.Serialize(board);
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var hits = doc.RootElement.GetProperty("hits");
+            Assert.Contains(hits.EnumerateArray(), h => h.GetProperty("id").GetString() == "vague-criteria");
+
+            var s = IdeQrhChannel.SuggestFor(Ctx(phase: "explore"));
+            Assert.Equal("vague-criteria", s.HotId);
+            Assert.Contains("intake-brief", s.RelatedIds);
+        }
+        finally
+        {
+            IdeSettingsStore.Unset(IdeQrhChannel.OverlayKey);
+        }
     }
 
     [Fact]

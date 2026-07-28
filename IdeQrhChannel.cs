@@ -8,8 +8,9 @@ namespace CdpMcp;
 /// Soft organ <c>go=qrh</c> (alias <c>eqrh</c>) — electronic Quick Reference Handbook.
 /// Systems / abnormal / emergency pages projected on the desk (not cold <c>memory_*</c> thrash).
 /// SSOT for narrative remains packs/KB; this organ is the host projector + CAS→page binding.
+/// Operator/agent pages: <c>qrh.overlay</c> via <c>qrh add|remove</c> — do not extend Builtins for lessons.
 /// </summary>
-internal static class IdeQrhChannel
+internal static partial class IdeQrhChannel
 {
     public const string SchemaVersion = "qrh_organ/v0";
 
@@ -25,7 +26,15 @@ internal static class IdeQrhChannel
         IReadOnlyList<Step> Steps,
         IReadOnlyList<string> Related,
         IReadOnlyList<string> PackAnchors,
-        string? LlmCue = null);
+        string? LlmCue = null,
+        IReadOnlyList<SuggestRule>? Suggest = null,
+        bool Builtin = true);
+
+    /// <summary>When phases/ecl match probe — raise page in SA suggest (overlay-friendly).</summary>
+    public sealed record SuggestRule(
+        IReadOnlyList<string>? Phases,
+        IReadOnlyList<string>? Ecl,
+        int Score);
 
     public sealed record Suggest(
         string? HotId,
@@ -295,29 +304,6 @@ internal static class IdeQrhChannel
             [],
             "Am I sensing through the desk — or reinventing capture in shell?"),
         new(
-            "vague-criteria",
-            "abnormal",
-            "Vague ask — act without C/S",
-            "Prompt like 'do something / improve / we'll see' — executor has no success axes. Retroactive judgment after deliverable. Invert role before act.",
-            ["vague", "criteria", "do something", "improve", "we'll see", "посмотрим", "сделай", "phase:clarify", "DoD", "C/S"],
-            [
-                "Read as executor who will own the result",
-                "Check P / S / C — enough for unambiguous DoD?",
-                "No → clarify or motivated pause — not guess-and-judge",
-                "Not Integrity POST; this is task ontology, not harm"
-            ],
-            [
-                new("Invert: am I the one who will be scored after 'we'll see'?"),
-                new("List missing S: must-have / non-goals / volume budget / done"),
-                new("Ask for axes — or jointly define space before deliverable"),
-                new("If refuse to clarify: motivated pause, not silent guess"),
-                new("KB: playbook-executor-role-inversion-vague-prompt-v1", Action: "memory_world_read_knowledge_file"),
-                new("Sister: intake-brief (what+why) — then criteria before act", "qrh")
-            ],
-            ["intake-brief", "path-mutate-gate", "plateau-no-task"],
-            [],
-            "Did I get success axes — or am I about to guess so they can say 'why so bad' later?"),
-        new(
             "barriers-fail",
             "emergency",
             "Barriers failed — core integrity",
@@ -355,7 +341,6 @@ internal static class IdeQrhChannel
         if (ctx.Phase is "explore" or "clarify" or "recall")
         {
             Hit("intake-brief", 50);
-            Hit("vague-criteria", 55);
             Hit("find-via-desk", 35);
         }
         if (ctx.Phase is "act")
@@ -393,7 +378,6 @@ internal static class IdeQrhChannel
             if (hot.Equals("intake", StringComparison.OrdinalIgnoreCase))
             {
                 Hit("intake-brief", 80);
-                Hit("vague-criteria", 75);
                 Hit("find-via-desk", 55);
             }
             if (hot.Equals("mutate", StringComparison.OrdinalIgnoreCase))
@@ -409,6 +393,8 @@ internal static class IdeQrhChannel
             }
         }
 
+        ApplyOverlaySuggest(hits, ctx, ecl);
+
         var ordered = hits.OrderByDescending(h => h.Score).Select(h => h.Id).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         var hotId = ordered.FirstOrDefault();
         var pulse = hotId is null ? "qrh · idle" : $"qrh · {hotId}" + (ordered.Length > 1 ? $" +{ordered.Length - 1}" : "");
@@ -418,8 +404,9 @@ internal static class IdeQrhChannel
     public static Snap Build(IdeChkChannel.ProbeCtx ctx, IdeChkChannel.Snap? ecl = null)
     {
         var suggest = SuggestFor(ctx, ecl);
-        var index = Builtins().Select(IndexCard).ToArray();
-        return new Snap(true, suggest.Pulse, Builtins().Count, suggest, index);
+        var pages = AllPages();
+        var index = pages.Select(IndexCard).ToArray();
+        return new Snap(true, suggest.Pulse, pages.Count, suggest, index);
     }
 
     public static object Handle(
@@ -431,13 +418,24 @@ internal static class IdeQrhChannel
         var op = (Opt(merged, "op") ?? Opt(merged, "pulse") ?? "index").Trim().ToLowerInvariant();
         var suggest = SuggestFor(ctx, ecl);
 
+        if (op is "add" or "upsert")
+            return DoAdd(merged);
+        if (op is "remove" or "rm" or "delete")
+            return DoRemove(merged);
+        if (op is "enable" or "on")
+            return DoEnable(merged, enable: true);
+        if (op is "disable" or "off")
+            return DoEnable(merged, enable: false);
+        if (op is "overlay")
+            return OverlayScene();
+
         if (op is "index" or "list" or "catalog" or "scene")
             return Board(null, suggest, action: null, mode: "index");
 
         if (op is "shelf" or "section")
         {
             var shelf = (Opt(merged, "shelf") ?? Opt(merged, "section") ?? Opt(merged, "id") ?? "").Trim();
-            var pages = Builtins()
+            var pages = AllPages()
                 .Where(p => p.Shelf.Equals(shelf, StringComparison.OrdinalIgnoreCase))
                 .Select(IndexCard)
                 .ToArray();
@@ -518,7 +516,7 @@ internal static class IdeQrhChannel
             };
         }
 
-        return Err("unknown_op", "op=index|open|search|shelf|related");
+        return Err("unknown_op", "op=index|open|search|shelf|related|add|remove|overlay");
     }
 
     static object Board(Page? page, Suggest suggest, object? action, string mode)
@@ -538,11 +536,11 @@ internal static class IdeQrhChannel
             note = "Electronic QRH — systems / abnormal / emergency. Pack cards via anchors; desk projector, not memory_* thrash.",
             page = page is null ? null : PageCard(page),
             related,
-            index = Builtins().Select(IndexCard).ToArray(),
+            index = AllPages().Select(IndexCard).ToArray(),
             suggest = SuggestCard(suggest),
             shelves = new[] { "systems", "abnormal", "emergency" },
             action,
-            hint = "CCL: qrh | qrh open dap-pdb-lock | qrh search pdb | qrh shelf emergency"
+            hint = "CCL: qrh | qrh open dap-pdb-lock | qrh add id=… | qrh search pdb"
         };
     }
 
@@ -577,7 +575,7 @@ internal static class IdeQrhChannel
     };
 
     public static Page? Find(string id) =>
-        Builtins().FirstOrDefault(p => p.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+        AllPages().FirstOrDefault(p => p.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
     public static IReadOnlyList<Page> Search(string q)
     {
@@ -592,7 +590,7 @@ internal static class IdeQrhChannel
             || p.MemoryItems.Any(m => m.Contains(needle, StringComparison.OrdinalIgnoreCase))
             || p.PackAnchors.Any(a => a.Contains(needle, StringComparison.OrdinalIgnoreCase));
 
-        return Builtins().Where(Match).ToArray();
+        return AllPages().Where(Match).ToArray();
     }
 
     static string Trunc(string s, int max) =>
