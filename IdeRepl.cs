@@ -658,8 +658,8 @@ internal static class IdeRepl
             var text = string.Join(' ', rest);
             merged["tm_op"] = JsonSerializer.SerializeToElement("criterion");
             merged["go_args"] = mode is null
-                ? JsonSerializer.SerializeToElement(new { op = "criterion", action = "add", kind, text, title = text })
-                : JsonSerializer.SerializeToElement(new { op = "criterion", action = "add", kind, text, title = text, mode });
+                ? JsonSerializer.SerializeToElement(new { op = "criterion", action = "add", kind, text })
+                : JsonSerializer.SerializeToElement(new { op = "criterion", action = "add", kind, text, mode });
             return (merged, null);
         }
 

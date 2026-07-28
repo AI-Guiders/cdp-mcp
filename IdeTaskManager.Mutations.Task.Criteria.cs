@@ -6,13 +6,26 @@ namespace CdpMcp;
 
 internal static partial class IdeTaskManager
 {
+    static Guid? ResolveCriterionStage(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        // Never use Title() here — REPL puts criterion body into title/text.
+        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id")
+                 ?? GuidArgGo(args, "stage_id") ?? GuidArgGo(args, "task_id");
+        if (id is not null)
+            return id;
+        return state.ActiveStageId;
+    }
+
     static object TaskCriteriaList(
         IntentWorkspaceStore store,
         IntentWorkspaceState state,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        var id = ResolveStageTarget(store, state, args)
-                 ?? throw new ArgumentException("criteria needs active task or title — focus X | criteria");
+        var id = ResolveCriterionStage(store, state, args)
+                 ?? throw new ArgumentException("criteria needs active task — focus X | criteria");
         var kind = Opt(args, "kind") ?? OptGoArg(args, "kind");
         return store.StageCriterionList(state, id, kind);
     }
@@ -22,11 +35,12 @@ internal static partial class IdeTaskManager
         IntentWorkspaceState state,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        var id = ResolveStageTarget(store, state, args)
+        var id = ResolveCriterionStage(store, state, args)
                  ?? throw new ArgumentException("criterion needs active task — focus X first");
         var kind = Opt(args, "kind") ?? OptGoArg(args, "kind")
                    ?? throw new ArgumentException("criterion needs kind — criterion dor|ac|dod <text>");
-        var text = Opt(args, "text") ?? OptGoArg(args, "text") ?? Title(args);
+        var text = Opt(args, "text") ?? OptGoArg(args, "text")
+                   ?? throw new ArgumentException("criterion needs text — criterion dor|ac|dod <text>");
         var mode = Opt(args, "mode") ?? OptGoArg(args, "mode");
         var evidence = Opt(args, "evidence_ref") ?? OptGoArg(args, "evidence_ref")
                        ?? Opt(args, "evidence") ?? OptGoArg(args, "evidence");
