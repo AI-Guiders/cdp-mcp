@@ -1206,7 +1206,8 @@ List<Tool> BuildMetaTools() =>
                 description = "Structured args: [program, arg1, …]. Harness joins with shell-safe quoting."
             },
             tab = new { type = "string", description = "Tab id (default main). letters/digits/_- max 32." },
-            cwd = new { type = "string", description = "Working directory (persists on tab)." },
+            cwd = new { type = "string", description = "Working directory (persists on tab). Alias: working_directory." },
+            working_directory = new { type = "string", description = "Alias of cwd (Cursor Shell habit)." },
             shell = new { type = "string", description = "Prefer: pwsh | cmd | or unix shell path." },
             codepage = new { type = "integer", description = "Console/pipe code page; sticky on tab. Default 65001 (UTF-8)." },
             timeout_seconds = new { type = "integer", description = "1..600 (default 60). Ignored when background=true." },
@@ -2245,7 +2246,11 @@ async Task<string> DispatchMetaAsync(
             if (argv is null && string.IsNullOrWhiteSpace(cmd))
                 throw new ArgumentException("command or argv is required.");
             string? tab = callArgs.TryGetValue("tab", out var tabEl) ? tabEl.GetString() : null;
+            // Cursor Shell habit: working_directory — accept as cwd alias (agent-pain sticky miss).
             string? cwd = callArgs.TryGetValue("cwd", out var cwdEl) ? cwdEl.GetString() : null;
+            if (string.IsNullOrWhiteSpace(cwd)
+                && callArgs.TryGetValue("working_directory", out var wdEl))
+                cwd = wdEl.GetString();
             string? shell = callArgs.TryGetValue("shell", out var shEl) ? shEl.GetString() : null;
             int? timeout = callArgs.TryGetValue("timeout_seconds", out var toEl) && toEl.TryGetInt32(out var to)
                 ? to
