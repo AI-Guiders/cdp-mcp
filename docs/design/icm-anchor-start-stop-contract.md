@@ -30,5 +30,7 @@ Human may also Start from OS shortcut — same process attach via env.
 - [x] `op=stop` → agent-only; MCP untouched
 - [x] Config SSOT: `[cockpit_host] exe` in `cdp-mcp.toml`; `path=` one-shot; env escape only
 - [x] Real CascadeIDE exe dogfood (`path=` / toml on cdp-debug)
-- [~] Nav Anchor in GUI lands via same `cdp_land` wire — latch `%LocalAppData%/cdp-mcp/land-LATEST.json` + CIDE `CdpLandProjector` (open_file/select); dogfood pending rebuild CIDE
+- [x] Nav Anchor in GUI lands via same `cdp_land` wire — latch `%LocalAppData%/cdp-mcp/land-LATEST.json` + CIDE `CdpLandProjector` (GoToPosition + reload clean tab)
+- [>] Human GUI focus → agent (`focus-LATEST.json` / `navigation_focus_latch/v1` + `cdp_editor_scene.human_focus`)
 - [ ] Melody/settings load when shell starts (do not strip)
+- [ ] Auto-reload open tabs on Instant Save without land
