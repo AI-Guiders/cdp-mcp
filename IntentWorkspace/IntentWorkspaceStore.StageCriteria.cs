@@ -44,6 +44,63 @@ internal sealed partial class IntentWorkspaceStore
         });
     }
 
+    public object StageCriterionEnsure(
+        IntentWorkspaceState state,
+        Guid stageId,
+        string kind,
+        string text,
+        string? mode = null,
+        string? evidenceRef = null)
+    {
+        var intentId = RequireIntent(state);
+        var k = NormalizeCriterionKind(kind);
+        var body = TruncateCriterionText(text);
+        if (body.Length == 0)
+            throw new ArgumentException("criterion needs text — criterion dor|ac|dod <text>");
+        var m = NormalizeCriterionMode(mode);
+        var now = DateTimeOffset.UtcNow;
+        var evidence = TruncateEvidenceRef(evidenceRef);
+        return WithDb(db =>
+        {
+            _ = db.Stages.AsNoTracking().FirstOrDefault(x => x.Id == stageId && x.IntentId == intentId)
+                ?? throw new ArgumentException($"stage_id not found: {stageId}");
+            var existing = evidence is null
+                ? db.StageCriteria.FirstOrDefault(x =>
+                    x.StageId == stageId && x.Kind == k && x.Body == body)
+                : db.StageCriteria.FirstOrDefault(x =>
+                    x.StageId == stageId
+                    && x.Kind == k
+                    && (x.Body == body || x.EvidenceRef == evidence));
+            if (existing is not null)
+            {
+                existing.Mode = m;
+                if (evidence is not null)
+                    existing.EvidenceRef = evidence;
+                existing.UpdatedUtc = now;
+                db.SaveChanges();
+                return CriterionDto(existing);
+            }
+
+            var ordinal = db.StageCriteria.Count(x => x.StageId == stageId);
+            var row = new StageCriterionEntity
+            {
+                Id = Guid.NewGuid(),
+                StageId = stageId,
+                Kind = k,
+                Body = body,
+                Mode = m,
+                Status = "pending",
+                EvidenceRef = evidence,
+                Ordinal = ordinal,
+                UpdatedUtc = now
+            };
+            db.StageCriteria.Add(row);
+            if (db.SaveChanges() <= 0)
+                throw new InvalidOperationException("stage_criteria ensure SaveChanges wrote 0 rows");
+            return CriterionDto(row);
+        });
+    }
+
     public object StageCriterionAdd(
         IntentWorkspaceState state,
         Guid stageId,

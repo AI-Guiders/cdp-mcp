@@ -663,6 +663,46 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        // Change Planner — first auto/hybrid criteria producer.
+        if (head is "change_plan" or "changeplan" or "cp")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("change_plan");
+            var action = tokens.Count >= 2 ? tokens[1].ToLowerInvariant() : "scene";
+            if (action is "seed" or "open" or "ensure" or "scene" or "pulse" or "status"
+                or "check" or "ack" or "manual_ack")
+            {
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "change_plan", action, cp_op = action });
+                return (merged, null);
+            }
+
+            if (action is "anchor" or "add_anchor")
+            {
+                var anchorText = tokens.Count >= 3 ? string.Join(' ', tokens.Skip(2)) : "";
+                merged["go_args"] = JsonSerializer.SerializeToElement(new
+                {
+                    op = "change_plan",
+                    action = "anchor",
+                    cp_op = "anchor",
+                    anchor = anchorText,
+                    text = anchorText
+                });
+                return (merged, null);
+            }
+
+            // Bare "change_plan <something>" → treat rest as anchor text after implicit seed path via planner.
+            var restAnchor = string.Join(' ', tokens.Skip(1));
+            merged["go_args"] = JsonSerializer.SerializeToElement(new
+            {
+                op = "change_plan",
+                action = "anchor",
+                cp_op = "anchor",
+                anchor = restAnchor,
+                text = restAnchor
+            });
+            return (merged, null);
+        }
+
         if (head is "tasks" or "plan" or "board")
         {
             merged["go"] = JsonSerializer.SerializeToElement("plan");
@@ -1391,6 +1431,10 @@ internal static class IdeRepl
             return "criteria [dor|ac|dod] — list work-unit criteria";
         if (title.Equals("criterion", StringComparison.OrdinalIgnoreCase))
             return "criterion dor|ac|dod <text> [@manual|@auto|@hybrid] | criterion met|drop <id>";
+        if (title.Equals("change_plan", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("changeplan", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("cp", StringComparison.OrdinalIgnoreCase))
+            return "change_plan seed|anchor <a>|check|ack — hybrid DoR blast-radius producer";
         if (title.Equals("start_phase", StringComparison.OrdinalIgnoreCase)
             || title.Equals("phase_start", StringComparison.OrdinalIgnoreCase))
             return "start_phase [act] — wall phase segment begin (re-entry OK)";
