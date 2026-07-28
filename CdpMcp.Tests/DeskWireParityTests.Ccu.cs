@@ -313,6 +313,8 @@ public sealed partial class DeskWireParityTests
         Assert.Equal("cdp_land", land.Tool);
         Assert.True(cat.TryGet("navigate", out var navigate));
         Assert.Equal("cdp_land", navigate.Tool);
+        Assert.True(cat.TryGet("icm", out var icm));
+        Assert.Equal("cdp_icm", icm.Tool);
         Assert.False(cat.Contains("not_a_real_verb_xyz"));
     }
 }
