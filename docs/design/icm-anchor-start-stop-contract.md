@@ -28,6 +28,6 @@ Human may also Start from OS shortcut — same process attach via env.
 - [x] Meta + go map + pid state under StateRoot (`cockpit-host.json`)
 - [x] `op=start` without exe → clear error (no Avalonia guess)
 - [x] `op=stop` → agent-only; MCP untouched
-- [ ] Real CascadeIDE exe configured in dogfood (`CDP_COCKPIT_HOST_EXE`)
+- [x] Real CascadeIDE exe dogfood (`path=` → `cascade-ide/publish/CascadeIDE.exe` on cdp-debug 0.5.293; env optional)
 - [ ] Nav Anchor in GUI lands via same `cdp_land` wire
 - [ ] Melody/settings load when shell starts (do not strip)
