@@ -11,8 +11,16 @@ internal static partial class IdeIgniteChannel
         const __igniteFindPromptRoot = () => {
           const submit = document.querySelector(".ui-prompt-input-submit-button");
           if (submit) {
-            const root = submit.closest(".ui-prompt-input, [class*='ui-prompt-input']");
-            if (root) return root;
+            // Do NOT use [class*='ui-prompt-input'] from submit — it matches the button itself.
+            const exact = submit.closest(".ui-prompt-input");
+            if (exact) return exact;
+            let el = submit.parentElement;
+            while (el) {
+              const cls = String(el.className || "");
+              if (/(?:^|\s)ui-prompt-input(?:\s|$)/.test(cls) || (cls.includes("ui-prompt-input") && el !== submit && !cls.includes("submit-button")))
+                return el;
+              el = el.parentElement;
+            }
           }
           return document.querySelector(".ui-prompt-input");
         };

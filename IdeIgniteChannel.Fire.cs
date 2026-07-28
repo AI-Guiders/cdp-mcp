@@ -161,7 +161,9 @@ internal static partial class IdeIgniteChannel
                 return st;
 
             var kind = AriaKind(st.SubmitAria);
-            if (st.HasInput && kind is not ("stop" or "queue"))
+            // Idle = not Stop/Queue. Do not require HasInput here — a bad root finder
+            // used to keep HasInput false forever and starve every fire into busy_timeout.
+            if (kind is not ("stop" or "queue"))
                 return st;
 
             await Task.Delay(1000, ct).ConfigureAwait(false);
