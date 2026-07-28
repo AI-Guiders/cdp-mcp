@@ -5,8 +5,9 @@ using System.Text.Json.Serialization;
 namespace CdpMcp;
 
 /// <summary>
-/// Read-only human GUI focus pulse (reverse of <see cref="NavigationLandLatch"/>).
-/// CascadeIDE writes %LocalAppData%/cdp-mcp/focus-LATEST.json; agent peeks via editor_scene.
+/// Human GUI locus feed into agent cockpit sit (internal latch).
+/// Agent surface = <c>cdp_cockpit</c> alert.sit.locus — not a parallel JSON peek API.
+/// CascadeIDE writes focus-LATEST; desk ResolveLocusLine prefers it when present.
 /// </summary>
 internal static class NavigationFocusLatch
 {

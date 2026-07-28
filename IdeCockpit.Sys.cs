@@ -75,12 +75,25 @@ internal static partial class IdeCockpit
 
     static string? ResolveLocusLine(BufferSnap buffer, string? projectRoot)
     {
+        // Dual-cockpit glass: human locus wired into sit; agent only looks at desk.
+        var human = NavigationFocusLatch.TryRead();
+        if (human?.Path is { Length: > 0 } hp)
+        {
+            var suffix = human.Line > 0 ? $":{human.Line}" : "";
+            return FormatLocusPath(hp, projectRoot, suffix);
+        }
+
         if (buffer.Docs.Count == 0)
             return null;
         var hot = buffer.Docs.FirstOrDefault(d => d.DiskChanged)
             ?? buffer.Docs.FirstOrDefault(d => d.Dirty)
             ?? buffer.Docs[0];
-        var path = hot.Path;
+        var mark = hot.DiskChanged ? " disk" : hot.Dirty ? " dirty" : "";
+        return FormatLocusPath(hot.Path, projectRoot, mark);
+    }
+
+    static string FormatLocusPath(string path, string? projectRoot, string suffix)
+    {
         if (projectRoot is { Length: > 0 }
             && path.StartsWith(projectRoot, StringComparison.OrdinalIgnoreCase))
         {
@@ -90,8 +103,7 @@ internal static partial class IdeCockpit
 
         if (path.Length > 64)
             path = "…" + path[^60..];
-        var mark = hot.DiskChanged ? " disk" : hot.Dirty ? " dirty" : "";
-        return $"{path}{mark}";
+        return $"{path}{suffix}";
     }
 
     static readonly DeskSysOrganUnit DeskSys = new();
