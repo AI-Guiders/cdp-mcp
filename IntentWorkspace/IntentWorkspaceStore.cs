@@ -22,77 +22,114 @@ internal sealed partial class IntentWorkspaceStore(DbContextOptions<IntentWorksp
 
     private IntentWorkspaceDbContext Open() => new(options);
 
+    /// <summary>Serialize WitDB access. Brief retry softens transient cross-call / dual-seat file locks.</summary>
     private T WithDb<T>(Func<IntentWorkspaceDbContext, T> action)
     {
-        lock (DbGate)
+        const int attempts = 4;
+        for (var i = 0; ; i++)
         {
-            using var db = Open();
-            return action(db);
+            try
+            {
+                lock (DbGate)
+                {
+                    using var db = Open();
+                    return action(db);
+                }
+            }
+            catch (IOException) when (i < attempts - 1)
+            {
+                Thread.Sleep(25 * (i + 1));
+            }
+            catch (Exception ex) when (i < attempts - 1 && IsTransientDbLock(ex))
+            {
+                Thread.Sleep(25 * (i + 1));
+            }
         }
     }
 
     private void WithDb(Action<IntentWorkspaceDbContext> action)
     {
-        lock (DbGate)
+        WithDb<object?>(db =>
         {
-            using var db = Open();
             action(db);
+            return null;
+        });
+    }
+
+    static bool IsTransientDbLock(Exception ex)
+    {
+        for (var e = ex; e is not null; e = e.InnerException)
+        {
+            var m = e.Message;
+            if (m.Contains("cannot access the file", StringComparison.OrdinalIgnoreCase)
+                || m.Contains("being used by another process", StringComparison.OrdinalIgnoreCase)
+                || m.Contains("database is locked", StringComparison.OrdinalIgnoreCase)
+                || m.Contains("locking", StringComparison.OrdinalIgnoreCase))
+                return true;
         }
+
+        return false;
     }
 
     public IntentUpsertResult IntentUpsert(IntentWorkspaceState state, string title, Guid? intentId)
     {
-        using var db = Open();
         var now = DateTimeOffset.UtcNow;
-        IntentEntity entity;
-        if (intentId is { } id)
+        var result = WithDb(db =>
         {
-            entity = db.Intents.FirstOrDefault(x => x.Id == id)
-                     ?? throw new ArgumentException($"intent_id not found: {id}");
-            if (!string.IsNullOrWhiteSpace(title))
-                entity.Title = title.Trim();
-            entity.UpdatedUtc = now;
-        }
-        else
-        {
-            if (string.IsNullOrWhiteSpace(title))
-                throw new ArgumentException("title is required for intent_upsert.");
-            entity = new IntentEntity
+            IntentEntity entity;
+            if (intentId is { } id)
             {
-                Id = Guid.NewGuid(),
-                Title = title.Trim(),
-                CreatedUtc = now,
-                UpdatedUtc = now
-            };
-            db.Intents.Add(entity);
-        }
+                entity = db.Intents.FirstOrDefault(x => x.Id == id)
+                         ?? throw new ArgumentException($"intent_id not found: {id}");
+                if (!string.IsNullOrWhiteSpace(title))
+                    entity.Title = title.Trim();
+                entity.UpdatedUtc = now;
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(title))
+                    throw new ArgumentException("title is required for intent_upsert.");
+                entity = new IntentEntity
+                {
+                    Id = Guid.NewGuid(),
+                    Title = title.Trim(),
+                    CreatedUtc = now,
+                    UpdatedUtc = now
+                };
+                db.Intents.Add(entity);
+            }
 
-        db.SaveChanges();
-        state.ActiveIntentId = entity.Id;
+            db.SaveChanges();
+            state.ActiveIntentId = entity.Id;
+            return new IntentUpsertResult(entity.Id, entity.Title, active: true);
+        });
         WorkFocusSave(state);
-        return new IntentUpsertResult(entity.Id, entity.Title, active: true);
+        return result;
     }
 
-    public object IntentList()
-    {
-        using var db = Open();
-        var rows = db.Intents.AsNoTracking()
-            .OrderByDescending(x => x.UpdatedUtc)
-            .Select(x => new { intent_id = x.Id, title = x.Title, updated_utc = x.UpdatedUtc })
-            .ToList();
-        return new { intents = rows };
-    }
+    public object IntentList() =>
+        WithDb(db =>
+        {
+            var rows = db.Intents.AsNoTracking()
+                .OrderByDescending(x => x.UpdatedUtc)
+                .Select(x => new { intent_id = x.Id, title = x.Title, updated_utc = x.UpdatedUtc })
+                .ToList();
+            return (object)new { intents = rows };
+        });
 
     public IntentUpsertResult IntentSelect(IntentWorkspaceState state, Guid intentId)
     {
-        using var db = Open();
-        var entity = db.Intents.AsNoTracking().FirstOrDefault(x => x.Id == intentId)
-                     ?? throw new ArgumentException($"intent_id not found: {intentId}");
-        state.ActiveIntentId = entity.Id;
-        state.ActiveSceneId = null;
-        state.ActiveStageId = null;
+        var result = WithDb(db =>
+        {
+            var entity = db.Intents.AsNoTracking().FirstOrDefault(x => x.Id == intentId)
+                         ?? throw new ArgumentException($"intent_id not found: {intentId}");
+            state.ActiveIntentId = entity.Id;
+            state.ActiveSceneId = null;
+            state.ActiveStageId = null;
+            return new IntentUpsertResult(entity.Id, entity.Title, active: true);
+        });
         WorkFocusSave(state);
-        return new IntentUpsertResult(entity.Id, entity.Title, active: true);
+        return result;
     }
 
     public object IntentDelete(IntentWorkspaceState state, Guid intentId)
@@ -170,62 +207,63 @@ internal sealed partial class IntentWorkspaceStore(DbContextOptions<IntentWorksp
         string? phaseAffinity = null)
     {
         var intentId = RequireIntent(state);
-        using var db = Open();
         var now = DateTimeOffset.UtcNow;
-        Guid? sceneId = null;
-        if (!string.IsNullOrWhiteSpace(sceneName))
-        {
-            var scene = db.Scenes.FirstOrDefault(x => x.IntentId == intentId && x.Name == sceneName.Trim())
-                        ?? throw new ArgumentException($"scene not found: {sceneName}");
-            sceneId = scene.Id;
-        }
-
         string? affinity = NormalizePhaseAffinity(phaseAffinity);
-
-        StageEntity entity;
-        if (stageId is { } id)
+        return WithDb(db =>
         {
-            entity = db.Stages.FirstOrDefault(x => x.Id == id && x.IntentId == intentId)
-                     ?? throw new ArgumentException($"stage_id not found: {id}");
-            if (!string.IsNullOrWhiteSpace(title))
-                entity.Title = title.Trim();
-            if (parentId.HasValue)
-                entity.ParentId = parentId;
-            if (sceneId.HasValue)
-                entity.SceneId = sceneId;
-            if (phaseAffinity is not null)
-                entity.PhaseAffinity = affinity;
-            entity.UpdatedUtc = now;
-        }
-        else
-        {
-            if (string.IsNullOrWhiteSpace(title))
-                throw new ArgumentException("title is required for stage_upsert.");
-            var ordinal = db.Stages.Count(x => x.IntentId == intentId);
-            entity = new StageEntity
+            Guid? sceneId = null;
+            if (!string.IsNullOrWhiteSpace(sceneName))
             {
-                Id = Guid.NewGuid(),
-                IntentId = intentId,
-                ParentId = parentId,
-                Title = title.Trim(),
-                Status = "pending",
-                SceneId = sceneId,
-                Ordinal = ordinal,
-                PhaseAffinity = affinity,
-                UpdatedUtc = now
-            };
-            db.Stages.Add(entity);
-        }
+                var scene = db.Scenes.FirstOrDefault(x => x.IntentId == intentId && x.Name == sceneName.Trim())
+                            ?? throw new ArgumentException($"scene not found: {sceneName}");
+                sceneId = scene.Id;
+            }
 
-        db.SaveChanges();
-        return new StageUpsertResult(
-            stage_id: entity.Id,
-            title: entity.Title,
-            status: entity.Status,
-            parent_id: entity.ParentId,
-            scene_id: entity.SceneId,
-            ordinal: entity.Ordinal,
-            phase_affinity: entity.PhaseAffinity);
+            StageEntity entity;
+            if (stageId is { } id)
+            {
+                entity = db.Stages.FirstOrDefault(x => x.Id == id && x.IntentId == intentId)
+                         ?? throw new ArgumentException($"stage_id not found: {id}");
+                if (!string.IsNullOrWhiteSpace(title))
+                    entity.Title = title.Trim();
+                if (parentId.HasValue)
+                    entity.ParentId = parentId;
+                if (sceneId.HasValue)
+                    entity.SceneId = sceneId;
+                if (phaseAffinity is not null)
+                    entity.PhaseAffinity = affinity;
+                entity.UpdatedUtc = now;
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(title))
+                    throw new ArgumentException("title is required for stage_upsert.");
+                var ordinal = db.Stages.Count(x => x.IntentId == intentId);
+                entity = new StageEntity
+                {
+                    Id = Guid.NewGuid(),
+                    IntentId = intentId,
+                    ParentId = parentId,
+                    Title = title.Trim(),
+                    Status = "pending",
+                    SceneId = sceneId,
+                    Ordinal = ordinal,
+                    PhaseAffinity = affinity,
+                    UpdatedUtc = now
+                };
+                db.Stages.Add(entity);
+            }
+
+            db.SaveChanges();
+            return new StageUpsertResult(
+                stage_id: entity.Id,
+                title: entity.Title,
+                status: entity.Status,
+                parent_id: entity.ParentId,
+                scene_id: entity.SceneId,
+                ordinal: entity.Ordinal,
+                phase_affinity: entity.PhaseAffinity);
+        });
     }
 
     static string? NormalizePhaseAffinity(string? raw)
@@ -249,25 +287,27 @@ internal sealed partial class IntentWorkspaceStore(DbContextOptions<IntentWorksp
     public object StageList(IntentWorkspaceState state)
     {
         var intentId = RequireIntent(state);
-        using var db = Open();
-        var rows = db.Stages.AsNoTracking()
-            .Where(x => x.IntentId == intentId)
-            .OrderBy(x => x.Ordinal)
-            .Select(x => new
-            {
-                stage_id = x.Id,
-                parent_id = x.ParentId,
-                title = x.Title,
-                status = x.Status,
-                scene_id = x.SceneId,
-                ordinal = x.Ordinal,
-                phase_affinity = x.PhaseAffinity,
-                has_loot = x.Loot != null,
-                has_job = x.JobJson != null,
-                job_error = x.JobError
-            })
-            .ToList();
-        return new { intent_id = intentId, stages = rows };
+        return WithDb(db =>
+        {
+            var rows = db.Stages.AsNoTracking()
+                .Where(x => x.IntentId == intentId)
+                .OrderBy(x => x.Ordinal)
+                .Select(x => new
+                {
+                    stage_id = x.Id,
+                    parent_id = x.ParentId,
+                    title = x.Title,
+                    status = x.Status,
+                    scene_id = x.SceneId,
+                    ordinal = x.Ordinal,
+                    phase_affinity = x.PhaseAffinity,
+                    has_loot = x.Loot != null,
+                    has_job = x.JobJson != null,
+                    job_error = x.JobError
+                })
+                .ToList();
+            return (object)new { intent_id = intentId, stages = rows };
+        });
     }
 
     public StageSetStatusResult StageSetStatus(IntentWorkspaceState state, Guid stageId, string status)
@@ -275,13 +315,15 @@ internal sealed partial class IntentWorkspaceStore(DbContextOptions<IntentWorksp
         if (!StageStatuses.Contains(status))
             throw new ArgumentException("status must be pending|active|done|parked.");
         var intentId = RequireIntent(state);
-        using var db = Open();
-        var entity = db.Stages.FirstOrDefault(x => x.Id == stageId && x.IntentId == intentId)
-                     ?? throw new ArgumentException($"stage_id not found: {stageId}");
-        entity.Status = status.Trim().ToLowerInvariant();
-        entity.UpdatedUtc = DateTimeOffset.UtcNow;
-        db.SaveChanges();
-        return new StageSetStatusResult(entity.Id, entity.Status);
+        return WithDb(db =>
+        {
+            var entity = db.Stages.FirstOrDefault(x => x.Id == stageId && x.IntentId == intentId)
+                         ?? throw new ArgumentException($"stage_id not found: {stageId}");
+            entity.Status = status.Trim().ToLowerInvariant();
+            entity.UpdatedUtc = DateTimeOffset.UtcNow;
+            db.SaveChanges();
+            return new StageSetStatusResult(entity.Id, entity.Status);
+        });
     }
 
     /// <summary>Create active stage with job payload for background IdeReport.</summary>
