@@ -42,11 +42,19 @@ internal static partial class IdeTaskManager
         IReadOnlyDictionary<string, JsonElement> args,
         string status)
     {
-        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id") ?? state.ActiveStageId
-                 ?? throw new ArgumentException($"{status} needs task id or active focus");
+        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id") ?? state.ActiveStageId;
+        if (id is null)
+        {
+            var title = Title(args);
+            if (title.Length > 0)
+                id = store.FindStageIdByTitle(state, title);
+        }
+
+        if (id is null)
+            throw new ArgumentException($"{status} needs task id, title, or active focus");
         if (status == "active")
         {
-            store.FocusStage(state, id);
+            store.FocusStage(state, id.Value);
             return new { op = "active", task_id = id };
         }
 
@@ -54,11 +62,25 @@ internal static partial class IdeTaskManager
         if (status == "parked")
         {
             IdeStageCycle.TryPhaseComplete(); // close open phase visit before freeze
-            clock = store.StageClockParkFreeze(state, id);
+            clock = store.StageClockParkFreeze(state, id.Value);
         }
 
-        var r = store.StageSetStatus(state, id, status);
-        store.WorkFocusSave(state);
+        var wasActive = state.ActiveStageId == id;
+        var r = store.StageSetStatus(state, id.Value, status);
+        if (wasActive && status is "parked" or "deferred")
+        {
+            var next = store.FindNextPendingStage(state);
+            if (next is { } n)
+                store.FocusStage(state, n);
+            else
+            {
+                state.ActiveStageId = null;
+                store.WorkFocusSave(state);
+            }
+        }
+        else
+            store.WorkFocusSave(state);
+
         return clock is null
             ? new { op = status, task_id = r.stage_id, status = r.status }
             : new { op = status, task_id = r.stage_id, status = r.status, clock };

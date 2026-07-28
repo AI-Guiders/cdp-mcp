@@ -14,6 +14,7 @@ public sealed class IdePlanPromoteTests
             new(activeId, null, "ship inbox", "active", 1),
             new(Guid.NewGuid(), null, "later", "pending", 2),
             new(Guid.NewGuid(), null, "parked bit", "parked", 3),
+            new(Guid.NewGuid(), null, "deferred bit", "deferred", 4),
         };
         var snap = new IdeTaskManager.Snapshot(
             Guid.NewGuid(),
@@ -30,6 +31,7 @@ public sealed class IdePlanPromoteTests
         Assert.Contains("- [>] ship inbox", todos, StringComparison.Ordinal);
         Assert.Contains("- [ ] later", todos, StringComparison.Ordinal);
         Assert.Contains("- [-] parked bit", todos, StringComparison.Ordinal);
+        Assert.Contains("- [~] deferred bit", todos, StringComparison.Ordinal);
     }
 
     [Fact]

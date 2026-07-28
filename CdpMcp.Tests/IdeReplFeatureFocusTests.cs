@@ -124,6 +124,7 @@ public class IdeReplFeatureFocusTests
     [InlineData("focus", "Y")]
     [InlineData("done", "ship")]
     [InlineData("park", "later")]
+    [InlineData("deferred", "later")]
     public void SplitTitlePhase_strips_tm_directives(string directive, string name)
     {
         var (title, phase) = IdeRepl.SplitTitlePhase([name, "@" + directive]);

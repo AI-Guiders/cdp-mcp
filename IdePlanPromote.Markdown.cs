@@ -91,6 +91,8 @@ internal static partial class IdePlanPromote
             return 'x';
         if (node.Status.Equals("parked", StringComparison.OrdinalIgnoreCase))
             return '-';
+        if (node.Status.Equals("deferred", StringComparison.OrdinalIgnoreCase))
+            return '~';
         if (activeStageId == node.Id
             || node.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
             return '>';

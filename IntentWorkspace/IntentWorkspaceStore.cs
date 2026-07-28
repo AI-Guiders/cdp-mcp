@@ -21,7 +21,7 @@ internal sealed partial class IntentWorkspaceStore(
     private static readonly Lock DbGate = new();
     private static readonly HashSet<string> StageStatuses = new(StringComparer.OrdinalIgnoreCase)
     {
-        "pending", "active", "done", "parked"
+        "pending", "active", "done", "parked", "deferred"
     };
 
     private readonly string _databasePath = databasePath;
@@ -364,7 +364,7 @@ internal sealed partial class IntentWorkspaceStore(
     public StageSetStatusResult StageSetStatus(IntentWorkspaceState state, Guid stageId, string status)
     {
         if (!StageStatuses.Contains(status))
-            throw new ArgumentException("status must be pending|active|done|parked.");
+            throw new ArgumentException("status must be pending|active|done|parked|deferred.");
         var intentId = RequireIntent(state);
         return WithDb(db =>
         {

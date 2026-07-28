@@ -84,7 +84,7 @@ internal static partial class IdeTaskManager
                 banner,
                 board = lines.ToArray(),
                 ascii = string.Join('\n', lines),
-                hint = "Scan board. * = active feature; [>] active task; [x] done; @phase = affinity. wall= calendar Start→Completed (not agent-active score)."
+                hint = "Scan board. * = active feature; [>] active task; [x] done; [-] parked; [~] deferred; [ ] pending; @phase = affinity. wall= calendar Start→Completed (not agent-active score)."
             },
             Focus: new
             {

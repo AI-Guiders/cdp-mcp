@@ -46,6 +46,71 @@ internal static partial class IdeTaskManager
         };
     }
 
+    /// <summary>
+    /// Capture backlog without stealing focus: create/find stage as <c>deferred</c>.
+    /// Bare <c>defer</c> marks the active task deferred and restores next pending focus.
+    /// </summary>
+    static object TaskDefer(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var title = Title(args);
+        if (title.Length > 0)
+        {
+            if (state.ActiveIntentId is null)
+                throw new ArgumentException("no active feature — feature <name> first");
+
+            var keepFocus = state.ActiveStageId;
+            var parentId = ResolveParent(store, state, args);
+            Guid id;
+            string resolvedTitle;
+            if (store.FindStageMatching(state, title, parentId, matchParent: true) is { } existing)
+            {
+                id = existing;
+                resolvedTitle = title;
+            }
+            else
+            {
+                var created = store.StageUpsert(state, title, null, parentId, null, PhaseArg(args));
+                id = created.stage_id;
+                resolvedTitle = created.title;
+            }
+
+            store.StageSetStatus(state, id, "deferred");
+            if (keepFocus is { } prev && prev != id)
+                store.FocusStage(state, prev);
+            else if (keepFocus == id)
+            {
+                var next = store.FindNextPendingStage(state);
+                if (next is { } n)
+                    store.FocusStage(state, n);
+                else
+                {
+                    state.ActiveStageId = null;
+                    store.WorkFocusSave(state);
+                }
+            }
+            else
+            {
+                state.ActiveStageId = null;
+                store.WorkFocusSave(state);
+            }
+
+            return new
+            {
+                op = "deferred",
+                task_id = id,
+                title = resolvedTitle,
+                status = "deferred",
+                focus_preserved = keepFocus,
+                hint = "deferred seed — focus unchanged; use focus <title> when ready"
+            };
+        }
+
+        return TaskStatus(store, state, args, "deferred");
+    }
+
     static object TaskSetPhase(
         IntentWorkspaceStore store,
         IntentWorkspaceState state,

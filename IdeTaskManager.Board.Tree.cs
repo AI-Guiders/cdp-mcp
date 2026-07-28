@@ -33,6 +33,7 @@ internal static partial class IdeTaskManager
         var pad = new string(' ', indent * 2);
         var box = node.Status.Equals("done", StringComparison.OrdinalIgnoreCase) ? "[x]"
             : node.Status.Equals("parked", StringComparison.OrdinalIgnoreCase) ? "[-]"
+            : node.Status.Equals("deferred", StringComparison.OrdinalIgnoreCase) ? "[~]"
             : activeStageId == node.Id || node.Status.Equals("active", StringComparison.OrdinalIgnoreCase) ? "[>]"
             : "[ ]";
         var wall = FormatWallClockSuffix(node.StartedUtc, node.CompletedUtc, DateTimeOffset.UtcNow);

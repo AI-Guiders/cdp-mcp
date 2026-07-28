@@ -1101,7 +1101,7 @@ List<Tool> BuildMetaTools() =>
             parent_id = new { type = "string" },
             scene_name = new { type = "string", description = "For stage_upsert bind; also alias of name for scene ops." },
             name = new { type = "string", description = "Scene name for park/switch." },
-            status = new { type = "string", description = "pending|active|done|parked" },
+            status = new { type = "string", description = "pending|active|done|parked|deferred" },
             loot = new { type = "string" },
             focus_path = new { type = "string" },
             focus_line = new { type = "integer" },
@@ -2459,7 +2459,7 @@ object DispatchCdpWork(IReadOnlyDictionary<string, JsonElement> callArgs)
         "scene_list" => store.SceneList(workspaceState),
         "status" => store.Status(workspaceState, session),
         "tasks" or "board" or "plan" or "feature" or "task" or "focus" or "done"
-            or "park" or "pending" or "active" or "drop" or "rm" or "delete"
+            or "park" or "defer" or "deferred" or "pending" or "active" or "drop" or "rm" or "delete"
             or "feature_drop" or "task_drop"
             or "promote" or "promote_plan" or "ask_confirm"
             or "share" or "share_plan"

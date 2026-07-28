@@ -450,7 +450,23 @@ internal static class IdeRepl
 
             if (tokens.Count < 2)
                 return (merged, Err("task needs title", "task omit-tiles | task ship @act"));
-            var (taskTitle, taskPhase) = SplitTitlePhase(tokens.Skip(1).ToList());
+            var taskRest = tokens.Skip(1).ToList();
+            if (taskRest.Count > 0
+                && (taskRest[^1].Equals("@deferred", StringComparison.OrdinalIgnoreCase)
+                    || taskRest[^1].Equals("@defer", StringComparison.OrdinalIgnoreCase)))
+            {
+                var (deferTitle, deferPhase) = SplitTitlePhase(taskRest);
+                if (deferTitle.Length == 0)
+                    return (merged, Err("defer needs title", "defer AutoIgnition delivery probe | task X @deferred"));
+                merged["go"] = JsonSerializer.SerializeToElement("plan");
+                merged["tm_op"] = JsonSerializer.SerializeToElement("defer");
+                merged["go_args"] = deferPhase is null
+                    ? JsonSerializer.SerializeToElement(new { title = deferTitle, op = "defer" })
+                    : JsonSerializer.SerializeToElement(new { title = deferTitle, op = "defer", phase = deferPhase });
+                return (merged, null);
+            }
+
+            var (taskTitle, taskPhase) = SplitTitlePhase(taskRest);
             if (taskTitle.Length == 0)
                 return (merged, Err("task needs title", "task omit-tiles | task ship @act"));
             if (IsBoardListAlias(taskTitle))
@@ -605,6 +621,24 @@ internal static class IdeRepl
             }
             else
                 merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "park" });
+            return (merged, null);
+        }
+
+        if (head is "defer" or "deferred")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("defer");
+            if (tokens.Count >= 2)
+            {
+                var (deferTitle, deferPhase) = SplitTitlePhase(tokens.Skip(1).ToList());
+                if (deferTitle.Length == 0)
+                    return (merged, Err("defer needs title", "defer AutoIgnition delivery probe"));
+                merged["go_args"] = deferPhase is null
+                    ? JsonSerializer.SerializeToElement(new { title = deferTitle, op = "defer" })
+                    : JsonSerializer.SerializeToElement(new { title = deferTitle, op = "defer", phase = deferPhase });
+            }
+            else
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "defer" });
             return (merged, null);
         }
 
@@ -1244,6 +1278,8 @@ internal static class IdeRepl
         || tag.Equals("done", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("complete", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("park", StringComparison.OrdinalIgnoreCase)
+        || tag.Equals("defer", StringComparison.OrdinalIgnoreCase)
+        || tag.Equals("deferred", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("drop", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Agent meant board — <c>feature list</c> / <c>task ls</c> must not upsert a junk title.</summary>
@@ -1264,6 +1300,9 @@ internal static class IdeRepl
             return "focus <title>";
         if (title.Equals("park", StringComparison.OrdinalIgnoreCase))
             return "park <title> | park";
+        if (title.Equals("defer", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("deferred", StringComparison.OrdinalIgnoreCase))
+            return "defer <title> | defer";
         if (title.Equals("drop", StringComparison.OrdinalIgnoreCase)
             || title.Equals("rm", StringComparison.OrdinalIgnoreCase)
             || title.Equals("delete", StringComparison.OrdinalIgnoreCase))
