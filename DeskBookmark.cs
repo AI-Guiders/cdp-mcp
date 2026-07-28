@@ -13,7 +13,11 @@ namespace CdpMcp;
 internal static partial class DeskBookmark
 {
     public const string Schema = "desk_bookmark/v1";
-    public const int MaxBuffers = 24;
+    public const int MaxPersistBuffers = 8;
+    /// <summary>Cold auto-warm after remount — keep SA quality Snap quiet.</summary>
+    public const int AutoWarmMaxBuffers = 4;
+    /// <summary>Explicit <c>cdp_restore</c> may reopen a fuller previous desk.</summary>
+    public const int ExplicitRestoreMaxBuffers = 24;
 
     static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -40,19 +44,11 @@ internal static partial class DeskBookmark
             .Select(b => b.Path)
             .Where(File.Exists)
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Take(MaxBuffers)
+            .Take(MaxPersistBuffers)
             .ToList();
 
-        // Prefer open buffers; fill from file MRU if desk is thin.
-        if (bufferPaths.Count == 0)
-        {
-            foreach (var p in EditorComfort.RecentFilePaths())
-            {
-                if (!File.Exists(p)) continue;
-                bufferPaths.Add(p);
-                if (bufferPaths.Count >= MaxBuffers) break;
-            }
-        }
+        // Persist only actually-open buffers — never backfill from MRU
+        // (thin desk → 24 recent files was the SA WARN thrash after remount).
 
         var focus = bufferPaths.FirstOrDefault();
         var doc = new DeskBookmarkDoc

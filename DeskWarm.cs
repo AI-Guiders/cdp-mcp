@@ -84,7 +84,8 @@ internal static class DeskWarm
                 docStore,
                 detectOpen,
                 syncShellCwd,
-                notifyListChanged);
+                notifyListChanged,
+                maxBuffers: DeskBookmark.AutoWarmMaxBuffers);
             return new
             {
                 ok = true,

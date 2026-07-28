@@ -15,7 +15,8 @@ internal static partial class DeskBookmark
         DocumentBufferStore buffers,
         Func<string, ProjectOpenResult> detectOpen,
         Action? syncShellCwd,
-        Action? notifyListChanged)
+        Action? notifyListChanged,
+        int? maxBuffers = null)
     {
         var doc = TryLoad()
                   ?? throw new InvalidOperationException(
@@ -27,7 +28,8 @@ internal static partial class DeskBookmark
         if (!string.IsNullOrWhiteSpace(doc.SessionJson))
             SessionSnapshot.Apply(session, doc.SessionJson);
 
-        var (openedBuffers, skipped, focusPath) = OpenBuffers(doc, buffers, session);
+        var cap = maxBuffers ?? ExplicitRestoreMaxBuffers;
+        var (openedBuffers, skipped, focusPath) = OpenBuffers(doc, buffers, session, cap);
         Save(session, buffers);
         return FormatRestore(doc, session, openPayload, openedBuffers, skipped, focusPath);
     }
@@ -60,15 +62,27 @@ internal static partial class DeskBookmark
     static (List<object> Opened, List<object> Skipped, string? FocusPath) OpenBuffers(
         DeskBookmarkDoc doc,
         DocumentBufferStore buffers,
-        SessionContext session)
+        SessionContext session,
+        int maxBuffers)
     {
         var opened = new List<object>();
         var skipped = new List<object>();
         string? focusPath = null;
+        var cap = Math.Max(0, maxBuffers);
 
-        foreach (var b in doc.Buffers)
+        // Focus first so AutoWarm keeps the working file when capping.
+        var planned = doc.Buffers
+            .Where(b => !string.IsNullOrWhiteSpace(b.Path))
+            .OrderByDescending(b => b.Focus)
+            .Take(cap)
+            .ToList();
+        var plannedPaths = planned
+            .Select(b => b.Path)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var b in planned)
         {
-            if (string.IsNullOrWhiteSpace(b.Path) || !File.Exists(b.Path))
+            if (!File.Exists(b.Path))
             {
                 skipped.Add(new { path = b.Path, reason = "missing" });
                 continue;
@@ -86,6 +100,13 @@ internal static partial class DeskBookmark
             {
                 skipped.Add(new { path = b.Path, reason = ex.Message });
             }
+        }
+
+        foreach (var b in doc.Buffers)
+        {
+            if (string.IsNullOrWhiteSpace(b.Path) || plannedPaths.Contains(b.Path))
+                continue;
+            skipped.Add(new { path = b.Path, reason = "capped" });
         }
 
         if (focusPath is { Length: > 0 })
