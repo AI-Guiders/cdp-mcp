@@ -8,18 +8,13 @@ internal static partial class IdeTaskManager
 {
     static object TaskDone(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
     {
-        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id")
-                 ?? GuidArgGo(args, "stage_id") ?? GuidArgGo(args, "task_id")
-                 ?? state.ActiveStageId;
+        var title = Title(args);
+        var id = ResolveStageTarget(store, state, args);
         if (id is null)
-        {
-            var title = Title(args);
-            if (title.Length > 0)
-                id = store.FindStageIdByTitle(state, title);
-        }
+            throw new ArgumentException(title.Length > 0
+                ? $"task not found: {title}"
+                : "done needs active task or title — focus X | done X");
 
-        if (id is null)
-            throw new ArgumentException("done needs active task or title — focus X | done X");
         var r = store.StageSetStatus(state, id.Value, "done");
         if (state.ActiveStageId == id)
         {
@@ -42,16 +37,13 @@ internal static partial class IdeTaskManager
         IReadOnlyDictionary<string, JsonElement> args,
         string status)
     {
-        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id") ?? state.ActiveStageId;
+        var title = Title(args);
+        var id = ResolveStageTarget(store, state, args);
         if (id is null)
-        {
-            var title = Title(args);
-            if (title.Length > 0)
-                id = store.FindStageIdByTitle(state, title);
-        }
+            throw new ArgumentException(title.Length > 0
+                ? $"task not found: {title}"
+                : $"{status} needs task id, title, or active focus");
 
-        if (id is null)
-            throw new ArgumentException($"{status} needs task id, title, or active focus");
         if (status == "active")
         {
             store.FocusStage(state, id.Value);
@@ -168,18 +160,6 @@ internal static partial class IdeTaskManager
         return store.StageEventNote(state, id, text);
     }
 
-    static Guid? ResolveClockStageId(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
-    {
-        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id")
-                 ?? GuidArgGo(args, "stage_id") ?? GuidArgGo(args, "task_id")
-                 ?? state.ActiveStageId;
-        if (id is null)
-        {
-            var title = Title(args);
-            if (title.Length > 0)
-                id = store.FindStageIdByTitle(state, title);
-        }
-
-        return id;
-    }
+    static Guid? ResolveClockStageId(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args) =>
+        ResolveStageTarget(store, state, args);
 }

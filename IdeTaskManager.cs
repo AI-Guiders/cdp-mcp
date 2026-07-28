@@ -72,6 +72,27 @@ internal static partial class IdeTaskManager
         return OptGoArg(args, "q") ?? Opt(args, "q") ?? "";
     }
 
+    /// <summary>
+    /// Explicit id → explicit title → active focus.
+    /// Title must beat focus so <c>done X</c>/<c>drop X</c>/<c>park X</c> never hit the wrong active task.
+    /// </summary>
+    static Guid? ResolveStageTarget(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id")
+                 ?? GuidArgGo(args, "stage_id") ?? GuidArgGo(args, "task_id");
+        if (id is not null)
+            return id;
+
+        var title = Title(args);
+        if (title.Length > 0)
+            return store.FindStageIdByTitle(state, title);
+
+        return state.ActiveStageId;
+    }
+
     static Guid? ResolveParent(
         IntentWorkspaceStore store,
         IntentWorkspaceState state,

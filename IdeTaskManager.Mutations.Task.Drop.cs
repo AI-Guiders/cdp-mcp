@@ -11,23 +11,18 @@ internal static partial class IdeTaskManager
         IntentWorkspaceState state,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id")
-                 ?? GuidArgGo(args, "stage_id") ?? GuidArgGo(args, "task_id")
-                 ?? state.ActiveStageId;
+        var title = Title(args);
+        var id = ResolveStageTarget(store, state, args);
         if (id is null)
-        {
-            var title = Title(args);
-            if (title.Length == 0)
-                throw new ArgumentException("drop task needs title, id, or active focus");
-            id = store.FindStageIdByTitle(state, title)
-                 ?? throw new ArgumentException($"task not found: {title}");
-        }
+            throw new ArgumentException(title.Length > 0
+                ? $"task not found: {title}"
+                : "drop task needs title, id, or active focus");
 
         return store.StageDelete(state, id.Value);
     }
 
     /// <summary>
-    /// <c>drop</c> without kind: prefer active/title Task, else Feature.
+    /// <c>drop</c> without kind: prefer title Task, else Feature, else active Task.
     /// Kind via go_args.kind=feature|task or title prefix already handled in REPL.
     /// </summary>
     static object DropSmart(
@@ -50,6 +45,9 @@ internal static partial class IdeTaskManager
 
         if (title.Length > 0 && store.FindIntentIdByTitle(title) is not null)
             return FeatureDrop(store, state, args);
+
+        if (title.Length > 0)
+            throw new ArgumentException($"task/feature not found: {title}");
 
         if (state.ActiveStageId is not null)
             return TaskDrop(store, state, args);

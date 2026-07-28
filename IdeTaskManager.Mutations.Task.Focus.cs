@@ -118,16 +118,12 @@ internal static partial class IdeTaskManager
     {
         var phase = PhaseArg(args)
                     ?? throw new ArgumentException("phase needs value — phase act | task phase act");
-        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id") ?? state.ActiveStageId;
+        var title = Title(args);
+        var id = ResolveStageTarget(store, state, args);
         if (id is null)
-        {
-            var title = Title(args);
-            if (title.Length > 0)
-                id = store.FindStageIdByTitle(state, title);
-        }
-
-        if (id is null)
-            throw new ArgumentException("no active task — focus <task> first");
+            throw new ArgumentException(title.Length > 0
+                ? $"task not found: {title}"
+                : "no active task — focus <task> first");
 
         var r = store.StageUpsert(state, title: "", id, parentId: null, sceneName: null, phase);
         return new { op = "phase", task_id = r.stage_id, phase_affinity = r.phase_affinity };
