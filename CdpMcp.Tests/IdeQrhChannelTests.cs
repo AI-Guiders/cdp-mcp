@@ -8,11 +8,13 @@ public sealed class IdeQrhChannelTests
         string phase = "act",
         string? intent = null,
         bool taskOpen = true,
+        bool igniteIdle = true,
         bool gitDirty = false,
         bool dapStopped = false) =>
         new(
             ProjectOpen: true,
             TaskOpen: taskOpen,
+            IgniteIdle: igniteIdle,
             GitKnown: true,
             gitDirty,
             TestsGreen: false,

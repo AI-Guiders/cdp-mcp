@@ -62,6 +62,13 @@ internal static partial class IdeIgniteArmHost
 
     internal static bool HasActiveTaskFocus() => TaskFocusProbe?.Invoke() ?? true;
 
+    internal static bool HasContinuityArms()
+    {
+        EnsureLoaded();
+        lock (Gate)
+            return Arms.Any(a => a.Status is "armed" or "firing" or "awaiting" or ProviderBlockedStatus);
+    }
+
     /// <summary>Lifecycle hooks — call after build/test complete. Non-blocking fire.</summary>
     public static void Notify(string eventName, bool ok, string? pulse = null, string? detail = null)
     {

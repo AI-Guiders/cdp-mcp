@@ -42,6 +42,7 @@ public sealed class IdeReviewChannelTests
         var ctx = new IdeChkChannel.ProbeCtx(
             ProjectOpen: true,
             TaskOpen: true,
+            IgniteIdle: true,
             GitKnown: true,
             GitDirty: true,
             TestsGreen: true,

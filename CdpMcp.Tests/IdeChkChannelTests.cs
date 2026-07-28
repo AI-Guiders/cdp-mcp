@@ -10,12 +10,14 @@ public sealed class IdeChkChannelTests
         string? intent = null,
         bool projectOpen = true,
         bool taskOpen = true,
+        bool igniteIdle = true,
         bool gitKnown = true,
         bool gitDirty = false,
         bool dapStopped = false) =>
         new(
             projectOpen,
             taskOpen,
+            igniteIdle,
             gitKnown,
             gitDirty,
             TestsGreen: false,
@@ -80,6 +82,15 @@ public sealed class IdeChkChannelTests
         var snap = IdeChkChannel.Build(Ctx(phase: "act", taskOpen: false));
         Assert.Contains(snap.Active, r => r.Id == "plateau");
         Assert.Contains("plateau", snap.Pulse, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Plateau_ignite_park_auto_clears_when_idle()
+    {
+        var snap = IdeChkChannel.Build(Ctx(phase: "act", taskOpen: false, igniteIdle: true));
+        var plateau = Assert.Single(snap.Active, r => r.Id == "plateau");
+        var parked = Assert.Single(plateau.Items, i => i.Id == "ignite-park");
+        Assert.True(parked.Done);
     }
 
     [Fact]

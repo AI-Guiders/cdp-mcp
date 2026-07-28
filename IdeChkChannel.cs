@@ -28,6 +28,7 @@ internal static class IdeChkChannel
     public sealed record ProbeCtx(
         bool ProjectOpen,
         bool TaskOpen,
+        bool IgniteIdle,
         bool GitKnown,
         bool GitDirty,
         bool TestsGreen,
@@ -131,7 +132,7 @@ internal static class IdeChkChannel
             ],
             [
                 new("next-task", "do", "Pick/focus the next TM task before continuing flight", Action: "plan"),
-                new("ignite-park", "do", "If no task exists, disarm or leave ignite parked instead of looping", Action: "cdp_ignite")
+                new("ignite-park", "auto", "If no task exists, disarm or leave ignite parked instead of looping", Probe: "ignite.idle", Action: "cdp_ignite")
             ]),
         new(
             "verify",
@@ -291,6 +292,7 @@ internal static class IdeChkChannel
     public static ProbeCtx CtxFrom(
         SessionContext session,
         bool taskOpen,
+        bool igniteIdle,
         bool gitKnown,
         bool gitDirty,
         bool testsGreen,
@@ -304,6 +306,7 @@ internal static class IdeChkChannel
         return new ProbeCtx(
             !string.IsNullOrWhiteSpace(session.ProjectRoot),
             taskOpen,
+            igniteIdle,
             gitKnown,
             gitDirty,
             testsGreen,
@@ -404,6 +407,8 @@ internal static class IdeChkChannel
             "project.open" or "project" => ctx.ProjectOpen,
             "task.open" or "task" => ctx.TaskOpen,
             "task.none" or "task.closed" => !ctx.TaskOpen,
+            "ignite.idle" or "ignite.clear" or "ignite.parked" => ctx.IgniteIdle,
+            "ignite.armed" or "ignite.live" => !ctx.IgniteIdle,
             "git.known" or "git" => ctx.GitKnown,
             "git.clean" => !ctx.GitDirty,
             "git.dirty" => ctx.GitDirty,
