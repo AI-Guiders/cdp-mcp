@@ -41,9 +41,11 @@ Chat spine, Intercom attach, MFD/PFD toggles, presentation layout, web AI portal
 
 ## Migration order (when GUI → CDP client)
 
-1. **A** — wire Melody `command_id` → ICM CallTool (same id or thin alias table in shell, not forever IdeCommands SSOT).
+1. **A** — wire Melody `command_id` → ICM via `IdeCommandAliasMap` + `IdeCommandModule.ExecuteAliasedAsync` (code in cdp-mcp; catalog untouched).
 2. **B** — GUI chrome calls existing desk Metas (`cdp_land` first for nav Anchor).
 3. **C** — defer with Avalonia shell.
 4. **D** — add CDP Meta only when agent also needs it.
 
 **Invariant:** leave `intent-catalog.toml` / `CascadeIdeSettings` untouched until alias table is designed.
+
+**Code:** `IdeCommandAliasMap.cs` (bucket A shipped on `feat/icm-command-module`).
