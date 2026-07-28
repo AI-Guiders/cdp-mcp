@@ -30,10 +30,20 @@ internal static partial class IdeIgniteArmHost
         var okOnly = OptBool(args, "ok_only") ?? true;
         var settle = OptInt(args, "settle_seconds") ?? (when is "timer" or "manual" ? 2 : 8);
         var wait = OptInt(args, "wait_seconds") ?? 90;
+        var force = OptBool(args, "force") == true;
         var id = Opt(args, "id");
         if (string.IsNullOrWhiteSpace(id))
             id = "arm-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + "-" +
                  Guid.NewGuid().ToString("N")[..6];
+
+        if (lastOnce && !force && !HasActiveTaskFocus())
+        {
+            err = Err(
+                "arm",
+                "no_active_task",
+                "last_once on plateau needs an active TM task; focus/seed task first, or force=true for an explicit override");
+            return false;
+        }
 
         DateTimeOffset? due = null;
         if (when == "timer")

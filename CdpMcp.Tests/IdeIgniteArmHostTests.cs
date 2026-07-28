@@ -138,6 +138,61 @@ public class IdeIgniteArmHostTests
     }
 
     [Fact]
+    public void LastOnce_on_plateau_requires_active_task_focus()
+    {
+        IdeIgniteArmHost.BindTaskFocus(() => false);
+        try
+        {
+            var result = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("arm"),
+                ["when"] = JsonSerializer.SerializeToElement("timer"),
+                ["in"] = JsonSerializer.SerializeToElement("1m"),
+                ["task"] = JsonSerializer.SerializeToElement("plateau probe"),
+                ["last_once"] = JsonSerializer.SerializeToElement(true)
+            });
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal("no_active_task", doc.RootElement.GetProperty("error").GetString());
+        }
+        finally
+        {
+            IdeIgniteArmHost.BindTaskFocus(() => true);
+        }
+    }
+
+    [Fact]
+    public void LastOnce_on_plateau_allows_explicit_force_override()
+    {
+        var id = "test-force-" + Guid.NewGuid().ToString("N")[..8];
+        IdeIgniteArmHost.BindTaskFocus(() => false);
+        try
+        {
+            var result = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("arm"),
+                ["when"] = JsonSerializer.SerializeToElement("timer"),
+                ["in"] = JsonSerializer.SerializeToElement("1m"),
+                ["task"] = JsonSerializer.SerializeToElement("plateau override"),
+                ["last_once"] = JsonSerializer.SerializeToElement(true),
+                ["force"] = JsonSerializer.SerializeToElement(true),
+                ["id"] = JsonSerializer.SerializeToElement(id)
+            });
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        }
+        finally
+        {
+            IdeIgniteArmHost.BindTaskFocus(() => true);
+            IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("disarm"),
+                ["id"] = JsonSerializer.SerializeToElement(id)
+            });
+        }
+    }
+
+    [Fact]
     public void WakeAfterHardDeploy_ok_and_reclaim_stuck_firing()
     {
         var id = "test-reclaim-" + Guid.NewGuid().ToString("N")[..8];

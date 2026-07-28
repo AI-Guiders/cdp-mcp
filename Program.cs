@@ -26,6 +26,7 @@ var workspaceDbPath = workspaceDbPathOverride
     ?? Path.Combine(CdpProfile.StateRoot, "intent-workspace.witdb");
 IntentWorkspaceStore? workspaceStore = null;
 var workspaceState = new IntentWorkspaceState { DatabasePath = workspaceDbPath };
+IdeIgniteArmHost.BindTaskFocus(() => workspaceState.ActiveStageId is not null);
 string? openedWorkspaceDbPath = null;
 
 void InvalidateWorkspaceScope()
