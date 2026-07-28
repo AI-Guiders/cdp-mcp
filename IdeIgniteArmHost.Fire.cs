@@ -39,6 +39,8 @@ internal static partial class IdeIgniteArmHost
                 else
                 {
                     var err = TryGetError(result) ?? "fire_failed";
+                    IdeStageCycle.TryAppend(
+                        IdeStageCycle.MapIgniteError(err), "ignite", err, arm.Id);
                     if (ShouldRequeueBusy(arm.Event, err))
                         RequeueAfterBusy(arm.Id, err, BusyBackoff(arm.WaitSeconds));
                     else if (ShouldEnterProviderBlockedContinuity(err))
@@ -51,6 +53,7 @@ internal static partial class IdeIgniteArmHost
             }
             catch (Exception ex)
             {
+                IdeStageCycle.TryAppend("ignite.fire_fail", "ignite", ex.Message, arm.Id);
                 if (ShouldKeepVisibleErrorOnFireFail(arm.Once, arm.LastOnce))
                     SetStatus(arm.Id, "error", ex.Message);
                 else

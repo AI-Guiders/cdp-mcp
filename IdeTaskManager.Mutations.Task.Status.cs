@@ -69,6 +69,23 @@ internal static partial class IdeTaskManager
         return store.StageClockShipped(state, id);
     }
 
+    static object TaskEvents(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var id = ResolveClockStageId(store, state, args)
+                 ?? throw new ArgumentException("events needs active task or title");
+        return store.StageEventList(state, id);
+    }
+
+    static object TaskEventNote(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var id = ResolveClockStageId(store, state, args)
+                 ?? throw new ArgumentException("note needs active task — focus first");
+        var text = Title(args);
+        if (text.Length == 0)
+            text = Opt(args, "text") ?? Opt(args, "body") ?? OptGoArg(args, "text") ?? OptGoArg(args, "body") ?? "";
+        return store.StageEventNote(state, id, text);
+    }
+
     static Guid? ResolveClockStageId(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
     {
         var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id")

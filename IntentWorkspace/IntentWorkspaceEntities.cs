@@ -34,6 +34,18 @@ internal sealed class StageEntity
     public IntentEntity? Intent { get; set; }
 }
 
+/// <summary>Append-only pointers while a stage wall clock is open — SA diagnostic, not a score.</summary>
+internal sealed class StageEventEntity
+{
+    public Guid Id { get; set; }
+    public Guid StageId { get; set; }
+    public DateTimeOffset Utc { get; set; }
+    public string Kind { get; set; } = "";
+    public string Source { get; set; } = "";
+    public string Summary { get; set; } = "";
+    public string? Ref { get; set; }
+}
+
 internal sealed class SceneEntity
 {
     public Guid Id { get; set; }

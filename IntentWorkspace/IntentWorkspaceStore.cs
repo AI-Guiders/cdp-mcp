@@ -12,7 +12,7 @@ internal sealed class IntentWorkspaceState
     public string DatabasePath { get; set; } = "";
 }
 
-internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbContext> options)
+internal sealed partial class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbContext> options)
 {
     private static readonly Lock DbGate = new();
     private static readonly HashSet<string> StageStatuses = new(StringComparer.OrdinalIgnoreCase)
@@ -780,6 +780,9 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
             entity.UpdatedUtc = now;
             db.SaveChanges();
             var elapsed = IdeTaskManager.FormatWallElapsed(entity.StartedUtc.Value, entity.CompletedUtc.Value);
+            var kinds = db.StageEvents.Where(e => e.StageId == entity.Id).Select(e => e.Kind).ToList();
+            var counts = CountKinds(kinds);
+            var events = IdeTaskManager.FormatEventCountsSuffix(counts.Wait, counts.Fail, counts.Note);
             return new
             {
                 op = "shipped",
@@ -787,8 +790,12 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
                 started_utc = entity.StartedUtc,
                 completed_utc = entity.CompletedUtc,
                 elapsed,
+                wait = counts.Wait,
+                fail = counts.Fail,
+                note = counts.Note,
+                events_suffix = events.Length == 0 ? null : events.TrimStart(' ', '·').Trim(),
                 kind = "wall",
-                hint = "SA tempo (wall) — not a score; active/working time is a separate future signal"
+                hint = "SA tempo (wall) — not a score; events=pointers not reward"
             };
         });
     }

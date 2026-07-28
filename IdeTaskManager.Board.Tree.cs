@@ -70,6 +70,18 @@ internal static partial class IdeTaskManager
         return $" · wall …{FormatWallElapsed(started.Value, now)}";
     }
 
+    /// <summary>wait/fail/note pointers — SA diagnostic composition of wall, not a score.</summary>
+    internal static string FormatEventCountsSuffix(int wait, int fail, int note)
+    {
+        if (wait == 0 && fail == 0 && note == 0)
+            return "";
+        var parts = new List<string>();
+        if (wait > 0) parts.Add($"wait×{wait}");
+        if (fail > 0) parts.Add($"fail×{fail}");
+        if (note > 0) parts.Add($"note×{note}");
+        return " · " + string.Join(' ', parts);
+    }
+
     static string WallBanner(string wallSuffix) =>
         wallSuffix.Length == 0 ? "" : $" {wallSuffix.TrimStart(' ', '·').Trim()} |";
 

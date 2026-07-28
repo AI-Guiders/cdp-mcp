@@ -7,6 +7,7 @@ internal sealed class IntentWorkspaceDbContext(DbContextOptions<IntentWorkspaceD
 {
     public DbSet<IntentEntity> Intents => Set<IntentEntity>();
     public DbSet<StageEntity> Stages => Set<StageEntity>();
+    public DbSet<StageEventEntity> StageEvents => Set<StageEventEntity>();
     public DbSet<SceneEntity> Scenes => Set<SceneEntity>();
     public DbSet<OpenRecentEntity> OpenRecent => Set<OpenRecentEntity>();
     public DbSet<DeskSeatEntity> DeskSeats => Set<DeskSeatEntity>();
@@ -30,6 +31,16 @@ internal sealed class IntentWorkspaceDbContext(DbContextOptions<IntentWorkspaceD
             e.Property(x => x.Status).IsRequired();
             e.HasIndex(x => x.IntentId);
             e.HasOne(x => x.Intent).WithMany(x => x.Stages).HasForeignKey(x => x.IntentId);
+        });
+
+        modelBuilder.Entity<StageEventEntity>(e =>
+        {
+            e.ToTable("stage_events");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Kind).IsRequired();
+            e.Property(x => x.Source).IsRequired();
+            e.Property(x => x.Summary).IsRequired();
+            e.HasIndex(x => new { x.StageId, x.Utc });
         });
 
         modelBuilder.Entity<SceneEntity>(e =>

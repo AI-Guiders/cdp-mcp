@@ -63,11 +63,13 @@ void EnsureWorkspaceDb()
     workspaceStore.MigrateLegacyDeskSeatsJsonIfPresent();
     workspaceStore.EnsureStagePhaseAffinityColumn();
     workspaceStore.EnsureStageClockColumns();
+    workspaceStore.EnsureStageEventsTable();
     workspaceStore.EnsureWorkFocusTable();
     workspaceStore.WorkFocusHydrate(workspaceState);
     workspaceStore.EnsureScriptLastRunTable();
     IdeDeskSeats.Bind(workspaceStore);
     ScriptScene.Bind(workspaceStore);
+    IdeStageCycle.Bind(workspaceStore, () => workspaceState);
     OpenRecentStore.Configure(new WitDbOpenRecentBackend(workspaceStore, path));
     openedWorkspaceDbPath = path;
 }
@@ -126,11 +128,16 @@ var anuiTools = Anui.Agent.Mcp.ToolCatalog.Build().ToDictionary(t => t.Name, Str
 var docStore = new DocumentBufferStore();
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
-shellHabitat.Finished += info => IdeIgniteArmHost.Notify(
-    "shell_finished",
-    ok: info.ExitCode == 0,
-    pulse: info.Tab,
-    detail: info.Command.Length > 120 ? info.Command[..120] : info.Command);
+shellHabitat.Finished += info =>
+{
+    IdeIgniteArmHost.Notify(
+        "shell_finished",
+        ok: info.ExitCode == 0,
+        pulse: info.Tab,
+        detail: info.Command.Length > 120 ? info.Command[..120] : info.Command);
+    if (info.ExitCode != 0)
+        IdeStageCycle.TryAppend("shell.fail", "shell", info.Command, info.Tab);
+};
 var mcpOutlet = new McpOutletHabitat();
 var internetBrowser = new InternetBrowserHabitat();
 var ideSettings = new IdeSettingsHabitat(

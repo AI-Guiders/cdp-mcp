@@ -537,6 +537,25 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        // Stage cycle event ledger — list pointers for open (or closed) clock.
+        if (head is "events")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("events");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "events" });
+            return (merged, null);
+        }
+
+        // Explicit note pointer while clock open.
+        if (head is "note")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("note");
+            var text = tokens.Count >= 2 ? string.Join(' ', tokens.Skip(1)) : "";
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "note", title = text, text });
+            return (merged, null);
+        }
+
         if (head is "tasks" or "plan" or "board")
         {
             merged["go"] = JsonSerializer.SerializeToElement("plan");
@@ -1234,6 +1253,10 @@ internal static class IdeRepl
         if (title.Equals("shipped", StringComparison.OrdinalIgnoreCase)
             || title.Equals("completed", StringComparison.OrdinalIgnoreCase))
             return "shipped | completed — wall Completed after ship";
+        if (title.Equals("events", StringComparison.OrdinalIgnoreCase))
+            return "events — list stage cycle event pointers";
+        if (title.Equals("note", StringComparison.OrdinalIgnoreCase))
+            return "note <text> — append pointer while clock open";
         if (title.Equals("feature", StringComparison.OrdinalIgnoreCase)
             || title.Equals("intent", StringComparison.OrdinalIgnoreCase))
             return "feature <name>";

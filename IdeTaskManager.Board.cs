@@ -45,14 +45,25 @@ internal static partial class IdeTaskManager
 
         var phaseWire = sessionPhase is { Length: > 0 } ? sessionPhase : "—";
         var wall = FormatWallClockSuffix(snap.ActiveStageStartedUtc, snap.ActiveStageCompletedUtc, DateTimeOffset.UtcNow);
+        var events = "";
+        if (snap.ActiveStageId is { } eventStageId && snap.ActiveStageStartedUtc is not null)
+        {
+            try
+            {
+                var c = store.StageEventCounts(eventStageId);
+                events = FormatEventCountsSuffix(c.Wait, c.Fail, c.Note);
+            }
+            catch { /* diagnostic only */ }
+        }
+
         var pulse = snap.ActiveFeatureTitle is { Length: > 0 } f
             ? snap.ActiveStageTitle is { Length: > 0 } t
-                ? $"{f} › {t} · {phaseWire}{wall}"
+                ? $"{f} › {t} · {phaseWire}{wall}{events}"
                 : $"{f} › (pick task) · {phaseWire}"
             : $"no plan — feature <name> · {phaseWire}";
 
         var banner = snap.ActiveFeatureTitle is { Length: > 0 }
-            ? $"| plan:{Trim(snap.ActiveFeatureTitle, 18)} | task:{Trim(snap.ActiveStageTitle ?? "—", 18)} | phase:{phaseWire} |{WallBanner(wall)}"
+            ? $"| plan:{Trim(snap.ActiveFeatureTitle, 18)} | task:{Trim(snap.ActiveStageTitle ?? "—", 18)} | phase:{phaseWire} |{WallBanner(wall + events)}"
             : $"| plan:— | task:— | phase:{phaseWire} |";
 
         if (snap.ActiveStagePhaseAffinity is { Length: > 0 } aff
@@ -82,7 +93,9 @@ internal static partial class IdeTaskManager
                 session_phase = sessionPhase,
                 started_utc = snap.ActiveStageStartedUtc,
                 completed_utc = snap.ActiveStageCompletedUtc,
-                elapsed = wall.Length > 0 ? wall.TrimStart(' ', '·') : null,
+                elapsed = wall.Length > 0 || events.Length > 0
+                    ? (wall + events).TrimStart(' ', '·').Trim()
+                    : null,
                 clock_kind = "wall"
             });
     }
