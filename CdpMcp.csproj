@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="CdpMcp.Tests/**" />
+    
     <None Remove="CdpMcp.Tests/**" />
     <EmbeddedResource Remove="CdpMcp.Tests/**" />
     <Compile Remove="CdpMcp.ArchitectureAnalyzers/**" />
@@ -114,16 +115,16 @@
   </ItemGroup>
   <ItemGroup>
     <!-- RoslynMcp sets RoslynMcpWorkspace=true: skip local analyzer ProjectReference so MCP does not lock bin\… DLL (same as CascadeIDE). CLI/CI keep analyzers. -->
-    <ProjectReference Include="CdpMcp.ArchitectureAnalyzers\CdpMcp.ArchitectureAnalyzers.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false"
-                      Condition="'$(RoslynMcpWorkspace)'!='true'" />
+    <ProjectReference Include="CdpMcp.ArchitectureAnalyzers\CdpMcp.ArchitectureAnalyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" Condition="'$(RoslynMcpWorkspace)'!='true'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="IdeLanguageTools.BareVerbs.cs">
       <DependentUpon>IdeLanguageTools.cs</DependentUpon>
     </Compile>
     <Compile Update="IdeLanguageTools.LspDispatch.cs">
+      <DependentUpon>IdeLanguageTools.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IdeLanguageTools.Dispatch.cs">
       <DependentUpon>IdeLanguageTools.cs</DependentUpon>
     </Compile>
   </ItemGroup>
