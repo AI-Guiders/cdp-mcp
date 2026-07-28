@@ -9,7 +9,7 @@ namespace CdpMcp;
 /// Soft organ <c>go=files_desk</c> / Meta <c>cdp_files</c> — agent-native File Manager (ADR-0016).
 /// Utility (not project-bound): <c>where=project|external|cwd</c> parity with search.
 /// </summary>
-internal static class IdeFilesChannel
+internal static partial class IdeFilesChannel
 {
     public const string SchemaVersion = "files/v1";
     public const string ToolName = "cdp_files";
@@ -42,6 +42,7 @@ internal static class IdeFilesChannel
             "stat" or "info" => Stat(session, args),
             "tree" => Tree(session, args),
             "open" => OpenFile(store, session, args),
+            "text" or "dump" or "read" => TextProject(session, args),
             "search" or "find" => SearchFacet(session, args),
             "roots" => Roots(session),
             "clear" => ClearCwd(),
@@ -61,7 +62,7 @@ internal static class IdeFilesChannel
             entries: entries,
             total: total,
             truncated: truncated,
-            hint: "Utility FM — where=project|external|cwd. Prefer over shell ls. op=list|cd|up|stat|tree|open|search.");
+            hint: "Utility FM — where=project|external|cwd. Prefer over shell ls. op=list|cd|up|stat|tree|open|text|search.");
     }
 
     static object List(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
@@ -257,6 +258,10 @@ internal static class IdeFilesChannel
         if (!File.Exists(full))
             return Err("not_found", full);
 
+        var asMode = (Opt(args, "as") ?? Opt(args, "mode") ?? "").Trim().ToLowerInvariant();
+        if (asMode is not ("buffer" or "edit") && IsTextProjectable(full))
+            return TextProject(session, Dict(("path", full), ("max_chars", Opt(args, "max_chars") ?? "")));
+
         try
         {
             var buf = store.Open(full);
@@ -273,9 +278,10 @@ internal static class IdeFilesChannel
                 next = new object[]
                 {
                     new { go = "editor_scene", label = "Editor", why = "buffer open" },
+                    new { go = "files_desk", label = "Text dump", why = $"op=text path={full}" },
                     new { go = "files_desk", label = "Cwd list", why = "op=list" }
                 },
-                hint = "Opened into cdp_buffer — edit via buffer plane"
+                hint = "Opened into cdp_buffer — edit via buffer plane; op=text for lynx-like dump"
             };
         }
         catch (Exception ex)

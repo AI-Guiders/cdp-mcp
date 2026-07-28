@@ -643,12 +643,12 @@ List<Tool> BuildMetaTools() =>
                 pairs_lsp = new { type = "string", description = "optional lsp id after ensure" }
             }
         }),
-    Meta("cdp_files", "Agent-native File Manager (ADR-0016). Utility — not project-bound. where=cwd|project|external (+path=). op=scene|list|cd|up|stat|tree|open|search|roots|clear. shape=slim|list. Alias go=files_desk. Prefer over shell ls/dir. Search facet → find_desk.", new
+    Meta("cdp_files", "Agent-native File Manager (ADR-0016). Utility — not project-bound. where=cwd|project|external (+path=). op=scene|list|cd|up|stat|tree|open|text|search|roots|clear. text= lynx-like dump (pandoc/pdftotext). shape=slim|list. Alias go=files_desk. Prefer over shell ls/dir. Search facet → find_desk.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|list|cd|up|stat|tree|open|search|roots|clear" },
+            op = new { type = "string", description = "scene|list|cd|up|stat|tree|open|text|search|roots|clear" },
             where = new { type = "string", description = "cwd|project|external" },
             path = new { type = "string", description = "absolute (external) or relative to cwd" },
             name = new { type = "string", description = "cd/open/stat relative name" },
@@ -657,7 +657,9 @@ List<Tool> BuildMetaTools() =>
             shape = new { type = "string", description = "slim (default)|list|raw" },
             depth = new { type = "integer", description = "tree depth 1..4" },
             query = new { type = "string", description = "search facet → find_desk" },
-            hidden = new { type = "boolean", description = "include hidden entries" }
+            hidden = new { type = "boolean", description = "include hidden entries" },
+            max_chars = new { type = "integer", description = "text: dump cap (default 12000)" },
+            @as = new { type = "string", description = "open: buffer|edit to force buffer for docs (default text for pdf/docx/…)" }
         }
     }),
     Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list|hygiene|plateau|continuity|resume. ARM: when=build_finished|test_finished|shell_finished|timer task= (TM label only). Default charge=minimal: canonical wake text + amnesia/compaction postfix at fire (no TM body in composer). charge=custom only for legacy templates. last_once=/await_operator: fire once → awaiting latch. Alias go=ignite_desk.", new
