@@ -1263,11 +1263,13 @@ internal sealed partial class IntentWorkspaceStore(
             if (matchParent)
                 q = q.Where(x => x.ParentId == parentId);
 
-            return q.Where(x => x.Title == t)
+            // Materialize before title compare — WitDB provider equality can miss titles with '/' (board shows them; focus/done by title fails).
+            var list = q.ToList();
+            return list.Where(x => x.Title == t)
                        .OrderByDescending(x => x.UpdatedUtc)
                        .Select(x => (Guid?)x.Id)
                        .FirstOrDefault()
-                   ?? q.Where(x => x.Title.ToLower() == t.ToLower())
+                   ?? list.Where(x => string.Equals(x.Title, t, StringComparison.OrdinalIgnoreCase))
                        .OrderByDescending(x => x.UpdatedUtc)
                        .Select(x => (Guid?)x.Id)
                        .FirstOrDefault();

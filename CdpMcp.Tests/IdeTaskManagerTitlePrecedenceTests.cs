@@ -77,6 +77,39 @@ public sealed class IdeTaskManagerTitlePrecedenceTests
         }
     }
 
+    [Fact]
+    public void Focus_by_title_with_slash_finds_stage()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-slash-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "slash-feature", null);
+            var activeId = store.StageUpsert(state, "keep-active", null, null, null).stage_id;
+            var slashTitle = "Add deferred/parked seed without stealing focus";
+            var slashId = store.StageUpsert(state, slashTitle, null, null, null).stage_id;
+            store.FocusStage(state, activeId);
+            store.StageSetStatus(state, slashId, "parked");
+
+            Assert.Equal(slashId, store.FindStageIdByTitle(state, slashTitle));
+
+            var result = IdeTaskManager.Handle(store, state, Args(new
+            {
+                tm_op = "focus",
+                title = slashTitle
+            }));
+
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal(slashId, state.ActiveStageId);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
     static Dictionary<string, JsonElement> Args(object anon)
     {
         using var doc = JsonDocument.Parse(JsonSerializer.Serialize(anon));
