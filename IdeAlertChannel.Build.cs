@@ -15,10 +15,16 @@ internal static partial class IdeAlertChannel
     {
         var lines = new List<string>();
         var level = Level.Clear;
+        IdeExplainability.ExplainCard? explain = null;
 
         void Raise(Level want)
         {
             if (level < want) level = want;
+        }
+
+        void Explain(string source, string reason, string authority, string nextStep)
+        {
+            explain ??= IdeExplainability.New(source, reason, authority, nextStep);
         }
 
         string Mark() => level == Level.Fail ? "|" : "*";
@@ -27,28 +33,33 @@ internal static partial class IdeAlertChannel
         {
             Raise(Level.Fail);
             lines.Add($"!gates FAIL×{i.Quality.Fail} WARN×{i.Quality.Warn}");
+            Explain("alert.gates", "quality_fail", $"quality gates report FAIL×{i.Quality.Fail}", "go=quality");
         }
         else if (i.Quality is { Enabled: true, Warn: > 0 })
         {
             Raise(Level.Warn);
             lines.Add($"*gates WARN×{i.Quality.Warn}");
+            Explain("alert.gates", "quality_warn", $"quality gates report WARN×{i.Quality.Warn}", "go=quality");
         }
 
         if (i.ProblemErrors > 0)
         {
             Raise(Level.Fail);
             lines.Add($"{Mark()}problems E×{i.ProblemErrors} W×{i.ProblemWarnings}");
+            Explain("alert.problems", "problem_errors", $"problems has E×{i.ProblemErrors}", "go=problems");
         }
         else if (i.ProblemWarnings > 0)
         {
             Raise(Level.Warn);
             lines.Add($"*problems W×{i.ProblemWarnings}");
+            Explain("alert.problems", "problem_warnings", $"problems has W×{i.ProblemWarnings}", "go=problems");
         }
 
         if (i.ShellFailed > 0)
         {
             Raise(Level.Fail);
             lines.Add($"{Mark()}shell FAIL×{i.ShellFailed} run×{i.ShellRunning}");
+            Explain("alert.shell", "shell_failed", $"shell has FAIL×{i.ShellFailed}", "go=shell_scene");
         }
         else if (i.ShellRunning > 0)
         {
@@ -59,12 +70,14 @@ internal static partial class IdeAlertChannel
         {
             Raise(Level.Warn);
             lines.Add($"{Mark()}disk×{i.DiskChanged} outside IDE");
+            Explain("alert.disk", "outside_ide_mutation", $"disk changed outside IDE ×{i.DiskChanged}", "go=disk_peek");
         }
 
         if (i.DapStopped)
         {
             Raise(Level.Warn);
             lines.Add($"{Mark()}dap STOPPED");
+            Explain("alert.debug", "dap_stopped", "debugger is stopped and waiting", "go=debug");
         }
         else if (i.DapActive)
         {
@@ -75,12 +88,14 @@ internal static partial class IdeAlertChannel
         {
             Raise(Level.Warn);
             lines.Add($"{Mark()}git dirty");
+            Explain("alert.git", "git_dirty", "working tree has staged or unstaged changes", "go=git_scene");
         }
 
         if (i.StagePhaseMismatch is { Length: > 0 } mismatch)
         {
             Raise(Level.Warn);
             lines.Add($"{Mark()}{mismatch}");
+            Explain("alert.stage", "phase_mismatch", mismatch, "go=plan");
         }
 
         if (i.ChkOpenRequired > 0)
@@ -90,6 +105,7 @@ internal static partial class IdeAlertChannel
                 ? p
                 : $"ecl open×{i.ChkOpenRequired}";
             lines.Add($"{Mark()}{chkLine}");
+            Explain("alert.ecl", "checklist_open", chkLine, "go=ecl");
         }
 
         if (i.Sit?.SeatNote is { Length: > 0 } note)
@@ -105,6 +121,7 @@ internal static partial class IdeAlertChannel
             Ok: level != Level.Fail,
             pulse,
             lines.Take(16).ToArray(),
+            explain,
             i.Quality.Fail,
             i.Quality.Warn,
             i.DiskChanged,

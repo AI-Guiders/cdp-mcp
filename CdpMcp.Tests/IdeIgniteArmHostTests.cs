@@ -383,6 +383,10 @@ public class IdeIgniteArmHostTests
             Assert.True(sdoc.RootElement.GetProperty("ok").GetBoolean());
             Assert.True(sdoc.RootElement.GetProperty("skipped").GetBoolean());
             Assert.Equal("awaiting_operator", sdoc.RootElement.GetProperty("error").GetString());
+            var explain = sdoc.RootElement.GetProperty("explain");
+            Assert.Equal("ignite.continuity", explain.GetProperty("source").GetString());
+            Assert.Equal("awaiting_operator", explain.GetProperty("reason").GetString());
+            Assert.Equal("cdp_ignite op=resume", explain.GetProperty("next_step").GetString());
 
             var resume = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
             {

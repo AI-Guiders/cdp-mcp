@@ -56,6 +56,22 @@ public sealed class IdeAlertChannelTests
     }
 
     [Fact]
+    public void Build_problems_errors_exposes_explain_card()
+    {
+        var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(
+            new QualityGates.QualitySnap(true, 0, 0, false, "ok"),
+            DiskChanged: 0,
+            DapActive: false,
+            DapStopped: false,
+            ProblemErrors: 2,
+            ProblemWarnings: 1));
+        Assert.NotNull(snap.Explain);
+        Assert.Equal("alert.problems", snap.Explain!.Source);
+        Assert.Equal("problem_errors", snap.Explain.Reason);
+        Assert.Equal("go=problems", snap.Explain.NextStep);
+    }
+
+    [Fact]
     public void Build_git_dirty_and_shell_running_fuse()
     {
         var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(

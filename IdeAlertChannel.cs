@@ -33,6 +33,14 @@ internal static partial class IdeAlertChannel
             level = snap.Level.ToString().ToLowerInvariant(),
             pulse = snap.Pulse,
             view = new { schema = SchemaVersion, lines = snap.Lines },
+            explain = snap.Explain is null ? null : new
+            {
+                source = snap.Explain.Source,
+                reason = snap.Explain.Reason,
+                authority = snap.Explain.Authority,
+                next_step = snap.Explain.NextStep,
+                why = snap.Explain.WhyLine
+            },
             sit = SitCard(snap.Sit),
             quality = new { fail = snap.QualityFail, warn = snap.QualityWarn, pulse = inputs.Quality.Pulse },
             problems = new { errors = snap.ProblemErrors, warnings = snap.ProblemWarnings },
@@ -70,6 +78,14 @@ internal static partial class IdeAlertChannel
             locus = snap.Sit?.Locus,
             layout = snap.Sit?.LayoutHint,
             seat = snap.Sit?.SeatNote,
+            explain = snap.Explain is null ? null : new
+            {
+                source = snap.Explain.Source,
+                reason = snap.Explain.Reason,
+                authority = snap.Explain.Authority,
+                next_step = snap.Explain.NextStep,
+                why = snap.Explain.WhyLine
+            },
             counts = counts.Count == 0 ? null : counts
         };
     }

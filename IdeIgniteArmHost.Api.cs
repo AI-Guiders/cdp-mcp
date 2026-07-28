@@ -17,7 +17,8 @@ internal static partial class IdeIgniteArmHost
         return new
         {
             count = list.Count,
-            armed = list.Select(Slim).ToList()
+            armed = list.Select(Slim).ToList(),
+            explain = ExplainCardObject(ContinuityExplain(list))
         };
     }
 
@@ -46,6 +47,11 @@ internal static partial class IdeIgniteArmHost
                         pulse = $"ignite · {ProviderBlockedStatus} · skip re-arm · {blockedOnly.Id}",
                         arm = Slim(blockedOnly),
                         arms = SceneSliceUnlocked(),
+                        explain = ExplainCardObject(IdeExplainability.New(
+                            "ignite.continuity",
+                            ProviderBlockedStatus,
+                            "previous last_once fire ended provider-blocked on this chat",
+                            "open new chat")),
                         hint = "Provider blocked after fire — new chat required for PF. op=resume after handoff; force=true to replace."
                     };
                 }
@@ -71,6 +77,17 @@ internal static partial class IdeIgniteArmHost
                         : $"ignite · awaiting · skip re-arm · {latch.Id}",
                     arm = Slim(latch),
                     arms = SceneSliceUnlocked(),
+                    explain = ExplainCardObject(IsProviderBlockedStatus(latch.Status)
+                        ? IdeExplainability.New(
+                            "ignite.continuity",
+                            ProviderBlockedStatus,
+                            "previous last_once fire requires a new chat before continuing",
+                            "open new chat")
+                        : IdeExplainability.New(
+                            "ignite.continuity",
+                            "awaiting_operator",
+                            "last_once already fired and is latched awaiting operator",
+                            "cdp_ignite op=resume")),
                     hint = IsProviderBlockedStatus(latch.Status)
                         ? "provider blocked — open new chat for PF; op=resume after handoff. force=true to replace."
                         : "last_once already awaiting operator — do not repeat. force=true to replace, or disarm/resume to fly again."
@@ -100,6 +117,13 @@ internal static partial class IdeIgniteArmHost
                     + (arm.DueUtc is { } d0 ? $" · due {d0:HH:mm:ss}Z" : ""),
             arm = Slim(arm),
             arms = SceneSlice(),
+            explain = ExplainCardObject(IdeExplainability.New(
+                $"ignite.{arm.Event}",
+                arm.LastOnce ? "armed_last_once" : "armed",
+                !string.IsNullOrWhiteSpace(arm.Task)
+                    ? $"authorized task '{arm.Task}' is active for continuity"
+                    : $"continuity arm is active for event '{arm.Event}'",
+                arm.LastOnce ? "end turn" : "wait for event")),
             hint = arm.LastOnce
                 ? "last_once: fires once → awaiting latch; harness blocks repeat idle re-arms until force/disarm/work arm."
                 : arm.Event == "timer"
@@ -114,7 +138,8 @@ internal static partial class IdeIgniteArmHost
         return new
         {
             count = list.Count,
-            armed = list.Select(Slim).ToList()
+            armed = list.Select(Slim).ToList(),
+            explain = ExplainCardObject(ContinuityExplain(list))
         };
     }
 
@@ -170,6 +195,7 @@ internal static partial class IdeIgniteArmHost
             tool = IdeIgniteChannel.ToolName,
             pulse = ContinuityPulseLine(list),
             continuity = ContinuitySlice(list),
+            explain = ExplainCardObject(ContinuityExplain(list)),
             ops_pulse = IdeOpsPulse.Line(),
             seat = Seat,
             arms = list.Select(Slim).ToList(),
@@ -195,6 +221,7 @@ internal static partial class IdeIgniteArmHost
             removed,
             continuity = ContinuitySlice(list),
             arms = SceneSlice(),
+            explain = ExplainCardObject(ContinuityExplain(list)),
             hint = "Kept armed continuity. Re-ARM timer if store empty."
         };
     }
@@ -216,6 +243,7 @@ internal static partial class IdeIgniteArmHost
             removed,
             continuity = ContinuitySlice(list),
             arms = SceneSlice(),
+            explain = ExplainCardObject(ContinuityExplain(list)),
             hint = "Plateau clean. Continuity arms intact; re-ARM short timer before end turn."
         };
     }
@@ -233,7 +261,8 @@ internal static partial class IdeIgniteArmHost
             tool = IdeIgniteChannel.ToolName,
             pulse = ContinuityPulseLine(list),
             continuity = ContinuitySlice(list),
-            arms = SceneSlice()
+            arms = SceneSlice(),
+            explain = ExplainCardObject(ContinuityExplain(list))
         };
     }
 
@@ -260,6 +289,13 @@ internal static partial class IdeIgniteArmHost
             removed,
             continuity = ContinuitySlice(list),
             arms = SceneSlice(),
+            explain = ExplainCardObject(removed > 0
+                ? IdeExplainability.New(
+                    "ignite.resume",
+                    "latch_cleared",
+                    "awaiting/provider_blocked latch was cleared so continuity can move again",
+                    "re-arm if needed")
+                : ContinuityExplain(list)),
             hint = removed > 0
                 ? "Latch cleared (awaiting and/or provider_blocked) — re-ARM on NEW chat title after PF handoff."
                 : "No latch. op=arm last_once=true for Await Operator mode."
@@ -313,6 +349,54 @@ internal static partial class IdeIgniteArmHost
         var noise = err > 0 ? $" · stale={err}" : "";
         return $"ignite · continuity · armed={armed}{noise}{due}";
     }
+
+    static IdeExplainability.ExplainCard ContinuityExplain(IReadOnlyList<IgniteArm> list)
+    {
+        var blocked = list.Where(a => a.Status == ProviderBlockedStatus).ToList();
+        if (blocked.Count > 0)
+            return IdeExplainability.New(
+                "ignite.continuity",
+                ProviderBlockedStatus,
+                $"continuity latch count={blocked.Count} requires a new chat",
+                "open new chat");
+
+        var awaiting = list.Where(a => a.Status == "awaiting").ToList();
+        if (awaiting.Count > 0)
+            return IdeExplainability.New(
+                "ignite.continuity",
+                "awaiting_operator",
+                $"last_once latch count={awaiting.Count} is waiting for operator acknowledgement",
+                "cdp_ignite op=resume");
+
+        var armed = list.Where(a => a.Status is "armed" or "firing").OrderBy(a => a.DueUtc ?? DateTimeOffset.MaxValue).ToList();
+        if (armed.Count > 0)
+        {
+            var next = armed[0];
+            var reason = next.Event == "timer" ? "timer_wait" : $"{next.Event}_wait";
+            var authority = next.DueUtc is { } due
+                ? $"continuity is armed and next due is {due:HH:mm:ss}Z"
+                : "continuity is armed and waiting for its event";
+            return IdeExplainability.New("ignite.continuity", reason, authority, "wait for event");
+        }
+
+        return IdeExplainability.New(
+            "ignite.continuity",
+            "idle",
+            "no armed or latched continuity remains",
+            "arm if continuity is needed");
+    }
+
+    static object? ExplainCardObject(IdeExplainability.ExplainCard? explain) =>
+        explain is null
+            ? null
+            : new
+            {
+                source = explain.Source,
+                reason = explain.Reason,
+                authority = explain.Authority,
+                next_step = explain.NextStep,
+                why = explain.WhyLine
+            };
 
     /// <summary>Drop error arms + once stuck-firing with FiredUtc. Returns removed ids.</summary>
     static List<string> SweepNoiseUnlocked(bool persist)

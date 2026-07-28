@@ -43,6 +43,7 @@ internal static partial class IdeAlertChannel
         bool Ok,
         string Pulse,
         string[] Lines,
+        IdeExplainability.ExplainCard? Explain,
         int QualityFail,
         int QualityWarn,
         int DiskChanged,
