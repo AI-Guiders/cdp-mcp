@@ -19,4 +19,16 @@ internal static class IdeExplainability
         string authority,
         string nextStep) =>
         new(source, reason, authority, nextStep);
+
+    public static object? ToObject(ExplainCard? explain) =>
+        explain is null
+            ? null
+            : new
+            {
+                source = explain.Source,
+                reason = explain.Reason,
+                authority = explain.Authority,
+                next_step = explain.NextStep,
+                why = explain.WhyLine
+            };
 }

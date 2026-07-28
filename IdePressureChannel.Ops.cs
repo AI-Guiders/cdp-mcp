@@ -23,6 +23,7 @@ internal static partial class IdePressureChannel
             armed,
             stash_path = FilePath,
             has_stash = doc?.Body is { Length: > 0 },
+            explain = IdeExplainability.ToObject(Explain(doc)),
             view = new { schema = SchemaVersion, lines },
             next = SceneNext(armed, doc),
             hint = armed
@@ -53,6 +54,7 @@ internal static partial class IdePressureChannel
             pulse = PulseLine(),
             armed = true,
             why,
+            explain = IdeExplainability.ToObject(Explain(doc)),
             view = new { schema = SchemaVersion, lines = ChecklistLines(session, doc) },
             next = SceneNext(true, doc),
             hint = "Armed. Stash invariants now (AutoIgnition / Task Manager / CDP locus). Slim desk shows pressure pulse until clear."
@@ -112,6 +114,7 @@ internal static partial class IdePressureChannel
             stash_path = FilePath,
             md_path = mdPath,
             chars = doc.Body.Length,
+            explain = IdeExplainability.ToObject(Explain(doc)),
             next = new object[]
             {
                 new { go = GoName, label = "Scene", why = "op=scene" },

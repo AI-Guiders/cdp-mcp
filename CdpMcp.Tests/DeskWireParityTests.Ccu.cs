@@ -59,6 +59,7 @@ public sealed partial class DeskWireParityTests
             AlertWhy: null,
             PressureArmed: false,
             PressurePulse: null,
+            PressureWhy: null,
             ChkOpenRequired: 0,
             ChkPulse: null,
             PhaseReviewOrVerify: false,
@@ -110,6 +111,7 @@ public sealed partial class DeskWireParityTests
             AlertWhy: "alert.git · git_dirty · working tree has staged or unstaged changes · next go=git_scene",
             PressureArmed: false,
             PressurePulse: null,
+            PressureWhy: null,
             ChkOpenRequired: 0,
             ChkPulse: null,
             PhaseReviewOrVerify: false,
@@ -143,6 +145,57 @@ public sealed partial class DeskWireParityTests
             ShellRunning: 0));
         var alert = Assert.Single(cards, c => c.Go == "alert");
         Assert.Equal("alert.git · git_dirty · working tree has staged or unstaged changes · next go=git_scene", alert.Why);
+    }
+
+    [Fact]
+    public void DeskNextBuildUnit_prefers_pressure_explain_why_over_pulse()
+    {
+        var unit = new DeskNextBuildUnit();
+        var why = "pressure.continuity · stashed · L1 armed with durable stash — recall after compact; clear when done · next cdp_pressure op=recall";
+        var cards = unit.Build(new DeskNextBuildUnit.Input(
+            HasProject: true,
+            DeskBookmarkExists: false,
+            WorkIntentId: "work-1",
+            WorkPulse: "plan · X",
+            AlertBeeping: false,
+            AlertPulse: null,
+            AlertWhy: null,
+            PressureArmed: true,
+            PressurePulse: "pressure · ARMED · stashed",
+            PressureWhy: why,
+            ChkOpenRequired: 0,
+            ChkPulse: null,
+            PhaseReviewOrVerify: false,
+            PhaseIsReview: false,
+            QrhHotId: null,
+            QrhPulse: null,
+            LayoutHint: null,
+            LayoutSeatNote: null,
+            ProblemErrors: 0,
+            AnyUndo: false,
+            AnyClipboard: false,
+            AnyNavBack: false,
+            QualityEnabled: false,
+            QualityFail: 0,
+            QualityWarn: 0,
+            SuggestSniper: false,
+            SniperHasHold: false,
+            SniperPulse: null,
+            ArchHasWork: false,
+            ArchPulse: null,
+            ToolchainPulse: "toolchain",
+            OnboardHasScan: false,
+            OnboardPulse: null,
+            DiskChangedCount: 0,
+            FocusId: null,
+            BufferCount: 0,
+            BufferDirtyCount: 0,
+            GitDirty: false,
+            TestFailed: 0,
+            DebugStopped: false,
+            ShellRunning: 0));
+        var pressure = Assert.Single(cards, c => c.Go == "pressure");
+        Assert.Equal(why, pressure.Why);
     }
 
     [Fact]

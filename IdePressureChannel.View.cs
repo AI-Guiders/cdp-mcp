@@ -54,6 +54,7 @@ internal static partial class IdePressureChannel
             pulse = PulseLine(),
             armed = false,
             has_stash = doc.Body is { Length: > 0 },
+            explain = IdeExplainability.ToObject(Explain(doc)),
             hint = "Disarmed. Last stash still on disk (op=recall)."
         };
     }
@@ -72,6 +73,7 @@ internal static partial class IdePressureChannel
                 op = "recall",
                 pulse = "pressure · idle",
                 empty = true,
+                explain = IdeExplainability.ToObject(Explain(null)),
                 hint = "No stash yet."
             };
         }
@@ -94,6 +96,7 @@ internal static partial class IdePressureChannel
             plan = doc.PlanNote,
             armed_utc = doc.ArmedUtc,
             stash_utc = doc.StashUtc,
+            explain = IdeExplainability.ToObject(Explain(doc)),
             hint = "Durable stash — use after host summarization; do not trust platform summary alone."
         };
     }

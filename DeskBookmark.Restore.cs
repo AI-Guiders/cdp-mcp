@@ -137,6 +137,11 @@ internal static partial class DeskBookmark
             buffers_opened = openedBuffers,
             buffers_skipped = skipped,
             focus = focusPath,
+            explain = IdeExplainability.ToObject(IdeExplainability.New(
+                "desk.remount",
+                "explicit_restore",
+                "desk bookmark restored project + buffers after MCP reload (not LLM chat)",
+                "cdp_cockpit")),
             next = new object[]
             {
                 new { go = "cockpit", label = "Desk pulse", why = "cdp_cockpit after restore" },

@@ -78,6 +78,33 @@ public sealed class IdeDeployTests
     }
 
     [Fact]
+    public void Remount_explain_cards_use_desk_remount_source()
+    {
+        var auto = IdeExplainability.New(
+            "desk.remount",
+            "auto_warm",
+            "cold tool cdp_session hydrated desk from bookmark once/process",
+            "cdp_cockpit");
+        var fail = IdeExplainability.New(
+            "desk.remount",
+            "auto_warm_failed",
+            "cold auto-warm failed: boom",
+            "cdp_restore");
+        var restore = IdeExplainability.New(
+            "desk.remount",
+            "explicit_restore",
+            "desk bookmark restored project + buffers after MCP reload (not LLM chat)",
+            "cdp_cockpit");
+
+        using var autoObj = JsonDocument.Parse(JsonSerializer.Serialize(IdeExplainability.ToObject(auto)));
+        Assert.Equal("desk.remount", autoObj.RootElement.GetProperty("source").GetString());
+        Assert.Equal("auto_warm", autoObj.RootElement.GetProperty("reason").GetString());
+        Assert.Contains("desk.remount · auto_warm", auto.WhyLine, StringComparison.Ordinal);
+        Assert.Contains("desk.remount · auto_warm_failed", fail.WhyLine, StringComparison.Ordinal);
+        Assert.Contains("desk.remount · explicit_restore", restore.WhyLine, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Repl_deploy_dry_routes_go_deploy()
     {
         var empty = new Dictionary<string, JsonElement>(StringComparer.Ordinal);

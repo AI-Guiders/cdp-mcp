@@ -90,7 +90,12 @@ internal static class DeskWarm
             {
                 ok = true,
                 source = "desk_bookmark",
-                note = $"auto-restore on cold {toolName} (once/process)"
+                note = $"auto-restore on cold {toolName} (once/process)",
+                explain = IdeExplainability.ToObject(IdeExplainability.New(
+                    "desk.remount",
+                    "auto_warm",
+                    $"cold tool {toolName} hydrated desk from bookmark once/process",
+                    "cdp_cockpit"))
             };
         }
         catch (Exception ex)
@@ -99,7 +104,12 @@ internal static class DeskWarm
             {
                 ok = false,
                 source = "desk_bookmark",
-                error = ex.Message
+                error = ex.Message,
+                explain = IdeExplainability.ToObject(IdeExplainability.New(
+                    "desk.remount",
+                    "auto_warm_failed",
+                    $"cold auto-warm failed: {ex.Message}",
+                    "cdp_restore"))
             };
         }
     }

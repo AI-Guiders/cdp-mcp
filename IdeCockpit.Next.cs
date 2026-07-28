@@ -43,6 +43,7 @@ internal static partial class IdeCockpit
             AlertWhy: alert.Explain?.WhyLine,
             PressureArmed: IdePressureChannel.IsArmed(),
             PressurePulse: IdePressureChannel.PulseLine(),
+            PressureWhy: IdePressureChannel.ExplainWhyLine(),
             ChkOpenRequired: chk?.OpenRequired ?? 0,
             ChkPulse: chk?.Pulse,
             PhaseReviewOrVerify: session.Phase is CdpPhase.Review or CdpPhase.Verify,

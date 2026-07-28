@@ -18,6 +18,7 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
         string? AlertWhy,
         bool PressureArmed,
         string? PressurePulse,
+        string? PressureWhy,
         int ChkOpenRequired,
         string? ChkPulse,
         bool PhaseReviewOrVerify,
@@ -77,7 +78,7 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
         if (input.AlertBeeping)
             Add("n-alert", "alert", "SA board", input.AlertWhy ?? input.AlertPulse ?? "alert");
         if (input.PressureArmed)
-            Add("n-pressure", "pressure", "Pressure prep", input.PressurePulse ?? "pressure");
+            Add("n-pressure", "pressure", "Pressure prep", input.PressureWhy ?? input.PressurePulse ?? "pressure");
         if (input.ChkOpenRequired > 0)
             Add("n-ecl", "ecl", "ECL", input.ChkPulse ?? "ecl");
         if (input.PhaseReviewOrVerify)

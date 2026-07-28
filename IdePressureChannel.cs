@@ -73,6 +73,7 @@ internal static partial class IdePressureChannel
         var doc = Load();
         if (doc is null || !doc.Armed)
             return null;
+        var explain = Explain(doc);
         return new
         {
             schema = SchemaVersion,
@@ -80,7 +81,43 @@ internal static partial class IdePressureChannel
             pulse = PulseLine(),
             has_stash = doc.Body is { Length: > 0 },
             at_utc = doc.ArmedUtc,
-            go = GoName
+            go = GoName,
+            explain = IdeExplainability.ToObject(explain)
         };
+    }
+
+    public static string? ExplainWhyLine()
+    {
+        var doc = Load();
+        if (doc is null || !doc.Armed)
+            return null;
+        return Explain(doc).WhyLine;
+    }
+
+    static IdeExplainability.ExplainCard Explain(PressureDoc? doc)
+    {
+        if (doc is null || !doc.Armed)
+        {
+            return IdeExplainability.New(
+                "pressure.continuity",
+                "idle",
+                "L1 pre-compact desk is idle — arm when host injects pressure notify",
+                "cdp_pressure op=arm");
+        }
+
+        if (doc.Body is not { Length: > 0 })
+        {
+            return IdeExplainability.New(
+                "pressure.continuity",
+                "need_stash",
+                "L1 armed but stash empty — durable axes not written yet",
+                "cdp_pressure op=stash body=");
+        }
+
+        return IdeExplainability.New(
+            "pressure.continuity",
+            "stashed",
+            "L1 armed with durable stash — recall after compact; clear when done",
+            "cdp_pressure op=recall");
     }
 }
