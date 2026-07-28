@@ -29,6 +29,14 @@ internal static partial class IdeIgniteChannel
     internal static string ComposeArmFireCharge() =>
         SanitizeComposerCharge(CanonicalComposerCharge + ChargeAmnesiaPostfix);
 
+    /// <summary>Lead line for hard-remount boot wake — agent hears "initialized", not just silent DeskWarm.</summary>
+    internal const string RemountInitializedLead =
+        "MCP remounted / initialized.";
+
+    internal static string ComposeRemountInitializedCharge() =>
+        SanitizeComposerCharge(
+            RemountInitializedLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix);
+
     internal static string EventTokenForCharge(string eventId) =>
         string.Equals(eventId, "shell_finished", StringComparison.OrdinalIgnoreCase)
             ? "terminal_finished"

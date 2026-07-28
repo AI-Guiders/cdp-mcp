@@ -22,7 +22,9 @@ internal static partial class IdeIgniteArmHost
 
                 var msg = IsCustomChargeMode(arm.ChargeMode)
                     ? IdeIgniteChannel.SanitizeComposerCharge(Expand(arm.Message, arm, ok, pulse, detail))
-                    : IdeIgniteChannel.ComposeArmFireCharge();
+                    : IsRemountChargeMode(arm.ChargeMode)
+                        ? IdeIgniteChannel.ComposeRemountInitializedCharge()
+                        : IdeIgniteChannel.ComposeArmFireCharge();
                 lock (Gate)
                 {
                     var live = Arms.FirstOrDefault(x => x.Id.Equals(arm.Id, StringComparison.OrdinalIgnoreCase));
@@ -159,6 +161,12 @@ internal static partial class IdeIgniteArmHost
         var m = (mode ?? "minimal").Trim().ToLowerInvariant();
         return m is "custom" or "expand" or "legacy";
     }
+
+    static bool IsRemountChargeMode(string? mode) =>
+        string.Equals(
+            (mode ?? "").Trim(),
+            IdeRemountWake.ChargeMode,
+            StringComparison.OrdinalIgnoreCase);
 
     static string Expand(string template, IgniteArm arm, bool ok, string? pulse, string? detail)
     {

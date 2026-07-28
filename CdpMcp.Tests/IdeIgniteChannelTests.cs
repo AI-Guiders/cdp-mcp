@@ -50,6 +50,14 @@ public class IdeIgniteChannelTests
     }
 
     [Fact]
+    public void ComposeRemountInitializedCharge_includes_initialized_lead()
+    {
+        var charge = IdeIgniteChannel.ComposeRemountInitializedCharge();
+        Assert.StartsWith(IdeIgniteChannel.RemountInitializedLead, charge, StringComparison.Ordinal);
+        Assert.Contains("Habitat=CDP", charge, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void EventTokenForCharge_maps_shell_finished_event_id()
     {
         Assert.Equal("terminal_finished", IdeIgniteChannel.EventTokenForCharge("shell_finished"));

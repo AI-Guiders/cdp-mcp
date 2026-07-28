@@ -55,6 +55,26 @@ function Invoke-CdpReloadNudge {
     return @{ Ok = $true; Path = $mcpJson; Value = $stamp; Count = $count }
 }
 
+function Write-CdpRemountWakePending([string]$TargetRoot) {
+    $full = [System.IO.Path]::GetFullPath($TargetRoot)
+    $leaf = [System.IO.Path]::GetFileName($full.TrimEnd('\', '/'))
+    $seat = if ($leaf -ieq 'cdp-mcp-debug') { 'cdp-debug' }
+            elseif ($leaf -ieq 'cdp-mcp') { 'cdp' }
+            else { 'other' }
+    $dir = Join-Path $env:LOCALAPPDATA 'cdp-mcp'
+    New-Item -ItemType Directory -Force -Path $dir | Out-Null
+    $path = Join-Path $dir "remount-wake-$seat.pending.json"
+    $doc = [ordered]@{
+        schema      = 'remount_wake/v1'
+        seat        = $seat
+        target      = $full
+        reason      = 'hard_deploy'
+        stamped_utc = (Get-Date).ToUniversalTime().ToString('o')
+    }
+    ($doc | ConvertTo-Json -Depth 4) | Set-Content -LiteralPath $path -Encoding utf8
+    return @{ Ok = $true; Path = $path; Seat = $seat }
+}
+
 $deployRoot = if ($Mode -eq "soft") { "$Target.next" } else { $Target }
 $pendingMarker = Join-Path $Target "cdp-pending-update.json"
 $liveConfig = Join-Path $Target "cdp-mcp.toml"
@@ -166,6 +186,13 @@ try {
         Write-Host "HARD deployed: $exe"
         Write-Host "Config:        $configDst"
         Write-Host "Pending cleared."
+
+        try {
+            $wake = Write-CdpRemountWakePending -TargetRoot $Target
+            Write-Host "Remount wake:  $($wake.Path) seat=$($wake.Seat)"
+        } catch {
+            Write-Host "Remount wake:  failed — $($_.Exception.Message)"
+        }
 
         if (-not $NoNudgeMcp) {
             try {

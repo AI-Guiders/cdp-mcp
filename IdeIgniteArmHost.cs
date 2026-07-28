@@ -54,6 +54,8 @@ internal static partial class IdeIgniteArmHost
         if (!first) return;
         // Remount / process boot: unstick overdue + mid-fire arms before TimerLoop.
         ReclaimOverdue(TimeSpan.FromSeconds(3));
+        // Hard-deploy pending → one "MCP remounted / initialized" Autoi charge (no health poll).
+        TryScheduleRemountInitializedWake();
         HostCts = new CancellationTokenSource();
         _ = Task.Run(() => TimerLoopAsync(HostCts.Token));
     }

@@ -27,6 +27,55 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>
+    /// Consume remount-wake pending for this seat and arm a one-shot timer with charge_mode=remount.
+    /// Called on process boot (EnsureStarted). Returns null when no pending.
+    /// </summary>
+    internal static object? TryScheduleRemountInitializedWake(string? seatOverride = null)
+    {
+        var seat = IdeRemountWake.NormalizeSeat(seatOverride ?? Seat);
+        if (!IdeRemountWake.TryConsumePending(seat, out var pending))
+            return null;
+
+        EnsureLoaded();
+        var dueSec = Math.Clamp(IdeRemountWake.DefaultDueSeconds, 1, 60);
+        var now = DateTimeOffset.UtcNow;
+        var id = IdeRemountWake.ArmIdPrefix
+                 + now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture)
+                 + "-" + Guid.NewGuid().ToString("N")[..6];
+
+        IgniteArm arm;
+        lock (Gate)
+        {
+            Arms.RemoveAll(a =>
+                a.Id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
+                && a.Status is "armed" or "firing");
+
+            arm = new IgniteArm
+            {
+                Id = id,
+                Event = "timer",
+                Message = IdeIgniteChannel.ComposeRemountInitializedCharge(),
+                ChargeMode = IdeRemountWake.ChargeMode,
+                Task = IdeRemountWake.ArmTask,
+                Once = true,
+                LastOnce = false,
+                OkOnly = true,
+                SettleSeconds = 2,
+                WaitSeconds = 90,
+                DueUtc = now + TimeSpan.FromSeconds(dueSec),
+                InRaw = $"{dueSec}s",
+                Status = "armed",
+                CreatedUtc = now,
+                LastError = pending?.Reason is { Length: > 0 } r ? $"pending:{r}" : null
+            };
+            Arms.Add(arm);
+            PersistUnlocked();
+        }
+
+        return Slim(arm);
+    }
+
+    /// <summary>
     /// Reclaim timer arms that are overdue or stuck in firing (killed mid-CDT).
     /// Same id — does not create a new arm. Returns reclaimed ids.
     /// </summary>

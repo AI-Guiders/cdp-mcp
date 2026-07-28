@@ -124,7 +124,7 @@ internal static class IdeQrhChannel
             ["go=deploy from survivor seat (sibling Target)", "never hard-deploy self from inside cdp_shell_*"],
             [
                 new("cdp_deploy target=sibling (or go=deploy)", "deploy", "cdp_deploy"),
-                new("Wait CDP_RELOAD_NUDGE / remount", Action: "cdp_health"),
+                new("Expect Autoi 'MCP remounted / initialized' after remount", Action: "cdp_ignite"),
                 new("cdp_health — confirm version", "health", "cdp_health"),
                 new("Reorient desk: cdp_cockpit / restore", "restore")
             ],
@@ -140,6 +140,7 @@ internal static class IdeQrhChannel
             [],
             [
                 new("cdp_health — version_full vs expected", "health", "cdp_health"),
+                new("If no Autoi initialized wake: check remount-wake-*.pending.json", Action: "cdp_ignite"),
                 new("If stale: human Reload MCP or wait nudge", Action: "cdp_health"),
                 new("cdp_session / cockpit — warm desk", "cockpit")
             ],
