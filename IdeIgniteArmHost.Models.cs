@@ -23,7 +23,13 @@ internal static partial class IdeIgniteArmHost
         in_raw = a.InRaw,
         created_utc = a.CreatedUtc,
         fired_utc = a.FiredUtc,
-        last_error = a.LastError
+        last_error = a.LastError,
+        send_invoked_utc = a.SendInvokedUtc,
+        send_ok = a.SendOk,
+        send_error = a.SendError,
+        transcript_observed_utc = a.TranscriptObservedUtc,
+        transcript_path = a.TranscriptPath,
+        delivery_verdict = Verdict(a)
     };
 
     static IgniteArm Clone(IgniteArm a) => new()
@@ -45,7 +51,12 @@ internal static partial class IdeIgniteArmHost
         Status = a.Status,
         LastError = a.LastError,
         CreatedUtc = a.CreatedUtc,
-        FiredUtc = a.FiredUtc
+        FiredUtc = a.FiredUtc,
+        SendInvokedUtc = a.SendInvokedUtc,
+        SendOk = a.SendOk,
+        SendError = a.SendError,
+        TranscriptObservedUtc = a.TranscriptObservedUtc,
+        TranscriptPath = a.TranscriptPath
     };
 
     static object Err(string op, string error, string detail) => new
@@ -138,6 +149,11 @@ internal static partial class IdeIgniteArmHost
         public string? LastError { get; set; }
         public DateTimeOffset CreatedUtc { get; set; }
         public DateTimeOffset? FiredUtc { get; set; }
+        public DateTimeOffset? SendInvokedUtc { get; set; }
+        public bool? SendOk { get; set; }
+        public string? SendError { get; set; }
+        public DateTimeOffset? TranscriptObservedUtc { get; set; }
+        public string? TranscriptPath { get; set; }
     }
 
     sealed class ArmStoreDoc

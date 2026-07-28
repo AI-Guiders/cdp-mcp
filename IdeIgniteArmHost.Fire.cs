@@ -23,10 +23,23 @@ internal static partial class IdeIgniteArmHost
                 var msg = IsCustomChargeMode(arm.ChargeMode)
                     ? IdeIgniteChannel.SanitizeComposerCharge(Expand(arm.Message, arm, ok, pulse, detail))
                     : IdeIgniteChannel.ComposeArmFireCharge();
+                lock (Gate)
+                {
+                    var live = Arms.FirstOrDefault(x => x.Id.Equals(arm.Id, StringComparison.OrdinalIgnoreCase));
+                    if (live is not null)
+                    {
+                        live.SendInvokedUtc = DateTimeOffset.UtcNow;
+                        live.SendOk = null;
+                        live.SendError = null;
+                        PersistUnlocked();
+                    }
+                }
+
                 var result = await IdeIgniteChannel.FireAsync(
                     arm.Port, msg, arm.Chat, arm.WaitSeconds, CancellationToken.None).ConfigureAwait(false);
 
                 var firedOk = result is { } && TryGetOk(result);
+                RecordSendEvidence(arm.Id, firedOk, firedOk ? null : (TryGetError(result) ?? "fire_failed"));
                 if (firedOk)
                 {
                     if (arm.LastOnce)

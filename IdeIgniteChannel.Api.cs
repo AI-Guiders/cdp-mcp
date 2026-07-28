@@ -50,6 +50,10 @@ internal static partial class IdeIgniteChannel
                     IdeIgniteArmHost.Continuity(),
                 "resume" or "clear_await" or "unawait" =>
                     IdeIgniteArmHost.Resume(args),
+                "delivery" or "delivery_evidence" =>
+                    IdeIgniteArmHost.Delivery(args),
+                "watchdog" or "transcript_watchdog" or "observe" =>
+                    IdeIgniteArmHost.Watchdog(args),
                 _ => await ProbeAsync(port, cancellationToken).ConfigureAwait(false)
             };
         }
