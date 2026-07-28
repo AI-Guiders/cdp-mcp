@@ -9,7 +9,9 @@ namespace CdpMcp;
 /// <summary>
 /// Anchor Start/Stop — operator GUI cockpit host (ADR-0019 companion).
 /// Meta <c>cdp_cockpit_host</c> / <c>go=cockpit_start|cockpit_stop</c>.
-/// Default agent-only; Start launches configured shell exe; Stop kills that pid only (not MCP).
+/// Config SSOT: <c>[cockpit_host] exe</c> in cdp-mcp.toml (process layer).
+/// Start <c>path=</c> overrides once; env <c>CDP_COCKPIT_HOST_EXE</c> is escape only.
+/// Runtime latch: in-proc + OS rediscover by exe path (no sidecar JSON).
 /// Does not mutate Intent Melody / CascadeIdeSettings.
 /// </summary>
 internal static class IdeCockpitHostChannel
@@ -26,8 +28,17 @@ internal static class IdeCockpitHostChannel
     };
 
     static readonly object Gate = new();
+    static CockpitHostSettings _cfg = new();
+    static HostState? _live;
 
-    public static string StatePath => Path.Combine(CdpProfile.StateRoot, "cockpit-host.json");
+    /// <summary>Legacy stub path — deleted on Configure so remounts do not revive JSON latch.</summary>
+    public static string LegacyStatePath => Path.Combine(CdpProfile.StateRoot, "cockpit-host.json");
+
+    public static void Configure(CockpitHostSettings settings)
+    {
+        _cfg = settings ?? new CockpitHostSettings();
+        TryDeleteLegacyJson();
+    }
 
     public static string HandleJson(IReadOnlyDictionary<string, JsonElement>? args = null) =>
         JsonSerializer.Serialize(Handle(args), JsonOpts);
@@ -46,33 +57,27 @@ internal static class IdeCockpitHostChannel
 
     static object Scene()
     {
-        var st = Load();
-        var alive = st is { Pid: > 0 } && IsAlive(st.Pid);
-        if (st is not null && st.Pid > 0 && !alive)
-        {
-            Clear();
-            st = null;
-        }
-
+        var st = Snapshot();
         return new
         {
             ok = true,
             schema = SchemaVersion,
             tool = ToolName,
             op = "scene",
-            pulse = alive
-                ? $"cockpit_host · up · pid={st!.Pid}"
+            pulse = st is not null
+                ? $"cockpit_host · up · pid={st.Pid}"
                 : "cockpit_host · down · agent-only",
-            gui_host = alive ? "up" : "down",
-            host_profile = alive ? "dual-cockpit" : "agent-only",
-            pid = alive ? st!.Pid : (int?)null,
-            exe = alive ? st!.Exe : null,
-            started_utc = alive ? st!.StartedUtc : null,
+            gui_host = st is not null ? "up" : "down",
+            host_profile = st is not null ? "dual-cockpit" : "agent-only",
+            pid = st?.Pid,
+            exe = st?.Exe,
+            started_utc = st?.StartedUtc,
             exe_configured = ResolveExe(null) is not null,
-            env = EnvExe,
-            hint = alive
+            config_source = ConfigSourceLabel(),
+            env_escape = EnvExe,
+            hint = st is not null
                 ? "op=stop to close GUI; MCP/ICM keep running."
-                : $"op=start path=… or set {EnvExe}; Melody/settings load with shell — do not strip them."
+                : "op=start path=… or [cockpit_host] exe in cdp-mcp.toml (env CDP_COCKPIT_HOST_EXE = escape). Melody/settings load with shell — do not strip them."
         };
     }
 
@@ -80,8 +85,8 @@ internal static class IdeCockpitHostChannel
     {
         lock (Gate)
         {
-            var existing = Load();
-            if (existing is { Pid: > 0 } && IsAlive(existing.Pid))
+            var existing = SnapshotLocked();
+            if (existing is not null)
             {
                 return new
                 {
@@ -107,8 +112,9 @@ internal static class IdeCockpitHostChannel
                     schema = SchemaVersion,
                     op = "start",
                     error = "cockpit host exe not configured",
-                    env = EnvExe,
-                    hint = $"Set {EnvExe} to CascadeIDE (or thin shell) path, or pass path=. Does not launch Avalonia by guessing."
+                    config_source = ConfigSourceLabel(),
+                    env_escape = EnvExe,
+                    hint = "Set [cockpit_host] exe in cdp-mcp.toml (remount), or pass path=. Env CDP_COCKPIT_HOST_EXE is escape only. Does not launch Avalonia by guessing."
                 };
             }
 
@@ -164,13 +170,12 @@ internal static class IdeCockpitHostChannel
                 };
             }
 
-            var doc = new HostState
+            _live = new HostState
             {
                 Pid = proc.Id,
                 Exe = exe,
                 StartedUtc = DateTimeOffset.UtcNow.ToString("O")
             };
-            Save(doc);
             return new
             {
                 ok = true,
@@ -178,10 +183,10 @@ internal static class IdeCockpitHostChannel
                 op = "start",
                 gui_host = "up",
                 host_profile = "dual-cockpit",
-                pid = doc.Pid,
-                exe = doc.Exe,
-                started_utc = doc.StartedUtc,
-                pulse = $"cockpit_host · started · pid={doc.Pid}",
+                pid = _live.Pid,
+                exe = _live.Exe,
+                started_utc = _live.StartedUtc,
+                pulse = $"cockpit_host · started · pid={_live.Pid}",
                 hint = "GUI up. Prefer cdp_icm / cdp_land from shell; Stop via op=stop."
             };
         }
@@ -191,10 +196,10 @@ internal static class IdeCockpitHostChannel
     {
         lock (Gate)
         {
-            var st = Load();
-            if (st is null || st.Pid <= 0)
+            var st = SnapshotLocked();
+            if (st is null)
             {
-                Clear();
+                _live = null;
                 return new
                 {
                     ok = true,
@@ -239,7 +244,7 @@ internal static class IdeCockpitHostChannel
                 }
             }
 
-            Clear();
+            _live = null;
             return new
             {
                 ok = error is null,
@@ -256,13 +261,95 @@ internal static class IdeCockpitHostChannel
         }
     }
 
+    /// <summary>path= → toml exe → env escape.</summary>
     static string? ResolveExe(string? overridePath)
     {
         if (!string.IsNullOrWhiteSpace(overridePath))
             return Path.GetFullPath(overridePath.Trim());
+        if (!string.IsNullOrWhiteSpace(_cfg.Exe))
+            return Path.GetFullPath(_cfg.Exe.Trim());
         var env = Environment.GetEnvironmentVariable(EnvExe);
         return string.IsNullOrWhiteSpace(env) ? null : Path.GetFullPath(env.Trim());
     }
+
+    static string ConfigSourceLabel()
+    {
+        if (!string.IsNullOrWhiteSpace(_cfg.Exe))
+            return "toml";
+        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(EnvExe)))
+            return "env_escape";
+        return "none";
+    }
+
+    static HostState? Snapshot()
+    {
+        lock (Gate)
+            return SnapshotLocked();
+    }
+
+    static HostState? SnapshotLocked()
+    {
+        if (_live is { Pid: > 0 } && IsAlive(_live.Pid))
+            return _live;
+
+        _live = null;
+        var preferred = ResolveExe(null);
+        if (preferred is null)
+            return null;
+
+        var found = FindByExePath(preferred);
+        if (found is not null)
+            _live = found;
+        return _live;
+    }
+
+    static HostState? FindByExePath(string preferredExe)
+    {
+        var name = Path.GetFileNameWithoutExtension(preferredExe);
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+
+        foreach (var p in Process.GetProcessesByName(name))
+        {
+            try
+            {
+                using (p)
+                {
+                    if (p.HasExited)
+                        continue;
+                    string? path = null;
+                    try
+                    {
+                        path = p.MainModule?.FileName;
+                    }
+                    catch
+                    {
+                        /* access denied — skip */
+                    }
+
+                    if (path is null)
+                        continue;
+                    if (!PathsEqual(path, preferredExe))
+                        continue;
+                    return new HostState
+                    {
+                        Pid = p.Id,
+                        Exe = preferredExe,
+                        StartedUtc = null
+                    };
+                }
+            }
+            catch
+            {
+                /* skip */
+            }
+        }
+
+        return null;
+    }
+
+    static bool PathsEqual(string a, string b) =>
+        string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase);
 
     static bool IsAlive(int pid)
     {
@@ -277,32 +364,12 @@ internal static class IdeCockpitHostChannel
         }
     }
 
-    static HostState? Load()
+    static void TryDeleteLegacyJson()
     {
         try
         {
-            if (!File.Exists(StatePath))
-                return null;
-            return JsonSerializer.Deserialize<HostState>(File.ReadAllText(StatePath), JsonOpts);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    static void Save(HostState state)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(StatePath)!);
-        File.WriteAllText(StatePath, JsonSerializer.Serialize(state, JsonOpts));
-    }
-
-    static void Clear()
-    {
-        try
-        {
-            if (File.Exists(StatePath))
-                File.Delete(StatePath);
+            if (File.Exists(LegacyStatePath))
+                File.Delete(LegacyStatePath);
         }
         catch
         {

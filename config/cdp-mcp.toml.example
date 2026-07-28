@@ -106,3 +106,8 @@ priority = 40
 [intent_workspace]
 # database_path = "C:/Users/YOU/AppData/Local/cdp-mcp/intent-workspace.witdb"
 
+# Operator GUI cockpit host (Start/Stop). Process layer — remount MCP after edit.
+# path= on start overrides once; CDP_COCKPIT_HOST_EXE env is escape only.
+[cockpit_host]
+# exe = "D:/Experiments/Personal Cursor Folder/Financial/software/open/cascade-ide/publish/CascadeIDE.exe"
+

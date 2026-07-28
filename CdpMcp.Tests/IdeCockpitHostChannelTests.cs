@@ -6,18 +6,22 @@ namespace CdpMcp.Tests;
 
 public class IdeCockpitHostChannelTests
 {
-    [Fact]
-    public void Scene_defaults_agent_only_down()
+    public IdeCockpitHostChannelTests()
     {
-        // Ensure clean state for this process profile root
+        IdeCockpitHostChannel.Configure(new CockpitHostSettings());
         _ = IdeCockpitHostChannel.Handle(new Dictionary<string, JsonElement>(StringComparer.Ordinal)
         {
             ["op"] = JsonSerializer.SerializeToElement("stop")
         });
+    }
 
+    [Fact]
+    public void Scene_defaults_agent_only_down()
+    {
         using var doc = JsonDocument.Parse(IdeCockpitHostChannel.HandleJson());
         Assert.Equal("down", doc.RootElement.GetProperty("gui_host").GetString());
         Assert.Equal("agent-only", doc.RootElement.GetProperty("host_profile").GetString());
+        Assert.Equal("none", doc.RootElement.GetProperty("config_source").GetString());
     }
 
     [Fact]
@@ -27,6 +31,7 @@ public class IdeCockpitHostChannelTests
         try
         {
             Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, null);
+            IdeCockpitHostChannel.Configure(new CockpitHostSettings());
             var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
             {
                 ["op"] = JsonSerializer.SerializeToElement("start")
@@ -38,6 +43,43 @@ public class IdeCockpitHostChannelTests
         finally
         {
             Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, prev);
+        }
+    }
+
+    [Fact]
+    public void Start_uses_toml_configured_exe()
+    {
+        var notepad = Path.Combine(Environment.SystemDirectory, "notepad.exe");
+        if (!File.Exists(notepad))
+            return;
+
+        var prev = Environment.GetEnvironmentVariable(IdeCockpitHostChannel.EnvExe);
+        try
+        {
+            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, null);
+            IdeCockpitHostChannel.Configure(new CockpitHostSettings { Exe = notepad });
+
+            using (var started = JsonDocument.Parse(IdeCockpitHostChannel.HandleJson(
+                       new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                       {
+                           ["op"] = JsonSerializer.SerializeToElement("start")
+                       })))
+            {
+                Assert.True(started.RootElement.GetProperty("ok").GetBoolean());
+                Assert.Equal("up", started.RootElement.GetProperty("gui_host").GetString());
+            }
+
+            using var stopped = JsonDocument.Parse(IdeCockpitHostChannel.HandleJson(
+                new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["op"] = JsonSerializer.SerializeToElement("stop")
+                }));
+            Assert.Equal("down", stopped.RootElement.GetProperty("gui_host").GetString());
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, prev);
+            IdeCockpitHostChannel.Configure(new CockpitHostSettings());
         }
     }
 
