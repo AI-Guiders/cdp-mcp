@@ -407,10 +407,20 @@ internal static class IdeRepl
         {
             if (tokens.Count < 2)
                 return (merged, Err("feature needs name", "feature desk-comfort | feature Y @focus"));
-            merged["go"] = JsonSerializer.SerializeToElement("plan");
             var (title, _) = SplitTitlePhase(tokens.Skip(1).ToList());
             if (title.Length == 0)
                 return (merged, Err("feature needs name", "feature desk-comfort | feature Y @focus"));
+            if (IsBoardListAlias(title))
+            {
+                merged["go"] = JsonSerializer.SerializeToElement("plan");
+                merged["tm_op"] = JsonSerializer.SerializeToElement("board");
+                return (merged, null);
+            }
+
+            if (ReservedTitleHint(title, kind: "feature") is { } featureHint)
+                return (merged, Err($"'{title}' is a REPL verb — not a feature title", featureHint));
+
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
             merged["go_args"] = JsonSerializer.SerializeToElement(new { title, op = "feature" });
             merged["tm_op"] = JsonSerializer.SerializeToElement("feature");
             return (merged, null);
@@ -427,6 +437,9 @@ internal static class IdeRepl
                 var (childTitle, underPhase) = SplitTitlePhase(rest);
                 if (childTitle.Length == 0)
                     return (merged, Err("task under needs child title", "task under omit-tiles ship-omit @act"));
+                if (IsBoardListAlias(childTitle)
+                    || ReservedTitleHint(childTitle, kind: "task") is not null)
+                    return (merged, Err($"'{childTitle}' is a REPL verb — not a task title", "task ship-omit @act"));
                 merged["go"] = JsonSerializer.SerializeToElement("plan");
                 merged["go_args"] = underPhase is null
                     ? JsonSerializer.SerializeToElement(new { title = childTitle, under = parent, op = "task" })
@@ -437,10 +450,20 @@ internal static class IdeRepl
 
             if (tokens.Count < 2)
                 return (merged, Err("task needs title", "task omit-tiles | task ship @act"));
-            merged["go"] = JsonSerializer.SerializeToElement("plan");
             var (taskTitle, taskPhase) = SplitTitlePhase(tokens.Skip(1).ToList());
             if (taskTitle.Length == 0)
                 return (merged, Err("task needs title", "task omit-tiles | task ship @act"));
+            if (IsBoardListAlias(taskTitle))
+            {
+                merged["go"] = JsonSerializer.SerializeToElement("plan");
+                merged["tm_op"] = JsonSerializer.SerializeToElement("board");
+                return (merged, null);
+            }
+
+            if (ReservedTitleHint(taskTitle, kind: "task") is { } taskHint)
+                return (merged, Err($"'{taskTitle}' is a REPL verb — not a task title", taskHint));
+
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
             merged["go_args"] = taskPhase is null
                 ? JsonSerializer.SerializeToElement(new { title = taskTitle, op = "task" })
                 : JsonSerializer.SerializeToElement(new { title = taskTitle, op = "task", phase = taskPhase });
@@ -1142,6 +1165,50 @@ internal static class IdeRepl
         || tag.Equals("complete", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("park", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("drop", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Agent meant board — <c>feature list</c> / <c>task ls</c> must not upsert a junk title.</summary>
+    static bool IsBoardListAlias(string title) =>
+        title.Equals("list", StringComparison.OrdinalIgnoreCase)
+        || title.Equals("ls", StringComparison.OrdinalIgnoreCase)
+        || title.Equals("board", StringComparison.OrdinalIgnoreCase)
+        || title.Equals("tasks", StringComparison.OrdinalIgnoreCase)
+        || title.Equals("plan", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Bare REPL verbs as the whole title — reject with a concrete hint.</summary>
+    static string? ReservedTitleHint(string title, string kind)
+    {
+        if (title.Equals("done", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("complete", StringComparison.OrdinalIgnoreCase))
+            return "done <title> | done";
+        if (title.Equals("focus", StringComparison.OrdinalIgnoreCase))
+            return "focus <title>";
+        if (title.Equals("park", StringComparison.OrdinalIgnoreCase))
+            return "park <title> | park";
+        if (title.Equals("drop", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("rm", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("delete", StringComparison.OrdinalIgnoreCase))
+            return "drop feature X | drop task X | drop";
+        if (title.Equals("phase", StringComparison.OrdinalIgnoreCase))
+            return "phase act | phase verify";
+        if (title.Equals("share", StringComparison.OrdinalIgnoreCase))
+            return "share report | share plan";
+        if (title.Equals("promote", StringComparison.OrdinalIgnoreCase))
+            return "promote";
+        if (title.Equals("confirm", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("reject", StringComparison.OrdinalIgnoreCase))
+            return "confirm | reject";
+        if (title.Equals("help", StringComparison.OrdinalIgnoreCase))
+            return "help";
+        if (title.Equals("feature", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("intent", StringComparison.OrdinalIgnoreCase))
+            return "feature <name>";
+        if (title.Equals("task", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("add", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("stage", StringComparison.OrdinalIgnoreCase))
+            return "task <title> @act";
+        _ = kind;
+        return null;
+    }
 
     /// <summary>
     /// <c>plugins disable group javascript</c> | <c>plugins enable g1</c> | <c>plugins disable jebbs.plantuml</c>
