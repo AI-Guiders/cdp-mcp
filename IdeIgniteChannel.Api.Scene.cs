@@ -30,17 +30,20 @@ internal static partial class IdeIgniteChannel
         }
 
         var kind = AriaKind(state?.SubmitAria);
+        var blocked = state?.ProviderBlocked == true;
         var arms = IdeIgniteArmHost.SceneSlice();
         var continuity = IdeIgniteArmHost.ContinuitySlice();
         return new
         {
             schema = Schema,
-            ok = error is null && state is { HasInput: true },
+            ok = error is null && state is { HasInput: true } && !blocked,
             op = "scene",
             go = GoName,
             tool = ToolName,
             pulse = error is null
-                ? $"ignite · cdt :{port} · {pageTitle ?? "?"} · {kind} · {IdeIgniteArmHost.ContinuityPulseLine()}"
+                ? blocked
+                    ? $"ignite · {ProviderBlockedError} · {pageTitle ?? "?"} · fail closed"
+                    : $"ignite · cdt :{port} · {pageTitle ?? "?"} · {kind} · {IdeIgniteArmHost.ContinuityPulseLine()}"
                 : $"ignite · cdt :{port} · down · {IdeIgniteArmHost.ContinuityPulseLine()}",
             port,
             page_title = pageTitle,

@@ -13,6 +13,7 @@ internal static partial class IdeIgniteChannel
         CancellationToken ct)
     {
         waitSec = Math.Clamp(waitSec, 5, 600);
+        message = SanitizeComposerCharge(message);
         await using var session = await CdtSession.ConnectPageAsync(port, ct).ConfigureAwait(false);
 
         var focusErr = await TryFocusChatAsync(session, chat, port, ct).ConfigureAwait(false);
@@ -22,10 +23,14 @@ internal static partial class IdeIgniteChannel
         var idle = await WaitUntilIdleAsync(session, waitSec, ct).ConfigureAwait(false);
         if (idle is null)
             return Err("send", "busy_timeout", $"submit stayed Stop/Queue for {waitSec}s", port);
+        if (idle.ProviderBlocked)
+            return ProviderBlockedResult("send", idle, port, "idle_wait");
 
         var inserted = await session.EvalAsync<InsertResult>(InsertJs(message), ct).ConfigureAwait(false);
+        if (string.Equals(inserted.Error, ProviderBlockedError, StringComparison.Ordinal))
+            return ProviderBlockedResult("send", await session.EvalStateAsync(ct).ConfigureAwait(false), port, "insert", inserted.Blocked);
         if (inserted is not { Ok: true } || inserted.Len < 1)
-            return new { schema = Schema, ok = false, op = "send", error = "insert_failed", inserted, port };
+            return new { schema = Schema, ok = false, op = "send", error = inserted.Error ?? "insert_failed", inserted, port };
 
         var sendGate = await WaitUntilSendAsync(session, port, ct).ConfigureAwait(false);
         if (sendGate is not null)
@@ -35,8 +40,13 @@ internal static partial class IdeIgniteChannel
         if (click is not { Ok: true })
             return new { schema = Schema, ok = false, op = "send", error = "click_failed", click, port };
 
-        await Task.Delay(500, ct).ConfigureAwait(false);
-        var after = await session.EvalStateAsync(ct).ConfigureAwait(false);
+        var post = await WaitAfterSendAsync(session, ct).ConfigureAwait(false);
+        if (post.Blocked)
+            return ProviderBlockedResult("send", post.State!, port, "post_send", post.Probe);
+
+        var after = post.State ?? await session.EvalStateAsync(ct).ConfigureAwait(false);
+        if (after.ProviderBlocked)
+            return ProviderBlockedResult("send", after, port, "post_send_recheck");
 
         return new
         {
@@ -55,6 +65,58 @@ internal static partial class IdeIgniteChannel
             submit_kind_after = AriaKind(after.SubmitAria),
             hint = "Expect new user turn in target chat when host accepts Send."
         };
+    }
+
+    static object ProviderBlockedResult(
+        string op,
+        ComposerState state,
+        int port,
+        string phase,
+        ProviderBlockedProbe? probe = null) => new
+    {
+        schema = Schema,
+        ok = false,
+        op,
+        error = ProviderBlockedError,
+        detail = "Provider refusal visible in DOM — fail closed; do not treat error-card text as composer input.",
+        phase,
+        port,
+        state,
+        probe,
+        go = GoName,
+        tool = ToolName,
+        pulse = $"ignite · {ProviderBlockedError} · {phase}",
+        hint = "Await operator / new chat. op=resume clears latch after disarm. Re-read composer scoped to ui-prompt-input."
+    };
+
+    static async Task<(bool Blocked, ComposerState? State, ProviderBlockedProbe? Probe)> WaitAfterSendAsync(
+        CdtSession session,
+        CancellationToken ct)
+    {
+        for (var i = 0; i < 24; i++)
+        {
+            ct.ThrowIfCancellationRequested();
+            var st = await session.EvalStateAsync(ct).ConfigureAwait(false);
+            if (st.ProviderBlocked)
+            {
+                var probe = await session.EvalAsync<ProviderBlockedProbe>(ProviderBlockedJs, ct).ConfigureAwait(false);
+                return (true, st, probe);
+            }
+
+            if (AriaKind(st.SubmitAria) is "stop")
+                return (false, st, null);
+
+            await Task.Delay(500, ct).ConfigureAwait(false);
+        }
+
+        var final = await session.EvalStateAsync(ct).ConfigureAwait(false);
+        if (final.ProviderBlocked)
+        {
+            var probe = await session.EvalAsync<ProviderBlockedProbe>(ProviderBlockedJs, ct).ConfigureAwait(false);
+            return (true, final, probe);
+        }
+
+        return (false, final, null);
     }
 
     static async Task<object?> TryFocusChatAsync(
@@ -95,6 +157,9 @@ internal static partial class IdeIgniteChannel
         {
             ct.ThrowIfCancellationRequested();
             var st = await session.EvalStateAsync(ct).ConfigureAwait(false);
+            if (st.ProviderBlocked)
+                return st;
+
             var kind = AriaKind(st.SubmitAria);
             if (st.HasInput && kind is not ("stop" or "queue"))
                 return st;
@@ -115,6 +180,9 @@ internal static partial class IdeIgniteChannel
         {
             ct.ThrowIfCancellationRequested();
             var st = await session.EvalStateAsync(ct).ConfigureAwait(false);
+            if (st.ProviderBlocked)
+                return ProviderBlockedResult("send", st, port, "pre_click");
+
             var kind = AriaKind(st.SubmitAria);
             if (kind == "send")
                 return null;

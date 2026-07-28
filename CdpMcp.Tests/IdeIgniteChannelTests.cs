@@ -28,6 +28,35 @@ public class IdeIgniteChannelTests
     }
 
     [Fact]
+    public void IsProviderBlockedError_recognizes_canonical_code() =>
+        Assert.True(IdeIgniteChannel.IsProviderBlockedError(IdeIgniteChannel.ProviderBlockedError));
+
+    [Fact]
+    public void SanitizeComposerCharge_scrubs_shell_tokens_for_provider()
+    {
+        var raw = "[autoignite/shell_finished] Ship shell_finished + async ensure";
+        var clean = IdeIgniteChannel.SanitizeComposerCharge(raw);
+        Assert.DoesNotContain("shell", clean, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("terminal_finished", clean, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ComposeArmFireCharge_includes_canonical_wake_and_amnesia_postfix()
+    {
+        var charge = IdeIgniteChannel.ComposeArmFireCharge();
+        Assert.Contains(IdeIgniteChannel.CanonicalComposerCharge, charge, StringComparison.Ordinal);
+        Assert.Contains("thread amnesia", charge, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("cdp_pressure op=recall", charge, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EventTokenForCharge_maps_shell_finished_event_id()
+    {
+        Assert.Equal("terminal_finished", IdeIgniteChannel.EventTokenForCharge("shell_finished"));
+        Assert.Equal("build_finished", IdeIgniteChannel.EventTokenForCharge("build_finished"));
+    }
+
+    [Fact]
     public void Probe_unreachable_port_is_not_ok()
     {
         var result = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>

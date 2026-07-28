@@ -26,6 +26,11 @@ internal static partial class IdeIgniteChannel
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
+    internal const string ProviderBlockedError = "provider_blocked";
+
+    internal static bool IsProviderBlockedError(string? error) =>
+        string.Equals(error, ProviderBlockedError, StringComparison.Ordinal);
+
     static string AriaKind(string? aria)
     {
         var a = (aria ?? "").Trim().ToLowerInvariant();

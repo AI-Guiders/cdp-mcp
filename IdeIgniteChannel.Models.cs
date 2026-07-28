@@ -10,6 +10,18 @@ internal static partial class IdeIgniteChannel
         public string? InputText { get; set; }
         public string? SubmitAria { get; set; }
         public bool? SubmitDisabled { get; set; }
+        public bool ProviderBlocked { get; set; }
+        public string? ProviderBlockedSource { get; set; }
+        public string? ProviderBlockedText { get; set; }
+        public string? StrayInputText { get; set; }
+        public bool ComposerScoped { get; set; }
+    }
+
+    sealed class ProviderBlockedProbe
+    {
+        public bool Blocked { get; set; }
+        public string? Source { get; set; }
+        public string? Text { get; set; }
     }
 
     sealed class InsertResult
@@ -18,6 +30,9 @@ internal static partial class IdeIgniteChannel
         public string? Error { get; set; }
         public string? Text { get; set; }
         public int Len { get; set; }
+        public bool ComposerScoped { get; set; }
+        public ProviderBlockedProbe? Blocked { get; set; }
+        public object? Stray { get; set; }
     }
 
     sealed class ClickResult

@@ -122,4 +122,29 @@ internal static partial class IdePressureChannel
             hint = "Stashed durable. Keep work in CDP; re-ARM AutoIgnition before ending turn."
         };
     }
+
+    /// <summary>Ignite post-fire provider block — durable handoff for new PF (best-effort, no session required).</summary>
+    internal static void StashAutoIgnitionHandoff(string body, string? igniteNote, string? planNote)
+    {
+        var doc = Load() ?? new PressureDoc();
+        doc.Schema = SchemaVersion;
+        doc.Armed = true;
+        doc.ArmedUtc ??= DateTime.UtcNow.ToString("o");
+        doc.StashUtc = DateTime.UtcNow.ToString("o");
+        doc.Why = "AutoIgnition provider_blocked after fire";
+        doc.Body = body.Trim();
+        doc.IgniteNote = igniteNote ?? doc.IgniteNote;
+        doc.PlanNote = planNote ?? doc.PlanNote;
+        Save(doc);
+
+        var mdPath = Path.Combine(Path.GetDirectoryName(FilePath)!, "pressure-LATEST.md");
+        try
+        {
+            File.WriteAllText(mdPath, RenderMd(doc), Encoding.UTF8);
+        }
+        catch
+        {
+            /* best-effort */
+        }
+    }
 }

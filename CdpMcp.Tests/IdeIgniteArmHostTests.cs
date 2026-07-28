@@ -5,6 +5,17 @@ namespace CdpMcp.Tests;
 
 public class IdeIgniteArmHostTests
 {
+    [Theory]
+    [InlineData("provider_blocked", true)]
+    [InlineData("busy_timeout", false)]
+    [InlineData("fire_failed", false)]
+    public void ShouldEnterProviderBlockedContinuity_policy(string err, bool expect) =>
+        Assert.Equal(expect, IdeIgniteArmHost.ShouldEnterProviderBlockedContinuity(err));
+
+    [Fact]
+    public void ProviderBlockedStatus_is_distinct_from_awaiting() =>
+        Assert.NotEqual("awaiting", IdeIgniteArmHost.ProviderBlockedStatus);
+
     [Fact]
     public void NormalizeEvent_maps_aliases()
     {
@@ -12,6 +23,7 @@ public class IdeIgniteArmHostTests
         Assert.Equal("test_finished", IdeIgniteArmHost.NormalizeEvent("tests"));
         Assert.Equal("timer", IdeIgniteArmHost.NormalizeEvent("delay"));
         Assert.Equal("timer", IdeIgniteArmHost.NormalizeEvent("timer"));
+        Assert.Equal("shell_finished", IdeIgniteArmHost.NormalizeEvent("shell"));
     }
 
     [Theory]
@@ -72,6 +84,35 @@ public class IdeIgniteArmHostTests
         using var ddoc = JsonDocument.Parse(JsonSerializer.Serialize(disarm));
         Assert.True(ddoc.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal(1, ddoc.RootElement.GetProperty("removed").GetInt32());
+    }
+
+    [Fact]
+    public void Arm_with_task_only_stores_canonical_message()
+    {
+        var id = "test-canonical-" + Guid.NewGuid().ToString("N")[..8];
+        var result = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("arm"),
+            ["when"] = JsonSerializer.SerializeToElement("timer"),
+            ["in"] = JsonSerializer.SerializeToElement("2h"),
+            ["id"] = JsonSerializer.SerializeToElement(id),
+            ["task"] = JsonSerializer.SerializeToElement("Full-ready digest stage"),
+            ["settle_seconds"] = JsonSerializer.SerializeToElement(0)
+        });
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        var listJson = JsonSerializer.Serialize(IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("list")
+        }));
+        Assert.Contains(IdeIgniteChannel.CanonicalComposerCharge, listJson, StringComparison.Ordinal);
+        Assert.Contains("Full-ready digest stage", listJson, StringComparison.Ordinal);
+
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["id"] = JsonSerializer.SerializeToElement(id)
+        });
     }
 
     [Fact]
