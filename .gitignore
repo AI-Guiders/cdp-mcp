@@ -14,3 +14,10 @@ config/cdp-mcp.local.toml
 # Local script habitat drafts (cdp_script_scene)
 .cdp/scripts/
 .cdp/ps1/
+# Local SoftOrgan desk noise — not ship surface (SA git_dirty thrash)
+.cdp/arch-board/
+.cdp/crm/
+.cdp/evidence/
+.cdp/plans/
+.cdp/share/
+.cascade-ide/

@@ -64,7 +64,12 @@ internal static partial class IdeCockpit
         return new { schema = "git_scene/v0", roots };
     }
 
-    static bool GitIsDirty(JsonElement? root)
+    static bool GitIsDirty(JsonElement? root) => GitMaterialDirty(root);
+
+    /// <summary>
+    /// Staged/unstaged only — untracked local SoftOrgan noise must not fuse SA WARN.
+    /// </summary>
+    static bool GitMaterialDirty(JsonElement? root)
     {
         if (root is not { } g)
             return false;
@@ -72,11 +77,36 @@ internal static partial class IdeCockpit
             return false;
         foreach (var r in arr.EnumerateArray())
         {
+            if (r.TryGetProperty("counts", out var counts) && counts.ValueKind == JsonValueKind.Object)
+            {
+                var staged = PropInt(counts, "staged") ?? 0;
+                var unstaged = PropInt(counts, "unstaged") ?? 0;
+                if (staged > 0 || unstaged > 0)
+                    return true;
+                continue;
+            }
+
             if (PropBool(r, "dirty") == true)
                 return true;
         }
 
         return false;
+    }
+
+    static int GitUntrackedCount(JsonElement? root)
+    {
+        if (root is not { } g)
+            return 0;
+        if (!g.TryGetProperty("roots", out var arr) || arr.ValueKind != JsonValueKind.Array)
+            return 0;
+        var n = 0;
+        foreach (var r in arr.EnumerateArray())
+        {
+            if (r.TryGetProperty("counts", out var counts) && counts.ValueKind == JsonValueKind.Object)
+                n += PropInt(counts, "untracked") ?? 0;
+        }
+
+        return n;
     }
 
     static string? FirstGitBranch(JsonElement root)
@@ -98,6 +128,9 @@ internal static partial class IdeCockpit
         if (root is null)
             return "n/a";
         var branch = FirstGitBranch(root.Value) ?? "?";
-        return GitIsDirty(root) ? $"dirty ({branch})" : $"clean ({branch})";
+        if (GitMaterialDirty(root))
+            return $"dirty ({branch})";
+        var noise = GitUntrackedCount(root);
+        return noise > 0 ? $"noise×{noise} ({branch})" : $"clean ({branch})";
     }
 }
