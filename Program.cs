@@ -743,6 +743,17 @@ List<Tool> BuildMetaTools() =>
             command = new { type = "string", description = "alias of command_id" }
         }
     }),
+    Meta("cdp_cockpit_host", "Anchor Start/Stop — operator GUI cockpit host. op=scene|start|stop. Default agent-only; start launches CDP_COCKPIT_HOST_EXE or path= (CascadeIDE/thin shell); stop kills that pid only (MCP stays). Alias go=cockpit_start|cockpit_stop|cockpit_host. Does not mutate Melody/settings.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|start|stop" },
+            path = new { type = "string", description = "start: exe path override" },
+            exe = new { type = "string", description = "alias of path" },
+            args = new { type = "string", description = "start: process arguments" }
+        }
+    }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell. Default detail=auto: green→pulse; fail→errors[].",
     new
     {
@@ -1757,6 +1768,8 @@ async Task<string> DispatchMetaAsync(
             return IdePressureChannel.HandleJson(session, callArgs);
         case "cdp_icm":
             return await IdeIcmChannel.HandleJsonAsync(callArgs, cancellationToken);
+        case "cdp_cockpit_host":
+            return IdeCockpitHostChannel.HandleJson(callArgs);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();
