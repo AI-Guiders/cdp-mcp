@@ -77,9 +77,12 @@ internal static partial class IdeIgniteChannel
         };
         """;
 
-    const string StateJs = ComposerDomHelpersJs +
+    /// <summary>Wrap helpers inside IIFE — top-level const survives across Runtime.evaluate and redeclaration throws.</summary>
+    static string WithComposerHelpers(string body) =>
+        "(() => {\n" + ComposerDomHelpersJs + "\n" + body + "\n})()";
+
+    static readonly string StateJs = WithComposerHelpers(
         """
-        (() => {
           const root = __igniteFindPromptRoot();
           const input = __igniteFindComposerInput(root);
           const submit = document.querySelector(".ui-prompt-input-submit-button");
@@ -96,13 +99,12 @@ internal static partial class IdeIgniteChannel
             strayInputText: stray ? stray.text : null,
             composerScoped: !!root && !!input
           };
-        })()
-        """;
+        """);
 
-    const string ProviderBlockedJs = ComposerDomHelpersJs +
+    static readonly string ProviderBlockedJs = WithComposerHelpers(
         """
-        (() => __igniteDetectProviderBlocked())()
-        """;
+          return __igniteDetectProviderBlocked();
+        """);
 
     const string ChatListJs =
         """
@@ -152,9 +154,8 @@ internal static partial class IdeIgniteChannel
     static string InsertJs(string message)
     {
         var esc = JsonSerializer.Serialize(message);
-        return ComposerDomHelpersJs +
+        return WithComposerHelpers(
             $$"""
-            (() => {
               const blocked = __igniteDetectProviderBlocked();
               if (blocked.blocked) {
                 return { ok: false, error: "provider_blocked", blocked };
@@ -181,13 +182,11 @@ internal static partial class IdeIgniteChannel
               }
               const text = (input.innerText || "").trim();
               return { ok: true, text: text.slice(0, 200), len: text.length, composerScoped: true };
-            })()
-            """;
+            """);
     }
 
-    const string ClickSendJs = ComposerDomHelpersJs +
+    static readonly string ClickSendJs = WithComposerHelpers(
         """
-        (() => {
           const submit = document.querySelector(".ui-prompt-input-submit-button");
           if (!submit) return { ok: false, error: "no_submit" };
           const aria = submit.getAttribute("aria-label") || "";
@@ -199,7 +198,6 @@ internal static partial class IdeIgniteChannel
           if (kind !== "send") return { ok: false, error: "not_send", kind, aria };
           submit.click();
           return { ok: true, ariaBefore: aria, ariaAfter: submit.getAttribute("aria-label") };
-        })()
-        """;
+        """);
 
 }
