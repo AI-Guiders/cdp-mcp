@@ -119,4 +119,12 @@
                       ReferenceOutputAssembly="false"
                       Condition="'$(RoslynMcpWorkspace)'!='true'" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeLanguageTools.BareVerbs.cs">
+      <DependentUpon>IdeLanguageTools.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IdeLanguageTools.LspDispatch.cs">
+      <DependentUpon>IdeLanguageTools.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>
