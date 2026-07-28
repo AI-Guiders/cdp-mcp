@@ -14,7 +14,8 @@ internal static partial class IdeTaskManager
         int Ordinal,
         string? PhaseAffinity = null,
         DateTimeOffset? StartedUtc = null,
-        DateTimeOffset? CompletedUtc = null);
+        DateTimeOffset? CompletedUtc = null,
+        string? Product = null);
 
     public sealed record FeatureNode(
         Guid Id,

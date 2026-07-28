@@ -34,7 +34,7 @@ internal static partial class IdeTaskManager
             "feature_focus" or "intent_select" => FeatureFocus(store, state, args),
             "feature_drop" or "feature_rm" or "feature_delete" => FeatureDrop(store, state, args),
             "task" or "task_add" or "add" => TaskAdd(
-                store, state, Title(args), ResolveParent(store, state, args), PhaseArg(args)),
+                store, state, Title(args), ResolveParent(store, state, args), PhaseArg(args), ProductArg(args)),
             "focus" or "task_focus" => TaskFocus(store, state, args),
             "task_drop" or "task_rm" or "task_delete" => TaskDrop(store, state, args),
             "drop" or "rm" or "delete" => DropSmart(store, state, args),
@@ -44,6 +44,7 @@ internal static partial class IdeTaskManager
             "defer" or "deferred" => TaskDefer(store, state, args),
             "active" => TaskStatus(store, state, args, "active"),
             "phase" or "task_phase" => TaskSetPhase(store, state, args),
+            "product" or "category" or "task_product" => TaskSetProduct(store, state, args),
             "start" or "clock_start" => TaskClockStart(store, state, args),
             "shipped" or "completed" => TaskClockShipped(store, state, args),
             "start_phase" or "phase_start" => TaskPhaseStart(store, state, args),
@@ -85,7 +86,7 @@ internal static partial class IdeTaskManager
                 Opt(args, "plan_id") ?? OptGoArg(args, "plan_id"),
                 reject: true),
             _ => throw new ArgumentException(
-                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|criteria|criterion|change_plan|share|report|promote|confirm|reject.")
+                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|criteria|criterion|change_plan|product|category|share|report|promote|confirm|reject.")
         };
 
     static IReadOnlyDictionary<string, JsonElement> WithStatus(

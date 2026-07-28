@@ -1315,7 +1315,7 @@ internal sealed partial class IntentWorkspaceStore(
                 var st = stages.Where(s => s.IntentId == i.Id)
                     .Select(s => new IdeTaskManager.StageNode(
                         s.Id, s.ParentId, s.Title, s.Status, s.Ordinal, s.PhaseAffinity,
-                        s.StartedUtc, s.CompletedUtc))
+                        s.StartedUtc, s.CompletedUtc, s.Product))
                     .ToList();
                 return new IdeTaskManager.FeatureNode(
                     i.Id,

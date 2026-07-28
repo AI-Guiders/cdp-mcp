@@ -434,16 +434,21 @@ internal static class IdeRepl
             {
                 var parent = tokens[2];
                 var rest = tokens.Skip(3).ToList();
-                var (childTitle, underPhase) = SplitTitlePhase(rest);
+                var (childTitle, underPhase, underProduct) = SplitTitleMeta(rest);
                 if (childTitle.Length == 0)
-                    return (merged, Err("task under needs child title", "task under omit-tiles ship-omit @act"));
+                    return (merged, Err("task under needs child title", "task under omit-tiles ship-omit @act #CDP"));
                 if (IsBoardListAlias(childTitle)
                     || ReservedTitleHint(childTitle, kind: "task") is not null)
-                    return (merged, Err($"'{childTitle}' is a REPL verb — not a task title", "task ship-omit @act"));
+                    return (merged, Err($"'{childTitle}' is a REPL verb — not a task title", "task ship-omit @act #CDP"));
                 merged["go"] = JsonSerializer.SerializeToElement("plan");
-                merged["go_args"] = underPhase is null
-                    ? JsonSerializer.SerializeToElement(new { title = childTitle, under = parent, op = "task" })
-                    : JsonSerializer.SerializeToElement(new { title = childTitle, under = parent, op = "task", phase = underPhase });
+                merged["go_args"] = JsonSerializer.SerializeToElement(new
+                {
+                    title = childTitle,
+                    under = parent,
+                    op = "task",
+                    phase = underPhase,
+                    product = underProduct
+                });
                 merged["tm_op"] = JsonSerializer.SerializeToElement("task");
                 return (merged, null);
             }
@@ -466,9 +471,9 @@ internal static class IdeRepl
                 return (merged, null);
             }
 
-            var (taskTitle, taskPhase) = SplitTitlePhase(taskRest);
+            var (taskTitle, taskPhase, taskProduct) = SplitTitleMeta(taskRest);
             if (taskTitle.Length == 0)
-                return (merged, Err("task needs title", "task omit-tiles | task ship @act"));
+                return (merged, Err("task needs title", "task omit-tiles | task ship @act #CDP"));
             if (IsBoardListAlias(taskTitle))
             {
                 merged["go"] = JsonSerializer.SerializeToElement("plan");
@@ -480,10 +485,24 @@ internal static class IdeRepl
                 return (merged, Err($"'{taskTitle}' is a REPL verb — not a task title", taskHint));
 
             merged["go"] = JsonSerializer.SerializeToElement("plan");
-            merged["go_args"] = taskPhase is null
-                ? JsonSerializer.SerializeToElement(new { title = taskTitle, op = "task" })
-                : JsonSerializer.SerializeToElement(new { title = taskTitle, op = "task", phase = taskPhase });
+            merged["go_args"] = JsonSerializer.SerializeToElement(new
+            {
+                title = taskTitle,
+                op = "task",
+                phase = taskPhase,
+                product = taskProduct
+            });
             merged["tm_op"] = JsonSerializer.SerializeToElement("task");
+            return (merged, null);
+        }
+
+        if (head is "product" or "category")
+        {
+            if (tokens.Count < 2)
+                return (merged, Err("product needs value", "product CDP | category Cursor | product clear"));
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { product = tokens[1], op = "product" });
+            merged["tm_op"] = JsonSerializer.SerializeToElement("product");
             return (merged, null);
         }
 
@@ -1345,6 +1364,45 @@ internal static class IdeRepl
             },
         hint = "CCL (cmd=). Channels: sit/plan · work/editor · probe/script · report · alert · sys/ecl/qrh/review. CCC=help."
     };
+
+    /// <summary>Split trailing <c>@act</c> / TM directive and optional <c>#CDP</c> product tag from title tokens.</summary>
+    internal static (string Title, string? Phase, string? Product) SplitTitleMeta(IReadOnlyList<string> tokens)
+    {
+        if (tokens.Count == 0)
+            return ("", null, null);
+
+        var list = tokens.ToList();
+        string? product = null;
+        // Peel trailing #Product tags (order-flexible with @phase).
+        for (var guard = 0; guard < 4 && list.Count > 0; guard++)
+        {
+            var last = list[^1];
+            if (last.StartsWith('#') && last.Length > 1 && product is null)
+            {
+                product = last[1..];
+                list.RemoveAt(list.Count - 1);
+                continue;
+            }
+
+            break;
+        }
+
+        var (title, phase) = SplitTitlePhase(list);
+        // Also allow #Product before @phase: peeled above only from end — peel leftover # from title tokens once more after phase.
+        if (product is null && list.Count > 0)
+        {
+            // If phase was peeled, list is already reduced inside SplitTitlePhase via return — re-check title words.
+            var words = title.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            if (words.Count > 0 && words[^1].StartsWith('#') && words[^1].Length > 1)
+            {
+                product = words[^1][1..];
+                words.RemoveAt(words.Count - 1);
+                title = string.Join(' ', words);
+            }
+        }
+
+        return (title, phase, product);
+    }
 
     /// <summary>Split trailing <c>@act</c> phase affinity or TM directive (<c>@focus</c>/<c>@done</c>/…) from title tokens.</summary>
     internal static (string Title, string? Phase) SplitTitlePhase(IReadOnlyList<string> tokens)

@@ -58,7 +58,8 @@ internal static partial class IdeTaskManager
                     Opt(args, "dir") ?? OptGoArg(args, "dir")),
             hint =
                 "Feature=Intent, Task=Stage (WitDB). Stage @phase = soft affinity (not status). " +
-                "REPL: feature|task Y @act|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|criteria|criterion dor|ac|dod|change_plan seed|anchor|check|ack|phase act|share report|share plan|promote|confirm|reject. " +
+                "Stage #Product = soft grouping tag (Cursor/CDP/CIDE). " +
+                "REPL: feature|task Y @act #CDP|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|criteria|criterion dor|ac|dod|change_plan seed|anchor|check|ack|product CDP|phase act|share report|share plan|promote|confirm|reject. " +
                 "Session phase drives desk layout (hold: desk.layout.hold / layout_hold=)."
         };
     }
