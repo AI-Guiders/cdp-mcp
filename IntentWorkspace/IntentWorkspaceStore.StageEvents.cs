@@ -4,17 +4,22 @@ namespace CdpMcp.IntentWorkspace;
 
 internal sealed partial class IntentWorkspaceStore
 {
-    /// <summary>Existing WitDB may predate stage_events — CREATE IF NOT EXISTS.</summary>
+    /// <summary>
+    /// stage_events_v2 uses OutWit-native GUID / DATETIMEOFFSET.
+    /// Legacy <c>stage_events</c> (TEXT Id/StageId) made EF <c>Where(StageId == guid)</c>
+    /// return empty while same-context SaveChanges still looked successful.
+    /// New table name avoids DROP races on remount / dual-seat Ensure*.
+    /// </summary>
     public void EnsureStageEventsTable()
     {
         WithDb(db =>
         {
             db.Database.ExecuteSqlRaw(
                 """
-                CREATE TABLE IF NOT EXISTS stage_events (
-                    Id TEXT NOT NULL PRIMARY KEY,
-                    StageId TEXT NOT NULL,
-                    Utc TEXT NOT NULL,
+                CREATE TABLE IF NOT EXISTS stage_events_v2 (
+                    Id GUID NOT NULL PRIMARY KEY,
+                    StageId GUID NOT NULL,
+                    Utc DATETIMEOFFSET NOT NULL,
                     Kind TEXT NOT NULL,
                     Source TEXT NOT NULL,
                     Summary TEXT NOT NULL,
@@ -24,7 +29,7 @@ internal sealed partial class IntentWorkspaceStore
             try
             {
                 db.Database.ExecuteSqlRaw(
-                    "CREATE INDEX IF NOT EXISTS IX_stage_events_StageId_Utc ON stage_events (StageId, Utc);");
+                    "CREATE INDEX IF NOT EXISTS IX_stage_events_v2_StageId_Utc ON stage_events_v2 (StageId, Utc);");
             }
             catch
             {
@@ -51,9 +56,10 @@ internal sealed partial class IntentWorkspaceStore
             var stage = db.Stages.FirstOrDefault(x => x.Id == stageId);
             if (stage is null || stage.StartedUtc is null || stage.CompletedUtc is not null)
                 return false;
+            var id = Guid.NewGuid();
             db.StageEvents.Add(new StageEventEntity
             {
-                Id = Guid.NewGuid(),
+                Id = id,
                 StageId = stageId,
                 Utc = now,
                 Kind = k.Length > 64 ? k[..64] : k,
@@ -61,8 +67,10 @@ internal sealed partial class IntentWorkspaceStore
                 Summary = sum,
                 Ref = string.IsNullOrWhiteSpace(refId) ? null : TruncateSummary(refId, 80)
             });
-            db.SaveChanges();
-            return true;
+            if (db.SaveChanges() <= 0)
+                return false;
+            db.ChangeTracker.Clear();
+            return db.StageEvents.Any(e => e.Id == id);
         });
     }
 
@@ -79,18 +87,23 @@ internal sealed partial class IntentWorkspaceStore
             if (stage.StartedUtc is null || stage.CompletedUtc is not null)
                 throw new ArgumentException("note needs open clock — cmd=start first (not yet shipped)");
             var now = DateTimeOffset.UtcNow;
-            var row = new StageEventEntity
+            var id = Guid.NewGuid();
+            db.StageEvents.Add(new StageEventEntity
             {
-                Id = Guid.NewGuid(),
+                Id = id,
                 StageId = stageId,
                 Utc = now,
                 Kind = "note",
                 Source = "agent",
                 Summary = note,
                 Ref = null
-            };
-            db.StageEvents.Add(row);
-            db.SaveChanges();
+            });
+            if (db.SaveChanges() <= 0)
+                throw new InvalidOperationException("stage_events note SaveChanges wrote 0 rows");
+            db.ChangeTracker.Clear();
+            if (!db.StageEvents.Any(e => e.Id == id))
+                throw new InvalidOperationException(
+                    "stage_events note not durable after save — WitDB flush/schema failure");
             return new
             {
                 op = "note",
@@ -145,6 +158,16 @@ internal sealed partial class IntentWorkspaceStore
             var kinds = db.StageEvents.Where(e => e.StageId == stageId).Select(e => e.Kind).ToList();
             return CountKinds(kinds);
         });
+
+    /// <summary>phase.start / phase.complete rows for wall segment formatting.</summary>
+    public IReadOnlyList<(string Kind, string Summary, DateTimeOffset Utc)> StageEventPhaseRows(Guid stageId) =>
+        WithDb(db =>
+            db.StageEvents
+                .Where(e => e.StageId == stageId
+                            && (e.Kind == "phase.start" || e.Kind == "phase.complete"))
+                .OrderBy(e => e.Utc)
+                .Select(e => new ValueTuple<string, string, DateTimeOffset>(e.Kind, e.Summary, e.Utc))
+                .ToList());
 
     static (int Wait, int Fail, int Note) CountKinds(IEnumerable<string> kinds)
     {

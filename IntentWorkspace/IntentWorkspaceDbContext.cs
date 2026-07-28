@@ -35,7 +35,7 @@ internal sealed class IntentWorkspaceDbContext(DbContextOptions<IntentWorkspaceD
 
         modelBuilder.Entity<StageEventEntity>(e =>
         {
-            e.ToTable("stage_events");
+            e.ToTable("stage_events_v2");
             e.HasKey(x => x.Id);
             e.Property(x => x.Kind).IsRequired();
             e.Property(x => x.Source).IsRequired();
