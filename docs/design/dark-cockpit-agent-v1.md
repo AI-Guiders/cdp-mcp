@@ -2,7 +2,7 @@
 
 **Статус:** v1 (канон поведения + DoD рантайма CDP).  
 **Параллель человеку:** [cascade-ide `flat-chrome-dark-cockpit-v1`](../../../cascade-ide/docs/design/flat-chrome-dark-cockpit-v1.md) § Dark Cockpit — agent attention.  
-**Связь:** CIDE ADR [0021](../../../cascade-ide/docs/adr/0021-pfd-mfd-cockpit-attention-model.md) (salience); CDP alert/SA/`next[]`/Autoi/pressure.
+**Связь:** CIDE ADR [0021](../../../cascade-ide/docs/adr/0021-pfd-mfd-cockpit-attention-model.md) (salience); seats Scan Pattern (ADR 0191 / `IdeDeskSeats`); CDP alert/SA/`next[]`/Autoi/pressure.
 
 ## Определение (одной фразой)
 
@@ -18,6 +18,44 @@
 | **Норма** | center тёмный, без цветной полосы | `alert.level=clear`; нет WARN/ECL на здоровой sit |
 | **Salience** | цвет только W/C/A | шум только на **реальном** отклонении, требующем действия |
 | **Пустота** | лампа off = healthy | intentional plateau / `focus=null` после ship ≠ failure |
+
+## Agent Scan Pattern (parallel human SP)
+
+**Не сводить** агентский маршрут внимания к одному человечьему `p→forward→m`.
+
+У человека Scan Pattern — в основном **география экрана** (три слота, предсказуемый взгляд). У агента та же география — **якорь** (ADR 0191 / seats wire: `view.scan = p→forward→m`, replace-in-seat, не append tiles). Поверх неё — **слои внимания**, которых у пиксельного кокпита нет или они другие.
+
+### Формула (slim desk / cockpit v1.20)
+
+`board → sa → next → drill`
+
+| Такт | Что читать | Зачем |
+|------|------------|-------|
+| **1. Geography** | `view.banner` → `view.board` (или `ascii`) | Общий якорь с человеком: P / Forward / M |
+| **2. Sit** | `alert` / SA pulse; `pressure?` если armed | Clear vs deviation; continuity без ритуала в чат |
+| **3. Steer** | `next[]` | Только actionable; в clear — без `n-alert` / ECL-tourism |
+| **4. Drill** | один `go=` / `pane_full=` / `desk_detail=nav` | По нужде хода; не W-spray `seats_detail=full` |
+
+Первый такт совпадает с человечьим SP; **полный маршрут шире**.
+
+### Зоны vs seats
+
+Три seat-label’а ≠ полный набор агентских зон:
+
+| Слой | Примеры |
+|------|---------|
+| **Seat P** | plan, SA desks, pressure, ignite, find/files, CRM, problems |
+| **Seat Forward** | editor / buffer / sniper |
+| **Seat M** | git, shell, browser, mcp, settings, ECL/QRH, script/ps1 |
+| **Meta (вне seat)** | `session`, `go` result, `instrument`, nav `loci[]`, Autoi charge |
+
+Meta — не «четвёртый монитор», а **salience layer** (тот же Dark Cockpit / W·C·A budget). Органы садятся в seats по `DefaultPolicy`; каналы sit/steer живут рядом с board, не вместо него.
+
+### Инвариант
+
+- Geography wire (`p→forward→m`) **сохранять** — это shared scan geography с оператором.
+- Агентский SP = geography + sit + steer + optional drill — **параллель**, не замена ADR 0191 / human SP.
+- Сводить всё только к трём строкам board = читать desk без `alert`/`next`/`pressure` — форма ломается.
 
 ## Что считается нормой (clear)
 
@@ -92,6 +130,7 @@ leftover AC+DoD ship → focus null → `sa WARN · ecl · plateau` + `n-alert` 
 - Полный Endsley SA redesign.
 - Визуальный EICAS человека (уже flat-chrome).
 - Автовыбор следующей задачи после plateau (отдельный product decision).
+- Переписывать seats wire / отменять human `p→forward→m` geography.
 
 ## Файлы / locus
 
