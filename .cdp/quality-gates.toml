@@ -1,5 +1,7 @@
 # Project quality gates overlay (wins over host cdp-mcp.toml [quality]).
 # Discuss/tune here — not carved in stone.
+# suggest_sniper=0: SA alert counts unique open buffers; sniper band (180..warn)
+# was double-noise next to real file_lines when the desk keeps many mid-size files open.
 [quality]
 enabled = true
 mode = "warn"
@@ -9,4 +11,4 @@ file_lines_warn = 350
 file_lines_fail = 700
 method_lines_warn = 70
 method_lines_fail = 120
-suggest_sniper_file_lines = 180
+suggest_sniper_file_lines = 0

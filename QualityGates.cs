@@ -387,7 +387,13 @@ internal static partial class QualityGates
 
     public static QualityPolicy LoadEffective(string? projectRoot)
     {
-        var key = (projectRoot ?? "") + "|" + HostConfigPath();
+        var hostPath = HostConfigPath();
+        var overlay = OverlayPath(projectRoot);
+        var hostStamp = File.Exists(hostPath) ? File.GetLastWriteTimeUtc(hostPath).Ticks : 0L;
+        var overlayStamp = overlay is not null && File.Exists(overlay)
+            ? File.GetLastWriteTimeUtc(overlay).Ticks
+            : 0L;
+        var key = (projectRoot ?? "") + "|" + hostPath + "|" + hostStamp + "|" + (overlay ?? "") + "|" + overlayStamp;
         lock (CacheLock)
         {
             if (CachePolicy is not null && CacheKey == key)
@@ -395,11 +401,9 @@ internal static partial class QualityGates
         }
 
         var policy = QualityPolicy.Defaults;
-        var hostPath = HostConfigPath();
         if (File.Exists(hostPath))
             policy = Merge(policy, TryReadToml(hostPath), "host:" + hostPath);
 
-        var overlay = OverlayPath(projectRoot);
         if (overlay is not null && File.Exists(overlay))
             policy = Merge(policy, TryReadToml(overlay), "overlay:" + overlay);
 
