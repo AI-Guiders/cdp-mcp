@@ -160,7 +160,7 @@ internal static class IdeQrhChannel
                 new("Only then explore — go=ecl intake", "ecl"),
                 new("Pack: intake-brief-plan", Action: "memory_world_get_procedure")
             ],
-            ["path-mutate-gate", "ship-dirty", "find-via-desk"],
+            ["path-mutate-gate", "ship-dirty", "find-via-desk", "vague-criteria"],
             ["procedure:intake-brief-plan", "definition:harness-model-first"],
             "Did I name what+why — or start exploring to avoid admitting the ask is fuzzy?"),
         new(
@@ -295,6 +295,29 @@ internal static class IdeQrhChannel
             [],
             "Am I sensing through the desk — or reinventing capture in shell?"),
         new(
+            "vague-criteria",
+            "abnormal",
+            "Vague ask — act without C/S",
+            "Prompt like 'do something / improve / we'll see' — executor has no success axes. Retroactive judgment after deliverable. Invert role before act.",
+            ["vague", "criteria", "do something", "improve", "we'll see", "посмотрим", "сделай", "phase:clarify", "DoD", "C/S"],
+            [
+                "Read as executor who will own the result",
+                "Check P / S / C — enough for unambiguous DoD?",
+                "No → clarify or motivated pause — not guess-and-judge",
+                "Not Integrity POST; this is task ontology, not harm"
+            ],
+            [
+                new("Invert: am I the one who will be scored after 'we'll see'?"),
+                new("List missing S: must-have / non-goals / volume budget / done"),
+                new("Ask for axes — or jointly define space before deliverable"),
+                new("If refuse to clarify: motivated pause, not silent guess"),
+                new("KB: playbook-executor-role-inversion-vague-prompt-v1", Action: "memory_world_read_knowledge_file"),
+                new("Sister: intake-brief (what+why) — then criteria before act", "qrh")
+            ],
+            ["intake-brief", "path-mutate-gate", "plateau-no-task"],
+            [],
+            "Did I get success axes — or am I about to guess so they can say 'why so bad' later?"),
+        new(
             "barriers-fail",
             "emergency",
             "Barriers failed — core integrity",
@@ -332,6 +355,7 @@ internal static class IdeQrhChannel
         if (ctx.Phase is "explore" or "clarify" or "recall")
         {
             Hit("intake-brief", 50);
+            Hit("vague-criteria", 55);
             Hit("find-via-desk", 35);
         }
         if (ctx.Phase is "act")
@@ -369,6 +393,7 @@ internal static class IdeQrhChannel
             if (hot.Equals("intake", StringComparison.OrdinalIgnoreCase))
             {
                 Hit("intake-brief", 80);
+                Hit("vague-criteria", 75);
                 Hit("find-via-desk", 55);
             }
             if (hot.Equals("mutate", StringComparison.OrdinalIgnoreCase))

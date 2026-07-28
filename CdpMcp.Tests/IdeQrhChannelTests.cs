@@ -195,6 +195,30 @@ public sealed class IdeQrhChannelTests
     }
 
     [Fact]
+    public void Search_vague_criteria_page_by_id()
+    {
+        var board = IdeQrhChannel.Handle(
+            Ctx(),
+            new Dictionary<string, System.Text.Json.JsonElement>
+            {
+                ["op"] = System.Text.Json.JsonSerializer.SerializeToElement("search"),
+                ["q"] = System.Text.Json.JsonSerializer.SerializeToElement("vague-criteria")
+            });
+        var json = System.Text.Json.JsonSerializer.Serialize(board);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var hits = doc.RootElement.GetProperty("hits");
+        Assert.Contains(hits.EnumerateArray(), h => h.GetProperty("id").GetString() == "vague-criteria");
+    }
+
+    [Fact]
+    public void Suggest_explore_prefers_vague_criteria_over_intake_alone()
+    {
+        var s = IdeQrhChannel.SuggestFor(Ctx(phase: "explore"));
+        Assert.Equal("vague-criteria", s.HotId);
+        Assert.Contains("intake-brief", s.RelatedIds);
+    }
+
+    [Fact]
     public void Builtins_cover_three_shelves()
     {
         var shelves = IdeQrhChannel.Builtins().Select(p => p.Shelf).Distinct().OrderBy(s => s).ToArray();
