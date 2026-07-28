@@ -30,5 +30,5 @@ Human may also Start from OS shortcut — same process attach via env.
 - [x] `op=stop` → agent-only; MCP untouched
 - [x] Config SSOT: `[cockpit_host] exe` in `cdp-mcp.toml`; `path=` one-shot; env escape only
 - [x] Real CascadeIDE exe dogfood (`path=` / toml on cdp-debug)
-- [ ] Nav Anchor in GUI lands via same `cdp_land` wire
+- [~] Nav Anchor in GUI lands via same `cdp_land` wire — latch `%LocalAppData%/cdp-mcp/land-LATEST.json` + CIDE `CdpLandProjector` (open_file/select); dogfood pending rebuild CIDE
 - [ ] Melody/settings load when shell starts (do not strip)
