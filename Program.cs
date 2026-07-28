@@ -732,6 +732,17 @@ List<Tool> BuildMetaTools() =>
             plan = new { type = "string", description = "stash: Task Manager focus note" }
         }
     }),
+    Meta("cdp_icm", "ICM discovery for on-demand GUI CDP client (ADR-0019). op=scene|aliases|resolve|invoke. Melody command_id → CDP tool via IdeCommandAliasMap; invoke uses ExecuteAliasedAsync. Alias go=icm|icm_desk. Does not mutate IntentMelody.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|aliases|resolve|invoke" },
+            command_id = new { type = "string", description = "resolve|invoke: Melody or CDP command_id" },
+            id = new { type = "string", description = "alias of command_id" },
+            command = new { type = "string", description = "alias of command_id" }
+        }
+    }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell. Default detail=auto: green→pulse; fail→errors[].",
     new
     {
@@ -1744,6 +1755,8 @@ async Task<string> DispatchMetaAsync(
             return IdeWebcamChannel.HandleJson(session, callArgs);
         case "cdp_pressure":
             return IdePressureChannel.HandleJson(session, callArgs);
+        case "cdp_icm":
+            return await IdeIcmChannel.HandleJsonAsync(callArgs, cancellationToken);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();

@@ -18,6 +18,28 @@ public static class IdeCommandAliasMap
 
     static readonly FrozenDictionary<string, Resolved> Map = Build();
 
+    public static int Count => Map.Count;
+
+    public static IReadOnlyList<object> ListEntries()
+    {
+        var list = new List<object>(Map.Count);
+        foreach (var (id, r) in Map.OrderBy(kv => kv.Key, StringComparer.Ordinal))
+        {
+            object? defaults = null;
+            if (r.Defaults is { Count: > 0 })
+            {
+                var d = new Dictionary<string, string?>(StringComparer.Ordinal);
+                foreach (var (k, v) in r.Defaults)
+                    d[k] = v.ValueKind == JsonValueKind.String ? v.GetString() : v.ToString();
+                defaults = d;
+            }
+
+            list.Add(new { command_id = id, tool = r.Tool, identity = r.Identity, defaults });
+        }
+
+        return list;
+    }
+
     public static bool TryResolve(string? commandId, out Resolved resolved)
     {
         resolved = default;
