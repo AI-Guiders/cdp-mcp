@@ -335,6 +335,7 @@ internal sealed class DocumentBufferStore
         AtomicTextFile.WriteUtf8(buf.Path, buf.Text);
         buf.Dirty = false;
         buf.DiskMtimeUtc = File.GetLastWriteTimeUtc(buf.Path);
+        DocumentDiskSyncLatch.Publish(buf.Path, DocumentDiskSyncLatch.OriginAgent);
     }
 
     public object Scene()

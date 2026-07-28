@@ -33,4 +33,4 @@ Human may also Start from OS shortcut — same process attach via env.
 - [x] Nav Anchor in GUI lands via same `cdp_land` wire — latch `%LocalAppData%/cdp-mcp/land-LATEST.json` + CIDE `CdpLandProjector` (GoToPosition + reload clean tab)
 - [x] Human GUI focus → agent cockpit sit (`focus-LATEST` internal feed → `alert.sit.locus`; agent looks at `cdp_cockpit`, not a parallel peek API)
 - [ ] Melody/settings load when shell starts (do not strip)
-- [ ] Auto-reload open tabs on Instant Save without land
+- [x] Auto-reload open tabs on Instant Save without land — `disk-LATEST.json` (agent flush ↔ human Save); shared dirty glass

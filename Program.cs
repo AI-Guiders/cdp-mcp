@@ -131,6 +131,7 @@ var hciTools = HybridCodebaseIndex.Mcp.ToolCatalog.Build().ToDictionary(t => t.N
 var anuiTools = Anui.Agent.Mcp.ToolCatalog.Build().ToDictionary(t => t.Name, StringComparer.Ordinal);
 
 var docStore = new DocumentBufferStore();
+using var diskSyncWatch = DocumentDiskSyncWatcher.Start(docStore);
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
 shellHabitat.Finished += info =>
