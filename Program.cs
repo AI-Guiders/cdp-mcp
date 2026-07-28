@@ -54,9 +54,10 @@ void EnsureWorkspaceDb()
     var wsOptions = new DbContextOptionsBuilder<IntentWorkspaceDbContext>()
         .UseWitDb($"Data Source={path}")
         .Options;
+    using (var bootGate = IntentWorkspaceStore.EnterFileGate(path))
     using (var boot = new IntentWorkspaceDbContext(wsOptions))
         boot.Database.EnsureCreated();
-    workspaceStore = new IntentWorkspaceStore(wsOptions);
+    workspaceStore = new IntentWorkspaceStore(wsOptions, path);
     workspaceStore.EnsureOpenRecentTable();
     workspaceStore.MigrateLegacyOpenRecentJsonIfPresent();
     workspaceStore.EnsureDeskSeatsTable();
