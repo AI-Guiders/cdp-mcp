@@ -743,6 +743,29 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        // Leftover sweep — parked/deferred with all AC+DoD met → optional done (no focus steal).
+        if (head is "leftover" or "sweep" or "leftovers")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("leftover");
+            var action = tokens.Count >= 2 ? tokens[1].ToLowerInvariant() : "";
+            if (action is "apply" or "commit" or "done" or "close")
+            {
+                merged["go_args"] = JsonSerializer.SerializeToElement(new
+                {
+                    op = "leftover",
+                    action = "apply",
+                    apply = true
+                });
+            }
+            else
+            {
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "leftover" });
+            }
+
+            return (merged, null);
+        }
+
         if (head is "defer" or "deferred")
         {
             merged["go"] = JsonSerializer.SerializeToElement("plan");
@@ -1493,6 +1516,10 @@ internal static class IdeRepl
             || title.Equals("changeplan", StringComparison.OrdinalIgnoreCase)
             || title.Equals("cp", StringComparison.OrdinalIgnoreCase))
             return "change_plan seed|anchor <a>|check|ack — hybrid DoR blast-radius producer";
+        if (title.Equals("leftover", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("sweep", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("leftovers", StringComparison.OrdinalIgnoreCase))
+            return "leftover | leftover apply — close parked/deferred when all AC+DoD met";
         if (title.Equals("start_phase", StringComparison.OrdinalIgnoreCase)
             || title.Equals("phase_start", StringComparison.OrdinalIgnoreCase))
             return "start_phase [act] — wall phase segment begin (re-entry OK)";

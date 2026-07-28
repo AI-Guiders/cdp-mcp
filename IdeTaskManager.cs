@@ -59,7 +59,7 @@ internal static partial class IdeTaskManager
             hint =
                 "Feature=Intent, Task=Stage (WitDB). Stage @phase = soft affinity (not status). " +
                 "Stage #Product = soft grouping tag (Cursor/CDP/CIDE). " +
-                "REPL: feature|task Y @act #CDP|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|criteria|criterion dor|ac|dod|change_plan seed|anchor|check|ack|product CDP|phase act|share report|share plan|promote|confirm|reject. " +
+                "REPL: feature|task Y @act #CDP|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|criteria|criterion dor|ac|dod|change_plan seed|anchor|check|ack|leftover|leftover apply|product CDP|phase act|share report|share plan|promote|confirm|reject. " +
                 "Session phase drives desk layout (hold: desk.layout.hold / layout_hold=)."
         };
     }

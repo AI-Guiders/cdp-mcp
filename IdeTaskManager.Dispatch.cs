@@ -60,6 +60,7 @@ internal static partial class IdeTaskManager
             "criterion_status" => TaskCriterionSetStatus(store, state, args),
             "criterion_drop" => TaskCriterionDrop(store, state, args),
             "change_plan" or "cp" or "changeplan" => TaskChangePlan(store, state, args),
+            "leftover" or "sweep" or "leftover_sweep" => TaskLeftoverSweep(store, state, args),
             "promote" or "promote_plan" or "ask_confirm"
                 or "share" or "share_plan"
                 or "report" or "digest" or "share_report" or "status_report" =>
@@ -86,7 +87,7 @@ internal static partial class IdeTaskManager
                 Opt(args, "plan_id") ?? OptGoArg(args, "plan_id"),
                 reject: true),
             _ => throw new ArgumentException(
-                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|criteria|criterion|change_plan|product|category|share|report|promote|confirm|reject.")
+                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|criteria|criterion|change_plan|leftover|product|category|share|report|promote|confirm|reject.")
         };
 
     static IReadOnlyDictionary<string, JsonElement> WithStatus(

@@ -223,6 +223,86 @@ internal sealed partial class IntentWorkspaceStore
         };
     }
 
+    /// <summary>
+    /// Ship-ready leftover: every AC and every DoD row is met/waived.
+    /// Vacuous (zero AC or zero DoD) is not ready — DoR alone never qualifies.
+    /// </summary>
+    public static bool IsAcDodShipReady(IReadOnlyList<StageCriterionEntity> rows)
+    {
+        var acTotal = 0;
+        var acMet = 0;
+        var dodTotal = 0;
+        var dodMet = 0;
+        foreach (var row in rows)
+        {
+            if (row.Kind == "ac")
+            {
+                acTotal++;
+                if (row.Status is "met" or "waived") acMet++;
+            }
+            else if (row.Kind == "dod")
+            {
+                dodTotal++;
+                if (row.Status is "met" or "waived") dodMet++;
+            }
+        }
+
+        return acTotal > 0 && dodTotal > 0 && acMet == acTotal && dodMet == dodTotal;
+    }
+
+    /// <summary>
+    /// Parked/deferred stages whose AC+DoD are fully met (excludes active focus by default).
+    /// </summary>
+    public IReadOnlyList<LeftoverShipCandidate> StageListLeftoverShipReady(
+        IntentWorkspaceState state,
+        bool includeActiveFocus = false)
+    {
+        var intentId = RequireIntent(state);
+        var active = state.ActiveStageId;
+        return WithDb(db =>
+        {
+            var rows = db.Stages.AsNoTracking()
+                .Where(x => x.IntentId == intentId
+                            && (x.Status == "parked" || x.Status == "deferred"))
+                .OrderBy(x => x.Ordinal)
+                .ToList();
+            if (!includeActiveFocus && active is { } a)
+                rows = rows.Where(x => x.Id != a).ToList();
+
+            var stageIds = rows.Select(x => x.Id).ToList();
+            if (stageIds.Count == 0)
+                return (IReadOnlyList<LeftoverShipCandidate>)Array.Empty<LeftoverShipCandidate>();
+
+            var criteria = db.StageCriteria.AsNoTracking()
+                .Where(x => stageIds.Contains(x.StageId))
+                .ToList();
+            var byStage = criteria.GroupBy(x => x.StageId)
+                .ToDictionary(g => g.Key, g => (IReadOnlyList<StageCriterionEntity>)g.ToList());
+
+            var list = new List<LeftoverShipCandidate>();
+            foreach (var stage in rows)
+            {
+                byStage.TryGetValue(stage.Id, out var rowsForStage);
+                rowsForStage ??= Array.Empty<StageCriterionEntity>();
+                if (!IsAcDodShipReady(rowsForStage))
+                    continue;
+                list.Add(new LeftoverShipCandidate(
+                    stage.Id,
+                    stage.Title,
+                    stage.Status,
+                    BuildCriteriaSummary(rowsForStage)));
+            }
+
+            return (IReadOnlyList<LeftoverShipCandidate>)list;
+        });
+    }
+
+    public readonly record struct LeftoverShipCandidate(
+        Guid TaskId,
+        string Title,
+        string Status,
+        object CriteriaSummary);
+
     static object CriterionDto(StageCriterionEntity e) => new
     {
         op = "criterion",
