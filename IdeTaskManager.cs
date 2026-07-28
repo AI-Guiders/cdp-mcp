@@ -11,7 +11,7 @@ namespace CdpMcp;
 /// </summary>
 internal static partial class IdeTaskManager
 {
-    public const string SchemaVersion = "task_manager/v1.3";
+    public const string SchemaVersion = "task_manager/v1.4";
 
     public static object Handle(
         IntentWorkspaceStore store,
@@ -58,7 +58,7 @@ internal static partial class IdeTaskManager
                     Opt(args, "dir") ?? OptGoArg(args, "dir")),
             hint =
                 "Feature=Intent, Task=Stage (WitDB). Stage @phase = soft affinity (not status). " +
-                "REPL: feature|task Y @act|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|phase act|share report|share plan|promote|confirm|reject. " +
+                "REPL: feature|task Y @act|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|criteria|criterion dor|ac|dod|phase act|share report|share plan|promote|confirm|reject. " +
                 "Session phase drives desk layout (hold: desk.layout.hold / layout_hold=)."
         };
     }

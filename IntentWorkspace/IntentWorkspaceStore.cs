@@ -244,6 +244,8 @@ internal sealed partial class IntentWorkspaceStore(
         var children = db.Stages.Where(x => x.ParentId == stageId).Select(x => x.Id).ToList();
         foreach (var child in children)
             DeleteStageTreeUnlocked(db, child);
+        db.StageCriteria.RemoveRange(db.StageCriteria.Where(x => x.StageId == stageId));
+        db.StageEvents.RemoveRange(db.StageEvents.Where(x => x.StageId == stageId));
         var row = db.Stages.FirstOrDefault(x => x.Id == stageId);
         if (row is not null)
             db.Stages.Remove(row);
@@ -343,7 +345,18 @@ internal sealed partial class IntentWorkspaceStore(
             var rows = db.Stages.AsNoTracking()
                 .Where(x => x.IntentId == intentId)
                 .OrderBy(x => x.Ordinal)
-                .Select(x => new
+                .ToList();
+            var stageIds = rows.Select(x => x.Id).ToList();
+            var criteria = db.StageCriteria.AsNoTracking()
+                .Where(x => stageIds.Contains(x.StageId))
+                .ToList();
+            var byStage = criteria.GroupBy(x => x.StageId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+            var stages = rows.Select(x =>
+            {
+                byStage.TryGetValue(x.Id, out var list);
+                list ??= [];
+                return new
                 {
                     stage_id = x.Id,
                     parent_id = x.ParentId,
@@ -354,10 +367,11 @@ internal sealed partial class IntentWorkspaceStore(
                     phase_affinity = x.PhaseAffinity,
                     has_loot = x.Loot != null,
                     has_job = x.JobJson != null,
-                    job_error = x.JobError
-                })
-                .ToList();
-            return (object)new { intent_id = intentId, stages = rows };
+                    job_error = x.JobError,
+                    criteria = BuildCriteriaSummary(list)
+                };
+            }).ToList();
+            return (object)new { intent_id = intentId, stages };
         });
     }
 
@@ -422,7 +436,36 @@ internal sealed partial class IntentWorkspaceStore(
             using var db = Open();
             var entity = db.Stages.AsNoTracking().FirstOrDefault(x => x.Id == stageId)
                          ?? throw new ArgumentException($"stage_id not found: {stageId}");
-            return StageJobDto(entity);
+            var criteria = db.StageCriteria.AsNoTracking()
+                .Where(x => x.StageId == stageId)
+                .OrderBy(x => x.Ordinal)
+                .ToList();
+            return new
+            {
+                stage_id = entity.Id,
+                intent_id = entity.IntentId,
+                title = entity.Title,
+                status = entity.Status,
+                scene_id = entity.SceneId,
+                ordinal = entity.Ordinal,
+                loot = entity.Loot,
+                job_json = entity.JobJson,
+                job_error = entity.JobError,
+                phase_affinity = entity.PhaseAffinity,
+                updated_utc = entity.UpdatedUtc,
+                criteria_summary = BuildCriteriaSummary(criteria),
+                criteria = criteria.Select(c => new
+                {
+                    criterion_id = c.Id,
+                    kind = c.Kind,
+                    text = c.Body,
+                    mode = c.Mode,
+                    status = c.Status,
+                    evidence_ref = c.EvidenceRef,
+                    ordinal = c.Ordinal,
+                    updated_utc = c.UpdatedUtc
+                }).ToList()
+            };
         }
     }
 

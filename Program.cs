@@ -66,6 +66,7 @@ void EnsureWorkspaceDb()
     workspaceStore.EnsureStagePhaseAffinityColumn();
     workspaceStore.EnsureStageClockColumns();
     workspaceStore.EnsureStageEventsTable();
+    workspaceStore.EnsureStageCriteriaTable();
     workspaceStore.EnsureWorkFocusTable();
     workspaceStore.WorkFocusHydrate(workspaceState);
     workspaceStore.EnsureScriptLastRunTable();
@@ -2461,6 +2462,9 @@ object DispatchCdpWork(IReadOnlyDictionary<string, JsonElement> callArgs)
         "tasks" or "board" or "plan" or "feature" or "task" or "focus" or "done"
             or "park" or "defer" or "deferred" or "pending" or "active" or "drop" or "rm" or "delete"
             or "feature_drop" or "task_drop"
+            or "criteria" or "criterion" or "criterion_list" or "criterion_add"
+            or "criterion_met" or "criterion_unmet" or "criterion_waived" or "criterion_pending"
+            or "criterion_status" or "criterion_drop"
             or "promote" or "promote_plan" or "ask_confirm"
             or "share" or "share_plan"
             or "confirm" or "plan_confirm" or "approved"
@@ -2475,7 +2479,7 @@ object DispatchCdpWork(IReadOnlyDictionary<string, JsonElement> callArgs)
             workspaceState,
             GuidArg("stage_id") ?? throw new ArgumentException("stage_id is required for stage_delete.")),
         _ => throw new ArgumentException(
-            $"Unknown cdp_work op '{op}'. Use intent_*|stage_*|scene_*|status|tasks|feature|task|focus|done|drop.")
+            $"Unknown cdp_work op '{op}'. Use intent_*|stage_*|criterion_*|scene_*|status|tasks|feature|task|focus|done|drop.")
     };
 }
 

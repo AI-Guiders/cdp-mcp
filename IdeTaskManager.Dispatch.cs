@@ -50,6 +50,14 @@ internal static partial class IdeTaskManager
             "complete_phase" or "phase_complete" or "end_phase" => TaskPhaseComplete(store, state, args),
             "events" or "event_list" => TaskEvents(store, state, args),
             "note" or "event_note" => TaskEventNote(store, state, args),
+            "criteria" or "criterion_list" => TaskCriteriaList(store, state, args),
+            "criterion" or "criterion_add" => TaskCriterionSmart(store, state, args),
+            "criterion_met" => TaskCriterionSetStatus(store, state, WithStatus(args, "met")),
+            "criterion_unmet" => TaskCriterionSetStatus(store, state, WithStatus(args, "unmet")),
+            "criterion_waived" => TaskCriterionSetStatus(store, state, WithStatus(args, "waived")),
+            "criterion_pending" => TaskCriterionSetStatus(store, state, WithStatus(args, "pending")),
+            "criterion_status" => TaskCriterionSetStatus(store, state, args),
+            "criterion_drop" => TaskCriterionDrop(store, state, args),
             "promote" or "promote_plan" or "ask_confirm"
                 or "share" or "share_plan"
                 or "report" or "digest" or "share_report" or "status_report" =>
@@ -76,6 +84,17 @@ internal static partial class IdeTaskManager
                 Opt(args, "plan_id") ?? OptGoArg(args, "plan_id"),
                 reject: true),
             _ => throw new ArgumentException(
-                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|share|report|promote|confirm|reject.")
+                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|criteria|criterion|share|report|promote|confirm|reject.")
         };
+
+    static IReadOnlyDictionary<string, JsonElement> WithStatus(
+        IReadOnlyDictionary<string, JsonElement> args,
+        string status)
+    {
+        var d = new Dictionary<string, JsonElement>(args, StringComparer.OrdinalIgnoreCase)
+        {
+            ["status"] = JsonSerializer.SerializeToElement(status)
+        };
+        return d;
+    }
 }

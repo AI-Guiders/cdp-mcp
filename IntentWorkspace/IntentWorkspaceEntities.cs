@@ -34,6 +34,27 @@ internal sealed class StageEntity
     public IntentEntity? Intent { get; set; }
 }
 
+/// <summary>
+/// First-class work-unit criterion (DoR / AC / DoD) — not Loot/notes.
+/// Mode: manual | auto | hybrid (auto/hybrid later fed by producers like Change Planner).
+/// </summary>
+internal sealed class StageCriterionEntity
+{
+    public Guid Id { get; set; }
+    public Guid StageId { get; set; }
+    /// <summary>Wire: dor | ac | dod.</summary>
+    public string Kind { get; set; } = "";
+    public string Body { get; set; } = "";
+    /// <summary>Wire: manual | auto | hybrid.</summary>
+    public string Mode { get; set; } = "manual";
+    /// <summary>Wire: pending | met | unmet | waived.</summary>
+    public string Status { get; set; } = "pending";
+    /// <summary>Optional evidence pointer (planner/check/ref) for auto/hybrid.</summary>
+    public string? EvidenceRef { get; set; }
+    public int Ordinal { get; set; }
+    public DateTimeOffset UpdatedUtc { get; set; }
+}
+
 /// <summary>Append-only pointers while a stage wall clock is open — SA diagnostic, not a score.</summary>
 internal sealed class StageEventEntity
 {
