@@ -43,18 +43,18 @@ internal static partial class IdeIgniteArmHost
                         RequeueAfterBusy(arm.Id, err, BusyBackoff(arm.WaitSeconds));
                     else if (ShouldEnterProviderBlockedContinuity(err))
                         EnterProviderBlockedContinuity(arm, TryGetDetail(result));
-                    else if (arm.Once || arm.LastOnce)
-                        Remove(arm.Id); // terminal once — do not leave error zombies for reclaim/hygiene
-                    else
+                    else if (ShouldKeepVisibleErrorOnFireFail(arm.Once, arm.LastOnce))
                         SetStatus(arm.Id, "error", err);
+                    else
+                        Remove(arm.Id); // plain once — hygiene/reclaim scrub zombies
                 }
             }
             catch (Exception ex)
             {
-                if (arm.Once || arm.LastOnce)
-                    Remove(arm.Id);
-                else
+                if (ShouldKeepVisibleErrorOnFireFail(arm.Once, arm.LastOnce))
                     SetStatus(arm.Id, "error", ex.Message);
+                else
+                    Remove(arm.Id);
             }
             finally
             {
@@ -104,6 +104,13 @@ internal static partial class IdeIgniteArmHost
     internal static bool ShouldRequeueBusy(string eventName, string? error) =>
         string.Equals(error, "busy_timeout", StringComparison.Ordinal)
         && string.Equals(eventName, "timer", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// last_once miss (chat_not_found etc.) must stay visible as error — silent Remove wiped ~2h of continuity.
+    /// plain once still Remove (hygiene).
+    /// </summary>
+    internal static bool ShouldKeepVisibleErrorOnFireFail(bool once, bool lastOnce) =>
+        lastOnce || !once;
 
     /// <summary>Backoff after busy_timeout: 15–60s, scales with wait_seconds.</summary>
     internal static TimeSpan BusyBackoff(int waitSeconds) =>

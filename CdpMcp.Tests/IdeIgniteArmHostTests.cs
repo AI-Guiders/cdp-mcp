@@ -35,6 +35,14 @@ public class IdeIgniteArmHostTests
         Assert.Equal(expect, IdeIgniteArmHost.ShouldRequeueBusy(ev, err));
 
     [Theory]
+    [InlineData(false, true, true)]  // last_once → keep error visible
+    [InlineData(true, true, true)]   // last_once implies once → still keep
+    [InlineData(true, false, false)] // plain once → silent Remove ok
+    [InlineData(false, false, true)] // recurring → keep error
+    public void ShouldKeepVisibleErrorOnFireFail_policy(bool once, bool lastOnce, bool expect) =>
+        Assert.Equal(expect, IdeIgniteArmHost.ShouldKeepVisibleErrorOnFireFail(once, lastOnce));
+
+    [Theory]
     [InlineData(90, 30)]
     [InlineData(5, 15)]
     [InlineData(600, 60)]
