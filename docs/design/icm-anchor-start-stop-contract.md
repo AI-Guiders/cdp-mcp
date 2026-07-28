@@ -11,7 +11,7 @@ Agent toggles **operator GUI cockpit** (Avalonia / future thin shell) without Cu
 
 | id | Actor | Effect |
 |----|-------|--------|
-| `cdp_cockpit_host` `op=start` | agent | Launch/show operator shell (`CDP_COCKPIT_HOST_EXE` or `path=`) |
+| `cdp_cockpit_host` `op=start` | agent | Launch/show operator shell (`[cockpit_host] exe` / `path=` / env escape) |
 | `cdp_cockpit_host` `op=stop` | agent | Hide/exit shell; MCP/ICM keep running |
 | `cdp_cockpit_host` `op=scene` | either | pulse: host=up\|down, pid?, profile |
 
@@ -21,13 +21,14 @@ Human may also Start from OS shortcut — same process attach via env.
 ## Non-goals
 
 - Rewrite Avalonia / kill MCP on Stop / replace Intent Melody.
-- Guess Avalonia path without `CDP_COCKPIT_HOST_EXE` / `path=`.
+- Guess Avalonia path without toml / `path=` / env escape.
 
 ## Acceptance sketch
 
-- [x] Meta + go map + pid state under StateRoot (`cockpit-host.json`)
+- [x] Meta + go map; runtime latch in-proc + OS rediscover by exe (no `cockpit-host.json`)
 - [x] `op=start` without exe → clear error (no Avalonia guess)
 - [x] `op=stop` → agent-only; MCP untouched
-- [x] Real CascadeIDE exe dogfood (`path=` → `cascade-ide/publish/CascadeIDE.exe` on cdp-debug 0.5.293; env optional)
+- [x] Config SSOT: `[cockpit_host] exe` in `cdp-mcp.toml`; `path=` one-shot; env escape only
+- [x] Real CascadeIDE exe dogfood (`path=` / toml on cdp-debug)
 - [ ] Nav Anchor in GUI lands via same `cdp_land` wire
 - [ ] Melody/settings load when shell starts (do not strip)
