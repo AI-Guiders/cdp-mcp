@@ -21,6 +21,7 @@ public static class ToolchainPathProbe
                 OperatingSystem.IsWindows())
                 name += ".exe";
 
+            RefreshProcessPath();
             var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? "";
             foreach (var dir in pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
             {
@@ -61,4 +62,40 @@ public static class ToolchainPathProbe
             return null;
         }
     }
+
+    /// <summary>Recompose process PATH from Machine+User (+ process-only extras) so winget/scoop installs are visible without MCP remount.</summary>
+    public static void RefreshProcessPath()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+        Environment.SetEnvironmentVariable("PATH", ComposePathEnv(), EnvironmentVariableTarget.Process);
+    }
+
+    static string ComposePathEnv()
+    {
+        if (!OperatingSystem.IsWindows())
+            return Environment.GetEnvironmentVariable("PATH") ?? "";
+
+        var machine = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine) ?? "";
+        var user = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User) ?? "";
+        var process = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Process) ?? "";
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var parts = new List<string>();
+        void Add(string block)
+        {
+            foreach (var raw in block.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var dir = raw.Trim();
+                if (dir.Length == 0 || !seen.Add(dir))
+                    continue;
+                parts.Add(dir);
+            }
+        }
+
+        Add(machine);
+        Add(user);
+        Add(process);
+        return string.Join(Path.PathSeparator, parts);
+    }
+
 }
