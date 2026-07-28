@@ -81,7 +81,25 @@ public sealed class IdeChkChannelTests
     {
         var snap = IdeChkChannel.Build(Ctx(phase: "act", taskOpen: false));
         Assert.Contains(snap.Active, r => r.Id == "plateau");
-        Assert.Contains("plateau", snap.Pulse, StringComparison.OrdinalIgnoreCase);
+        // OpenRequired=0 when ignite idle → pulse is "ecl · N clear" (Agent Dark Cockpit).
+        Assert.Equal(0, snap.OpenRequired);
+    }
+
+    [Fact]
+    public void Plateau_open_required_clear_when_ignite_idle()
+    {
+        var snap = IdeChkChannel.Build(Ctx(phase: "act", taskOpen: false, igniteIdle: true));
+        Assert.Contains(snap.Active, r => r.Id == "plateau");
+        Assert.Equal(0, snap.OpenRequired);
+        Assert.Contains("clear", snap.Pulse, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Plateau_open_required_when_ignite_armed()
+    {
+        var snap = IdeChkChannel.Build(Ctx(phase: "act", taskOpen: false, igniteIdle: false));
+        Assert.Contains(snap.Active, r => r.Id == "plateau");
+        Assert.True(snap.OpenRequired > 0);
     }
 
     [Fact]

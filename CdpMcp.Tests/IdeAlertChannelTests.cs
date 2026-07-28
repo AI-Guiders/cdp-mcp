@@ -88,6 +88,30 @@ public sealed class IdeAlertChannelTests
     }
 
     [Fact]
+    public void Build_plateau_ecl_open_without_other_beeps_is_warn()
+    {
+        var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(
+            new QualityGates.QualitySnap(true, 0, 0, false, "ok"),
+            0, false, false,
+            ChkOpenRequired: 1,
+            ChkPulse: "ecl · plateau 4/5 (open×1)"));
+        Assert.Equal(IdeAlertChannel.Level.Warn, snap.Level);
+        Assert.Contains("plateau", snap.Pulse, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Build_soft_phase_mismatch_alone_stays_clear()
+    {
+        var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(
+            new QualityGates.QualitySnap(true, 0, 0, false, "ok"),
+            0, false, false,
+            StagePhaseMismatch: "phase mismatch task@act · session=explore",
+            Sit: new IdeAlertChannel.Sit("explore/code", null, null, null, null)));
+        Assert.Equal(IdeAlertChannel.Level.Clear, snap.Level);
+        Assert.DoesNotContain("WARN", snap.Pulse, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SuggestLayout_flags_stale_plugins_on_P()
     {
         var seats = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)

@@ -41,8 +41,6 @@ internal static partial class IdeAlertChannel
             return "sa WARN · dap stopped";
         if (i.GitDirty)
             return "sa WARN · git dirty";
-        if (i.StagePhaseMismatch is { Length: > 0 })
-            return "sa WARN · phase mismatch";
         if (i.ChkOpenRequired > 0)
             return i.ChkPulse is { Length: > 0 } p ? $"sa WARN · {p}" : $"sa WARN · ecl×{i.ChkOpenRequired}";
         return "sa WARN";

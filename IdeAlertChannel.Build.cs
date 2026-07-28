@@ -91,12 +91,10 @@ internal static partial class IdeAlertChannel
             Explain("alert.git", "git_dirty", "working tree has staged or unstaged changes", "go=git_scene");
         }
 
+        // Soft @phase affinity ≠ session phase: advisory only (Agent Dark Cockpit).
+        // Do not WARN / n-alert — catalog is not broken by affinity drift alone.
         if (i.StagePhaseMismatch is { Length: > 0 } mismatch)
-        {
-            Raise(Level.Warn);
-            lines.Add($"{Mark()}{mismatch}");
-            Explain("alert.stage", "phase_mismatch", mismatch, "go=plan");
-        }
+            lines.Add($"·{mismatch}");
 
         if (i.ChkOpenRequired > 0)
         {

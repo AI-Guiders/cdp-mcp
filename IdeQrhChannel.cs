@@ -336,7 +336,9 @@ internal static class IdeQrhChannel
         }
         if (ctx.Phase is "act")
         {
-            if (!ctx.TaskOpen) Hit("plateau-no-task", 88);
+            // Intentional plateau (ignite idle) stays quiet — Agent Dark Cockpit.
+            // Blind Autoi on empty focus is the real deviation.
+            if (!ctx.TaskOpen && !ctx.IgniteIdle) Hit("plateau-no-task", 88);
             Hit("path-mutate-gate", 45);
             Hit("find-via-desk", 40);
         }
@@ -374,7 +376,8 @@ internal static class IdeQrhChannel
                 Hit("path-mutate-gate", 80);
                 Hit("find-via-desk", 60);
             }
-            if (hot.Equals("plateau", StringComparison.OrdinalIgnoreCase))
+            if (hot.Equals("plateau", StringComparison.OrdinalIgnoreCase)
+                && (!ctx.IgniteIdle || ecl.OpenRequired > 0))
             {
                 Hit("plateau-no-task", 95);
                 Hit("autoignite-cdt", 45);

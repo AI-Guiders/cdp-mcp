@@ -73,7 +73,7 @@ internal static partial class IdeTaskManager
             && sessionPhase is { Length: > 0 }
             && !aff.Equals(sessionPhase, StringComparison.OrdinalIgnoreCase))
         {
-            lines.Insert(0, $"!phase mismatch task@{aff} · session={sessionPhase}");
+            lines.Insert(0, $"·phase mismatch task@{aff} · session={sessionPhase}");
         }
 
         return new Board(

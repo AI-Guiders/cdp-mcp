@@ -131,7 +131,8 @@ internal static class IdeChkChannel
                 new("pressure-stash", "memory", "Plateau invariants belong in pressure stash, not only in host summary", Action: "cdp_pressure", Required: false)
             ],
             [
-                new("next-task", "do", "Pick/focus the next TM task before continuing flight", Action: "plan"),
+                // Intentional plateau (Agent Dark Cockpit): no focus after ship is OK — not a required DO.
+                new("next-task", "do", "Optional: pick/focus next TM task when continuing flight", Action: "plan", Required: false),
                 new("ignite-park", "auto", "If no task exists, disarm or leave ignite parked instead of looping", Probe: "ignite.idle", Action: "cdp_ignite")
             ]),
         new(

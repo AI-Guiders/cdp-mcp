@@ -80,12 +80,12 @@ leftover AC+DoD ship → focus null → `sa WARN · ecl · plateau` + `n-alert` 
 
 ## DoD реализации (рантайм)
 
-- [ ] Plateau без open ship ECL и без fail gates → не emit SA WARN/ECL plateau.
-- [ ] Soft phase affinity mismatch → advisory, не WARN (пока catalog не ломается).
-- [ ] `next[]` не поднимает `n-alert` при `alert.level=clear`.
-- [ ] Autoi guard: no arm/fire без focus (кроме явных remount/operator wakes).
-- [ ] Тест/dogfood: post-ship empty focus → clear sit.
-- [ ] Зеркало в human design doc остаётся согласованным.
+- [x] Plateau без open ship ECL и без fail gates → не emit SA WARN/ECL plateau (next-task optional; ignite-park auto when idle).
+- [x] Soft phase affinity mismatch → advisory, не WARN (пока catalog не ломается).
+- [x] `next[]` не поднимает `n-alert` при `alert.level=clear`.
+- [x] Autoi guard: no arm/fire без focus (кроме явных remount/operator wakes) — уже last_once plateau guard.
+- [x] Тест/dogfood: post-ship empty focus + ignite idle → clear sit.
+- [x] Зеркало в human design doc остаётся согласованным.
 
 ## Вне scope v1
 

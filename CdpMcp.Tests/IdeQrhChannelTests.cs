@@ -165,9 +165,16 @@ public sealed class IdeQrhChannelTests
     }
 
     [Fact]
-    public void Suggest_act_without_task_focus_hot_page()
+    public void Suggest_act_without_task_focus_quiet_when_ignite_idle()
     {
-        var s = IdeQrhChannel.SuggestFor(Ctx(phase: "act", taskOpen: false));
+        var s = IdeQrhChannel.SuggestFor(Ctx(phase: "act", taskOpen: false, igniteIdle: true));
+        Assert.NotEqual("plateau-no-task", s.HotId);
+    }
+
+    [Fact]
+    public void Suggest_act_without_task_focus_hot_when_ignite_armed()
+    {
+        var s = IdeQrhChannel.SuggestFor(Ctx(phase: "act", taskOpen: false, igniteIdle: false));
         Assert.Equal("plateau-no-task", s.HotId);
     }
 

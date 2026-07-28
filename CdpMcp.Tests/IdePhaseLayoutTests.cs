@@ -29,13 +29,15 @@ public sealed class IdePhaseLayoutTests
     }
 
     [Fact]
-    public void Build_warns_on_stage_phase_mismatch()
+    public void Build_stage_phase_mismatch_is_advisory_not_warn()
     {
         var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(
             new QualityGates.QualitySnap(true, 0, 0, false, "ok"),
             0, false, false,
             StagePhaseMismatch: "phase mismatch task@verify · session=act"));
-        Assert.Equal(IdeAlertChannel.Level.Warn, snap.Level);
-        Assert.Contains("phase mismatch", snap.Pulse, StringComparison.Ordinal);
+        Assert.Equal(IdeAlertChannel.Level.Clear, snap.Level);
+        Assert.Contains("clear", snap.Pulse, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(snap.Lines, l => l.Contains("phase mismatch", StringComparison.Ordinal));
+        Assert.Null(snap.Explain);
     }
 }
