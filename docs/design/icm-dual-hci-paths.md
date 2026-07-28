@@ -26,6 +26,7 @@ Agent and human use **different organs**, same **`command_id`** bottom (`IdeComm
 | Buffer / edit | `cdp_buffer` |
 | Desk seats | `cdp_cockpit` |
 | Options | `cdp_settings` |
-| Cockpit Start/Stop | deferred Anchor Start/Stop stage |
+| Cockpit Start/Stop | deferred — see `icm-anchor-start-stop-contract.md` |
+| Melody→CDP map | see `icm-melody-cdp-inventory.md` |
 
 No forever IdeCommands→ICM adapter — Melody stays; execute moves under CDP.
