@@ -6,14 +6,20 @@ namespace CdpMcp;
 
 /// <summary>
 /// Unified IdeCommandModule (ICM): single execute seam for MCP <c>CallTool</c>
-/// and future CIDE projections. CDP owns the command language; CIDE adapters
-/// call the same <c>command_id</c> surface (tool name / go Meta) — they do not
-/// invent a parallel IdeCommands SSOT.
+/// and future on-demand GUI / human HCI. CDP owns the command language.
 /// </summary>
 /// <remarks>
-/// See <c>docs/adr/CDP-ADR-0019-icm-cdp-first-command-module.md</c>.
-/// Profiles <c>agent-only</c> vs <c>dual-cockpit</c> share this module;
-/// Anchor Start/Stop (operator GUI) is deferred.
+/// <para>
+/// Dual HCI, one drive (CDP-ADR-0019): agent organs (<c>go=</c> / soft desk) and
+/// human organs (Intent Melody / chords / palette / GUI) both resolve to the same
+/// <c>command_id</c> surface. No permanent IdeCommands→ICM adapter — GUI becomes
+/// an optional CDP client/shell. Preserve CIDE Melody + <c>CascadeIdeSettings</c>
+/// when relocating chrome.
+/// </para>
+/// <para>
+/// Navigation Anchor (<c>cdp_land</c>) is agent-ready; GUI may project the same
+/// Family:navigation wire later. SoftDispatch stays behind this module.
+/// </para>
 /// </remarks>
 public static class IdeCommandModule
 {
