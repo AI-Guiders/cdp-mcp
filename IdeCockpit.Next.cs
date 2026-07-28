@@ -40,6 +40,7 @@ internal static partial class IdeCockpit
             WorkPulse: work.Pulse,
             AlertBeeping: alert.Level != IdeAlertChannel.Level.Clear,
             AlertPulse: alert.Pulse,
+            AlertWhy: alert.Explain?.WhyLine,
             PressureArmed: IdePressureChannel.IsArmed(),
             PressurePulse: IdePressureChannel.PulseLine(),
             ChkOpenRequired: chk?.OpenRequired ?? 0,

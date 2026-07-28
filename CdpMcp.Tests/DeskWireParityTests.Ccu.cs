@@ -56,6 +56,7 @@ public sealed partial class DeskWireParityTests
             WorkPulse: null,
             AlertBeeping: false,
             AlertPulse: null,
+            AlertWhy: null,
             PressureArmed: false,
             PressurePulse: null,
             ChkOpenRequired: 0,
@@ -93,6 +94,55 @@ public sealed partial class DeskWireParityTests
         Assert.Contains(cards, c => c.Go == "project_scene");
         Assert.Contains(cards, c => c.Go == "plan");
         Assert.Equal(cards.Length, cards.Select(c => c.Go).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+    }
+
+    [Fact]
+    public void DeskNextBuildUnit_prefers_alert_explain_why_over_pulse()
+    {
+        var unit = new DeskNextBuildUnit();
+        var cards = unit.Build(new DeskNextBuildUnit.Input(
+            HasProject: true,
+            DeskBookmarkExists: false,
+            WorkIntentId: "work-1",
+            WorkPulse: "plan · X",
+            AlertBeeping: true,
+            AlertPulse: "sa WARN · git dirty",
+            AlertWhy: "alert.git · git_dirty · working tree has staged or unstaged changes · next go=git_scene",
+            PressureArmed: false,
+            PressurePulse: null,
+            ChkOpenRequired: 0,
+            ChkPulse: null,
+            PhaseReviewOrVerify: false,
+            PhaseIsReview: false,
+            QrhHotId: null,
+            QrhPulse: null,
+            LayoutHint: null,
+            LayoutSeatNote: null,
+            ProblemErrors: 0,
+            AnyUndo: false,
+            AnyClipboard: false,
+            AnyNavBack: false,
+            QualityEnabled: false,
+            QualityFail: 0,
+            QualityWarn: 0,
+            SuggestSniper: false,
+            SniperHasHold: false,
+            SniperPulse: null,
+            ArchHasWork: false,
+            ArchPulse: null,
+            ToolchainPulse: "toolchain",
+            OnboardHasScan: false,
+            OnboardPulse: null,
+            DiskChangedCount: 0,
+            FocusId: null,
+            BufferCount: 0,
+            BufferDirtyCount: 0,
+            GitDirty: false,
+            TestFailed: 0,
+            DebugStopped: false,
+            ShellRunning: 0));
+        var alert = Assert.Single(cards, c => c.Go == "alert");
+        Assert.Equal("alert.git · git_dirty · working tree has staged or unstaged changes · next go=git_scene", alert.Why);
     }
 
     [Fact]
