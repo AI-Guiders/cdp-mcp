@@ -60,6 +60,43 @@ public class IdeReplFeatureFocusTests
     }
 
     [Fact]
+    public void Start_phase_maps_to_tm_op()
+    {
+        var applied = IdeRepl.Apply("start_phase act", Empty);
+        Assert.NotNull(applied);
+        Assert.True(applied.Value.Args.TryGetValue("tm_op", out var tm));
+        Assert.Equal("start_phase", tm.GetString());
+        Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
+        using var doc = JsonDocument.Parse(ga.GetRawText());
+        Assert.Equal("act", doc.RootElement.GetProperty("phase").GetString());
+    }
+
+    [Fact]
+    public void Complete_phase_maps_to_tm_op()
+    {
+        var applied = IdeRepl.Apply("complete_phase", Empty);
+        Assert.NotNull(applied);
+        Assert.True(applied.Value.Args.TryGetValue("tm_op", out var tm));
+        Assert.Equal("complete_phase", tm.GetString());
+    }
+
+    [Fact]
+    public void FormatPhaseSegments_keeps_reentry_visits_separate()
+    {
+        var t0 = DateTimeOffset.Parse("2026-07-28T04:00:00Z");
+        var rows = new (string, string, DateTimeOffset)[]
+        {
+            ("phase.start", "act", t0),
+            ("phase.complete", "act", t0.AddMinutes(2)),
+            ("phase.start", "verify", t0.AddMinutes(2)),
+            ("phase.complete", "verify", t0.AddMinutes(3)),
+            ("phase.start", "act", t0.AddMinutes(3)),
+        };
+        var suffix = IdeTaskManager.FormatPhaseSegmentsSuffix(rows, t0.AddMinutes(5));
+        Assert.Equal(" · act 2m · verify 1m · act …2m", suffix);
+    }
+
+    [Fact]
     public void Feature_at_focus_strips_directive_from_title()
     {
         var applied = IdeRepl.Apply("feature night-refactor @focus", Empty);

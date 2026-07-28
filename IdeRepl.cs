@@ -522,6 +522,37 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        // Phase wall segment begin — same ledger gate as note (open stage clock).
+        // Re-entry OK: act→verify→act yields separate segments, not a merge.
+        if (head is "start_phase" or "phase_start")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("start_phase");
+            if (tokens.Count >= 2)
+            {
+                var phase = tokens[1];
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { phase, op = "start_phase" });
+            }
+            else
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "start_phase" });
+            return (merged, null);
+        }
+
+        // Phase wall segment end — pairs with start_phase / cdp_context transition.
+        if (head is "complete_phase" or "phase_complete" or "end_phase")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("complete_phase");
+            if (tokens.Count >= 2)
+            {
+                var phase = tokens[1];
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { phase, op = "complete_phase" });
+            }
+            else
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "complete_phase" });
+            return (merged, null);
+        }
+
         // Explicit Completed after ship cycle — wall end (not a score).
         if (head is "shipped" or "completed")
         {
@@ -1257,6 +1288,13 @@ internal static class IdeRepl
             return "events — list stage cycle event pointers";
         if (title.Equals("note", StringComparison.OrdinalIgnoreCase))
             return "note <text> — append pointer while clock open";
+        if (title.Equals("start_phase", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("phase_start", StringComparison.OrdinalIgnoreCase))
+            return "start_phase [act] — wall phase segment begin (re-entry OK)";
+        if (title.Equals("complete_phase", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("phase_complete", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("end_phase", StringComparison.OrdinalIgnoreCase))
+            return "complete_phase [act] — wall phase segment end";
         if (title.Equals("feature", StringComparison.OrdinalIgnoreCase)
             || title.Equals("intent", StringComparison.OrdinalIgnoreCase))
             return "feature <name>";

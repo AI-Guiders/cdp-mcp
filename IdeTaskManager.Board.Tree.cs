@@ -82,6 +82,48 @@ internal static partial class IdeTaskManager
         return " · " + string.Join(' ', parts);
     }
 
+    /// <summary>
+    /// Per-phase wall spans from phase.start / phase.complete ledger rows.
+    /// Open segment shows …elapsed to <paramref name="now"/>. Not agent-active.
+    /// </summary>
+    internal static string FormatPhaseSegmentsSuffix(
+        IEnumerable<(string Kind, string Summary, DateTimeOffset Utc)> events,
+        DateTimeOffset now)
+    {
+        var parts = new List<string>();
+        string? openPhase = null;
+        DateTimeOffset? openAt = null;
+        foreach (var e in events.OrderBy(x => x.Utc))
+        {
+            if (e.Kind.Equals("phase.start", StringComparison.OrdinalIgnoreCase))
+            {
+                var name = (e.Summary ?? "").Trim();
+                if (name.Length == 0)
+                    continue;
+                if (openPhase is not null && openAt is not null)
+                    parts.Add($"{openPhase} {FormatWallElapsed(openAt.Value, e.Utc)}");
+                openPhase = name;
+                openAt = e.Utc;
+            }
+            else if (e.Kind.Equals("phase.complete", StringComparison.OrdinalIgnoreCase))
+            {
+                var name = (e.Summary ?? "").Trim();
+                if (openPhase is null || openAt is null)
+                    continue;
+                if (name.Length > 0 && !name.Equals(openPhase, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                parts.Add($"{openPhase} {FormatWallElapsed(openAt.Value, e.Utc)}");
+                openPhase = null;
+                openAt = null;
+            }
+        }
+
+        if (openPhase is not null && openAt is not null)
+            parts.Add($"{openPhase} …{FormatWallElapsed(openAt.Value, now)}");
+
+        return parts.Count == 0 ? "" : " · " + string.Join(" · ", parts);
+    }
+
     static string WallBanner(string wallSuffix) =>
         wallSuffix.Length == 0 ? "" : $" {wallSuffix.TrimStart(' ', '·').Trim()} |";
 

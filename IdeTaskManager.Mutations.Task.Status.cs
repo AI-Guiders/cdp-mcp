@@ -59,14 +59,65 @@ internal static partial class IdeTaskManager
     {
         var id = ResolveClockStageId(store, state, args)
                  ?? throw new ArgumentException("start needs active task or title — focus X | start X");
-        return store.StageClockStart(state, id);
+        var r = store.StageClockStart(state, id);
+        IdeStageCycle.TryPhaseStart(); // open wall segment for current session phase
+        return r;
     }
 
     static object TaskClockShipped(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
     {
         var id = ResolveClockStageId(store, state, args)
                  ?? throw new ArgumentException("shipped needs active task or title — start first, then shipped");
+        IdeStageCycle.TryPhaseComplete(); // close open phase segment before clock end
         return store.StageClockShipped(state, id);
+    }
+
+    static object TaskPhaseStart(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var id = ResolveClockStageId(store, state, args)
+                 ?? throw new ArgumentException("start_phase needs open clock — focus + start first");
+        if (state.ActiveStageId != id)
+            store.FocusStage(state, id);
+        var phase = PhaseArg(args);
+        if (string.IsNullOrWhiteSpace(phase))
+        {
+            var title = Title(args);
+            phase = title.Length > 0 ? title : null;
+        }
+
+        if (!IdeStageCycle.TryPhaseStart(phase, out var used))
+            throw new ArgumentException("start_phase needs open clock + phase — start first; start_phase act | session phase via cdp_context");
+        return new
+        {
+            op = "start_phase",
+            task_id = id,
+            phase = used,
+            hint = "wall phase segment begin — SA diagnostic, not a score"
+        };
+    }
+
+    static object TaskPhaseComplete(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var id = ResolveClockStageId(store, state, args)
+                 ?? throw new ArgumentException("complete_phase needs open clock — focus + start first");
+        if (state.ActiveStageId != id)
+            store.FocusStage(state, id);
+        var phase = PhaseArg(args);
+        if (string.IsNullOrWhiteSpace(phase))
+        {
+            var title = Title(args);
+            phase = title.Length > 0 ? title : null;
+        }
+
+        if (!IdeStageCycle.TryPhaseComplete(phase, out var used))
+            throw new ArgumentException("complete_phase needs open clock + phase — start first; complete_phase act | session phase via cdp_context");
+        return new
+        {
+            op = "complete_phase",
+            task_id = id,
+            phase = used,
+            hint = "wall phase segment end — SA diagnostic, not a score"
+        };
     }
 
     static object TaskEvents(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)

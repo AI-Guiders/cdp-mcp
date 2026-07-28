@@ -45,6 +45,8 @@ internal static partial class IdeTaskManager
             "phase" or "task_phase" => TaskSetPhase(store, state, args),
             "start" or "clock_start" => TaskClockStart(store, state, args),
             "shipped" or "completed" => TaskClockShipped(store, state, args),
+            "start_phase" or "phase_start" => TaskPhaseStart(store, state, args),
+            "complete_phase" or "phase_complete" or "end_phase" => TaskPhaseComplete(store, state, args),
             "events" or "event_list" => TaskEvents(store, state, args),
             "note" or "event_note" => TaskEventNote(store, state, args),
             "promote" or "promote_plan" or "ask_confirm"
@@ -73,6 +75,6 @@ internal static partial class IdeTaskManager
                 Opt(args, "plan_id") ?? OptGoArg(args, "plan_id"),
                 reject: true),
             _ => throw new ArgumentException(
-                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|drop|start|shipped|events|note|share|report|promote|confirm|reject.")
+                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|drop|start|shipped|start_phase|complete_phase|events|note|share|report|promote|confirm|reject.")
         };
 }

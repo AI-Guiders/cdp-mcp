@@ -876,6 +876,14 @@ internal sealed partial class IntentWorkspaceStore(
             var kinds = db.StageEvents.Where(e => e.StageId == entity.Id).Select(e => e.Kind).ToList();
             var counts = CountKinds(kinds);
             var events = IdeTaskManager.FormatEventCountsSuffix(counts.Wait, counts.Fail, counts.Note);
+            var phaseRows = db.StageEvents
+                .Where(e => e.StageId == entity.Id
+                            && (e.Kind == "phase.start" || e.Kind == "phase.complete"))
+                .OrderBy(e => e.Utc)
+                .Select(e => new ValueTuple<string, string, DateTimeOffset>(e.Kind, e.Summary, e.Utc))
+                .ToList();
+            var phases = IdeTaskManager.FormatPhaseSegmentsSuffix(phaseRows, entity.CompletedUtc.Value);
+            var suffix = phases + events;
             return new
             {
                 op = "shipped",
@@ -886,7 +894,7 @@ internal sealed partial class IntentWorkspaceStore(
                 wait = counts.Wait,
                 fail = counts.Fail,
                 note = counts.Note,
-                events_suffix = events.Length == 0 ? null : events.TrimStart(' ', '·').Trim(),
+                events_suffix = suffix.Length == 0 ? null : suffix.TrimStart(' ', '·').Trim(),
                 kind = "wall",
                 hint = "SA tempo (wall) — not a score; events=pointers not reward"
             };

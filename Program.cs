@@ -70,7 +70,7 @@ void EnsureWorkspaceDb()
     workspaceStore.EnsureScriptLastRunTable();
     IdeDeskSeats.Bind(workspaceStore);
     ScriptScene.Bind(workspaceStore);
-    IdeStageCycle.Bind(workspaceStore, () => workspaceState);
+    IdeStageCycle.Bind(workspaceStore, () => workspaceState, () => CdpEnumParse.ToWire(session.Phase));
     OpenRecentStore.Configure(new WitDbOpenRecentBackend(workspaceStore, path));
     openedWorkspaceDbPath = path;
 }
@@ -1582,12 +1582,14 @@ async Task<string> DispatchMetaAsync(
             string? layoutApplied = null;
             if (callArgs.TryGetValue("phase", out var ph) && CdpEnumParse.TryParsePhase(ph.GetString(), out var newPhase))
             {
+                var oldPhaseWire = CdpEnumParse.ToWire(session.Phase);
                 var phaseChanged = newPhase != session.Phase;
                 session.Phase = newPhase;
                 changed = true;
                 if (phaseChanged)
                 {
                     EnsureWorkspaceDb();
+                    IdeStageCycle.TryPhaseTransition(oldPhaseWire, CdpEnumParse.ToWire(newPhase));
                     layoutApplied = IdePhaseLayout.TryApplyForPhase(newPhase, callArgs);
                 }
             }

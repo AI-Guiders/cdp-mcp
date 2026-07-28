@@ -5,37 +5,93 @@ namespace CdpMcp;
 
 /// <summary>
 /// Stage-cycle event ledger — SA diagnostic pointers while wall clock is open.
+/// Phase segments (phase.start / phase.complete) share the same clock gate.
 /// Only binds when ActiveStage has Start and no Completed. Not a score.
 /// </summary>
 internal static class IdeStageCycle
 {
     static IntentWorkspaceStore? _store;
     static Func<IntentWorkspaceState>? _statePeek;
+    static Func<string?>? _phasePeek;
 
-    public static void Bind(IntentWorkspaceStore store, Func<IntentWorkspaceState> statePeek)
+    public static void Bind(
+        IntentWorkspaceStore store,
+        Func<IntentWorkspaceState> statePeek,
+        Func<string?>? phasePeek = null)
     {
         _store = store;
         _statePeek = statePeek;
+        _phasePeek = phasePeek;
     }
 
     /// <summary>Append to open-clock active stage. No-op if clock closed / no focus.</summary>
-    public static void TryAppend(string kind, string source, string summary, string? refId = null)
+    public static void TryAppend(string kind, string source, string summary, string? refId = null) =>
+        _ = TryAppendCore(kind, source, summary, refId);
+
+    static bool TryAppendCore(string kind, string source, string summary, string? refId = null)
     {
         try
         {
             var store = _store;
             var state = _statePeek?.Invoke();
             if (store is null || state is null)
-                return;
+                return false;
             if (state.ActiveStageId is not { } sid)
-                return;
-            store.StageEventTryAppendOpenClock(sid, kind, source, summary, refId);
+                return false;
+            return store.StageEventTryAppendOpenClock(sid, kind, source, summary, refId);
         }
         catch
         {
-            // diagnostic only — never break fire/shell
+            return false;
         }
     }
+
+    /// <summary>Explicit Start Phase — wall segment begin (needs open stage clock).</summary>
+    public static bool TryPhaseStart(string? phase, out string used)
+    {
+        used = ResolvePhase(phase);
+        if (used.Length == 0)
+            return false;
+        return TryAppendCore("phase.start", "phase", used);
+    }
+
+    public static bool TryPhaseStart(string? phase = null) => TryPhaseStart(phase, out _);
+
+    /// <summary>Explicit Complete Phase — wall segment end (needs open stage clock).</summary>
+    public static bool TryPhaseComplete(string? phase, out string used)
+    {
+        used = ResolvePhase(phase);
+        if (used.Length == 0)
+            return false;
+        return TryAppendCore("phase.complete", "phase", used);
+    }
+
+    public static bool TryPhaseComplete(string? phase = null) => TryPhaseComplete(phase, out _);
+
+    /// <summary>
+    /// Auto on session phase transition (cdp_context phase=): complete previous, start next.
+    /// Same ledger gate as note/wait/fail — only while stage wall clock open.
+    /// </summary>
+    public static void TryPhaseTransition(string? fromPhase, string toPhase)
+    {
+        var to = NormalizePhase(toPhase);
+        if (to.Length == 0)
+            return;
+        var from = NormalizePhase(fromPhase);
+        if (from.Length > 0 && !from.Equals(to, StringComparison.OrdinalIgnoreCase))
+            _ = TryAppendCore("phase.complete", "phase", from);
+        _ = TryAppendCore("phase.start", "phase", to);
+    }
+
+    static string ResolvePhase(string? phase)
+    {
+        var p = NormalizePhase(phase);
+        if (p.Length > 0)
+            return p;
+        return NormalizePhase(_phasePeek?.Invoke());
+    }
+
+    static string NormalizePhase(string? s) => (s ?? "").Trim().ToLowerInvariant();
 
     public static string MapIgniteError(string? err) =>
         err switch
