@@ -54,4 +54,33 @@ internal static partial class IdeTaskManager
         store.WorkFocusSave(state);
         return new { op = status, task_id = r.stage_id, status = r.status };
     }
+
+    static object TaskClockStart(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var id = ResolveClockStageId(store, state, args)
+                 ?? throw new ArgumentException("start needs active task or title — focus X | start X");
+        return store.StageClockStart(state, id);
+    }
+
+    static object TaskClockShipped(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var id = ResolveClockStageId(store, state, args)
+                 ?? throw new ArgumentException("shipped needs active task or title — start first, then shipped");
+        return store.StageClockShipped(state, id);
+    }
+
+    static Guid? ResolveClockStageId(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id")
+                 ?? GuidArgGo(args, "stage_id") ?? GuidArgGo(args, "task_id")
+                 ?? state.ActiveStageId;
+        if (id is null)
+        {
+            var title = Title(args);
+            if (title.Length > 0)
+                id = store.FindStageIdByTitle(state, title);
+        }
+
+        return id;
+    }
 }

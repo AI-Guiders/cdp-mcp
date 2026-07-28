@@ -507,6 +507,36 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        // Explicit wall-clock Start — never auto on focus/edit.
+        if (head is "start")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("start");
+            if (tokens.Count >= 2)
+            {
+                var title = string.Join(' ', tokens.Skip(1));
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { title, op = "start" });
+            }
+            else
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "start" });
+            return (merged, null);
+        }
+
+        // Explicit Completed after ship cycle — wall end (not a score).
+        if (head is "shipped" or "completed")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("shipped");
+            if (tokens.Count >= 2)
+            {
+                var title = string.Join(' ', tokens.Skip(1));
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { title, op = "shipped" });
+            }
+            else
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "shipped" });
+            return (merged, null);
+        }
+
         if (head is "tasks" or "plan" or "board")
         {
             merged["go"] = JsonSerializer.SerializeToElement("plan");
@@ -1199,6 +1229,11 @@ internal static class IdeRepl
             return "confirm | reject";
         if (title.Equals("help", StringComparison.OrdinalIgnoreCase))
             return "help";
+        if (title.Equals("start", StringComparison.OrdinalIgnoreCase))
+            return "start | start <title> — explicit wall Start (not auto)";
+        if (title.Equals("shipped", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("completed", StringComparison.OrdinalIgnoreCase))
+            return "shipped | completed — wall Completed after ship";
         if (title.Equals("feature", StringComparison.OrdinalIgnoreCase)
             || title.Equals("intent", StringComparison.OrdinalIgnoreCase))
             return "feature <name>";

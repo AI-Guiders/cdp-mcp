@@ -25,6 +25,10 @@ internal sealed class StageEntity
     public string? JobError { get; set; }
     /// <summary>Optional epistemic phase affinity (wire: explore|plan|act|…). Soft — not Stage status.</summary>
     public string? PhaseAffinity { get; set; }
+    /// <summary>Explicit Start gesture — wall clock begin of a measurable ship cycle. Null until cmd=start.</summary>
+    public DateTimeOffset? StartedUtc { get; set; }
+    /// <summary>Explicit Completed (shipped) gesture — wall clock end. Elapsed = Completed−Start (calendar, not agent-active).</summary>
+    public DateTimeOffset? CompletedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }
 
     public IntentEntity? Intent { get; set; }

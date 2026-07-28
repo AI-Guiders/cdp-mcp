@@ -43,6 +43,8 @@ internal static partial class IdeTaskManager
             "park" or "parked" => TaskStatus(store, state, args, "parked"),
             "active" => TaskStatus(store, state, args, "active"),
             "phase" or "task_phase" => TaskSetPhase(store, state, args),
+            "start" or "clock_start" => TaskClockStart(store, state, args),
+            "shipped" or "completed" => TaskClockShipped(store, state, args),
             "promote" or "promote_plan" or "ask_confirm"
                 or "share" or "share_plan"
                 or "report" or "digest" or "share_report" or "status_report" =>
@@ -69,6 +71,6 @@ internal static partial class IdeTaskManager
                 Opt(args, "plan_id") ?? OptGoArg(args, "plan_id"),
                 reject: true),
             _ => throw new ArgumentException(
-                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|drop|share|report|promote|confirm|reject.")
+                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|drop|start|shipped|share|report|promote|confirm|reject.")
         };
 }

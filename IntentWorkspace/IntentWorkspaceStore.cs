@@ -722,6 +722,77 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
         });
     }
 
+    /// <summary>Existing WitDB may predate stage wall clock — ALTER if missing.</summary>
+    public void EnsureStageClockColumns()
+    {
+        WithDb(db =>
+        {
+            foreach (var sql in new[]
+                     {
+                         "ALTER TABLE stages ADD COLUMN StartedUtc TEXT NULL;",
+                         "ALTER TABLE stages ADD COLUMN CompletedUtc TEXT NULL;"
+                     })
+            {
+                try { db.Database.ExecuteSqlRaw(sql); }
+                catch { /* column already exists */ }
+            }
+        });
+    }
+
+    /// <summary>Explicit Start — measurable ship cycle. Does not auto-fire on focus/edit.</summary>
+    public object StageClockStart(IntentWorkspaceState state, Guid stageId)
+    {
+        var intentId = RequireIntent(state);
+        var now = DateTimeOffset.UtcNow;
+        return WithDb(db =>
+        {
+            var entity = db.Stages.FirstOrDefault(x => x.Id == stageId && x.IntentId == intentId)
+                         ?? throw new ArgumentException($"stage_id not found: {stageId}");
+            entity.StartedUtc = now;
+            entity.CompletedUtc = null; // restart cycle
+            entity.UpdatedUtc = now;
+            db.SaveChanges();
+            return new
+            {
+                op = "start",
+                task_id = entity.Id,
+                started_utc = entity.StartedUtc,
+                completed_utc = (DateTimeOffset?)null,
+                elapsed = (string?)null,
+                kind = "wall",
+                hint = "wall calendar clock — not agent-active; Start is explicit only"
+            };
+        });
+    }
+
+    /// <summary>Explicit Completed after ship — wall end. Elapsed = Completed−Start (calendar).</summary>
+    public object StageClockShipped(IntentWorkspaceState state, Guid stageId)
+    {
+        var intentId = RequireIntent(state);
+        var now = DateTimeOffset.UtcNow;
+        return WithDb(db =>
+        {
+            var entity = db.Stages.FirstOrDefault(x => x.Id == stageId && x.IntentId == intentId)
+                         ?? throw new ArgumentException($"stage_id not found: {stageId}");
+            if (entity.StartedUtc is null)
+                throw new ArgumentException("shipped needs Start first — cmd=start (explicit cycle)");
+            entity.CompletedUtc = now;
+            entity.UpdatedUtc = now;
+            db.SaveChanges();
+            var elapsed = IdeTaskManager.FormatWallElapsed(entity.StartedUtc.Value, entity.CompletedUtc.Value);
+            return new
+            {
+                op = "shipped",
+                task_id = entity.Id,
+                started_utc = entity.StartedUtc,
+                completed_utc = entity.CompletedUtc,
+                elapsed,
+                kind = "wall",
+                hint = "SA tempo (wall) — not a score; active/working time is a separate future signal"
+            };
+        });
+    }
+
     public void DeskSeatsSave(IReadOnlyDictionary<string, string?> seats)
     {
         var now = DateTimeOffset.UtcNow;
@@ -1047,6 +1118,8 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
             string? activeFeatureTitle = null;
             string? activeStageTitle = null;
             string? activeStagePhase = null;
+            DateTimeOffset? activeStageStarted = null;
+            DateTimeOffset? activeStageCompleted = null;
             if (state.ActiveIntentId is { } aid)
                 activeFeatureTitle = intents.FirstOrDefault(x => x.Id == aid)?.Title;
             if (state.ActiveStageId is { } sid)
@@ -1054,13 +1127,16 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
                 var st = stages.FirstOrDefault(x => x.Id == sid);
                 activeStageTitle = st?.Title;
                 activeStagePhase = st?.PhaseAffinity;
+                activeStageStarted = st?.StartedUtc;
+                activeStageCompleted = st?.CompletedUtc;
             }
 
             var features = intents.Select(i =>
             {
                 var st = stages.Where(s => s.IntentId == i.Id)
                     .Select(s => new IdeTaskManager.StageNode(
-                        s.Id, s.ParentId, s.Title, s.Status, s.Ordinal, s.PhaseAffinity))
+                        s.Id, s.ParentId, s.Title, s.Status, s.Ordinal, s.PhaseAffinity,
+                        s.StartedUtc, s.CompletedUtc))
                     .ToList();
                 return new IdeTaskManager.FeatureNode(
                     i.Id,
@@ -1076,6 +1152,8 @@ internal sealed class IntentWorkspaceStore(DbContextOptions<IntentWorkspaceDbCon
                 state.ActiveStageId,
                 activeStageTitle,
                 activeStagePhase,
+                activeStageStarted,
+                activeStageCompleted,
                 features);
         });
     }

@@ -44,14 +44,15 @@ internal static partial class IdeTaskManager
             lines.Add("(empty — cmd=\"feature <name>\")");
 
         var phaseWire = sessionPhase is { Length: > 0 } ? sessionPhase : "—";
+        var wall = FormatWallClockSuffix(snap.ActiveStageStartedUtc, snap.ActiveStageCompletedUtc, DateTimeOffset.UtcNow);
         var pulse = snap.ActiveFeatureTitle is { Length: > 0 } f
             ? snap.ActiveStageTitle is { Length: > 0 } t
-                ? $"{f} › {t} · {phaseWire}"
+                ? $"{f} › {t} · {phaseWire}{wall}"
                 : $"{f} › (pick task) · {phaseWire}"
             : $"no plan — feature <name> · {phaseWire}";
 
         var banner = snap.ActiveFeatureTitle is { Length: > 0 }
-            ? $"| plan:{Trim(snap.ActiveFeatureTitle, 18)} | task:{Trim(snap.ActiveStageTitle ?? "—", 18)} | phase:{phaseWire} |"
+            ? $"| plan:{Trim(snap.ActiveFeatureTitle, 18)} | task:{Trim(snap.ActiveStageTitle ?? "—", 18)} | phase:{phaseWire} |{WallBanner(wall)}"
             : $"| plan:— | task:— | phase:{phaseWire} |";
 
         if (snap.ActiveStagePhaseAffinity is { Length: > 0 } aff
@@ -69,7 +70,7 @@ internal static partial class IdeTaskManager
                 banner,
                 board = lines.ToArray(),
                 ascii = string.Join('\n', lines),
-                hint = "Scan board. * = active feature; [>] active task; [x] done; @phase = affinity."
+                hint = "Scan board. * = active feature; [>] active task; [x] done; @phase = affinity. wall= calendar Start→Completed (not agent-active score)."
             },
             Focus: new
             {
@@ -78,7 +79,11 @@ internal static partial class IdeTaskManager
                 task_id = snap.ActiveStageId,
                 task = snap.ActiveStageTitle,
                 task_phase = snap.ActiveStagePhaseAffinity,
-                session_phase = sessionPhase
+                session_phase = sessionPhase,
+                started_utc = snap.ActiveStageStartedUtc,
+                completed_utc = snap.ActiveStageCompletedUtc,
+                elapsed = wall.Length > 0 ? wall.TrimStart(' ', '·') : null,
+                clock_kind = "wall"
             });
     }
 }

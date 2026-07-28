@@ -12,7 +12,9 @@ internal static partial class IdeTaskManager
         string Title,
         string Status,
         int Ordinal,
-        string? PhaseAffinity = null);
+        string? PhaseAffinity = null,
+        DateTimeOffset? StartedUtc = null,
+        DateTimeOffset? CompletedUtc = null);
 
     public sealed record FeatureNode(
         Guid Id,
@@ -27,5 +29,7 @@ internal static partial class IdeTaskManager
         Guid? ActiveStageId,
         string? ActiveStageTitle,
         string? ActiveStagePhaseAffinity,
+        DateTimeOffset? ActiveStageStartedUtc,
+        DateTimeOffset? ActiveStageCompletedUtc,
         IReadOnlyList<FeatureNode> Features);
 }

@@ -35,13 +35,43 @@ internal static partial class IdeTaskManager
             : node.Status.Equals("parked", StringComparison.OrdinalIgnoreCase) ? "[-]"
             : activeStageId == node.Id || node.Status.Equals("active", StringComparison.OrdinalIgnoreCase) ? "[>]"
             : "[ ]";
-        yield return $"{pad}|--- {box} {node.Title}{(node.PhaseAffinity is { Length: > 0 } pa ? $" @{pa}" : "")}";
+        var wall = FormatWallClockSuffix(node.StartedUtc, node.CompletedUtc, DateTimeOffset.UtcNow);
+        yield return $"{pad}|--- {box} {node.Title}{(node.PhaseAffinity is { Length: > 0 } pa ? $" @{pa}" : "")}{wall}";
         foreach (var child in all.Where(s => s.ParentId == node.Id).OrderBy(s => s.Ordinal))
         {
             foreach (var line in Walk(child, all, activeStageId, indent + 1))
                 yield return line;
         }
     }
+
+    /// <summary>Human wall span — calendar Start→Completed (or Start→now while open). Not agent-active.</summary>
+    internal static string FormatWallElapsed(DateTimeOffset start, DateTimeOffset end)
+    {
+        var span = end - start;
+        if (span < TimeSpan.Zero)
+            span = TimeSpan.Zero;
+        if (span.TotalSeconds < 60)
+            return $"{(int)span.TotalSeconds}s";
+        if (span.TotalMinutes < 60)
+            return span.Seconds == 0
+                ? $"{(int)span.TotalMinutes}m"
+                : $"{(int)span.TotalMinutes}m{span.Seconds:D2}s";
+        return span.Minutes == 0
+            ? $"{(int)span.TotalHours}h"
+            : $"{(int)span.TotalHours}h{span.Minutes:D2}m";
+    }
+
+    static string FormatWallClockSuffix(DateTimeOffset? started, DateTimeOffset? completed, DateTimeOffset now)
+    {
+        if (started is null)
+            return "";
+        if (completed is { } done)
+            return $" · wall {FormatWallElapsed(started.Value, done)}";
+        return $" · wall …{FormatWallElapsed(started.Value, now)}";
+    }
+
+    static string WallBanner(string wallSuffix) =>
+        wallSuffix.Length == 0 ? "" : $" {wallSuffix.TrimStart(' ', '·').Trim()} |";
 
     static string Trim(string s, int max) =>
         s.Length <= max ? s : s[..(max - 1)] + "…";

@@ -22,11 +22,41 @@ public class IdeReplFeatureFocusTests
     [InlineData("feature done")]
     [InlineData("task focus")]
     [InlineData("task drop")]
+    [InlineData("feature start")]
     public void Verb_as_title_is_rejected(string line)
     {
         var applied = IdeRepl.Apply(line, Empty);
         Assert.NotNull(applied);
         Assert.NotNull(applied.Value.Direct);
+    }
+
+    [Fact]
+    public void Start_maps_to_tm_op_start()
+    {
+        var applied = IdeRepl.Apply("start", Empty);
+        Assert.NotNull(applied);
+        Assert.Null(applied.Value.Direct);
+        Assert.True(applied.Value.Args.TryGetValue("tm_op", out var tm));
+        Assert.Equal("start", tm.GetString());
+    }
+
+    [Fact]
+    public void Shipped_maps_to_tm_op_shipped()
+    {
+        var applied = IdeRepl.Apply("shipped", Empty);
+        Assert.NotNull(applied);
+        Assert.Null(applied.Value.Direct);
+        Assert.True(applied.Value.Args.TryGetValue("tm_op", out var tm));
+        Assert.Equal("shipped", tm.GetString());
+    }
+
+    [Fact]
+    public void FormatWallElapsed_formats_human()
+    {
+        var start = DateTimeOffset.Parse("2026-07-28T04:00:00Z");
+        Assert.Equal("45s", IdeTaskManager.FormatWallElapsed(start, start.AddSeconds(45)));
+        Assert.Equal("8m", IdeTaskManager.FormatWallElapsed(start, start.AddMinutes(8)));
+        Assert.Equal("1h05m", IdeTaskManager.FormatWallElapsed(start, start.AddHours(1).AddMinutes(5)));
     }
 
     [Fact]

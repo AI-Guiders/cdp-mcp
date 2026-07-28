@@ -62,6 +62,7 @@ void EnsureWorkspaceDb()
     workspaceStore.EnsureDeskSeatsTable();
     workspaceStore.MigrateLegacyDeskSeatsJsonIfPresent();
     workspaceStore.EnsureStagePhaseAffinityColumn();
+    workspaceStore.EnsureStageClockColumns();
     workspaceStore.EnsureWorkFocusTable();
     workspaceStore.WorkFocusHydrate(workspaceState);
     workspaceStore.EnsureScriptLastRunTable();
