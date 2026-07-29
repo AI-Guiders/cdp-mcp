@@ -132,6 +132,7 @@ var anuiTools = Anui.Agent.Mcp.ToolCatalog.Build().ToDictionary(t => t.Name, Str
 
 var docStore = new DocumentBufferStore();
 using var diskSyncWatch = DocumentDiskSyncWatcher.Start(docStore);
+using var intercomCannon = IntercomVoiceCannonWatcher.Start();
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
 shellHabitat.Finished += info =>

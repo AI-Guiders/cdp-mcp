@@ -35,4 +35,4 @@ Human may also Start from OS shortcut — same process attach via env.
 - [ ] Melody/settings load when shell starts (do not strip)
 - [x] Auto-reload open tabs on Instant Save without land — `disk-LATEST.json` (agent flush ↔ human Save); shared dirty glass
 - [x] Desk→CIDE glass (instant) — `presentation-LATEST.json` topology/tier/instruments/mfd_page + live apply; not agent `cdp_settings`; respect repo `workspace.toml`
-- [x] Intercom @PF/@PM dual-cockpit voice — `intercom-LATEST.json` + `cdp_intercom` + CIDE projector/publisher (v0 seats agent=PF, operator=PM)
+- [x] Intercom @PF/@PM dual-cockpit voice — `intercom-LATEST.json` + `cdp_intercom` + CIDE projector/publisher (v0 seats agent=PF, operator=PM); cannon = human→PF latch → AutoIgnition custom arm
