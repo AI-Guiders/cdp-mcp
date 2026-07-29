@@ -14,11 +14,76 @@ public sealed class IdeShareTests
             Directory.CreateDirectory(root);
             var inbox = IdeShare.ResolveShareInbox(root, null);
             Assert.Equal(Path.Combine(root, ".cdp", "share"), inbox);
+            var shelf = IdeShare.ResolveShareInbox(root, null, "self");
+            Assert.Equal(Path.Combine(root, ".cdp", "share-self"), shelf);
         }
         finally
         {
             try { Directory.Delete(root, recursive: true); } catch { /* ignore */ }
         }
+    }
+
+    [Fact]
+    public void SharePut_ShareFrom_roundtrip_self_shelf()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "cdp-shelf-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(root);
+            var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["what"] = JsonSerializer.SerializeToElement("note"),
+                ["title"] = JsonSerializer.SerializeToElement("solo-flight"),
+                ["dir"] = JsonSerializer.SerializeToElement(Path.Combine(root, "shelf"))
+            };
+            var putJson = IdeShare.SharePut(root, "self", "# hello shelf\naxis=1\n", args);
+            using (var putDoc = JsonDocument.Parse(putJson))
+            {
+                Assert.True(putDoc.RootElement.GetProperty("ok").GetBoolean());
+                Assert.Equal("self", putDoc.RootElement.GetProperty("with").GetString());
+                Assert.Equal("shelved", putDoc.RootElement.GetProperty("status").GetString());
+            }
+
+            var fromArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["from"] = JsonSerializer.SerializeToElement("self"),
+                ["dir"] = JsonSerializer.SerializeToElement(Path.Combine(root, "shelf"))
+            };
+            var takeJson = IdeShare.ShareFrom(root, fromArgs);
+            using var takeDoc = JsonDocument.Parse(takeJson);
+            Assert.True(takeDoc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal("taken", takeDoc.RootElement.GetProperty("status").GetString());
+            Assert.Contains("hello shelf", takeDoc.RootElement.GetProperty("body").GetString());
+        }
+        finally
+        {
+            try { Directory.Delete(root, recursive: true); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
+    public void Repl_share_from_self_routes_go_share()
+    {
+        var empty = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        var applied = IdeRepl.Apply("share from self", empty);
+        Assert.NotNull(applied);
+        Assert.True(applied.Value.Args.TryGetValue("go", out var go));
+        Assert.Equal("share", go.GetString());
+        Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
+        Assert.Equal("self", ga.GetProperty("from").GetString());
+    }
+
+    [Fact]
+    public void Repl_share_with_self_body_routes_go_share()
+    {
+        var empty = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        var applied = IdeRepl.Apply("share with self cockpit fixes peel-0", empty);
+        Assert.NotNull(applied);
+        Assert.True(applied.Value.Args.TryGetValue("go", out var go));
+        Assert.Equal("share", go.GetString());
+        Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
+        Assert.Equal("self", ga.GetProperty("with").GetString());
+        Assert.Equal("cockpit fixes peel-0", ga.GetProperty("body").GetString());
     }
 
     [Fact]

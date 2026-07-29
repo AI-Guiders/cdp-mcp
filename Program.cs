@@ -293,7 +293,7 @@ List<Tool> BuildMetaTools() =>
             recent_index = new { type = "integer", description = "Optional 0-based Open Recent index (0 = last opened)." }
         }
     }),
-    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|put|take|share|read|edit|diagnostics|close|reload|keep_disk|disk_peek + comfort undo|redo|history|copy|cut|paste|clipboard|find|…. put= dump draft; share= to operator (inbox + thin chat, no body in agent); take= into agent context (rare). Instant Save. Anchors: edit_op=anchor + place=before|after|replace (default replace). Relative path= → ProjectRoot.", new
+    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|put|take|share|read|edit|diagnostics|close|reload|keep_disk|disk_peek + comfort undo|redo|history|copy|cut|paste|clipboard|find|…. put= dump draft; share with=operator|self (inbox/shelf + thin chat); share from=self|latest (pull shelf body into tool result); take= file span into agent (rare). Instant Save. Anchors: edit_op=anchor + place=before|after|replace (default replace). Relative path= → ProjectRoot.", new
     {
         type = "object",
         properties = new
