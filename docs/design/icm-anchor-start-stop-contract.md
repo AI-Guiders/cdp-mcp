@@ -34,5 +34,6 @@ Human may also Start from OS shortcut — same process attach via env.
 - [x] Human GUI focus → agent cockpit sit (`focus-LATEST` internal feed → `alert.sit.locus`; agent looks at `cdp_cockpit`, not a parallel peek API)
 - [ ] Melody/settings load when shell starts (do not strip)
 - [x] Auto-reload open tabs on Instant Save without land — `disk-LATEST.json` (agent flush ↔ human Save); shared dirty glass
+- [x] Shared-file indication (co-presence) — human `focus-LATEST` ∩ agent open buffers → desk `sit.locus` ` · shared` + `shared-LATEST.json` (not GetEditorState dump)
 - [x] Desk→CIDE glass (instant) — `presentation-LATEST.json` topology/tier/instruments/mfd_page + live apply; not agent `cdp_settings`; respect repo `workspace.toml`
 - [x] Intercom @PF/@PM dual-cockpit voice — `intercom-LATEST.json` + `cdp_intercom` + CIDE projector/publisher (v0 seats agent=PF, operator=PM); cannon = human→PF latch → AutoIgnition custom arm

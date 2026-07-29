@@ -86,8 +86,14 @@ internal static partial class IdeCockpit
         if (human?.Path is { Length: > 0 } hp)
         {
             var suffix = human.Line > 0 ? $":{human.Line}" : "";
+            var shared = SharedFileIndication.IsShared(hp, buffer.Docs.Select(d => d.Path));
+            SharedFileIndication.Publish(hp, shared);
+            if (shared)
+                suffix += SharedFileIndication.SharedSuffix;
             return FormatLocusPath(hp, projectRoot, suffix);
         }
+
+        SharedFileIndication.Publish(null, shared: false);
 
         if (buffer.Docs.Count == 0)
             return null;
