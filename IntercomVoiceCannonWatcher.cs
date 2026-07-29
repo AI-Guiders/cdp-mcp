@@ -5,13 +5,13 @@ namespace CdpMcp;
 
 /// <summary>
 /// Dual-cockpit Intercom cannon: human @PF latch → AutoIgnition CDT inject
-/// ("Message for you, sir!"). Agent looks desk / wake charge — not peek JSON APIs.
+/// ("Message for you, sir!"). One wake per msgId (persisted across remount).
+/// Agent looks desk / wake charge — not peek JSON APIs.
 /// </summary>
 internal sealed class IntercomVoiceCannonWatcher : IDisposable
 {
     readonly FileSystemWatcher _watcher;
     readonly object _gate = new();
-    string? _lastFiredId;
     bool _disposed;
 
     IntercomVoiceCannonWatcher(string stateRoot)
@@ -26,7 +26,7 @@ internal sealed class IntercomVoiceCannonWatcher : IDisposable
         _watcher.Changed += OnFsEvent;
         _watcher.Created += OnFsEvent;
         _watcher.Renamed += OnFsEvent;
-        TryFireFromDisk(force: true);
+        TryFireFromDisk();
     }
 
     public static IntercomVoiceCannonWatcher Start() =>
@@ -37,11 +37,11 @@ internal sealed class IntercomVoiceCannonWatcher : IDisposable
         _ = Task.Run(() =>
         {
             Thread.Sleep(40);
-            TryFireFromDisk(force: false);
+            TryFireFromDisk();
         });
     }
 
-    void TryFireFromDisk(bool force)
+    void TryFireFromDisk()
     {
         if (_disposed)
             return;
@@ -50,11 +50,21 @@ internal sealed class IntercomVoiceCannonWatcher : IDisposable
         if (unread is null)
             return;
 
+        var msgId = unread.Id;
+        var armId = IntercomVoiceCannonState.ArmIdFor(msgId);
+
         lock (_gate)
         {
-            if (!force && string.Equals(unread.Id, _lastFiredId, StringComparison.OrdinalIgnoreCase))
+            // Persistent + in-process: claim msgId before arming (survives remount).
+            if (IntercomVoiceCannonState.WasFired(msgId))
                 return;
-            _lastFiredId = unread.Id;
+            if (ArmAlreadyLive(armId))
+            {
+                _ = IntercomVoiceCannonState.TryMarkFired(msgId);
+                return;
+            }
+            if (!IntercomVoiceCannonState.TryMarkFired(msgId))
+                return;
         }
 
         var body = unread.Body.Trim();
@@ -70,6 +80,7 @@ internal sealed class IntercomVoiceCannonWatcher : IDisposable
 
         try
         {
+            // No force= — same arm id must not replace/re-fire after once hygiene.
             // charge=custom — otherwise arm would replace with canonical wake text.
             var args = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
             {
@@ -77,10 +88,9 @@ internal sealed class IntercomVoiceCannonWatcher : IDisposable
                 ["when"] = JsonSerializer.SerializeToElement("timer"),
                 ["in"] = JsonSerializer.SerializeToElement("1s"),
                 ["once"] = JsonSerializer.SerializeToElement(true),
-                ["force"] = JsonSerializer.SerializeToElement(true),
                 ["charge"] = JsonSerializer.SerializeToElement("custom"),
                 ["message"] = JsonSerializer.SerializeToElement(message),
-                ["id"] = JsonSerializer.SerializeToElement("intercom-pf-" + unread.Id)
+                ["id"] = JsonSerializer.SerializeToElement(armId)
             };
             _ = IdeIgniteChannel.HandleJson(args);
         }
@@ -90,11 +100,20 @@ internal sealed class IntercomVoiceCannonWatcher : IDisposable
         }
     }
 
+    static bool ArmAlreadyLive(string armId) =>
+        IdeIgniteArmHost.Snapshot().Any(a =>
+            a.Id.Equals(armId, StringComparison.OrdinalIgnoreCase)
+            && a.Status is "armed" or "firing");
+
     public void Dispose()
     {
         if (_disposed)
             return;
         _disposed = true;
+        _watcher.EnableRaisingEvents = false;
+        _watcher.Changed -= OnFsEvent;
+        _watcher.Created -= OnFsEvent;
+        _watcher.Renamed -= OnFsEvent;
         _watcher.Dispose();
     }
 }
