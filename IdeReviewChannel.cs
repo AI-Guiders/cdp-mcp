@@ -36,6 +36,7 @@ internal static partial class IdeReviewChannel
 
         if (op is "files" or "list" or "index")
         {
+            PublishGlass(inputs);
             return new
             {
                 ok = true,
@@ -57,6 +58,7 @@ internal static partial class IdeReviewChannel
             var card = snap.Files.FirstOrDefault(f =>
                 f.Path.Equals(path, StringComparison.OrdinalIgnoreCase)
                 || f.Path.EndsWith(path, StringComparison.OrdinalIgnoreCase));
+            PublishGlass(inputs);
             return new
             {
                 ok = true,
@@ -99,7 +101,7 @@ internal static partial class IdeReviewChannel
         };
 
         var eclHot = string.Equals(inputs.Ecl?.HotId, "review", StringComparison.OrdinalIgnoreCase);
-        return new
+        var board = new
         {
             ok = true,
             go = "review",
@@ -119,6 +121,36 @@ internal static partial class IdeReviewChannel
             next = BuildNext(snap, inputs, eclHot),
             hint = "CCL: review | review files | review open path=Foo.cs | cdp_context phase=review"
         };
+        PublishGlass(inputs);
+        return board;
+    }
+
+    /// <summary>Desk/chrome pulse from review snap.</summary>
+    public static string PulseLine(Inputs inputs)
+    {
+        var snap = Build(inputs);
+        return string.IsNullOrWhiteSpace(snap.Pulse)
+            ? "review · idle · go=review"
+            : $"{snap.Pulse} · go=review";
+    }
+
+    /// <summary>Mirror review judgment pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass(Inputs inputs)
+    {
+        try
+        {
+            var snap = Build(inputs);
+            var pulse = string.IsNullOrWhiteSpace(snap.Pulse)
+                ? "review · idle · go=review"
+                : $"{snap.Pulse} · go=review";
+            // Dark Cockpit: chrome while dirty files await judgment or machine lane is open.
+            var active = snap.FileCount > 0 || !snap.MachineOk;
+            CideReviewLatch.Publish(active, pulse, snap.FileCount, snap.HighRisk, snap.MachineOk);
+        }
+        catch
+        {
+            /* best-effort */
+        }
     }
 
 }

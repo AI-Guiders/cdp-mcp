@@ -35,7 +35,8 @@ internal static class CockpitHostLatchHydration
         "webcam-LATEST.json",
         "toolchain-LATEST.json",
         "plugins-LATEST.json",
-        "refactor-LATEST.json"
+        "refactor-LATEST.json",
+        "review-LATEST.json"
     ];
 
     /// <summary>Test hook: redirect flat latch root (same as glass latches).</summary>
