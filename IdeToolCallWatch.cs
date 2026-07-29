@@ -41,22 +41,29 @@ internal static class IdeToolCallWatch
 
         var callId = Guid.NewGuid().ToString("N")[..12];
         var started = DateTimeOffset.UtcNow;
-        var exceededDuring = false;
+        var exceededFlag = 0;
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var exec = execute(linked.Token);
-        var delay = Task.Delay(TimeSpan.FromSeconds(threshold), linked.Token);
-
-        var first = await Task.WhenAny(exec, delay).ConfigureAwait(false);
-        if (ReferenceEquals(first, delay) && !exec.IsCompleted)
+        // Offload execute so sync-over-async organs cannot starve the wake timer on the CallTool thread.
+        var exec = Task.Run(async () => await execute(linked.Token).ConfigureAwait(false), linked.Token);
+        var watch = Task.Run(async () =>
         {
-            exceededDuring = true;
-            OnThreshold(new ThresholdHit(toolName, threshold, started, callId));
-        }
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(threshold), linked.Token).ConfigureAwait(false);
+                if (!exec.IsCompleted && Interlocked.Exchange(ref exceededFlag, 1) == 0)
+                    OnThreshold(new ThresholdHit(toolName, threshold, started, callId));
+            }
+            catch (OperationCanceledException)
+            {
+                /* execute finished under threshold or host cancelled */
+            }
+        }, CancellationToken.None);
 
         try
         {
             var text = await exec.ConfigureAwait(false);
             var elapsed = (int)Math.Max(0, (DateTimeOffset.UtcNow - started).TotalSeconds);
+            var exceededDuring = Volatile.Read(ref exceededFlag) == 1;
             if (elapsed >= threshold || exceededDuring)
                 return AnnotateResult(text, toolName, threshold, elapsed, exceededDuring);
             return text;
@@ -64,8 +71,8 @@ internal static class IdeToolCallWatch
         finally
         {
             ArmedForCall.TryRemove(callId, out _);
-            if (!exec.IsCompleted)
-                linked.Cancel();
+            linked.Cancel();
+            try { await watch.ConfigureAwait(false); } catch { /* ignore */ }
         }
     }
 

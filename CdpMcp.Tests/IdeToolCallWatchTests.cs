@@ -58,6 +58,43 @@ public sealed class IdeToolCallWatchTests
     }
 
     [Fact]
+    public async Task RunAsync_fires_threshold_hook_when_execute_sync_blocks()
+    {
+        IdeToolCallWatch.ThresholdHit? hit = null;
+        IdeToolCallWatch.ThresholdHookForTests = h => hit = h;
+        var root = Path.Combine(Path.GetTempPath(), "cdp-tool-watch-sync-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        CideToolWatchLatch.RootOverrideForTests = root;
+        try
+        {
+            var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["timeout_wake"] = JsonSerializer.SerializeToElement(1)
+            };
+            var text = await IdeToolCallWatch.RunAsync(
+                "cdp_shell_run",
+                args,
+                _ =>
+                {
+                    // Sync block before first await — old order starved Delay.
+                    Thread.Sleep(1500);
+                    return Task.FromResult("""{"ok":true}""");
+                },
+                CancellationToken.None);
+
+            Assert.NotNull(hit);
+            Assert.True(CideToolWatchLatch.TryRead()!.Active);
+            using var doc = JsonDocument.Parse(text);
+            Assert.True(doc.RootElement.GetProperty("wake").GetProperty("during_call").GetBoolean());
+        }
+        finally
+        {
+            CideToolWatchLatch.RootOverrideForTests = null;
+            try { Directory.Delete(root, recursive: true); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
     public async Task RunAsync_fires_threshold_hook_when_slow()
     {
         IdeToolCallWatch.ThresholdHit? hit = null;
