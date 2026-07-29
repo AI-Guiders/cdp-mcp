@@ -27,7 +27,6 @@ var workspaceDbPath = workspaceDbPathOverride
     ?? Path.Combine(CdpProfile.StateRoot, "intent-workspace.witdb");
 IntentWorkspaceStore? workspaceStore = null;
 var workspaceState = new IntentWorkspaceState { DatabasePath = workspaceDbPath };
-IdeIgniteArmHost.BindTaskFocus(() => workspaceState.ActiveStageId is not null);
 string? openedWorkspaceDbPath = null;
 
 void InvalidateWorkspaceScope()
@@ -79,6 +78,21 @@ void EnsureWorkspaceDb()
     OpenRecentStore.Configure(new WitDbOpenRecentBackend(workspaceStore, path));
     openedWorkspaceDbPath = path;
 }
+
+IdeIgniteArmHost.BindFlightProbe(() =>
+{
+    if (workspaceState.ActiveStageId is null)
+        return ContinuityFlight.NoActiveTask;
+    try
+    {
+        EnsureWorkspaceDb();
+        return IdeTaskManager.ProbeContinuityFlight(workspaceStore, workspaceState);
+    }
+    catch
+    {
+        return ContinuityFlight.Fly;
+    }
+});
 
 /// <summary>Open Recent lives in WitDB — ensure store before push/list (cdp_open / CSX Open.*).</summary>
 void EnsureOpenRecentWired()

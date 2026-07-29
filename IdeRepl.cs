@@ -749,6 +749,14 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        if (head is "await_operator" or "await" or "epic_closed")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("await_operator");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "await_operator" });
+            return (merged, null);
+        }
+
         // Leftover sweep — parked/deferred with all AC+DoD met → optional done (no focus steal).
         if (head is "leftover" or "sweep" or "leftovers")
         {

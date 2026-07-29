@@ -45,6 +45,7 @@ internal static partial class IdeTaskManager
                 : TaskStatus(store, state, args, "parked"),
             "defer" or "deferred" => TaskDefer(store, state, args),
             "active" => TaskStatus(store, state, args, "active"),
+            "await_operator" or "await" or "epic_closed" or "plateau_park" => TaskAwaitOperator(store, state, args),
             "phase" or "task_phase" => TaskSetPhase(store, state, args),
             "product" or "category" or "task_product" => TaskSetProduct(store, state, args),
             "start" or "clock_start" => TaskClockStart(store, state, args),
@@ -89,7 +90,7 @@ internal static partial class IdeTaskManager
                 Opt(args, "plan_id") ?? OptGoArg(args, "plan_id"),
                 reject: true),
             _ => throw new ArgumentException(
-                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|start_phase|complete_phase|events|note|criteria|criterion|change_plan|leftover|product|category|share|report|promote|confirm|reject.")
+                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|await_operator|start_phase|complete_phase|events|note|criteria|criterion|change_plan|leftover|product|category|share|report|promote|confirm|reject.")
         };
 
     static IReadOnlyDictionary<string, JsonElement> WithStatus(

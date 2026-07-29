@@ -46,6 +46,8 @@ internal static partial class IdeIgniteChannel
                     IdeIgniteArmHost.Hygiene(),
                 "plateau" =>
                     IdeIgniteArmHost.Plateau(),
+                "await_operator" or "await" or "epic_closed" =>
+                    IdeIgniteArmHost.AwaitOperator(args),
                 "continuity" or "pulse" =>
                     IdeIgniteArmHost.Continuity(),
                 "resume" or "clear_await" or "unawait" =>

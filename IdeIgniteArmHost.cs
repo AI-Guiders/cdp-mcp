@@ -28,7 +28,6 @@ internal static partial class IdeIgniteArmHost
     static bool Loaded;
     static int HostStarted;
     static CancellationTokenSource? HostCts;
-    static Func<bool>? TaskFocusProbe;
 
     public static string Seat { get; } = IdeDeploy.ClassifySeat(IdeDeploy.ResolveSelfInstallRoot());
 
@@ -59,10 +58,6 @@ internal static partial class IdeIgniteArmHost
         HostCts = new CancellationTokenSource();
         _ = Task.Run(() => TimerLoopAsync(HostCts.Token));
     }
-
-    public static void BindTaskFocus(Func<bool> probe) => TaskFocusProbe = probe;
-
-    internal static bool HasActiveTaskFocus() => TaskFocusProbe?.Invoke() ?? true;
 
     internal static bool HasContinuityArms()
     {

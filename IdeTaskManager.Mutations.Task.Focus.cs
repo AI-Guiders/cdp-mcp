@@ -162,6 +162,38 @@ internal static partial class IdeTaskManager
         return new { op = "phase", task_id = r.stage_id, phase_affinity = r.phase_affinity };
     }
 
+    /// <summary>Solo plateau: mark focus @handoff (if any) and latch Autoi awaiting_operator.</summary>
+    static object TaskAwaitOperator(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        object? phase = null;
+        if (state.ActiveStageId is { } sid)
+        {
+            var r = store.StageUpsert(state, title: "", sid, parentId: null, sceneName: null, phaseAffinity: "handoff");
+            phase = new { task_id = r.stage_id, phase_affinity = r.phase_affinity };
+        }
+
+        var taskLabel = state.ActiveStageId is not null
+            ? store.TaskManagerSnapshot(state).ActiveStageTitle ?? "epic closed — await operator"
+            : (Opt(args, "task") ?? OptGoArg(args, "task") ?? "epic closed — await operator");
+
+        var ignite = IdeIgniteArmHost.AwaitOperator(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["task"] = JsonSerializer.SerializeToElement(taskLabel)
+        });
+
+        return new
+        {
+            op = "await_operator",
+            phase,
+            ignite,
+            flight = ProbeContinuityFlight(store, state).ToString(),
+            hint = "Epic closed latch set. Do not invent next epic; wait for operator. cdp_ignite op=resume after pick."
+        };
+    }
+
     static string? PhaseArg(IReadOnlyDictionary<string, JsonElement> args) =>
         Opt(args, "phase") ?? OptGoArg(args, "phase") ?? Opt(args, "phase_affinity") ?? OptGoArg(args, "phase_affinity");
 

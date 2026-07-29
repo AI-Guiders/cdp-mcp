@@ -29,6 +29,9 @@ internal static partial class IdeIgniteArmHost
             return err!;
 
         var force = OptBool(args, "force") == true;
+        if (arm.LastOnce && !force && IsEpicClosed(ProbeFlight()))
+            return LatchEpicClosedAwait(arm, ProbeFlight());
+
         lock (Gate)
         {
             if (!force)
@@ -129,6 +132,87 @@ internal static partial class IdeIgniteArmHost
                 : arm.Event == "timer"
                     ? "Harness fires when due — end your turn; no terminal poll loop."
                     : $"Harness fires on {arm.Event} (ok_only={arm.OkOnly}). Kick cdp_build/cdp_test then end turn."
+        };
+    }
+
+    /// <summary>Explicit solo plateau: latch awaiting without CDT fire (epic closed / wait operator).</summary>
+    public static object AwaitOperator(IReadOnlyDictionary<string, JsonElement>? args = null)
+    {
+        EnsureStarted();
+        args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        var task = Opt(args, "task") ?? Opt(args, "message") ?? Opt(args, "label")
+                   ?? "epic closed — await operator";
+        var id = Opt(args, "id");
+        if (string.IsNullOrWhiteSpace(id))
+            id = "arm-await-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture)
+                 + "-" + Guid.NewGuid().ToString("N")[..6];
+
+        var arm = new IgniteArm
+        {
+            Id = id!,
+            Event = "plateau",
+            Message = IdeIgniteChannel.CanonicalComposerCharge,
+            ChargeMode = "minimal",
+            Task = task,
+            Port = OptInt(args, "port") ?? IdeIgniteChannel.DefaultPort,
+            Once = true,
+            LastOnce = true,
+            OkOnly = true,
+            SettleSeconds = 0,
+            WaitSeconds = 90,
+            DueUtc = null,
+            Status = "awaiting",
+            CreatedUtc = DateTimeOffset.UtcNow
+        };
+
+        return LatchEpicClosedAwait(arm, ProbeFlight());
+    }
+
+    static object LatchEpicClosedAwait(IgniteArm arm, ContinuityFlight flight)
+    {
+        var reason = EpicClosedReason(flight);
+        if (reason == "fly")
+            reason = "await_operator";
+
+        arm.LastOnce = true;
+        arm.Once = true;
+        arm.Status = "awaiting";
+        arm.DueUtc = null;
+        if (string.IsNullOrWhiteSpace(arm.Event) || arm.Event is "timer" or "manual")
+            arm.Event = "plateau";
+
+        lock (Gate)
+        {
+            Arms.RemoveAll(a => a.Status is "awaiting" or "armed" or ProviderBlockedStatus);
+            Arms.RemoveAll(a => a.Id.Equals(arm.Id, StringComparison.OrdinalIgnoreCase));
+            Arms.Add(arm);
+            PersistUnlocked();
+        }
+
+        PublishGlass();
+        var list = Snapshot();
+        return new
+        {
+            schema = IdeIgniteChannel.Schema,
+            ok = true,
+            op = "await_operator",
+            go = IdeIgniteChannel.GoName,
+            tool = IdeIgniteChannel.ToolName,
+            skipped = true,
+            epic_closed = true,
+            error = "epic_closed",
+            reason,
+            continuity = "awaiting_operator",
+            pulse = $"ignite · epic closed · await operator · {reason}",
+            arm = Slim(arm),
+            arms = SceneSlice(),
+            continuity_slice = ContinuitySlice(list),
+            explain = ExplainCardObject(IdeExplainability.New(
+                "ignite.continuity",
+                "epic_closed",
+                $"solo plateau ({reason}) — do not invent next epic; wait for operator",
+                "cdp_ignite op=resume after operator pick")),
+            hint = "Epic closed / await operator. Do not re-ARM last_once. op=resume when operator seeds next work; force=true only for explicit override."
         };
     }
 
@@ -244,7 +328,7 @@ internal static partial class IdeIgniteArmHost
             continuity = ContinuitySlice(list),
             arms = SceneSlice(),
             explain = ExplainCardObject(ContinuityExplain(list)),
-            hint = "Plateau clean. Continuity arms intact; re-ARM short timer before end turn."
+            hint = "Plateau clean. Continuity arms intact. On epic @handoff use op=await_operator (do not invent next epic)."
         };
     }
 
