@@ -18,13 +18,56 @@ public sealed class IdeAlertChannelTests
     }
 
     [Fact]
+    public void Build_quality_warn_quiet_band_stays_clear()
+    {
+        var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(
+            new QualityGates.QualitySnap(true, Warn: 13, Fail: 0, SuggestSniper: false, Pulse: "WARN×13"),
+            DiskChanged: 0,
+            DapActive: false,
+            DapStopped: false,
+            QuietBandQuality: true));
+        Assert.Equal(IdeAlertChannel.Level.Clear, snap.Level);
+        Assert.DoesNotContain("WARN", snap.Pulse, StringComparison.Ordinal);
+        Assert.Contains(snap.Lines, l => l.StartsWith("·gates WARN", StringComparison.Ordinal));
+        Assert.Null(snap.Explain);
+    }
+
+    [Fact]
+    public void Build_quality_warn_loud_when_quiet_band_off()
+    {
+        var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(
+            new QualityGates.QualitySnap(true, Warn: 2, Fail: 0, SuggestSniper: false, Pulse: "WARN×2"),
+            DiskChanged: 0,
+            DapActive: false,
+            DapStopped: false,
+            QuietBandQuality: false));
+        Assert.Equal(IdeAlertChannel.Level.Warn, snap.Level);
+        Assert.Equal("sa WARN · gates×2", snap.Pulse);
+        Assert.Equal("quality_warn", snap.Explain!.Reason);
+    }
+
+    [Fact]
+    public void Build_quality_fail_still_screams_under_quiet_band()
+    {
+        var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(
+            new QualityGates.QualitySnap(true, Warn: 3, Fail: 1, SuggestSniper: false, Pulse: "FAIL×1"),
+            DiskChanged: 0,
+            DapActive: false,
+            DapStopped: false,
+            QuietBandQuality: true));
+        Assert.Equal(IdeAlertChannel.Level.Fail, snap.Level);
+        Assert.Contains("FAIL", snap.Pulse, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Build_warn_pulse_uses_gate_file_count()
     {
-        var snap = IdeAlertChannel.Build(
+        var snap = IdeAlertChannel.Build(new IdeAlertChannel.Inputs(
             new QualityGates.QualitySnap(true, Warn: 2, Fail: 0, SuggestSniper: false, Pulse: "WARN×2"),
-            diskChanged: 0,
-            dapActive: false,
-            dapStopped: false);
+            DiskChanged: 0,
+            DapActive: false,
+            DapStopped: false,
+            QuietBandQuality: false));
         Assert.Equal(IdeAlertChannel.Level.Warn, snap.Level);
         Assert.Equal("sa WARN · gates×2", snap.Pulse);
     }

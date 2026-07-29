@@ -61,7 +61,8 @@ internal static partial class IdeCockpit
         var testsFailed = test is { Available: true, LastRun: not null, Success: false };
 
         var alertInputs = BuildAlertInputs(
-            session, quality, buffer, debug, shell, git, problems, work, workspaceStore, workspaceState, chkSnap);
+            session, quality, buffer, debug, shell, git, problems, work, workspaceStore, workspaceState, chkSnap,
+            quietBandQuality: !wants.Alert);
         var alertSnap = IdeAlertChannel.Build(alertInputs);
         CideAlertLatch.Publish(alertSnap);
         CideQrhLatch.Publish(IdeQrhChannel.Build(chkCtx, chkSnap));

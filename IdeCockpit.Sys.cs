@@ -30,7 +30,8 @@ internal static partial class IdeCockpit
         WorkSnap work,
         IntentWorkspaceStore? workspaceStore,
         IntentWorkspaceState workspaceState,
-        IdeChkChannel.Snap? chk = null)
+        IdeChkChannel.Snap? chk = null,
+        bool quietBandQuality = true)
     {
         var seats = IdeDeskSeats.IsSeatsMode()
             ? IdeDeskSeats.Snapshot()
@@ -76,7 +77,8 @@ internal static partial class IdeCockpit
             sit,
             stageMismatch,
             chk?.OpenRequired ?? 0,
-            chk?.Pulse);
+            chk?.Pulse,
+            QuietBandQuality: quietBandQuality);
     }
 
     static string? ResolveLocusLine(BufferSnap buffer, string? projectRoot)
