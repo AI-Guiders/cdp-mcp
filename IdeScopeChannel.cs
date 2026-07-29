@@ -59,6 +59,17 @@ internal static class IdeScopeChannel
         };
     }
 
+    public static void PublishGlass()
+    {
+        var latch = CurrentOrNull();
+        var active = latch is not null;
+        CideScopeLatch.Publish(
+            active,
+            PulseLine(),
+            latch?.Primary,
+            latch?.Scope);
+    }
+
     public static string PulseLine(SessionContext? session = null)
     {
         _ = session;
@@ -197,6 +208,8 @@ internal static class IdeScopeChannel
                 File.Delete(FilePath);
         }
 
+        PublishGlass();
+
         return new
         {
             schema = SchemaVersion,
@@ -280,6 +293,8 @@ internal static class IdeScopeChannel
             File.WriteAllText(tmp, JsonSerializer.Serialize(doc, JsonOpts), Encoding.UTF8);
             File.Move(tmp, FilePath, overwrite: true);
         }
+
+        PublishGlass();
     }
 
     static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)

@@ -23,7 +23,8 @@ internal static class CockpitHostLatchHydration
         "qrh-LATEST.json",
         "ecl-LATEST.json",
         "pressure-LATEST.json",
-        "ignite-LATEST.json"
+        "ignite-LATEST.json",
+        "scope-LATEST.json"
     ];
 
     /// <summary>Test hook: redirect flat latch root (same as glass latches).</summary>
