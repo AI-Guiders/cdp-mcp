@@ -10,6 +10,7 @@ public static class CabinGlassProjectionCatalog
     public readonly record struct Projection(string? MfdPage, string? ChromeHint);
 
     /// <summary>Resolve canonical or alias organ pin to glass projection.</summary>
+    /// <summary>Resolve canonical or alias organ pin to glass projection.</summary>
     public static Projection? TryResolve(string? organPin)
     {
         if (string.IsNullOrWhiteSpace(organPin))
@@ -31,10 +32,23 @@ public static class CabinGlassProjectionCatalog
             "debug" or "debug_desk" => new Projection("DebugStack", null),
             "git" or "git_scene" => new Projection("Git", null),
             "files" or "files_desk" or "explorer" or "fm" => new Projection("SolutionExplorer", null),
+            "correspondence" or "crs" => new Projection("Correspondence", null),
+            "hybrid_index" or "hci" or "codebase_index" => new Projection("HybridIndex", null),
+            "related" or "related_files" => new Projection("RelatedFiles", null),
+            "markdown" or "md_preview" => new Projection("MarkdownPreview", null),
+            "options" or "settings" or "ai_chat_settings"
+                => new Projection("AiChatSettings", null),
             "ignite" or "ignite_desk" or "autoignite"
                 => new Projection("AiChatSettings", "agent · M: ignite"),
             "pressure" or "pressure_desk" or "compact_prep" or "pre_compact"
                 => new Projection(null, "agent · M: pressure"),
+            "onboard" or "onboard_desk" or "explore_desk"
+                => new Projection(null, "agent · M: onboard"),
+            "arch" or "arch_desk" or "arch_board"
+                => new Projection(null, "agent · M: arch"),
+            "mcp" or "mcp_scene" => new Projection(null, "agent · M: mcp"),
+            "plan" or "work" or "tm" or "tasks"
+                => new Projection(null, "agent · P: plan"),
             "ps1" or "ps1_desk" or "ise" => new Projection("Terminal", "agent · M: ps1"),
             _ => null
         };

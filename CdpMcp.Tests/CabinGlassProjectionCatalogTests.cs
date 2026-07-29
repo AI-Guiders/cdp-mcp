@@ -13,7 +13,14 @@ public class CabinGlassProjectionCatalogTests
     [InlineData("browser", "WebAiPortal", null)]
     [InlineData("internet_browser", "WebAiPortal", null)]
     [InlineData("build_desk", "Build", null)]
+    [InlineData("correspondence", "Correspondence", null)]
+    [InlineData("hybrid_index", "HybridIndex", null)]
+    [InlineData("options", "AiChatSettings", null)]
     [InlineData("pressure_desk", null, "agent · M: pressure")]
+    [InlineData("onboard_desk", null, "agent · M: onboard")]
+    [InlineData("arch_desk", null, "agent · M: arch")]
+    [InlineData("mcp", null, "agent · M: mcp")]
+    [InlineData("plan", null, "agent · P: plan")]
     [InlineData("ignite", "AiChatSettings", "agent · M: ignite")]
     public void TryResolve_maps_gap_organs(string pin, string? mfd, string? chrome)
     {

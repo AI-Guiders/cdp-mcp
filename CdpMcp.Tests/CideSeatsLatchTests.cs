@@ -57,13 +57,13 @@ public class CideSeatsLatchTests : IDisposable
     {
         CideSeatsLatch.Publish(new Dictionary<string, string?>
         {
-            ["m"] = "arch_desk"
+            ["m"] = "webcam_desk"
         });
 
         var latch = CideSeatsLatch.TryRead();
         Assert.NotNull(latch);
         Assert.Null(latch!.MfdPage);
-        Assert.Equal("agent · M: arch_desk", latch.ChromeHint);
+        Assert.Equal("agent · M: webcam_desk", latch.ChromeHint);
     }
 
     [Fact]
