@@ -30,6 +30,11 @@ internal static class IdeWebcamChannel
 
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
 
+    static readonly object GlassGate = new();
+    static GlassSnap? _lastGlass;
+
+    sealed record GlassSnap(string Op, string Pulse, string? Path, DateTimeOffset StampedUtc);
+
     static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"
@@ -48,7 +53,7 @@ internal static class IdeWebcamChannel
         var op = (Opt(args, "op") ?? Opt(args, "cmd") ?? "scene").Trim().ToLowerInvariant();
         try
         {
-            return op switch
+            var result = op switch
             {
                 "scene" or "status" or "caps" => Scene(session),
                 "frame" or "snap" or "capture" or "photo" => Frame(session, args),
@@ -62,6 +67,8 @@ internal static class IdeWebcamChannel
                 "analyze" or "analyze_burst" or "analyze_burst_sequence" => Analyze(session, args),
                 _ => Scene(session)
             };
+            RememberGlass(op, result);
+            return result;
         }
         catch (Exception ex)
         {
@@ -75,6 +82,72 @@ internal static class IdeWebcamChannel
                 go = GoName,
                 tool = ToolName
             };
+        }
+    }
+
+    /// <summary>Mirror last capture pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass()
+    {
+        try
+        {
+            GlassSnap? snap;
+            lock (GlassGate)
+                snap = _lastGlass;
+
+            if (snap is null)
+            {
+                CideWebcamLatch.Publish(active: false, pulse: "webcam · idle", op: null, path: null);
+                return;
+            }
+
+            // Dark Cockpit: chrome only while capture evidence exists.
+            CideWebcamLatch.Publish(
+                active: true,
+                pulse: snap.Pulse,
+                op: snap.Op,
+                path: snap.Path);
+        }
+        catch
+        {
+            /* best-effort */
+        }
+    }
+
+    static void RememberGlass(string op, object result)
+    {
+        try
+        {
+            if (op is "scene" or "status" or "caps")
+                return;
+
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            var root = doc.RootElement;
+            if (root.TryGetProperty("ok", out var okEl)
+                && okEl.ValueKind == JsonValueKind.False)
+                return;
+            if (!root.TryGetProperty("pulse", out var pulseEl))
+                return;
+            var pulse = pulseEl.GetString();
+            if (string.IsNullOrWhiteSpace(pulse))
+                return;
+
+            string? path = null;
+            if (root.TryGetProperty("file_path", out var filePath))
+                path = filePath.GetString();
+            else if (root.TryGetProperty("audio_path", out var audioPath))
+                path = audioPath.GetString();
+
+            var wireOp = root.TryGetProperty("op", out var opEl) ? opEl.GetString() : op;
+            wireOp = string.IsNullOrWhiteSpace(wireOp) ? op : wireOp.Trim();
+
+            lock (GlassGate)
+                _lastGlass = new GlassSnap(wireOp!, pulse.Trim(), path, DateTimeOffset.UtcNow);
+
+            PublishGlass();
+        }
+        catch
+        {
+            /* best-effort */
         }
     }
 
