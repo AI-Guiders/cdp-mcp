@@ -37,9 +37,18 @@ internal static partial class IdeAlertChannel
         }
         else if (i.Quality is { Enabled: true, Warn: > 0 })
         {
-            Raise(Level.Warn);
-            lines.Add($"*gates WARN×{i.Quality.Warn}");
-            Explain("alert.gates", "quality_warn", $"quality gates report WARN×{i.Quality.Warn}", "go=quality");
+            // Quiet-band (solo Dark Cockpit): quality WARN is advisory until go=quality/gates/alert.
+            // FAIL still screams. Matches StagePhaseMismatch soft-affinity pattern.
+            if (i.QuietBandQuality)
+            {
+                lines.Add($"·gates WARN×{i.Quality.Warn}");
+            }
+            else
+            {
+                Raise(Level.Warn);
+                lines.Add($"*gates WARN×{i.Quality.Warn}");
+                Explain("alert.gates", "quality_warn", $"quality gates report WARN×{i.Quality.Warn}", "go=quality");
+            }
         }
 
         if (i.ProblemErrors > 0)

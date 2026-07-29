@@ -23,12 +23,12 @@ internal static partial class IdeIgniteArmHost
     };
 
     static readonly object Gate = new();
-    static readonly ConcurrentDictionary<string, byte> Firing = new(StringComparer.Ordinal);
+    static readonly ConcurrentDictionary<string, byte> Firing = new(StringComparer.OrdinalIgnoreCase);
+    static readonly ConcurrentDictionary<string, CancellationTokenSource> FireTokens = new(StringComparer.OrdinalIgnoreCase);
     static List<IgniteArm> Arms = [];
     static bool Loaded;
     static int HostStarted;
     static CancellationTokenSource? HostCts;
-    static Func<bool>? TaskFocusProbe;
 
     public static string Seat { get; } = IdeDeploy.ClassifySeat(IdeDeploy.ResolveSelfInstallRoot());
 
@@ -59,10 +59,6 @@ internal static partial class IdeIgniteArmHost
         HostCts = new CancellationTokenSource();
         _ = Task.Run(() => TimerLoopAsync(HostCts.Token));
     }
-
-    public static void BindTaskFocus(Func<bool> probe) => TaskFocusProbe = probe;
-
-    internal static bool HasActiveTaskFocus() => TaskFocusProbe?.Invoke() ?? true;
 
     internal static bool HasContinuityArms()
     {

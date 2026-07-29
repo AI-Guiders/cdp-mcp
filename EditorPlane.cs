@@ -179,6 +179,7 @@ internal static class EditorPlane
                 buffer = "cdp_buffer still fine for single surgical edit"
             },
             comfort = EditorComfort.Snap(),
+            human_focus = NavigationFocusLatch.PeekForScene(),
             hint = drift > 0
                 ? "File(s) modified outside — go=disk_peek → reload | keep_disk."
                 : "Map first (this tool); multi-step → edit_plan YAML slices (git_plan analogue). " +

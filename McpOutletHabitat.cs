@@ -136,6 +136,21 @@ internal sealed class McpOutletHabitat : IAsyncDisposable
 
 	public readonly record struct McpPulse(bool Ok, string Line, int Count);
 
+	/// <summary>Mirror outlet pulse to flat CIDE chrome latch (not EICAS).</summary>
+	public void PublishGlass()
+	{
+		var p = Pulse();
+		// Dark Cockpit: silent when idle (0 guests).
+		CideMcpLatch.Publish(active: p.Count > 0, pulse: p.Line, mounted: p.Count);
+	}
+
+	public static McpOutletHabitat? Instance { get; private set; }
+
+	public McpOutletHabitat()
+	{
+		Instance = this;
+	}
+
 	public string PresetsJson()
 	{
 		return JsonSerializer.Serialize(new
@@ -223,6 +238,7 @@ internal sealed class McpOutletHabitat : IAsyncDisposable
 			await mountedServer.DisposeAsync().ConfigureAwait(continueOnCapturedContext: false);
 			return Fail("already_mounted", id, null);
 		}
+		PublishGlass();
 		return JsonSerializer.Serialize(new
 		{
 			schema = "mcp_outlet/v1",
@@ -336,6 +352,7 @@ internal sealed class McpOutletHabitat : IAsyncDisposable
 			return Fail("not_mounted", id, "op=scene for ids");
 		}
 		await value.DisposeAsync().ConfigureAwait(continueOnCapturedContext: false);
+		PublishGlass();
 		return JsonSerializer.Serialize(new
 		{
 			schema = "mcp_outlet/v1",

@@ -51,7 +51,7 @@ internal static class IdeToolchainChannel
         _ = session;
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var op = (Opt(args, "op") ?? Opt(args, "cmd") ?? "scene").Trim().ToLowerInvariant();
-        return op switch
+        var result = op switch
         {
             "scene" or "status" or "catalog" => Scene(),
             "probe" => Probe(args),
@@ -61,6 +61,9 @@ internal static class IdeToolchainChannel
             "which" => Which(args),
             _ => Fail("unknown_op", "op=scene|probe|ensure|install|add|which")
         };
+        if (op is "probe" or "ensure" or "install" or "add")
+            PublishGlass();
+        return result;
     }
 
     public static string PulseLine(SessionContext? session = null)
@@ -69,6 +72,24 @@ internal static class IdeToolchainChannel
         var rows = StatusRows();
         var ok = rows.Count(r => r.Ok);
         return $"toolchain · {ok}/{rows.Count} ok · go=toolchain";
+    }
+
+    /// <summary>Mirror toolchain health pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass()
+    {
+        try
+        {
+            var rows = StatusRows();
+            var ok = rows.Count(r => r.Ok);
+            var pulse = $"toolchain · {ok}/{rows.Count} ok · go=toolchain";
+            // Dark Cockpit: chrome only while something is missing on PATH.
+            var active = rows.Count > 0 && ok < rows.Count;
+            CideToolchainLatch.Publish(active, pulse, ok, rows.Count);
+        }
+        catch
+        {
+            /* best-effort */
+        }
     }
 
     static object Scene()

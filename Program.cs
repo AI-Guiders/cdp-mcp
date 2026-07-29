@@ -18,6 +18,7 @@ var configPath = args.SkipWhile(a => a != "--config").Skip(1).FirstOrDefault()
     ?? Path.Combine(AppContext.BaseDirectory, "config", "cdp-mcp.toml");
 var settings = CdpSettings.Load(configPath);
 IdeLanguageTools.Configure(settings.Languages, settings.LspPresets);
+IdeCockpitHostChannel.Configure(settings.CockpitHost);
 VendorCatalog.Configure(settings.Vendor);
 IdeIgniteArmHost.EnsureStarted();
 
@@ -26,7 +27,6 @@ var workspaceDbPath = workspaceDbPathOverride
     ?? Path.Combine(CdpProfile.StateRoot, "intent-workspace.witdb");
 IntentWorkspaceStore? workspaceStore = null;
 var workspaceState = new IntentWorkspaceState { DatabasePath = workspaceDbPath };
-IdeIgniteArmHost.BindTaskFocus(() => workspaceState.ActiveStageId is not null);
 string? openedWorkspaceDbPath = null;
 
 void InvalidateWorkspaceScope()
@@ -39,6 +39,7 @@ void InvalidateWorkspaceScope()
 CdpProfile.OnStateRootChanged(InvalidateWorkspaceScope);
 
 var session = new SessionContext();
+IdeCockpitHostChannel.ProjectRootResolver = () => session.ProjectRoot;
 
 void EnsureWorkspaceDb()
 {
@@ -77,6 +78,21 @@ void EnsureWorkspaceDb()
     OpenRecentStore.Configure(new WitDbOpenRecentBackend(workspaceStore, path));
     openedWorkspaceDbPath = path;
 }
+
+IdeIgniteArmHost.BindFlightProbe(() =>
+{
+    if (workspaceState.ActiveStageId is null)
+        return ContinuityFlight.NoActiveTask;
+    try
+    {
+        EnsureWorkspaceDb();
+        return IdeTaskManager.ProbeContinuityFlight(workspaceStore, workspaceState);
+    }
+    catch
+    {
+        return ContinuityFlight.Fly;
+    }
+});
 
 /// <summary>Open Recent lives in WitDB — ensure store before push/list (cdp_open / CSX Open.*).</summary>
 void EnsureOpenRecentWired()
@@ -130,6 +146,8 @@ var hciTools = HybridCodebaseIndex.Mcp.ToolCatalog.Build().ToDictionary(t => t.N
 var anuiTools = Anui.Agent.Mcp.ToolCatalog.Build().ToDictionary(t => t.Name, StringComparer.Ordinal);
 
 var docStore = new DocumentBufferStore();
+using var diskSyncWatch = DocumentDiskSyncWatcher.Start(docStore);
+using var intercomCannon = IntercomVoiceCannonWatcher.Start();
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
 shellHabitat.Finished += info =>
@@ -151,6 +169,32 @@ var ideSettings = new IdeSettingsHabitat(
     shellHabitat,
     () => ShellDefaults(session));
 IdeToolchainChannel.Configure(shellHabitat, () => ShellDefaults(session));
+if (notesRuntime is not null && settings.Memory.Project.Enabled)
+{
+    var projectScope = new MemoryScopeGateway(
+        CdpDomains.MemoryProject,
+        settings.Memory.Project.Roots);
+    var handlers = notesRuntime.Handlers;
+    IdeLearnChannel.Configure((filePath, content) =>
+    {
+        var args = projectScope.Apply(
+            "write_knowledge_file",
+            new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["file_path"] = JsonSerializer.SerializeToElement(filePath),
+                ["content"] = JsonSerializer.SerializeToElement(content),
+                ["allow_shrink"] = JsonSerializer.SerializeToElement(true)
+            });
+        return handlers.Handle("write_knowledge_file", args);
+    });
+}
+IdeFlightDataRecorder.BindContext(() => new IdeFlightDataRecorder.FdrContextSnap(
+    Phase: CdpEnumParse.ToWire(session.Phase),
+    Object: CdpEnumParse.ToWire(session.Object),
+    Language: session.Language,
+    ProjectLeaf: string.IsNullOrWhiteSpace(session.ProjectRoot)
+        ? null
+        : Path.GetFileName(session.ProjectRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))));
 if (CdpEnumParse.TryParsePhase(settings.DefaultPhase, out var dp)) session.Phase = dp;
 if (CdpEnumParse.TryParseObject(settings.DefaultObject, out var dobj)) session.Object = dobj;
 // User prefs can override cold phase/object after process defaults.
@@ -180,6 +224,11 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "cdp_onboard",
     "cdp_toolchain",
     "cdp_files",
+    "cdp_md_author",
+    "cdp_learn",
+    "cdp_fdr",
+    "cdp_postmortem",
+    "cdp_scope",
     "cdp_webcam",
     "cdp_ps1_scene"
 };
@@ -267,7 +316,7 @@ List<Tool> BuildMetaTools() =>
             recent_index = new { type = "integer", description = "Optional 0-based Open Recent index (0 = last opened)." }
         }
     }),
-    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|put|take|share|read|edit|diagnostics|close|reload|keep_disk|disk_peek + comfort undo|redo|history|copy|cut|paste|clipboard|find|…. put= dump draft; share= to operator (inbox + thin chat, no body in agent); take= into agent context (rare). Instant Save. Anchors: edit_op=anchor + place=before|after|replace (default replace). Relative path= → ProjectRoot.", new
+    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|put|take|share|read|edit|diagnostics|close|reload|keep_disk|disk_peek + comfort undo|redo|history|copy|cut|paste|clipboard|find|…. put= dump draft; share with=operator|self (inbox/shelf + thin chat); share from=self|latest (pull shelf body into tool result); take= file span into agent (rare). Instant Save. Anchors: edit_op=anchor + place=before|after|replace (default replace). Relative path= → ProjectRoot.", new
     {
         type = "object",
         properties = new
@@ -451,6 +500,39 @@ List<Tool> BuildMetaTools() =>
             wire = new { type = "string", description = "Alias of anchor" }
         },
         required = new[] { "anchor" }
+    }),
+    Meta("cdp_cide_presentation", "Operator CIDE glass wire (instant). op=scene|get|set. set topology=(P)(F)(M) and/or tier=cockpit|compact|auto and/or pfd_primary=/mfd_primary= and/or mfd_page=SolutionExplorer → presentation-LATEST latch → CIDE live apply. Not agent cdp_settings desk; does not mutate repo workspace.toml. Alias go=cide_presentation.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|get|set (default scene)" },
+            topology = new { type = "string", description = "set: display.screens.topology e.g. (P)(F)(M)" },
+            value = new { type = "string", description = "alias of topology" },
+            presentation = new { type = "string", description = "alias of topology" },
+            tier = new { type = "string", description = "set: display.presentation.tier auto|compact|cockpit" },
+            pfd_primary = new { type = "string", description = "set: display.instruments.pfd_primary e.g. workspace_map|solution_explorer_tree" },
+            mfd_primary = new { type = "string", description = "set: display.instruments.mfd_primary" },
+            pfd_status_strip = new { type = "string", description = "set: display.instruments.pfd_status_strip" },
+            forward_status_strip = new { type = "string", description = "set: display.instruments.forward_status_strip" },
+            instruments = new { type = "string", description = "set: JSON object of instrument slot→id (merged with pfd_primary/…)" },
+            mfd_page = new { type = "string", description = "set: MfdShellPage name e.g. SolutionExplorer|Chat|Terminal" },
+            page = new { type = "string", description = "alias of mfd_page" }
+        }
+    }),
+    Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack. send to=pm body= → intercom-LATEST → CIDE Intercom. Operator @PF → unread on desk (Message for you, sir!). v0 seats: agent=PF, operator=PM. Alias go=intercom.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|get|inbox|send|ack (default scene)" },
+            to = new { type = "string", description = "send: pm|pf or @PM|@PF (default pm)" },
+            from = new { type = "string", description = "send: optional seat override (default pf)" },
+            body = new { type = "string", description = "send: message text" },
+            message = new { type = "string", description = "send: alias of body" },
+            text = new { type = "string", description = "send: alias of body" },
+            id = new { type = "string", description = "ack: optional message id" }
+        }
     }),
     Meta("cdp_mcp", "Agent MCP outlet (ADR 0187) — Cursor-parity control inside CDP. op=scene|presets|mount|tools|call|unmount. Mount guests (Serena/memory/…) for a task; child tools NEVER enter host ListTools. Alias go=mcp_scene|mcp_mount|…", new
     {
@@ -643,6 +725,89 @@ List<Tool> BuildMetaTools() =>
                 pairs_lsp = new { type = "string", description = "optional lsp id after ensure" }
             }
         }),
+    Meta("cdp_md_author", "Markdown authoring INCLUDE organ (CIDE ADR 0023). op=scene|check|expand|export. Syntax {{ INCLUDE: rel/path }}. scope=all (default) or fence (CIDE preview parity). Alias go=md_author.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|check|expand|export" },
+                path = new { type = "string", description = "source .md (absolute or project-relative)" },
+                @out = new { type = "string", description = "export: output path (default {name}.expanded.md)" },
+                scope = new { type = "string", description = "all|fence" },
+                max_depth = new { type = "integer", description = "INCLUDE nest limit (default 5)" },
+                max_chars = new { type = "integer", description = "expand/export body cap in response" }
+            }
+        }),
+    Meta("cdp_fdr", "Black-box FDR — dense tool-call flight tape (organ/op/latency/outcome/phase). Incident analysis, not chat dump. op=scene|tail|stats|slow. Alias go=fdr. VDR deferred. Auto timeout_wake from stats = later.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|tail|stats|slow" },
+                limit = new { type = "integer", description = "tail/stats/slow lookback" },
+                lookback = new { type = "integer", description = "alias of limit for stats/slow" },
+                min_ms = new { type = "integer", description = "slow: min elapsed ms (default 1000)" }
+            }
+        }),
+    Meta("cdp_postmortem", "Ethical SoftOrgan postmortem — blameless peel (happened/system_root/why_repeated/fix/do_not). Scrubs secrets; refuses blame + chat dump. op=scene|template|draft|record|list. Persist failure+finding+FDR call_id. Alias go=postmortem|pm|retro. Integrity=honesty+exit.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|template|draft|record|list" },
+                happened = new { type = "string", description = "What happened (facts, no blame)" },
+                system_root = new { type = "string", description = "System/mechanism root" },
+                why_repeated = new { type = "string", description = "Why it repeated" },
+                fix = new { type = "string", description = "Fix shipped or planned" },
+                do_not = new { type = "string", description = "Anti-pattern for next agent" },
+                title = new { type = "string" },
+                tool = new { type = "string" },
+                fdr_call_id = new { type = "string", description = "FDR call_id anchor" },
+                call_id = new { type = "string", description = "alias of fdr_call_id" },
+                category = new { type = "string", description = "failures category (default unknown; postmortem→unknown)" },
+                fingerprint = new { type = "string" },
+                task_id = new { type = "string" },
+                project_id = new { type = "string" },
+                workspace_path = new { type = "string" },
+                limit = new { type = "integer", description = "list lookback" }
+            }
+        }),
+    Meta("cdp_learn", "Lean dialogue learning desk — stash findings so compaction cannot eat them. op=scene|stash|list|recall|promote. Journal under ws state; promote → agent-notes work/projects/_learn (or path=). Alias go=learn. Not findings (file memos) and not TM.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|stash|list|recall|promote" },
+                title = new { type = "string", description = "stash: short card title" },
+                body = new { type = "string", description = "stash: concentrated learning (required)" },
+                text = new { type = "string", description = "alias of body=" },
+                topic = new { type = "string", description = "optional topic tag" },
+                tags = new { type = "string", description = "comma/semicolon tags" },
+                id = new { type = "string", description = "recall/promote: card id (or latest)" },
+                path = new { type = "string", description = "promote: knowledge-relative path (default work/projects/_learn/{id}.md)" },
+                limit = new { type = "integer", description = "list: max cards (default 20)" },
+                primary = new { type = "string", description = "stash override; else inherit go=project_switch latch" },
+                scope = new { type = "string", description = "stash override active_scope; else inherit latch" }
+            }
+        }),
+    Meta("cdp_scope", "AN Project Switch latch on desk — PRIMARY + SCOPE. op=scene|set|recall|clear. Args primary=/scope= or text=[PRIMARY:…][SCOPE:…]. Alias go=project_switch|ps (NOT go=scope — that is EditSniper). Learn stash inherits latch.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|set|recall|clear" },
+                primary = new { type = "string", description = "project-id (AN PRIMARY)" },
+                scope = new { type = "string", description = "active_scope slice (AN SCOPE)" },
+                active_scope = new { type = "string", description = "alias of scope=" },
+                text = new { type = "string", description = "message with [PRIMARY:…] / [SCOPE:…] markers" },
+                message = new { type = "string", description = "alias of text=" }
+            }
+        }),
     Meta("cdp_files", "Agent-native File Manager (ADR-0016). Utility — not project-bound. where=cwd|project|external (+path=). op=scene|list|cd|up|stat|tree|open|text|search|roots|clear. text= lynx-like dump (pandoc/pdftotext). shape=slim|list. Alias go=files_desk. Prefer over shell ls/dir. Search facet → find_desk.", new
     {
         type = "object",
@@ -730,6 +895,28 @@ List<Tool> BuildMetaTools() =>
             why = new { type = "string", description = "arm: reason (default L1 pressure notify)" },
             ignite = new { type = "string", description = "stash: AutoIgnition note" },
             plan = new { type = "string", description = "stash: Task Manager focus note" }
+        }
+    }),
+    Meta("cdp_icm", "ICM discovery for on-demand GUI CDP client (ADR-0019). op=scene|aliases|resolve|invoke. Melody command_id → CDP tool via IdeCommandAliasMap; invoke uses ExecuteAliasedAsync. Alias go=icm|icm_desk. Does not mutate IntentMelody.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|aliases|resolve|invoke" },
+            command_id = new { type = "string", description = "resolve|invoke: Melody or CDP command_id" },
+            id = new { type = "string", description = "alias of command_id" },
+            command = new { type = "string", description = "alias of command_id" }
+        }
+    }),
+    Meta("cdp_cockpit_host", "Anchor Start/Stop — operator GUI cockpit host. op=scene|start|stop. Config: [cockpit_host] exe in cdp-mcp.toml; path= overrides once; CDP_COCKPIT_HOST_EXE env is escape only. Stop kills host pid only (MCP stays). Alias go=cockpit_start|cockpit_stop|cockpit_host. Does not mutate Melody/settings.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|start|stop" },
+            path = new { type = "string", description = "start: exe path override" },
+            exe = new { type = "string", description = "alias of path" },
+            args = new { type = "string", description = "start: process arguments" }
         }
     }),
     Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell. Default detail=auto: green→pulse; fail→errors[].",
@@ -1059,7 +1246,7 @@ List<Tool> BuildMetaTools() =>
             line = new { type = "string", description = "Alias of cmd." },
             repl = new { type = "string", description = "Alias of cmd." },
             go_args = new { type = "object", description = "Optional args merged into the target organ tool." },
-            go_detail = new { type = "string", description = "[A] pulse (default) | [C] full (organ dump in go.result)." },
+            go_detail = new { type = "string", description = "[A] pulse (default) | [C] full = organ dump in go.result only (desk stays fast-path; seats_detail/pane_full still spray)." },
             layout = new { type = "string", description = "Seat preset: cockpit | code+net | code+shell | code+git | desk. Sticky replace-in-seat." },
             seat = new { type = "string", description = "Explicit seat: p|forward|m (with organ=)." },
             organ = new { type = "string", description = "Organ pin for seat= (or pin=)." },
@@ -1329,7 +1516,12 @@ var options = new McpServerOptions
                 if (serverRef is not null)
                     await CdpClientWorkspace.RefreshAsync(serverRef, cancellationToken).ConfigureAwait(false);
                 CdpClientWorkspace.EnsureSessionFallback(session);
-                var text = await DispatchAsync(name, callArgs, cancellationToken);
+                var text = await IdeToolCallWatch.RunAsync(
+                        name,
+                        callArgs,
+                        ct => IdeCommandModule.ExecuteAsync(name, callArgs, ct),
+                        cancellationToken)
+                    .ConfigureAwait(false);
                 return new CallToolResult
                 {
                     Content = ToolMediaOutbox.BuildContent(text)
@@ -1710,6 +1902,10 @@ async Task<string> DispatchMetaAsync(
                     cancellationToken)
                 .ConfigureAwait(false);
         }
+        case "cdp_cide_presentation":
+            return IdeCidePresentationChannel.HandleJson(callArgs);
+        case "cdp_intercom":
+            return IdeCideIntercomChannel.HandleJson(callArgs);
         case "cdp_mcp":
             return await mcpOutlet.DispatchAsync(callArgs, cancellationToken).ConfigureAwait(false);
         case "cdp_browser":
@@ -1736,6 +1932,16 @@ async Task<string> DispatchMetaAsync(
             return IdeOnboardChannel.HandleJson(session, callArgs);
         case "cdp_toolchain":
             return IdeToolchainChannel.HandleJson(session, callArgs);
+        case "cdp_md_author":
+            return IdeMdAuthorChannel.HandleJson(session, callArgs);
+        case "cdp_fdr":
+            return IdeFdrChannel.HandleJson(session, callArgs);
+        case "cdp_postmortem":
+            return IdePostmortemChannel.HandleJson(session, callArgs);
+        case "cdp_learn":
+            return IdeLearnChannel.HandleJson(session, callArgs);
+        case "cdp_scope":
+            return IdeScopeChannel.HandleJson(session, callArgs);
         case "cdp_files":
             return IdeFilesChannel.HandleJson(docStore, session, callArgs);
         case "cdp_ignite":
@@ -1744,6 +1950,10 @@ async Task<string> DispatchMetaAsync(
             return IdeWebcamChannel.HandleJson(session, callArgs);
         case "cdp_pressure":
             return IdePressureChannel.HandleJson(session, callArgs);
+        case "cdp_icm":
+            return await IdeIcmChannel.HandleJsonAsync(callArgs, cancellationToken);
+        case "cdp_cockpit_host":
+            return IdeCockpitHostChannel.HandleJson(callArgs);
         case "cdp_recent":
         {
             EnsureOpenRecentWired();
@@ -2552,6 +2762,8 @@ object EnqueueStageJob(
 
 static object FacetCap(MemoryFacetSettings f) => new { enabled = f.Enabled, roots = f.Roots };
 static object ToggleCap(MemoryToggleSettings t) => new { enabled = t.Enabled };
+
+IdeCommandModule.Bind(DispatchAsync);
 
 await using var stdio = new StdioServerTransport("CdpMcp");
 await using var server = McpServer.Create(stdio, options);

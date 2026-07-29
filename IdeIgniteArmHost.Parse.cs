@@ -36,7 +36,7 @@ internal static partial class IdeIgniteArmHost
             id = "arm-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + "-" +
                  Guid.NewGuid().ToString("N")[..6];
 
-        if (lastOnce && !force && !HasActiveTaskFocus())
+        if (lastOnce && !force && ProbeFlight() == ContinuityFlight.NoActiveTask)
         {
             err = Err(
                 "arm",

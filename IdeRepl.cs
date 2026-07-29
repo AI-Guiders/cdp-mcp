@@ -458,16 +458,22 @@ internal static class IdeRepl
             var taskRest = tokens.Skip(1).ToList();
             if (taskRest.Count > 0
                 && (taskRest[^1].Equals("@deferred", StringComparison.OrdinalIgnoreCase)
-                    || taskRest[^1].Equals("@defer", StringComparison.OrdinalIgnoreCase)))
+                    || taskRest[^1].Equals("@defer", StringComparison.OrdinalIgnoreCase)
+                    || taskRest[^1].Equals("@parked", StringComparison.OrdinalIgnoreCase)
+                    || taskRest[^1].Equals("@park", StringComparison.OrdinalIgnoreCase)))
             {
-                var (deferTitle, deferPhase) = SplitTitlePhase(taskRest);
-                if (deferTitle.Length == 0)
-                    return (merged, Err("defer needs title", "defer AutoIgnition delivery probe | task X @deferred"));
+                var seedOp = taskRest[^1].StartsWith("@park", StringComparison.OrdinalIgnoreCase)
+                    ? "park"
+                    : "defer";
+                var (seedTitle, seedPhase) = SplitTitlePhase(taskRest);
+                if (seedTitle.Length == 0)
+                    return (merged, Err($"{seedOp} needs title",
+                        $"{seedOp} AutoIgnition delivery probe | task X @{seedOp}ed"));
                 merged["go"] = JsonSerializer.SerializeToElement("plan");
-                merged["tm_op"] = JsonSerializer.SerializeToElement("defer");
-                merged["go_args"] = deferPhase is null
-                    ? JsonSerializer.SerializeToElement(new { title = deferTitle, op = "defer" })
-                    : JsonSerializer.SerializeToElement(new { title = deferTitle, op = "defer", phase = deferPhase });
+                merged["tm_op"] = JsonSerializer.SerializeToElement(seedOp);
+                merged["go_args"] = seedPhase is null
+                    ? JsonSerializer.SerializeToElement(new { title = seedTitle, op = seedOp })
+                    : JsonSerializer.SerializeToElement(new { title = seedTitle, op = seedOp, phase = seedPhase });
                 return (merged, null);
             }
 
@@ -743,6 +749,14 @@ internal static class IdeRepl
             return (merged, null);
         }
 
+        if (head is "await_operator" or "await" or "epic_closed")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("await_operator");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "await_operator" });
+            return (merged, null);
+        }
+
         // Leftover sweep — parked/deferred with all AC+DoD met → optional done (no focus steal).
         if (head is "leftover" or "sweep" or "leftovers")
         {
@@ -857,6 +871,7 @@ internal static class IdeRepl
         if (head is "share")
         {
             var with = "operator";
+            string? from = null;
             string? what = null;
             string? ask = null;
             var notesParts = new List<string>();
@@ -872,6 +887,18 @@ internal static class IdeRepl
                 if (t.Equals("with", StringComparison.OrdinalIgnoreCase) && i + 1 < tokens.Count)
                 {
                     with = tokens[++i];
+                    continue;
+                }
+
+                if (t.StartsWith("from=", StringComparison.OrdinalIgnoreCase))
+                {
+                    from = t["from=".Length..];
+                    continue;
+                }
+
+                if (t.Equals("from", StringComparison.OrdinalIgnoreCase) && i + 1 < tokens.Count)
+                {
+                    from = tokens[++i];
                     continue;
                 }
 
@@ -899,7 +926,7 @@ internal static class IdeRepl
                     continue;
                 }
 
-                if (t is "plan" or "buffer" or "report" or "digest" or "status")
+                if (t is "plan" or "buffer" or "report" or "digest" or "status" or "note")
                 {
                     what ??= t;
                     continue;
@@ -911,12 +938,43 @@ internal static class IdeRepl
                     continue;
                 }
 
+                if (t is "self" or "shelf" or "agent" or "stash")
+                {
+                    with = t;
+                    continue;
+                }
+
+                if (t is "latest")
+                {
+                    from ??= t;
+                    continue;
+                }
+
                 notesParts.Add(t);
             }
 
-            what ??= "buffer";
             var notes = notesParts.Count > 0 ? string.Join(' ', notesParts) : null;
-            if (what.Equals("plan", StringComparison.OrdinalIgnoreCase))
+
+            // share from=self|latest — pull shelf (fast path via go=share → cdp_buffer)
+            if (!string.IsNullOrWhiteSpace(from))
+            {
+                merged["go"] = JsonSerializer.SerializeToElement("share");
+                merged["go_args"] = JsonSerializer.SerializeToElement(new
+                {
+                    from,
+                    depth = "full",
+                    notes
+                });
+                return (merged, null);
+            }
+
+            what ??= string.Equals(IdeShare.NormalizeWith(with), IdeShare.WithSelf, StringComparison.Ordinal)
+                     && notes is not null
+                ? "note"
+                : "buffer";
+
+            if (what.Equals("plan", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(IdeShare.NormalizeWith(with), IdeShare.WithSelf, StringComparison.Ordinal))
             {
                 merged["go"] = JsonSerializer.SerializeToElement("plan");
                 merged["tm_op"] = JsonSerializer.SerializeToElement("share");
@@ -944,6 +1002,21 @@ internal static class IdeRepl
                     what = "report",
                     ask = "none",
                     notes
+                });
+                return (merged, null);
+            }
+
+            // with=self + free text → shelf put (body=notes); else buffer share
+            if (string.Equals(IdeShare.NormalizeWith(with), IdeShare.WithSelf, StringComparison.Ordinal)
+                && notes is not null)
+            {
+                merged["go"] = JsonSerializer.SerializeToElement("share");
+                merged["go_args"] = JsonSerializer.SerializeToElement(new
+                {
+                    with = "self",
+                    what,
+                    body = notes,
+                    ask = "none"
                 });
                 return (merged, null);
             }
@@ -1449,6 +1522,13 @@ internal static class IdeRepl
                 var title = string.Join(' ', tokens.Take(tokens.Count - 1));
                 return (title.Trim(), null);
             }
+
+            // Board chrome / legacy paste — `@todo` is not a phase; do not bake into the title.
+            if (tag.Equals("todo", StringComparison.OrdinalIgnoreCase))
+            {
+                var title = string.Join(' ', tokens.Take(tokens.Count - 1));
+                return (title.Trim(), null);
+            }
         }
 
         return (string.Join(' ', tokens).Trim(), null);
@@ -1459,6 +1539,7 @@ internal static class IdeRepl
         || tag.Equals("done", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("complete", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("park", StringComparison.OrdinalIgnoreCase)
+        || tag.Equals("parked", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("defer", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("deferred", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("drop", StringComparison.OrdinalIgnoreCase);
@@ -1479,8 +1560,9 @@ internal static class IdeRepl
             return "done <title> | done";
         if (title.Equals("focus", StringComparison.OrdinalIgnoreCase))
             return "focus <title>";
-        if (title.Equals("park", StringComparison.OrdinalIgnoreCase))
-            return "park <title> | park";
+        if (title.Equals("park", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("parked", StringComparison.OrdinalIgnoreCase))
+            return "park <title> | park | task X @parked";
         if (title.Equals("defer", StringComparison.OrdinalIgnoreCase)
             || title.Equals("deferred", StringComparison.OrdinalIgnoreCase))
             return "defer <title> | defer";

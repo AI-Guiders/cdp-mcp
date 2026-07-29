@@ -30,7 +30,8 @@ internal static partial class IdeCockpit
         WorkSnap work,
         IntentWorkspaceStore? workspaceStore,
         IntentWorkspaceState workspaceState,
-        IdeChkChannel.Snap? chk = null)
+        IdeChkChannel.Snap? chk = null,
+        bool quietBandQuality = true)
     {
         var seats = IdeDeskSeats.IsSeatsMode()
             ? IdeDeskSeats.Snapshot()
@@ -40,12 +41,18 @@ internal static partial class IdeCockpit
             ? CdpEnumParse.ToWire(i)
             : work.Pulse;
         var locus = ResolveLocusLine(buffer, session.ProjectRoot);
+        var intercomPulse = CideIntercomVoiceLatch.DeskPulseLine();
+        var seatWithIntercom = string.IsNullOrWhiteSpace(intercomPulse)
+            ? seatNote
+            : string.IsNullOrWhiteSpace(seatNote)
+                ? intercomPulse
+                : $"{seatNote} · {intercomPulse}";
         var sit = new IdeAlertChannel.Sit(
             $"{CdpEnumParse.ToWire(session.Phase)}/{CdpEnumParse.ToWire(session.Object)}",
             intent,
             locus,
             layoutHint,
-            seatNote);
+            seatWithIntercom);
 
         string? stageMismatch = null;
         if (workspaceStore is not null
@@ -70,17 +77,37 @@ internal static partial class IdeCockpit
             sit,
             stageMismatch,
             chk?.OpenRequired ?? 0,
-            chk?.Pulse);
+            chk?.Pulse,
+            QuietBandQuality: quietBandQuality);
     }
 
     static string? ResolveLocusLine(BufferSnap buffer, string? projectRoot)
     {
+        // Dual-cockpit glass: human locus wired into sit; agent only looks at desk.
+        var human = NavigationFocusLatch.TryRead();
+        if (human?.Path is { Length: > 0 } hp)
+        {
+            var suffix = human.Line > 0 ? $":{human.Line}" : "";
+            var shared = SharedFileIndication.IsShared(hp, buffer.Docs.Select(d => d.Path));
+            SharedFileIndication.Publish(hp, shared);
+            if (shared)
+                suffix += SharedFileIndication.SharedSuffix;
+            return FormatLocusPath(hp, projectRoot, suffix);
+        }
+
+        SharedFileIndication.Publish(null, shared: false);
+
         if (buffer.Docs.Count == 0)
             return null;
         var hot = buffer.Docs.FirstOrDefault(d => d.DiskChanged)
             ?? buffer.Docs.FirstOrDefault(d => d.Dirty)
             ?? buffer.Docs[0];
-        var path = hot.Path;
+        var mark = hot.DiskChanged ? " disk" : hot.Dirty ? " dirty" : "";
+        return FormatLocusPath(hot.Path, projectRoot, mark);
+    }
+
+    static string FormatLocusPath(string path, string? projectRoot, string suffix)
+    {
         if (projectRoot is { Length: > 0 }
             && path.StartsWith(projectRoot, StringComparison.OrdinalIgnoreCase))
         {
@@ -90,8 +117,7 @@ internal static partial class IdeCockpit
 
         if (path.Length > 64)
             path = "…" + path[^60..];
-        var mark = hot.DiskChanged ? " disk" : hot.Dirty ? " dirty" : "";
-        return $"{path}{mark}";
+        return $"{path}{suffix}";
     }
 
     static readonly DeskSysOrganUnit DeskSys = new();

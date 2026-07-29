@@ -58,7 +58,8 @@ internal static partial class IdeCockpit
             AnyNavBack: EditorComfort.AnyNavBack(),
             QualityEnabled: quality.Enabled,
             QualityFail: quality.Fail,
-            QualityWarn: quality.Warn,
+            // Quiet-band: WARN next only when SA raised quality_warn (go=quality/alert loud).
+            QualityWarn: alert.Explain?.Reason is "quality_warn" ? quality.Warn : 0,
             SuggestSniper: quality.SuggestSniper,
             SniperHasHold: EditSniper.HasHold,
             SniperPulse: EditSniper.PulseLine,

@@ -186,6 +186,11 @@ internal static class IdeDeskSeats
         ["explorer"] = "p",
         ["fm"] = "p",
         ["file_manager"] = "p",
+        ["md_author"] = "p",
+        ["md_author_desk"] = "p",
+        ["markdown_author"] = "p",
+        ["md_include"] = "p",
+        ["cdp_md_author"] = "p",
         ["ignite_desk"] = "p",
         ["ignite"] = "p",
         ["autoignite"] = "p",
@@ -451,15 +456,26 @@ internal static class IdeDeskSeats
 
     static void PersistUnlocked()
     {
-        if (Store is null)
-            return;
+        if (Store is not null)
+        {
+            try
+            {
+                Store.DeskSeatsSave(Order.ToDictionary(s => s, s => Sticky[s], StringComparer.OrdinalIgnoreCase));
+            }
+            catch
+            {
+                // Desk must not die on IO; next mutation retries.
+            }
+        }
+
+        // Dual-cockpit glass: publish even when WitDB store is unbound (tests / early boot).
         try
         {
-            Store.DeskSeatsSave(Order.ToDictionary(s => s, s => Sticky[s], StringComparer.OrdinalIgnoreCase));
+            CideSeatsLatch.Publish(Order.ToDictionary(s => s, s => Sticky[s], StringComparer.OrdinalIgnoreCase));
         }
         catch
         {
-            // Desk must not die on IO; next mutation retries.
+            /* best-effort */
         }
     }
 

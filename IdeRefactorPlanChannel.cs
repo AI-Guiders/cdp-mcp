@@ -30,7 +30,7 @@ internal static partial class IdeRefactorPlanChannel
     {
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var op = (Opt(args, "op") ?? Opt(args, "cmd") ?? "plan").Trim().ToLowerInvariant();
-        return op switch
+        var result = op switch
         {
             "debt" or "map" or "hotspots" => Debt(store, session, args),
             "budget" or "what_if" => Budget(store, session, args),
@@ -40,6 +40,37 @@ internal static partial class IdeRefactorPlanChannel
             "pulse" => Pulse(store, session, args),
             _ => Plan(store, session, args)
         };
+        PublishGlass(store, session);
+        return result;
+    }
+
+    /// <summary>Desk/chrome pulse from top debt hotspots.</summary>
+    public static string PulseLine(DocumentBufferStore store, SessionContext session)
+    {
+        var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        var debt = BuildDebt(store, session, args, max: 3);
+        return debt.Count == 0
+            ? "refactor · idle · go=refactor"
+            : $"refactor · hotspots={debt.Count} · {debt.PulseTail} · go=refactor";
+    }
+
+    /// <summary>Mirror refactor debt pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass(DocumentBufferStore store, SessionContext session)
+    {
+        try
+        {
+            var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+            var debt = BuildDebt(store, session, args, max: 3);
+            var pulse = debt.Count == 0
+                ? "refactor · idle · go=refactor"
+                : $"refactor · hotspots={debt.Count} · {debt.PulseTail} · go=refactor";
+            // Dark Cockpit: chrome only while size/debt hotspots remain.
+            CideRefactorLatch.Publish(active: debt.Count > 0, pulse, debt.Count);
+        }
+        catch
+        {
+            /* best-effort */
+        }
     }
 
     static object Pulse(

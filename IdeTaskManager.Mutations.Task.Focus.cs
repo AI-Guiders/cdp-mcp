@@ -52,14 +52,24 @@ internal static partial class IdeTaskManager
     }
 
     /// <summary>
-    /// Capture backlog without stealing focus: create/find stage as <c>deferred</c>.
-    /// Bare <c>defer</c> marks the active task deferred and restores next pending focus.
+    /// Capture backlog without stealing focus: create/find stage as <c>deferred</c> or <c>parked</c>.
+    /// Bare <c>defer</c>/<c>park</c> marks the active task and restores next pending focus.
     /// </summary>
     static object TaskDefer(
         IntentWorkspaceStore store,
         IntentWorkspaceState state,
-        IReadOnlyDictionary<string, JsonElement> args)
+        IReadOnlyDictionary<string, JsonElement> args) =>
+        TaskSeedBacklog(store, state, args, "deferred");
+
+    static object TaskSeedBacklog(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        IReadOnlyDictionary<string, JsonElement> args,
+        string status)
     {
+        if (status is not ("deferred" or "parked"))
+            throw new ArgumentException($"seed status must be deferred|parked, got '{status}'");
+
         var title = Title(args);
         if (title.Length > 0)
         {
@@ -82,7 +92,14 @@ internal static partial class IdeTaskManager
                 resolvedTitle = created.title;
             }
 
-            store.StageSetStatus(state, id, "deferred");
+            object? clock = null;
+            if (status == "parked")
+            {
+                IdeStageCycle.TryPhaseComplete();
+                clock = store.StageClockParkFreeze(state, id);
+            }
+
+            store.StageSetStatus(state, id, status);
             if (keepFocus is { } prev && prev != id)
                 store.FocusStage(state, prev);
             else if (keepFocus == id)
@@ -102,18 +119,29 @@ internal static partial class IdeTaskManager
                 store.WorkFocusSave(state);
             }
 
-            return new
-            {
-                op = "deferred",
-                task_id = id,
-                title = resolvedTitle,
-                status = "deferred",
-                focus_preserved = keepFocus,
-                hint = "deferred seed — focus unchanged; use focus <title> when ready"
-            };
+            return clock is null
+                ? new
+                {
+                    op = status,
+                    task_id = id,
+                    title = resolvedTitle,
+                    status,
+                    focus_preserved = keepFocus,
+                    hint = $"{status} seed — focus unchanged; use focus <title> when ready"
+                }
+                : new
+                {
+                    op = status,
+                    task_id = id,
+                    title = resolvedTitle,
+                    status,
+                    focus_preserved = keepFocus,
+                    clock,
+                    hint = $"{status} seed — focus unchanged; use focus <title> when ready"
+                };
         }
 
-        return TaskStatus(store, state, args, "deferred");
+        return TaskStatus(store, state, args, status);
     }
 
     static object TaskSetPhase(
@@ -132,6 +160,38 @@ internal static partial class IdeTaskManager
 
         var r = store.StageUpsert(state, title: "", id, parentId: null, sceneName: null, phase);
         return new { op = "phase", task_id = r.stage_id, phase_affinity = r.phase_affinity };
+    }
+
+    /// <summary>Solo plateau: mark focus @handoff (if any) and latch Autoi awaiting_operator.</summary>
+    static object TaskAwaitOperator(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        object? phase = null;
+        if (state.ActiveStageId is { } sid)
+        {
+            var r = store.StageUpsert(state, title: "", sid, parentId: null, sceneName: null, phaseAffinity: "handoff");
+            phase = new { task_id = r.stage_id, phase_affinity = r.phase_affinity };
+        }
+
+        var taskLabel = state.ActiveStageId is not null
+            ? store.TaskManagerSnapshot(state).ActiveStageTitle ?? "epic closed — await operator"
+            : (Opt(args, "task") ?? OptGoArg(args, "task") ?? "epic closed — await operator");
+
+        var ignite = IdeIgniteArmHost.AwaitOperator(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["task"] = JsonSerializer.SerializeToElement(taskLabel)
+        });
+
+        return new
+        {
+            op = "await_operator",
+            phase,
+            ignite,
+            flight = ProbeContinuityFlight(store, state).ToString(),
+            hint = "Epic closed latch set. Do not invent next epic; wait for operator. cdp_ignite op=resume after pick."
+        };
     }
 
     static string? PhaseArg(IReadOnlyDictionary<string, JsonElement> args) =>

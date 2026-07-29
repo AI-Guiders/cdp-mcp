@@ -74,4 +74,30 @@ internal static class IdeReportBoard
 
     public static bool HasEvidence(SessionContext session) =>
         ScriptScene.TryGetLast(session) is not null;
+
+    /// <summary>Mirror report board pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass(SessionContext session)
+    {
+        try
+        {
+            var last = ScriptScene.TryGetLast(session);
+            if (last is null)
+            {
+                CideReportLatch.Publish(active: false, pulse: "report · idle", path: null, mode: null, ok: null);
+                return;
+            }
+
+            // Dark Cockpit: silent when idle (no evidence).
+            CideReportLatch.Publish(
+                active: true,
+                pulse: last.Pulse,
+                path: last.Path,
+                mode: last.Mode,
+                ok: last.Ok);
+        }
+        catch
+        {
+            /* best-effort */
+        }
+    }
 }

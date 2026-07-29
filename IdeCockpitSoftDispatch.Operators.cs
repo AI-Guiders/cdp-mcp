@@ -100,6 +100,48 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
+    static bool TryDispatchMdAuthor(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsSoft(goVerb, SoftOrganKind.MdAuthor))
+            return false;
+
+        goResult = SoftBoard(SoftOrganKind.MdAuthor, session, null, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftOrganKind.MdAuthor);
+        return true;
+    }
+
+    static bool TryDispatchLearn(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsSoft(goVerb, SoftOrganKind.Learn))
+            return false;
+
+        goResult = SoftBoard(SoftOrganKind.Learn, session, null, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftOrganKind.Learn);
+        return true;
+    }
+
+    static bool TryDispatchProjectSwitch(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsSoft(goVerb, SoftOrganKind.ProjectSwitch))
+            return false;
+
+        goResult = SoftBoard(SoftOrganKind.ProjectSwitch, session, null, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftOrganKind.ProjectSwitch);
+        return true;
+    }
+
     static bool TryDispatchIgnite(
         ref string? goVerb,
         ref object? goResult,

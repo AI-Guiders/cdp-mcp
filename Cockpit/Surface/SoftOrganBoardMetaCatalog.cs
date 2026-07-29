@@ -50,6 +50,15 @@ public sealed class SoftOrganBoardMetaCatalog : ICockpitComputeUnit
         SoftOrganKind.Ecl => new("ecl", "ecl_organ"),
         SoftOrganKind.Qrh => new("qrh", "qrh_organ"),
         SoftOrganKind.Review => new("review", "review_organ"),
+        SoftOrganKind.MdAuthor => new(
+            "md_author", "cdp_md_author", SoftOrganPresentMode.PulseLine,
+            "pane_full= / go_detail=full · op=check|expand|export path="),
+        SoftOrganKind.Learn => new(
+            "learn", "cdp_learn", SoftOrganPresentMode.PulseLine,
+            "pane_full= / go_detail=full · op=stash|list|recall|promote"),
+        SoftOrganKind.ProjectSwitch => new(
+            "project_switch", "cdp_scope", SoftOrganPresentMode.PulseLine,
+            "pane_full= / go_detail=full · op=set primary= scope= · go=ps (not go=scope sniper)"),
         _ => null
     };
 }

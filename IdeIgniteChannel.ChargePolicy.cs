@@ -37,6 +37,16 @@ internal static partial class IdeIgniteChannel
         SanitizeComposerCharge(
             RemountInitializedLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix);
 
+    /// <summary>Short wake when sync CallTool exceeds timeout_wake — not full continuity resume.</summary>
+    internal static string ComposeToolWatchWakeCharge(string tool, int thresholdSeconds)
+    {
+        var name = string.IsNullOrWhiteSpace(tool) ? "(tool)" : tool.Trim();
+        var sec = Math.Max(1, thresholdSeconds);
+        return SanitizeComposerCharge(
+            $"Tool call still running past wake threshold: {name} >{sec}s. Habitat=CDP. Check share from=self / cdp_pressure op=recall. Prefer wait for result or abort stuck host turn."
+            + ChargeAmnesiaPostfix);
+    }
+
     internal static string EventTokenForCharge(string eventId) =>
         string.Equals(eventId, "shell_finished", StringComparison.OrdinalIgnoreCase)
             ? "terminal_finished"

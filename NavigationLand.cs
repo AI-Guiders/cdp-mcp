@@ -119,6 +119,8 @@ internal static class NavigationLand
             }
         }
 
+        NavigationLandLatch.Publish(command, buf.Path, line, inner.MemberKey, BracketLocate.Format(span));
+
         return Ok(command, span, new
         {
             path = buf.Path,
@@ -127,9 +129,11 @@ internal static class NavigationLand
             member = inner.MemberKey,
             peek,
             nested_wire = BracketLocate.Format(inner),
+            latch = NavigationLandLatch.LatchPath,
             hint = "Landed. Edit → edit_op=anchor with code/xml family (not navigation)."
         });
     }
+
 
     static string LandShow(SessionContext session, BracketLocate.Span span)
     {
