@@ -32,6 +32,7 @@ internal static partial class IdeIgniteArmHost
         if (arm.LastOnce && !force && IsEpicClosed(ProbeFlight()))
             return LatchEpicClosedAwait(arm, ProbeFlight());
 
+        var cancelIds = new List<string>();
         lock (Gate)
         {
             if (!force)
@@ -103,10 +104,29 @@ internal static partial class IdeIgniteArmHost
                 Arms.RemoveAll(a => a.Status == ProviderBlockedStatus);
             }
 
+            // Continuity timer re-arm replaces prior work timers (dogfood: stacked 8s wakes).
+            // tool-wake-* also uses when=timer — leave those alone.
+            if (arm.Event == "timer" && !IsToolWakeArmId(arm.Id))
+            {
+                foreach (var old in Arms.Where(a =>
+                             a.Event == "timer"
+                             && (a.Status is "armed" or "firing")
+                             && !IsToolWakeArmId(a.Id)
+                             && !a.Id.Equals(arm.Id, StringComparison.OrdinalIgnoreCase))
+                         .ToArray())
+                {
+                    cancelIds.Add(old.Id);
+                    Arms.Remove(old);
+                }
+            }
+
             Arms.RemoveAll(a => a.Id.Equals(arm.Id, StringComparison.OrdinalIgnoreCase));
             Arms.Add(arm);
             PersistUnlocked();
         }
+
+        foreach (var cancelId in cancelIds)
+            CancelInFlightFire(cancelId);
 
         return new
         {
