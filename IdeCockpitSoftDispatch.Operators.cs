@@ -114,6 +114,20 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
+    static bool TryDispatchLearn(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsSoft(goVerb, SoftOrganKind.Learn))
+            return false;
+
+        goResult = SoftBoard(SoftOrganKind.Learn, session, null, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftOrganKind.Learn);
+        return true;
+    }
+
     static bool TryDispatchIgnite(
         ref string? goVerb,
         ref object? goResult,

@@ -29,5 +29,6 @@ public enum SoftOrganKind
     Ecl,
     Qrh,
     Review,
-    MdAuthor
+    MdAuthor,
+    Learn
 }

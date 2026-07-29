@@ -53,6 +53,9 @@ public sealed class SoftOrganBoardMetaCatalog : ICockpitComputeUnit
         SoftOrganKind.MdAuthor => new(
             "md_author", "cdp_md_author", SoftOrganPresentMode.PulseLine,
             "pane_full= / go_detail=full · op=check|expand|export path="),
+        SoftOrganKind.Learn => new(
+            "learn", "cdp_learn", SoftOrganPresentMode.PulseLine,
+            "pane_full= / go_detail=full · op=stash|list|recall|promote"),
         _ => null
     };
 }

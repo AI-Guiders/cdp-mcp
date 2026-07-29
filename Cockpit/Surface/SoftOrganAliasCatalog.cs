@@ -38,6 +38,8 @@ public sealed class SoftOrganAliasCatalog : ICockpitComputeUnit
         "review" => SoftOrganKind.Review,
         "md_author" or "md_author_desk" or "markdown_author" or "md_include" or "cdp_md_author"
             => SoftOrganKind.MdAuthor,
+        "learn" or "learn_desk" or "learning" or "cdp_learn"
+            => SoftOrganKind.Learn,
         _ => null
     };
 }

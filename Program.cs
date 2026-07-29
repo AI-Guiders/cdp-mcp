@@ -155,6 +155,25 @@ var ideSettings = new IdeSettingsHabitat(
     shellHabitat,
     () => ShellDefaults(session));
 IdeToolchainChannel.Configure(shellHabitat, () => ShellDefaults(session));
+if (notesRuntime is not null && settings.Memory.Project.Enabled)
+{
+    var projectScope = new MemoryScopeGateway(
+        CdpDomains.MemoryProject,
+        settings.Memory.Project.Roots);
+    var handlers = notesRuntime.Handlers;
+    IdeLearnChannel.Configure((filePath, content) =>
+    {
+        var args = projectScope.Apply(
+            "write_knowledge_file",
+            new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["file_path"] = JsonSerializer.SerializeToElement(filePath),
+                ["content"] = JsonSerializer.SerializeToElement(content),
+                ["allow_shrink"] = JsonSerializer.SerializeToElement(true)
+            });
+        return handlers.Handle("write_knowledge_file", args);
+    });
+}
 if (CdpEnumParse.TryParsePhase(settings.DefaultPhase, out var dp)) session.Phase = dp;
 if (CdpEnumParse.TryParseObject(settings.DefaultObject, out var dobj)) session.Object = dobj;
 // User prefs can override cold phase/object after process defaults.
@@ -185,6 +204,7 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "cdp_toolchain",
     "cdp_files",
     "cdp_md_author",
+    "cdp_learn",
     "cdp_webcam",
     "cdp_ps1_scene"
 };
@@ -693,6 +713,23 @@ List<Tool> BuildMetaTools() =>
                 scope = new { type = "string", description = "all|fence" },
                 max_depth = new { type = "integer", description = "INCLUDE nest limit (default 5)" },
                 max_chars = new { type = "integer", description = "expand/export body cap in response" }
+            }
+        }),
+    Meta("cdp_learn", "Lean dialogue learning desk — stash findings so compaction cannot eat them. op=scene|stash|list|recall|promote. Journal under ws state; promote → agent-notes work/projects/_learn (or path=). Alias go=learn. Not findings (file memos) and not TM.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|stash|list|recall|promote" },
+                title = new { type = "string", description = "stash: short card title" },
+                body = new { type = "string", description = "stash: concentrated learning (required)" },
+                text = new { type = "string", description = "alias of body=" },
+                topic = new { type = "string", description = "optional topic tag" },
+                tags = new { type = "string", description = "comma/semicolon tags" },
+                id = new { type = "string", description = "recall/promote: card id (or latest)" },
+                path = new { type = "string", description = "promote: knowledge-relative path (default work/projects/_learn/{id}.md)" },
+                limit = new { type = "integer", description = "list: max cards (default 20)" }
             }
         }),
     Meta("cdp_files", "Agent-native File Manager (ADR-0016). Utility — not project-bound. where=cwd|project|external (+path=). op=scene|list|cd|up|stat|tree|open|text|search|roots|clear. text= lynx-like dump (pandoc/pdftotext). shape=slim|list. Alias go=files_desk. Prefer over shell ls/dir. Search facet → find_desk.", new
@@ -1816,6 +1853,8 @@ async Task<string> DispatchMetaAsync(
             return IdeToolchainChannel.HandleJson(session, callArgs);
         case "cdp_md_author":
             return IdeMdAuthorChannel.HandleJson(session, callArgs);
+        case "cdp_learn":
+            return IdeLearnChannel.HandleJson(session, callArgs);
         case "cdp_files":
             return IdeFilesChannel.HandleJson(docStore, session, callArgs);
         case "cdp_ignite":

@@ -30,6 +30,8 @@ public sealed partial class DeskWireParityTests
         Assert.Equal(SoftOrganKind.Toolchain, cat.TryResolve("toolchain_install"));
         Assert.Equal(SoftOrganKind.MdAuthor, cat.TryResolve("md_author"));
         Assert.Equal(SoftOrganKind.MdAuthor, cat.TryResolve("cdp_md_author"));
+        Assert.Equal(SoftOrganKind.Learn, cat.TryResolve("learn"));
+        Assert.Equal(SoftOrganKind.Learn, cat.TryResolve("cdp_learn"));
         Assert.Equal(SoftOrganKind.Ecl, cat.TryResolve("chk"));
         Assert.Equal(SoftOrganKind.ArchDesk, cat.TryResolve("arch_desk"));
         Assert.Equal(SoftOrganKind.ArchDesk, cat.TryResolve("board"));
@@ -76,6 +78,9 @@ public sealed partial class DeskWireParityTests
         Assert.Equal("md_author", cat.Require(SoftOrganKind.MdAuthor).Go);
         Assert.Equal("cdp_md_author", cat.Require(SoftOrganKind.MdAuthor).Tool);
         Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.MdAuthor).Mode);
+        Assert.Equal("learn", cat.Require(SoftOrganKind.Learn).Go);
+        Assert.Equal("cdp_learn", cat.Require(SoftOrganKind.Learn).Tool);
+        Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.Learn).Mode);
         Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.Ps1Desk).Mode);
         Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.PressureDesk).Mode);
         Assert.Equal(SoftOrganPresentMode.PulseWithResult, cat.Require(SoftOrganKind.Problems).Mode);
