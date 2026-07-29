@@ -70,6 +70,7 @@ internal static partial class IdeCockpit
         IdeIgniteArmHost.PublishGlass();
         IdeScopeChannel.PublishGlass();
         IdeOpsPulse.PublishGlass();
+        IdeOnboardChannel.PublishGlass(session);
 
         var tile = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
         var board = new IdeSoftOrganBoard(new SoftOrganSeatBag(

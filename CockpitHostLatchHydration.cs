@@ -25,7 +25,8 @@ internal static class CockpitHostLatchHydration
         "pressure-LATEST.json",
         "ignite-LATEST.json",
         "scope-LATEST.json",
-        "sys-LATEST.json"
+        "sys-LATEST.json",
+        "onboard-LATEST.json"
     ];
 
     /// <summary>Test hook: redirect flat latch root (same as glass latches).</summary>
