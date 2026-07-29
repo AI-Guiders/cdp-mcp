@@ -41,20 +41,24 @@ internal static class IdeToolCallWatch
 
         var callId = Guid.NewGuid().ToString("N")[..12];
         var started = DateTimeOffset.UtcNow;
+        var exceededDuring = false;
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var exec = execute(linked.Token);
         var delay = Task.Delay(TimeSpan.FromSeconds(threshold), linked.Token);
 
         var first = await Task.WhenAny(exec, delay).ConfigureAwait(false);
-        if (first == delay && !exec.IsCompleted)
+        if (ReferenceEquals(first, delay) && !exec.IsCompleted)
+        {
+            exceededDuring = true;
             OnThreshold(new ThresholdHit(toolName, threshold, started, callId));
+        }
 
         try
         {
             var text = await exec.ConfigureAwait(false);
             var elapsed = (int)Math.Max(0, (DateTimeOffset.UtcNow - started).TotalSeconds);
-            if (elapsed >= threshold)
-                return AnnotateResult(text, toolName, threshold, elapsed, exceededDuring: ArmedForCall.ContainsKey(callId));
+            if (elapsed >= threshold || exceededDuring)
+                return AnnotateResult(text, toolName, threshold, elapsed, exceededDuring);
             return text;
         }
         finally
