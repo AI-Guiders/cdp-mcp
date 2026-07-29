@@ -22,6 +22,14 @@ public class CabinGlassProjectionCatalogTests
     [InlineData("mcp", null, "agent · M: mcp")]
     [InlineData("plan", null, "agent · P: plan")]
     [InlineData("ignite", "AiChatSettings", "agent · M: ignite")]
+    [InlineData("alert", null, "agent · M: alert")]
+    [InlineData("ecl", null, "agent · M: ecl")]
+    [InlineData("qrh", null, "agent · M: qrh")]
+    [InlineData("learn", null, "agent · M: learn")]
+    [InlineData("webcam_desk", null, "agent · M: webcam")]
+    [InlineData("find_desk", "RelatedFiles", "agent · M: find")]
+    [InlineData("md_author", "MarkdownPreview", "agent · M: md_author")]
+    [InlineData("project_switch", null, "agent · M: project_switch")]
     public void TryResolve_maps_gap_organs(string pin, string? mfd, string? chrome)
     {
         var proj = CabinGlassProjectionCatalog.TryResolve(pin);
@@ -36,5 +44,23 @@ public class CabinGlassProjectionCatalogTests
         Assert.Null(CabinGlassProjectionCatalog.TryResolve("nope_organ"));
         Assert.Null(CabinGlassProjectionCatalog.TryResolve(null));
         Assert.Null(CabinGlassProjectionCatalog.TryResolve(" "));
+    }
+
+    [Fact]
+    public void TryResolve_covers_every_SoftOrganKind_go_pin()
+    {
+        var meta = new SoftOrganBoardMetaCatalog();
+        foreach (SoftOrganKind kind in Enum.GetValues<SoftOrganKind>())
+        {
+            var go = meta.Require(kind).Go;
+            var proj = CabinGlassProjectionCatalog.TryResolve(go);
+            Assert.True(
+                proj is not null,
+                $"SoftOrganKind.{kind} go='{go}' missing from CabinGlassProjectionCatalog (0-sync)");
+            Assert.True(
+                !string.IsNullOrWhiteSpace(proj!.Value.MfdPage)
+                || !string.IsNullOrWhiteSpace(proj.Value.ChromeHint),
+                $"SoftOrganKind.{kind} go='{go}' resolves empty projection");
+        }
     }
 }

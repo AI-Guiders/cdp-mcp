@@ -2,14 +2,14 @@
 namespace CdpMcp.Cockpit.Surface;
 
 /// <summary>
-/// Cabin tool map (0-sync phase 2): organ pin → CIDE glass affordance.
+/// Cabin tool map (0-sync): SoftOrgan / seat pin → CIDE glass affordance.
 /// CDP remains canon; glass only consumes derived mfd_page / chrome_hint.
+/// Every SoftOrganKind go-pin must resolve (chrome stub OK) — catalog gate test.
 /// </summary>
 public static class CabinGlassProjectionCatalog
 {
     public readonly record struct Projection(string? MfdPage, string? ChromeHint);
 
-    /// <summary>Resolve canonical or alias organ pin to glass projection.</summary>
     /// <summary>Resolve canonical or alias organ pin to glass projection.</summary>
     public static Projection? TryResolve(string? organPin)
     {
@@ -35,7 +35,11 @@ public static class CabinGlassProjectionCatalog
             "correspondence" or "crs" => new Projection("Correspondence", null),
             "hybrid_index" or "hci" or "codebase_index" => new Projection("HybridIndex", null),
             "related" or "related_files" => new Projection("RelatedFiles", null),
+            "find_desk" or "search_desk" or "code_search" or "cdp_search"
+                => new Projection("RelatedFiles", "agent · M: find"),
             "markdown" or "md_preview" => new Projection("MarkdownPreview", null),
+            "md_author" or "md_author_desk"
+                => new Projection("MarkdownPreview", "agent · M: md_author"),
             "options" or "settings" or "ai_chat_settings"
                 => new Projection("AiChatSettings", null),
             "ignite" or "ignite_desk" or "autoignite"
@@ -50,6 +54,29 @@ public static class CabinGlassProjectionCatalog
             "plan" or "work" or "tm" or "tasks"
                 => new Projection(null, "agent · P: plan"),
             "ps1" or "ps1_desk" or "ise" => new Projection("Terminal", "agent · M: ps1"),
+            "report" or "evidence" or "pfd"
+                => new Projection(null, "agent · M: report"),
+            "sa_desk" or "code_sa" or "pre_sa" or "sa_code" or "cdp_sa"
+                => new Projection(null, "agent · M: sa"),
+            "crm" or "callout" or "crm_panel"
+                => new Projection(null, "agent · M: crm"),
+            "webcam" or "webcam_desk" or "camera" or "sense"
+                => new Projection(null, "agent · M: webcam"),
+            "toolchain" or "toolchain_desk"
+                => new Projection(null, "agent · M: toolchain"),
+            "alert" or "eicas" or "sa"
+                => new Projection(null, "agent · M: alert"),
+            "plugins" or "plugin" or "vsix"
+                => new Projection(null, "agent · M: plugins"),
+            "refactor" or "refactor_plan" or "debt"
+                => new Projection(null, "agent · M: refactor"),
+            "sys" => new Projection(null, "agent · M: sys"),
+            "ecl" => new Projection(null, "agent · M: ecl"),
+            "qrh" => new Projection(null, "agent · M: qrh"),
+            "review" => new Projection(null, "agent · M: review"),
+            "learn" => new Projection(null, "agent · M: learn"),
+            "project_switch" or "ps" or "scope_desk"
+                => new Projection(null, "agent · M: project_switch"),
             _ => null
         };
     }

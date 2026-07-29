@@ -63,7 +63,7 @@ public class CideSeatsLatchTests : IDisposable
         var latch = CideSeatsLatch.TryRead();
         Assert.NotNull(latch);
         Assert.Null(latch!.MfdPage);
-        Assert.Equal("agent · M: webcam_desk", latch.ChromeHint);
+        Assert.Equal("agent · M: webcam", latch.ChromeHint);
     }
 
     [Fact]
