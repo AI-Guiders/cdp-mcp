@@ -338,13 +338,13 @@ internal sealed class DocumentBufferStore
         DocumentDiskSyncLatch.Publish(buf.Path, DocumentDiskSyncLatch.OriginAgent);
     }
 
-    public object Scene()
+        public object Scene()
     {
         var docs = _byPath.Values
             .OrderBy(b => b.DocId, StringComparer.Ordinal)
             .Select(b => b.ToMeta())
             .ToArray();
-        var drift = _byPath.Values.Count(b => b.ProbeDiskChanged(out _, out _));
+        var drift = _byPath.Values.Count(b => b.ProbeMaterialDiskChanged(out _, out _));
         return new
         {
             schema = "doc_scene/v0",
@@ -476,9 +476,9 @@ internal sealed class DocBuffer
     public int? LastDiagnosedVersion { get; set; }
     public string? LastDiagnosedScope { get; set; }
 
-    public object ToMeta()
+        public object ToMeta()
     {
-        var changed = ProbeDiskChanged(out var diskNow, out var reason);
+        var changed = ProbeMaterialDiskChanged(out var diskNow, out var reason);
         return new
         {
             doc_id = DocId,
@@ -528,6 +528,44 @@ internal sealed class DocBuffer
         }
     }
 
+    /// <summary>
+    /// SA/desk material drift: missing/content differ.
+    /// Mtime-only with identical text stamps disk mtime (no false WARN after git checkout).
+    /// </summary>
+    public bool ProbeMaterialDiskChanged(out DateTime? diskNow, out string? reason)
+    {
+        if (!ProbeDiskChanged(out diskNow, out reason))
+            return false;
+        if (reason is "missing_on_disk" or "probe_failed")
+            return true;
+
+        try
+        {
+            if (!File.Exists(Path))
+            {
+                reason = "missing_on_disk";
+                return true;
+            }
+
+            var diskText = File.ReadAllText(Path);
+            if (string.Equals(Text, diskText, StringComparison.Ordinal))
+            {
+                AcknowledgeDisk();
+                diskNow = DiskMtimeUtc;
+                reason = null;
+                return false;
+            }
+
+            reason = "content";
+            return true;
+        }
+        catch (Exception)
+        {
+            reason = "probe_failed";
+            return true;
+        }
+    }
+
     /// <summary>Silence drift without taking disk (Don't Reload).</summary>
     public void AcknowledgeDisk()
     {
@@ -562,19 +600,21 @@ internal sealed class DocBuffer
         var contentSame = string.Equals(Text, diskText, StringComparison.Ordinal);
         if (contentSame)
         {
+            if (changed)
+                AcknowledgeDisk();
             return new
             {
                 schema = "doc_disk_peek/v0",
                 path = Path,
                 doc_id = DocId,
-                disk_changed = changed,
-                disk_changed_reason = reason,
+                disk_changed = false,
+                disk_changed_reason = (string?)null,
                 content_same = true,
                 missing_on_disk = false,
                 dirty = Dirty,
-                pulse = changed ? "mtime drifted, content same" : "in sync",
+                pulse = changed ? "mtime drifted, content same — stamped" : "in sync",
                 disk_mtime_utc = DiskMtimeUtc,
-                disk_now_utc = diskNow,
+                disk_now_utc = DiskMtimeUtc,
                 mem_lines = CountLines(Text),
                 disk_lines = CountLines(diskText)
             };
