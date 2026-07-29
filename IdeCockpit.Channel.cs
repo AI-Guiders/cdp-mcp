@@ -74,6 +74,7 @@ internal static partial class IdeCockpit
         IdeArchBoardChannel.PublishGlass(session);
         McpOutletHabitat.Instance?.PublishGlass();
         IdeTaskManager.PublishGlass(workspaceStore, workspaceState, CdpEnumParse.ToWire(session.Phase));
+        IdeReportBoard.PublishGlass(session);
 
         var tile = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
         var board = new IdeSoftOrganBoard(new SoftOrganSeatBag(
