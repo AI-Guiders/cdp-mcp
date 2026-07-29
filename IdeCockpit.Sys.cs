@@ -40,12 +40,18 @@ internal static partial class IdeCockpit
             ? CdpEnumParse.ToWire(i)
             : work.Pulse;
         var locus = ResolveLocusLine(buffer, session.ProjectRoot);
+        var intercomPulse = CideIntercomVoiceLatch.DeskPulseLine();
+        var seatWithIntercom = string.IsNullOrWhiteSpace(intercomPulse)
+            ? seatNote
+            : string.IsNullOrWhiteSpace(seatNote)
+                ? intercomPulse
+                : $"{seatNote} · {intercomPulse}";
         var sit = new IdeAlertChannel.Sit(
             $"{CdpEnumParse.ToWire(session.Phase)}/{CdpEnumParse.ToWire(session.Object)}",
             intent,
             locus,
             layoutHint,
-            seatNote);
+            seatWithIntercom);
 
         string? stageMismatch = null;
         if (workspaceStore is not null

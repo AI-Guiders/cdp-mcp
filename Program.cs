@@ -473,6 +473,20 @@ List<Tool> BuildMetaTools() =>
             page = new { type = "string", description = "alias of mfd_page" }
         }
     }),
+    Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack. send to=pm body= → intercom-LATEST → CIDE Intercom. Operator @PF → unread on desk (Message for you, sir!). v0 seats: agent=PF, operator=PM. Alias go=intercom.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|get|inbox|send|ack (default scene)" },
+            to = new { type = "string", description = "send: pm|pf or @PM|@PF (default pm)" },
+            from = new { type = "string", description = "send: optional seat override (default pf)" },
+            body = new { type = "string", description = "send: message text" },
+            message = new { type = "string", description = "send: alias of body" },
+            text = new { type = "string", description = "send: alias of body" },
+            id = new { type = "string", description = "ack: optional message id" }
+        }
+    }),
     Meta("cdp_mcp", "Agent MCP outlet (ADR 0187) — Cursor-parity control inside CDP. op=scene|presets|mount|tools|call|unmount. Mount guests (Serena/memory/…) for a task; child tools NEVER enter host ListTools. Alias go=mcp_scene|mcp_mount|…", new
     {
         type = "object",
@@ -1755,6 +1769,8 @@ async Task<string> DispatchMetaAsync(
         }
         case "cdp_cide_presentation":
             return IdeCidePresentationChannel.HandleJson(callArgs);
+        case "cdp_intercom":
+            return IdeCideIntercomChannel.HandleJson(callArgs);
         case "cdp_mcp":
             return await mcpOutlet.DispatchAsync(callArgs, cancellationToken).ConfigureAwait(false);
         case "cdp_browser":
