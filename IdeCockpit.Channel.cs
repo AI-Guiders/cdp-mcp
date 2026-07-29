@@ -64,6 +64,7 @@ internal static partial class IdeCockpit
             session, quality, buffer, debug, shell, git, problems, work, workspaceStore, workspaceState, chkSnap);
         var alertSnap = IdeAlertChannel.Build(alertInputs);
         CideAlertLatch.Publish(alertSnap);
+        CideQrhLatch.Publish(IdeQrhChannel.Build(chkCtx, chkSnap));
 
         var tile = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
         var board = new IdeSoftOrganBoard(new SoftOrganSeatBag(

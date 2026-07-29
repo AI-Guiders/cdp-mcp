@@ -19,7 +19,8 @@ internal static class CockpitHostLatchHydration
         "disk-LATEST.json",
         "intercom-LATEST.json",
         "shared-LATEST.json",
-        "alert-LATEST.json"
+        "alert-LATEST.json",
+        "qrh-LATEST.json"
     ];
 
     /// <summary>Test hook: redirect flat latch root (same as glass latches).</summary>
