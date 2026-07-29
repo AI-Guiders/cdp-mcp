@@ -23,7 +23,8 @@ internal static partial class IdeIgniteArmHost
     };
 
     static readonly object Gate = new();
-    static readonly ConcurrentDictionary<string, byte> Firing = new(StringComparer.Ordinal);
+    static readonly ConcurrentDictionary<string, byte> Firing = new(StringComparer.OrdinalIgnoreCase);
+    static readonly ConcurrentDictionary<string, CancellationTokenSource> FireTokens = new(StringComparer.OrdinalIgnoreCase);
     static List<IgniteArm> Arms = [];
     static bool Loaded;
     static int HostStarted;

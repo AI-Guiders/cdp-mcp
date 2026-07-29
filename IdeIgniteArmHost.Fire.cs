@@ -9,16 +9,65 @@ internal static partial class IdeIgniteArmHost
     internal static bool ShouldLatchAwaitingOnFireError(string? error) =>
         ShouldEnterProviderBlockedContinuity(error);
 
+    /// <summary>tool-wake-* once arms — never requeue after busy; call usually already finished.</summary>
+    internal static bool IsToolWakeArmId(string? id) =>
+        !string.IsNullOrWhiteSpace(id)
+        && id.StartsWith("tool-wake-", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Cancel CDT inject in flight (Disarm / call-complete ClearWakeArm).</summary>
+    internal static void CancelInFlightFire(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return;
+        if (FireTokens.TryRemove(id, out var cts))
+        {
+            try { cts.Cancel(); } catch { /* ignore */ }
+            try { cts.Dispose(); } catch { /* ignore */ }
+        }
+
+        Firing.TryRemove(id, out _);
+    }
+
+    static void CancelAllInFlightFires()
+    {
+        foreach (var id in FireTokens.Keys.ToArray())
+            CancelInFlightFire(id);
+    }
+
+    /// <summary>Test hook — attach a fire CTS as QueueFire would.</summary>
+    internal static CancellationTokenSource AttachFireTokenForTests(string id)
+    {
+        var cts = new CancellationTokenSource();
+        FireTokens[id] = cts;
+        Firing[id] = 0;
+        return cts;
+    }
+
+    static bool IsArmLive(string id)
+    {
+        lock (Gate)
+            return Arms.Any(a => a.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+    }
+
     static void QueueFire(IgniteArm arm, bool ok, string? pulse, string? detail)
     {
         if (!Firing.TryAdd(arm.Id, 0)) return;
+        var cts = new CancellationTokenSource();
+        FireTokens[arm.Id] = cts;
         _ = Task.Run(async () =>
         {
             try
             {
                 SetStatus(arm.Id, "firing", null);
                 if (arm.SettleSeconds > 0)
-                    await Task.Delay(TimeSpan.FromSeconds(arm.SettleSeconds)).ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromSeconds(arm.SettleSeconds), cts.Token).ConfigureAwait(false);
+
+                // Disarmed while settling / before CDT — do not inject stale charge.
+                if (!IsArmLive(arm.Id))
+                {
+                    IdeFlightDataRecorder.RecordWake(
+                        "wake_suppress", arm.Id, ToolFromWakeArm(arm), "disarmed_before_fire");
+                    return;
+                }
 
                 var msg = IsCustomChargeMode(arm.ChargeMode)
                     ? IdeIgniteChannel.SanitizeComposerCharge(Expand(arm.Message, arm, ok, pulse, detail))
@@ -37,8 +86,16 @@ internal static partial class IdeIgniteArmHost
                     }
                 }
 
+                // Last gate: Disarm may have raced after IsArmLive check.
+                if (!IsArmLive(arm.Id))
+                {
+                    IdeFlightDataRecorder.RecordWake(
+                        "wake_suppress", arm.Id, ToolFromWakeArm(arm), "disarmed_before_cdt");
+                    return;
+                }
+
                 var result = await IdeIgniteChannel.FireAsync(
-                    arm.Port, msg, arm.Chat, arm.WaitSeconds, CancellationToken.None).ConfigureAwait(false);
+                    arm.Port, msg, arm.Chat, arm.WaitSeconds, cts.Token).ConfigureAwait(false);
 
                 var firedOk = result is { } && TryGetOk(result);
                 RecordSendEvidence(arm.Id, firedOk, firedOk ? null : (TryGetError(result) ?? "fire_failed"));
@@ -56,7 +113,7 @@ internal static partial class IdeIgniteArmHost
                     var err = TryGetError(result) ?? "fire_failed";
                     IdeStageCycle.TryAppend(
                         IdeStageCycle.MapIgniteError(err), "ignite", err, arm.Id);
-                    if (ShouldRequeueBusy(arm.Event, err))
+                    if (ShouldRequeueBusy(arm.Event, err) && !IsToolWakeArmId(arm.Id))
                         RequeueAfterBusy(arm.Id, err, BusyBackoff(arm.WaitSeconds));
                     else if (ShouldEnterProviderBlockedContinuity(err))
                         EnterProviderBlockedContinuity(arm, TryGetDetail(result));
@@ -65,6 +122,12 @@ internal static partial class IdeIgniteArmHost
                     else
                         Remove(arm.Id); // plain once — hygiene/reclaim scrub zombies
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                IdeFlightDataRecorder.RecordWake(
+                    "wake_cancel", arm.Id, ToolFromWakeArm(arm), "fire_token_cancelled");
+                // Disarm already removed; do not resurrect.
             }
             catch (Exception ex)
             {
@@ -77,8 +140,21 @@ internal static partial class IdeIgniteArmHost
             finally
             {
                 Firing.TryRemove(arm.Id, out _);
+                if (FireTokens.TryRemove(arm.Id, out var token))
+                {
+                    try { token.Dispose(); } catch { /* ignore */ }
+                }
             }
         });
+    }
+
+    static string? ToolFromWakeArm(IgniteArm arm)
+    {
+        var task = arm.Task ?? "";
+        const string prefix = "tool-watch:";
+        if (task.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            return task[prefix.Length..];
+        return IsToolWakeArmId(arm.Id) ? arm.Id : null;
     }
 
     static async Task TimerLoopAsync(CancellationToken ct)
@@ -154,6 +230,8 @@ internal static partial class IdeIgniteArmHost
             Arms.RemoveAll(a => a.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
             PersistUnlocked();
         }
+
+        CancelInFlightFire(id);
     }
 
     static bool IsCustomChargeMode(string? mode)

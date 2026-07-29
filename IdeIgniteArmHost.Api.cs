@@ -236,16 +236,20 @@ internal static partial class IdeIgniteArmHost
                   || string.Equals(id, "all", StringComparison.OrdinalIgnoreCase);
 
         int removed;
+        string? cancelId = null;
+        var cancelAll = false;
         lock (Gate)
         {
             if (all)
             {
                 removed = Arms.Count;
                 Arms.Clear();
+                cancelAll = true;
             }
             else if (!string.IsNullOrWhiteSpace(id))
             {
                 removed = Arms.RemoveAll(a => a.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+                cancelId = id;
             }
             else
             {
@@ -254,6 +258,13 @@ internal static partial class IdeIgniteArmHost
 
             PersistUnlocked();
         }
+
+        // Always cancel in-flight CDT — store remove alone left FireAsync(CancellationToken.None)
+        // waiting for composer idle, then injecting a stale "still running" charge (tool-wake noise).
+        if (cancelAll)
+            CancelAllInFlightFires();
+        else if (!string.IsNullOrWhiteSpace(cancelId))
+            CancelInFlightFire(cancelId);
 
         return new
         {
@@ -508,7 +519,7 @@ internal static partial class IdeIgniteArmHost
             var set = new HashSet<string>(removed, StringComparer.OrdinalIgnoreCase);
             Arms.RemoveAll(a => set.Contains(a.Id));
             foreach (var id in removed)
-                Firing.TryRemove(id, out _);
+                CancelInFlightFire(id);
             if (persist) PersistUnlocked();
         }
 
