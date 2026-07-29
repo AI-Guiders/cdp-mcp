@@ -42,6 +42,7 @@ internal static partial class IdeCockpit
         var includeSubmodules = ingress.IncludeSubmodules;
         var mfd = ingress.Mfd;
         var goVerb = ingress.GoVerb;
+        var planPulseWanted = WantsPlanPulseFastPath(goVerb, args);
 
         object? goResult = ingress.ReplDirect;
         var buffer = CollectBuffer(docStore.Scene());
@@ -50,6 +51,12 @@ internal static partial class IdeCockpit
             session, docStore, workspaceStore, workspaceState, args);
 
         var deferred = PeekDeferredSoftWants(ref goVerb);
+        if (planPulseWanted && !AnyDeferredSoftWant(deferred))
+        {
+            return FinishPlanPulseDesk(
+                session, docStore, shellHabitat, internetBrowser, ideSettings,
+                workspaceStore, workspaceState, args, mfd, focusId, goResult, warm);
+        }
 
         var git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken).ConfigureAwait(false);
         var shell = CollectShell(shellHabitat.Scene());
