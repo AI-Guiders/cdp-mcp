@@ -350,6 +350,17 @@ internal static partial class IdeIgniteArmHost
         return $"ignite · continuity · armed={armed}{noise}{due}";
     }
 
+    /// <summary>Mirror AutoIgnition continuity to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass()
+    {
+        var list = Snapshot();
+        var armedCount = list.Count(a => a.Status is "armed" or "firing");
+        var awaitingCount = list.Count(a => a.Status == "awaiting");
+        var providerBlocked = list.Any(a => a.Status == ProviderBlockedStatus);
+        var active = armedCount > 0 || awaitingCount > 0 || providerBlocked;
+        CideIgniteLatch.Publish(active, ContinuityPulseLine(list), armedCount, awaitingCount, providerBlocked);
+    }
+
     static IdeExplainability.ExplainCard ContinuityExplain(IReadOnlyList<IgniteArm> list)
     {
         var blocked = list.Where(a => a.Status == ProviderBlockedStatus).ToList();
