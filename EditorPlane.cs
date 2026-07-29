@@ -151,7 +151,7 @@ internal static class EditorPlane
             }
         }
 
-        var drift = docs.Count(b => b.ProbeDiskChanged(out _, out _));
+        var drift = docs.Count(b => b.ProbeMaterialDiskChanged(out _, out _));
         return JsonSerializer.Serialize(new
         {
             schema = SceneSchema,
