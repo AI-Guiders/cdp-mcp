@@ -40,6 +40,7 @@ void InvalidateWorkspaceScope()
 CdpProfile.OnStateRootChanged(InvalidateWorkspaceScope);
 
 var session = new SessionContext();
+IdeCockpitHostChannel.ProjectRootResolver = () => session.ProjectRoot;
 
 void EnsureWorkspaceDb()
 {

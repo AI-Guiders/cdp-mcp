@@ -32,7 +32,7 @@ Human may also Start from OS shortcut — same process attach via env.
 - [x] Real CascadeIDE exe dogfood (`path=` / toml on cdp-debug)
 - [x] Nav Anchor in GUI lands via same `cdp_land` wire — latch `%LocalAppData%/cdp-mcp/land-LATEST.json` + CIDE `CdpLandProjector` (GoToPosition + reload clean tab)
 - [x] Human GUI focus → agent cockpit sit (`focus-LATEST` internal feed → `alert.sit.locus`; agent looks at `cdp_cockpit`, not a parallel peek API)
-- [ ] Melody/settings load when shell starts (do not strip)
+- [x] Melody/settings load when shell starts (do not strip) — host WD=session ProjectRoot when set; `--mcp-stdio` rejected; post-start latch hydration (`CockpitHostLatchHydration`); ICM scene shares `CockpitHostProfile` (not hardcoded agent-only). Host does not mutate Melody/settings.toml.
 - [x] Auto-reload open tabs on Instant Save without land — `disk-LATEST.json` (agent flush ↔ human Save); shared dirty glass
 - [x] Shared-file indication (co-presence) — human `focus-LATEST` ∩ agent open buffers → desk `sit.locus` ` · shared` + `shared-LATEST.json` (not GetEditorState dump)
 - [x] Desk→CIDE glass (instant) — `presentation-LATEST.json` topology/tier/instruments/mfd_page + live apply; not agent `cdp_settings`; respect repo `workspace.toml`

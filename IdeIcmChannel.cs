@@ -44,25 +44,31 @@ internal static class IdeIcmChannel
         };
     }
 
-    static object Scene() => new
+    static object Scene()
     {
-        ok = true,
-        schema = SchemaVersion,
-        go = GoName,
-        tool = ToolName,
-        pulse = $"icm · bound={IdeCommandModule.IsBound} · aliases={IdeCommandAliasMap.Count}",
-        bound = IdeCommandModule.IsBound,
-        alias_count = IdeCommandAliasMap.Count,
-        host_profile = "agent-only",
-        gui_host = "down",
-        hint = "op=aliases|resolve command_id=|invoke command_id= — GUI client discovery; Melody catalog untouched. Start/Stop host later.",
-        next = new object[]
+        var host = CockpitHostProfile.Current();
+        return new
         {
-            new { go = "icm", label = "Aliases", why = "op=aliases" },
-            new { go = "land", label = "Nav Anchor", why = "cdp_land — GUI parity" },
-            new { go = "plan", label = "Task Manager", why = "ICM stage focus" }
-        }
-    };
+            ok = true,
+            schema = SchemaVersion,
+            go = GoName,
+            tool = ToolName,
+            pulse = $"icm · bound={IdeCommandModule.IsBound} · aliases={IdeCommandAliasMap.Count} · host={host.HostProfile}",
+            bound = IdeCommandModule.IsBound,
+            alias_count = IdeCommandAliasMap.Count,
+            host_profile = host.HostProfile,
+            gui_host = host.GuiHost,
+            pid = host.Pid,
+            hint = "op=aliases|resolve command_id=|invoke command_id= — GUI client discovery; Melody catalog untouched. Host via cdp_cockpit_host.",
+            next = new object[]
+            {
+                new { go = "icm", label = "Aliases", why = "op=aliases" },
+                new { go = "land", label = "Nav Anchor", why = "cdp_land — GUI parity" },
+                new { go = "plan", label = "Task Manager", why = "ICM stage focus" },
+                new { go = "cockpit_start", label = "Start GUI host", why = "Melody/settings load with shell" }
+            }
+        };
+    }
 
     static object Aliases() => new
     {

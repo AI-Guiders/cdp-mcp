@@ -43,6 +43,15 @@ internal static class IdeCockpitHostChannel
     public static string HandleJson(IReadOnlyDictionary<string, JsonElement>? args = null) =>
         JsonSerializer.Serialize(Handle(args), JsonOpts);
 
+    /// <summary>Shared pulse for ICM / host scenes (no JSON round-trip).</summary>
+    public static CockpitHostProfile.Snapshot GetHostPulse()
+    {
+        var st = Snapshot();
+        return st is null
+            ? new CockpitHostProfile.Snapshot("down", "agent-only", null)
+            : new CockpitHostProfile.Snapshot("up", "dual-cockpit", st.Pid);
+    }
+
     public static object Handle(IReadOnlyDictionary<string, JsonElement>? args = null)
     {
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
@@ -88,6 +97,7 @@ internal static class IdeCockpitHostChannel
             var existing = SnapshotLocked();
             if (existing is not null)
             {
+                var latchesAlready = CockpitHostLatchHydration.TouchAgentLatchesForHostStart();
                 return new
                 {
                     ok = true,
@@ -98,8 +108,9 @@ internal static class IdeCockpitHostChannel
                     host_profile = "dual-cockpit",
                     pid = existing.Pid,
                     exe = existing.Exe,
-                    pulse = $"cockpit_host · already up · pid={existing.Pid}",
-                    hint = "Host already running."
+                    latches_hydrated = latchesAlready,
+                    pulse = $"cockpit_host · already up · pid={existing.Pid} · latches={latchesAlready}",
+                    hint = "Host already running; latches re-stamped for glass."
                 };
             }
 
@@ -131,51 +142,39 @@ internal static class IdeCockpitHostChannel
                 };
             }
 
-            ProcessStartInfo psi = new()
-            {
-                FileName = exe,
-                UseShellExecute = true,
-                WorkingDirectory = Path.GetDirectoryName(exe) ?? Environment.CurrentDirectory
-            };
             var argsLine = Opt(args, "args");
-            if (!string.IsNullOrWhiteSpace(argsLine))
-                psi.Arguments = argsLine;
-
-            Process? proc;
-            try
-            {
-                proc = Process.Start(psi);
-            }
-            catch (Exception ex)
+            if (ContainsMcpStdioGuard(argsLine))
             {
                 return new
                 {
                     ok = false,
                     schema = SchemaVersion,
                     op = "start",
-                    error = ex.Message,
-                    exe
+                    error = "args must not include --mcp-stdio",
+                    hint = "Cockpit host is the GUI shell (Melody + settings.toml). MCP stdio stays on the agent process."
                 };
             }
 
-            if (proc is null)
+            var workDir = ResolveWorkingDirectory();
+            if (!TrySpawnHost(exe, workDir, argsLine, out var pid, out var spawnError))
             {
                 return new
                 {
                     ok = false,
                     schema = SchemaVersion,
                     op = "start",
-                    error = "Process.Start returned null",
+                    error = spawnError,
                     exe
                 };
             }
 
             _live = new HostState
             {
-                Pid = proc.Id,
+                Pid = pid,
                 Exe = exe,
                 StartedUtc = DateTimeOffset.UtcNow.ToString("O")
             };
+            var latches = CockpitHostLatchHydration.TouchAgentLatchesForHostStart();
             return new
             {
                 ok = true,
@@ -186,10 +185,71 @@ internal static class IdeCockpitHostChannel
                 pid = _live.Pid,
                 exe = _live.Exe,
                 started_utc = _live.StartedUtc,
-                pulse = $"cockpit_host · started · pid={_live.Pid}",
-                hint = "GUI up. Prefer cdp_icm / cdp_land from shell; Stop via op=stop."
+                working_directory = workDir,
+                latches_hydrated = latches,
+                pulse = $"cockpit_host · started · pid={_live.Pid} · latches={latches}",
+                hint = "GUI up with Melody/settings. Prefer cdp_icm / cdp_land; Stop via op=stop. Latches re-stamped for glass projectors."
             };
         }
+    }
+
+    /// <summary>Optional session ProjectRoot; falls back to exe directory.</summary>
+    internal static Func<string?>? ProjectRootResolver { get; set; }
+
+    static bool TrySpawnHost(string exe, string workDir, string? argsLine, out int pid, out string error)
+    {
+        pid = 0;
+        error = "";
+        ProcessStartInfo psi = new()
+        {
+            FileName = exe,
+            UseShellExecute = true,
+            WorkingDirectory = workDir
+        };
+        if (!string.IsNullOrWhiteSpace(argsLine))
+            psi.Arguments = argsLine;
+
+        try
+        {
+            var proc = Process.Start(psi);
+            if (proc is null)
+            {
+                error = "Process.Start returned null";
+                return false;
+            }
+
+            pid = proc.Id;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            return false;
+        }
+    }
+
+    static string ResolveWorkingDirectory()
+    {
+        try
+        {
+            var root = ProjectRootResolver?.Invoke();
+            if (!string.IsNullOrWhiteSpace(root) && Directory.Exists(root))
+                return root!;
+        }
+        catch
+        {
+            /* fall through */
+        }
+
+        var configured = ResolveExe(null);
+        return Path.GetDirectoryName(configured) ?? Environment.CurrentDirectory;
+    }
+
+    static bool ContainsMcpStdioGuard(string? argsLine)
+    {
+        if (string.IsNullOrWhiteSpace(argsLine))
+            return false;
+        return argsLine.Contains("--mcp-stdio", StringComparison.OrdinalIgnoreCase);
     }
 
     static object Stop()

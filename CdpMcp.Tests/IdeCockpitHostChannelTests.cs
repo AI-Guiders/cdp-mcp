@@ -88,6 +88,56 @@ public class IdeCockpitHostChannelTests
     }
 
     [Fact]
+    public void Start_rejects_mcp_stdio_args()
+    {
+        if (!TryResolveStandIn(out var exe, out _))
+            return;
+
+        var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("start"),
+            ["path"] = JsonSerializer.SerializeToElement(exe),
+            ["args"] = JsonSerializer.SerializeToElement("--mcp-stdio")
+        };
+        using var doc = JsonDocument.Parse(IdeCockpitHostChannel.HandleJson(args));
+        Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Contains("mcp-stdio", doc.RootElement.GetProperty("error").GetString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Start_uses_project_root_working_directory()
+    {
+        if (!TryResolveStandIn(out var exe, out var standInArgs))
+            return;
+
+        var root = Path.Combine(Path.GetTempPath(), "cdp-host-wd-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var prev = IdeCockpitHostChannel.ProjectRootResolver;
+        var pid = 0;
+        try
+        {
+            IdeCockpitHostChannel.ProjectRootResolver = () => root;
+            using var started = JsonDocument.Parse(IdeCockpitHostChannel.HandleJson(
+                new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["op"] = JsonSerializer.SerializeToElement("start"),
+                    ["path"] = JsonSerializer.SerializeToElement(exe),
+                    ["args"] = JsonSerializer.SerializeToElement(standInArgs)
+                }));
+            Assert.True(started.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal(root, started.RootElement.GetProperty("working_directory").GetString());
+            pid = started.RootElement.GetProperty("pid").GetInt32();
+            StopAndEnsureDead(pid);
+        }
+        finally
+        {
+            IdeCockpitHostChannel.ProjectRootResolver = prev;
+            ForceKill(pid);
+            try { Directory.Delete(root, recursive: true); } catch { /* temp */ }
+        }
+    }
+
+    [Fact]
     public void Start_and_stop_lifecycle_with_headless_stand_in()
     {
         if (!TryResolveStandIn(out var exe, out var standInArgs))

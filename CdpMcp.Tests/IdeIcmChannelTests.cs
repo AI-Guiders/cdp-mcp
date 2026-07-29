@@ -7,14 +7,15 @@ namespace CdpMcp.Tests;
 public class IdeIcmChannelTests
 {
     [Fact]
-    public async Task Scene_reports_alias_count_and_agent_only_host()
+    public async Task Scene_reports_alias_count_and_host_profile_from_channel()
     {
         using var doc = JsonDocument.Parse(await IdeIcmChannel.HandleJsonAsync(null, CancellationToken.None));
         var root = doc.RootElement;
         Assert.Equal("icm_channel/v1", root.GetProperty("schema").GetString());
         Assert.True(root.GetProperty("alias_count").GetInt32() > 0);
-        Assert.Equal("agent-only", root.GetProperty("host_profile").GetString());
-        Assert.Equal("down", root.GetProperty("gui_host").GetString());
+        var pulse = CockpitHostProfile.Current();
+        Assert.Equal(pulse.HostProfile, root.GetProperty("host_profile").GetString());
+        Assert.Equal(pulse.GuiHost, root.GetProperty("gui_host").GetString());
     }
 
     [Fact]
