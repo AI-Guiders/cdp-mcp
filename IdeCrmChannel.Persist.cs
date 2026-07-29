@@ -30,6 +30,7 @@ internal static partial class IdeCrmChannel
         var json = JsonSerializer.Serialize(snap, Pretty);
         File.WriteAllText(latest, json);
         File.WriteAllText(stamped, json);
+        PublishGlass(session);
     }
 
     static string LatestPath(SessionContext session) => Path.Combine(InboxDir(session), "LATEST.json");

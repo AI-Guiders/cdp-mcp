@@ -1,4 +1,5 @@
 #nullable enable
+using Cdp.Core;
 
 namespace CdpMcp;
 
@@ -34,6 +35,34 @@ internal static partial class IdeCrmChannel
         if (string.Equals(snap.Status, Awaiting, StringComparison.OrdinalIgnoreCase))
             return $"crm · AWAITING · {snap.Kind}:{snap.RefId}";
         return $"crm · {snap.Callout ?? snap.Status} · {snap.Kind}:{snap.RefId}";
+    }
+
+    /// <summary>Mirror CRM awaiting pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass(SessionContext session)
+    {
+        try
+        {
+            var snap = Read(session);
+            var awaiting = snap is not null
+                && string.Equals(snap.Status, Awaiting, StringComparison.OrdinalIgnoreCase);
+            if (!awaiting)
+            {
+                CideCrmLatch.Publish(active: false, pulse: "crm · idle", status: null, kind: null, refId: null);
+                return;
+            }
+
+            // Dark Cockpit: chrome only while operator must respond.
+            CideCrmLatch.Publish(
+                active: true,
+                pulse: PulseLine(snap),
+                status: snap!.Status,
+                kind: snap.Kind,
+                refId: snap.RefId);
+        }
+        catch
+        {
+            /* best-effort */
+        }
     }
 
     static object Card(CrmSnap snap) => new

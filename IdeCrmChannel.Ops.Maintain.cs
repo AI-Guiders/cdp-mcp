@@ -25,6 +25,7 @@ internal static partial class IdeCrmChannel
         var path = LatestPath(session);
         if (File.Exists(path))
             File.Delete(path);
+        PublishGlass(session);
         return new { ok = true, schema = SchemaVersion, op = "clear", pulse = "crm · idle" };
     }
 
