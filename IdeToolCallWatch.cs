@@ -116,10 +116,34 @@ internal static class IdeToolCallWatch
 
             var elapsedMs = (int)Math.Max(0, (DateTimeOffset.UtcNow - started).TotalMilliseconds);
             var wakeExceeded = Volatile.Read(ref exceededFlag) == 1 || elapsedMs >= threshold * 1000;
+            // Call finished — cancel pending Autoi wake so CDT does not inject a stale
+            // "still running" charge minutes later (composer was busy / Stop).
+            ClearWakeArm(callId, wakeExceeded);
             IdeFlightDataRecorder.RecordToolCall(
                 toolName, callId, args, threshold, elapsedMs, outcome,
                 wakeExceeded, error, resultChars: text.Length);
         }
+    }
+
+    /// <summary>Disarm <c>tool-wake-{callId}</c> and clear latch when this call armed it.</summary>
+    internal static void ClearWakeArm(string callId, bool hadExceeded)
+    {
+        try
+        {
+            var id = $"tool-wake-{callId}";
+            var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["id"] = JsonSerializer.SerializeToElement(id)
+            };
+            _ = IdeIgniteArmHost.Disarm(args);
+        }
+        catch
+        {
+            /* best-effort */
+        }
+
+        if (hadExceeded)
+            CideToolWatchLatch.Clear();
     }
 
     /// <summary>Per-call override <c>timeout_wake</c>/<c>wake_after</c>; else organ default; 0 = off.</summary>

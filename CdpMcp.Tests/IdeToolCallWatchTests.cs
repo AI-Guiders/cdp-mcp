@@ -83,7 +83,8 @@ public sealed class IdeToolCallWatchTests
                 CancellationToken.None);
 
             Assert.NotNull(hit);
-            Assert.True(CideToolWatchLatch.TryRead()!.Active);
+            // Threshold fired during call; after complete latch must be idle (no ghost wake).
+            Assert.False(CideToolWatchLatch.TryRead()!.Active);
             using var doc = JsonDocument.Parse(text);
             Assert.True(doc.RootElement.GetProperty("wake").GetProperty("during_call").GetBoolean());
         }
@@ -123,10 +124,10 @@ public sealed class IdeToolCallWatchTests
             Assert.Equal(1, hit.Value.ThresholdSeconds);
             using var doc = JsonDocument.Parse(text);
             Assert.True(doc.RootElement.GetProperty("wake").GetProperty("exceeded").GetBoolean());
+            // Call finished → latch cleared so Autoi cannot fire a stale "still running".
             var latch = CideToolWatchLatch.TryRead();
             Assert.NotNull(latch);
-            Assert.True(latch!.Active);
-            Assert.Equal("cdp_cockpit", latch.Tool);
+            Assert.False(latch!.Active);
         }
         finally
         {
