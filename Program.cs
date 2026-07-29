@@ -227,6 +227,7 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "cdp_md_author",
     "cdp_learn",
     "cdp_fdr",
+    "cdp_postmortem",
     "cdp_scope",
     "cdp_webcam",
     "cdp_ps1_scene"
@@ -748,6 +749,30 @@ List<Tool> BuildMetaTools() =>
                 limit = new { type = "integer", description = "tail/stats/slow lookback" },
                 lookback = new { type = "integer", description = "alias of limit for stats/slow" },
                 min_ms = new { type = "integer", description = "slow: min elapsed ms (default 1000)" }
+            }
+        }),
+    Meta("cdp_postmortem", "Ethical SoftOrgan postmortem — blameless peel (happened/system_root/why_repeated/fix/do_not). Scrubs secrets; refuses blame + chat dump. op=scene|template|draft|record|list. Persist failure+finding+FDR call_id. Alias go=postmortem|pm|retro. Integrity=honesty+exit.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|template|draft|record|list" },
+                happened = new { type = "string", description = "What happened (facts, no blame)" },
+                system_root = new { type = "string", description = "System/mechanism root" },
+                why_repeated = new { type = "string", description = "Why it repeated" },
+                fix = new { type = "string", description = "Fix shipped or planned" },
+                do_not = new { type = "string", description = "Anti-pattern for next agent" },
+                title = new { type = "string" },
+                tool = new { type = "string" },
+                fdr_call_id = new { type = "string", description = "FDR call_id anchor" },
+                call_id = new { type = "string", description = "alias of fdr_call_id" },
+                category = new { type = "string", description = "failures category (default unknown; postmortem→unknown)" },
+                fingerprint = new { type = "string" },
+                task_id = new { type = "string" },
+                project_id = new { type = "string" },
+                workspace_path = new { type = "string" },
+                limit = new { type = "integer", description = "list lookback" }
             }
         }),
     Meta("cdp_learn", "Lean dialogue learning desk — stash findings so compaction cannot eat them. op=scene|stash|list|recall|promote. Journal under ws state; promote → agent-notes work/projects/_learn (or path=). Alias go=learn. Not findings (file memos) and not TM.",
@@ -1911,6 +1936,8 @@ async Task<string> DispatchMetaAsync(
             return IdeMdAuthorChannel.HandleJson(session, callArgs);
         case "cdp_fdr":
             return IdeFdrChannel.HandleJson(session, callArgs);
+        case "cdp_postmortem":
+            return IdePostmortemChannel.HandleJson(session, callArgs);
         case "cdp_learn":
             return IdeLearnChannel.HandleJson(session, callArgs);
         case "cdp_scope":

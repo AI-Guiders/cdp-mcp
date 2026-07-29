@@ -74,7 +74,9 @@ internal static class IdeFlightDataRecorder
         if (SuppressWriteForTests)
             return;
         if (string.Equals(tool, IdeFdrChannel.ToolName, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(tool, "cdp_fdr", StringComparison.OrdinalIgnoreCase))
+            || string.Equals(tool, "cdp_fdr", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(tool, IdePostmortemChannel.ToolName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(tool, "cdp_postmortem", StringComparison.OrdinalIgnoreCase))
             return;
 
         FdrContextSnap? snap = null;
