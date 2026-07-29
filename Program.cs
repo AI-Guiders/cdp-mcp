@@ -184,6 +184,7 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "cdp_onboard",
     "cdp_toolchain",
     "cdp_files",
+    "cdp_md_author",
     "cdp_webcam",
     "cdp_ps1_scene"
 };
@@ -678,6 +679,20 @@ List<Tool> BuildMetaTools() =>
                 via = new { type = "string", description = "winget|scoop|..." },
                 bins = new { type = "string", description = "add: comma bins" },
                 pairs_lsp = new { type = "string", description = "optional lsp id after ensure" }
+            }
+        }),
+    Meta("cdp_md_author", "Markdown authoring INCLUDE organ (CIDE ADR 0023). op=scene|check|expand|export. Syntax {{ INCLUDE: rel/path }}. scope=all (default) or fence (CIDE preview parity). Alias go=md_author.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|check|expand|export" },
+                path = new { type = "string", description = "source .md (absolute or project-relative)" },
+                @out = new { type = "string", description = "export: output path (default {name}.expanded.md)" },
+                scope = new { type = "string", description = "all|fence" },
+                max_depth = new { type = "integer", description = "INCLUDE nest limit (default 5)" },
+                max_chars = new { type = "integer", description = "expand/export body cap in response" }
             }
         }),
     Meta("cdp_files", "Agent-native File Manager (ADR-0016). Utility — not project-bound. where=cwd|project|external (+path=). op=scene|list|cd|up|stat|tree|open|text|search|roots|clear. text= lynx-like dump (pandoc/pdftotext). shape=slim|list. Alias go=files_desk. Prefer over shell ls/dir. Search facet → find_desk.", new
@@ -1799,6 +1814,8 @@ async Task<string> DispatchMetaAsync(
             return IdeOnboardChannel.HandleJson(session, callArgs);
         case "cdp_toolchain":
             return IdeToolchainChannel.HandleJson(session, callArgs);
+        case "cdp_md_author":
+            return IdeMdAuthorChannel.HandleJson(session, callArgs);
         case "cdp_files":
             return IdeFilesChannel.HandleJson(docStore, session, callArgs);
         case "cdp_ignite":

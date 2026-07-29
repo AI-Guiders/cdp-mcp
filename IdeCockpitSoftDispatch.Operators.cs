@@ -100,6 +100,20 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
+    static bool TryDispatchMdAuthor(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsSoft(goVerb, SoftOrganKind.MdAuthor))
+            return false;
+
+        goResult = SoftBoard(SoftOrganKind.MdAuthor, session, null, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftOrganKind.MdAuthor);
+        return true;
+    }
+
     static bool TryDispatchIgnite(
         ref string? goVerb,
         ref object? goResult,

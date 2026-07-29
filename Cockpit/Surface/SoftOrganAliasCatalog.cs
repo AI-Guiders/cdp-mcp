@@ -36,6 +36,8 @@ public sealed class SoftOrganAliasCatalog : ICockpitComputeUnit
         "ecl" or "chk" => SoftOrganKind.Ecl,
         "qrh" or "eqrh" or "handbook" => SoftOrganKind.Qrh,
         "review" => SoftOrganKind.Review,
+        "md_author" or "md_author_desk" or "markdown_author" or "md_include" or "cdp_md_author"
+            => SoftOrganKind.MdAuthor,
         _ => null
     };
 }
