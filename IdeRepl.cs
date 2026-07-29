@@ -1455,6 +1455,13 @@ internal static class IdeRepl
                 var title = string.Join(' ', tokens.Take(tokens.Count - 1));
                 return (title.Trim(), null);
             }
+
+            // Board chrome / legacy paste — `@todo` is not a phase; do not bake into the title.
+            if (tag.Equals("todo", StringComparison.OrdinalIgnoreCase))
+            {
+                var title = string.Join(' ', tokens.Take(tokens.Count - 1));
+                return (title.Trim(), null);
+            }
         }
 
         return (string.Join(' ', tokens).Trim(), null);

@@ -1254,6 +1254,7 @@ internal sealed partial class IntentWorkspaceStore(
         if (string.IsNullOrWhiteSpace(title))
             return null;
         var t = title.Trim();
+        var bare = StripBoardChrome(t);
         var intentId = state.ActiveIntentId;
         return WithDb(db =>
         {
@@ -1265,15 +1266,59 @@ internal sealed partial class IntentWorkspaceStore(
 
             // Materialize before title compare — WitDB provider equality can miss titles with '/' (board shows them; focus/done by title fails).
             var list = q.ToList();
-            return list.Where(x => x.Title == t)
-                       .OrderByDescending(x => x.UpdatedUtc)
-                       .Select(x => (Guid?)x.Id)
-                       .FirstOrDefault()
-                   ?? list.Where(x => string.Equals(x.Title, t, StringComparison.OrdinalIgnoreCase))
-                       .OrderByDescending(x => x.UpdatedUtc)
-                       .Select(x => (Guid?)x.Id)
-                       .FirstOrDefault();
+
+            Guid? Pick(Func<StageEntity, bool> pred) =>
+                list.Where(pred)
+                    .OrderByDescending(x => x.UpdatedUtc)
+                    .Select(x => (Guid?)x.Id)
+                    .FirstOrDefault();
+
+            // Exact (with/without board chrome @phase #Product baked into stored title or pasted query).
+            var hit = Pick(x => x.Title == t)
+                ?? Pick(x => string.Equals(x.Title, t, StringComparison.OrdinalIgnoreCase))
+                ?? (bare.Length > 0 && bare != t
+                    ? Pick(x => x.Title == bare)
+                        ?? Pick(x => string.Equals(x.Title, bare, StringComparison.OrdinalIgnoreCase))
+                    : null)
+                ?? Pick(x => string.Equals(StripBoardChrome(x.Title), bare, StringComparison.OrdinalIgnoreCase));
+            if (hit is not null)
+                return hit;
+
+            // Unique prefix — stop junk seeds from `task Add deferred` when a longer slash title already exists.
+            if (bare.Length < 8)
+                return null;
+            var prefix = list
+                .Where(x =>
+                {
+                    var stored = StripBoardChrome(x.Title);
+                    return stored.StartsWith(bare, StringComparison.OrdinalIgnoreCase)
+                           || x.Title.StartsWith(t, StringComparison.OrdinalIgnoreCase);
+                })
+                .OrderByDescending(x => x.UpdatedUtc)
+                .ToList();
+            return prefix.Count == 1 ? prefix[0].Id : null;
         });
+    }
+
+    /// <summary>
+    /// Peel trailing board chrome (<c>@act</c>/<c>@todo</c>/<c>#CDP</c>) so drop/focus pasted from the board matches the stored title.
+    /// </summary>
+    internal static string StripBoardChrome(string title)
+    {
+        var words = title.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        while (words.Count > 0)
+        {
+            var last = words[^1];
+            if ((last.StartsWith('@') || last.StartsWith('#')) && last.Length > 1)
+            {
+                words.RemoveAt(words.Count - 1);
+                continue;
+            }
+
+            break;
+        }
+
+        return string.Join(' ', words);
     }
 
     public Guid? FindNextPendingStage(IntentWorkspaceState state)
