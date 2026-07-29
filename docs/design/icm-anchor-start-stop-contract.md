@@ -34,3 +34,4 @@ Human may also Start from OS shortcut — same process attach via env.
 - [x] Human GUI focus → agent cockpit sit (`focus-LATEST` internal feed → `alert.sit.locus`; agent looks at `cdp_cockpit`, not a parallel peek API)
 - [ ] Melody/settings load when shell starts (do not strip)
 - [x] Auto-reload open tabs on Instant Save without land — `disk-LATEST.json` (agent flush ↔ human Save); shared dirty glass
+- [x] Desk→CIDE presentation topology (instant) — `presentation-LATEST.json` + live reparse; not agent `cdp_settings`; respect repo `workspace.toml`

@@ -454,6 +454,17 @@ List<Tool> BuildMetaTools() =>
         },
         required = new[] { "anchor" }
     }),
+    Meta("cdp_cide_presentation", "Operator CIDE presentation topology wire (instant glass). op=scene|get|set. set topology=(P)(F)(M) → presentation-LATEST latch → CIDE live reparse. Not agent cdp_settings desk; does not mutate repo workspace.toml. Alias go=cide_presentation.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|get|set (default scene)" },
+            topology = new { type = "string", description = "set: display.screens.topology e.g. (P)(F)(M)" },
+            value = new { type = "string", description = "alias of topology" },
+            presentation = new { type = "string", description = "alias of topology" }
+        }
+    }),
     Meta("cdp_mcp", "Agent MCP outlet (ADR 0187) — Cursor-parity control inside CDP. op=scene|presets|mount|tools|call|unmount. Mount guests (Serena/memory/…) for a task; child tools NEVER enter host ListTools. Alias go=mcp_scene|mcp_mount|…", new
     {
         type = "object",
@@ -1734,6 +1745,8 @@ async Task<string> DispatchMetaAsync(
                     cancellationToken)
                 .ConfigureAwait(false);
         }
+        case "cdp_cide_presentation":
+            return IdeCidePresentationChannel.HandleJson(callArgs);
         case "cdp_mcp":
             return await mcpOutlet.DispatchAsync(callArgs, cancellationToken).ConfigureAwait(false);
         case "cdp_browser":
