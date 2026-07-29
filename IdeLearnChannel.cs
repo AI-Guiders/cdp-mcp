@@ -55,7 +55,7 @@ internal static class IdeLearnChannel
     {
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var op = (Opt(args, "op") ?? Opt(args, "cmd") ?? "scene").Trim().ToLowerInvariant();
-        return op switch
+        var result = op switch
         {
             "scene" or "help" or "status" => Scene(),
             "stash" or "capture" or "note" or "write" => Stash(session, args),
@@ -64,6 +64,8 @@ internal static class IdeLearnChannel
             "promote" or "export" => Promote(session, args),
             _ => Fail("unknown_op", "op=scene|stash|list|recall|promote")
         };
+        PublishGlass();
+        return result;
     }
 
     public static string PulseLine(SessionContext? session = null)
@@ -73,6 +75,22 @@ internal static class IdeLearnChannel
         return n == 0
             ? "learn · empty · go=learn op=stash"
             : $"learn · {n} card(s) · go=learn";
+    }
+
+    /// <summary>Mirror learn journal pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass()
+    {
+        try
+        {
+            var n = CountEntries();
+            var pulse = PulseLine();
+            // Dark Cockpit: chrome only while learning cards remain in the journal.
+            CideLearnLatch.Publish(active: n > 0, pulse, n);
+        }
+        catch
+        {
+            /* best-effort */
+        }
     }
 
     static object Scene() => new

@@ -88,6 +88,7 @@ internal static partial class IdeCockpit
             quality.Fail,
             quality.Warn,
             chkSnap));
+        IdeLearnChannel.PublishGlass();
 
         var tile = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
         var board = new IdeSoftOrganBoard(new SoftOrganSeatBag(
