@@ -41,6 +41,19 @@ internal static class IdeOpsPulse
         };
     }
 
+    /// <summary>Mirror ops pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass()
+    {
+        var self = IdeDeploy.ResolveSelfInstallRoot();
+        var seat = IdeDeploy.ClassifySeat(self);
+        var pending = ReadPending(self) is not null;
+        var cont = StripContPrefix(IdeIgniteArmHost.ContinuityPulseLine());
+        // Dark Cockpit: silent when clear + continuity idle (armed=0 only).
+        var continuityIdle = string.Equals(cont, "armed=0", StringComparison.Ordinal);
+        var active = pending || !continuityIdle;
+        CideSysLatch.Publish(active, Line(), seat, pending);
+    }
+
     static DateTimeOffset? TryLiveUtc()
     {
         try
