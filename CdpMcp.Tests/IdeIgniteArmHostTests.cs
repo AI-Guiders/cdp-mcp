@@ -415,6 +415,60 @@ public class IdeIgniteArmHostTests
         Assert.Equal(expect, IdeIgniteArmHost.IsToolWakeArmId(id));
 
     [Fact]
+    public void Arm_timer_replaces_prior_continuity_timer_keeps_tool_wake()
+    {
+        var first = "test-arm-" + Guid.NewGuid().ToString("N")[..8];
+        var second = "test-arm-" + Guid.NewGuid().ToString("N")[..8];
+        var wake = "tool-wake-" + Guid.NewGuid().ToString("N")[..8];
+        try
+        {
+            IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("arm"),
+                ["when"] = JsonSerializer.SerializeToElement("timer"),
+                ["in"] = JsonSerializer.SerializeToElement("1h"),
+                ["id"] = JsonSerializer.SerializeToElement(first),
+                ["task"] = JsonSerializer.SerializeToElement("first"),
+                ["settle_seconds"] = JsonSerializer.SerializeToElement(0)
+            });
+            IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("arm"),
+                ["when"] = JsonSerializer.SerializeToElement("timer"),
+                ["in"] = JsonSerializer.SerializeToElement("2h"),
+                ["id"] = JsonSerializer.SerializeToElement(wake),
+                ["task"] = JsonSerializer.SerializeToElement("tool hang"),
+                ["settle_seconds"] = JsonSerializer.SerializeToElement(0)
+            });
+            IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("arm"),
+                ["when"] = JsonSerializer.SerializeToElement("timer"),
+                ["in"] = JsonSerializer.SerializeToElement("30m"),
+                ["id"] = JsonSerializer.SerializeToElement(second),
+                ["task"] = JsonSerializer.SerializeToElement("second"),
+                ["settle_seconds"] = JsonSerializer.SerializeToElement(0)
+            });
+
+            var listJson = JsonSerializer.Serialize(IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("list")
+            }));
+            Assert.DoesNotContain(first, listJson, StringComparison.Ordinal);
+            Assert.Contains(second, listJson, StringComparison.Ordinal);
+            Assert.Contains(wake, listJson, StringComparison.Ordinal);
+        }
+        finally
+        {
+            IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("disarm"),
+                ["all"] = JsonSerializer.SerializeToElement(true)
+            });
+        }
+    }
+
+    [Fact]
     public void Disarm_cancels_in_flight_fire_token()
     {
         var id = "tool-wake-" + Guid.NewGuid().ToString("N")[..8];
