@@ -77,6 +77,7 @@ internal static partial class IdeCockpit
         IdeReportBoard.PublishGlass(session);
         IdeCrmChannel.PublishGlass(session);
         IdeWebcamChannel.PublishGlass();
+        IdeToolchainChannel.PublishGlass();
 
         var tile = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
         var board = new IdeSoftOrganBoard(new SoftOrganSeatBag(
