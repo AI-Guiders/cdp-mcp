@@ -28,7 +28,8 @@ internal static class CockpitHostLatchHydration
         "sys-LATEST.json",
         "onboard-LATEST.json",
         "arch-LATEST.json",
-        "mcp-LATEST.json"
+        "mcp-LATEST.json",
+        "plan-LATEST.json"
     ];
 
     /// <summary>Test hook: redirect flat latch root (same as glass latches).</summary>
