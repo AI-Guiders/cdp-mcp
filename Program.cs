@@ -188,6 +188,13 @@ if (notesRuntime is not null && settings.Memory.Project.Enabled)
         return handlers.Handle("write_knowledge_file", args);
     });
 }
+IdeFlightDataRecorder.BindContext(() => new IdeFlightDataRecorder.FdrContextSnap(
+    Phase: CdpEnumParse.ToWire(session.Phase),
+    Object: CdpEnumParse.ToWire(session.Object),
+    Language: session.Language,
+    ProjectLeaf: string.IsNullOrWhiteSpace(session.ProjectRoot)
+        ? null
+        : Path.GetFileName(session.ProjectRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))));
 if (CdpEnumParse.TryParsePhase(settings.DefaultPhase, out var dp)) session.Phase = dp;
 if (CdpEnumParse.TryParseObject(settings.DefaultObject, out var dobj)) session.Object = dobj;
 // User prefs can override cold phase/object after process defaults.
@@ -219,6 +226,7 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "cdp_files",
     "cdp_md_author",
     "cdp_learn",
+    "cdp_fdr",
     "cdp_scope",
     "cdp_webcam",
     "cdp_ps1_scene"
@@ -728,6 +736,18 @@ List<Tool> BuildMetaTools() =>
                 scope = new { type = "string", description = "all|fence" },
                 max_depth = new { type = "integer", description = "INCLUDE nest limit (default 5)" },
                 max_chars = new { type = "integer", description = "expand/export body cap in response" }
+            }
+        }),
+    Meta("cdp_fdr", "Black-box FDR — dense tool-call flight tape (organ/op/latency/outcome/phase). Incident analysis, not chat dump. op=scene|tail|stats|slow. Alias go=fdr. VDR deferred. Auto timeout_wake from stats = later.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|tail|stats|slow" },
+                limit = new { type = "integer", description = "tail/stats/slow lookback" },
+                lookback = new { type = "integer", description = "alias of limit for stats/slow" },
+                min_ms = new { type = "integer", description = "slow: min elapsed ms (default 1000)" }
             }
         }),
     Meta("cdp_learn", "Lean dialogue learning desk — stash findings so compaction cannot eat them. op=scene|stash|list|recall|promote. Journal under ws state; promote → agent-notes work/projects/_learn (or path=). Alias go=learn. Not findings (file memos) and not TM.",
@@ -1889,6 +1909,8 @@ async Task<string> DispatchMetaAsync(
             return IdeToolchainChannel.HandleJson(session, callArgs);
         case "cdp_md_author":
             return IdeMdAuthorChannel.HandleJson(session, callArgs);
+        case "cdp_fdr":
+            return IdeFdrChannel.HandleJson(session, callArgs);
         case "cdp_learn":
             return IdeLearnChannel.HandleJson(session, callArgs);
         case "cdp_scope":

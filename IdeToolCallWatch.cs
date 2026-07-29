@@ -9,6 +9,7 @@ namespace CdpMcp;
 /// <summary>
 /// L2 harness wake-on-threshold: while sync CallTool runs, wall-clock timer arms a short Autoi once-wake
 /// when elapsed exceeds per-tool / per-call threshold. Mid-Stop CDT inject cannot land — FireAsync waits idle.
+/// Also drives L3 FDR tape (every call) via <see cref="IdeFlightDataRecorder"/>.
 /// </summary>
 internal static class IdeToolCallWatch
 {
@@ -36,12 +37,40 @@ internal static class IdeToolCallWatch
         CancellationToken cancellationToken)
     {
         var threshold = ResolveThresholdSeconds(toolName, args);
-        if (threshold <= 0)
-            return await execute(cancellationToken).ConfigureAwait(false);
-
         var callId = Guid.NewGuid().ToString("N")[..12];
         var started = DateTimeOffset.UtcNow;
         var exceededFlag = 0;
+        string outcome = "ok";
+        string? error = null;
+        string text = "";
+
+        if (threshold <= 0)
+        {
+            try
+            {
+                text = await execute(cancellationToken).ConfigureAwait(false);
+                return text;
+            }
+            catch (OperationCanceledException)
+            {
+                outcome = "cancel";
+                throw;
+            }
+            catch (Exception ex)
+            {
+                outcome = "error";
+                error = ex.Message;
+                throw;
+            }
+            finally
+            {
+                var elapsedMs = (int)Math.Max(0, (DateTimeOffset.UtcNow - started).TotalMilliseconds);
+                IdeFlightDataRecorder.RecordToolCall(
+                    toolName, callId, args, threshold, elapsedMs, outcome,
+                    wakeExceeded: false, error, resultChars: text.Length);
+            }
+        }
+
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         // Offload execute so sync-over-async organs cannot starve the wake timer on the CallTool thread.
         var exec = Task.Run(async () => await execute(linked.Token).ConfigureAwait(false), linked.Token);
@@ -61,18 +90,35 @@ internal static class IdeToolCallWatch
 
         try
         {
-            var text = await exec.ConfigureAwait(false);
+            text = await exec.ConfigureAwait(false);
             var elapsed = (int)Math.Max(0, (DateTimeOffset.UtcNow - started).TotalSeconds);
             var exceededDuring = Volatile.Read(ref exceededFlag) == 1;
             if (elapsed >= threshold || exceededDuring)
                 return AnnotateResult(text, toolName, threshold, elapsed, exceededDuring);
             return text;
         }
+        catch (OperationCanceledException)
+        {
+            outcome = "cancel";
+            throw;
+        }
+        catch (Exception ex)
+        {
+            outcome = "error";
+            error = ex.Message;
+            throw;
+        }
         finally
         {
             ArmedForCall.TryRemove(callId, out _);
             linked.Cancel();
             try { await watch.ConfigureAwait(false); } catch { /* ignore */ }
+
+            var elapsedMs = (int)Math.Max(0, (DateTimeOffset.UtcNow - started).TotalMilliseconds);
+            var wakeExceeded = Volatile.Read(ref exceededFlag) == 1 || elapsedMs >= threshold * 1000;
+            IdeFlightDataRecorder.RecordToolCall(
+                toolName, callId, args, threshold, elapsedMs, outcome,
+                wakeExceeded, error, resultChars: text.Length);
         }
     }
 
@@ -89,7 +135,7 @@ internal static class IdeToolCallWatch
             return DefaultThresholdSeconds;
 
         // Never nest wake on ignite itself / trivial pulse tools.
-        if (name is "cdp_ignite" or "cdp_health" or "cdp_pressure" or "ping")
+        if (name is "cdp_ignite" or "cdp_health" or "cdp_pressure" or "ping" or "cdp_fdr")
             return 0;
 
         return name switch
