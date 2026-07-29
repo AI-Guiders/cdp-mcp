@@ -112,4 +112,25 @@ public sealed class IdeFdrChannelTests
             try { Directory.Delete(iso, recursive: true); } catch { /* best-effort */ }
         }
     }
+
+    [Fact]
+    public void RecordWake_appends_kind_on_tape()
+    {
+        var iso = Path.Combine(Path.GetTempPath(), "cdp-fdr-wake-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(iso);
+        IdeFlightDataRecorder.PathOverrideForTests = Path.Combine(iso, "fdr-tape.jsonl");
+        try
+        {
+            IdeFlightDataRecorder.RecordWake("wake_arm", "tool-wake-abc", "cdp_shell_run", "threshold=1s");
+            IdeFlightDataRecorder.RecordWake("wake_cancel", "tool-wake-abc", "cdp_shell_run", "clear_wake_arm_after_call");
+            var tail = IdeFlightDataRecorder.ReadTail(10);
+            Assert.Contains(tail, e => e.Kind == "wake_arm" && e.CallId == "tool-wake-abc");
+            Assert.Contains(tail, e => e.Kind == "wake_cancel" && e.Tool == "cdp_shell_run");
+        }
+        finally
+        {
+            IdeFlightDataRecorder.PathOverrideForTests = null;
+            try { Directory.Delete(iso, recursive: true); } catch { /* best-effort */ }
+        }
+    }
 }

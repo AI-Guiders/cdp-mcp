@@ -103,6 +103,30 @@ internal static class IdeFlightDataRecorder
         Append(ev);
     }
 
+    /// <summary>Wake lifecycle on FDR tape — arm / cancel / suppress (not tool_call).</summary>
+    public static void RecordWake(string kind, string callOrArmId, string? tool, string? detail = null)
+    {
+        if (SuppressWriteForTests)
+            return;
+
+        FdrContextSnap? snap = null;
+        try { snap = s_context?.Invoke(); } catch { /* best-effort */ }
+
+        Append(new FdrEvent
+        {
+            Kind = string.IsNullOrWhiteSpace(kind) ? "wake" : kind.Trim(),
+            CallId = callOrArmId ?? "",
+            Tool = tool ?? "",
+            Outcome = kind ?? "",
+            Error = Truncate(detail, 240),
+            Phase = snap?.Phase,
+            Object = snap?.Object,
+            Language = snap?.Language,
+            Project = snap?.ProjectLeaf,
+            AtUtc = DateTimeOffset.UtcNow.ToString("o", CultureInfo.InvariantCulture)
+        });
+    }
+
     public static IReadOnlyList<FdrEvent> ReadTail(int limit = 40)
     {
         limit = Math.Clamp(limit, 1, 500);

@@ -136,6 +136,11 @@ internal static class IdeToolCallWatch
                 ["id"] = JsonSerializer.SerializeToElement(id)
             };
             _ = IdeIgniteArmHost.Disarm(args);
+            if (hadExceeded)
+            {
+                IdeFlightDataRecorder.RecordWake(
+                    "wake_cancel", id, null, "clear_wake_arm_after_call");
+            }
         }
         catch
         {
@@ -259,6 +264,8 @@ internal static class IdeToolCallWatch
                 ["id"] = JsonSerializer.SerializeToElement($"tool-wake-{hit.CallId}")
             };
             _ = IdeIgniteArmHost.Arm(armArgs);
+            IdeFlightDataRecorder.RecordWake(
+                "wake_arm", $"tool-wake-{hit.CallId}", hit.Tool, $"threshold={hit.ThresholdSeconds}s");
         }
         catch
         {
