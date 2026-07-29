@@ -66,6 +66,7 @@ internal static partial class IdeCockpit
         CideAlertLatch.Publish(alertSnap);
         CideQrhLatch.Publish(IdeQrhChannel.Build(chkCtx, chkSnap));
         CideEclLatch.Publish(chkSnap);
+        IdePressureChannel.PublishGlass();
 
         var tile = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
         var board = new IdeSoftOrganBoard(new SoftOrganSeatBag(
