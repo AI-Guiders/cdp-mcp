@@ -1,17 +1,22 @@
 #nullable enable
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace CdpMcp;
 
 /// <summary>
-/// Persistent cannon dedup: one AutoIgnition wake per Intercom msgId across remounts.
+/// Persistent cannon dedup: one AutoIgnition wake per Intercom msgId across remounts
+/// and dual-seat processes (live + debug both watch the same latch).
 /// File: %LocalAppData%/cdp-mcp/intercom-cannon-fired.json
+/// Claim is cross-process via named Mutex (same pattern as WitDB).
 /// </summary>
 internal static class IntercomVoiceCannonState
 {
     public const string Schema = "intercom_cannon_fired/v0";
     public const int MaxIds = 64;
+    const string MutexName = @"Local\CdpMcp.IntercomCannon";
 
     static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -39,15 +44,23 @@ internal static class IntercomVoiceCannonState
     public static string ArmIdFor(string msgId) => "intercom-pf-" + msgId;
 
     /// <summary>True if this msgId already armed/fired the cannon (memory or disk).</summary>
-    public static bool WasFired(string msgId)
+        public static bool WasFired(string msgId)
     {
         if (string.IsNullOrWhiteSpace(msgId))
             return false;
         var id = msgId.Trim();
-        var doc = TryRead();
-        if (doc?.FiredIds is null || doc.FiredIds.Count == 0)
+        try
+        {
+            using var gate = new CannonFileGate();
+            var doc = TryRead();
+            if (doc?.FiredIds is null || doc.FiredIds.Count == 0)
+                return false;
+            return doc.FiredIds.Any(x => string.Equals(x, id, StringComparison.OrdinalIgnoreCase));
+        }
+        catch
+        {
             return false;
-        return doc.FiredIds.Any(x => string.Equals(x, id, StringComparison.OrdinalIgnoreCase));
+        }
     }
 
     /// <summary>Record msgId as fired. Returns false if it was already recorded.</summary>
@@ -58,6 +71,7 @@ internal static class IntercomVoiceCannonState
         var id = msgId.Trim();
         try
         {
+            using var gate = new CannonFileGate();
             Directory.CreateDirectory(CideIntercomVoiceLatch.StateRoot);
             var doc = TryRead() ?? new FiredDoc { Schema = Schema };
             doc.FiredIds ??= [];
@@ -93,6 +107,49 @@ internal static class IntercomVoiceCannonState
         catch
         {
             return null;
+        }
+    }
+
+    /// <summary>Cross-process gate so live+debug (and zombie remounts) claim once.</summary>
+    sealed class CannonFileGate : IDisposable
+    {
+        readonly Mutex _mutex;
+        readonly bool _owned;
+
+        public CannonFileGate()
+        {
+            // Tests use RootOverride — isolate mutex so parallel test runs do not deadlock each other.
+            var name = MutexName;
+            if (RootOverrideForTests is { } root)
+            {
+                var hash = Convert.ToHexString(
+                    SHA256.HashData(Encoding.UTF8.GetBytes(Path.GetFullPath(root).ToLowerInvariant())))[..16];
+                name = $@"Local\CdpMcp.IntercomCannon.{hash}";
+            }
+
+            _mutex = new Mutex(initiallyOwned: false, name: name);
+            try
+            {
+                _owned = _mutex.WaitOne(TimeSpan.FromSeconds(5));
+            }
+            catch (AbandonedMutexException)
+            {
+                _owned = true;
+            }
+
+            if (!_owned)
+                throw new IOException("Intercom cannon claim busy (dual-seat?) within 5s");
+        }
+
+        public void Dispose()
+        {
+            if (_owned)
+            {
+                try { _mutex.ReleaseMutex(); }
+                catch (ApplicationException) { /* not owner */ }
+            }
+
+            _mutex.Dispose();
         }
     }
 

@@ -49,4 +49,19 @@ public class IntercomVoiceCannonStateTests : IDisposable
         using var json = JsonDocument.Parse(File.ReadAllText(IntercomVoiceCannonState.StatePath));
         Assert.Equal(IntercomVoiceCannonState.MaxIds, json.RootElement.GetProperty("fired_ids").GetArrayLength());
     }
+
+    [Fact]
+    public void TryMarkFired_parallel_same_id_only_one_wins()
+    {
+        const string id = "race-me";
+        var wins = 0;
+        Parallel.For(0, 32, _ =>
+        {
+            if (IntercomVoiceCannonState.TryMarkFired(id))
+                Interlocked.Increment(ref wins);
+        });
+
+        Assert.Equal(1, wins);
+        Assert.True(IntercomVoiceCannonState.WasFired(id));
+    }
 }
