@@ -8,17 +8,16 @@ namespace CdpMcp;
 
 /// <summary>
 /// Desk-pulse fast path for BuildAsync — skip upfront git / quality / full SoftOrgan seat resolve
-/// when go_detail≠full + seats_detail≠full + no pane_full. Plan stays a special-case of this path.
+/// when seats_detail≠full + no pane_full. <c>go_detail=full</c> only expands <c>go.result</c>
+/// (DispatchGo); it must NOT force the slow desk spray (hung agents ~minutes on soft organs).
+/// Plan stays a special-case of this path.
 /// </summary>
 internal static partial class IdeCockpit
 {
     /// <summary>True when cockpit should return a slim desk-pulse instead of full BuildAsync spray.</summary>
     public static bool WantsDeskPulseFastPath(IReadOnlyDictionary<string, JsonElement> args)
     {
-        var detail = (OptString(args, "go_detail") ?? "pulse").Trim().ToLowerInvariant();
-        if (detail is "full")
-            return false;
-
+        // Intentionally ignore go_detail=full — that is organ-dump depth, not desk spray.
         var seats = (OptString(args, "seats_detail") ?? OptString(args, "view_detail") ?? "").Trim()
             .ToLowerInvariant();
         if (seats is "full")

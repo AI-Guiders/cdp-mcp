@@ -1221,7 +1221,7 @@ List<Tool> BuildMetaTools() =>
             line = new { type = "string", description = "Alias of cmd." },
             repl = new { type = "string", description = "Alias of cmd." },
             go_args = new { type = "object", description = "Optional args merged into the target organ tool." },
-            go_detail = new { type = "string", description = "[A] pulse (default) | [C] full (organ dump in go.result)." },
+            go_detail = new { type = "string", description = "[A] pulse (default) | [C] full = organ dump in go.result only (desk stays fast-path; seats_detail/pane_full still spray)." },
             layout = new { type = "string", description = "Seat preset: cockpit | code+net | code+shell | code+git | desk. Sticky replace-in-seat." },
             seat = new { type = "string", description = "Explicit seat: p|forward|m (with organ=)." },
             organ = new { type = "string", description = "Organ pin for seat= (or pin=)." },

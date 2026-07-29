@@ -21,14 +21,15 @@ public sealed class IdeCockpitPlanPulseTests
     }
 
     [Fact]
-    public void WantsPlanPulseFastPath_false_when_go_detail_full()
+    public void WantsDeskPulseFastPath_true_when_go_detail_full()
     {
+        // go_detail=full = organ dump depth; must not force BuildAsync desk spray.
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
         {
             ["go_detail"] = JsonSerializer.SerializeToElement("full")
         };
-        Assert.False(IdeCockpit.WantsPlanPulseFastPath("plan", args));
-        Assert.False(IdeCockpit.WantsDeskPulseFastPath(args));
+        Assert.True(IdeCockpit.WantsDeskPulseFastPath(args));
+        Assert.True(IdeCockpit.WantsPlanPulseFastPath("plan", args));
     }
 
     [Fact]
