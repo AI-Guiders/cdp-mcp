@@ -458,16 +458,22 @@ internal static class IdeRepl
             var taskRest = tokens.Skip(1).ToList();
             if (taskRest.Count > 0
                 && (taskRest[^1].Equals("@deferred", StringComparison.OrdinalIgnoreCase)
-                    || taskRest[^1].Equals("@defer", StringComparison.OrdinalIgnoreCase)))
+                    || taskRest[^1].Equals("@defer", StringComparison.OrdinalIgnoreCase)
+                    || taskRest[^1].Equals("@parked", StringComparison.OrdinalIgnoreCase)
+                    || taskRest[^1].Equals("@park", StringComparison.OrdinalIgnoreCase)))
             {
-                var (deferTitle, deferPhase) = SplitTitlePhase(taskRest);
-                if (deferTitle.Length == 0)
-                    return (merged, Err("defer needs title", "defer AutoIgnition delivery probe | task X @deferred"));
+                var seedOp = taskRest[^1].StartsWith("@park", StringComparison.OrdinalIgnoreCase)
+                    ? "park"
+                    : "defer";
+                var (seedTitle, seedPhase) = SplitTitlePhase(taskRest);
+                if (seedTitle.Length == 0)
+                    return (merged, Err($"{seedOp} needs title",
+                        $"{seedOp} AutoIgnition delivery probe | task X @{seedOp}ed"));
                 merged["go"] = JsonSerializer.SerializeToElement("plan");
-                merged["tm_op"] = JsonSerializer.SerializeToElement("defer");
-                merged["go_args"] = deferPhase is null
-                    ? JsonSerializer.SerializeToElement(new { title = deferTitle, op = "defer" })
-                    : JsonSerializer.SerializeToElement(new { title = deferTitle, op = "defer", phase = deferPhase });
+                merged["tm_op"] = JsonSerializer.SerializeToElement(seedOp);
+                merged["go_args"] = seedPhase is null
+                    ? JsonSerializer.SerializeToElement(new { title = seedTitle, op = seedOp })
+                    : JsonSerializer.SerializeToElement(new { title = seedTitle, op = seedOp, phase = seedPhase });
                 return (merged, null);
             }
 
@@ -1459,6 +1465,7 @@ internal static class IdeRepl
         || tag.Equals("done", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("complete", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("park", StringComparison.OrdinalIgnoreCase)
+        || tag.Equals("parked", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("defer", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("deferred", StringComparison.OrdinalIgnoreCase)
         || tag.Equals("drop", StringComparison.OrdinalIgnoreCase);
@@ -1479,8 +1486,9 @@ internal static class IdeRepl
             return "done <title> | done";
         if (title.Equals("focus", StringComparison.OrdinalIgnoreCase))
             return "focus <title>";
-        if (title.Equals("park", StringComparison.OrdinalIgnoreCase))
-            return "park <title> | park";
+        if (title.Equals("park", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("parked", StringComparison.OrdinalIgnoreCase))
+            return "park <title> | park | task X @parked";
         if (title.Equals("defer", StringComparison.OrdinalIgnoreCase)
             || title.Equals("deferred", StringComparison.OrdinalIgnoreCase))
             return "defer <title> | defer";

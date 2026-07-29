@@ -40,7 +40,9 @@ internal static partial class IdeTaskManager
             "drop" or "rm" or "delete" => DropSmart(store, state, args),
             "done" or "complete" => TaskDone(store, state, args),
             "pending" or "reopen" => TaskStatus(store, state, args, "pending"),
-            "park" or "parked" => TaskStatus(store, state, args, "parked"),
+            "park" or "parked" => Title(args).Length > 0
+                ? TaskSeedBacklog(store, state, args, "parked")
+                : TaskStatus(store, state, args, "parked"),
             "defer" or "deferred" => TaskDefer(store, state, args),
             "active" => TaskStatus(store, state, args, "active"),
             "phase" or "task_phase" => TaskSetPhase(store, state, args),

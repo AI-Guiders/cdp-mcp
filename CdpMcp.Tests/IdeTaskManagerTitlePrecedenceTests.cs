@@ -110,6 +110,70 @@ public sealed class IdeTaskManagerTitlePrecedenceTests
         }
     }
 
+    [Fact]
+    public void Defer_new_title_preserves_active_focus()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-defer-seed-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "defer-feature", null);
+            var activeId = store.StageUpsert(state, "keep-active", null, null, null).stage_id;
+            store.FocusStage(state, activeId);
+
+            var result = IdeTaskManager.Handle(store, state, Args(new
+            {
+                tm_op = "defer",
+                title = "new-deferred-seed"
+            }));
+
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal(activeId, state.ActiveStageId);
+
+            using var db = Open(path);
+            Assert.Equal("deferred", db.Stages.Single(s => s.Title == "new-deferred-seed").Status);
+            Assert.Equal("active", db.Stages.Single(s => s.Id == activeId).Status);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
+    public void Park_new_title_preserves_active_focus()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-park-seed-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "park-feature", null);
+            var activeId = store.StageUpsert(state, "keep-active", null, null, null).stage_id;
+            store.FocusStage(state, activeId);
+
+            var result = IdeTaskManager.Handle(store, state, Args(new
+            {
+                tm_op = "park",
+                title = "new-parked-seed"
+            }));
+
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal(activeId, state.ActiveStageId);
+
+            using var db = Open(path);
+            Assert.Equal("parked", db.Stages.Single(s => s.Title == "new-parked-seed").Status);
+            Assert.Equal("active", db.Stages.Single(s => s.Id == activeId).Status);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
     static Dictionary<string, JsonElement> Args(object anon)
     {
         using var doc = JsonDocument.Parse(JsonSerializer.Serialize(anon));

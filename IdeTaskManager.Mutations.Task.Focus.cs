@@ -52,14 +52,24 @@ internal static partial class IdeTaskManager
     }
 
     /// <summary>
-    /// Capture backlog without stealing focus: create/find stage as <c>deferred</c>.
-    /// Bare <c>defer</c> marks the active task deferred and restores next pending focus.
+    /// Capture backlog without stealing focus: create/find stage as <c>deferred</c> or <c>parked</c>.
+    /// Bare <c>defer</c>/<c>park</c> marks the active task and restores next pending focus.
     /// </summary>
     static object TaskDefer(
         IntentWorkspaceStore store,
         IntentWorkspaceState state,
-        IReadOnlyDictionary<string, JsonElement> args)
+        IReadOnlyDictionary<string, JsonElement> args) =>
+        TaskSeedBacklog(store, state, args, "deferred");
+
+    static object TaskSeedBacklog(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        IReadOnlyDictionary<string, JsonElement> args,
+        string status)
     {
+        if (status is not ("deferred" or "parked"))
+            throw new ArgumentException($"seed status must be deferred|parked, got '{status}'");
+
         var title = Title(args);
         if (title.Length > 0)
         {
@@ -82,7 +92,14 @@ internal static partial class IdeTaskManager
                 resolvedTitle = created.title;
             }
 
-            store.StageSetStatus(state, id, "deferred");
+            object? clock = null;
+            if (status == "parked")
+            {
+                IdeStageCycle.TryPhaseComplete();
+                clock = store.StageClockParkFreeze(state, id);
+            }
+
+            store.StageSetStatus(state, id, status);
             if (keepFocus is { } prev && prev != id)
                 store.FocusStage(state, prev);
             else if (keepFocus == id)
@@ -102,18 +119,29 @@ internal static partial class IdeTaskManager
                 store.WorkFocusSave(state);
             }
 
-            return new
-            {
-                op = "deferred",
-                task_id = id,
-                title = resolvedTitle,
-                status = "deferred",
-                focus_preserved = keepFocus,
-                hint = "deferred seed — focus unchanged; use focus <title> when ready"
-            };
+            return clock is null
+                ? new
+                {
+                    op = status,
+                    task_id = id,
+                    title = resolvedTitle,
+                    status,
+                    focus_preserved = keepFocus,
+                    hint = $"{status} seed — focus unchanged; use focus <title> when ready"
+                }
+                : new
+                {
+                    op = status,
+                    task_id = id,
+                    title = resolvedTitle,
+                    status,
+                    focus_preserved = keepFocus,
+                    clock,
+                    hint = $"{status} seed — focus unchanged; use focus <title> when ready"
+                };
         }
 
-        return TaskStatus(store, state, args, "deferred");
+        return TaskStatus(store, state, args, status);
     }
 
     static object TaskSetPhase(
