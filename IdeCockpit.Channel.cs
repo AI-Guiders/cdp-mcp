@@ -61,8 +61,35 @@ internal static partial class IdeCockpit
         var testsFailed = test is { Available: true, LastRun: not null, Success: false };
 
         var alertInputs = BuildAlertInputs(
-            session, quality, buffer, debug, shell, git, problems, work, workspaceStore, workspaceState, chkSnap);
+            session, quality, buffer, debug, shell, git, problems, work, workspaceStore, workspaceState, chkSnap,
+            quietBandQuality: !wants.Alert);
         var alertSnap = IdeAlertChannel.Build(alertInputs);
+        CideAlertLatch.Publish(alertSnap);
+        CideQrhLatch.Publish(IdeQrhChannel.Build(chkCtx, chkSnap));
+        CideEclLatch.Publish(chkSnap);
+        IdePressureChannel.PublishGlass();
+        IdeIgniteArmHost.PublishGlass();
+        IdeScopeChannel.PublishGlass();
+        IdeOpsPulse.PublishGlass();
+        IdeOnboardChannel.PublishGlass(session);
+        IdeArchBoardChannel.PublishGlass(session);
+        McpOutletHabitat.Instance?.PublishGlass();
+        IdeTaskManager.PublishGlass(workspaceStore, workspaceState, CdpEnumParse.ToWire(session.Phase));
+        IdeReportBoard.PublishGlass(session);
+        IdeCrmChannel.PublishGlass(session);
+        IdeWebcamChannel.PublishGlass();
+        IdeToolchainChannel.PublishGlass();
+        IdePluginsChannel.PublishGlass();
+        IdeRefactorPlanChannel.PublishGlass(docStore, session);
+        IdeReviewChannel.PublishGlass(new IdeReviewChannel.Inputs(
+            session,
+            gitDirty,
+            problems.Errors,
+            testsFailed,
+            quality.Fail,
+            quality.Warn,
+            chkSnap));
+        IdeLearnChannel.PublishGlass();
 
         var tile = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
         var board = new IdeSoftOrganBoard(new SoftOrganSeatBag(

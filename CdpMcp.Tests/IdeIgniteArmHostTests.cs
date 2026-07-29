@@ -406,4 +406,33 @@ public class IdeIgniteArmHostTests
             });
         }
     }
+
+    [Theory]
+    [InlineData("tool-wake-abc", true)]
+    [InlineData("arm-20260729-xx", false)]
+    [InlineData(null, false)]
+    public void IsToolWakeArmId_prefix(string? id, bool expect) =>
+        Assert.Equal(expect, IdeIgniteArmHost.IsToolWakeArmId(id));
+
+    [Fact]
+    public void Disarm_cancels_in_flight_fire_token()
+    {
+        var id = "tool-wake-" + Guid.NewGuid().ToString("N")[..8];
+        var cts = IdeIgniteArmHost.AttachFireTokenForTests(id);
+        try
+        {
+            Assert.False(cts.IsCancellationRequested);
+            var disarm = IdeIgniteArmHost.Disarm(new Dictionary<string, JsonElement>
+            {
+                ["id"] = JsonSerializer.SerializeToElement(id)
+            });
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(disarm));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.True(cts.IsCancellationRequested);
+        }
+        finally
+        {
+            IdeIgniteArmHost.CancelInFlightFire(id);
+        }
+    }
 }

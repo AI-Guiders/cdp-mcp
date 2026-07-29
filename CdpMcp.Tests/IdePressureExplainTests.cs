@@ -5,6 +5,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection("CdpProfileIsolation")]
 public sealed class IdePressureExplainTests
 {
     [Fact]

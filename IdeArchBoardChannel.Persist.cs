@@ -30,6 +30,21 @@ internal static partial class IdeArchBoardChannel
         }
     }
 
+    /// <summary>Mirror arch board pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass(SessionContext session)
+    {
+        lock (Gate)
+        {
+            var asBuilt = LoadUnlockedAt(AsBuiltPath(session));
+            var doc = asBuilt.Mode == "as_built" && asBuilt.Roles.Count > 0
+                ? asBuilt
+                : LoadUnlocked(session);
+            var active = doc.Roles.Count > 0;
+            CideArchLatch.Publish(active, Pulse(doc), doc.Profile, doc.Mode);
+        }
+    }
+
+
     static BoardDoc Load(SessionContext session)
     {
         lock (Gate)
@@ -45,14 +60,18 @@ internal static partial class IdeArchBoardChannel
     /// <summary>Load → optional save under one lock (no TOCTOU race on LATEST.json).</summary>
     static object Mutate(SessionContext session, Func<BoardDoc, (bool Save, object Card)> fn)
     {
+        object card;
         lock (Gate)
         {
             var doc = LoadUnlocked(session);
-            var (save, card) = fn(doc);
+            var (save, result) = fn(doc);
             if (save)
                 SaveUnlocked(session, doc);
-            return card;
+            card = result;
         }
+
+        PublishGlass(session);
+        return card;
     }
 
     static BoardDoc LoadAsBuilt(SessionContext session)
@@ -65,6 +84,7 @@ internal static partial class IdeArchBoardChannel
     {
         lock (Gate)
             SaveUnlockedAt(session, doc, AsBuiltPath(session), stampPrefix: "as-built");
+        PublishGlass(session);
     }
 
     static BoardDoc LoadUnlocked(SessionContext session) =>

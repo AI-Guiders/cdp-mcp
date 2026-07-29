@@ -122,6 +122,18 @@ internal static class IdeOnboardChannel
         }
     }
 
+    /// <summary>Mirror onboard pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass(SessionContext session)
+    {
+        lock (Gate)
+        {
+            var doc = LoadUnlocked(session);
+            var active = doc.Entrypoints.Count > 0 || doc.Verticals.Count > 0;
+            CideOnboardLatch.Publish(active, Pulse(doc), doc.ProjectName, doc.ProfileHint);
+        }
+    }
+
+
     static object Scene(SessionContext session)
     {
         var doc = Load(session);
@@ -151,6 +163,8 @@ internal static class IdeOnboardChannel
             if (File.Exists(path))
                 File.Delete(path);
         }
+
+        PublishGlass(session);
 
         return new
         {
@@ -558,6 +572,8 @@ internal static class IdeOnboardChannel
             Directory.CreateDirectory(dir);
             File.WriteAllText(LatestPath(session), JsonSerializer.Serialize(doc, Pretty));
         }
+
+        PublishGlass(session);
     }
 
     static ScanDoc LoadUnlocked(SessionContext session)

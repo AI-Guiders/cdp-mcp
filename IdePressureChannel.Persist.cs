@@ -53,6 +53,8 @@ internal static partial class IdePressureChannel
             File.WriteAllText(tmp, JsonSerializer.Serialize(doc, JsonOpts), Encoding.UTF8);
             File.Move(tmp, FilePath, overwrite: true);
         }
+
+        PublishGlass();
     }
 
     static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)

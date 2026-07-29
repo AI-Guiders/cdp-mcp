@@ -23,6 +23,32 @@ internal static partial class IdeTaskManager
         }
     }
 
+    /// <summary>Mirror Task Manager pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass(
+        IntentWorkspaceStore? store,
+        IntentWorkspaceState state,
+        string? sessionPhase = null)
+    {
+        try
+        {
+            if (store is null)
+            {
+                CidePlanLatch.Publish(active: false, pulse: "no task store", feature: null, task: null);
+                return;
+            }
+
+            var snap = store.TaskManagerSnapshot(state);
+            var pulse = PulseLine(store, state, sessionPhase);
+            // Dark Cockpit: silent when no active feature.
+            var active = snap.ActiveFeatureTitle is { Length: > 0 };
+            CidePlanLatch.Publish(active, pulse, snap.ActiveFeatureTitle, snap.ActiveStageTitle);
+        }
+        catch
+        {
+            /* best-effort */
+        }
+    }
+
     public static Board BuildBoard(
         IntentWorkspaceStore store,
         IntentWorkspaceState state,

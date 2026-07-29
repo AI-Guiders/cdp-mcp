@@ -110,6 +110,140 @@ public sealed class IdeTaskManagerTitlePrecedenceTests
         }
     }
 
+    [Fact]
+    public void Drop_strips_board_chrome_and_matches_slash_title()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-slash-drop-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "slash-drop-feature", null);
+            var activeId = store.StageUpsert(state, "keep-active", null, null, null).stage_id;
+            // Legacy bake: agents pasted board line including @todo into the title.
+            var stored = "Add deferred/parked seed without stealing focus @todo";
+            var slashId = store.StageUpsert(state, stored, null, null, null).stage_id;
+            store.FocusStage(state, activeId);
+
+            Assert.Equal(slashId, store.FindStageIdByTitle(state, "Add deferred/parked seed without stealing focus"));
+
+            var result = IdeTaskManager.Handle(store, state, Args(new
+            {
+                tm_op = "drop",
+                title = "Add deferred/parked seed without stealing focus"
+            }));
+
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal(activeId, state.ActiveStageId);
+
+            using var db = Open(path);
+            Assert.False(db.Stages.Any(s => s.Id == slashId));
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
+    public void Task_partial_title_dedupes_unique_slash_prefix()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-slash-prefix-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "prefix-feature", null);
+            var activeId = store.StageUpsert(state, "keep-active", null, null, null).stage_id;
+            var full = "Add deferred/parked seed without stealing focus";
+            var fullId = store.StageUpsert(state, full, null, null, null).stage_id;
+            store.FocusStage(state, activeId);
+
+            var result = IdeTaskManager.Handle(store, state, Args(new
+            {
+                tm_op = "task",
+                title = "Add deferred"
+            }));
+
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal(fullId, state.ActiveStageId);
+
+            using var db = Open(path);
+            Assert.Equal(2, db.Stages.Count());
+            Assert.False(db.Stages.Any(s => s.Title == "Add deferred"));
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
+    public void Defer_new_title_preserves_active_focus()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-defer-seed-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "defer-feature", null);
+            var activeId = store.StageUpsert(state, "keep-active", null, null, null).stage_id;
+            store.FocusStage(state, activeId);
+
+            var result = IdeTaskManager.Handle(store, state, Args(new
+            {
+                tm_op = "defer",
+                title = "new-deferred-seed"
+            }));
+
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal(activeId, state.ActiveStageId);
+
+            using var db = Open(path);
+            Assert.Equal("deferred", db.Stages.Single(s => s.Title == "new-deferred-seed").Status);
+            Assert.Equal("active", db.Stages.Single(s => s.Id == activeId).Status);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
+    public void Park_new_title_preserves_active_focus()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-park-seed-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "park-feature", null);
+            var activeId = store.StageUpsert(state, "keep-active", null, null, null).stage_id;
+            store.FocusStage(state, activeId);
+
+            var result = IdeTaskManager.Handle(store, state, Args(new
+            {
+                tm_op = "park",
+                title = "new-parked-seed"
+            }));
+
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal(activeId, state.ActiveStageId);
+
+            using var db = Open(path);
+            Assert.Equal("parked", db.Stages.Single(s => s.Title == "new-parked-seed").Status);
+            Assert.Equal("active", db.Stages.Single(s => s.Id == activeId).Status);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
     static Dictionary<string, JsonElement> Args(object anon)
     {
         using var doc = JsonDocument.Parse(JsonSerializer.Serialize(anon));

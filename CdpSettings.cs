@@ -15,6 +15,7 @@ internal sealed class CdpSettings
     public LanguageRegistry Languages { get; init; } = LanguageRegistry.Default;
     public IReadOnlyList<LspLaunchPreset> LspPresets { get; init; } = LspLaunchPreset.BuiltInDefaults;
     public IntentWorkspaceSettings IntentWorkspace { get; init; } = new();
+    public CockpitHostSettings CockpitHost { get; init; } = new();
     public VendorCatalogOptions Vendor { get; init; } = VendorCatalog.CreateBuiltInDefaults();
 
     public static readonly string[] DefaultWorldRoots = ["worlds", "META"];
@@ -37,6 +38,7 @@ internal sealed class CdpSettings
         var self = memory.Self ?? new CdpTomlMemorySelf();
         var dev = doc.Dev ?? new CdpTomlDev();
         var intentWs = doc.IntentWorkspace ?? new CdpTomlIntentWorkspace();
+        var cockpitHost = doc.CockpitHost ?? new CdpTomlCockpitHost();
 
         return new CdpSettings
         {
@@ -71,6 +73,10 @@ internal sealed class CdpSettings
             IntentWorkspace = new IntentWorkspaceSettings
             {
                 DatabasePath = string.IsNullOrWhiteSpace(intentWs.DatabasePath) ? null : intentWs.DatabasePath.Trim()
+            },
+            CockpitHost = new CockpitHostSettings
+            {
+                Exe = string.IsNullOrWhiteSpace(cockpitHost.Exe) ? null : cockpitHost.Exe.Trim()
             },
             Vendor = VendorCatalog.CreateBuiltInDefaults()
         };
@@ -169,6 +175,12 @@ internal sealed class CdpSettings
         public CdpTomlDev? Dev { get; set; }
         public CdpTomlLanguages? Languages { get; set; }
         public CdpTomlIntentWorkspace? IntentWorkspace { get; set; }
+        public CdpTomlCockpitHost? CockpitHost { get; set; }
+    }
+
+    private sealed class CdpTomlCockpitHost
+    {
+        public string? Exe { get; set; }
     }
 
     private sealed class CdpTomlIntentWorkspace
@@ -284,4 +296,11 @@ internal sealed class MemoryToggleSettings
 internal sealed class IntentWorkspaceSettings
 {
     public string? DatabasePath { get; init; }
+}
+
+/// <summary>Process-layer operator GUI host (ADR-0019 companion). Remount to pick up exe=.</summary>
+internal sealed class CockpitHostSettings
+{
+    /// <summary>Absolute path to CascadeIDE / thin shell exe. Override at start with path=; env is escape only.</summary>
+    public string? Exe { get; init; }
 }

@@ -67,7 +67,7 @@ internal static class DocumentEditPlane
             "take" => await TakeShip.TakeAsync(
                     store, session, byDomain, args, TryDiagnoseScopedAsync, cancellationToken)
                 .ConfigureAwait(false),
-            "share" => IdeShare.ShareBuffer(store, session, args),
+            "share" => IdeShare.DispatchShare(store, session, args),
             "close" => Close(store, session, args),
             "reload" => Reload(store, session, args),
             "keep_disk" => KeepDisk(store, session, args),

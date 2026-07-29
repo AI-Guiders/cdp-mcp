@@ -6,23 +6,50 @@ namespace CdpMcp;
 
 internal static partial class IdeShare
 {
-    public static string ResolveShareInbox(string? projectRoot, string? dirOverride)
+    public const string WithOperator = "operator";
+    public const string WithSelf = "self";
+
+    /// <summary>
+    /// Operator inbox: <c>.cdp/share</c>. Agent shelf: <c>.cdp/share-self</c>.
+    /// </summary>
+    public static string ResolveShareInbox(string? projectRoot, string? dirOverride, string? with = null)
     {
         if (!string.IsNullOrWhiteSpace(dirOverride))
             return Path.GetFullPath(dirOverride);
+
+        var role = NormalizeWith(with ?? WithOperator);
+        var leaf = role == WithSelf ? "share-self" : "share";
         if (!string.IsNullOrWhiteSpace(projectRoot))
-            return Path.GetFullPath(Path.Combine(projectRoot, ".cdp", "share"));
+            return Path.GetFullPath(Path.Combine(projectRoot, ".cdp", leaf));
         return Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "cdp-mcp",
-            "share");
+            leaf);
     }
 
-    static string NormalizeWith(string raw)
+    /// <summary>Normalize share peer: operator (out) vs self (agent shelf).</summary>
+    public static string NormalizeWith(string? raw)
     {
+        if (string.IsNullOrWhiteSpace(raw))
+            return WithOperator;
         var s = raw.Trim().ToLowerInvariant();
+        if (s is "self" or "shelf" or "agent" or "stash" or "continuity")
+            return WithSelf;
         if (s is "operator" or "human" or "user" or "me" or "host")
-            return "operator";
+            return WithOperator;
+        return s;
+    }
+
+    /// <summary>Normalize share-from target (self shelf / latest).</summary>
+    public static string NormalizeFrom(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return WithSelf;
+        var s = raw.Trim().ToLowerInvariant();
+        if (s is "self" or "shelf" or "agent" or "stash" or "continuity" or "latest" or "inbox")
+            return WithSelf;
+        if (s is "operator" or "human" or "user" or "me" or "host")
+            return WithOperator;
         return s;
     }
 
@@ -65,9 +92,16 @@ internal static partial class IdeShare
 
     static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)
     {
-        if (!args.TryGetValue(key, out var el) || el.ValueKind != JsonValueKind.String)
+        if (!args.TryGetValue(key, out var el))
             return null;
-        var s = el.GetString();
-        return string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+        if (el.ValueKind == JsonValueKind.String)
+        {
+            var s = el.GetString();
+            return string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+        }
+
+        if (el.ValueKind is JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False)
+            return el.ToString();
+        return null;
     }
 }

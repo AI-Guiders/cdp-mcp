@@ -57,6 +57,18 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
         SoftOrganKind.Qrh => Hit(IdeQrhChannel.Handle(
             RequireExtras().ChkCtx, _bag.TileArgs, RequireExtras().ChkSnap)),
         SoftOrganKind.Review => BuildReview(),
+        SoftOrganKind.MdAuthor => Hit(
+            IdeMdAuthorChannel.Handle(_bag.Session, _bag.TileArgs),
+            IdeMdAuthorChannel.PulseLine(_bag.Session),
+            IdeMdAuthorChannel.SchemaVersion),
+        SoftOrganKind.Learn => Hit(
+            IdeLearnChannel.Handle(_bag.Session, _bag.TileArgs),
+            IdeLearnChannel.PulseLine(_bag.Session),
+            IdeLearnChannel.SchemaVersion),
+        SoftOrganKind.ProjectSwitch => Hit(
+            IdeScopeChannel.Handle(_bag.Session, _bag.TileArgs),
+            IdeScopeChannel.PulseLine(_bag.Session),
+            IdeScopeChannel.SchemaVersion),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
     };
 

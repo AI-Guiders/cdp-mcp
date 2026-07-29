@@ -54,6 +54,12 @@ internal static partial class IdeArchBoardChannel
 
     static string DetectArchProfile(string root)
     {
+        // Desk peels win even when Cockpit/Channels+Cds exist (hybrid cdp-mcp).
+        // Otherwise Cds alone auto-picks cide and silently drops DeskIngestionBus / Instrument.
+        if (File.Exists(Path.Combine(root, "IdeCockpit.cs")) &&
+            File.Exists(Path.Combine(root, "IdeCockpit.Build.cs")))
+            return "cdp_desk";
+
         var cockpit = Path.Combine(root, "Cockpit");
         var hasCockpit =
             Directory.Exists(Path.Combine(cockpit, "Channels")) &&
@@ -64,10 +70,6 @@ internal static partial class IdeArchBoardChannel
         if (hasCockpit && hasIds)
             return "cide";
 
-        if (File.Exists(Path.Combine(root, "IdeCockpit.cs")) &&
-            File.Exists(Path.Combine(root, "IdeCockpit.Build.cs")))
-            return "cdp_desk";
-
         return "unknown";
     }
 
@@ -76,7 +78,9 @@ internal static partial class IdeArchBoardChannel
         var doc = NewAsBuiltDoc(name, "cide");
         var transport = AddSeedRole(doc, "transport-ingest", "transport", "Ingestion / stream transport (ADR 0094)", root,
             ["Services/BuildLogIngestion.cs",
-             "Features/Intercom/Transport/IntercomTransportIngest.cs"]);
+             "Features/Intercom/Transport/IntercomTransportIngest.cs",
+             "Cockpit/Transport/DeskIngestionBus.cs",
+             "IdeCockpit.Transport.cs"]);
         var ccu = AddSeedRole(doc, "ccu-core", "ccu", "ComputingUnits (ADR 0097)", root,
             ["Cockpit/ComputingUnits/ICockpitComputeUnit.cs",
              "Cockpit/ComputingUnits/EnvironmentReadiness/EnvironmentReadinessSnapshotUnit.cs",
@@ -104,7 +108,9 @@ internal static partial class IdeArchBoardChannel
         var instrument = AddSeedRole(doc, "instr-core", "instrument", "Instrument deck / descriptor (ADR 0047/0063)", root,
             ["Cockpit/Composition/CockpitInstrumentDescriptor.cs",
              "Cockpit/InstrumentDeckDescriptor.cs",
-             "Cockpit/Composition/IdeHealth/IdeHealthInstrumentDeck.cs"]);
+             "Cockpit/Composition/IdeHealth/IdeHealthInstrumentDeck.cs",
+             "Cockpit/Instrument/DeskInstrumentMountRegistry.cs",
+             "IdeCockpit.Instrument.cs"]);
         var surf = AddSeedRole(doc, "surf-core", "surface", "Surface snapshot / mounts", root,
             ["Cockpit/Surface/UiLayoutSnapshot.cs",
              "Cockpit/Surface/MainWindowInstrumentMountRegistry.cs"]);

@@ -28,5 +28,8 @@ public enum SoftOrganKind
     Sys,
     Ecl,
     Qrh,
-    Review
+    Review,
+    MdAuthor,
+    Learn,
+    ProjectSwitch
 }

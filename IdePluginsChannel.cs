@@ -60,18 +60,19 @@ internal static class IdePluginsChannel
         {
             var search = DoSearch(merged, cancellationToken);
             action = search.Card;
-            return BuildSearchBoard(search.Result, action, Build());
+            var searchBoard = BuildSearchBoard(search.Result, action, Build());
+            return PublishThen(searchBoard);
         }
 
         if (op is "groups" or "grouplist")
-            return BuildGroupsBoard(DoGroupsAction(merged));
+            return PublishThen(BuildGroupsBoard(DoGroupsAction(merged)));
 
         if (op is "group" or "tag")
         {
             action = DoGroupAssign(merged);
             op = Flag(merged, "list_groups") ? "groups" : "list";
             if (op is "groups")
-                return BuildGroupsBoard(action);
+                return PublishThen(BuildGroupsBoard(action));
         }
         else if (op is "enable" or "on")
         {
@@ -112,7 +113,38 @@ internal static class IdePluginsChannel
             action = DoPreview(store, session, merged, cancellationToken);
         }
 
-        return BuildListBoard(Build(showAll), action);
+        return PublishThen(BuildListBoard(Build(showAll), action));
+    }
+
+    public static string PulseLine()
+    {
+        var snap = Build();
+        return snap.Count == 0 && snap.Hidden == 0
+            ? "plugins · idle · go=plugins"
+            : $"{snap.Pulse} · go=plugins";
+    }
+
+    /// <summary>Mirror plugins attention pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass()
+    {
+        try
+        {
+            var snap = Build();
+            var pulse = PulseLine();
+            // Dark Cockpit: Mode A takeable, or attention empty while plugins are hidden/off.
+            var active = snap.ModeA > 0 || (snap.Count == 0 && snap.Hidden > 0);
+            CidePluginsLatch.Publish(active, pulse, snap.Count, snap.ModeA, snap.Hidden);
+        }
+        catch
+        {
+            /* best-effort */
+        }
+    }
+
+    static object PublishThen(object board)
+    {
+        PublishGlass();
+        return board;
     }
 
     public static object PulseCard(Snap snap) => new
@@ -595,13 +627,13 @@ internal static class IdePluginsChannel
         var q = Opt(merged, "q") ?? Opt(merged, "query") ?? Opt(merged, "feature") ?? Opt(merged, "text") ?? "";
         if (q.Length == 0)
         {
-            return BuildListBoard(Build(showAll: true), new
+            return PublishThen(BuildListBoard(Build(showAll: true), new
             {
                 ok = false,
                 op = "want",
                 error = "feature_required",
                 hint = "plugins want plantuml | checkstyle | shellcheck"
-            });
+            }));
         }
 
         var search = DoSearch(new Dictionary<string, JsonElement>
@@ -611,14 +643,14 @@ internal static class IdePluginsChannel
 
         if (!search.Result.Ok || search.Result.Hits.Count == 0)
         {
-            return BuildSearchBoard(search.Result, new
+            return PublishThen(BuildSearchBoard(search.Result, new
             {
                 ok = false,
                 op = "want",
                 error = search.Result.Ok ? "no_hits" : search.Result.Error,
                 hint = search.Result.Hint ?? "No Open VSX hits for feature",
                 feature = q
-            }, Build());
+            }, Build()));
         }
 
         var tried = new List<object>();
@@ -652,7 +684,7 @@ internal static class IdePluginsChannel
 
             if (takeable)
             {
-                return BuildListBoard(Build(showAll: true), new
+                return PublishThen(BuildListBoard(Build(showAll: true), new
                 {
                     ok = true,
                     op = "want",
@@ -671,7 +703,7 @@ internal static class IdePluginsChannel
                         payload_kind = installed.Plugin.PayloadKind,
                         root = installed.Plugin.RootDir
                     }
-                });
+                }));
             }
 
             if (primaryRefuse is null
@@ -687,7 +719,7 @@ internal static class IdePluginsChannel
             }
         }
 
-        return BuildSearchBoard(search.Result, new
+        return PublishThen(BuildSearchBoard(search.Result, new
         {
             ok = false,
             op = "want",
@@ -698,7 +730,7 @@ internal static class IdePluginsChannel
                 : "Candidates found but none Mode A/B takeable for this feature — pick sN or refuse (Mode D)",
             refuse = primaryRefuse,
             tried
-        }, Build(showAll: true));
+        }, Build(showAll: true)));
     }
 
     /// <summary>

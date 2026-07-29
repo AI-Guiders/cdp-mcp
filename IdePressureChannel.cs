@@ -59,6 +59,20 @@ internal static partial class IdePressureChannel
         return doc is { Armed: true };
     }
 
+    public static bool HasStash()
+    {
+        var doc = Load();
+        return doc?.Body is { Length: > 0 };
+    }
+
+    /// <summary>Mirror L1 state to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass()
+    {
+        var doc = Load();
+        var armed = doc is { Armed: true };
+        CidePressureLatch.Publish(armed, PulseLine(), doc?.Body is { Length: > 0 });
+    }
+
     public static string PulseLine()
     {
         var doc = Load();
