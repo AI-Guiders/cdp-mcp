@@ -7,6 +7,13 @@ namespace CdpMcp.Tests;
 public sealed class IdeCockpitPlanPulseTests
 {
     [Fact]
+    public void WantsDeskPulseFastPath_true_for_default_pulse()
+    {
+        var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        Assert.True(IdeCockpit.WantsDeskPulseFastPath(args));
+    }
+
+    [Fact]
     public void WantsPlanPulseFastPath_true_for_plan_pulse_default()
     {
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
@@ -21,6 +28,7 @@ public sealed class IdeCockpitPlanPulseTests
             ["go_detail"] = JsonSerializer.SerializeToElement("full")
         };
         Assert.False(IdeCockpit.WantsPlanPulseFastPath("plan", args));
+        Assert.False(IdeCockpit.WantsDeskPulseFastPath(args));
     }
 
     [Fact]
@@ -31,14 +39,16 @@ public sealed class IdeCockpitPlanPulseTests
             ["seats_detail"] = JsonSerializer.SerializeToElement("full")
         };
         Assert.False(IdeCockpit.WantsPlanPulseFastPath("plan", args));
+        Assert.False(IdeCockpit.WantsDeskPulseFastPath(args));
     }
 
     [Fact]
-    public void WantsPlanPulseFastPath_false_for_non_plan()
+    public void WantsPlanPulseFastPath_false_for_non_plan_but_desk_pulse_true()
     {
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         Assert.False(IdeCockpit.WantsPlanPulseFastPath("editor", args));
         Assert.False(IdeCockpit.WantsPlanPulseFastPath(null, args));
+        Assert.True(IdeCockpit.WantsDeskPulseFastPath(args));
     }
 
     [Fact]
@@ -49,6 +59,7 @@ public sealed class IdeCockpitPlanPulseTests
             ["pane_full"] = JsonSerializer.SerializeToElement("P")
         };
         Assert.False(IdeCockpit.WantsPlanPulseFastPath("plan", args));
+        Assert.False(IdeCockpit.WantsDeskPulseFastPath(args));
     }
 
     [Fact]
@@ -63,5 +74,6 @@ public sealed class IdeCockpitPlanPulseTests
         Assert.True(applied!.Value.Args.TryGetValue("go", out var go));
         Assert.Equal("plan", go.GetString());
         Assert.True(IdeCockpit.WantsPlanPulseFastPath("plan", applied.Value.Args));
+        Assert.True(IdeCockpit.WantsDeskPulseFastPath(applied.Value.Args));
     }
 }

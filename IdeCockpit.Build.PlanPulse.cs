@@ -7,21 +7,14 @@ using TerminalMcp.Core;
 namespace CdpMcp;
 
 /// <summary>
-/// Plan-pulse fast path for BuildAsync — skip git / quality / full SoftOrgan glass / seat organ resolve
-/// when go=plan + go_detail≠full + seats_detail≠full. Fixes cockpit hang on cmd=done|start|…
+/// Desk-pulse fast path for BuildAsync — skip upfront git / quality / full SoftOrgan seat resolve
+/// when go_detail≠full + seats_detail≠full + no pane_full. Plan stays a special-case of this path.
 /// </summary>
 internal static partial class IdeCockpit
 {
-    /// <summary>True when cockpit should return a slim plan-pulse desk instead of full BuildAsync spray.</summary>
-    public static bool WantsPlanPulseFastPath(
-        string? goVerb,
-        IReadOnlyDictionary<string, JsonElement> args)
+    /// <summary>True when cockpit should return a slim desk-pulse instead of full BuildAsync spray.</summary>
+    public static bool WantsDeskPulseFastPath(IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (goVerb is not { Length: > 0 })
-            return false;
-        if (CanonicalOrganPin(goVerb) is not "plan")
-            return false;
-
         var detail = (OptString(args, "go_detail") ?? "pulse").Trim().ToLowerInvariant();
         if (detail is "full")
             return false;
@@ -35,6 +28,18 @@ internal static partial class IdeCockpit
             return false;
 
         return true;
+    }
+
+    /// <summary>Plan-only gate (tests + legacy). Desk pulse + organ pin is plan.</summary>
+    public static bool WantsPlanPulseFastPath(
+        string? goVerb,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (goVerb is not { Length: > 0 })
+            return false;
+        if (CanonicalOrganPin(goVerb) is not "plan")
+            return false;
+        return WantsDeskPulseFastPath(args);
     }
 
     static bool AnyDeferredSoftWant(DeferredSoftWants w) =>
@@ -99,6 +104,7 @@ internal static partial class IdeCockpit
         return (alertSnap, alertInputs);
     }
 
+    /// <summary>Plan soft-dispatch already filled goResult — sync slim desk.</summary>
     static string FinishPlanPulseDesk(
         SessionContext session,
         DocumentBufferStore docStore,
@@ -129,9 +135,9 @@ internal static partial class IdeCockpit
 
         if (IdeDeskSeats.IsSeatsMode())
         {
-            return BuildPlanPulseSeatsSurface(
+            return BuildDeskPulseSeatsSurface(
                 session, args, mfd, focusId, goResult, warm, next, focus, alertSnap,
-                loci, goVerbs);
+                loci, goVerbs, resultPin: "plan");
         }
 
         return ComposeTilesSurface(
@@ -139,8 +145,108 @@ internal static partial class IdeCockpit
             alertSnap, loci, goVerbs, args, focusId);
     }
 
-    /// <summary>Seat lines without ResolveSeatOrganPaneAsync — plan seat uses goResult pulse.</summary>
-    static string BuildPlanPulseSeatsSurface(
+    /// <summary>
+    /// Desk pulse for bare / editor / git / leftover go — no upfront git spray, no ResolveSeatOrganPaneAsync.
+    /// Editor uses local snap (not cdp_editor_scene dispatch); git loads only when go is git.
+    /// </summary>
+    static async Task<string> FinishDeskPulseAsync(
+        SessionContext session,
+        DocumentBufferStore docStore,
+        ShellHabitat shellHabitat,
+        InternetBrowserHabitat internetBrowser,
+        IdeSettingsHabitat ideSettings,
+        McpOutletHabitat mcpOutlet,
+        IReadOnlyDictionary<string, ICdpBackendModule> byDomain,
+        IntentWorkspaceStore? workspaceStore,
+        IntentWorkspaceState workspaceState,
+        IReadOnlyDictionary<string, JsonElement> args,
+        string mfd,
+        string? focusId,
+        string? goVerb,
+        object? goResult,
+        bool includeSubmodules,
+        object? warm,
+        Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> dispatch,
+        CancellationToken cancellationToken)
+    {
+        var buffer = CollectBuffer(docStore.Scene());
+        var shell = CollectShell(shellHabitat.Scene());
+        var browser = internetBrowser.Pulse();
+        var mcpPulse = mcpOutlet.Pulse();
+        var settingsPulse = ideSettings.Pulse();
+        JsonElement? git = null;
+        string? resultPin = TryGoPinFromResult(goResult);
+
+        if (goVerb is { Length: > 0 })
+        {
+            var rawPin = ResolvePinName(goVerb.Trim()) ?? goVerb.Trim();
+            var pin = CanonicalOrganPin(rawPin);
+            resultPin = pin;
+
+            if (pin is "editor_scene")
+            {
+                goResult = EditorSnapPane(buffer);
+                if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(rawPin))
+                    IdeDeskSeats.PlaceOrgan(rawPin);
+            }
+            else if (pin is "git_scene")
+            {
+                git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken)
+                    .ConfigureAwait(false);
+                goResult = WorldSnapPane(pin, git, shell, browser, mcpPulse);
+                if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(rawPin))
+                    IdeDeskSeats.PlaceOrgan(rawPin);
+            }
+            else
+            {
+                (goResult, _, git, shell, browser, mcpPulse) = await ApplyWorldOrGoAsync(
+                    goVerb, goResult, args, buffer, focusId, session, byDomain, includeSubmodules,
+                    shellHabitat, internetBrowser, mcpOutlet, git, shell, browser, mcpPulse,
+                    dispatch, cancellationToken).ConfigureAwait(false);
+                resultPin = TryGoPinFromResult(goResult) ?? pin;
+            }
+        }
+
+        var probes = CollectPlanPulseProbeBundle(session, workspaceStore, workspaceState);
+        var (alertSnap, _) = ApplyPlanPulseGlass(
+            session, workspaceStore, workspaceState, buffer, shell, probes);
+        goResult = SlimGoResult(goResult, OptString(args, "go_detail"));
+
+        var (loci, next, focus, goVerbs) = BuildDeskNavigation(
+            session, git, shell, browser, settingsPulse, buffer,
+            probes.Debug, probes.Test, probes.Work, probes.Quality, focusId,
+            alertSnap, probes.ChkSnap, probes.ChkCtx);
+
+        if (IdeDeskSeats.IsSeatsMode())
+        {
+            return BuildDeskPulseSeatsSurface(
+                session, args, mfd, focusId, goResult, warm, next, focus, alertSnap,
+                loci, goVerbs, resultPin);
+        }
+
+        return ComposeTilesSurface(
+            session, mfd, tiles: null, pins: Array.Empty<string>(), goResult, warm, next, focus,
+            alertSnap, loci, goVerbs, args, focusId);
+    }
+
+    static string? TryGoPinFromResult(object? goResult)
+    {
+        if (goResult is null)
+            return null;
+        if (goResult is JsonElement je
+            && je.ValueKind == JsonValueKind.Object
+            && je.TryGetProperty("go", out var g)
+            && g.ValueKind == JsonValueKind.String)
+            return CanonicalOrganPin(g.GetString() ?? "");
+
+        var prop = goResult.GetType().GetProperty("go");
+        if (prop?.GetValue(goResult) is string s && s.Length > 0)
+            return CanonicalOrganPin(s);
+        return null;
+    }
+
+    /// <summary>Seat lines without ResolveSeatOrganPaneAsync — matched go seat uses goResult pulse.</summary>
+    static string BuildDeskPulseSeatsSurface(
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args,
         string mfd,
@@ -151,11 +257,13 @@ internal static partial class IdeCockpit
         object? focus,
         IdeAlertChannel.Snap alertSnap,
         IReadOnlyList<Locus> loci,
-        string[] goVerbs)
+        string[] goVerbs,
+        string? resultPin)
     {
         var seatMap = IdeDeskSeats.Snapshot();
         var seatPinList = IdeDeskSeats.Order.Select(s => seatMap[s]).ToArray();
         var seatPanes = new List<SeatPane>();
+        var wantPin = resultPin is { Length: > 0 } ? CanonicalOrganPin(resultPin) : null;
         foreach (var seatId in IdeDeskSeats.Order)
         {
             var organ = seatMap[seatId];
@@ -166,7 +274,9 @@ internal static partial class IdeCockpit
             }
 
             var pin = CanonicalOrganPin(organ);
-            if (pin is "plan" && goResult is not null)
+            if (goResult is not null
+                && wantPin is { Length: > 0 }
+                && pin == wantPin)
             {
                 var (ok, line) = IdeDeskView.LineFromPane(goResult, false, organ);
                 seatPanes.Add(new SeatPane(seatId, organ, false, false, ok, line, null));
