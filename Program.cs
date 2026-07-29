@@ -1457,7 +1457,12 @@ var options = new McpServerOptions
                 if (serverRef is not null)
                     await CdpClientWorkspace.RefreshAsync(serverRef, cancellationToken).ConfigureAwait(false);
                 CdpClientWorkspace.EnsureSessionFallback(session);
-                var text = await IdeCommandModule.ExecuteAsync(name, callArgs, cancellationToken);
+                var text = await IdeToolCallWatch.RunAsync(
+                        name,
+                        callArgs,
+                        ct => IdeCommandModule.ExecuteAsync(name, callArgs, ct),
+                        cancellationToken)
+                    .ConfigureAwait(false);
                 return new CallToolResult
                 {
                     Content = ToolMediaOutbox.BuildContent(text)
