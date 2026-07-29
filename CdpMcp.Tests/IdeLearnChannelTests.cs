@@ -5,6 +5,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection("CdpProfileIsolation")]
 public sealed class IdeLearnChannelTests
 {
     [Fact]
@@ -22,6 +23,10 @@ public sealed class IdeLearnChannelTests
         Directory.CreateDirectory(iso);
         CdpProfile.ApplyClientRoots([iso]);
         IdeLearnChannel.Configure(null);
+        _ = IdeScopeChannel.Handle(new SessionContext { ProjectRoot = iso }, new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("clear")
+        });
         try
         {
             var session = new SessionContext { ProjectRoot = iso };

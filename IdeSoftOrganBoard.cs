@@ -65,6 +65,10 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
             IdeLearnChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeLearnChannel.PulseLine(_bag.Session),
             IdeLearnChannel.SchemaVersion),
+        SoftOrganKind.ProjectSwitch => Hit(
+            IdeScopeChannel.Handle(_bag.Session, _bag.TileArgs),
+            IdeScopeChannel.PulseLine(_bag.Session),
+            IdeScopeChannel.SchemaVersion),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
     };
 

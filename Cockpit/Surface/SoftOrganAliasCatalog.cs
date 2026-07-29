@@ -40,6 +40,8 @@ public sealed class SoftOrganAliasCatalog : ICockpitComputeUnit
             => SoftOrganKind.MdAuthor,
         "learn" or "learn_desk" or "learning" or "cdp_learn"
             => SoftOrganKind.Learn,
+        "project_switch" or "ps" or "primary_scope" or "scope_desk" or "cdp_scope"
+            => SoftOrganKind.ProjectSwitch,
         _ => null
     };
 }

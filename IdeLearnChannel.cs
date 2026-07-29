@@ -111,6 +111,18 @@ internal static class IdeLearnChannel
 
         var topic = Opt(args, "topic")?.Trim();
         var tags = ParseTags(Opt(args, "tags"));
+        var latch = IdeScopeChannel.CurrentOrNull();
+        IdeScopeChannel.TryParseMarkers(body, out var bodyPrimary, out var bodyScope);
+        var primary = FirstNonEmpty(
+            Opt(args, "primary"),
+            Opt(args, "project_id"),
+            bodyPrimary,
+            latch?.Primary);
+        var activeScope = FirstNonEmpty(
+            Opt(args, "scope"),
+            Opt(args, "active_scope"),
+            bodyScope,
+            latch?.Scope);
         var now = DateTimeOffset.UtcNow;
         var id = (Opt(args, "id") ?? "").Trim();
         if (id.Length == 0)
@@ -124,6 +136,8 @@ internal static class IdeLearnChannel
             Body = body,
             Topic = string.IsNullOrWhiteSpace(topic) ? null : topic,
             Tags = tags.Count > 0 ? tags : null,
+            Primary = primary,
+            Scope = activeScope,
             ProjectRoot = session.ProjectRoot,
             Phase = session.Phase.ToString(),
             Object = session.Object.ToString()
@@ -140,6 +154,8 @@ internal static class IdeLearnChannel
             title = entry.Title,
             topic = entry.Topic,
             tags = entry.Tags,
+            primary = entry.Primary,
+            scope = entry.Scope,
             journal = JournalPath,
             count = CountEntries(),
             pulse = PulseLine(),
@@ -338,6 +354,8 @@ internal static class IdeLearnChannel
         e.Title,
         e.Topic,
         e.Tags,
+        e.Primary,
+        e.Scope,
         promoted = e.PromotedPath is { Length: > 0 },
         e.PromotedPath,
         preview = FirstLine(e.Body ?? "", 96)
@@ -352,6 +370,10 @@ internal static class IdeLearnChannel
         sb.AppendLine($"- at_utc: {e.AtUtc}");
         if (e.Topic is { Length: > 0 })
             sb.AppendLine($"- topic: {e.Topic}");
+        if (e.Primary is { Length: > 0 })
+            sb.AppendLine($"- primary: {e.Primary}");
+        if (e.Scope is { Length: > 0 })
+            sb.AppendLine($"- scope: {e.Scope}");
         if (e.Tags is { Count: > 0 })
             sb.AppendLine($"- tags: {string.Join(", ", e.Tags)}");
         if (e.ProjectRoot is { Length: > 0 })
@@ -504,6 +526,16 @@ internal static class IdeLearnChannel
             .ToList();
     }
 
+    static string? FirstNonEmpty(params string?[] values)
+    {
+        foreach (var v in values)
+        {
+            if (!string.IsNullOrWhiteSpace(v))
+                return v.Trim();
+        }
+        return null;
+    }
+
     static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)
     {
         if (!args.TryGetValue(key, out var el))
@@ -537,6 +569,8 @@ internal static class IdeLearnChannel
         public string? Body { get; set; }
         public string? Topic { get; set; }
         public List<string>? Tags { get; set; }
+        public string? Primary { get; set; }
+        public string? Scope { get; set; }
         public string? ProjectRoot { get; set; }
         public string? Phase { get; set; }
         public string? Object { get; set; }

@@ -128,6 +128,20 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
+    static bool TryDispatchProjectSwitch(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsSoft(goVerb, SoftOrganKind.ProjectSwitch))
+            return false;
+
+        goResult = SoftBoard(SoftOrganKind.ProjectSwitch, session, null, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftOrganKind.ProjectSwitch);
+        return true;
+    }
+
     static bool TryDispatchIgnite(
         ref string? goVerb,
         ref object? goResult,

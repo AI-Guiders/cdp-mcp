@@ -205,6 +205,7 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "cdp_files",
     "cdp_md_author",
     "cdp_learn",
+    "cdp_scope",
     "cdp_webcam",
     "cdp_ps1_scene"
 };
@@ -729,7 +730,23 @@ List<Tool> BuildMetaTools() =>
                 tags = new { type = "string", description = "comma/semicolon tags" },
                 id = new { type = "string", description = "recall/promote: card id (or latest)" },
                 path = new { type = "string", description = "promote: knowledge-relative path (default work/projects/_learn/{id}.md)" },
-                limit = new { type = "integer", description = "list: max cards (default 20)" }
+                limit = new { type = "integer", description = "list: max cards (default 20)" },
+                primary = new { type = "string", description = "stash override; else inherit go=project_switch latch" },
+                scope = new { type = "string", description = "stash override active_scope; else inherit latch" }
+            }
+        }),
+    Meta("cdp_scope", "AN Project Switch latch on desk — PRIMARY + SCOPE. op=scene|set|recall|clear. Args primary=/scope= or text=[PRIMARY:…][SCOPE:…]. Alias go=project_switch|ps (NOT go=scope — that is EditSniper). Learn stash inherits latch.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|set|recall|clear" },
+                primary = new { type = "string", description = "project-id (AN PRIMARY)" },
+                scope = new { type = "string", description = "active_scope slice (AN SCOPE)" },
+                active_scope = new { type = "string", description = "alias of scope=" },
+                text = new { type = "string", description = "message with [PRIMARY:…] / [SCOPE:…] markers" },
+                message = new { type = "string", description = "alias of text=" }
             }
         }),
     Meta("cdp_files", "Agent-native File Manager (ADR-0016). Utility — not project-bound. where=cwd|project|external (+path=). op=scene|list|cd|up|stat|tree|open|text|search|roots|clear. text= lynx-like dump (pandoc/pdftotext). shape=slim|list. Alias go=files_desk. Prefer over shell ls/dir. Search facet → find_desk.", new
@@ -1855,6 +1872,8 @@ async Task<string> DispatchMetaAsync(
             return IdeMdAuthorChannel.HandleJson(session, callArgs);
         case "cdp_learn":
             return IdeLearnChannel.HandleJson(session, callArgs);
+        case "cdp_scope":
+            return IdeScopeChannel.HandleJson(session, callArgs);
         case "cdp_files":
             return IdeFilesChannel.HandleJson(docStore, session, callArgs);
         case "cdp_ignite":
