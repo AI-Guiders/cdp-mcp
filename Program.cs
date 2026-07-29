@@ -454,7 +454,7 @@ List<Tool> BuildMetaTools() =>
         },
         required = new[] { "anchor" }
     }),
-    Meta("cdp_cide_presentation", "Operator CIDE presentation topology wire (instant glass). op=scene|get|set. set topology=(P)(F)(M) → presentation-LATEST latch → CIDE live reparse. Not agent cdp_settings desk; does not mutate repo workspace.toml. Alias go=cide_presentation.", new
+    Meta("cdp_cide_presentation", "Operator CIDE glass wire (instant). op=scene|get|set. set topology=(P)(F)(M) and/or tier=cockpit|compact|auto and/or pfd_primary=/mfd_primary= and/or mfd_page=SolutionExplorer → presentation-LATEST latch → CIDE live apply. Not agent cdp_settings desk; does not mutate repo workspace.toml. Alias go=cide_presentation.", new
     {
         type = "object",
         properties = new
@@ -462,7 +462,15 @@ List<Tool> BuildMetaTools() =>
             op = new { type = "string", description = "scene|get|set (default scene)" },
             topology = new { type = "string", description = "set: display.screens.topology e.g. (P)(F)(M)" },
             value = new { type = "string", description = "alias of topology" },
-            presentation = new { type = "string", description = "alias of topology" }
+            presentation = new { type = "string", description = "alias of topology" },
+            tier = new { type = "string", description = "set: display.presentation.tier auto|compact|cockpit" },
+            pfd_primary = new { type = "string", description = "set: display.instruments.pfd_primary e.g. workspace_map|solution_explorer_tree" },
+            mfd_primary = new { type = "string", description = "set: display.instruments.mfd_primary" },
+            pfd_status_strip = new { type = "string", description = "set: display.instruments.pfd_status_strip" },
+            forward_status_strip = new { type = "string", description = "set: display.instruments.forward_status_strip" },
+            instruments = new { type = "string", description = "set: JSON object of instrument slot→id (merged with pfd_primary/…)" },
+            mfd_page = new { type = "string", description = "set: MfdShellPage name e.g. SolutionExplorer|Chat|Terminal" },
+            page = new { type = "string", description = "alias of mfd_page" }
         }
     }),
     Meta("cdp_mcp", "Agent MCP outlet (ADR 0187) — Cursor-parity control inside CDP. op=scene|presets|mount|tools|call|unmount. Mount guests (Serena/memory/…) for a task; child tools NEVER enter host ListTools. Alias go=mcp_scene|mcp_mount|…", new

@@ -41,4 +41,42 @@ public class CidePresentationLatchTests : IDisposable
         Assert.Equal("(P+F)(M)", latch!.Topology);
         Assert.Equal(CidePresentationLatch.OriginAgent, latch.Origin);
     }
+
+    [Fact]
+    public void Publish_instruments_and_tier_without_topology()
+    {
+        CidePresentationLatch.Publish(
+            new CidePresentationLatch.PresentationPatch
+            {
+                Tier = "cockpit",
+                Instruments = new Dictionary<string, string>
+                {
+                    ["pfd_primary"] = "workspace_map",
+                    ["mfd_primary"] = "solution_explorer_tree"
+                },
+                MfdPage = "SolutionExplorer"
+            },
+            CidePresentationLatch.OriginAgent);
+
+        var latch = CidePresentationLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.Null(latch!.Topology);
+        Assert.Equal("cockpit", latch.Tier);
+        Assert.Equal("workspace_map", latch.Instruments!["pfd_primary"]);
+        Assert.Equal("solution_explorer_tree", latch.Instruments["mfd_primary"]);
+        Assert.Equal("SolutionExplorer", latch.MfdPage);
+    }
+
+    [Fact]
+    public void Publish_rejects_unknown_instrument_keys()
+    {
+        CidePresentationLatch.Publish(
+            new CidePresentationLatch.PresentationPatch
+            {
+                Instruments = new Dictionary<string, string> { ["nope"] = "x" }
+            },
+            CidePresentationLatch.OriginAgent);
+
+        Assert.Null(CidePresentationLatch.TryRead());
+    }
 }
