@@ -5,7 +5,9 @@ Companion to ADR-0019 (dual HCI) + `icm-dual-hci-paths.md`.
 
 ## Intent
 
-Agent toggles **operator GUI cockpit** (Avalonia / future thin shell) without Cursor composer. Not boot-with-GUI: default `agent-only`; Start raises dual-cockpit; Stop returns agent-only.
+Agent toggles **operator GUI cockpit** without Cursor composer. Not boot-with-GUI: default `agent-only`; Start raises dual-cockpit; Stop returns agent-only.
+
+**North star (2026-07-30):** Windows-first operator glass (**WPF**); **Avalonia on hold** — see [CDP-ADR-0021](../adr/CDP-ADR-0021-windows-first-operator-glass.md). Legacy Avalonia exe may still Start until WPF host is ready.
 
 ## Proposed `command_id`s (**shipped** on `feat/icm-command-module`)
 
