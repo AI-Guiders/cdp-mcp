@@ -57,95 +57,118 @@ internal static partial class IdeIgniteArmHost
         {
             try
             {
-                SetStatus(arm.Id, "firing", null);
-                if (arm.SettleSeconds > 0)
-                    await Task.Delay(TimeSpan.FromSeconds(arm.SettleSeconds), cts.Token).ConfigureAwait(false);
-
-                // Disarmed while settling / before CDT — do not inject stale charge.
-                if (!IsArmLive(arm.Id))
-                {
-                    IdeFlightDataRecorder.RecordWake(
-                        "wake_suppress", arm.Id, ToolFromWakeArm(arm), "disarmed_before_fire");
-                    return;
-                }
-
-                var msg = IsCustomChargeMode(arm.ChargeMode)
-                    ? IdeIgniteChannel.SanitizeComposerCharge(Expand(arm.Message, arm, ok, pulse, detail))
-                    : IsRemountChargeMode(arm.ChargeMode)
-                        ? IdeIgniteChannel.ComposeRemountInitializedCharge()
-                        : IdeIgniteChannel.ComposeArmFireCharge();
-                lock (Gate)
-                {
-                    var live = Arms.FirstOrDefault(x => x.Id.Equals(arm.Id, StringComparison.OrdinalIgnoreCase));
-                    if (live is not null)
-                    {
-                        live.SendInvokedUtc = DateTimeOffset.UtcNow;
-                        live.SendOk = null;
-                        live.SendError = null;
-                        PersistUnlocked();
-                    }
-                }
-
-                // Last gate: Disarm may have raced after IsArmLive check.
-                if (!IsArmLive(arm.Id))
-                {
-                    IdeFlightDataRecorder.RecordWake(
-                        "wake_suppress", arm.Id, ToolFromWakeArm(arm), "disarmed_before_cdt");
-                    return;
-                }
-
-                var result = await IdeIgniteChannel.FireAsync(
-                    arm.Port, msg, arm.Chat, arm.WaitSeconds, cts.Token).ConfigureAwait(false);
-
-                var firedOk = result is { } && TryGetOk(result);
-                RecordSendEvidence(arm.Id, firedOk, firedOk ? null : (TryGetError(result) ?? "fire_failed"));
-                if (firedOk)
-                {
-                    if (arm.LastOnce)
-                        SetStatus(arm.Id, "awaiting", null, fired: DateTimeOffset.UtcNow);
-                    else if (arm.Once)
-                        Remove(arm.Id);
-                    else
-                        SetStatus(arm.Id, "armed", null, fired: DateTimeOffset.UtcNow);
-                }
-                else
-                {
-                    var err = TryGetError(result) ?? "fire_failed";
-                    IdeStageCycle.TryAppend(
-                        IdeStageCycle.MapIgniteError(err), "ignite", err, arm.Id);
-                    if (ShouldRequeueBusy(arm.Event, err) && !IsToolWakeArmId(arm.Id))
-                        RequeueAfterBusy(arm.Id, err, BusyBackoff(arm.WaitSeconds));
-                    else if (ShouldEnterProviderBlockedContinuity(err))
-                        EnterProviderBlockedContinuity(arm, TryGetDetail(result));
-                    else if (ShouldKeepVisibleErrorOnFireFail(arm.Once, arm.LastOnce))
-                        SetStatus(arm.Id, "error", err);
-                    else
-                        Remove(arm.Id); // plain once — hygiene/reclaim scrub zombies
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                IdeFlightDataRecorder.RecordWake(
-                    "wake_cancel", arm.Id, ToolFromWakeArm(arm), "fire_token_cancelled");
-                // Disarm already removed; do not resurrect.
-            }
-            catch (Exception ex)
-            {
-                IdeStageCycle.TryAppend("ignite.fire_fail", "ignite", ex.Message, arm.Id);
-                if (ShouldKeepVisibleErrorOnFireFail(arm.Once, arm.LastOnce))
-                    SetStatus(arm.Id, "error", ex.Message);
-                else
-                    Remove(arm.Id);
+                await RunFireAsync(arm, ok, pulse, detail, cts.Token).ConfigureAwait(false);
             }
             finally
             {
-                Firing.TryRemove(arm.Id, out _);
-                if (FireTokens.TryRemove(arm.Id, out var token))
-                {
-                    try { token.Dispose(); } catch { /* ignore */ }
-                }
+                CleanupFireToken(arm.Id);
             }
         });
+    }
+
+    static async Task RunFireAsync(
+        IgniteArm arm, bool ok, string? pulse, string? detail, CancellationToken ct)
+    {
+        try
+        {
+            SetStatus(arm.Id, "firing", null);
+            if (arm.SettleSeconds > 0)
+                await Task.Delay(TimeSpan.FromSeconds(arm.SettleSeconds), ct).ConfigureAwait(false);
+
+            // Disarmed while settling / before CDT — do not inject stale charge.
+            if (!IsArmLive(arm.Id))
+            {
+                IdeFlightDataRecorder.RecordWake(
+                    "wake_suppress", arm.Id, ToolFromWakeArm(arm), "disarmed_before_fire");
+                return;
+            }
+
+            var msg = ComposeFireCharge(arm, ok, pulse, detail);
+            MarkSendInvoked(arm.Id);
+
+            // Last gate: Disarm may have raced after IsArmLive check.
+            if (!IsArmLive(arm.Id))
+            {
+                IdeFlightDataRecorder.RecordWake(
+                    "wake_suppress", arm.Id, ToolFromWakeArm(arm), "disarmed_before_cdt");
+                return;
+            }
+
+            var result = await IdeIgniteChannel.FireAsync(
+                arm.Port, msg, arm.Chat, arm.WaitSeconds, ct).ConfigureAwait(false);
+            ApplyFireOutcome(arm, result);
+        }
+        catch (OperationCanceledException)
+        {
+            IdeFlightDataRecorder.RecordWake(
+                "wake_cancel", arm.Id, ToolFromWakeArm(arm), "fire_token_cancelled");
+            // Disarm already removed; do not resurrect.
+        }
+        catch (Exception ex)
+        {
+            IdeStageCycle.TryAppend("ignite.fire_fail", "ignite", ex.Message, arm.Id);
+            if (ShouldKeepVisibleErrorOnFireFail(arm.Once, arm.LastOnce))
+                SetStatus(arm.Id, "error", ex.Message);
+            else
+                Remove(arm.Id);
+        }
+    }
+
+    static string ComposeFireCharge(IgniteArm arm, bool ok, string? pulse, string? detail) =>
+        IsCustomChargeMode(arm.ChargeMode)
+            ? IdeIgniteChannel.SanitizeComposerCharge(Expand(arm.Message, arm, ok, pulse, detail))
+            : IsRemountChargeMode(arm.ChargeMode)
+                ? IdeIgniteChannel.ComposeRemountInitializedCharge()
+                : IdeIgniteChannel.ComposeArmFireCharge();
+
+    static void MarkSendInvoked(string armId)
+    {
+        lock (Gate)
+        {
+            var live = Arms.FirstOrDefault(x => x.Id.Equals(armId, StringComparison.OrdinalIgnoreCase));
+            if (live is null)
+                return;
+            live.SendInvokedUtc = DateTimeOffset.UtcNow;
+            live.SendOk = null;
+            live.SendError = null;
+            PersistUnlocked();
+        }
+    }
+
+    static void ApplyFireOutcome(IgniteArm arm, object? result)
+    {
+        var firedOk = result is { } && TryGetOk(result);
+        RecordSendEvidence(arm.Id, firedOk, firedOk ? null : (TryGetError(result) ?? "fire_failed"));
+        if (firedOk)
+        {
+            if (arm.LastOnce)
+                SetStatus(arm.Id, "awaiting", null, fired: DateTimeOffset.UtcNow);
+            else if (arm.Once)
+                Remove(arm.Id);
+            else
+                SetStatus(arm.Id, "armed", null, fired: DateTimeOffset.UtcNow);
+            return;
+        }
+
+        var err = TryGetError(result) ?? "fire_failed";
+        IdeStageCycle.TryAppend(
+            IdeStageCycle.MapIgniteError(err), "ignite", err, arm.Id);
+        if (ShouldRequeueBusy(arm.Event, err) && !IsToolWakeArmId(arm.Id))
+            RequeueAfterBusy(arm.Id, err, BusyBackoff(arm.WaitSeconds));
+        else if (ShouldEnterProviderBlockedContinuity(err))
+            EnterProviderBlockedContinuity(arm, TryGetDetail(result));
+        else if (ShouldKeepVisibleErrorOnFireFail(arm.Once, arm.LastOnce))
+            SetStatus(arm.Id, "error", err);
+        else
+            Remove(arm.Id); // plain once — hygiene/reclaim scrub zombies
+    }
+
+    static void CleanupFireToken(string armId)
+    {
+        Firing.TryRemove(armId, out _);
+        if (!FireTokens.TryRemove(armId, out var token))
+            return;
+        try { token.Dispose(); } catch { /* ignore */ }
     }
 
     static string? ToolFromWakeArm(IgniteArm arm)
