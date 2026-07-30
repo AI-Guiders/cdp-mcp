@@ -32,6 +32,7 @@ Patch 7890872 kept deferred organs on PlanPulse probes (no git/quality/ResolveSe
 - `go=alert` / `go=chk` on pulse desk must return in agent-comfortable time (seconds, not minutes).
 - Glass consumers that relied on every soft-organ call refreshing all channels may see stale glass until a desk touch or slow path — acceptable; latch publish for alert/qrh/ecl stays.
 - Further peels shipped: organ-only early return (skip nav); `seats_detail=full` alone stays pulse (early refuse); `pane_full=` stays pulse (one matched seat Resolve only).
+- Meta `cdp_editor_scene` default = desk `go=editor` snap (counts; no disk probe/loci); `detail=full` / path|locus|doc_id = full map.
 - Optional later: `cdp_organ` Meta.
 
 ---
