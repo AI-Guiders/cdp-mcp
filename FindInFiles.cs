@@ -407,7 +407,10 @@ internal static class FindInFiles
                     col = startEl.GetInt32() + 1;
                 }
 
-                var anchor = BracketLocate.Format(new BracketLocate.Span(label, null, lineNum, null));
+                var needle = BracketLocate.SanitizeTextNeedle(preview);
+                var anchor = string.IsNullOrWhiteSpace(needle)
+                    ? BracketLocate.Format(new BracketLocate.Span(label, null, lineNum, null))
+                    : BracketLocate.Format(new BracketLocate.Span(label, null, lineNum, null, TextNeedle: needle));
                 list.Add(new Hit(anchor, abs, lineNum, col, preview));
             }
             catch

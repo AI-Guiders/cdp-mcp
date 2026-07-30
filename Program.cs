@@ -402,13 +402,13 @@ List<Tool> BuildMetaTools() =>
             skip_validate = new { type = "boolean", description = "apply: skip pre-validate (default false)" }
         }
     }),
-    Meta("cdp_edit_sniper", "Edit sniper process: sight→lock→arm→fire. scope=lock (full-line + auto-peek → phase=armed). put/paste sniper hard-blocked until armed. Prefer [F:;M:;K:]/X:; L:=line_literal. Prefer go=scope/target on cdp_cockpit.", new
+    Meta("cdp_edit_sniper", "Edit sniper process: sight→lock→arm→fire. scope=lock (full-line + auto-peek → phase=armed). put/paste sniper hard-blocked until armed. Prefer [F:;M:;K:]/X:; [F:;T:needle] content (survives L-drift); L:=line_literal. Prefer go=scope/target on cdp_cockpit.", new
     {
         type = "object",
         properties = new
         {
             op = new { type = "string", description = "scope|target|clear|status (default status)" },
-            from = new { type = "string", description = "scope: Select.From anchor wire [F:;M:;S:/L:]" },
+            from = new { type = "string", description = "scope: Select.From anchor wire [F:;M:;T:/L:]" },
             till = new { type = "string", description = "scope: Till wire, or body|enclosing" },
             max = new { type = "integer", description = "target: max nodes (default 48)" }
         }
