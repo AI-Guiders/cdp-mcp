@@ -52,9 +52,11 @@ internal static partial class IdeCockpit
             session, docStore, workspaceStore, workspaceState, args);
 
         var deferred = PeekDeferredSoftWants(ref goVerb);
-        if (deskPulseWanted && !AnyDeferredSoftWant(deferred))
+        // Deferred soft organs (alert/chk/…) must NOT force full BuildAsync spray — that hung
+        // agents ~minutes (git+quality+ResolveSeatOrgan). Apply them on cheap probes in desk-pulse.
+        if (deskPulseWanted)
         {
-            if (planPulseWanted)
+            if (planPulseWanted && !AnyDeferredSoftWant(deferred))
             {
                 return FinishPlanPulseDesk(
                     session, docStore, shellHabitat, internetBrowser, ideSettings,
@@ -64,7 +66,7 @@ internal static partial class IdeCockpit
             return await FinishDeskPulseAsync(
                 session, docStore, shellHabitat, internetBrowser, ideSettings, mcpOutlet,
                 byDomain, workspaceStore, workspaceState, args, mfd, focusId,
-                goVerb, goResult, includeSubmodules, warm, dispatch, cancellationToken)
+                goVerb, goResult, includeSubmodules, warm, deferred, dispatch, cancellationToken)
                 .ConfigureAwait(false);
         }
 
