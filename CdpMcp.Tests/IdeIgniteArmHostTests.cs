@@ -279,11 +279,11 @@ public class IdeIgniteArmHostTests
     {
         var keep = "test-hygiene-keep-" + Guid.NewGuid().ToString("N")[..8];
         var drop = "test-hygiene-drop-" + Guid.NewGuid().ToString("N")[..8];
+        // Continuity timer re-arm supersedes prior timers — use mixed events so both coexist.
         IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
         {
             ["op"] = JsonSerializer.SerializeToElement("arm"),
-            ["when"] = JsonSerializer.SerializeToElement("timer"),
-            ["in"] = JsonSerializer.SerializeToElement("1h"),
+            ["when"] = JsonSerializer.SerializeToElement("build_finished"),
             ["id"] = JsonSerializer.SerializeToElement(keep),
             ["task"] = JsonSerializer.SerializeToElement("keep continuity"),
             ["settle_seconds"] = JsonSerializer.SerializeToElement(0)
