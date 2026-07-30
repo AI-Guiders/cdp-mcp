@@ -67,6 +67,48 @@ public sealed class EditSniperAimProcessTests : IDisposable
     }
 
     [Fact]
+    public void Scope_T_needle_survives_wrong_L_hint()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "cdp-sniper-t-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var path = Path.Combine(dir, "Sample.cs");
+            File.WriteAllText(path, string.Join('\n',
+            [
+                "namespace Demo;",
+                "",
+                "public static class Host", 
+                "{",
+                "    public static void Run() { }",
+                "    public static void Arm() { }",
+                "}",
+                ""
+            ]));
+
+            var store = new DocumentBufferStore();
+            var session = new SessionContext { ProjectRoot = dir };
+            var fileName = Path.GetFileName(path);
+            // L:2 is blank / wrong after inserts; T: finds Arm() on real line.
+            var json = EditSniper.Dispatch(store, session, Dict(
+                ("op", "scope"),
+                ("from", $"[F:{fileName};L:2;T:public static void Arm()]")));
+
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            Assert.True(root.GetProperty("ok").GetBoolean());
+            Assert.Equal("armed", root.GetProperty("phase").GetString());
+            Assert.Contains("content_literal", root.GetProperty("resolve").GetString(), StringComparison.Ordinal);
+            Assert.Equal(6, root.GetProperty("hold").GetProperty("line_start").GetInt32());
+            Assert.Contains("Arm()", root.GetProperty("text").GetString(), StringComparison.Ordinal);
+        }
+        finally
+        {
+            try { Directory.Delete(dir, recursive: true); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
     public void TryEnsureFire_hard_blocks_without_hold()
     {
         Assert.False(EditSniper.TryEnsureFire(out var err, out var hint));
