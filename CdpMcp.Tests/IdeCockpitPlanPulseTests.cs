@@ -33,14 +33,16 @@ public sealed class IdeCockpitPlanPulseTests
     }
 
     [Fact]
-    public void WantsPlanPulseFastPath_false_when_seats_detail_full()
+    public void WantsDeskPulseFastPath_true_when_seats_detail_full_alone()
     {
+        // seats_detail=full without pane_full is W-spray refused — stay on desk-pulse
+        // (do not enter TryGitAsync / ResolveSeatOrgan spray).
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
         {
             ["seats_detail"] = JsonSerializer.SerializeToElement("full")
         };
-        Assert.False(IdeCockpit.WantsPlanPulseFastPath("plan", args));
-        Assert.False(IdeCockpit.WantsDeskPulseFastPath(args));
+        Assert.True(IdeCockpit.WantsDeskPulseFastPath(args));
+        Assert.True(IdeCockpit.WantsPlanPulseFastPath("plan", args));
     }
 
     [Fact]

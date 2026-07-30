@@ -1231,7 +1231,7 @@ List<Tool> BuildMetaTools() =>
             limit = new { type = "integer" }
         }
     }),
-    Meta("cdp_cockpit", "[A] Agent IDE desk — Scan Pattern seats + view once (ADR 0191/0193). Slim alert=sa pulse (sit/locus/layout). [C] go_detail=full|pane_full=. [W] seats_detail=full spray. World channel replaces on M. Cold auto-restore.", new
+    Meta("cdp_cockpit", "[A] Agent IDE desk — Scan Pattern seats + view once (ADR 0191/0193). Slim alert=sa pulse (sit/locus/layout). [C] go_detail=full|pane_full=. seats_detail=full alone stays pulse (refused). World channel replaces on M. Cold auto-restore.", new
     {
         type = "object",
         properties = new
@@ -1246,7 +1246,7 @@ List<Tool> BuildMetaTools() =>
             line = new { type = "string", description = "Alias of cmd." },
             repl = new { type = "string", description = "Alias of cmd." },
             go_args = new { type = "object", description = "Optional args merged into the target organ tool." },
-            go_detail = new { type = "string", description = "[A] pulse (default) | [C] full = organ dump in go.result only (desk stays fast-path; seats_detail/pane_full still spray)." },
+            go_detail = new { type = "string", description = "[A] pulse (default) | [C] full = organ dump in go.result only (desk stays fast-path)." },
             layout = new { type = "string", description = "Seat preset: cockpit | code+net | code+shell | code+git | desk. Sticky replace-in-seat." },
             seat = new { type = "string", description = "Explicit seat: p|forward|m (with organ=)." },
             organ = new { type = "string", description = "Organ pin for seat= (or pin=)." },
@@ -1258,7 +1258,7 @@ List<Tool> BuildMetaTools() =>
             seat_clear = new { type = "boolean", description = "Alias of pin_clear (seats)." },
             pane_full = new { type = "string", description = "[C] Which seat/pin gets go_detail=full (also forces panes)." },
             full_pane = new { type = "string", description = "Alias of pane_full." },
-            seats_detail = new { type = "string", description = "[A] compact (default: view+slots). [W] full alone is refused — use pane_full=<seat|organ> for one dump." },
+            seats_detail = new { type = "string", description = "[A] compact (default: view+slots). full alone refused early (pulse path + thrash); use pane_full=<seat|organ> for one dump (slow path)." },
             view_detail = new { type = "string", description = "Alias of seats_detail." },
             desk_detail = new { type = "string", description = "slim (default: omit loci[]/go_verbs[]) | nav | full. Alias: nav_detail=." },
             nav_detail = new { type = "string", description = "Alias of desk_detail." },
