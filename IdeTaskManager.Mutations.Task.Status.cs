@@ -152,12 +152,24 @@ internal static partial class IdeTaskManager
 
     static object TaskEventNote(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
     {
-        var id = ResolveClockStageId(store, state, args)
+        var id = ResolveNoteStageId(store, state, args)
                  ?? throw new ArgumentException("note needs active task — focus first");
-        var text = Title(args);
+        // Prefer text=/body=; title= is legacy REPL stuffing of note body (not a stage name).
+        var text = Opt(args, "text") ?? Opt(args, "body") ?? OptGoArg(args, "text") ?? OptGoArg(args, "body") ?? "";
         if (text.Length == 0)
-            text = Opt(args, "text") ?? Opt(args, "body") ?? OptGoArg(args, "text") ?? OptGoArg(args, "body") ?? "";
+            text = Title(args);
         return store.StageEventNote(state, id, text);
+    }
+
+    static Guid? ResolveNoteStageId(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        // id → active focus. Never treat title as stage name (note body historically lived in title=).
+        _ = store;
+        var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id")
+                 ?? GuidArgGo(args, "stage_id") ?? GuidArgGo(args, "task_id");
+        if (id is not null)
+            return id;
+        return state.ActiveStageId;
     }
 
     static Guid? ResolveClockStageId(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args) =>
