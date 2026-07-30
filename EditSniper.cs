@@ -9,13 +9,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace CdpMcp;
 
 /// <summary>
-/// Edit sniper — scope (From/Till corridor) → target (outline inside) → shoot (edit_plan).
-/// Hold lives in-process for the MCP session (kj-20260724-1848).
+/// Edit sniper — process <c>sight → lock → arm → fire → verify</c> (kj-1848).
+/// <c>scope</c> = lock: full-line expand + auto-peek → <c>phase=armed</c>.
+/// Fire (put/paste sniper) is hard-blocked until armed — no peek ritual for the agent.
+/// Prefer semantic wires [F:;M:;K:] / XML X:; L: is line_literal corridor (not Roslyn node snap).
 /// </summary>
 internal static class EditSniper
 {
     public const string Schema = "edit_sniper/v0";
     public const string ToolName = "cdp_edit_sniper";
+    public const string PhaseArmed = "armed";
     public const int MaxTargets = 48;
 
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
@@ -29,15 +32,19 @@ internal static class EditSniper
         int ColumnStart,
         int LineEnd,
         int ColumnEnd,
-        string ResolveDetail);
+        string ResolveDetail,
+        string Phase,
+        string? PeekText);
 
     static Corridor? Hold;
 
     public static bool HasHold => Hold is not null;
 
+    public static bool IsArmed => Hold is { Phase: PhaseArmed };
+
     public static string? PulseLine =>
         Hold is { } h
-            ? $"L{h.LineStart}-{h.LineEnd} @ {Path.GetFileName(h.Path)}"
+            ? $"{h.Phase} L{h.LineStart}-{h.LineEnd} @ {Path.GetFileName(h.Path)}"
             : null;
 
     public static object? HoldCard() =>
@@ -47,11 +54,34 @@ internal static class EditSniper
                 path = h.Path,
                 from = h.FromWire,
                 till = h.TillWire,
+                phase = h.Phase,
                 line_start = h.LineStart,
                 line_end = h.LineEnd,
                 lines = h.LineEnd - h.LineStart + 1
             }
             : null;
+
+    /// <summary>Hard gate for put/paste sniper — hold alone is not enough.</summary>
+    public static bool TryEnsureFire(out string error, out string hint)
+    {
+        if (Hold is null)
+        {
+            error = "no_sniper_hold";
+            hint = "go=scope from=/till= (lock auto-arms with peek) then put/paste sniper=true";
+            return false;
+        }
+
+        if (Hold.Phase != PhaseArmed)
+        {
+            error = "sniper_not_armed";
+            hint = "Fire hard-blocked until phase=armed. go=scope — lock expands full lines + auto-peek.";
+            return false;
+        }
+
+        error = "";
+        hint = "";
+        return true;
+    }
 
     /// <summary>For clipboard paste into sniper corridor (before/after/replace).</summary>
     public static bool TryGetHold(
@@ -172,7 +202,7 @@ internal static class EditSniper
             wire = NormalizeWire(wire),
             hold = HoldCard(),
             peek,
-            hint = "Sniper aimed. go=target | edit_draft | scope_clear."
+            hint = "Sniper aimed (armed). Fire: put/paste sniper=true | go=target | scope_clear."
         };
     }
 
@@ -220,16 +250,21 @@ internal static class EditSniper
         var end = span.LineEnd ?? line;
         var label = FileLabel(session, path);
         var from = NormalizeWire(wire);
+        var text = ReadText(store, path);
+        var zone = ExpandToFullLines(text, new BracketSyntaxResolve.TextRange(line, 1, end, 1));
+        var peek = SliceCorridor(text, zone.LineStart, zone.LineEnd);
         Hold = new Corridor(
             path,
             label,
             from,
             null,
-            line,
-            1,
-            end,
-            1,
-            "line_fallback");
+            zone.LineStart,
+            zone.ColumnStart,
+            zone.LineEnd,
+            zone.ColumnEnd,
+            "line_literal",
+            PhaseArmed,
+            peek);
         EditorComfort.RememberFile(path);
         return true;
     }
@@ -311,9 +346,13 @@ internal static class EditSniper
             ok = true,
             op = "status",
             hold = HoldCard(),
+            phase = h.Phase,
             count = h.LineEnd - h.LineStart + 1,
+            text = h.PeekText,
             next = ShootNext(),
-            hint = "Corridor held. go=target for in-corridor outline; then edit_draft / edit_plan."
+            hint = h.Phase == PhaseArmed
+                ? "Armed. Fire hard-gated: put/paste sniper. Prefer semantic [F:;M:;K:] / X: next aim."
+                : "Corridor held but not armed — go=scope to lock+peek."
         }, Pretty);
     }
 
@@ -433,6 +472,9 @@ internal static class EditSniper
         }
 
         var label = FileLabel(session, fromPath);
+        var fileText = ReadText(store, fromPath);
+        zone = ExpandToFullLines(fileText, zone);
+        var peek = SliceCorridor(fileText, zone.LineStart, zone.LineEnd);
         Hold = new Corridor(
             fromPath,
             label,
@@ -442,7 +484,9 @@ internal static class EditSniper
             zone.ColumnStart,
             zone.LineEnd,
             zone.ColumnEnd,
-            detail);
+            detail,
+            PhaseArmed,
+            peek);
 
         var lines = zone.LineEnd - zone.LineStart + 1;
         return JsonSerializer.Serialize(new
@@ -450,11 +494,18 @@ internal static class EditSniper
             schema = Schema,
             ok = true,
             op = "scope",
+            process = "sight→lock→arm",
+            phase = PhaseArmed,
             hold = HoldCard(),
             resolve = detail,
             count = lines,
+            start_line = zone.LineStart,
+            end_line = zone.LineEnd,
+            text = peek,
             next = ShootNext(),
-            hint = "Corridor set. go=target → outline inside From–Till (not file-wide)."
+            hint =
+                "Locked+armed (full lines + auto-peek). Fire: put/paste sniper — hard-blocked until armed. " +
+                "Prefer semantic [F:;M:;K:] / X:; L: is line_literal."
         }, Pretty);
     }
 
@@ -628,26 +679,25 @@ internal static class EditSniper
         EditorComfort.PushLocus(session, locusWire);
         EditorComfort.RememberFile(h.Path);
 
+        var peekBody = slice.ToString();
+        Hold = h with { Phase = PhaseArmed, PeekText = peekBody };
+
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
             ok = true,
             op = "peek",
+            process = "verify",
+            phase = PhaseArmed,
             hold = HoldCard(),
             wire = usedWire,
             resolve,
             start_line = lineStart,
             end_line = lineEnd,
             count = lineEnd - lineStart + 1,
-            text = slice.ToString(),
-            next = new object[]
-            {
-                new { go = "edit_draft", label = "Shoot (draft)", why = "mutate/fix with seen wire" },
-                new { go = "back", label = "Nav back", why = "locus stack" },
-                new { go = "target", label = "Re-outline", why = "pick another wire" },
-                new { go = "scope_clear", label = "Clear aim", why = "drop corridor" }
-            },
-            hint = "Peek is corridor/wire only — not a file dump. pad= for ± lines. Pushes locus nav."
+            text = peekBody,
+            next = ShootNext(),
+            hint = "Peek re-arms. Fire hard-gated on phase=armed. pad= for ± lines."
         }, Pretty);
     }
 
@@ -661,14 +711,62 @@ internal static class EditSniper
     }
 
     static object[] ShootNext() =>
-    [
-        new { go = "target", label = "Outline corridor", why = "sniper step 2" },
-        new { go = "peek", label = "Peek corridor", why = "tiny window before shoot" },
-        new { go = "paste_sniper", label = "Paste frame into aim", why = "clipboard → replace hold" },
-        new { go = "put_sniper", label = "Put draft into aim", why = "text=/frame= thick rewrite" },
-        new { go = "edit_draft", label = "Shoot (draft)", why = "mutate/fix plan" },
-        new { go = "scope_clear", label = "Clear aim", why = "drop From/Till" }
-    ];
+        IsArmed
+            ?
+            [
+                new { go = "put_sniper", label = "Fire put", why = "armed — text=/frame= into hold" },
+                new { go = "paste_sniper", label = "Fire paste", why = "armed — clipboard → hold" },
+                new { go = "target", label = "Outline corridor", why = "optional in-corridor nodes" },
+                new { go = "peek", label = "Re-peek", why = "optional verify before fire" },
+                new { go = "edit_draft", label = "Shoot (draft)", why = "mutate/fix plan" },
+                new { go = "scope_clear", label = "Clear aim", why = "drop From/Till" }
+            ]
+            :
+            [
+                new { go = "scope", label = "Lock corridor", why = "from=/till= → auto-arm" },
+                new { go = "scope_clear", label = "Clear aim", why = "drop From/Till" }
+            ];
+
+    static BracketSyntaxResolve.TextRange ExpandToFullLines(
+        string text,
+        BracketSyntaxResolve.TextRange zone)
+    {
+        var lines = SplitLines(text);
+        if (lines.Count == 0)
+            return new BracketSyntaxResolve.TextRange(1, 1, 1, 1);
+
+        var ls = Math.Clamp(zone.LineStart, 1, lines.Count);
+        var le = Math.Clamp(zone.LineEnd, ls, lines.Count);
+        var endCol = Math.Max(1, lines[le - 1].Length + 1);
+        return new BracketSyntaxResolve.TextRange(ls, 1, le, endCol);
+    }
+
+    static string SliceCorridor(string text, int lineStart, int lineEnd, int maxLines = 60)
+    {
+        var all = SplitLines(text);
+        if (all.Count == 0)
+            return "";
+        lineStart = Math.Clamp(lineStart, 1, all.Count);
+        lineEnd = Math.Clamp(lineEnd, lineStart, all.Count);
+        if (lineEnd - lineStart + 1 > maxLines)
+            lineEnd = lineStart + maxLines - 1;
+        var sb = new StringBuilder();
+        for (var i = lineStart; i <= lineEnd; i++)
+        {
+            if (i > lineStart) sb.Append('\n');
+            sb.Append(all[i - 1]);
+        }
+
+        return sb.ToString();
+    }
+
+    static bool IsLineOnlyCorridor(BracketLocate.Span span) =>
+        span.LineStart is not null
+        && string.IsNullOrWhiteSpace(span.MemberKey)
+        && string.IsNullOrWhiteSpace(span.ScopeKind)
+        && string.IsNullOrWhiteSpace(span.Role)
+        && string.IsNullOrWhiteSpace(span.XmlPath)
+        && string.IsNullOrWhiteSpace(span.Attr);
 
     static bool TryResolveWire(
         DocumentBufferStore store,
@@ -701,6 +799,18 @@ internal static class EditSniper
         }
 
         path = ResolveUserPath(session, span.File);
+
+        // L-only corridor: literal lines (honor L:a-b). Avoid Roslyn node-snap / XML-as-C# drift.
+        if (IsLineOnlyCorridor(span))
+        {
+            var lineText = ReadText(store, path);
+            var ls = span.LineStart!.Value;
+            var le = span.LineEnd ?? ls;
+            range = ExpandToFullLines(lineText, new BracketSyntaxResolve.TextRange(ls, 1, le, 1));
+            detail = "line_literal";
+            return true;
+        }
+
         var family = BracketLocate.ClassifyFamily(span, out var familyError);
         if (familyError is not null)
         {

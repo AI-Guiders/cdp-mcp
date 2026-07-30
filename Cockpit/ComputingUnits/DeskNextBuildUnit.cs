@@ -36,6 +36,7 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
         int QualityWarn,
         bool SuggestSniper,
         bool SniperHasHold,
+        bool SniperArmed,
         string? SniperPulse,
         bool ArchHasWork,
         string? ArchPulse,
@@ -140,11 +141,15 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
         if (input.SniperHasHold)
         {
             Add("n-target", "target", "Outline corridor", $"Aim {input.SniperPulse}");
-            Add("n-peek", "peek", "Peek aim", "wire= optional; corridor window");
-            if (input.AnyClipboard)
-                Add("n-paste-sniper", "paste_sniper", "Paste frame into aim", "MRU/frame= replace hold");
-            Add("n-put-sniper", "put_sniper", "Put draft into aim", "text=/frame= thick rewrite");
-            Add("n-edit-draft", "edit_draft", "Shoot (draft)", "mutate/fix inside aim");
+            if (input.SniperArmed)
+            {
+                if (input.AnyClipboard)
+                    Add("n-paste-sniper", "paste_sniper", "Fire paste", "armed — clipboard → hold");
+                Add("n-put-sniper", "put_sniper", "Fire put", "armed — text=/frame= into hold");
+                Add("n-edit-draft", "edit_draft", "Shoot (draft)", "mutate/fix inside aim");
+            }
+            else
+                Add("n-scope", "scope", "Lock+arm", "fire hard-blocked until phase=armed");
             Add("n-scope-clear", "scope_clear", "Clear aim", "drop From/Till");
         }
         else

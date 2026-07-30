@@ -62,6 +62,7 @@ internal static partial class IdeCockpit
             QualityWarn: alert.Explain?.Reason is "quality_warn" ? quality.Warn : 0,
             SuggestSniper: quality.SuggestSniper,
             SniperHasHold: EditSniper.HasHold,
+            SniperArmed: EditSniper.IsArmed,
             SniperPulse: EditSniper.PulseLine,
             ArchHasWork: IdeArchBoardChannel.HasActiveWork(session),
             ArchPulse: IdeArchBoardChannel.PulseLine(session),
