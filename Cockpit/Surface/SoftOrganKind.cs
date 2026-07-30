@@ -31,5 +31,6 @@ public enum SoftOrganKind
     Review,
     MdAuthor,
     Learn,
-    ProjectSwitch
+    ProjectSwitch,
+    Domain
 }

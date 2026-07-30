@@ -27,3 +27,4 @@
 - 0.5.309 leaf AutoI — `6a97f48` (2026-07-30)
 - 0.5.310 Domain axis + remount domain pulse (pressure checklist + charge appendix)
 - 0.5.311 FeatureAdd dedupe leaf-arm + REPL `feature focus X`
+- 0.5.312 Soft organ `go=domain` — reconstruction chains [A] (`name→edges→entry→≠`)

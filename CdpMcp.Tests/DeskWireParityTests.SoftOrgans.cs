@@ -32,6 +32,9 @@ public sealed partial class DeskWireParityTests
         Assert.Equal(SoftOrganKind.MdAuthor, cat.TryResolve("cdp_md_author"));
         Assert.Equal(SoftOrganKind.Learn, cat.TryResolve("learn"));
         Assert.Equal(SoftOrganKind.Learn, cat.TryResolve("cdp_learn"));
+        Assert.Equal(SoftOrganKind.Domain, cat.TryResolve("domain"));
+        Assert.Equal(SoftOrganKind.Domain, cat.TryResolve("cdp_domain"));
+        Assert.Equal(SoftOrganKind.Domain, cat.TryResolve("ownership"));
         Assert.Equal(SoftOrganKind.ProjectSwitch, cat.TryResolve("project_switch"));
         Assert.Equal(SoftOrganKind.ProjectSwitch, cat.TryResolve("ps"));
         Assert.Equal(SoftOrganKind.ProjectSwitch, cat.TryResolve("cdp_scope"));
@@ -84,6 +87,9 @@ public sealed partial class DeskWireParityTests
         Assert.Equal("learn", cat.Require(SoftOrganKind.Learn).Go);
         Assert.Equal("cdp_learn", cat.Require(SoftOrganKind.Learn).Tool);
         Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.Learn).Mode);
+        Assert.Equal("domain", cat.Require(SoftOrganKind.Domain).Go);
+        Assert.Equal("cdp_domain", cat.Require(SoftOrganKind.Domain).Tool);
+        Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.Domain).Mode);
         Assert.Equal("project_switch", cat.Require(SoftOrganKind.ProjectSwitch).Go);
         Assert.Equal("cdp_scope", cat.Require(SoftOrganKind.ProjectSwitch).Tool);
         Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.ProjectSwitch).Mode);

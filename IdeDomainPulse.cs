@@ -5,13 +5,14 @@ using System.Text.RegularExpressions;
 namespace CdpMcp;
 
 /// <summary>
-/// Domain ownership pulse [A] — slim card lines from <c>.cdp/domain/*.md</c>.
-/// Used by pressure Domain axis + remount wake appendix. Full soft organ <c>go=domain</c> is a later leaf.
+/// Domain ownership pulse [A] — reconstruction chains from <c>.cdp/domain/*.md</c>.
+/// Used by pressure Domain axis, remount wake appendix, and soft organ <c>go=domain</c>.
+/// Chain shape: name → edges (invariants) → entry → antipattern.
 /// </summary>
 internal static partial class IdeDomainPulse
 {
     public const int MaxCardsA = 3;
-    public const int MaxInvariantLinesPerCard = 4;
+    public const int MaxEdgeLinesPerCard = 3;
     public const int MaxChargeChars = 900;
 
     static readonly string[] PreferredOrder = ["tm", "ignite", "cockpit"];
@@ -97,19 +98,37 @@ internal static partial class IdeDomainPulse
         {
             if (sb.Length > 0)
                 sb.AppendLine();
-            sb.Append('[').Append(c.Id).Append("] ").Append(c.Title);
-            var n = 0;
-            foreach (var inv in c.Invariants)
-            {
-                if (n++ >= MaxInvariantLinesPerCard)
-                    break;
-                sb.AppendLine();
-                sb.Append("  · ").Append(TrimOneLine(inv, 120));
-            }
+            AppendChainA(sb, c);
         }
 
         var s = sb.ToString().TrimEnd();
         return s.Length <= MaxChargeChars ? s : s[..MaxChargeChars].TrimEnd() + "…";
+    }
+
+    /// <summary>One-card [C] reconstruction chain (full edges + entries + antipatterns).</summary>
+    public static string FormatChainC(DomainCard c)
+    {
+        var sb = new StringBuilder();
+        sb.Append('[').Append(c.Id).Append("] ").Append(c.Title);
+        foreach (var inv in c.Invariants)
+        {
+            sb.AppendLine();
+            sb.Append("  · ").Append(TrimOneLine(inv, 160));
+        }
+
+        foreach (var e in c.Entry)
+        {
+            sb.AppendLine();
+            sb.Append("  → ").Append(TrimOneLine(e, 160));
+        }
+
+        foreach (var a in c.Antipatterns)
+        {
+            sb.AppendLine();
+            sb.Append("  ≠ ").Append(TrimOneLine(a, 160));
+        }
+
+        return sb.ToString().TrimEnd();
     }
 
     /// <summary>Appendix for remount / Autoi charge — empty when no cards.</summary>
@@ -146,11 +165,13 @@ internal static partial class IdeDomainPulse
 
         var title = FirstHeading(text) ?? id;
         var invariants = ExtractSectionBullets(text, "Invariants");
-        card = new DomainCard(id.Trim(), title.Trim(), invariants);
+        var entry = ExtractSectionBullets(text, "Entry");
+        var antipatterns = ExtractSectionBullets(text, "Antipatterns");
+        card = new DomainCard(id.Trim(), title.Trim(), invariants, entry, antipatterns);
         return true;
     }
 
-    static IReadOnlyList<DomainCard> SelectCards(
+    public static IReadOnlyList<DomainCard> SelectCards(
         IReadOnlyList<DomainCard> cards,
         string? focusHint,
         int maxCards)
@@ -169,6 +190,31 @@ internal static partial class IdeDomainPulse
             .Select(x => x.Card)
             .ToList();
         return scored;
+    }
+
+    static void AppendChainA(StringBuilder sb, DomainCard c)
+    {
+        sb.Append('[').Append(c.Id).Append("] ").Append(c.Title);
+        var n = 0;
+        foreach (var inv in c.Invariants)
+        {
+            if (n++ >= MaxEdgeLinesPerCard)
+                break;
+            sb.AppendLine();
+            sb.Append("  · ").Append(TrimOneLine(inv, 120));
+        }
+
+        if (c.Entry.Count > 0)
+        {
+            sb.AppendLine();
+            sb.Append("  → ").Append(TrimOneLine(c.Entry[0], 100));
+        }
+
+        if (c.Antipatterns.Count > 0)
+        {
+            sb.AppendLine();
+            sb.Append("  ≠ ").Append(TrimOneLine(c.Antipatterns[0], 100));
+        }
     }
 
     static int ScoreCard(DomainCard c, string hintLower)
@@ -202,6 +248,11 @@ internal static partial class IdeDomainPulse
             && (hintLower.Contains("cockpit", StringComparison.Ordinal)
                 || hintLower.Contains("desk", StringComparison.Ordinal)
                 || hintLower.Contains("seat", StringComparison.Ordinal)))
+            score += 6;
+        if (c.Id.Equals("pressure", StringComparison.OrdinalIgnoreCase)
+            && (hintLower.Contains("pressure", StringComparison.Ordinal)
+                || hintLower.Contains("compact", StringComparison.Ordinal)
+                || hintLower.Contains("stash", StringComparison.Ordinal)))
             score += 6;
 
         if (hintLower.Contains("domain", StringComparison.Ordinal))
@@ -262,5 +313,11 @@ internal static partial class IdeDomainPulse
         return t.Length <= max ? t : t[..max].TrimEnd() + "…";
     }
 
-    public sealed record DomainCard(string Id, string Title, IReadOnlyList<string> Invariants);
+    /// <summary>Dense memorable form: id/title + sealed edges + entry + antipattern.</summary>
+    public sealed record DomainCard(
+        string Id,
+        string Title,
+        IReadOnlyList<string> Invariants,
+        IReadOnlyList<string> Entry,
+        IReadOnlyList<string> Antipatterns);
 }

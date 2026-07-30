@@ -33,10 +33,12 @@ public sealed class IdeDomainPulseTests
         Assert.True(IdeDomainPulse.TryParse("tm.md", md, out var card));
         Assert.Equal("tm", card.Id);
         Assert.Contains("Intent", card.Invariants[0], StringComparison.Ordinal);
+        Assert.Contains("go=plan", card.Entry[0], StringComparison.Ordinal);
 
         var pulse = IdeDomainPulse.FormatPulseA([card], focusHint: "Pressure Domain remount");
         Assert.Contains("[tm]", pulse, StringComparison.Ordinal);
         Assert.Contains("Feature = Intent", pulse, StringComparison.Ordinal);
+        Assert.Contains("→", pulse, StringComparison.Ordinal);
         Assert.DoesNotContain("Extra line five", pulse, StringComparison.Ordinal);
     }
 
