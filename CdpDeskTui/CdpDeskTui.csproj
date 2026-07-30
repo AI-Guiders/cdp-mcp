@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- CDP: keep _scratch dirs out of compile (agent probes → TEMP via Scratch.*) -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/_*/**</DefaultItemExcludes>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Terminal.Gui" Version="2.4.17" />
+  </ItemGroup>
+
+</Project>
