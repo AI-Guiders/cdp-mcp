@@ -17,13 +17,30 @@ internal static class DeskShell
         app.Init();
 
         var fixture = DeskFixture.Sample();
-        var root = BuildRoot(fixture, seatFilter, out var refresh);
+        FrameView? p = null, f = null, m = null;
+        var root = BuildRoot(fixture, seatFilter, out var refresh, ref p, ref f, ref m);
 
         app.Keyboard.KeyDown += (_, key) =>
         {
-            if (key == Key.R && !key.IsCtrl && !key.IsAlt)
+            if (key.IsCtrl || key.IsAlt)
+                return;
+
+            if (key == Key.R)
             {
                 refresh(DeskFixture.Sample());
+                key.Handled = true;
+                return;
+            }
+
+            // 0 = un-Pascal the layout after playful hands
+            if (key == Key.D0 || key == Key.Home)
+            {
+                if (p is not null && f is not null && m is not null)
+                {
+                    ApplyEqualColumns(p, f, m);
+                    root.SetNeedsDraw();
+                }
+
                 key.Handled = true;
             }
         };
@@ -34,7 +51,7 @@ internal static class DeskShell
         }
         catch
         {
-            /* best-effort — Esc still quits in many TG defaults */
+            /* best-effort */
         }
 
         app.Run(root);
@@ -45,7 +62,10 @@ internal static class DeskShell
     static Runnable BuildRoot(
         DeskFixture initial,
         string? seatFilter,
-        out Action<DeskFixture> refresh)
+        out Action<DeskFixture> refresh,
+        ref FrameView? pSeat,
+        ref FrameView? fSeat,
+        ref FrameView? mSeat)
     {
         var top = new Runnable
         {
@@ -69,36 +89,35 @@ internal static class DeskShell
         var filter = (seatFilter ?? "all").Trim().ToLowerInvariant();
         if (filter is "p" or "plan")
         {
-            var p = MakeSeat("P · plan", pText, 0, 0, Dim.Fill(), Dim.Fill(1));
-            top.Add(p, status);
+            pSeat = MakeSeat("P · plan", pText, 0, 0, Dim.Fill(), Dim.Fill(1));
+            top.Add(pSeat, status);
         }
         else if (filter is "f" or "forward" or "editor")
         {
-            var f = MakeSeat("F · editor", fText, 0, 0, Dim.Fill(), Dim.Fill(1));
-            top.Add(f, status);
+            fSeat = MakeSeat("F · editor", fText, 0, 0, Dim.Fill(), Dim.Fill(1));
+            top.Add(fSeat, status);
         }
         else if (filter is "m" or "shell")
         {
-            var m = MakeSeat("M · shell", mText, 0, 0, Dim.Fill(), Dim.Fill(1));
-            top.Add(m, status);
+            mSeat = MakeSeat("M · shell", mText, 0, 0, Dim.Fill(), Dim.Fill(1));
+            top.Add(mSeat, status);
         }
         else
         {
-            var p = MakeSeat("P · plan", pText, 0, 0, Dim.Percent(33), Dim.Fill(1));
-            var f = MakeSeat("F · editor", fText, Pos.Right(p) - 1, 0, Dim.Percent(34), Dim.Fill(1));
-            var m = MakeSeat("M · shell", mText, Pos.Right(f) - 1, 0, Dim.Fill(), Dim.Fill(1));
+            pSeat = MakeSeat("P · plan", pText, 0, 0, Dim.Percent(33), Dim.Fill(1));
+            fSeat = MakeSeat("F · editor", fText, Pos.Percent(33), 0, Dim.Percent(34), Dim.Fill(1));
+            mSeat = MakeSeat("M · shell", mText, Pos.Percent(67), 0, Dim.Fill(), Dim.Fill(1));
 
-            f.Arrangement = ViewArrangement.LeftResizable | ViewArrangement.RightResizable;
-            f.Border!.Thickness = new Thickness(1, 0, 1, 0);
-            f.SuperViewRendersLineCanvas = true;
+            // Drag borders OK — if a seat vanishes, press 0 / Home to reset.
+            fSeat.Arrangement = ViewArrangement.LeftResizable | ViewArrangement.RightResizable;
+            fSeat.Border!.Thickness = new Thickness(1, 0, 1, 0);
+            fSeat.SuperViewRendersLineCanvas = true;
 
-            m.Arrangement = ViewArrangement.LeftResizable;
-            m.Border!.Thickness = new Thickness(1, 0, 0, 0);
-            m.SuperViewRendersLineCanvas = true;
+            mSeat.Arrangement = ViewArrangement.LeftResizable;
+            mSeat.Border!.Thickness = new Thickness(1, 0, 0, 0);
+            mSeat.SuperViewRendersLineCanvas = true;
 
-            p.Width = Dim.Fill(Dim.Func(_ => f.Frame.Width + m.Frame.Width));
-
-            top.Add(p, f, m, status);
+            top.Add(pSeat, fSeat, mSeat, status);
         }
 
         refresh = next =>
@@ -111,6 +130,16 @@ internal static class DeskShell
         };
 
         return top;
+    }
+
+    static void ApplyEqualColumns(FrameView p, FrameView f, FrameView m)
+    {
+        p.X = 0;
+        p.Width = Dim.Percent(33);
+        f.X = Pos.Percent(33);
+        f.Width = Dim.Percent(34);
+        m.X = Pos.Percent(67);
+        m.Width = Dim.Fill();
     }
 
     static FrameView MakeSeat(string title, View body, Pos x, Pos y, Dim w, Dim h)
@@ -140,5 +169,5 @@ internal static class DeskShell
     };
 
     static string FormatStatus(DeskFixture d) =>
-        $"{d.Banner}  ·  {d.Alert}  ·  {d.AtUtc:HH:mm:ss}Z  ·  {d.Hint}";
+        $"{d.Banner}  ·  {d.Alert}  ·  {d.AtUtc:HH:mm:ss}Z  ·  {d.Hint}  ·  0=reset seats";
 }

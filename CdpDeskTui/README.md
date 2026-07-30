@@ -15,4 +15,4 @@ dotnet run -- --seat=f
 dotnet run -- --seat=m
 ```
 
-Keys: `r` refresh fixture · `q` / `Ctrl+Q` quit · drag seat borders to resize.
+Keys: `r` refresh fixture · `0` / `Home` reset seat widths (after drag-gone-wrong) · `q` / `Ctrl+Q` quit · drag seat borders to resize.
