@@ -2,7 +2,8 @@
 
 **Статус:** v1 (канон поведения + DoD рантайма CDP).  
 **Параллель человеку:** [cascade-ide `flat-chrome-dark-cockpit-v1`](../../../cascade-ide/docs/design/flat-chrome-dark-cockpit-v1.md) § Dark Cockpit — agent attention.  
-**Связь:** CIDE ADR [0021](../../../cascade-ide/docs/adr/0021-pfd-mfd-cockpit-attention-model.md) (salience); seats Scan Pattern (ADR 0191 / `IdeDeskSeats`); CDP alert/SA/`next[]`/Autoi/pressure.
+**Связь:** CIDE ADR [0021](../../../cascade-ide/docs/adr/0021-pfd-mfd-cockpit-attention-model.md) (salience); seats Scan Pattern (ADR 0191 / `IdeDeskSeats`); CDP alert/SA/`next[]`/Autoi/pressure.  
+**Citizen wire (draft):** [citizen-agent-wire-v0.md](./citizen-agent-wire-v0.md) — system + frame format for in-habitat agent (not Cursor-guest MCP).
 
 ## Определение (одной фразой)
 
