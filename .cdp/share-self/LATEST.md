@@ -1,14 +1,12 @@
-# Priority — cockpit path peels (post ADR-0020)
+# share-self — cockpit hang / desk-pulse (2026-07-30)
 
-## Done
-- Desk-pulse for deferred softs (7890872)
-- Glass spray skip on desk-pulse (c7abd4a / CDP-ADR-0020)
-- seats_detail=full alone stays pulse (early refuse)
-- Organ-only early exit (skip nav) for go=alert|chk alone
-- FinishDeskPulse go-branch extract (PlanPulse.Go)
+Live peels on main (after ADR-0020):
+- desk-pulse for deferred softs; glass spray skip on pulse
+- seats_detail=full alone → pulse + thrash refuse
+- organ-only early exit (go=alert|chk alone)
+- pane_full= → pulse + **one** matched seat Resolve (not TryGitAsync / all-seat spray)
 
-## Live dogfood
-go=alert pulse OK. Avoid seats_detail=full as spray (it thrash-refuses). pane_full= still slow path.
+Dogfood: `go=alert` pulse; `seats_detail=full` thrash; `pane_full=P` panes with plan dump, other seats short.
 
-## Later
-cdp_organ Meta; quiet-chrome; root folder peel = low ROI
+P1 leftover: `cdp_editor_scene` Meta vs desk `go=editor` local-snap price gap.
+Folder peel parked (flat root OK for agents).

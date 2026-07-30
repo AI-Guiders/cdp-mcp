@@ -79,6 +79,14 @@ internal static partial class IdeCockpit
 
             var wantFull = SeatFullPaneMatch.Matches(fullPane, seatId, organ, PinAliases);
 
+            // Compact / one-pane: do not Resolve every seat (that was the hang spray).
+            if ((!wantPanes && !wantFull) || (fullPane is { Length: > 0 } && !wantFull))
+            {
+                seatPanes.Add(new SeatPane(
+                    seatId, organ, false, false, true, IdeDeskView.ShortOrgan(organ), null));
+                continue;
+            }
+
             // Quiet seat: organs that thrash without cdp_open — no dispatch / no Application Data noise.
             // Plan stays live (WitDB offline). Editor/browser quiet until project.
             if (!hasProject && !wantFull && IdeDeskView.OrganNeedsProject(organ))

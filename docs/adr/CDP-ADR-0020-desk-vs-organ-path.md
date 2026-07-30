@@ -21,8 +21,8 @@ Patch 7890872 kept deferred organs on PlanPulse probes (no git/quality/ResolveSe
 
 1. **Desk always thin/cheap** — default `cdp_cockpit` / desk-pulse: seats one-liners, SA pulse, `next[]`. No full pane resolve, no organ-driven glass spray.
 2. **Organ = separate path cost** — `go=alert|chk|sys|…` builds organ board (+ latches for SA/ECL/QRH) **without** desk-width work and **without** multi-channel PublishGlass spray on desk-pulse.
-3. **`go_detail=full` = organ depth only** — expands `go.result`; never forces desk spray (`seats_detail=full` / `pane_full=` still own W-width).
-4. **Full glass spray** remains on the **slow desk path** only (`!WantsDeskPulseFastPath`), when agent explicitly asked for wide desk.
+3. **`go_detail=full` = organ depth only** — expands `go.result`; never forces desk spray (`seats_detail=full` alone refused; `pane_full=` = one seat on pulse).
+4. **Full glass spray** remains reserved for an explicit wide-desk slow path if reintroduced; default desk stays pulse.
 5. Full `BuildAsync` split into separate MCP tool (`cdp_organ`) is a later peel; this ADR ships the contract + thin deferred apply first.
 
 ---
@@ -31,7 +31,7 @@ Patch 7890872 kept deferred organs on PlanPulse probes (no git/quality/ResolveSe
 
 - `go=alert` / `go=chk` on pulse desk must return in agent-comfortable time (seconds, not minutes).
 - Glass consumers that relied on every soft-organ call refreshing all channels may see stale glass until a desk touch or slow path — acceptable; latch publish for alert/qrh/ecl stays.
-- Further peels shipped: organ-only early return (skip nav); `seats_detail=full` alone stays pulse (early refuse).
+- Further peels shipped: organ-only early return (skip nav); `seats_detail=full` alone stays pulse (early refuse); `pane_full=` stays pulse (one matched seat Resolve only).
 - Optional later: `cdp_organ` Meta.
 
 ---

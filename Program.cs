@@ -1231,7 +1231,7 @@ List<Tool> BuildMetaTools() =>
             limit = new { type = "integer" }
         }
     }),
-    Meta("cdp_cockpit", "[A] Agent IDE desk — Scan Pattern seats + view once (ADR 0191/0193). Slim alert=sa pulse (sit/locus/layout). [C] go_detail=full|pane_full=. seats_detail=full alone stays pulse (refused). World channel replaces on M. Cold auto-restore.", new
+    Meta("cdp_cockpit", "[A] Agent IDE desk — Scan Pattern seats + view once (ADR 0191/0193). Slim alert=sa pulse (sit/locus/layout). [C] go_detail=full|pane_full= (one seat on pulse). seats_detail=full alone stays pulse (refused). World channel replaces on M. Cold auto-restore.", new
     {
         type = "object",
         properties = new
@@ -1256,9 +1256,9 @@ List<Tool> BuildMetaTools() =>
             pin_clear = new { type = "boolean", description = "Clear seats/pins." },
             clear_pins = new { type = "boolean", description = "Alias of pin_clear." },
             seat_clear = new { type = "boolean", description = "Alias of pin_clear (seats)." },
-            pane_full = new { type = "string", description = "[C] Which seat/pin gets go_detail=full (also forces panes)." },
+            pane_full = new { type = "string", description = "[C] Which seat/pin gets one full dump on pulse (no full BuildAsync spray)." },
             full_pane = new { type = "string", description = "Alias of pane_full." },
-            seats_detail = new { type = "string", description = "[A] compact (default: view+slots). full alone refused early (pulse path + thrash); use pane_full=<seat|organ> for one dump (slow path)." },
+            seats_detail = new { type = "string", description = "[A] compact (default: view+slots). full alone refused early (pulse path + thrash); use pane_full=<seat|organ> for one dump on pulse." },
             view_detail = new { type = "string", description = "Alias of seats_detail." },
             desk_detail = new { type = "string", description = "slim (default: omit loci[]/go_verbs[]) | nav | full. Alias: nav_detail=." },
             nav_detail = new { type = "string", description = "Alias of desk_detail." },

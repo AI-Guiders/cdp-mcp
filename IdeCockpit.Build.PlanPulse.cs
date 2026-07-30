@@ -10,20 +10,19 @@ namespace CdpMcp;
 /// <summary>
 /// Desk-pulse fast path for BuildAsync — skip upfront git / quality / full SoftOrgan seat resolve.
 /// <c>go_detail=full</c> = organ depth only. <c>seats_detail=full</c> alone stays on pulse
-/// (W-spray refused early — same as SeatsDetailGateUnit). Only <c>pane_full=</c> opts into
-/// the slow desk path. CDP-ADR-0020: deferred soft organs skip glass spray; organ-only skip nav.
+/// (W-spray refused early — same as SeatsDetailGateUnit). <c>pane_full=</c> stays on pulse and
+/// resolves one matched seat only. CDP-ADR-0020: deferred soft organs skip glass spray; organ-only skip nav.
 /// Plan stays a special-case of this path.
 /// </summary>
 internal static partial class IdeCockpit
 {
     /// <summary>True when cockpit should return a slim desk-pulse instead of full BuildAsync spray.</summary>
+    /// <summary>True when cockpit should return a slim desk-pulse instead of full BuildAsync spray.</summary>
     public static bool WantsDeskPulseFastPath(IReadOnlyDictionary<string, JsonElement> args)
     {
-        // Intentionally ignore go_detail=full — organ-dump depth, not desk spray.
-        // seats_detail=full alone is refused (compact) — stay pulse; do NOT enter TryGitAsync spray.
-        if (!string.IsNullOrWhiteSpace(OptString(args, "pane_full") ?? OptString(args, "full_pane")))
-            return false;
-
+        // Desk stays pulse always (ADR-0020). go_detail=full = organ depth; seats_detail=full alone
+        // thrash-refuses; pane_full= resolves one seat on pulse (not TryGitAsync / all-seat spray).
+        _ = args;
         return true;
     }
 
@@ -235,9 +234,10 @@ internal static partial class IdeCockpit
 
         var probes = CollectPlanPulseProbeBundle(session, workspaceStore, workspaceState);
         IdeAlertChannel.Snap alertSnap;
+        IdeAlertChannel.Inputs alertInputs;
         if (AnyDeferredSoftWant(deferred))
         {
-            (goResult, alertSnap, _) = ApplyDeferredSoftOrgans(
+            (goResult, alertSnap, alertInputs) = ApplyDeferredSoftOrgans(
                 deferred, goResult, session, docStore, workspaceStore, workspaceState, args,
                 git, shell, buffer, probes.Debug, probes.Test, probes.Work, probes.Quality,
                 probes.Problems, probes.ChkCtx, probes.ChkSnap,
@@ -246,7 +246,7 @@ internal static partial class IdeCockpit
         }
         else
         {
-            (alertSnap, _) = ApplyPlanPulseGlass(
+            (alertSnap, alertInputs) = ApplyPlanPulseGlass(
                 session, workspaceStore, workspaceState, buffer, shell, probes);
         }
 
@@ -259,9 +259,12 @@ internal static partial class IdeCockpit
 
         if (IdeDeskSeats.IsSeatsMode())
         {
-            return BuildDeskPulseSeatsSurface(
-                session, args, mfd, focusId, goResult, warm, next, focus, alertSnap,
-                loci, goVerbs, resultPin);
+            return await BuildDeskPulseSeatsSurfaceAsync(
+                    session, docStore, workspaceStore, workspaceState, args, mfd, focusId,
+                    goResult, warm, next, focus, alertSnap, alertInputs,
+                    loci, goVerbs, resultPin, git, shell, browser, mcpPulse, buffer, probes,
+                    dispatch, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         return ComposeTilesSurface(
