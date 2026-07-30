@@ -364,12 +364,13 @@ List<Tool> BuildMetaTools() =>
         },
         required = new[] { "op" }
     }),
-    Meta("cdp_editor_scene", "Editor map (git_scene analogue for buffers): open buffers + loci; path=/locus=/doc_id= → context window on demand. Prefer before multi-step edits. Single edit still fine via cdp_buffer.", new
+    Meta("cdp_editor_scene", "Editor scene [A]: default pulse = desk go=editor snap (counts). detail=full|map or path=/locus=/doc_id= → full map+disk probe+context. Prefer before multi-step edits; single edit still cdp_buffer.", new
     {
         type = "object",
         properties = new
         {
-            path = new { type = "string", description = "Focus file (opens context window if buffer open)" },
+            detail = new { type = "string", description = "pulse (default, desk-parity) | full|map (loci+disk probe)" },
+            path = new { type = "string", description = "Focus file (opens context window if buffer open; forces full)" },
             doc_id = new { type = "string" },
             locus = new { type = "string", description = "buffer:doc-N from loci[]" },
             focus = new { type = "string", description = "Alias of locus" },

@@ -1,12 +1,14 @@
 using System.Text.Json;
 using Cdp.Core;
 using Cdp.ScriptableIde;
+using CdpMcp.Cockpit.Surface;
 
 namespace CdpMcp;
 
 /// <summary>
 /// Editor plane — git_scene/git_plan isomorphism for buffers (kj-20260724-1640).
-/// <c>cdp_editor_scene</c> maps open buffers + optional context; <c>cdp_edit_plan</c>
+/// <c>cdp_editor_scene</c> defaults to desk-parity pulse; <c>detail=full</c> / path|locus|doc_id
+/// maps open buffers + optional context; <c>cdp_edit_plan</c>
 /// drafts candidates then validate|apply logical slices of buffer edits.
 /// </summary>
 internal static class EditorPlane
@@ -59,18 +61,92 @@ internal static class EditorPlane
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
+        var focusPath = OptString(args, "path");
+        var focusLocus = OptString(args, "locus") ?? OptString(args, "focus");
+        var focusDocId = OptString(args, "doc_id");
+        var detail = (OptString(args, "detail") ?? "pulse").Trim().ToLowerInvariant();
+
+        if (focusLocus is { Length: > 0 }
+            && focusLocus.StartsWith("buffer:", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(focusLocus, "buffer:none", StringComparison.OrdinalIgnoreCase))
+        {
+            focusDocId ??= focusLocus["buffer:".Length..];
+        }
+
+        var wantsFull = detail is "full" or "map"
+            || focusPath is { Length: > 0 }
+            || focusDocId is { Length: > 0 };
+
+        if (!wantsFull)
+            return ScenePulse(store, session);
+
+        return SceneFull(store, session, args, focusPath, focusLocus, focusDocId);
+    }
+
+    /// <summary>Desk-parity A: counts only — no ProbeDiskChanged / loci dump.</summary>
+    static string ScenePulse(DocumentBufferStore store, SessionContext session)
+    {
+        var docs = store.All;
+        var count = 0;
+        var dirty = 0;
+        foreach (var b in docs)
+        {
+            count++;
+            if (b.Dirty)
+                dirty++;
+        }
+
+        var pulse = EditorSnapPaneUnit.FormatPulse(new EditorSnapPaneUnit.BufferCounts(count, dirty, 0));
+        return JsonSerializer.Serialize(new
+        {
+            schema = SceneSchema,
+            ok = true,
+            go = "editor_scene",
+            detail = "pulse",
+            pulse,
+            snap = true,
+            session = new
+            {
+                project_root = session.ProjectRoot,
+                language = session.Language,
+                solution_or_project_path = session.SolutionOrProjectPath
+            },
+            count,
+            dirty_count = dirty,
+            disk_changed_count = 0,
+            next = new
+            {
+                full = "detail=full",
+                focus = "path=… | locus=buffer:doc-N"
+            },
+            hint = "pulse (desk go=editor parity) — detail=full | path= for map + disk probe"
+        }, Pretty);
+    }
+
+    static string SceneFull(
+        DocumentBufferStore store,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args,
+        string? focusPath,
+        string? focusLocus,
+        string? focusDocId)
+    {
         var docs = store.All
             .OrderBy(b => b.DocId, StringComparer.Ordinal)
             .ToArray();
 
-        var loci = docs.Select(b =>
+        var drift = 0;
+        var loci = new List<object>(docs.Length == 0 ? 1 : docs.Length);
+        foreach (var b in docs)
         {
-            var changed = b.ProbeDiskChanged(out _, out var reason);
+            var changed = b.ProbeMaterialDiskChanged(out _, out var reason);
+            if (changed)
+                drift++;
             var pulse =
                 (changed ? "DISK CHANGED " : "") +
                 (b.Dirty ? "DIRTY " : "") +
                 ShortPath(b.Path);
-            return (object)new
+            loci.Add(new
             {
                 id = $"buffer:{b.DocId}",
                 kind = "buffer",
@@ -87,8 +163,8 @@ internal static class EditorPlane
                 version = b.Version,
                 line_count = CountLines(b.Text),
                 diags_cached = b.LastDiagnosedVersion == b.Version && b.LastDiagnosticsJson is { Length: > 0 }
-            };
-        }).ToList();
+            });
+        }
 
         if (docs.Length == 0)
         {
@@ -103,17 +179,6 @@ internal static class EditorPlane
         }
 
         object? context = null;
-        var focusPath = OptString(args, "path");
-        var focusLocus = OptString(args, "locus") ?? OptString(args, "focus");
-        var focusDocId = OptString(args, "doc_id");
-
-        if (focusLocus is { Length: > 0 }
-            && focusLocus.StartsWith("buffer:", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(focusLocus, "buffer:none", StringComparison.OrdinalIgnoreCase))
-        {
-            focusDocId ??= focusLocus["buffer:".Length..];
-        }
-
         if (focusPath is { Length: > 0 } || focusDocId is { Length: > 0 })
         {
             try
@@ -151,11 +216,12 @@ internal static class EditorPlane
             }
         }
 
-        var drift = docs.Count(b => b.ProbeMaterialDiskChanged(out _, out _));
         return JsonSerializer.Serialize(new
         {
             schema = SceneSchema,
             ok = true,
+            go = "editor_scene",
+            detail = "full",
             session = new
             {
                 project_root = session.ProjectRoot,
@@ -176,7 +242,8 @@ internal static class EditorPlane
                 draft = "cdp_edit_plan op=draft",
                 apply = "cdp_edit_plan op=apply yaml=… (preferred) or slices=[]",
                 comfort = "go=undo|redo|copy|cut|paste|put|clipboard|find|back|scratch",
-                buffer = "cdp_buffer still fine for single surgical edit"
+                buffer = "cdp_buffer still fine for single surgical edit",
+                pulse = "omit detail= / detail=pulse — desk snap"
             },
             comfort = EditorComfort.Snap(),
             human_focus = NavigationFocusLatch.PeekForScene(),
