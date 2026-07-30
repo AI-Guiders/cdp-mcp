@@ -104,7 +104,7 @@ internal static partial class IdeTaskManager
                 store.FocusStage(state, prev);
             else if (keepFocus == id)
             {
-                var next = store.FindNextPendingStage(state);
+                var next = store.FindNextIncompleteLeaf(state, afterStageId: id);
                 if (next is { } n)
                     store.FocusStage(state, n);
                 else
@@ -197,7 +197,7 @@ internal static partial class IdeTaskManager
     static string? PhaseArg(IReadOnlyDictionary<string, JsonElement> args) =>
         Opt(args, "phase") ?? OptGoArg(args, "phase") ?? Opt(args, "phase_affinity") ?? OptGoArg(args, "phase_affinity");
 
-    static object TaskFocus(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+        static object TaskFocus(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
     {
         var id = GuidArg(args, "stage_id") ?? GuidArg(args, "task_id");
         if (id is null)
@@ -208,6 +208,10 @@ internal static partial class IdeTaskManager
         }
 
         store.FocusStage(state, id.Value);
-        return new { op = "focus", task_id = id };
+        var leaf = TryLeafIgniteAfterFocus(store, state, "task_focus", preferredStageId: id);
+        return leaf is null
+            ? new { op = "focus", task_id = id }
+            : new { op = "focus", task_id = state.ActiveStageId ?? id, leaf_continuity = leaf };
     }
+
 }

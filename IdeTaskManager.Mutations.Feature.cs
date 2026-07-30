@@ -23,7 +23,7 @@ internal static partial class IdeTaskManager
         return new { op = "feature", feature_id = r.intent_id, title = r.title };
     }
 
-    static object FeatureFocus(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+        static object FeatureFocus(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
     {
         var id = GuidArg(args, "intent_id") ?? GuidArg(args, "feature_id");
         if (id is null)
@@ -36,8 +36,13 @@ internal static partial class IdeTaskManager
         var r = store.IntentSelect(state, id.Value);
         state.ActiveStageId = null;
         store.WorkFocusSave(state);
-        return new { op = "feature_focus", feature_id = r.intent_id, title = r.title };
+
+        var leaf = TryLeafIgniteAfterFocus(store, state, "feature_focus", preferredStageId: null);
+        return leaf is null
+            ? new { op = "feature_focus", feature_id = r.intent_id, title = r.title }
+            : new { op = "feature_focus", feature_id = r.intent_id, title = r.title, leaf_continuity = leaf };
     }
+
 
     static object FeatureDrop(
         IntentWorkspaceStore store,

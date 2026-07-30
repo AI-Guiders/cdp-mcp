@@ -6,7 +6,7 @@ namespace CdpMcp;
 
 internal static partial class IdeTaskManager
 {
-    static object TaskDone(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+        static object TaskDone(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
     {
         var title = Title(args);
         var id = ResolveStageTarget(store, state, args);
@@ -15,23 +15,28 @@ internal static partial class IdeTaskManager
                 ? $"task not found: {title}"
                 : "done needs active task or title — focus X | done X");
 
+        var wasActive = state.ActiveStageId == id;
         var r = store.StageSetStatus(state, id.Value, "done");
-        if (state.ActiveStageId == id)
+        object? leafContinuity = null;
+        if (wasActive)
         {
-            var next = store.FindNextPendingStage(state);
+            var next = store.FindNextIncompleteLeaf(state, afterStageId: id);
             if (next is { } n)
-                store.FocusStage(state, n);
-            else
             {
-                state.ActiveStageId = null;
-                store.WorkFocusSave(state);
+                store.FocusStage(state, n);
+                leafContinuity = TryLeafIgniteAfterFocus(store, state, "task_done", preferredStageId: n);
             }
+            else
+                leafContinuity = LeafPlateau(store, state, "task_done_exhausted");
         }
 
-        return new { op = "done", task_id = r.stage_id, status = r.status };
+        return leafContinuity is null
+            ? new { op = "done", task_id = r.stage_id, status = r.status }
+            : new { op = "done", task_id = r.stage_id, status = r.status, leaf_continuity = leafContinuity };
     }
 
-    static object TaskStatus(
+
+        static object TaskStatus(
         IntentWorkspaceStore store,
         IntentWorkspaceState state,
         IReadOnlyDictionary<string, JsonElement> args,
@@ -47,7 +52,10 @@ internal static partial class IdeTaskManager
         if (status == "active")
         {
             store.FocusStage(state, id.Value);
-            return new { op = "active", task_id = id };
+            var leaf = TryLeafIgniteAfterFocus(store, state, "task_active", preferredStageId: id);
+            return leaf is null
+                ? new { op = "active", task_id = id }
+                : new { op = "active", task_id = state.ActiveStageId ?? id, leaf_continuity = leaf };
         }
 
         object? clock = null;
@@ -59,11 +67,15 @@ internal static partial class IdeTaskManager
 
         var wasActive = state.ActiveStageId == id;
         var r = store.StageSetStatus(state, id.Value, status);
+        object? leafContinuity = null;
         if (wasActive && status is "parked" or "deferred")
         {
-            var next = store.FindNextPendingStage(state);
+            var next = store.FindNextIncompleteLeaf(state, afterStageId: id);
             if (next is { } n)
+            {
                 store.FocusStage(state, n);
+                leafContinuity = TryLeafIgniteAfterFocus(store, state, $"task_{status}", preferredStageId: n);
+            }
             else
             {
                 state.ActiveStageId = null;
@@ -73,10 +85,15 @@ internal static partial class IdeTaskManager
         else
             store.WorkFocusSave(state);
 
-        return clock is null
-            ? new { op = status, task_id = r.stage_id, status = r.status }
-            : new { op = status, task_id = r.stage_id, status = r.status, clock };
+        if (clock is null && leafContinuity is null)
+            return new { op = status, task_id = r.stage_id, status = r.status };
+        if (clock is null)
+            return new { op = status, task_id = r.stage_id, status = r.status, leaf_continuity = leafContinuity };
+        if (leafContinuity is null)
+            return new { op = status, task_id = r.stage_id, status = r.status, clock };
+        return new { op = status, task_id = r.stage_id, status = r.status, clock, leaf_continuity = leafContinuity };
     }
+
 
     static object TaskClockStart(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
     {
