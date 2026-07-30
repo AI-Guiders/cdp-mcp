@@ -8,7 +8,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Black-box FDR (L3): dense append-only tool-call flight tape under workspace state.
-/// Storage-first — not a chat dump. Feeds incident recall + future auto timeout_wake.
+/// Storage-first — not a chat dump. Feeds incident recall + timeout_wake suggest/apply overlay.
 /// </summary>
 internal static class IdeFlightDataRecorder
 {
@@ -162,10 +162,20 @@ internal static class IdeFlightDataRecorder
         }
     }
 
-    public static object BuildStats(int lookback = 500)
+        public static object BuildStats(int lookback = 500)
     {
         var events = ReadTail(Math.Clamp(lookback, 10, DefaultMaxLines));
-        var byTool = events
+        var toolCalls = events
+            .Where(e =>
+            {
+                var kind = e.Kind?.Trim() ?? "";
+                return kind.Length == 0
+                    || string.Equals(kind, "tool_call", StringComparison.OrdinalIgnoreCase);
+            })
+            .Where(e => !string.IsNullOrWhiteSpace(e.Tool))
+            .ToArray();
+
+        var byTool = toolCalls
             .GroupBy(e => e.Tool, StringComparer.OrdinalIgnoreCase)
             .Select(g =>
             {
@@ -187,7 +197,7 @@ internal static class IdeFlightDataRecorder
             .Take(25)
             .ToArray();
 
-        var slow = events
+        var slow = toolCalls
             .OrderByDescending(e => e.ElapsedMs)
             .Take(15)
             .Select(Slim)
@@ -195,10 +205,11 @@ internal static class IdeFlightDataRecorder
 
         return new
         {
-            count = events.Count,
+            count = toolCalls.Length,
             lookback,
             by_tool = byTool,
             slowest = slow,
+            timeout_wake = IdeFdrThresholdPolicy.SuggestPayload(lookback),
             tape = TapePath
         };
     }

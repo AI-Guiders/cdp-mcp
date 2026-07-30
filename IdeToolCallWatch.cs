@@ -152,6 +152,7 @@ internal static class IdeToolCallWatch
     }
 
     /// <summary>Per-call override <c>timeout_wake</c>/<c>wake_after</c>; else organ default; 0 = off.</summary>
+        /// <summary>Per-call override <c>timeout_wake</c>/<c>wake_after</c>; else FDR overlay; else organ default; 0 = off.</summary>
     public static int ResolveThresholdSeconds(
         string toolName,
         IReadOnlyDictionary<string, JsonElement> args)
@@ -159,6 +160,16 @@ internal static class IdeToolCallWatch
         if (TryParseWakeOverride(args, out var over))
             return over;
 
+        var name = (toolName ?? "").Trim();
+        if (IdeFdrThresholdPolicy.TryGetOverlaySeconds(name, out var overlay))
+            return overlay;
+
+        return StaticThresholdSeconds(name);
+    }
+
+    /// <summary>Compiled organ floors — ignore FDR overlay (used by suggest + as fallback).</summary>
+    public static int StaticThresholdSeconds(string toolName)
+    {
         var name = (toolName ?? "").Trim();
         if (name.Length == 0)
             return DefaultThresholdSeconds;

@@ -17,6 +17,7 @@ public sealed class IdeToolCallWatchTests
     {
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         Assert.Equal(20, IdeToolCallWatch.ResolveThresholdSeconds("cdp_cockpit", args));
+        Assert.Equal(20, IdeToolCallWatch.StaticThresholdSeconds("cdp_cockpit"));
     }
 
     [Fact]

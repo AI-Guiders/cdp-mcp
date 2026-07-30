@@ -740,7 +740,7 @@ List<Tool> BuildMetaTools() =>
                 max_chars = new { type = "integer", description = "expand/export body cap in response" }
             }
         }),
-    Meta("cdp_fdr", "Black-box FDR — dense tool-call flight tape (organ/op/latency/outcome/phase). Incident analysis, not chat dump. op=scene|tail|stats|slow. Alias go=fdr. VDR deferred. Auto timeout_wake from stats = later.",
+    Meta("cdp_fdr", "Black-box FDR — dense tool-call flight tape (organ/op/latency/outcome/phase). Incident analysis, not chat dump. op=scene|tail|stats|slow|suggest|apply|clear_overlay. Alias go=fdr. VDR deferred. timeout_wake: suggest from p95/wake → apply overlay (per-call override still wins).",
         new
         {
             type = "object",

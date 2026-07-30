@@ -7,7 +7,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Soft organ <c>go=fdr</c> / Meta <c>cdp_fdr</c> — Black-box FDR desk (incident tape, not chat).
-/// Ops: scene|tail|stats|slow. VDR (cabin voice) deferred.
+/// Ops: scene|tail|stats|slow|suggest|apply|clear_overlay. VDR (cabin voice) deferred.
 /// </summary>
 internal static class IdeFdrChannel
 {
@@ -39,7 +39,10 @@ internal static class IdeFdrChannel
             "tail" or "list" or "recent" => Tail(args),
             "stats" or "summary" => Stats(args),
             "slow" or "incidents" => Slow(args),
-            _ => Fail("unknown_op", "op=scene|tail|stats|slow")
+            "suggest" or "thresholds" or "timeout_wake" => Suggest(args),
+            "apply" => Apply(args),
+            "clear_overlay" or "clear" => IdeFdrThresholdPolicy.ClearOverlay(),
+            _ => Fail("unknown_op", "op=scene|tail|stats|slow|suggest|apply|clear_overlay")
         };
     }
 
@@ -47,7 +50,6 @@ internal static class IdeFdrChannel
     {
         _ = session;
         var n = IdeFlightDataRecorder.ReadTail(1).Count;
-        // Cheap pulse: prefer file length hint without full parse when empty check needed.
         try
         {
             var path = IdeFlightDataRecorder.TapePath;
@@ -73,18 +75,19 @@ internal static class IdeFdrChannel
         tool = ToolName,
         tape = IdeFlightDataRecorder.TapePath,
         max_lines = IdeFlightDataRecorder.DefaultMaxLines,
-        ops = new[] { "scene", "tail", "stats", "slow" },
+        ops = new[] { "scene", "tail", "stats", "slow", "suggest", "apply", "clear_overlay" },
         pulse = PulseLine(),
         next = new object[]
         {
-            new { go = "fdr", label = "Stats", why = "op=stats — p50/p95 by tool" },
+            new { go = "fdr", label = "Stats", why = "op=stats — p50/p95 + timeout_wake candidates" },
+            new { go = "fdr", label = "Suggest", why = "op=suggest — raise|hang|async from tape" },
+            new { go = "fdr", label = "Apply", why = "op=apply — arm overlay from raise candidates" },
             new { go = "fdr", label = "Slow", why = "op=slow — top latency events" },
             new { go = "fdr", label = "Tail", why = "op=tail limit=40" }
         },
         hint =
             "Black-box FDR: dense tool-call tape (organ/op/latency/outcome/phase). " +
-            "Not chat transcript. Use for incident analysis; VDR deferred. " +
-            "Auto timeout_wake from stats = later peel."
+            "Not chat transcript. timeout_wake: op=suggest → op=apply overlay (evidence, not hand guess)."
     };
 
     static object Tail(IReadOnlyDictionary<string, JsonElement> args)
@@ -115,8 +118,28 @@ internal static class IdeFdrChannel
             op = "stats",
             go = GoName,
             stats,
-            hint = "p95 outliers → candidates for timeout_wake / async peel. Manual override stays."
+            hint = "timeout_wake block = FDR-derived candidates. op=suggest detail; op=apply to arm overlay."
         };
+    }
+
+    static object Suggest(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var lookback = OptInt(args, "limit") ?? OptInt(args, "lookback") ?? 500;
+        return new
+        {
+            schema = SchemaVersion,
+            ok = true,
+            op = "suggest",
+            go = GoName,
+            timeout_wake = IdeFdrThresholdPolicy.SuggestPayload(lookback)
+        };
+    }
+
+    static object Apply(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var lookback = OptInt(args, "limit") ?? OptInt(args, "lookback") ?? 500;
+        var dry = OptBool(args, "dry_run") ?? OptBool(args, "dry") ?? false;
+        return IdeFdrThresholdPolicy.Apply(lookback, dry);
     }
 
     static object Slow(IReadOnlyDictionary<string, JsonElement> args)
@@ -169,5 +192,18 @@ internal static class IdeFdrChannel
             && int.TryParse(el.GetString(), out var parsed))
             return parsed;
         return null;
+    }
+
+    static bool? OptBool(IReadOnlyDictionary<string, JsonElement> args, string key)
+    {
+        if (!args.TryGetValue(key, out var el))
+            return null;
+        return el.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.String => el.GetString()?.Trim().ToLowerInvariant() is "1" or "true" or "yes" or "on",
+            _ => null
+        };
     }
 }
