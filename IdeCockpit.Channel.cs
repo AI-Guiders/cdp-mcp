@@ -146,6 +146,7 @@ internal static partial class IdeCockpit
             quality.Warn,
             chkSnap));
         IdeLearnChannel.PublishGlass();
+        IdeDomainChannel.PublishGlass(session);
     }
 
     static object PlaceDeferred(IdeSoftOrganBoard board, SoftOrganKind kind)

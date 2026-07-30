@@ -26,13 +26,15 @@ internal static class IdeDomainChannel
     {
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var op = (Opt(args, "op") ?? Opt(args, "cmd") ?? "scene").Trim().ToLowerInvariant();
-        return op switch
+        var result = op switch
         {
             "list" or "ids" => List(session),
             "card" or "get" or "one" => Card(session, args),
             "pulse" or "a" => Pulse(session, args),
             _ => Scene(session, args)
         };
+        PublishGlass(session);
+        return result;
     }
 
     public static string PulseLine(SessionContext? session = null)
@@ -46,6 +48,22 @@ internal static class IdeDomainChannel
         return cards.Count == 1
             ? $"domain · {cards[0].Id} · go=domain"
             : $"domain · {cards.Count} cards · {Trim(first, 48)}";
+    }
+
+    /// <summary>Mirror domain pulse to flat CIDE chrome latch (not EICAS).</summary>
+    public static void PublishGlass(SessionContext? session = null)
+    {
+        try
+        {
+            var cards = IdeDomainPulse.LoadCards(session?.ProjectRoot);
+            var pulse = PulseLine(session);
+            // Dark Cockpit: chrome only while domain cards exist.
+            CideDomainLatch.Publish(active: cards.Count > 0, pulse, cards.Count);
+        }
+        catch
+        {
+            /* best-effort */
+        }
     }
 
     static object Scene(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
