@@ -14,23 +14,47 @@ internal static partial class IdeIgniteChannel
     {
         waitSec = Math.Clamp(waitSec, 5, 600);
         message = SanitizeComposerCharge(message);
-        await using var session = await CdtSession.ConnectPageAsync(port, ct).ConfigureAwait(false);
+        CdtSession session;
+        try
+        {
+            session = await CdtSession.ConnectPageAsync(port, ct).ConfigureAwait(false);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.StartsWith("no_agent_composer", StringComparison.Ordinal)
+            || ex.Message.StartsWith("no_page_target", StringComparison.Ordinal))
+        {
+            return Err("send", "no_agent_composer", ex.Message, port);
+        }
 
+        await using (session)
+            return await FireOnSessionAsync(session, message, chat, port, waitSec, ct).ConfigureAwait(false);
+    }
+
+    static async Task<object> FireOnSessionAsync(
+        CdtSession session,
+        string message,
+        string? chat,
+        int port,
+        int waitSec,
+        CancellationToken ct)
+    {
         var focusErr = await TryFocusChatAsync(session, chat, port, ct).ConfigureAwait(false);
         if (focusErr is not null)
             return focusErr;
 
         var idle = await WaitUntilIdleAsync(session, waitSec, ct).ConfigureAwait(false);
         if (idle is null)
-            return Err("send", "busy_timeout", $"submit stayed Stop/Queue for {waitSec}s", port);
+            return Err("send", "busy_timeout", $"submit stayed Stop/Queue (or no ComposerScoped) for {waitSec}s", port);
         if (idle.ProviderBlocked)
             return ProviderBlockedResult("send", idle, port, "idle_wait");
+        if (!idle.ComposerScoped)
+            return Err("send", "wrong_surface",
+                $"CDT page '{session.PageTitle}' has no agent composer (md/editor?). Open Cursor Agents.", port);
 
         var inserted = await session.EvalAsync<InsertResult>(InsertJs(message), ct).ConfigureAwait(false);
         if (string.Equals(inserted.Error, ProviderBlockedError, StringComparison.Ordinal))
             return ProviderBlockedResult("send", await session.EvalStateAsync(ct).ConfigureAwait(false), port, "insert", inserted.Blocked);
         if (inserted is not { Ok: true } || inserted.Len < 1)
-            return new { schema = Schema, ok = false, op = "send", error = inserted.Error ?? "insert_failed", inserted, port };
+            return new { schema = Schema, ok = false, op = "send", error = inserted.Error ?? "insert_failed", inserted, port, page_title = session.PageTitle };
 
         var sendGate = await WaitUntilSendAsync(session, port, ct).ConfigureAwait(false);
         if (sendGate is not null)
@@ -38,7 +62,7 @@ internal static partial class IdeIgniteChannel
 
         var click = await session.EvalAsync<ClickResult>(ClickSendJs, ct).ConfigureAwait(false);
         if (click is not { Ok: true })
-            return new { schema = Schema, ok = false, op = "send", error = "click_failed", click, port };
+            return new { schema = Schema, ok = false, op = "send", error = "click_failed", click, port, page_title = session.PageTitle };
 
         var post = await WaitAfterSendAsync(session, ct).ConfigureAwait(false);
         if (post.Blocked)
@@ -161,9 +185,8 @@ internal static partial class IdeIgniteChannel
                 return st;
 
             var kind = AriaKind(st.SubmitAria);
-            // Idle = not Stop/Queue. Do not require HasInput here — a bad root finder
-            // used to keep HasInput false forever and starve every fire into busy_timeout.
-            if (kind is not ("stop" or "queue"))
+            // Idle = not Stop/Queue AND real agent composer (not md/editor editable).
+            if (kind is not ("stop" or "queue") && st.ComposerScoped)
                 return st;
 
             await Task.Delay(1000, ct).ConfigureAwait(false);
