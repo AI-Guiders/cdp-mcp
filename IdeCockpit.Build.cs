@@ -54,8 +54,16 @@ internal static partial class IdeCockpit
         var deferred = PeekDeferredSoftWants(ref goVerb);
         // Deferred soft organs (alert/chk/…) must NOT force full BuildAsync spray — that hung
         // agents ~minutes (git+quality+ResolveSeatOrgan). Apply them on cheap probes in desk-pulse.
+        // seats_detail=full alone stays on pulse (early refuse). Only pane_full opts into slow path.
         if (deskPulseWanted)
         {
+            if (AnyDeferredSoftWant(deferred) && goVerb is not { Length: > 0 })
+            {
+                return FinishOrganPulseDesk(
+                    session, docStore, shellHabitat, workspaceStore, workspaceState,
+                    args, mfd, focusId, goResult, warm, deferred);
+            }
+
             if (planPulseWanted && !AnyDeferredSoftWant(deferred))
             {
                 return FinishPlanPulseDesk(
