@@ -33,7 +33,7 @@ internal static partial class IdeCockpit
             session, git, shell, buffer, debug, test, work, focusId, quality, alertSnap, chkSnap, chkCtx);
 
         if (DeskSniperLocus.TryBuild(new DeskSniperLocusUnit.Input(
-                EditSniper.HasHold, EditSniper.PulseLine, EditSniper.HoldCard())) is { } sniper)
+                EditSniper.HasHold, EditSniper.IsArmed, EditSniper.PulseLine ?? "", EditSniper.HoldCard() ?? new { })) is { } sniper)
         {
             loci.Insert(Math.Min(1, loci.Count), new Locus(
                 sniper.Id, sniper.Kind, sniper.Pulse, sniper.Drill, sniper.Go, sniper.Detail));

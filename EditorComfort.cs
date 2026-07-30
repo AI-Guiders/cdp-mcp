@@ -437,6 +437,18 @@ internal static class EditorComfort
 
         if (useSniper)
         {
+            if (!EditSniper.TryEnsureFire(out var fireErr, out var fireHint))
+            {
+                return JsonSerializer.Serialize(new
+                {
+                    schema = Schema,
+                    ok = false,
+                    op = "put",
+                    error = fireErr,
+                    hint = fireHint
+                }, Pretty);
+            }
+
             if (!EditSniper.TryGetHold(out var path, out var label, out var ls, out var cs, out var le, out var ce))
             {
                 return JsonSerializer.Serialize(new
@@ -724,6 +736,18 @@ internal static class EditorComfort
 
         if (useSniper)
         {
+            if (!EditSniper.TryEnsureFire(out var fireErr, out var fireHint))
+            {
+                return JsonSerializer.Serialize(new
+                {
+                    schema = Schema,
+                    ok = false,
+                    op = "paste",
+                    error = fireErr,
+                    hint = fireHint
+                }, Pretty);
+            }
+
             if (!EditSniper.TryGetHold(out var path, out var label, out var ls, out var cs, out var le, out var ce))
             {
                 return JsonSerializer.Serialize(new

@@ -402,7 +402,7 @@ List<Tool> BuildMetaTools() =>
             skip_validate = new { type = "boolean", description = "apply: skip pre-validate (default false)" }
         }
     }),
-    Meta("cdp_edit_sniper", "Edit sniper (kj-1848): scope From/Till corridor → target outline inside → shoot via edit_plan. Prefer go=scope/target on cdp_cockpit. Hold survives until scope_clear.", new
+    Meta("cdp_edit_sniper", "Edit sniper process: sight→lock→arm→fire. scope=lock (full-line + auto-peek → phase=armed). put/paste sniper hard-blocked until armed. Prefer [F:;M:;K:]/X:; L:=line_literal. Prefer go=scope/target on cdp_cockpit.", new
     {
         type = "object",
         properties = new

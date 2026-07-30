@@ -77,6 +77,7 @@ public sealed partial class DeskWireParityTests
             QualityWarn: 0,
             SuggestSniper: false,
             SniperHasHold: false,
+            SniperArmed: false,
             SniperPulse: null,
             ArchHasWork: false,
             ArchPulse: null,
@@ -129,6 +130,7 @@ public sealed partial class DeskWireParityTests
             QualityWarn: 0,
             SuggestSniper: false,
             SniperHasHold: false,
+            SniperArmed: false,
             SniperPulse: null,
             ArchHasWork: false,
             ArchPulse: null,
@@ -180,6 +182,7 @@ public sealed partial class DeskWireParityTests
             QualityWarn: 0,
             SuggestSniper: false,
             SniperHasHold: false,
+            SniperArmed: false,
             SniperPulse: null,
             ArchHasWork: false,
             ArchPulse: null,
@@ -202,13 +205,13 @@ public sealed partial class DeskWireParityTests
     public void DeskSniperLocusUnit_null_without_hold()
     {
         var unit = new DeskSniperLocusUnit();
-        Assert.Null(unit.TryBuild(new DeskSniperLocusUnit.Input(false, "aim x", new { })));
-        var hit = unit.TryBuild(new DeskSniperLocusUnit.Input(true, "aim x", new { k = 1 }));
+        Assert.Null(unit.TryBuild(new DeskSniperLocusUnit.Input(false, false, "aim x", new { })));
+        var hit = unit.TryBuild(new DeskSniperLocusUnit.Input(true, true, "aim x", new { k = 1 }));
         Assert.NotNull(hit);
         Assert.Equal("edit:sniper", hit!.Value.Id);
         Assert.Equal("sniper", hit.Value.Kind);
         Assert.Equal("aim aim x", hit.Value.Pulse);
-        Assert.Equal("target", hit.Value.Go);
+        Assert.Equal("put_sniper", hit.Value.Go);
     }
 
     [Fact]
