@@ -20,7 +20,7 @@ internal static partial class IdeIgniteChannel
         ---
         If you feel completely lost / thread amnesia: compaction likely happened.
         Restore: cdp_pressure op=recall (also %LocalAppData%/cdp-mcp/pressure-LATEST.md)
-        Then: habitat=CDP; re-read pressure axes (AutoIgnition / Task Manager / next).
+        Then: habitat=CDP; re-read pressure axes (AutoIgnition / Task Manager / Domain / next).
         """;
 
     /// <summary>Provider cyber-policy: scrub shell tokens if legacy/custom text reaches inject.</summary>
@@ -33,9 +33,14 @@ internal static partial class IdeIgniteChannel
     internal const string RemountInitializedLead =
         "MCP remounted / initialized.";
 
-    internal static string ComposeRemountInitializedCharge() =>
-        SanitizeComposerCharge(
-            RemountInitializedLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix);
+    internal static string ComposeRemountInitializedCharge(string? projectRoot = null, string? focusHint = null)
+    {
+        var core = RemountInitializedLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix;
+        var domain = IdeDomainPulse.RemountDomainAppendix(projectRoot, focusHint);
+        if (domain.Length == 0)
+            return SanitizeComposerCharge(core);
+        return SanitizeComposerCharge(core + "\n\n---\n" + domain);
+    }
 
     /// <summary>Short wake when sync CallTool exceeds timeout_wake — not full continuity resume.</summary>
     internal static string ComposeToolWatchWakeCharge(string tool, int thresholdSeconds)

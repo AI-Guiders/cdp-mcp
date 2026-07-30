@@ -57,7 +57,7 @@ internal static partial class IdePressureChannel
             explain = IdeExplainability.ToObject(Explain(doc)),
             view = new { schema = SchemaVersion, lines = ChecklistLines(session, doc) },
             next = SceneNext(true, doc),
-            hint = "Armed. Stash invariants now (AutoIgnition / Task Manager / CDP locus). Slim desk shows pressure pulse until clear."
+            hint = "Armed. Stash invariants now (AutoIgnition / Task Manager / CDP / Domain). Slim desk shows pressure pulse until clear."
         };
     }
 
@@ -74,7 +74,7 @@ internal static partial class IdePressureChannel
                 tool = ToolName,
                 op = "stash",
                 error = "body_required",
-                hint = "stash body= markdown/text: goal, decisions, open, next, ignite ARM?, plan focus, paths"
+                hint = "stash body= markdown/text: goal, decisions, open, next, ignite ARM?, plan focus, Domain cards, paths"
             };
         }
 

@@ -21,10 +21,11 @@ Silent host summary ≠ memory. Lost axes that already bit dogfood: **AutoIgniti
 
 1. Soft organ Meta `cdp_pressure` + `go=pressure_desk` (aliases `pressure`, `compact_prep`, `pre_compact`). Seat **P**.
 2. Ops: `scene` | `arm` | `stash` | `clear`/`disarm` | `recall`.
-3. On L1 notify → `op=arm` → checklist (Ignite / Plan / CDP habitat / invariants) → `op=stash body=`.
+3. On L1 notify → `op=arm` → checklist (Ignite / Plan / CDP habitat / **Domain** / invariants) → `op=stash body=`.
 4. Durable stash: `%LocalAppData%/cdp-mcp/pressure-stash.json` + `pressure-LATEST.md`.
 5. Slim desk: `pressure` pulse when armed; `next[]` elevates `go=pressure`.
 6. Does **not** auto-offer export to operator. Export remains on request.
+7. Domain axis (0.5.310+): stamp/recall `.cdp/domain` cards; remount Autoi charge appends Domain pulse [A] when cards exist.
 
 ---
 

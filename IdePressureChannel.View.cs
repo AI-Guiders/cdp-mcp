@@ -9,6 +9,9 @@ internal static partial class IdePressureChannel
     {
         var armed = doc?.Armed == true;
         var hasBody = doc?.Body is { Length: > 0 };
+        var domainDir = IdeDomainPulse.ResolveDir(session.ProjectRoot ?? doc?.ProjectRoot);
+        var domainOk = domainDir is { Length: > 0 } && Directory.Exists(domainDir)
+            && Directory.EnumerateFiles(domainDir, "*.md").Any();
         return
         [
             armed ? "* ARMED — L1 window (~2–3 turns)" : "· idle — arm on L1 notify",
@@ -16,7 +19,10 @@ internal static partial class IdePressureChannel
             "1 AutoIgnition — re-ARM timer before end turn (go=ignite_desk)",
             "2 Task Manager — feature/task focus in WitDB (go=plan)",
             "3 Habitat = CDP — buffer/cockpit/shell; not Cursor host Write",
-            "4 Invariants / decisions / open / next — into stash body",
+            domainOk
+                ? "4 Domain — stamp/recall cards (.cdp/domain); dig before ask"
+                : "4 Domain — seed .cdp/domain cards; stamp after ship; dig before ask",
+            "5 Invariants / decisions / open / next — into stash body",
             $"· session {session.Phase}/{session.Object} · root={(session.ProjectRoot is { Length: > 0 } ? Path.GetFileName(session.ProjectRoot) : "—")}"
         ];
     }
@@ -30,6 +36,7 @@ internal static partial class IdePressureChannel
             list.Add(new { go = GoName, label = "Stash now", why = "op=stash body=" });
         list.Add(new { go = "ignite_desk", label = "AutoIgnition", why = "op=arm when=timer in=1s" });
         list.Add(new { go = "plan", label = "Task Manager", why = "focus / next task" });
+        list.Add(new { go = GoName, label = "Domain axis", why = "stash Domain + .cdp/domain pulse" });
         if (doc?.Body is { Length: > 0 })
             list.Add(new { go = GoName, label = "Recall stash", why = "op=recall" });
         if (armed)

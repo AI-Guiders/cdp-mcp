@@ -10,7 +10,7 @@ namespace CdpMcp;
 /// Soft organ <c>go=pressure</c> / Meta <c>cdp_pressure</c> — L1 pre-compact prep desk.
 /// When Cursor injects pressure notify (~2–3 turns before summarization): arm → checklist → stash.
 /// Does NOT auto-offer export ritual to operator. Durable stash survives remount.
-/// Must-remember axes: AutoIgnition re-ARM, Task Manager focus, CDP (not Cursor Write).
+/// Must-remember axes: AutoIgnition re-ARM, Task Manager focus, CDP habitat, Domain cards.
 /// Partials: Persist (load/save/md), Ops (scene/arm/stash), View (checklist/recall/clear).
 /// </summary>
 internal static partial class IdePressureChannel
@@ -51,6 +51,19 @@ internal static partial class IdePressureChannel
             "recall" or "load" or "peek" => Recall(),
             _ => Scene(session)
         };
+    }
+
+    /// <summary>Best-effort project_root from last stash (remount domain pulse).</summary>
+    internal static string? TryPeekProjectRoot()
+    {
+        try
+        {
+            return Load()?.ProjectRoot;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public static bool IsArmed()
