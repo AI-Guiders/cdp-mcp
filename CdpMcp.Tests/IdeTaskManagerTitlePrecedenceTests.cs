@@ -9,6 +9,40 @@ namespace CdpMcp.Tests;
 public sealed class IdeTaskManagerTitlePrecedenceTests
 {
     [Fact]
+    public void Note_with_title_body_uses_active_focus()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-note-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "note-feature", null);
+            var activeId = store.StageUpsert(state, "keep-active", null, null, null).stage_id;
+            store.FocusStage(state, activeId);
+            IdeTaskManager.Handle(store, state, Args(new { tm_op = "start" }));
+
+            // Legacy REPL stuffed note body into title= — must still land on ActiveStageId.
+            var result = IdeTaskManager.Handle(store, state, Args(new
+            {
+                tm_op = "note",
+                title = "dogfood: focus should still be active",
+                text = "dogfood: focus should still be active"
+            }));
+
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            var mutation = doc.RootElement.GetProperty("mutation");
+            Assert.Equal("note", mutation.GetProperty("op").GetString());
+            Assert.Equal(activeId.ToString(), mutation.GetProperty("task_id").GetGuid().ToString());
+            Assert.Equal(activeId, state.ActiveStageId);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
     public void Done_by_title_does_not_close_active_focus()
     {
         var path = Path.Combine(Path.GetTempPath(), "cdp-tm-prec-" + Guid.NewGuid().ToString("N") + ".witdb");

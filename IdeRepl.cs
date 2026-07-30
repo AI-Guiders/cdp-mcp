@@ -618,13 +618,13 @@ internal static class IdeRepl
             return (merged, null);
         }
 
-        // Explicit note pointer while clock open.
+        // Explicit note pointer while clock open (text= body only — never title=).
         if (head is "note")
         {
             merged["go"] = JsonSerializer.SerializeToElement("plan");
             merged["tm_op"] = JsonSerializer.SerializeToElement("note");
             var text = tokens.Count >= 2 ? string.Join(' ', tokens.Skip(1)) : "";
-            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "note", title = text, text });
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "note", text });
             return (merged, null);
         }
 
