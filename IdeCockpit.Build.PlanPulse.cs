@@ -148,6 +148,7 @@ internal static partial class IdeCockpit
     /// Desk pulse for bare / editor / git / leftover go — no upfront git spray, no ResolveSeatOrganPaneAsync.
     /// Editor uses local snap (not cdp_editor_scene dispatch); git loads only when go is git.
     /// Deferred soft organs (alert/chk/…) apply on cheap PlanPulse probes — not full CollectProbeBundle.
+    /// CDP-ADR-0020: deferred apply skips multi-channel glass spray on this path.
     /// </summary>
     static async Task<string> FinishDeskPulseAsync(
         SessionContext session,
@@ -215,7 +216,8 @@ internal static partial class IdeCockpit
             (goResult, alertSnap, _) = ApplyDeferredSoftOrgans(
                 deferred, goResult, session, docStore, workspaceStore, workspaceState, args,
                 git, shell, buffer, probes.Debug, probes.Test, probes.Work, probes.Quality,
-                probes.Problems, probes.ChkCtx, probes.ChkSnap);
+                probes.Problems, probes.ChkCtx, probes.ChkSnap,
+                publishGlassSpray: false);
             resultPin = TryGoPinFromResult(goResult) ?? resultPin;
         }
         else

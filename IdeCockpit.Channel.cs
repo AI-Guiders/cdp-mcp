@@ -37,6 +37,8 @@ internal static partial class IdeCockpit
 
     /// <summary>
     /// Apply deferred soft organs from CDS snaps. Alert/sa is root EICAS — no PlaceOrgan.
+    /// <paramref name="publishGlassSpray"/>: full multi-channel PublishGlass is desk-width work —
+    /// only on slow desk path (CDP-ADR-0020). Desk-pulse organ calls keep SA/ECL/QRH latches only.
     /// </summary>
     private static (object? GoResult, IdeAlertChannel.Snap AlertSnap, IdeAlertChannel.Inputs AlertInputs) ApplyDeferredSoftOrgans(
         DeferredSoftWants wants,
@@ -55,7 +57,8 @@ internal static partial class IdeCockpit
         QualityGates.QualitySnap quality,
         IdeProblemsChannel.Snap problems,
         IdeChkChannel.ProbeCtx chkCtx,
-        IdeChkChannel.Snap chkSnap)
+        IdeChkChannel.Snap chkSnap,
+        bool publishGlassSpray = true)
     {
         var gitDirty = GitIsDirty(git);
         var testsFailed = test is { Available: true, LastRun: not null, Success: false };
@@ -67,29 +70,10 @@ internal static partial class IdeCockpit
         CideAlertLatch.Publish(alertSnap);
         CideQrhLatch.Publish(IdeQrhChannel.Build(chkCtx, chkSnap));
         CideEclLatch.Publish(chkSnap);
-        IdePressureChannel.PublishGlass();
-        IdeIgniteArmHost.PublishGlass();
-        IdeScopeChannel.PublishGlass();
-        IdeOpsPulse.PublishGlass();
-        IdeOnboardChannel.PublishGlass(session);
-        IdeArchBoardChannel.PublishGlass(session);
-        McpOutletHabitat.Instance?.PublishGlass();
-        IdeTaskManager.PublishGlass(workspaceStore, workspaceState, CdpEnumParse.ToWire(session.Phase));
-        IdeReportBoard.PublishGlass(session);
-        IdeCrmChannel.PublishGlass(session);
-        IdeWebcamChannel.PublishGlass();
-        IdeToolchainChannel.PublishGlass();
-        IdePluginsChannel.PublishGlass();
-        IdeRefactorPlanChannel.PublishGlass(docStore, session);
-        IdeReviewChannel.PublishGlass(new IdeReviewChannel.Inputs(
-            session,
-            gitDirty,
-            problems.Errors,
-            testsFailed,
-            quality.Fail,
-            quality.Warn,
-            chkSnap));
-        IdeLearnChannel.PublishGlass();
+        if (publishGlassSpray)
+            PublishDeferredOrganGlassSpray(
+                session, docStore, workspaceStore, workspaceState,
+                gitDirty, problems, testsFailed, quality, chkSnap);
 
         var tile = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
         var board = new IdeSoftOrganBoard(new SoftOrganSeatBag(
@@ -126,6 +110,42 @@ internal static partial class IdeCockpit
             goResult = board.Build(SoftOrganKind.Alert).Board;
 
         return (goResult, alertSnap, alertInputs);
+    }
+
+    static void PublishDeferredOrganGlassSpray(
+        SessionContext session,
+        DocumentBufferStore docStore,
+        IntentWorkspaceStore? workspaceStore,
+        IntentWorkspaceState workspaceState,
+        bool gitDirty,
+        IdeProblemsChannel.Snap problems,
+        bool testsFailed,
+        QualityGates.QualitySnap quality,
+        IdeChkChannel.Snap chkSnap)
+    {
+        IdePressureChannel.PublishGlass();
+        IdeIgniteArmHost.PublishGlass();
+        IdeScopeChannel.PublishGlass();
+        IdeOpsPulse.PublishGlass();
+        IdeOnboardChannel.PublishGlass(session);
+        IdeArchBoardChannel.PublishGlass(session);
+        McpOutletHabitat.Instance?.PublishGlass();
+        IdeTaskManager.PublishGlass(workspaceStore, workspaceState, CdpEnumParse.ToWire(session.Phase));
+        IdeReportBoard.PublishGlass(session);
+        IdeCrmChannel.PublishGlass(session);
+        IdeWebcamChannel.PublishGlass();
+        IdeToolchainChannel.PublishGlass();
+        IdePluginsChannel.PublishGlass();
+        IdeRefactorPlanChannel.PublishGlass(docStore, session);
+        IdeReviewChannel.PublishGlass(new IdeReviewChannel.Inputs(
+            session,
+            gitDirty,
+            problems.Errors,
+            testsFailed,
+            quality.Fail,
+            quality.Warn,
+            chkSnap));
+        IdeLearnChannel.PublishGlass();
     }
 
     static object PlaceDeferred(IdeSoftOrganBoard board, SoftOrganKind kind)

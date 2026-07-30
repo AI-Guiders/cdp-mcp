@@ -57,7 +57,7 @@ public sealed class IdeCockpitPlanPulseTests
     {
         // Regression: go=alert|chk + go_detail=full used to skip desk-pulse because deferred
         // soft wants forced full BuildAsync spray (~minutes). Desk-pulse gate must stay open;
-        // deferred organs apply on cheap probes inside FinishDeskPulseAsync.
+        // deferred organs apply on cheap probes; glass spray skipped (CDP-ADR-0020).
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
         {
             ["go"] = JsonSerializer.SerializeToElement("alert"),
