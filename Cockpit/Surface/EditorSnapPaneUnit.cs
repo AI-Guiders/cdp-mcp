@@ -8,15 +8,18 @@ public sealed class EditorSnapPaneUnit : ICockpitComputeUnit
 {
     public readonly record struct BufferCounts(int Count, int DirtyCount, int DiskChangedCount);
 
-    public object Build(in BufferCounts buffer)
-    {
-        var pulse = buffer.Count == 0
+    public static string FormatPulse(in BufferCounts buffer) =>
+        buffer.Count == 0
             ? "—"
             : buffer.DiskChangedCount > 0
                 ? $"{buffer.Count} buf · disk×{buffer.DiskChangedCount}"
                 : buffer.DirtyCount > 0
                     ? $"{buffer.Count} buf · dirty×{buffer.DirtyCount}"
                     : $"{buffer.Count} buf";
+
+    public object Build(in BufferCounts buffer)
+    {
+        var pulse = FormatPulse(in buffer);
         return new
         {
             ok = true,
