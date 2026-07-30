@@ -105,7 +105,12 @@ internal static partial class IdeIgniteArmHost
 
         lock (Gate)
         {
-            Arms.RemoveAll(a => a.Status is "awaiting" or "armed" or ProviderBlockedStatus);
+            // Latch awaiting — drop continuity work timers, keep event/system wakes + mid-CDT.
+            Arms.RemoveAll(a => a.Status is "awaiting" or ProviderBlockedStatus);
+            Arms.RemoveAll(a =>
+                a.Status == "armed"
+                && !IsEventTriggeredArm(a.Event)
+                && !IsSystemWakeArmId(a.Id));
             Arms.RemoveAll(a => a.Id.Equals(arm.Id, StringComparison.OrdinalIgnoreCase));
             Arms.Add(arm);
             PersistUnlocked();
