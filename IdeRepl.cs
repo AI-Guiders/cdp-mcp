@@ -406,10 +406,29 @@ internal static class IdeRepl
         if (head is "feature" or "intent")
         {
             if (tokens.Count < 2)
-                return (merged, Err("feature needs name", "feature desk-comfort | feature Y @focus"));
+                return (merged, Err("feature needs name", "feature desk-comfort | feature focus Y | feature Y @focus"));
+
+            // feature focus <name> → feature_focus (not title "focus <name>")
+            if (tokens[1].Equals("focus", StringComparison.OrdinalIgnoreCase))
+            {
+                if (tokens.Count < 3)
+                    return (merged, Err("feature focus needs name", "feature focus desk-comfort"));
+                var (focusTitle, _) = SplitTitlePhase(tokens.Skip(2).ToList());
+                if (focusTitle.Length == 0)
+                    return (merged, Err("feature focus needs name", "feature focus desk-comfort"));
+                if (IsBoardListAlias(focusTitle))
+                    return (merged, Err($"'{focusTitle}' is a REPL verb — not a feature title", "feature focus <name>"));
+                if (ReservedTitleHint(focusTitle, kind: "feature") is { } focusHint)
+                    return (merged, Err($"'{focusTitle}' is a REPL verb — not a feature title", focusHint));
+                merged["go"] = JsonSerializer.SerializeToElement("plan");
+                merged["go_args"] = JsonSerializer.SerializeToElement(new { title = focusTitle, op = "feature_focus" });
+                merged["tm_op"] = JsonSerializer.SerializeToElement("feature_focus");
+                return (merged, null);
+            }
+
             var (title, _) = SplitTitlePhase(tokens.Skip(1).ToList());
             if (title.Length == 0)
-                return (merged, Err("feature needs name", "feature desk-comfort | feature Y @focus"));
+                return (merged, Err("feature needs name", "feature desk-comfort | feature focus Y | feature Y @focus"));
             if (IsBoardListAlias(title))
             {
                 merged["go"] = JsonSerializer.SerializeToElement("plan");

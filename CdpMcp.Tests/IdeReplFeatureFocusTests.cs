@@ -108,6 +108,20 @@ public class IdeReplFeatureFocusTests
     }
 
     [Fact]
+    public void Feature_focus_prefix_maps_to_feature_focus_not_title()
+    {
+        var applied = IdeRepl.Apply("feature focus desk-comfort", Empty);
+        Assert.NotNull(applied);
+        Assert.Null(applied.Value.Direct);
+        Assert.True(applied.Value.Args.TryGetValue("tm_op", out var tm));
+        Assert.Equal("feature_focus", tm.GetString());
+        Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
+        using var doc = JsonDocument.Parse(ga.GetRawText());
+        Assert.Equal("desk-comfort", doc.RootElement.GetProperty("title").GetString());
+        Assert.Equal("feature_focus", doc.RootElement.GetProperty("op").GetString());
+    }
+
+    [Fact]
     public void Feature_at_focus_strips_directive_from_title()
     {
         var applied = IdeRepl.Apply("feature night-refactor @focus", Empty);
