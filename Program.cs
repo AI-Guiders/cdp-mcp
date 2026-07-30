@@ -891,7 +891,7 @@ List<Tool> BuildMetaTools() =>
             output_json_path = new { type = "string", description = "ocr: write JSON path under workspace" }
         }
     }),
-    Meta("cdp_pressure", "L1 pre-compact prep desk. On pressure notify (~2–3 turns before host summarization): op=arm → checklist → op=stash body=. Must axes: AutoIgnition re-ARM, Task Manager, CDP habitat. Alias go=pressure_desk|pressure. Does not offer export ritual to operator.", new
+    Meta("cdp_pressure", "L1 pre-compact prep desk. On pressure notify (~2–3 turns before host summarization): op=arm → checklist → op=stash body=. Must axes: AutoIgnition re-ARM, Task Manager, CDP habitat, Domain (.cdp/domain). Alias go=pressure_desk|pressure. Does not offer export ritual to operator.", new
     {
         type = "object",
         properties = new

@@ -138,7 +138,9 @@ internal static partial class IdeIgniteArmHost
         IsCustomChargeMode(arm.ChargeMode)
             ? IdeIgniteChannel.SanitizeComposerCharge(Expand(arm.Message, arm, ok, pulse, detail))
             : IsRemountChargeMode(arm.ChargeMode)
-                ? IdeIgniteChannel.ComposeRemountInitializedCharge()
+                ? IdeIgniteChannel.ComposeRemountInitializedCharge(
+                    IdePressureChannel.TryPeekProjectRoot(),
+                    IdeDomainPulse.FocusHintFromPlanLatch())
                 : IdeIgniteChannel.ComposeArmFireCharge();
 
     static void MarkSendInvoked(string armId)
