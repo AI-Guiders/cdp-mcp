@@ -53,6 +53,21 @@ public sealed class IdeCockpitPlanPulseTests
     }
 
     [Fact]
+    public void DeskPulseFastPath_still_true_with_go_detail_full_for_alert_style_args()
+    {
+        // Regression: go=alert|chk + go_detail=full used to skip desk-pulse because deferred
+        // soft wants forced full BuildAsync spray (~minutes). Desk-pulse gate must stay open;
+        // deferred organs apply on cheap probes inside FinishDeskPulseAsync.
+        var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+        {
+            ["go"] = JsonSerializer.SerializeToElement("alert"),
+            ["go_detail"] = JsonSerializer.SerializeToElement("full")
+        };
+        Assert.True(IdeCockpit.WantsDeskPulseFastPath(args));
+        Assert.False(IdeCockpit.WantsPlanPulseFastPath("alert", args));
+    }
+
+    [Fact]
     public void WantsPlanPulseFastPath_false_when_pane_full_set()
     {
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)

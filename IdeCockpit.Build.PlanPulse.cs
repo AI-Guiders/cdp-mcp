@@ -147,6 +147,7 @@ internal static partial class IdeCockpit
     /// <summary>
     /// Desk pulse for bare / editor / git / leftover go — no upfront git spray, no ResolveSeatOrganPaneAsync.
     /// Editor uses local snap (not cdp_editor_scene dispatch); git loads only when go is git.
+    /// Deferred soft organs (alert/chk/…) apply on cheap PlanPulse probes — not full CollectProbeBundle.
     /// </summary>
     static async Task<string> FinishDeskPulseAsync(
         SessionContext session,
@@ -165,6 +166,7 @@ internal static partial class IdeCockpit
         object? goResult,
         bool includeSubmodules,
         object? warm,
+        DeferredSoftWants deferred,
         Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> dispatch,
         CancellationToken cancellationToken)
     {
@@ -207,8 +209,21 @@ internal static partial class IdeCockpit
         }
 
         var probes = CollectPlanPulseProbeBundle(session, workspaceStore, workspaceState);
-        var (alertSnap, _) = ApplyPlanPulseGlass(
-            session, workspaceStore, workspaceState, buffer, shell, probes);
+        IdeAlertChannel.Snap alertSnap;
+        if (AnyDeferredSoftWant(deferred))
+        {
+            (goResult, alertSnap, _) = ApplyDeferredSoftOrgans(
+                deferred, goResult, session, docStore, workspaceStore, workspaceState, args,
+                git, shell, buffer, probes.Debug, probes.Test, probes.Work, probes.Quality,
+                probes.Problems, probes.ChkCtx, probes.ChkSnap);
+            resultPin = TryGoPinFromResult(goResult) ?? resultPin;
+        }
+        else
+        {
+            (alertSnap, _) = ApplyPlanPulseGlass(
+                session, workspaceStore, workspaceState, buffer, shell, probes);
+        }
+
         goResult = SlimGoResult(goResult, OptString(args, "go_detail"));
 
         var (loci, next, focus, goVerbs) = BuildDeskNavigation(

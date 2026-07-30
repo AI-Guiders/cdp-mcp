@@ -19,9 +19,11 @@ internal static partial class IdeCockpitSoftDispatch
             return false;
 
         mfd = "gates";
+        var detailFull = OptString(args, "go_detail") is { } d
+            && d.Equals("full", StringComparison.OrdinalIgnoreCase);
         goResult = SoftBoard(
             SoftOrganKind.Quality, session, docStore, null, null, args,
-            flattenOrganArgs: true, wantFull: true);
+            flattenOrganArgs: true, wantFull: detailFull);
         PlaceSoft(ref goVerb, SoftOrganKind.Quality);
         return true;
     }
