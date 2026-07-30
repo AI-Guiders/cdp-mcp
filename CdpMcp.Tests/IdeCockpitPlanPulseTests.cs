@@ -70,14 +70,15 @@ public sealed class IdeCockpitPlanPulseTests
     }
 
     [Fact]
-    public void WantsPlanPulseFastPath_false_when_pane_full_set()
+    public void WantsDeskPulseFastPath_true_when_pane_full_set()
     {
+        // pane_full= = one-seat dump on pulse — must not force TryGitAsync / all-seat spray.
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
         {
             ["pane_full"] = JsonSerializer.SerializeToElement("P")
         };
-        Assert.False(IdeCockpit.WantsPlanPulseFastPath("plan", args));
-        Assert.False(IdeCockpit.WantsDeskPulseFastPath(args));
+        Assert.True(IdeCockpit.WantsDeskPulseFastPath(args));
+        Assert.True(IdeCockpit.WantsPlanPulseFastPath("plan", args));
     }
 
     [Fact]
