@@ -72,18 +72,19 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>
-    /// Continuity timer re-arm replaces prior work timers. tool-wake-* also uses when=timer — keep those.
+    /// Continuity timer re-arm replaces prior work timers. tool-wake-* / remount-wake-* also use
+    /// when=timer — keep those. Never supersede an arm already mid-CDT (status=firing).
     /// Caller must hold <see cref="Gate"/>.
     /// </summary>
     static void SupersedePriorContinuityTimersUnlocked(IgniteArm arm, List<string> cancelIds)
     {
-        if (arm.Event != "timer" || IsToolWakeArmId(arm.Id))
+        if (arm.Event != "timer" || IsSystemWakeArmId(arm.Id))
             return;
 
         foreach (var old in Arms.Where(a =>
                      a.Event == "timer"
-                     && (a.Status is "armed" or "firing")
-                     && !IsToolWakeArmId(a.Id)
+                     && a.Status == "armed"
+                     && !IsSystemWakeArmId(a.Id)
                      && !a.Id.Equals(arm.Id, StringComparison.OrdinalIgnoreCase))
                  .ToArray())
         {

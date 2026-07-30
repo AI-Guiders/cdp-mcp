@@ -14,6 +14,12 @@ internal static partial class IdeIgniteArmHost
         !string.IsNullOrWhiteSpace(id)
         && id.StartsWith("tool-wake-", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>Remount / tool wake — must not be wiped by a later continuity timer re-arm.</summary>
+    internal static bool IsSystemWakeArmId(string? id) =>
+        IsToolWakeArmId(id)
+        || (!string.IsNullOrWhiteSpace(id)
+            && id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase));
+
     /// <summary>Cancel CDT inject in flight (Disarm / call-complete ClearWakeArm).</summary>
     internal static void CancelInFlightFire(string id)
     {
