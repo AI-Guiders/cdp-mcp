@@ -12,10 +12,21 @@ internal static partial class IdeTaskManager
             throw new ArgumentException("feature needs title — feature desk-comfort");
         if (store.FindIntentIdByTitle(title) is { } existing)
         {
+            // Dedupe path = feature_focus + leaf-arm (dogfood gap after 0.5.309).
             var focused = store.IntentSelect(state, existing);
             state.ActiveStageId = null;
             store.WorkFocusSave(state);
-            return new { op = "feature_focus", feature_id = focused.intent_id, title = focused.title, deduped = true };
+            var leaf = TryLeafIgniteAfterFocus(store, state, "feature_focus", preferredStageId: null);
+            return leaf is null
+                ? new { op = "feature_focus", feature_id = focused.intent_id, title = focused.title, deduped = true }
+                : new
+                {
+                    op = "feature_focus",
+                    feature_id = focused.intent_id,
+                    title = focused.title,
+                    deduped = true,
+                    leaf_continuity = leaf
+                };
         }
 
         var r = store.IntentUpsert(state, title, null);
@@ -23,14 +34,14 @@ internal static partial class IdeTaskManager
         return new { op = "feature", feature_id = r.intent_id, title = r.title };
     }
 
-        static object FeatureFocus(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
+    static object FeatureFocus(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
     {
         var id = GuidArg(args, "intent_id") ?? GuidArg(args, "feature_id");
         if (id is null)
         {
-            var title = Title(args);
-            id = store.FindIntentIdByTitle(title)
-                 ?? throw new ArgumentException($"feature not found: {title}");
+            var t = Title(args);
+            id = store.FindIntentIdByTitle(t)
+                 ?? throw new ArgumentException($"feature not found: {t}");
         }
 
         var r = store.IntentSelect(state, id.Value);
@@ -43,7 +54,6 @@ internal static partial class IdeTaskManager
             : new { op = "feature_focus", feature_id = r.intent_id, title = r.title, leaf_continuity = leaf };
     }
 
-
     static object FeatureDrop(
         IntentWorkspaceStore store,
         IntentWorkspaceState state,
@@ -53,11 +63,11 @@ internal static partial class IdeTaskManager
                  ?? GuidArgGo(args, "intent_id") ?? GuidArgGo(args, "feature_id");
         if (id is null)
         {
-            var title = Title(args);
-            if (title.Length == 0)
+            var t = Title(args);
+            if (t.Length == 0)
                 throw new ArgumentException("drop feature needs title or feature_id");
-            id = store.FindIntentIdByTitle(title)
-                 ?? throw new ArgumentException($"feature not found: {title}");
+            id = store.FindIntentIdByTitle(t)
+                 ?? throw new ArgumentException($"feature not found: {t}");
         }
 
         return store.IntentDelete(state, id.Value);
