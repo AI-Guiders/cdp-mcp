@@ -251,6 +251,8 @@ List<Tool> BuildVisibleTools()
         if (schemaTool is null) continue;
         var schema = a.Domain == CdpDomains.Git
             ? GitSessionDefaults.OptionalWorkspaceSchema(schemaTool.InputSchema)
+            : a.Domain == CdpDomains.CodebaseIndex
+            ? CodebaseIndexSessionDefaults.OptionalSessionSchema(schemaTool.InputSchema)
             : schemaTool.InputSchema;
         domainTools.Add(new Tool
         {
@@ -1607,6 +1609,8 @@ async Task<string> DispatchAsync(
         throw new ArgumentException($"Backend '{domain}' not mounted.");
     if (domain == CdpDomains.Git)
         callArgs = GitSessionDefaults.WithWorkspace(callArgs, session);
+    else if (domain == CdpDomains.CodebaseIndex)
+        callArgs = CodebaseIndexSessionDefaults.WithSession(callArgs, session);
     return await mod.CallAsync(underlying, callArgs).ConfigureAwait(false);
 }
 
