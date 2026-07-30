@@ -22,11 +22,20 @@ internal static partial class IdeIgniteChannel
 
         ComposerState? state = null;
         string? pageTitle = null;
+        string? connectError = null;
         if (error is null)
         {
-            await using var session = await CdtSession.ConnectPageAsync(port, ct).ConfigureAwait(false);
-            pageTitle = session.PageTitle;
-            state = await session.EvalStateAsync(ct).ConfigureAwait(false);
+            try
+            {
+                await using var session = await CdtSession.ConnectPageAsync(port, ct).ConfigureAwait(false);
+                pageTitle = session.PageTitle;
+                state = await session.EvalStateAsync(ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                connectError = ex.Message;
+                error ??= connectError;
+            }
         }
 
         var kind = AriaKind(state?.SubmitAria);
@@ -36,14 +45,16 @@ internal static partial class IdeIgniteChannel
         return new
         {
             schema = Schema,
-            ok = error is null && state is { HasInput: true } && !blocked,
+            ok = error is null && state is { ComposerScoped: true } && !blocked,
             op = "scene",
             go = GoName,
             tool = ToolName,
             pulse = error is null
                 ? blocked
                     ? $"ignite · {ProviderBlockedError} · {pageTitle ?? "?"} · fail closed"
-                    : $"ignite · cdt :{port} · {pageTitle ?? "?"} · {kind} · {IdeIgniteArmHost.ContinuityPulseLine()}"
+                    : state is { ComposerScoped: true }
+                        ? $"ignite · cdt :{port} · {pageTitle ?? "?"} · {kind} · {IdeIgniteArmHost.ContinuityPulseLine()}"
+                        : $"ignite · cdt :{port} · {pageTitle ?? "?"} · no_composer · {IdeIgniteArmHost.ContinuityPulseLine()}"
                 : $"ignite · cdt :{port} · down · {IdeIgniteArmHost.ContinuityPulseLine()}",
             port,
             page_title = pageTitle,
@@ -54,9 +65,14 @@ internal static partial class IdeIgniteChannel
             version,
             pages,
             error,
+            connect_error = connectError,
             hint = error is null
-                ? "op=send|arm|hygiene|plateau|continuity. Idle=Voice; never click Voice/Stop."
-                : "Start Cursor via tools/Start-Cursor-WithCdt.ps1 (remote-debugging-port + allow-origins)."
+                ? state is { ComposerScoped: true }
+                    ? "op=send|arm|hygiene|plateau|continuity. Idle=Voice; never click Voice/Stop."
+                    : "No agent composer on preferred CDT page — open Cursor Agents (not an md/editor tab)."
+                : error.StartsWith("no_agent_composer", StringComparison.Ordinal)
+                    ? "Open Cursor Agents panel; md/editor tabs are skipped for AutoIgnition."
+                    : "Start Cursor via tools/Start-Cursor-WithCdt.ps1 (remote-debugging-port + allow-origins)."
         };
     }
 

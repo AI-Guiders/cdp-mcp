@@ -24,22 +24,52 @@ internal static partial class IdeIgniteChannel
         public static async Task<CdtSession> ConnectPageAsync(int port, CancellationToken ct)
         {
             var list = await GetJsonAsync(port, "/json/list", ct).ConfigureAwait(false);
-            JsonElement? page = null;
-            var title = "?";
-            foreach (var el in list.EnumerateArray())
+            var ranked = RankPageTargets(list);
+            if (ranked.Count == 0)
+                throw new InvalidOperationException("no_page_target");
+
+            var tried = new List<string>();
+            Exception? last = null;
+            foreach (var target in ranked)
             {
-                if (el.TryGetProperty("type", out var t) && t.GetString() == "page")
+                tried.Add($"{target.Title} (score={target.Score})");
+                CdtSession? session = null;
+                try
                 {
-                    page = el;
-                    title = el.TryGetProperty("title", out var tt) ? tt.GetString() ?? "?" : "?";
-                    break;
+                    session = await OpenWsAsync(target.Title, target.WsUrl, ct).ConfigureAwait(false);
+                    // Agent shell may still be mounting TipTap — brief settle before giving up.
+                    for (var i = 0; i < 8; i++)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        var st = await session.EvalStateAsync(ct).ConfigureAwait(false);
+                        if (st.ComposerScoped)
+                            return session;
+
+                        await Task.Delay(150, ct).ConfigureAwait(false);
+                    }
+
+                    await session.DisposeAsync().ConfigureAwait(false);
+                    session = null;
+                }
+                catch (Exception ex)
+                {
+                    last = ex;
+                    if (session is not null)
+                    {
+                        try { await session.DisposeAsync().ConfigureAwait(false); }
+                        catch { /* ignore */ }
+                    }
                 }
             }
 
-            if (page is null || !page.Value.TryGetProperty("webSocketDebuggerUrl", out var wsEl))
-                throw new InvalidOperationException("no_page_target");
+            var detail = string.Join(" | ", tried);
+            throw new InvalidOperationException(
+                "no_agent_composer: no CDT page with ui-prompt-input (ComposerScoped). Tried: " + detail
+                + (last is null ? "" : "; last=" + last.Message));
+        }
 
-            var wsUrl = wsEl.GetString() ?? throw new InvalidOperationException("no_ws_url");
+        static async Task<CdtSession> OpenWsAsync(string title, string wsUrl, CancellationToken ct)
+        {
             var ws = new ClientWebSocket();
             await ws.ConnectAsync(new Uri(wsUrl), ct).ConfigureAwait(false);
             var session = new CdtSession(ws, title);
