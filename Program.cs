@@ -253,6 +253,10 @@ List<Tool> BuildVisibleTools()
             ? GitSessionDefaults.OptionalWorkspaceSchema(schemaTool.InputSchema)
             : a.Domain == CdpDomains.CodebaseIndex
             ? CodebaseIndexSessionDefaults.OptionalSessionSchema(schemaTool.InputSchema)
+            : a.Domain == CdpDomains.Build
+            ? BuildSessionDefaults.OptionalSessionSchema(schemaTool.InputSchema)
+            : MemorySessionDefaults.IsMemoryDomain(a.Domain)
+            ? MemorySessionDefaults.OptionalWorkspaceSchema(schemaTool.InputSchema)
             : schemaTool.InputSchema;
         domainTools.Add(new Tool
         {
@@ -309,7 +313,7 @@ List<Tool> BuildMetaTools() =>
             get = new { type = "boolean", description = "If true, only return current context." }
         }
     }),
-    Meta("cdp_open", "Open a project path: detect .sln/.csproj/tsconfig → session root+language+scm_root; list_changed. After open, git_* may omit workspace_path (defaults to scm_root). Prefer before go_to_definition. Omit path to reopen Recent[0]; or recent_index=N. Autosaves desk bookmark for cdp_restore.", new
+    Meta("cdp_open", "Open a project path: detect .sln/.csproj/tsconfig → session root+language+scm_root; list_changed. After open, git_*/codebase_index_*/memory_*/build_* may omit workspace_path/solution_path (session defaults). Prefer before go_to_definition. Omit path to reopen Recent[0]; or recent_index=N. Autosaves desk bookmark for cdp_restore.", new
     {
         type = "object",
         properties = new
@@ -1611,6 +1615,11 @@ async Task<string> DispatchAsync(
         callArgs = GitSessionDefaults.WithWorkspace(callArgs, session);
     else if (domain == CdpDomains.CodebaseIndex)
         callArgs = CodebaseIndexSessionDefaults.WithSession(callArgs, session);
+    else if (domain == CdpDomains.Build)
+        callArgs = BuildSessionDefaults.WithSession(callArgs, session);
+    else if (MemorySessionDefaults.IsMemoryDomain(domain))
+        callArgs = MemorySessionDefaults.WithWorkspace(callArgs, session);
+    underlying = CdpDomains.ExpandUnderlying(domain, underlying);
     return await mod.CallAsync(underlying, callArgs).ConfigureAwait(false);
 }
 
