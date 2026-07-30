@@ -20,6 +20,20 @@ internal static partial class IdeIgniteArmHost
         || (!string.IsNullOrWhiteSpace(id)
             && id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>Harness event wakes (build/test/shell) — never superseded by a continuity timer.</summary>
+    internal static bool IsEventTriggeredArm(string? eventName)
+    {
+        var e = NormalizeEvent(eventName);
+        return e is "build_finished" or "test_finished" or "shell_finished";
+    }
+
+    /// <summary>Only plain armed continuity timers may be replaced by a later timer re-arm.</summary>
+    internal static bool IsSupersedableContinuityWorkTimer(IgniteArm a) =>
+        string.Equals(a.Event, "timer", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(a.Status, "armed", StringComparison.OrdinalIgnoreCase)
+        && !IsSystemWakeArmId(a.Id)
+        && !IsEventTriggeredArm(a.Event);
+
     /// <summary>Cancel CDT inject in flight (Disarm / call-complete ClearWakeArm).</summary>
     internal static void CancelInFlightFire(string id)
     {
