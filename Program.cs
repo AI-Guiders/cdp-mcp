@@ -226,6 +226,7 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "cdp_files",
     "cdp_md_author",
     "cdp_learn",
+    "cdp_domain",
     "cdp_fdr",
     "cdp_postmortem",
     "cdp_scope",
@@ -904,6 +905,19 @@ List<Tool> BuildMetaTools() =>
             plan = new { type = "string", description = "stash: Task Manager focus note" }
         }
     }),
+    Meta("cdp_domain", "Domain ownership soft organ — reconstruction chains [A] from .cdp/domain/*.md (name→edges→entry→≠). Dig-before-ask surface. op=scene|pulse|list|card. Alias go=domain|domain_desk. Not W-essay; op=card id= for one-card [C].",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|pulse|list|card" },
+                id = new { type = "string", description = "card: domain card id (tm|ignite|cockpit|pressure)" },
+                focus = new { type = "string", description = "pulse/scene: focus hint for card scoring" },
+                hint = new { type = "string", description = "alias of focus=" },
+                card = new { type = "string", description = "alias of id=" }
+            }
+        }),
     Meta("cdp_icm", "ICM discovery for on-demand GUI CDP client (ADR-0019). op=scene|aliases|resolve|invoke. Melody command_id → CDP tool via IdeCommandAliasMap; invoke uses ExecuteAliasedAsync. Alias go=icm|icm_desk. Does not mutate IntentMelody.", new
     {
         type = "object",
@@ -1964,6 +1978,8 @@ async Task<string> DispatchMetaAsync(
             return IdeWebcamChannel.HandleJson(session, callArgs);
         case "cdp_pressure":
             return IdePressureChannel.HandleJson(session, callArgs);
+        case "cdp_domain":
+            return IdeDomainChannel.HandleJson(session, callArgs);
         case "cdp_icm":
             return await IdeIcmChannel.HandleJsonAsync(callArgs, cancellationToken);
         case "cdp_cockpit_host":

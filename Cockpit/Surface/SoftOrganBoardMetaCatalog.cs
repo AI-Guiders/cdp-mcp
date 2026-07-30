@@ -59,6 +59,9 @@ public sealed class SoftOrganBoardMetaCatalog : ICockpitComputeUnit
         SoftOrganKind.ProjectSwitch => new(
             "project_switch", "cdp_scope", SoftOrganPresentMode.PulseLine,
             "pane_full= / go_detail=full · op=set primary= scope= · go=ps (not go=scope sniper)"),
+        SoftOrganKind.Domain => new(
+            "domain", "cdp_domain", SoftOrganPresentMode.PulseLine,
+            "pane_full= / go_detail=full · op=pulse|list|card id="),
         _ => null
     };
 }
