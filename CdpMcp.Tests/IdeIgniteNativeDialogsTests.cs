@@ -34,6 +34,10 @@ public class IdeIgniteNativeDialogsTests
     [InlineData("New Window", true)]
     [InlineData("&New Window", true)]
     [InlineData("New empty window", true)]
+    [InlineData("Reopen", true)]
+    [InlineData("&Reopen", true)]
+    [InlineData("Reopen Window", true)]
+    [InlineData("Reopen the window", true)]
     [InlineData("Close", false)]
     [InlineData("Keep Waiting", false)]
     public void IsNewWindowLabel(string label, bool expect) =>
