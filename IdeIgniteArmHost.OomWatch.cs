@@ -103,6 +103,13 @@ internal static partial class IdeIgniteArmHost
         // Treat dialog as hard evidence of host death — force down edge so Up→wake fires after recover.
         CdtWasUp = false;
         CdtDownSinceUtc ??= DateTimeOffset.UtcNow;
+        // Arm OOM wake immediately (reason=oom) so remount-empty HILD cannot steal with minimal Resume.
+        if (TryScheduleOomWake() is not null)
+        {
+            Interlocked.Increment(ref OomWakeScheduled);
+            Interlocked.Exchange(ref OomWakeLastScheduleTicks, DateTime.UtcNow.Ticks);
+        }
+
         Console.Error.WriteLine(
             $"[ide_ignite] oom-dialog Reopen #{OomNewWindowClickCount}");
     }
@@ -167,6 +174,12 @@ internal static partial class IdeIgniteArmHost
                 a.Id.StartsWith(IdeOomWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
                 && a.Status is "armed" or "firing");
 
+            // After OOM remount Composer is empty → HILD races with minimal charge and
+            // steals the wake; drop pending HILD so agent sees reason=oom instead.
+            Arms.RemoveAll(a =>
+                a.Id.StartsWith(HildArmIdPrefix, StringComparison.OrdinalIgnoreCase)
+                && a.Status is "armed" or "firing");
+
             arm = new IgniteArm
             {
                 Id = id,
@@ -174,6 +187,7 @@ internal static partial class IdeIgniteArmHost
                 Message = IdeIgniteChannel.ComposeOomWakeCharge(),
                 ChargeMode = IdeOomWake.ChargeMode,
                 Task = IdeOomWake.ArmTask,
+                Reason = IdeOomWake.Reason,
                 Once = true,
                 LastOnce = false,
                 OkOnly = true,
