@@ -97,4 +97,29 @@ public class CideIntercomVoiceLatchTests : IDisposable
         Assert.True(scene.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal("glass up", scene.RootElement.GetProperty("latest").GetProperty("body").GetString());
     }
+
+    [Fact]
+    public void Publish_appends_journal_and_history_reads_tail()
+    {
+        var a = CideIntercomVoiceLatch.Publish("pm", "pf", "vh-one", CideIntercomVoiceLatch.OriginHuman);
+        var b = CideIntercomVoiceLatch.Publish("pf", "pm", "vh-two", CideIntercomVoiceLatch.OriginAgent);
+        Assert.NotNull(a);
+        Assert.NotNull(b);
+        Assert.True(File.Exists(CideIntercomVoiceLatch.JournalPath));
+        Assert.Equal(2, CideIntercomVoiceLatch.JournalCount());
+
+        // dedupe same id
+        CideIntercomVoiceLatch.AppendJournal(a!);
+        Assert.Equal(2, CideIntercomVoiceLatch.JournalCount());
+
+        var hist = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("history"),
+            ["limit"] = JsonSerializer.SerializeToElement(10)
+        });
+        using var doc = JsonDocument.Parse(hist);
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal(2, doc.RootElement.GetProperty("count").GetInt32());
+        Assert.Equal("vh-two", doc.RootElement.GetProperty("entries")[1].GetProperty("body").GetString());
+    }
 }

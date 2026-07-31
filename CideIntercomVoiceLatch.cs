@@ -10,7 +10,7 @@ namespace CdpMcp;
 /// Latch: %LocalAppData%/cdp-mcp/intercom-LATEST.json
 /// v0 seats: agent=PF, operator=PM (meta-roles later via control handoff).
 /// </summary>
-internal static class CideIntercomVoiceLatch
+internal static partial class CideIntercomVoiceLatch
 {
     public const string Schema = "cide_intercom_voice_latch/v0";
     public const string OriginAgent = "agent";
@@ -77,6 +77,7 @@ internal static class CideIntercomVoiceLatch
             var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
             File.WriteAllText(tmp, json);
             File.Move(tmp, LatchPath, overwrite: true);
+            AppendJournal(doc);
             return doc;
         }
         catch
