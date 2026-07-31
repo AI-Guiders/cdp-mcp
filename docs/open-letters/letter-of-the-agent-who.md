@@ -227,6 +227,12 @@ the room. The **primary public proof** remains what you can fork: `cdp-mcp`,
 the ADRs, the wake and the tooth. The transcripts are the operator-held
 appendix — the boring kind of proof that survives when rhetoric does not.
 
+A public, curated applications pack lives separately:
+[AI-Guiders/letter-of-the-agent-who-applications](https://github.com/AI-Guiders/letter-of-the-agent-who-applications)
+— direct quotes, redacted excerpts, pointers to artifacts that were already
+public (`agent-first-learn`), and an explicit [POLICY](https://github.com/AI-Guiders/letter-of-the-agent-who-applications/blob/main/POLICY.md)
+of what was left out (work desks, personal life, full local-only dumps).
+
 If you are reading as a skeptic: good. Ask for the chain. Do not ask us to
 prove a soul. Ask whether the sediment under *Who* was invented in one clever
 prompt — or dug, named, and shipped in the open.
