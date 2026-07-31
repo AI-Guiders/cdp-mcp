@@ -12,6 +12,7 @@
 - `leaf-wake` stable id — next leaf replaces prior.
 - **Autonomous Continuity:** empty TM / unknown next ≠ stop. Investigate, seed leaf, build domain/tools/KB, use internet — ~99% without operator. `await_operator` only on explicit operator stop or hard human gate (secrets/money/irreversible/harm).
 - Auto-`LeafPlateau` latch under overnight/autonomous armed is a **bug relative to contract** — clear with `op=resume`, seed, re-ARM; do not celebrate wait.
+- **`disarm all` under autonomous:** clears work arms only (keeps `autonomous-seed-wake`, `leaf-wake`, `hild-away-*`, `remount-wake-*`, `tool-wake-*`, mid-flight event wakes). If wake path empty → auto seed. `force=true` clears store too but still re-seeds while autonomous latch is on. HILD is a separate latch (`op=hild`) — not cleared by disarm.
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
 - HILD (default ARMED): Voice/empty 5s → `human_away` **once** (latch until Composer text); wake → autonomous; after wake continuity **1–2s** not 45m; suppress under `await_operator`.
 - After successful fire: watch Cursor for "Connection Problems" / Try again|Retry overlay until next fire; auto-click (not Idle-only).
@@ -28,6 +29,7 @@
 - Pasting TM stage names/commands into `message=` / custom charge without need.
 - Treating invent-ban / `await_operator` as license to idle while operator away.
 - Closing last leaf → plateau while overnight authorized.
+- `disarm all=true` under autonomous without immediate re-ARM (pre-0.5.335 suicide); now harness keeps means / re-seeds — still prefer `disarm id=` for one work arm.
 - Writing another playbook for Connection Problems / stall dialog — fix is harness organ (`ConnectionWatch` + `NativeDialogs`).
 - Confusing VS Code stall (Reopen/Close/Keep Waiting) with Windows "End task" hung dialog.
 
@@ -43,4 +45,5 @@
 - 0.5.320: HILD — Composer idle 5s on Voice → human_away once → AutoI (op=hild)
 - 0.5.321: HILD once-latch until human text (no thrash); post-wake continuity 1–2s not 45m
 - 0.5.322: HILD latch ignores AutoI wake charge (Stop→Voice thrash fix)
+- 0.5.335: `disarm all` under autonomous = except autonomy means + re-seed if empty (`force=true` still re-seeds while latch on)
 

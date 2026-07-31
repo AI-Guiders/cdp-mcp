@@ -80,4 +80,86 @@ public class IdeIgniteAutonomousTests : IDisposable
         });
         IdeIgniteArmHost.BindAutonomous(null);
     }
+
+    [Fact]
+    public void Disarm_all_under_autonomous_keeps_seed_and_reseeds_if_empty()
+    {
+        IdeIgniteArmHost.BindAutonomous(true);
+
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("arm"),
+            ["when"] = JsonSerializer.SerializeToElement("timer"),
+            ["in"] = JsonSerializer.SerializeToElement("30m"),
+            ["task"] = JsonSerializer.SerializeToElement("work leaf"),
+            ["id"] = JsonSerializer.SerializeToElement("work-arm-1"),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("arm"),
+            ["when"] = JsonSerializer.SerializeToElement("timer"),
+            ["in"] = JsonSerializer.SerializeToElement("30m"),
+            ["task"] = JsonSerializer.SerializeToElement("Autonomous continuity — seed next leaf"),
+            ["id"] = JsonSerializer.SerializeToElement(IdeIgniteArmHost.AutonomousSeedArmId),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+
+        var disarm = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["all"] = JsonSerializer.SerializeToElement(true)
+        });
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(disarm));
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.True(doc.RootElement.GetProperty("except_autonomy").GetBoolean());
+
+        var list = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("list")
+        });
+        using var listDoc = JsonDocument.Parse(JsonSerializer.Serialize(list));
+        var arms = listDoc.RootElement.GetProperty("arms").EnumerateArray()
+            .Select(a => a.GetProperty("id").GetString())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.Contains(IdeIgniteArmHost.AutonomousSeedArmId, arms);
+        Assert.DoesNotContain("work-arm-1", arms);
+        Assert.True(listDoc.RootElement.GetProperty("continuity").GetProperty("armed").GetInt32() >= 1);
+    }
+
+    [Fact]
+    public void Disarm_all_force_under_autonomous_still_reseeds()
+    {
+        IdeIgniteArmHost.BindAutonomous(true);
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("arm"),
+            ["when"] = JsonSerializer.SerializeToElement("timer"),
+            ["in"] = JsonSerializer.SerializeToElement("30m"),
+            ["task"] = JsonSerializer.SerializeToElement("work"),
+            ["id"] = JsonSerializer.SerializeToElement("work-arm-force"),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+
+        var disarm = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["all"] = JsonSerializer.SerializeToElement(true),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(disarm));
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.False(doc.RootElement.GetProperty("except_autonomy").GetBoolean());
+
+        var list = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("list")
+        });
+        using var listDoc = JsonDocument.Parse(JsonSerializer.Serialize(list));
+        Assert.True(listDoc.RootElement.GetProperty("continuity").GetProperty("armed").GetInt32() >= 1);
+        var ids = listDoc.RootElement.GetProperty("arms").EnumerateArray()
+            .Select(a => a.GetProperty("id").GetString())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.Contains(IdeIgniteArmHost.AutonomousSeedArmId, ids);
+    }
 }
