@@ -43,6 +43,16 @@ public class IdeIgniteNativeDialogsTests
     public void IsNewWindowLabel(string label, bool expect) =>
         Assert.Equal(expect, IdeIgniteNativeDialogs.IsNewWindowLabel(label));
 
+    [Theory]
+    [InlineData(new[] { "Reopen", "Close" }, true)]
+    [InlineData(new[] { "&Reopen", "&Close" }, true)]
+    [InlineData(new[] { "Reopen", "Close", "Keep Waiting" }, false)]
+    [InlineData(new[] { "Close" }, false)]
+    [InlineData(new[] { "New Window", "Close" }, false)]
+    [InlineData(new string[0], false)]
+    public void LooksLikeOomRecoveryButtons(string[] labels, bool expect) =>
+        Assert.Equal(expect, IdeIgniteNativeDialogs.LooksLikeOomRecoveryButtons(labels));
+
     [Fact]
     public void TryClickKeepWaiting_without_dialog_returns_false()
     {
