@@ -42,6 +42,7 @@ internal static class CitizenCompletions
         string? Provider,
         BuiltTurn? Built,
         IReadOnlyList<CitizenWireParser.Message>? WireIntents,
+        IReadOnlyList<CitizenIntentRouter.Route>? Routes,
         bool DryRun);
 
     internal static void ResetHttpForTests()
@@ -145,6 +146,7 @@ internal static class CitizenCompletions
                 Provider: "dry_run",
                 Built: built,
                 WireIntents: null,
+                Routes: null,
                 DryRun: true);
         }
 
@@ -160,6 +162,7 @@ internal static class CitizenCompletions
                 model ?? DefaultModel,
                 "anthropic",
                 built,
+                null,
                 null,
                 false);
         }
@@ -193,6 +196,7 @@ internal static class CitizenCompletions
                     "anthropic",
                     built,
                     null,
+                    null,
                     false);
             }
 
@@ -208,21 +212,27 @@ internal static class CitizenCompletions
                     "anthropic",
                     built,
                     null,
+                    null,
                     false);
             }
 
             var intents = CitizenWireParser.Parse(text);
+            var routes = CitizenIntentRouter.RouteAll(intents);
+            var okRoutes = routes.Count(r => r.Ok);
             return new TurnResult(
                 true,
                 null,
-                intents.Count > 0
-                    ? "ok — wire intents parsed from reply"
-                    : "ok — reply has no @frame/@intent/@event lines",
+                routes.Count > 0
+                    ? $"ok — {okRoutes}/{routes.Count} intent routes"
+                    : intents.Count > 0
+                        ? "ok — wire parsed; no @intent lines to route"
+                        : "ok — reply has no @frame/@intent/@event lines",
                 text,
                 useModel,
                 "anthropic",
                 built,
                 intents,
+                routes,
                 false);
         }
         catch (OperationCanceledException)
@@ -239,6 +249,7 @@ internal static class CitizenCompletions
                 useModel,
                 "anthropic",
                 built,
+                null,
                 null,
                 false);
         }

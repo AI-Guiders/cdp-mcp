@@ -108,6 +108,18 @@ internal static class IdeCitizenChannel
                 type = m.Type,
                 intent = m.IntentText,
                 fields = m.Fields
+            }).ToArray(),
+            routes = result.Routes?.Select(r => new
+            {
+                verb = r.Verb.ToString(),
+                raw = r.Raw,
+                ok = r.Ok,
+                go = r.Go,
+                organ = r.Organ,
+                path = r.Path,
+                detail = r.Detail,
+                scene = r.Scene,
+                reason = r.Reason
             }).ToArray()
         });
     }

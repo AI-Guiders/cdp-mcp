@@ -221,7 +221,9 @@ Do not invent a second SSOT: citizen wire should **project** the same Dark Cockp
 6. ~~Promote to ADR when fixtures + one host path exist.~~ **done as contract** — [CDP-ADR-0028](../adr/CDP-ADR-0028-citizen-agent-wire.md) (fixtures+parser shipped; **host injection still open**).
 7. ~~**Host injection** — afferent packer + prepend API + synthetic round-trip test.~~ **done** (`CitizenWire`, 0.5.331 — `Inject` default off; no live host).
 8. ~~Desk board → DeskPulse binder.~~ **done** (`FromDeskBoard` / `PackFromDeskBoard`, 0.5.332).
-9. ~~**Citizen completions host** — Anthropic turn + persona + wire inject.~~ **done** (`CitizenCompletions` / `cdp_citizen`, 0.5.333 — Glass chat UI later).
+9. ~~**Citizen completions host** — Anthropic turn + persona + wire inject.~~ **done** (`CitizenCompletions` / `cdp_citizen`, 0.5.333 — dogfood only; **real host = CIDE MAF**).
+10. ~~**Efferent `@intent` → organ routes.**~~ **done** (`CitizenIntentRouter`, 0.5.334 — pure wire; host executes routes; no second LLM loop).
+11. **Bind citizen wire into CIDE MAF** — afferent frames + persona into `CascadeIdeMafIdeAgentChat.RunAsync`; route `@intent` or prefer MAF tools.
 
 ---
 
