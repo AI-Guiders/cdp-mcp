@@ -7,6 +7,7 @@ namespace CdpMcp;
 /// Desk Intercom voice — dual-cockpit @PF/@PM.
 /// <c>op=send</c> to=pm|@PM body= → latch → CIDE Intercom.
 /// <c>op=scene|inbox</c> surfaces unread @PM→@PF ("Message for you, sir!").
+/// <c>op=history|line</c> — Virtual History journal (PF on-demand, not auto into flight).
 /// Agent looks desk, not peek JSON.
 /// </summary>
 internal static class IdeCideIntercomChannel
@@ -22,7 +23,8 @@ internal static class IdeCideIntercomChannel
             "scene" or "get" or "inbox" => Scene(),
             "send" or "say" or "tx" => Send(args),
             "ack" or "read" or "clear" => Ack(args),
-            _ => Fail("unknown_op", "op=scene|send|ack  to=pm|pf body=")
+            "history" or "line" or "journal" or "tail" => History(args),
+            _ => Fail("unknown_op", "op=scene|send|ack|history  to=pm|pf body=")
         };
     }
 
@@ -31,6 +33,7 @@ internal static class IdeCideIntercomChannel
         var latch = CideIntercomVoiceLatch.TryRead();
         var unread = CideIntercomVoiceLatch.TryUnreadForPf();
         var pulse = CideIntercomVoiceLatch.DeskPulseLine();
+        var journalCount = CideIntercomVoiceLatch.JournalCount();
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
@@ -39,17 +42,21 @@ internal static class IdeCideIntercomChannel
             role = "cide_intercom",
             seats = new { pf = "agent (v0)", pm = "operator (v0)" },
             latch_path = CideIntercomVoiceLatch.LatchPath,
+            journal_path = CideIntercomVoiceLatch.JournalPath,
+            journal_count = journalCount,
             pulse,
             unread = unread is null ? null : Card(unread),
             latest = latch is null ? null : Card(latch),
             hint =
                 "send to=pm body=… → @PM on CIDE Intercom. " +
                 "Operator @PF … → unread here + cockpit pulse. " +
-                "ack id= after you read. Meta-roles later via control handoff.",
+                "history limit= — Virtual History on demand (not auto into flight). " +
+                "ack id= after you read.",
             next = new object[]
             {
                 new { go = "intercom_send", label = "@PM say", why = "to=pm body=…" },
                 new { go = "intercom_ack", label = "Ack unread", why = "op=ack" },
+                new { go = "intercom", label = "History", why = "op=history limit=20" },
                 new { go = "intercom", label = "Scene", why = "op=scene" }
             }
         });
@@ -85,8 +92,9 @@ internal static class IdeCideIntercomChannel
             op = "send",
             message = Card(published),
             latch_path = CideIntercomVoiceLatch.LatchPath,
+            journal_path = CideIntercomVoiceLatch.JournalPath,
             chat = $"@{to.ToUpperInvariant()}: {TrimChat(published.Body)}",
-            hint = "Latch published — CIDE Intercom applies when projector is up."
+            hint = "Latch + journal published — Glass Virtual History survives restart."
         });
     }
 
@@ -104,6 +112,33 @@ internal static class IdeCideIntercomChannel
             op = "ack",
             message = Card(doc),
             hint = "Unread cleared from cockpit pulse."
+        });
+    }
+
+    static string History(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var limit = 20;
+        if (args.TryGetValue("limit", out var limEl))
+        {
+            if (limEl.ValueKind == JsonValueKind.Number && limEl.TryGetInt32(out var n))
+                limit = n;
+            else if (limEl.ValueKind == JsonValueKind.String && int.TryParse(limEl.GetString(), out var ns))
+                limit = ns;
+        }
+
+        var entries = CideIntercomVoiceLatch.LoadJournalTail(limit);
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "history",
+            journal_path = CideIntercomVoiceLatch.JournalPath,
+            count = entries.Count,
+            total = CideIntercomVoiceLatch.JournalCount(),
+            entries = entries.Select(Card).ToArray(),
+            hint = entries.Count == 0
+                ? "Journal empty — send/receive first. Not auto-injected into flight context."
+                : "Virtual History on demand. Pull only what you need; do not dump into composer."
         });
     }
 
