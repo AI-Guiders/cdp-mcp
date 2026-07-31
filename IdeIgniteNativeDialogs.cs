@@ -46,12 +46,16 @@ internal static class IdeIgniteNativeDialogs
                || text.Contains("reason: \"oom\"", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>Public for tests — OOM dialog primary recovery button.</summary>
+    /// <summary>Public for tests — OOM dialog recovery button (New Window / Reopen).</summary>
     internal static bool IsNewWindowLabel(string? label)
     {
         var t = StripMnemonic(label);
         return t.Equals("New Window", StringComparison.OrdinalIgnoreCase)
-               || t.Equals("New empty window", StringComparison.OrdinalIgnoreCase);
+               || t.Equals("New empty window", StringComparison.OrdinalIgnoreCase)
+               // Cursor/VS Code OOM copy often uses Reopen (forum + "You can reopen the window…").
+               || t.Equals("Reopen", StringComparison.OrdinalIgnoreCase)
+               || t.Equals("Reopen Window", StringComparison.OrdinalIgnoreCase)
+               || t.Equals("Reopen the window", StringComparison.OrdinalIgnoreCase);
     }
 
     internal static string StripMnemonic(string? raw) =>
@@ -132,7 +136,16 @@ internal static class IdeIgniteNativeDialogs
                 return true;
 
             if (!TryFindButtonByLabel(hWnd, isButtonLabel, out var button))
+            {
+                if (looksLikeDialog(text))
+                {
+                    var labels = CollectButtonLabels(hWnd);
+                    Console.Error.WriteLine(
+                        $"[ide_ignite] {logTag} matched text but no recovery button; labels=[{string.Join(" | ", labels)}]");
+                }
+
                 return true;
+            }
 
             hits.Add(button);
             return false;
@@ -162,6 +175,19 @@ internal static class IdeIgniteNativeDialogs
 
         button = found;
         return found != 0;
+    }
+
+    static List<string> CollectButtonLabels(nint root)
+    {
+        var labels = new List<string>();
+        EnumChildWindows(root, (hWnd, _) =>
+        {
+            var label = StripMnemonic(GetWindowText(hWnd));
+            if (!string.IsNullOrWhiteSpace(label))
+                labels.Add(label);
+            return labels.Count < 24;
+        }, 0);
+        return labels;
     }
 
     static void CollectChildText(nint root, StringBuilder blob, int depth)
