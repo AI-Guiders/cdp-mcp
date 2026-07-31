@@ -19,6 +19,8 @@ internal static partial class IdePressureChannel
         sb.AppendLine($"- phase: {doc.Phase}/{doc.Object}");
         sb.AppendLine($"- ignite: {doc.IgniteNote}");
         sb.AppendLine($"- plan: {doc.PlanNote}");
+        sb.AppendLine($"- recall_gate: {doc.RecallGate}");
+        sb.AppendLine($"- recall_gate_utc: {doc.RecallGateUtc}");
         sb.AppendLine();
         sb.AppendLine("## Body");
         sb.AppendLine();
@@ -85,5 +87,9 @@ internal static partial class IdePressureChannel
         public string? Object { get; set; }
         public string? IgniteNote { get; set; }
         public string? PlanNote { get; set; }
+        /// <summary>Recall gate wire: pull|reconcile|align|ready (CDP-ADR-0024).</summary>
+        public string? RecallGate { get; set; }
+        public string? RecallGateUtc { get; set; }
+        public string? RecallGateNote { get; set; }
     }
 }

@@ -19,9 +19,9 @@ internal static partial class IdeIgniteChannel
 
         ---
         If you feel completely lost / thread amnesia: compaction likely happened.
-        Restore: cdp_pressure op=recall (hot stash) · op=line (memo history).
+        Restore: cdp_pressure op=recall (hot stash → gate pull) · op=reconcile|align|ready · op=line (memo history).
         Also: %LocalAppData%/cdp-mcp/…/pressure-LATEST.md · pressure-memo-LATEST.md
-        Then: habitat=CDP; re-read pressure axes (AutoIgnition / Task Manager / Domain / next).
+        Then: habitat=CDP; re-read pressure axes (AutoIgnition / Task Manager / Domain / next); self-steer on reconcile when SSOT suffices.
         """;
 
     /// <summary>Provider cyber-policy: scrub shell tokens if legacy/custom text reaches inject.</summary>
