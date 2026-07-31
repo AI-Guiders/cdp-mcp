@@ -14,11 +14,12 @@ internal static partial class IdeIgniteArmHost
         !string.IsNullOrWhiteSpace(id)
         && id.StartsWith("tool-wake-", StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>Remount / tool wake — must not be wiped by a later continuity timer re-arm.</summary>
+    /// <summary>Remount / OOM / tool wake — must not be wiped by a later continuity timer re-arm.</summary>
     internal static bool IsSystemWakeArmId(string? id) =>
         IsToolWakeArmId(id)
         || (!string.IsNullOrWhiteSpace(id)
-            && id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase));
+            && (id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
+                || id.StartsWith(IdeOomWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)));
 
     /// <summary>Harness event wakes (build/test/shell) — never superseded by a continuity timer.</summary>
         /// <summary>Harness event wakes (build/test/shell/hild) — never superseded by a continuity timer.</summary>
@@ -145,7 +146,11 @@ internal static partial class IdeIgniteArmHost
                 ? IdeIgniteChannel.ComposeRemountInitializedCharge(
                     IdePressureChannel.TryPeekProjectRoot(),
                     IdeDomainPulse.FocusHintFromPlanLatch())
-                : IdeIgniteChannel.ComposeArmFireCharge();
+                : IsOomChargeMode(arm.ChargeMode)
+                    ? IdeIgniteChannel.ComposeOomWakeCharge(
+                        IdePressureChannel.TryPeekProjectRoot(),
+                        IdeDomainPulse.FocusHintFromPlanLatch())
+                    : IdeIgniteChannel.ComposeArmFireCharge();
 
     static void MarkSendInvoked(string armId)
     {
@@ -294,6 +299,12 @@ internal static partial class IdeIgniteArmHost
         string.Equals(
             (mode ?? "").Trim(),
             IdeRemountWake.ChargeMode,
+            StringComparison.OrdinalIgnoreCase);
+
+    static bool IsOomChargeMode(string? mode) =>
+        string.Equals(
+            (mode ?? "").Trim(),
+            IdeOomWake.ChargeMode,
             StringComparison.OrdinalIgnoreCase);
 
     static string Expand(string template, IgniteArm arm, bool ok, string? pulse, string? detail)

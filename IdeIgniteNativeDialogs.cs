@@ -31,6 +31,29 @@ internal static class IdeIgniteNativeDialogs
                || t.Equals("Wait", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Cursor crash dialog: "The window terminated unexpectedly (reason: 'oom', code: …)".
+    /// </summary>
+    internal static bool LooksLikeOomTerminatedMessage(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+        if (!text.Contains("terminated unexpectedly", StringComparison.OrdinalIgnoreCase)
+            && !text.Contains("window terminated", StringComparison.OrdinalIgnoreCase))
+            return false;
+        return text.Contains("oom", StringComparison.OrdinalIgnoreCase)
+               || text.Contains("reason: 'oom'", StringComparison.OrdinalIgnoreCase)
+               || text.Contains("reason: \"oom\"", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Public for tests — OOM dialog primary recovery button.</summary>
+    internal static bool IsNewWindowLabel(string? label)
+    {
+        var t = StripMnemonic(label);
+        return t.Equals("New Window", StringComparison.OrdinalIgnoreCase)
+               || t.Equals("New empty window", StringComparison.OrdinalIgnoreCase);
+    }
+
     internal static string StripMnemonic(string? raw) =>
         (raw ?? "").Replace("&", "", StringComparison.Ordinal).Trim();
 
@@ -45,7 +68,10 @@ internal static class IdeIgniteNativeDialogs
 
         try
         {
-            return TryClickKeepWaitingWindows();
+            return TryClickLabeledButtonWindows(
+                LooksLikeStallMessage,
+                IsKeepWaitingLabel,
+                "stall-dialog");
         }
         catch (Exception ex)
         {
@@ -54,7 +80,32 @@ internal static class IdeIgniteNativeDialogs
         }
     }
 
-    static bool TryClickKeepWaitingWindows()
+    /// <summary>
+    /// Best-effort: OOM terminated dialog → New Window (tooth). No-op on non-Windows.
+    /// </summary>
+    public static bool TryClickOomNewWindow()
+    {
+        if (!OperatingSystem.IsWindows())
+            return false;
+
+        try
+        {
+            return TryClickLabeledButtonWindows(
+                LooksLikeOomTerminatedMessage,
+                IsNewWindowLabel,
+                "oom-dialog");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[ide_ignite] oom-dialog probe failed: {ex.Message}");
+            return false;
+        }
+    }
+
+    static bool TryClickLabeledButtonWindows(
+        Func<string?, bool> looksLikeDialog,
+        Func<string?, bool> isButtonLabel,
+        string logTag)
     {
         var hits = new List<nint>();
         var count = 0;
@@ -72,43 +123,35 @@ internal static class IdeIgniteNativeDialogs
             CollectChildText(hWnd, blob, depth: 0);
 
             var text = blob.ToString();
-            if (!LooksLikeStallMessage(text) && !text.Contains("not responding", StringComparison.OrdinalIgnoreCase))
+            if (!looksLikeDialog(text)
+                && !(logTag == "stall-dialog"
+                     && text.Contains("not responding", StringComparison.OrdinalIgnoreCase)))
                 return true;
 
-            // Prefer Cursor/Code process; still allow if message is exact VS Code stall copy.
-            if (!IsCursorLikeOwner(hWnd) && !LooksLikeStallMessage(text))
+            if (!IsCursorLikeOwner(hWnd) && !looksLikeDialog(text))
                 return true;
 
-            if (!TryFindKeepWaitingButton(hWnd, out var button))
+            if (!TryFindButtonByLabel(hWnd, isButtonLabel, out var button))
                 return true;
 
             hits.Add(button);
-            return false; // stop enum — one dialog enough
+            return false;
         }, 0);
 
         if (hits.Count == 0)
             return false;
 
-        var btn = hits[0];
-        // BM_CLICK synthesizes mouse down/up on the button.
-        _ = SendMessage(btn, BmClick, 0, 0);
+        _ = SendMessage(hits[0], BmClick, 0, 0);
         return true;
     }
 
-    static bool TryFindKeepWaitingButton(nint root, out nint button)
+    static bool TryFindButtonByLabel(nint root, Func<string?, bool> isLabel, out nint button)
     {
         nint found = 0;
         EnumChildWindows(root, (hWnd, _) =>
         {
-            var cls = GetClassName(hWnd);
-            if (!cls.Contains("Button", StringComparison.OrdinalIgnoreCase)
-                && !cls.Equals("Button", StringComparison.OrdinalIgnoreCase))
-            {
-                // Chromium/Electron may use custom classes — still check label.
-            }
-
             var label = GetWindowText(hWnd);
-            if (IsKeepWaitingLabel(label))
+            if (isLabel(label))
             {
                 found = hWnd;
                 return false;

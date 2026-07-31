@@ -13,6 +13,14 @@ public class IdeIgniteNativeDialogsTests
         Assert.Equal(expect, IdeIgniteNativeDialogs.LooksLikeStallMessage(text));
 
     [Theory]
+    [InlineData("The window terminated unexpectedly (reason: 'oom', code: '-536870904')", true)]
+    [InlineData("We are sorry for the inconvenience. The window terminated unexpectedly (reason: oom).", true)]
+    [InlineData("The window is not responding. Keep Waiting.", false)]
+    [InlineData("Connection Problems — Retry", false)]
+    public void LooksLikeOomTerminatedMessage(string text, bool expect) =>
+        Assert.Equal(expect, IdeIgniteNativeDialogs.LooksLikeOomTerminatedMessage(text));
+
+    [Theory]
     [InlineData("Keep Waiting", true)]
     [InlineData("&&Keep Waiting", true)]
     [InlineData("&Keep Waiting", true)]
@@ -22,11 +30,27 @@ public class IdeIgniteNativeDialogsTests
     public void IsKeepWaitingLabel_strips_mnemonic(string label, bool expect) =>
         Assert.Equal(expect, IdeIgniteNativeDialogs.IsKeepWaitingLabel(label));
 
+    [Theory]
+    [InlineData("New Window", true)]
+    [InlineData("&New Window", true)]
+    [InlineData("New empty window", true)]
+    [InlineData("Close", false)]
+    [InlineData("Keep Waiting", false)]
+    public void IsNewWindowLabel(string label, bool expect) =>
+        Assert.Equal(expect, IdeIgniteNativeDialogs.IsNewWindowLabel(label));
+
     [Fact]
     public void TryClickKeepWaiting_without_dialog_returns_false()
     {
         // No stall dialog open — must not throw; typically false.
         var clicked = IdeIgniteNativeDialogs.TryClickKeepWaiting();
+        Assert.False(clicked);
+    }
+
+    [Fact]
+    public void TryClickOomNewWindow_without_dialog_returns_false()
+    {
+        var clicked = IdeIgniteNativeDialogs.TryClickOomNewWindow();
         Assert.False(clicked);
     }
 }

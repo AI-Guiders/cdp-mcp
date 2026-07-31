@@ -417,6 +417,7 @@ public class IdeIgniteArmHostTests
     [Theory]
     [InlineData("tool-wake-abc", true)]
     [InlineData("remount-wake-20260730-xx", true)]
+    [InlineData("oom-wake-20260731-xx", true)]
     [InlineData("arm-20260729-xx", false)]
     [InlineData(null, false)]
     public void IsSystemWakeArmId_prefix(string? id, bool expect) =>

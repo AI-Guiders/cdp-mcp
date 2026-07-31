@@ -5,8 +5,9 @@ namespace CdpMcp;
 /// <summary>
 /// After a successful fire, watch Cursor environment flakes until the next ignition:
 /// (1) Composer "Connection Problems" / Retry overlay via CDT;
-/// (2) native Electron stall dialog "The window is not responding" → Keep Waiting (Win32).
-/// Idle alone is not enough — both can appear mid-turn.
+/// (2) native Electron stall dialog "The window is not responding" → Keep Waiting (Win32);
+/// (3) OOM terminated dialog → New Window (also covered by always-on OomWatch).
+/// Idle alone is not enough — these can appear mid-turn.
 /// </summary>
 internal static partial class IdeIgniteArmHost
 {
@@ -76,6 +77,10 @@ internal static partial class IdeIgniteArmHost
             {
                 await ProbeConnectionRetryAsync(port, ct).ConfigureAwait(false);
                 ProbeStallKeepWaiting();
+                if (IdeIgniteNativeDialogs.TryClickOomNewWindow())
+                {
+                    Console.Error.WriteLine("[ide_ignite] connection-watch oom New Window");
+                }
             }
             catch (OperationCanceledException)
             {
