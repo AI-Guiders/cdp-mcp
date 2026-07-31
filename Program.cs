@@ -148,6 +148,7 @@ var anuiTools = Anui.Agent.Mcp.ToolCatalog.Build().ToDictionary(t => t.Name, Str
 var docStore = new DocumentBufferStore();
 using var diskSyncWatch = DocumentDiskSyncWatcher.Start(docStore);
 using var intercomCannon = IntercomVoiceCannonWatcher.Start();
+IdeIgniteArmHost.StartHildWatch();
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
 shellHabitat.Finished += info =>
@@ -836,22 +837,22 @@ List<Tool> BuildMetaTools() =>
             @as = new { type = "string", description = "open: buffer|edit to force buffer for docs (default text for pdf/docx/…)" }
         }
     }),
-    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list|hygiene|plateau|continuity|resume|autonomous. ARM: when=build_finished|test_finished|shell_finished|timer task= (TM label only). Default charge=minimal: canonical wake text + amnesia/compaction postfix at fire (no TM body in composer). charge=custom only for legacy templates. last_once=/await_operator: fire once → awaiting latch. autonomous default ARMED: auto LeafPlateau does not await_operator — seed-wake instead. Alias go=ignite_desk.", new
+    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list|hygiene|plateau|continuity|resume|autonomous|hild. ARM: when=build_finished|test_finished|shell_finished|human_away|timer task= (TM label only). HILD: Composer text idle 5s on Voice → human_away once → AutoI wake (default ARMED; op=hild_off). Default charge=minimal: canonical wake text + amnesia/compaction postfix at fire (no TM body in composer). charge=custom only for legacy templates. last_once=/await_operator: fire once → awaiting latch. autonomous default ARMED: auto LeafPlateau does not await_operator — seed-wake instead. Alias go=ignite_desk.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|probe|chats|send|arm|disarm|list|autonomous|autonomous_on|autonomous_off|resume|continuity" },
+            op = new { type = "string", description = "scene|probe|chats|send|arm|disarm|list|autonomous|autonomous_on|autonomous_off|hild|hild_on|hild_off|resume|continuity" },
             message = new { type = "string", description = "send: optional override; arm: ignored unless charge=custom" },
             task = new { type = "string", description = "arm: Task Manager label (SSOT); not injected into composer" },
             charge = new { type = "string", description = "arm: minimal (default)|custom|legacy — minimal fires canonical+amnesia postfix" },
-            when = new { type = "string", description = "arm: build_finished|test_finished|shell_finished|timer" },
+            when = new { type = "string", description = "arm: build_finished|test_finished|shell_finished|human_away|timer" },
             @event = new { type = "string", description = "alias of when=" },
             @in = new { type = "string", description = "arm timer: 30s|5m|2h" },
             chat = new { type = "string", description = "optional chat title substring" },
             id = new { type = "string", description = "disarm id= / arm custom id" },
             all = new { type = "boolean", description = "disarm all=true" },
-            armed = new { type = "boolean", description = "autonomous: true|false latch (default ARMED)" },
+            armed = new { type = "boolean", description = "autonomous|hild: true|false latch (default ARMED)" },
             ok_only = new { type = "boolean", description = "arm: fire only on green build/test (default true)" },
             settle_seconds = new { type = "integer", description = "arm: delay before CDT send after event (default 8)" },
             port = new { type = "integer", description = "CDT port (default 9222)" },

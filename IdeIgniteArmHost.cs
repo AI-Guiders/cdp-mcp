@@ -47,7 +47,7 @@ internal static partial class IdeIgniteArmHost
         "cdp-mcp",
         "ignite-arms.json");
 
-    public static void EnsureStarted()
+            public static void EnsureStarted()
     {
         EnsureLoaded();
         var first = Interlocked.Exchange(ref HostStarted, 1) == 0;
@@ -58,7 +58,10 @@ internal static partial class IdeIgniteArmHost
         TryScheduleRemountInitializedWake();
         HostCts = new CancellationTokenSource();
         _ = Task.Run(() => TimerLoopAsync(HostCts.Token));
+        // HILD watch starts from Program (not here) — EnsureStarted runs under unit tests.
     }
+
+
 
     internal static bool HasContinuityArms()
     {

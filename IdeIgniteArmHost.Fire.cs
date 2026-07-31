@@ -21,11 +21,13 @@ internal static partial class IdeIgniteArmHost
             && id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Harness event wakes (build/test/shell) — never superseded by a continuity timer.</summary>
+        /// <summary>Harness event wakes (build/test/shell/hild) — never superseded by a continuity timer.</summary>
     internal static bool IsEventTriggeredArm(string? eventName)
     {
         var e = NormalizeEvent(eventName);
-        return e is "build_finished" or "test_finished" or "shell_finished";
+        return e is "build_finished" or "test_finished" or "shell_finished" or "human_away";
     }
+
 
     /// <summary>Only plain armed continuity timers may be replaced by a later timer re-arm.</summary>
     internal static bool IsSupersedableContinuityWorkTimer(IgniteArm a) =>

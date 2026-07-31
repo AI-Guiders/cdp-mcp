@@ -54,6 +54,12 @@ internal static partial class IdeIgniteChannel
                     IdeIgniteArmHost.SetAutonomous(true, "op=autonomous_on"),
                 "autonomous_off" =>
                     IdeIgniteArmHost.SetAutonomous(false, "op=autonomous_off"),
+                "hild" or "hitl" =>
+                    IdeIgniteArmHost.Hild(args),
+                "hild_on" =>
+                    IdeIgniteArmHost.SetHild(true, "op=hild_on"),
+                "hild_off" =>
+                    IdeIgniteArmHost.SetHild(false, "op=hild_off"),
                 "continuity" or "pulse" =>
                     IdeIgniteArmHost.Continuity(),
                 "resume" or "clear_await" or "unawait" =>

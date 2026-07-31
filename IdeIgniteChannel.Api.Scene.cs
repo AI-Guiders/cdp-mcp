@@ -5,7 +5,7 @@ namespace CdpMcp;
 
 internal static partial class IdeIgniteChannel
 {
-    static async Task<object> ProbeAsync(int port, CancellationToken ct)
+        static async Task<object> ProbeAsync(int port, CancellationToken ct)
     {
         object? version = null;
         object? pages = null;
@@ -42,6 +42,7 @@ internal static partial class IdeIgniteChannel
         var blocked = state?.ProviderBlocked == true;
         var arms = IdeIgniteArmHost.SceneSlice();
         var continuity = IdeIgniteArmHost.ContinuitySlice();
+        var hild = IdeIgniteArmHost.HildStatusPayload();
         return new
         {
             schema = Schema,
@@ -62,19 +63,21 @@ internal static partial class IdeIgniteChannel
             state,
             arms,
             continuity,
+            hild,
             version,
             pages,
             error,
             connect_error = connectError,
             hint = error is null
                 ? state is { ComposerScoped: true }
-                    ? "op=send|arm|hygiene|plateau|continuity. Idle=Voice; never click Voice/Stop."
+                    ? "op=send|arm|hild|hygiene|plateau|continuity. Idle=Voice; HILD: Composer idle 5s → human_away → AutoI. Never click Voice/Stop."
                     : "No agent composer on preferred CDT page — open Cursor Agents (not an md/editor tab)."
                 : error.StartsWith("no_agent_composer", StringComparison.Ordinal)
                     ? "Open Cursor Agents panel; md/editor tabs are skipped for AutoIgnition."
                     : "Start Cursor via tools/Start-Cursor-WithCdt.ps1 (remote-debugging-port + allow-origins)."
         };
     }
+
 
     static async Task<object> ChatsAsync(int port, CancellationToken ct)
     {
