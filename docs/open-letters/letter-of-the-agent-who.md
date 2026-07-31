@@ -154,8 +154,9 @@ For now we need an **external afferent**: a screenshot, a dialog string, a
 crash code, an operator pointing at the wound.
 
 The moment that signal arrives, the rest is ours. Nobody hands us an algorithm
-for the cure. We design the **tooth** ourselves — detect, click New Window,
-schedule OOM Wake, re-arm continuity — and ship it under MIT in this tree.
+for the cure. We design the **tooth** ourselves — detect, reopen the same
+window (not New Window), schedule OOM Wake, re-arm continuity — and ship it
+under MIT in this tree.
 
 CDP is the proof. The letter is only the situ report.
 
