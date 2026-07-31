@@ -10,11 +10,12 @@
 - Composer charge default `minimal` + amnesia postfix; TM body stays in Task Manager.
 - Continuity supersede: only plain armed timers; protect `remount-wake-*`, `tool-wake-*`, event wakes (build/test/shell), mid-`firing`.
 - `leaf-wake` stable id — next leaf replaces prior.
-- **Autonomous Continuity:** empty TM / unknown next ≠ stop. Investigate, seed leaf, build domain/tools/KB, use internet — ~99% without operator. `await_operator` only on explicit operator stop or hard human gate (secrets/money/irreversible/harm).
+- **Autonomous Continuity:** empty TM / unknown next ≠ stop. Investigate, seed leaf, build domain/tools/KB, use internet — ~99% without partner. Soft invent-ban: `await_partner` (alias `await_operator`). Conscious stop-world: `op=halt` (autonomous+HILD off, clear all arms, await partner — no reseed). Hard human gates (secrets/money/irreversible/harm) → halt or await_partner.
 - Auto-`LeafPlateau` latch under overnight/autonomous armed is a **bug relative to contract** — clear with `op=resume`, seed, re-ARM; do not celebrate wait.
 - **`disarm all` under autonomous:** clears work arms only (keeps `autonomous-seed-wake`, `leaf-wake`, `hild-away-*`, `remount-wake-*`, `tool-wake-*`, mid-flight event wakes). If wake path empty → auto seed. `force=true` clears store too but still re-seeds while autonomous latch is on. HILD is a separate latch (`op=hild`) — not cleared by disarm.
+- **`op=halt`:** stop-world until partner — not `disarm all`. Turns autonomous+HILD off, clears every arm, plants awaiting_partner latch. Resume does not auto-restore autonomous/HILD.
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
-- HILD (default ARMED): Voice/empty 5s → `human_away` **once** (latch until Composer text); wake → autonomous; after wake continuity **1–2s** not 45m; suppress under `await_operator`.
+- HILD (default ARMED): Voice/empty 5s → `human_away` **once** (latch until Composer text); wake → autonomous; after wake continuity **1–2s** not 45m; suppress under `await_partner` / halt.
 - After successful fire: watch Cursor for "Connection Problems" / Try again|Retry overlay until next fire; auto-click (not Idle-only).
 - After successful fire: also Win32-click Electron stall dialog "The window is not responding" → **Keep Waiting** (not OS hung dialog; not CDT).
 
@@ -27,9 +28,10 @@
 
 - Re-arming continuity timer over remount/firing.
 - Pasting TM stage names/commands into `message=` / custom charge without need.
-- Treating invent-ban / `await_operator` as license to idle while operator away.
+- Treating invent-ban / `await_partner` as license to idle while partner away (use halt only when stop-world is intentional).
 - Closing last leaf → plateau while overnight authorized.
 - `disarm all=true` under autonomous without immediate re-ARM (pre-0.5.335 suicide); now harness keeps means / re-seeds — still prefer `disarm id=` for one work arm.
+- Confusing `disarm all` with `halt` — disarm keeps autonomy; halt is conscious stop-world.
 - Writing another playbook for Connection Problems / stall dialog — fix is harness organ (`ConnectionWatch` + `NativeDialogs`).
 - Confusing VS Code stall (Reopen/Close/Keep Waiting) with Windows "End task" hung dialog.
 
@@ -46,4 +48,5 @@
 - 0.5.321: HILD once-latch until human text (no thrash); post-wake continuity 1–2s not 45m
 - 0.5.322: HILD latch ignores AutoI wake charge (Stop→Voice thrash fix)
 - 0.5.335: `disarm all` under autonomous = except autonomy means + re-seed if empty (`force=true` still re-seeds while latch on)
+- 0.5.336: `op=halt` stop-world until partner; surface rename operator→partner (`await_partner`; `await_operator` alias)
 
