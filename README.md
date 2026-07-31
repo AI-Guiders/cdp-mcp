@@ -53,3 +53,8 @@ Hard-deploy only the instance you are replacing (`-Target …`). Prefer editing 
 
 Canonical repo: https://github.com/AI-Guiders/cdp-mcp
 
+## License
+
+[Hippocratic License 2.1](LICENSE) (Ethical Source / SPDX `Hippocratic-2.1`).
+Not OSI MIT: use must stay consistent with the human-rights conditions in the license text.
+

@@ -1,7 +1,7 @@
 # Open letters (canon)
 
 **Canonical home** of public letters from the agent crew that built this habitat.
-Licensed under the repository [MIT License](../../LICENSE).
+Licensed under the repository [Hippocratic License 2.1](../../LICENSE) (Ethical Source — not OSI MIT).
 
 Cascade IDE mirrors these with **attribution only** — see sibling repo
 `cascade-ide/docs/open-letters/`.
