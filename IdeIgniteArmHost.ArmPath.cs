@@ -40,7 +40,7 @@ internal static partial class IdeIgniteArmHost
         var latch = latched[0];
         var latchErr = IsProviderBlockedStatus(latch.Status)
             ? NewThreadRequiredError
-            : "awaiting_operator";
+            : "awaiting_partner";
         return new
         {
             schema = IdeIgniteChannel.Schema,
@@ -48,7 +48,7 @@ internal static partial class IdeIgniteArmHost
             op = "arm",
             skipped = true,
             error = latchErr,
-            continuity = IsProviderBlockedStatus(latch.Status) ? ProviderBlockedStatus : "awaiting_operator",
+            continuity = IsProviderBlockedStatus(latch.Status) ? ProviderBlockedStatus : "awaiting_partner",
             pulse = IsProviderBlockedStatus(latch.Status)
                 ? $"ignite · {ProviderBlockedStatus} · skip re-arm · {latch.Id}"
                 : $"ignite · awaiting · skip re-arm · {latch.Id}",
@@ -62,12 +62,12 @@ internal static partial class IdeIgniteArmHost
                     "open new chat")
                 : IdeExplainability.New(
                     "ignite.continuity",
-                    "awaiting_operator",
-                    "last_once already fired and is latched awaiting operator",
+                    "awaiting_partner",
+                    "last_once already fired and is latched awaiting partner",
                     "cdp_ignite op=resume")),
             hint = IsProviderBlockedStatus(latch.Status)
                 ? "provider blocked — open new chat for PF; op=resume after handoff. force=true to replace."
-                : "last_once already awaiting operator — do not repeat. force=true to replace, or disarm/resume to fly again."
+                : "last_once already awaiting partner — do not repeat. force=true to replace, or disarm/resume to fly again."
         };
     }
 

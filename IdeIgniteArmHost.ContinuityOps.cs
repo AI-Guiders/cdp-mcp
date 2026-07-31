@@ -187,7 +187,7 @@ internal static partial class IdeIgniteArmHost
             continuity = ContinuitySlice(list),
             arms = SceneSlice(),
             explain = ExplainCardObject(ContinuityExplain(list)),
-            hint = "Plateau clean. Continuity arms intact. On epic @handoff use op=await_operator (do not invent next epic)."
+            hint = "Plateau clean. Continuity arms intact. On epic @handoff use op=await_partner (or halt for stop-world)."
         };
     }
 
@@ -241,7 +241,7 @@ internal static partial class IdeIgniteArmHost
                 : ContinuityExplain(list)),
             hint = removed > 0
                 ? "Latch cleared (awaiting and/or provider_blocked) — re-ARM on NEW chat title after PF handoff."
-                : "No latch. op=arm last_once=true for Await Operator mode."
+                : "No latch. op=arm last_once=true for Await Partner mode."
         };
     }
 
@@ -265,7 +265,8 @@ internal static partial class IdeIgniteArmHost
             provider_blocked = providerBlocked.Count > 0,
             new_thread_required = providerBlocked.Count > 0,
             error = errors,
-            await_operator = awaiting.Count > 0,
+            await_partner = awaiting.Count > 0,
+            await_operator = awaiting.Count > 0, // legacy alias
             autonomous = IsAutonomousArmed(),
             await_arm = awaiting.Select(Slim).FirstOrDefault(),
             blocked_arm = providerBlocked.Select(Slim).FirstOrDefault(),
@@ -282,7 +283,7 @@ internal static partial class IdeIgniteArmHost
             return $"ignite · continuity · {ProviderBlockedStatus} · new_thread_required · latch={blocked.Count}";
         var awaiting = list.Count(a => a.Status == "awaiting");
         if (awaiting > 0)
-            return $"ignite · continuity · awaiting_operator · latch={awaiting}";
+            return $"ignite · continuity · awaiting_partner · latch={awaiting}";
         var auto = IsAutonomousArmed() ? " · autonomous" : "";
         var armed = list.Count(a => a.Status is "armed" or "firing");
         var err = list.Count(a => a.Status == "error");
@@ -320,8 +321,8 @@ internal static partial class IdeIgniteArmHost
         if (awaiting.Count > 0)
             return IdeExplainability.New(
                 "ignite.continuity",
-                "awaiting_operator",
-                $"last_once latch count={awaiting.Count} is waiting for operator acknowledgement",
+                "awaiting_partner",
+                $"last_once latch count={awaiting.Count} is waiting for partner acknowledgement",
                 "cdp_ignite op=resume");
 
         var armed = list.Where(a => a.Status is "armed" or "firing").OrderBy(a => a.DueUtc ?? DateTimeOffset.MaxValue).ToList();
