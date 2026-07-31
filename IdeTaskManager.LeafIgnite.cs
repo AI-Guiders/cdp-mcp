@@ -45,11 +45,30 @@ internal static partial class IdeTaskManager
         };
     }
 
-    /// <summary>Done on last leaf: clear focus and latch await_operator.</summary>
+    /// <summary>
+    /// Done on last leaf. Autonomous armed → seed-wake (no await_operator).
+    /// Autonomous off → legacy await_operator latch.
+    /// </summary>
     static object LeafPlateau(IntentWorkspaceStore store, IntentWorkspaceState state, string reason)
     {
         state.ActiveStageId = null;
         store.WorkFocusSave(state);
+
+        if (IdeIgniteArmHost.IsAutonomousArmed())
+        {
+            var cont = IdeIgniteArmHost.AutonomousContinue(reason);
+            return new
+            {
+                leaf_id = (Guid?)null,
+                leaf_title = (string?)null,
+                reason,
+                plateau = false,
+                autonomous = true,
+                need_seed = true,
+                ignite = cont
+            };
+        }
+
         var ignite = IdeIgniteArmHost.AwaitOperator(new Dictionary<string, System.Text.Json.JsonElement>(StringComparer.OrdinalIgnoreCase)
         {
             ["task"] = System.Text.Json.JsonSerializer.SerializeToElement("feature leaves complete — await operator")
@@ -60,6 +79,7 @@ internal static partial class IdeTaskManager
             leaf_title = (string?)null,
             reason,
             plateau = true,
+            autonomous = false,
             ignite
         };
     }

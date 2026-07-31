@@ -31,3 +31,4 @@
 - 0.5.306–308 page pick + remount/event protect; 0.5.309 leaf-wake chain
 - 0.5.310 remount charge appends Domain pulse [A]
 - 2026-07-31: Autonomous Continuity Contract stamped
+- 0.5.314: autonomous latch default ARMED — auto LeafPlateau → seed-wake (not await_operator); op=autonomous[_on|_off]

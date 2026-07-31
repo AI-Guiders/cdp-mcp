@@ -835,12 +835,12 @@ List<Tool> BuildMetaTools() =>
             @as = new { type = "string", description = "open: buffer|edit to force buffer for docs (default text for pdf/docx/…)" }
         }
     }),
-    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list|hygiene|plateau|continuity|resume. ARM: when=build_finished|test_finished|shell_finished|timer task= (TM label only). Default charge=minimal: canonical wake text + amnesia/compaction postfix at fire (no TM body in composer). charge=custom only for legacy templates. last_once=/await_operator: fire once → awaiting latch. Alias go=ignite_desk.", new
+    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list|hygiene|plateau|continuity|resume|autonomous. ARM: when=build_finished|test_finished|shell_finished|timer task= (TM label only). Default charge=minimal: canonical wake text + amnesia/compaction postfix at fire (no TM body in composer). charge=custom only for legacy templates. last_once=/await_operator: fire once → awaiting latch. autonomous default ARMED: auto LeafPlateau does not await_operator — seed-wake instead. Alias go=ignite_desk.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|probe|chats|send|arm|disarm|list" },
+            op = new { type = "string", description = "scene|probe|chats|send|arm|disarm|list|autonomous|autonomous_on|autonomous_off|resume|continuity" },
             message = new { type = "string", description = "send: optional override; arm: ignored unless charge=custom" },
             task = new { type = "string", description = "arm: Task Manager label (SSOT); not injected into composer" },
             charge = new { type = "string", description = "arm: minimal (default)|custom|legacy — minimal fires canonical+amnesia postfix" },
@@ -850,6 +850,7 @@ List<Tool> BuildMetaTools() =>
             chat = new { type = "string", description = "optional chat title substring" },
             id = new { type = "string", description = "disarm id= / arm custom id" },
             all = new { type = "boolean", description = "disarm all=true" },
+            armed = new { type = "boolean", description = "autonomous: true|false latch (default ARMED)" },
             ok_only = new { type = "boolean", description = "arm: fire only on green build/test (default true)" },
             settle_seconds = new { type = "integer", description = "arm: delay before CDT send after event (default 8)" },
             port = new { type = "integer", description = "CDT port (default 9222)" },
