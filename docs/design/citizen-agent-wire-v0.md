@@ -177,12 +177,37 @@ Do not invent a second SSOT: citizen wire should **project** the same Dark Cockp
 
 ---
 
+## Host injection sketch (invent peel · ADR-0028 open)
+
+**Goal:** one real injection seam so fixtures/parser stop being museum pieces — without pretending a completions loop exists.
+
+### Seam (proposed)
+
+1. **Afferent packer** (in-proc, seat-scoped): on each citizen turn start, build a short pulse block from desk A (cockpit slim) + optional peer/event crumbs; format = existing `@frame` / `@event` grammar from fixtures.
+2. **Injection point:** prepend packer output to the *host* messages array (system stays persona draft; user stays human). Guest Cursor never sees this path.
+3. **Efferent parse:** after model reply, `CitizenWireParser` extracts `@intent` / organ C tags → route to `go=` / buffer / shell; refuse W stays thrash string, not a new error SSOT.
+4. **Keys:** `CitizenAiKeys` only when the real host calls a provider; load fail → hard refuse, no silent guest fallback that invents keys.
+
+### Minimal first ship (not this turn’s code)
+
+- Packer + prepend API behind a feature flag (`CitizenWire.Inject=false` default).
+- One dogfood path: **synthetic turn** in tests (fixture in → packer out → parser round-trip) — proves seam without live LLM.
+- Live host chat UI / streaming = later; peel **#3 persona** arms only when that host exists.
+
+### Explicit non-ship
+
+- No fake completions host in CDP guest MCP.
+- No auto New Window / Autoi tourism as “peer duplex.”
+
+---
+
 ## Non-goals v0
 
 - Final schema freeze / protobuf.
 - Replacing MCP for external tools (escape hatch stays).
 - Auto-picking next TM task after plateau.
 - Pretty multi-page JSON as default citizen format.
+- Fake in-habitat completions loop to unblock peel #3.
 
 ---
 
@@ -194,6 +219,7 @@ Do not invent a second SSOT: citizen wire should **project** the same Dark Cockp
 4. ~~Enforce CDP-ADR-0025 isolation (dual seat ignite/pressure) before enabling citizen Autoi.~~ **done** (ignite/HILD seat files already; pressure under `StateRoot/{seat}/`, 0.5.330)
 5. ~~Citizen host loads keys per CDP-ADR-0026 (`ai-keys.toml`).~~ **done** (`CitizenAiKeys`, 0.5.329 — in-proc loader; unused until completions host).
 6. ~~Promote to ADR when fixtures + one host path exist.~~ **done as contract** — [CDP-ADR-0028](../adr/CDP-ADR-0028-citizen-agent-wire.md) (fixtures+parser shipped; **host injection still open**).
+7. **Host injection** — afferent packer + prepend API + synthetic round-trip test (sketch above); live host later.
 
 ---
 
