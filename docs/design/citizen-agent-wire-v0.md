@@ -2,7 +2,7 @@
 
 **Status:** draft (conversation 2026-07-30 · Glass / habitat)  
 **Audience:** future in-habitat completions host (CDP citizen), not Cursor-guest MCP.  
-**Related:** [dark-cockpit-agent-v1.md](./dark-cockpit-agent-v1.md) · [CDP-ADR-0020](../adr/CDP-ADR-0020-desk-vs-organ-path.md) · CIDE ADR 0021 (W/C/A)
+**Related:** [dark-cockpit-agent-v1.md](./dark-cockpit-agent-v1.md) · [CDP-ADR-0020](../adr/CDP-ADR-0020-desk-vs-organ-path.md) · [CDP-ADR-0025](../adr/CDP-ADR-0025-citizen-guest-isolation.md) · [CDP-ADR-0026](../adr/CDP-ADR-0026-citizen-ai-keys-foundation.md) · CIDE ADR 0021 (W/C/A)
 
 ---
 
@@ -191,7 +191,9 @@ Do not invent a second SSOT: citizen wire should **project** the same Dark Cockp
 1. Dogfood: hand-write 3 turns (clear / drill editor / remount event) as fixture transcripts.
 2. Parser sketch in CDP (line `@frame` / `@intent` / `@event`) behind a flag — still unused by Cursor guest.
 3. When chat/completions land in habitat — system prompt above as default citizen persona.
-4. Promote to ADR when fixtures + one host path exist.
+4. Enforce CDP-ADR-0025 isolation (dual seat ignite/pressure) before enabling citizen Autoi.
+5. Citizen host loads keys per CDP-ADR-0026 (`ai-keys.toml`).
+6. Promote to ADR when fixtures + one host path exist.
 
 ---
 

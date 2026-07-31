@@ -1,0 +1,6 @@
+# Example only — copy to %LocalAppData%\CascadeIDE\ai-keys.toml (do not commit real keys).
+# Canonical name: ai-keys.toml (CIDE ADR 0028 / CDP-ADR-0026). Not api-keys.toml.
+
+anthropic_api_key = ""
+open_ai_api_key = ""
+deep_seek_api_key = ""
