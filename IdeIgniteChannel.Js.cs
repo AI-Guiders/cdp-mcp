@@ -84,7 +84,8 @@ internal static partial class IdeIgniteChannel
           return { blocked: false, source: null, text: null };
         };
         const __igniteConnNeedles = /connection\s*problems?|connection\s*error|failed\s*to\s*connect|network\s*error|unable\s*to\s*reach|connection\s*lost/i;
-        const __igniteIsRetryLabel = (raw) => /^\s*retry\s*$/i.test((raw || "").replace(/\s+/g, " ").trim());
+        // Cursor UI churn: button was "Retry", now "Try again" — accept both.
+        const __igniteIsRetryLabel = (raw) => /^(retry|try again)$/i.test((raw || "").replace(/\s+/g, " ").trim());
         const __igniteFindConnectionRetryButton = () => {
           const buttons = Array.from(document.querySelectorAll("button, [role='button'], a"));
           for (const b of buttons) {
