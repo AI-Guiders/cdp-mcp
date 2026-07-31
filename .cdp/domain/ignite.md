@@ -13,10 +13,11 @@
 - **Autonomous Continuity:** empty TM / unknown next ≠ stop. Investigate, seed leaf, build domain/tools/KB, use internet — ~99% without operator. `await_operator` only on explicit operator stop or hard human gate (secrets/money/irreversible/harm).
 - Auto-`LeafPlateau` latch under overnight/autonomous armed is a **bug relative to contract** — clear with `op=resume`, seed, re-ARM; do not celebrate wait.
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
+- After successful fire: watch Cursor for "Connection Problems" / Retry overlay until next fire; auto-click Retry (not Idle-only).
 
 ## Entry
 
-- `cdp_ignite` · `IdeIgniteArmHost.*` · `IdeIgniteChannel.PagePick|Cdt|Fire`
+- `cdp_ignite` · `IdeIgniteArmHost.*` · `IdeIgniteChannel.PagePick|Cdt|Fire|Connection`
 - Cursor rule: `harness-checkpoint-automation.mdc`
 
 ## Antipatterns
@@ -25,6 +26,7 @@
 - Pasting TM stage names/commands into `message=` / custom charge without need.
 - Treating invent-ban / `await_operator` as license to idle while operator away.
 - Closing last leaf → plateau while overnight authorized.
+- Writing another playbook for Connection Problems flake — fix is harness organ (`ConnectionWatch`).
 
 ## last_ship
 
@@ -32,3 +34,4 @@
 - 0.5.310 remount charge appends Domain pulse [A]
 - 2026-07-31: Autonomous Continuity Contract stamped
 - 0.5.314: autonomous latch default ARMED — auto LeafPlateau → seed-wake (not await_operator); op=autonomous[_on|_off]
+- 0.5.315: Connection Problems Retry watch after fire + dismiss during idle/send waits

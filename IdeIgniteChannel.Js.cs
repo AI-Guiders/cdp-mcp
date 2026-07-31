@@ -83,6 +83,40 @@ internal static partial class IdeIgniteChannel
           }
           return { blocked: false, source: null, text: null };
         };
+        const __igniteConnNeedles = /connection\s*problems?|connection\s*error|failed\s*to\s*connect|network\s*error|unable\s*to\s*reach|connection\s*lost/i;
+        const __igniteIsRetryLabel = (raw) => /^\s*retry\s*$/i.test((raw || "").replace(/\s+/g, " ").trim());
+        const __igniteFindConnectionRetryButton = () => {
+          const buttons = Array.from(document.querySelectorAll("button, [role='button'], a"));
+          for (const b of buttons) {
+            const label = ((b.getAttribute("aria-label") || "") + " " + (b.textContent || "")).replace(/\s+/g, " ").trim();
+            if (!__igniteIsRetryLabel(label)) continue;
+            let el = b;
+            for (let i = 0; i < 10 && el; i++) {
+              const blob = (el.innerText || el.textContent || "").slice(0, 900);
+              if (__igniteConnNeedles.test(blob)) {
+                return { button: b, context: blob.replace(/\s+/g, " ").trim().slice(0, 160), label: label.slice(0, 40) };
+              }
+              el = el.parentElement;
+            }
+          }
+          const body = ((document.body && document.body.innerText) || "").slice(0, 24000);
+          if (!__igniteConnNeedles.test(body)) return null;
+          const hit = buttons.find(b => {
+            const label = ((b.getAttribute("aria-label") || "") + " " + (b.textContent || "")).replace(/\s+/g, " ").trim();
+            return __igniteIsRetryLabel(label);
+          });
+          if (!hit) return null;
+          return { button: hit, context: "connection_problems_body", label: ((hit.textContent || "")).trim().slice(0, 40) };
+        };
+        const __igniteClickConnectionRetry = () => {
+          const hit = __igniteFindConnectionRetryButton();
+          if (!hit) return { visible: false, clicked: false };
+          const r = hit.button.getBoundingClientRect();
+          if (r.width === 0 && r.height === 0)
+            return { visible: true, clicked: false, error: "retry_not_visible", context: hit.context, label: hit.label };
+          hit.button.click();
+          return { visible: true, clicked: true, context: hit.context, label: hit.label };
+        };
         """;
 
     /// <summary>Wrap helpers inside IIFE — top-level const survives across Runtime.evaluate and redeclaration throws.</summary>
@@ -96,6 +130,7 @@ internal static partial class IdeIgniteChannel
           const submit = document.querySelector(".ui-prompt-input-submit-button");
           const blocked = __igniteDetectProviderBlocked();
           const stray = __igniteStrayEditable(root);
+          const conn = __igniteFindConnectionRetryButton();
           return {
             hasInput: !!input,
             inputText: input ? (input.innerText || "").replace(/\u00a0/g, " ").slice(0, 160) : null,
@@ -105,13 +140,20 @@ internal static partial class IdeIgniteChannel
             providerBlockedSource: blocked.source,
             providerBlockedText: blocked.text,
             strayInputText: stray ? stray.text : null,
-            composerScoped: !!root && !!input
+            composerScoped: !!root && !!input,
+            connectionProblemsVisible: !!conn,
+            connectionRetryLabel: conn ? conn.label : null
           };
         """);
 
     static readonly string ProviderBlockedJs = WithComposerHelpers(
         """
           return __igniteDetectProviderBlocked();
+        """);
+
+    static readonly string ClickConnectionRetryJs = WithComposerHelpers(
+        """
+          return __igniteClickConnectionRetry();
         """);
 
     const string ChatListJs =

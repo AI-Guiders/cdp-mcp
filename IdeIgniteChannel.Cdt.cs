@@ -68,6 +68,34 @@ internal static partial class IdeIgniteChannel
                 + (last is null ? "" : "; last=" + last.Message));
         }
 
+        /// <summary>
+        /// Open the highest-ranked CDT page without requiring ComposerScoped.
+        /// Used by Connection Problems watch when the overlay may cover the prompt.
+        /// </summary>
+        public static async Task<CdtSession> ConnectTopPageAsync(int port, CancellationToken ct)
+        {
+            var list = await GetJsonAsync(port, "/json/list", ct).ConfigureAwait(false);
+            var ranked = RankPageTargets(list);
+            if (ranked.Count == 0)
+                throw new InvalidOperationException("no_page_target");
+
+            Exception? last = null;
+            foreach (var target in ranked)
+            {
+                try
+                {
+                    return await OpenWsAsync(target.Title, target.WsUrl, ct).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    last = ex;
+                }
+            }
+
+            throw new InvalidOperationException(
+                "no_page_ws: " + (last?.Message ?? "connect failed"));
+        }
+
         static async Task<CdtSession> OpenWsAsync(string title, string wsUrl, CancellationToken ct)
         {
             var ws = new ClientWebSocket();
