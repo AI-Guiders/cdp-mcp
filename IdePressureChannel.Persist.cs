@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text;
 using System.Text.Json;
+using Cdp.Core;
 
 namespace CdpMcp;
 
@@ -34,6 +35,7 @@ internal static partial class IdePressureChannel
         {
             try
             {
+                TryMigrateLegacyPressureFiles();
                 if (!File.Exists(FilePath))
                     return null;
                 return JsonSerializer.Deserialize<PressureDoc>(File.ReadAllText(FilePath), JsonOpts);
@@ -45,10 +47,39 @@ internal static partial class IdePressureChannel
         }
     }
 
+    /// <summary>
+    /// One-shot: flat StateRoot pressure files → seat subdir (cdp / cdp-debug / other).
+    /// </summary>
+    static void TryMigrateLegacyPressureFiles()
+    {
+        try
+        {
+            Directory.CreateDirectory(SeatStateDir);
+            MigrateOne(LegacyFilePath, FilePath);
+            MigrateOne(LegacyMemoPath, MemoPath);
+            MigrateOne(LegacyMemoLatestMdPath, MemoLatestMdPath);
+            var legacyMd = Path.Combine(CdpProfile.StateRoot, "pressure-LATEST.md");
+            var seatMd = Path.Combine(SeatStateDir, "pressure-LATEST.md");
+            MigrateOne(legacyMd, seatMd);
+        }
+        catch
+        {
+            /* best-effort */
+        }
+    }
+
+    static void MigrateOne(string from, string to)
+    {
+        if (!File.Exists(from) || File.Exists(to))
+            return;
+        File.Copy(from, to, overwrite: false);
+    }
+
     static void Save(PressureDoc doc)
     {
         lock (Gate)
         {
+            TryMigrateLegacyPressureFiles();
             var dir = Path.GetDirectoryName(FilePath)!;
             Directory.CreateDirectory(dir);
             var tmp = FilePath + ".tmp";

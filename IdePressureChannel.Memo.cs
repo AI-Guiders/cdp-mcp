@@ -13,9 +13,13 @@ namespace CdpMcp;
 /// </summary>
 internal static partial class IdePressureChannel
 {
-    public static string MemoPath => Path.Combine(CdpProfile.StateRoot, "pressure-memo.jsonl");
+    public static string MemoPath => Path.Combine(SeatStateDir, "pressure-memo.jsonl");
 
-    public static string MemoLatestMdPath => Path.Combine(CdpProfile.StateRoot, "pressure-memo-LATEST.md");
+    public static string MemoLatestMdPath => Path.Combine(SeatStateDir, "pressure-memo-LATEST.md");
+
+    public static string LegacyMemoPath => Path.Combine(CdpProfile.StateRoot, "pressure-memo.jsonl");
+
+    public static string LegacyMemoLatestMdPath => Path.Combine(CdpProfile.StateRoot, "pressure-memo-LATEST.md");
 
     static readonly JsonSerializerOptions MemoJsonOpts = new()
     {
@@ -131,6 +135,7 @@ internal static partial class IdePressureChannel
                 return last[0];
             }
 
+            TryMigrateLegacyPressureFiles();
             Directory.CreateDirectory(Path.GetDirectoryName(MemoPath)!);
             var line = JsonSerializer.Serialize(entry, MemoJsonOpts);
             File.AppendAllText(MemoPath, line + Environment.NewLine, Encoding.UTF8);
