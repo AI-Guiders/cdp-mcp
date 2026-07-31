@@ -1,0 +1,7 @@
+@frame desk v0
+board | P:plan · citizen wire…(pick) | F:editor · 0 buf | M:shell
+sa    | clear · explore/code
+peer  | ok · gen=1 · mcp=live · compact=no
+next  | plan | editor
+tm    | feature=citizen wire · focus=fixtures+parser
+cost  | A
