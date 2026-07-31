@@ -225,6 +225,7 @@ Do not invent a second SSOT: citizen wire should **project** the same Dark Cockp
 10. ~~**Efferent `@intent` → organ routes.**~~ **done** (`CitizenIntentRouter`, 0.5.334 — pure wire; host executes routes; no second LLM loop).
 11. ~~**Bind citizen wire into CIDE MAF**~~ **done** — `pack_citizen_attention` always-on in `CascadeIdeMafIdeAgentChat.BuildInstructions`; afferent = existing `minimizedContextBlock` (hot/telemetry/file); efferent = MAF tools + salvage (no second IntentRouter dispatcher).
 12. ~~**Afferent DeskPulse into CIDE MAF**~~ **done** — SoftOrgan visible + EICAS salience → `@frame desk` via `CitizenDeskAfferent` prepended to minimized (Dark Cockpit scan transfer; CDP wire grammar).
+13. ~~**Efferent `@intent` in CIDE MAF**~~ **done** — `CitizenIntentEfferent` maps callouts → `open_file` / `get_editor_state` / refuse W; hooked after JSON salvage.
 
 ---
 
