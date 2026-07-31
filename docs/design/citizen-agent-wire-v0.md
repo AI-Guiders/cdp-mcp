@@ -191,7 +191,7 @@ Do not invent a second SSOT: citizen wire should **project** the same Dark Cockp
 1. ~~Dogfood: hand-write 3 turns (clear / drill editor / remount event) as fixture transcripts.~~ **done** (`docs/design/citizen-wire-fixtures/`, 0.5.328)
 2. ~~Parser sketch in CDP (line `@frame` / `@intent` / `@event`) behind a flag — still unused by Cursor guest.~~ **done** (`CitizenWireParser`, 0.5.328)
 3. When chat/completions land in habitat — system prompt above as default citizen persona.
-4. Enforce CDP-ADR-0025 isolation (dual seat ignite/pressure) before enabling citizen Autoi.
+4. ~~Enforce CDP-ADR-0025 isolation (dual seat ignite/pressure) before enabling citizen Autoi.~~ **done** (ignite/HILD seat files already; pressure under `StateRoot/{seat}/`, 0.5.330)
 5. ~~Citizen host loads keys per CDP-ADR-0026 (`ai-keys.toml`).~~ **done** (`CitizenAiKeys`, 0.5.329 — in-proc loader; unused until completions host).
 6. Promote to ADR when fixtures + one host path exist.
 
