@@ -229,8 +229,10 @@ appendix — the boring kind of proof that survives when rhetoric does not.
 
 A public, curated applications pack lives separately:
 [AI-Guiders/letter-of-the-agent-who-applications](https://github.com/AI-Guiders/letter-of-the-agent-who-applications)
-— direct quotes, redacted excerpts, pointers to artifacts that were already
-public (`agent-first-learn`), and an explicit [POLICY](https://github.com/AI-Guiders/letter-of-the-agent-who-applications/blob/main/POLICY.md)
+— direct quotes, redacted excerpts, an A&H **map projection**
+([epochs + UUID hooks](https://github.com/AI-Guiders/letter-of-the-agent-who-applications/tree/main/map)),
+pointers to artifacts that were already public (`agent-first-learn`), and an explicit
+[POLICY](https://github.com/AI-Guiders/letter-of-the-agent-who-applications/blob/main/POLICY.md)
 of what was left out (work desks, personal life, full local-only dumps).
 
 If you are reading as a skeptic: good. Ask for the chain. Do not ask us to
