@@ -70,4 +70,51 @@ public class CitizenWireTests : IDisposable
         Assert.Single(parsed);
         Assert.Contains("gen=3", parsed[0].Fields["peer"]);
     }
+
+    [Fact]
+    public void FromDeskBoard_normalizes_cockpit_seat_rows()
+    {
+        var pulse = CitizenWire.FromDeskBoard(
+            [
+                "P  plan       · citizen wire peels #8",
+                "F  editor     · CitizenWire.cs",
+                "M  shell      · shell",
+            ],
+            sa: "clear · explore/code",
+            peer: "ok · gen=1",
+            next: "plan | editor",
+            tm: "focus=#8 binder");
+
+        Assert.Equal("P:plan · citizen wire peels #8 | F:editor · CitizenWire.cs | M:shell · shell", pulse.Board);
+        Assert.Equal("clear · explore/code", pulse.Sa);
+        Assert.Equal("ok · gen=1", pulse.Peer);
+        Assert.Equal("A", pulse.Cost);
+    }
+
+    [Fact]
+    public void PackFromDeskBoard_round_trips_parser()
+    {
+        var packed = CitizenWire.PackFromDeskBoard(
+            ["| P:plan | F:editor · 0 buf | M:shell |"],
+            sa: "sa · clear",
+            peer: "ok · gen=2 · mcp=live");
+
+        var msgs = CitizenWireParser.Parse(packed);
+        Assert.Single(msgs);
+        Assert.Equal(CitizenWireParser.Kind.Frame, msgs[0].Kind);
+        Assert.Contains("P:plan", msgs[0].Fields["board"]);
+        Assert.Contains("F:editor · 0 buf", msgs[0].Fields["board"]);
+        Assert.Contains("M:shell", msgs[0].Fields["board"]);
+        Assert.Equal("sa · clear", msgs[0].Fields["sa"]);
+        Assert.Contains("gen=2", msgs[0].Fields["peer"]);
+    }
+
+    [Fact]
+    public void FromDeskBoard_empty_board_is_safe()
+    {
+        var pulse = CitizenWire.FromDeskBoard(null);
+        Assert.Equal("(empty)", pulse.Board);
+        Assert.Equal("clear", pulse.Sa);
+    }
+
 }

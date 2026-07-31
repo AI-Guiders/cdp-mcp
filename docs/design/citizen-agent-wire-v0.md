@@ -220,6 +220,7 @@ Do not invent a second SSOT: citizen wire should **project** the same Dark Cockp
 5. ~~Citizen host loads keys per CDP-ADR-0026 (`ai-keys.toml`).~~ **done** (`CitizenAiKeys`, 0.5.329 — in-proc loader; unused until completions host).
 6. ~~Promote to ADR when fixtures + one host path exist.~~ **done as contract** — [CDP-ADR-0028](../adr/CDP-ADR-0028-citizen-agent-wire.md) (fixtures+parser shipped; **host injection still open**).
 7. ~~**Host injection** — afferent packer + prepend API + synthetic round-trip test.~~ **done** (`CitizenWire`, 0.5.331 — `Inject` default off; no live host).
+8. ~~Desk board → DeskPulse binder.~~ **done** (`FromDeskBoard` / `PackFromDeskBoard`, 0.5.332).
 
 ---
 
