@@ -42,4 +42,5 @@
 - 0.5.317: Connection Problems button label = Try again (was Retry-only match)
 - 0.5.320: HILD — Composer idle 5s on Voice → human_away once → AutoI (op=hild)
 - 0.5.321: HILD once-latch until human text (no thrash); post-wake continuity 1–2s not 45m
+- 0.5.322: HILD latch ignores AutoI wake charge (Stop→Voice thrash fix)
 

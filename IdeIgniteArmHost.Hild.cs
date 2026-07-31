@@ -123,7 +123,7 @@ internal static partial class IdeIgniteArmHost
                 quiet_since = HildDetector.QuietSince,
                 away_latched = HildDetector.AwayLatched,
                 why,
-                hint = "One shot: Voice/empty 5s → human_away latch → AutoI once; Composer text clears latch. Stay ARMED. After wake: autonomy 1–2s (not 45m)."
+                hint = "One shot: Voice/empty 5s → human_away latch → AutoI once; human Composer text clears latch (AutoI charge ignored). Stay ARMED. After wake: autonomy 1–2s (not 45m)."
             };
         }
     }

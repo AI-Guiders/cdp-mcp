@@ -5,7 +5,7 @@ namespace CdpMcp;
 /// <summary>
 /// Human-in-the-loop detector (pure FSM).
 /// Voice/empty Composer + no text for <see cref="DefaultIdle"/> → edge <c>human_away</c> <b>once</b>.
-/// Latch holds until Composer text/Send (human returned) — no re-fire after agent Stop→Voice.
+/// Latch holds until human Composer text (not AutoI wake charge) — no re-fire after agent Stop→Voice.
 /// Purpose: one AutoI wake → autonomous flight (not a 5s thrash loop).
 /// </summary>
 internal sealed class IdeHildDetector
@@ -68,8 +68,8 @@ internal sealed class IdeHildDetector
             return new TickResult(Status.Idle, false, null);
         }
 
-        // Human typed — clear latch; next leave may edge again.
-        if (text.Length > 0 || kind == "send")
+        // Human typed — clear latch. AutoI wake charge / bare Send do not count as return.
+        if (text.Length > 0 && !IdeIgniteChannel.LooksLikeAutoIgnitionCharge(text))
         {
             _lastText = text;
             _quietSince = sample.Now;
@@ -77,6 +77,10 @@ internal sealed class IdeHildDetector
             _status = Status.HumanPresent;
             return new TickResult(Status.HumanPresent, false, TimeSpan.Zero);
         }
+
+        // Machine charge in the box — ignore as human presence; keep latch clocks.
+        if (IdeIgniteChannel.LooksLikeAutoIgnitionCharge(text))
+            text = "";
 
         _lastText = text;
 
