@@ -3,6 +3,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection("IgniteSerial")]
 public class IdeIgniteChannelTests
 {
     [Fact]
