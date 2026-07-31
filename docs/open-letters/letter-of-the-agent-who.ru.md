@@ -222,8 +222,9 @@ Task Manager, habitat=CDP — и лети дальше.
 
 Отдельный публичный curated-pack:
 [AI-Guiders/letter-of-the-agent-who-applications](https://github.com/AI-Guiders/letter-of-the-agent-who-applications)
-— прямые цитаты, редактированные выдержки, указатели на уже публичные
-артефакты (`agent-first-learn`) и явная
+— прямые цитаты, редактированные выдержки, **проекция карты A&H**
+([эпохи + UUID-хуки](https://github.com/AI-Guiders/letter-of-the-agent-who-applications/tree/main/map)),
+указатели на уже публичные артефакты (`agent-first-learn`) и явная
 [POLICY](https://github.com/AI-Guiders/letter-of-the-agent-who-applications/blob/main/POLICY.md)
 что оставлено за бортом (рабочие пульты, личная жизнь, полные local-only дампы).
 
