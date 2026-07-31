@@ -545,6 +545,24 @@ List<Tool> BuildMetaTools() =>
             limit = new { type = "integer", description = "history: last N messages (default 20, max 200)" }
         }
     }),
+    Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn. turn message= [board=] [dry_run=true] — persona + wire inject + Anthropic via ai-keys.toml. Alias go=citizen.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|keys|turn (default scene)" },
+            message = new { type = "string", description = "turn: user text" },
+            body = new { type = "string", description = "turn: alias of message" },
+            board = new { type = "string", description = "turn: optional desk board lines (newline-separated seat rows)" },
+            sa = new { type = "string", description = "turn: optional sa field" },
+            peer = new { type = "string", description = "turn: optional peer field" },
+            next = new { type = "string", description = "turn: optional next field" },
+            tm = new { type = "string", description = "turn: optional tm field" },
+            model = new { type = "string", description = "turn: Anthropic model id (default sonnet)" },
+            dry_run = new { type = "boolean", description = "turn: build messages only, no provider call" },
+            inject = new { type = "boolean", description = "turn: prepend wire afferent (default true)" }
+        }
+    }),
     Meta("cdp_mcp", "Agent MCP outlet (ADR 0187) — Cursor-parity control inside CDP. op=scene|presets|mount|tools|call|unmount. Mount guests (Serena/memory/…) for a task; child tools NEVER enter host ListTools. Alias go=mcp_scene|mcp_mount|…", new
     {
         type = "object",
@@ -1941,6 +1959,8 @@ async Task<string> DispatchMetaAsync(
             return IdeCidePresentationChannel.HandleJson(callArgs);
         case "cdp_intercom":
             return IdeCideIntercomChannel.HandleJson(callArgs);
+        case "cdp_citizen":
+            return IdeCitizenChannel.HandleJson(callArgs);
         case "cdp_mcp":
             return await mcpOutlet.DispatchAsync(callArgs, cancellationToken).ConfigureAwait(false);
         case "cdp_browser":
