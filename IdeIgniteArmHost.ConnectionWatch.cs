@@ -79,7 +79,7 @@ internal static partial class IdeIgniteArmHost
                 ProbeStallKeepWaiting();
                 if (IdeIgniteNativeDialogs.TryClickOomNewWindow())
                 {
-                    Console.Error.WriteLine("[ide_ignite] connection-watch oom New Window");
+                    Console.Error.WriteLine("[ide_ignite] connection-watch oom Reopen");
                 }
             }
             catch (OperationCanceledException)

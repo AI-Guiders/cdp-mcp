@@ -104,7 +104,7 @@ internal static partial class IdeIgniteArmHost
         CdtWasUp = false;
         CdtDownSinceUtc ??= DateTimeOffset.UtcNow;
         Console.Error.WriteLine(
-            $"[ide_ignite] oom-dialog New Window #{OomNewWindowClickCount}");
+            $"[ide_ignite] oom-dialog Reopen #{OomNewWindowClickCount}");
     }
 
     static async Task ProbeCdtRecoveryAsync(int port, CancellationToken ct)

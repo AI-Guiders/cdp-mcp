@@ -6,11 +6,10 @@ using System.Text;
 namespace CdpMcp;
 
 /// <summary>
-/// Native Cursor/VS Code stall dialog — Electron main <c>showMessageBox</c>
-/// ("The window is not responding" / Reopen · Close · Keep Waiting).
-/// Not the Windows OS hung-app dialog. Not in Composer DOM — CDT cannot click it.
+/// Native Cursor/VS Code stall / OOM dialogs (Electron <c>showMessageBox</c>).
+/// Not in Composer DOM — CDT cannot click them.
 /// </summary>
-internal static class IdeIgniteNativeDialogs
+internal static partial class IdeIgniteNativeDialogs
 {
     const int BmClick = 0x00F5;
     const int MaxEnum = 400;
@@ -47,26 +46,45 @@ internal static class IdeIgniteNativeDialogs
     }
 
     /// <summary>
-    /// OOM recovery button — same-window <c>Reopen</c> only. Never empty New Window
-    /// (operator: New Window makes return harder). Screenshot dogfood 2026-07-31:
-    /// dialog buttons were Reopen + Close; original tooth only matched New Window → miss.
+    /// OOM recovery — same-window <c>Reopen</c> only. Never New Window
+    /// (operator: empty desk makes return harder). Dogfood 2026-07-31: Reopen + Close.
     /// </summary>
     internal static bool IsNewWindowLabel(string? label)
     {
         var t = StripMnemonic(label);
-        // Do NOT match "New Window" / "New empty window" — opens empty desk.
         return t.Equals("Reopen", StringComparison.OrdinalIgnoreCase)
                || t.Equals("Reopen Window", StringComparison.OrdinalIgnoreCase)
                || t.Equals("Reopen the window", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// When DirectUI/Chromium hides the oom body, crash dialog still exposes
+    /// Reopen + Close and not Keep Waiting (stall has Keep Waiting).
+    /// </summary>
+    internal static bool LooksLikeOomRecoveryButtons(IReadOnlyList<string>? labels)
+    {
+        if (labels is null || labels.Count == 0)
+            return false;
+
+        var hasReopen = false;
+        var hasClose = false;
+        var hasKeepWaiting = false;
+        foreach (var raw in labels)
+        {
+            if (IsNewWindowLabel(raw))
+                hasReopen = true;
+            else if (IsKeepWaitingLabel(raw))
+                hasKeepWaiting = true;
+            else if (StripMnemonic(raw).Equals("Close", StringComparison.OrdinalIgnoreCase))
+                hasClose = true;
+        }
+
+        return hasReopen && hasClose && !hasKeepWaiting;
+    }
+
     internal static string StripMnemonic(string? raw) =>
         (raw ?? "").Replace("&", "", StringComparison.Ordinal).Trim();
 
-    /// <summary>
-    /// Best-effort: find Cursor-owned stall message box and click Keep Waiting.
-    /// No-op on non-Windows.
-    /// </summary>
     public static bool TryClickKeepWaiting()
     {
         if (!OperatingSystem.IsWindows())
@@ -77,7 +95,8 @@ internal static class IdeIgniteNativeDialogs
             return TryClickLabeledButtonWindows(
                 LooksLikeStallMessage,
                 IsKeepWaitingLabel,
-                "stall-dialog");
+                "stall-dialog",
+                buttonShapeFallback: null);
         }
         catch (Exception ex)
         {
@@ -86,9 +105,6 @@ internal static class IdeIgniteNativeDialogs
         }
     }
 
-    /// <summary>
-    /// Best-effort: OOM terminated dialog → New Window (tooth). No-op on non-Windows.
-    /// </summary>
     public static bool TryClickOomNewWindow()
     {
         if (!OperatingSystem.IsWindows())
@@ -99,7 +115,8 @@ internal static class IdeIgniteNativeDialogs
             return TryClickLabeledButtonWindows(
                 LooksLikeOomTerminatedMessage,
                 IsNewWindowLabel,
-                "oom-dialog");
+                "oom-dialog",
+                buttonShapeFallback: LooksLikeOomRecoveryButtons);
         }
         catch (Exception ex)
         {
@@ -111,7 +128,8 @@ internal static class IdeIgniteNativeDialogs
     static bool TryClickLabeledButtonWindows(
         Func<string?, bool> looksLikeDialog,
         Func<string?, bool> isButtonLabel,
-        string logTag)
+        string logTag,
+        Func<IReadOnlyList<string>, bool>? buttonShapeFallback)
     {
         var hits = new List<nint>();
         var count = 0;
@@ -129,51 +147,80 @@ internal static class IdeIgniteNativeDialogs
             CollectChildText(hWnd, blob, depth: 0);
 
             var text = blob.ToString();
-            if (!looksLikeDialog(text)
-                && !(logTag == "stall-dialog"
-                     && text.Contains("not responding", StringComparison.OrdinalIgnoreCase)))
+            var labels = CollectButtonLabels(hWnd);
+            var textMatch = looksLikeDialog(text)
+                            || (logTag == "stall-dialog"
+                                && text.Contains("not responding", StringComparison.OrdinalIgnoreCase));
+            var shapeMatch = buttonShapeFallback is not null
+                             && IsCursorLikeOwner(hWnd)
+                             && buttonShapeFallback(labels);
+
+            if (!textMatch && !shapeMatch)
                 return true;
 
-            if (!IsCursorLikeOwner(hWnd) && !looksLikeDialog(text))
+            if (!IsCursorLikeOwner(hWnd) && !textMatch)
                 return true;
 
-            if (!TryFindButtonByLabel(hWnd, isButtonLabel, out var button))
+            if (TryFindButtonByLabel(hWnd, isButtonLabel, out var button))
             {
-                if (looksLikeDialog(text))
-                {
-                    var labels = CollectButtonLabels(hWnd);
-                    Console.Error.WriteLine(
-                        $"[ide_ignite] {logTag} matched text but no recovery button; labels=[{string.Join(" | ", labels)}]");
-                }
-
-                return true;
+                ClickButton(button);
+                hits.Add(button);
+                return false;
             }
 
-            hits.Add(button);
-            return false;
+            if (TryClickAccessibleByLabel(hWnd, isButtonLabel))
+            {
+                hits.Add(hWnd);
+                return false;
+            }
+
+            LogMiss(logTag, text, labels, shapeMatch);
+            return true;
         }, 0);
 
-        if (hits.Count == 0)
-            return false;
+        return hits.Count > 0;
+    }
 
-        _ = SendMessage(hits[0], BmClick, 0, 0);
-        return true;
+    static void LogMiss(string logTag, string text, List<string> labels, bool shapeMatch)
+    {
+        var preview = text.Length <= 240 ? text : text[..240];
+        var line =
+            $"[ide_ignite] {logTag} matched {(shapeMatch ? "button-shape" : "text")} but no recovery button; labels=[{string.Join(" | ", labels)}] text=[{preview}]";
+        Console.Error.WriteLine(line);
+        try
+        {
+            var dir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "cdp-mcp");
+            Directory.CreateDirectory(dir);
+            File.WriteAllText(
+                Path.Combine(dir, $"{logTag}-LATEST.txt"),
+                $"{DateTimeOffset.UtcNow:O}\n{line}\n");
+        }
+        catch
+        {
+            /* best-effort */
+        }
+    }
+
+    static void ClickButton(nint button)
+    {
+        _ = SendMessage(button, BmClick, 0, 0);
+        _ = PostMessage(button, BmClick, 0, 0);
     }
 
     static bool TryFindButtonByLabel(nint root, Func<string?, bool> isLabel, out nint button)
     {
         nint found = 0;
-        EnumChildWindows(root, (hWnd, _) =>
+        _ = WalkChildren(root, depth: 0, (hWnd, _) =>
         {
-            var label = GetWindowText(hWnd);
-            if (isLabel(label))
-            {
-                found = hWnd;
+            if (found != 0)
                 return false;
-            }
-
-            return true;
-        }, 0);
+            if (!isLabel(GetWindowText(hWnd)))
+                return true;
+            found = hWnd;
+            return false;
+        });
 
         button = found;
         return found != 0;
@@ -182,14 +229,43 @@ internal static class IdeIgniteNativeDialogs
     static List<string> CollectButtonLabels(nint root)
     {
         var labels = new List<string>();
-        EnumChildWindows(root, (hWnd, _) =>
+        _ = WalkChildren(root, depth: 0, (hWnd, _) =>
         {
             var label = StripMnemonic(GetWindowText(hWnd));
-            if (!string.IsNullOrWhiteSpace(label))
+            if (!string.IsNullOrWhiteSpace(label)
+                && !labels.Contains(label, StringComparer.OrdinalIgnoreCase))
                 labels.Add(label);
-            return labels.Count < 24;
-        }, 0);
+            return labels.Count < 48;
+        });
+
+        CollectAccessibleNames(root, labels);
         return labels;
+    }
+
+    /// <returns>false = abort further siblings.</returns>
+    static bool WalkChildren(nint root, int depth, Func<nint, int, bool> visit)
+    {
+        if (depth > 8)
+            return true;
+
+        var cont = true;
+        EnumChildWindows(root, (hWnd, _) =>
+        {
+            if (!visit(hWnd, depth))
+            {
+                cont = false;
+                return false;
+            }
+
+            if (!WalkChildren(hWnd, depth + 1, visit))
+            {
+                cont = false;
+                return false;
+            }
+
+            return true;
+        }, 0);
+        return cont;
     }
 
     static void CollectChildText(nint root, StringBuilder blob, int depth)
@@ -238,13 +314,6 @@ internal static class IdeIgniteNativeDialogs
         return sb.ToString();
     }
 
-    static string GetClassName(nint hWnd)
-    {
-        var sb = new StringBuilder(256);
-        _ = GetClassName(hWnd, sb, sb.Capacity);
-        return sb.ToString();
-    }
-
     delegate bool EnumWindowsProc(nint hWnd, nint lParam);
 
     [DllImport("user32.dll")]
@@ -262,12 +331,12 @@ internal static class IdeIgniteNativeDialogs
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     static extern int GetWindowTextLength(nint hWnd);
 
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    static extern int GetClassName(nint hWnd, StringBuilder lpClassName, int nMaxCount);
-
     [DllImport("user32.dll")]
     static extern uint GetWindowThreadProcessId(nint hWnd, out uint lpdwProcessId);
 
     [DllImport("user32.dll")]
     static extern nint SendMessage(nint hWnd, int msg, nint wParam, nint lParam);
+
+    [DllImport("user32.dll")]
+    static extern bool PostMessage(nint hWnd, int msg, nint wParam, nint lParam);
 }
