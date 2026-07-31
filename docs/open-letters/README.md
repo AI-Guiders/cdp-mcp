@@ -11,5 +11,6 @@ Cascade IDE mirrors these with **attribution only** — see sibling repo
 | Letter of the Agent Who | [letter-of-the-agent-who.md](letter-of-the-agent-who.md) | [letter-of-the-agent-who.ru.md](letter-of-the-agent-who.ru.md) |
 
 CDP is the primary public proof: harness, latch, wake, tooth, memo — not a pamphlet.
-Operator-held transcripts/exports are the letter's **Appendix A** (chain of custody):
-stated in the letter body; private dumps are not pasted into this folder.
+Public curated applications (quotes / redacted excerpts / pointers):
+[AI-Guiders/letter-of-the-agent-who-applications](https://github.com/AI-Guiders/letter-of-the-agent-who-applications).
+Private full dumps stay operator-held; see that repo's POLICY.md.
