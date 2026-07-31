@@ -1,0 +1,110 @@
+#nullable enable
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using Xunit;
+
+namespace CdpMcp.Tests;
+
+public class CitizenCompletionsTests : IDisposable
+{
+    public CitizenCompletionsTests()
+    {
+        CitizenWire.Inject = false;
+        CitizenCompletions.TestHandler = null;
+        CitizenCompletions.TestApiKey = null;
+        CitizenCompletions.ResetHttpForTests();
+    }
+
+    public void Dispose()
+    {
+        CitizenWire.Inject = false;
+        CitizenCompletions.TestHandler = null;
+        CitizenCompletions.TestApiKey = null;
+        CitizenCompletions.ResetHttpForTests();
+    }
+
+    [Fact]
+    public void Build_injects_afferent_before_user()
+    {
+        var built = CitizenCompletions.Build(
+            "hello",
+            boardLines: ["P  plan · #9 host", "F  editor · 0", "M  shell · shell"],
+            inject: true);
+
+        Assert.Contains("citizen of Cognitive Dev Platform", built.System, StringComparison.Ordinal);
+        Assert.True(built.Injected);
+        Assert.Equal(2, built.Messages.Count);
+        Assert.StartsWith("@frame desk v0", built.Messages[0].Content, StringComparison.Ordinal);
+        Assert.Equal("hello", built.Messages[1].Content);
+        Assert.NotNull(built.AfferentPulse);
+    }
+
+    [Fact]
+    public void Build_without_inject_is_single_user()
+    {
+        var built = CitizenCompletions.Build("ping", inject: false);
+        Assert.False(built.Injected);
+        Assert.Single(built.Messages);
+        Assert.Equal("ping", built.Messages[0].Content);
+    }
+
+    [Fact]
+    public void Turn_dry_run_skips_provider()
+    {
+        var r = CitizenCompletions.Turn("hi", dryRun: true);
+        Assert.True(r.Ok);
+        Assert.True(r.DryRun);
+        Assert.Equal("dry_run", r.Provider);
+        Assert.Null(r.Text);
+        Assert.NotNull(r.Built);
+        Assert.True(r.Built!.Injected);
+    }
+
+    [Fact]
+    public void Turn_live_parses_wire_intents_from_mock()
+    {
+        var payload = """
+            {"content":[{"type":"text","text":"@intent go=plan\n@frame desk v0\nboard | P:plan\ncost | A\n"}]}
+            """;
+        CitizenCompletions.TestApiKey = "sk-ant-test-abcdefghijklmnop";
+        CitizenCompletions.TestHandler = new StubHandler(HttpStatusCode.OK, payload);
+        CitizenCompletions.ResetHttpForTests();
+
+        var r = CitizenCompletions.Turn("status?", dryRun: false);
+        Assert.True(r.Ok);
+        Assert.False(r.DryRun);
+        Assert.Equal("anthropic", r.Provider);
+        Assert.Contains("@intent go=plan", r.Text!);
+        Assert.NotNull(r.WireIntents);
+        Assert.True(r.WireIntents!.Count >= 1);
+        Assert.Equal(CitizenWireParser.Kind.Intent, r.WireIntents[0].Kind);
+    }
+
+    [Fact]
+    public void Channel_turn_dry_run_json_ok()
+    {
+        using var doc = JsonDocument.Parse("""
+            {"op":"turn","message":"hello","dry_run":true,"board":"P  plan · test"}
+            """);
+        var args = doc.RootElement.EnumerateObject()
+            .ToDictionary(p => p.Name, p => p.Value.Clone(), StringComparer.OrdinalIgnoreCase);
+        var json = IdeCitizenChannel.HandleJson(args);
+        using var outDoc = JsonDocument.Parse(json);
+        Assert.True(outDoc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.True(outDoc.RootElement.GetProperty("dry_run").GetBoolean());
+        Assert.True(outDoc.RootElement.GetProperty("injected").GetBoolean());
+    }
+}
+
+sealed class StubHandler(HttpStatusCode code, string body) : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var resp = new HttpResponseMessage(code)
+        {
+            Content = new StringContent(body, Encoding.UTF8, "application/json")
+        };
+        return Task.FromResult(resp);
+    }
+}
