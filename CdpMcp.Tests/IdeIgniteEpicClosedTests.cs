@@ -3,6 +3,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection("IgniteSerial")]
 public class IdeIgniteEpicClosedTests : IDisposable
 {
     public IdeIgniteEpicClosedTests()
@@ -36,7 +37,7 @@ public class IdeIgniteEpicClosedTests : IDisposable
             Assert.True(root.GetProperty("ok").GetBoolean());
             Assert.True(root.GetProperty("epic_closed").GetBoolean());
             Assert.Equal("epic_closed", root.GetProperty("error").GetString());
-            Assert.Equal("awaiting_operator", root.GetProperty("continuity").GetString());
+            Assert.Equal("awaiting_partner", root.GetProperty("continuity").GetString());
             Assert.Equal("focus_handoff", root.GetProperty("reason").GetString());
             Assert.Equal("awaiting", root.GetProperty("arm").GetProperty("status").GetString());
             Assert.True(!root.GetProperty("arm").TryGetProperty("due_utc", out var due)

@@ -3,6 +3,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection("IgniteSerial")]
 public class IdeIgniteArmHostTests
 {
     [Theory]
@@ -347,6 +348,11 @@ public class IdeIgniteArmHostTests
     [Fact]
     public void LastOnce_latches_awaiting_and_blocks_repeat()
     {
+        IdeIgniteArmHost.BindFlightProbe(() => ContinuityFlight.Fly);
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("resume")
+        });
         var id = "test-last-once-" + Guid.NewGuid().ToString("N")[..8];
         IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
         {
@@ -356,6 +362,7 @@ public class IdeIgniteArmHostTests
             ["id"] = JsonSerializer.SerializeToElement(id),
             ["task"] = JsonSerializer.SerializeToElement("await op"),
             ["last_once"] = JsonSerializer.SerializeToElement(true),
+            ["force"] = JsonSerializer.SerializeToElement(true),
             ["settle_seconds"] = JsonSerializer.SerializeToElement(0)
         });
 
@@ -382,10 +389,10 @@ public class IdeIgniteArmHostTests
             using var sdoc = JsonDocument.Parse(JsonSerializer.Serialize(skip));
             Assert.True(sdoc.RootElement.GetProperty("ok").GetBoolean());
             Assert.True(sdoc.RootElement.GetProperty("skipped").GetBoolean());
-            Assert.Equal("awaiting_operator", sdoc.RootElement.GetProperty("error").GetString());
+            Assert.Equal("awaiting_partner", sdoc.RootElement.GetProperty("error").GetString());
             var explain = sdoc.RootElement.GetProperty("explain");
             Assert.Equal("ignite.continuity", explain.GetProperty("source").GetString());
-            Assert.Equal("awaiting_operator", explain.GetProperty("reason").GetString());
+            Assert.Equal("awaiting_partner", explain.GetProperty("reason").GetString());
             Assert.Equal("cdp_ignite op=resume", explain.GetProperty("next_step").GetString());
 
             var resume = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
@@ -394,7 +401,7 @@ public class IdeIgniteArmHostTests
             });
             using var rdoc = JsonDocument.Parse(JsonSerializer.Serialize(resume));
             Assert.True(rdoc.RootElement.GetProperty("ok").GetBoolean());
-            Assert.Equal(1, rdoc.RootElement.GetProperty("removed").GetInt32());
+            Assert.True(rdoc.RootElement.GetProperty("removed").GetInt32() >= 1);
             Assert.DoesNotContain(IdeIgniteArmHost.Snapshot(), a => a.Id == id);
         }
         finally

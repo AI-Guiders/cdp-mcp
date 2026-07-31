@@ -3,6 +3,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection("IgniteSerial")]
 public class IdeIgniteAutonomousTests : IDisposable
 {
     public IdeIgniteAutonomousTests()
@@ -161,5 +162,75 @@ public class IdeIgniteAutonomousTests : IDisposable
             .Select(a => a.GetProperty("id").GetString())
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         Assert.Contains(IdeIgniteArmHost.AutonomousSeedArmId, ids);
+    }
+
+    [Fact]
+    public void Halt_stops_world_until_partner()
+    {
+        // Use store latches (not Bind* override) so Halt's SetAutonomous/SetHild stick.
+        IdeIgniteArmHost.BindAutonomous(null);
+        IdeIgniteArmHost.BindHild(null);
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("autonomous_on")
+        });
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("hild_on")
+        });
+
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("arm"),
+            ["when"] = JsonSerializer.SerializeToElement("timer"),
+            ["in"] = JsonSerializer.SerializeToElement("30m"),
+            ["task"] = JsonSerializer.SerializeToElement("work leaf"),
+            ["id"] = JsonSerializer.SerializeToElement("work-before-halt"),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+
+        var halt = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("halt"),
+            ["task"] = JsonSerializer.SerializeToElement("stop until partner")
+        });
+        try
+        {
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(halt));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal("halt", doc.RootElement.GetProperty("op").GetString());
+            Assert.True(doc.RootElement.GetProperty("halted").GetBoolean());
+            Assert.True(doc.RootElement.GetProperty("await_partner").GetBoolean());
+            Assert.False(doc.RootElement.GetProperty("autonomous").GetBoolean());
+            Assert.False(doc.RootElement.GetProperty("hild").GetBoolean());
+            Assert.Equal("awaiting", doc.RootElement.GetProperty("arm").GetProperty("status").GetString());
+            Assert.Equal("halt", doc.RootElement.GetProperty("arm").GetProperty("event").GetString());
+
+            var list = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("list")
+            });
+            using var listDoc = JsonDocument.Parse(JsonSerializer.Serialize(list));
+            Assert.True(listDoc.RootElement.GetProperty("continuity").GetProperty("await_partner").GetBoolean());
+            Assert.Equal(0, listDoc.RootElement.GetProperty("continuity").GetProperty("armed").GetInt32());
+            Assert.False(listDoc.RootElement.GetProperty("continuity").GetProperty("autonomous").GetBoolean());
+        }
+        finally
+        {
+            IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("resume")
+            });
+            IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("autonomous_on")
+            });
+            IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+            {
+                ["op"] = JsonSerializer.SerializeToElement("hild_on")
+            });
+            IdeIgniteArmHost.BindAutonomous(null);
+            IdeIgniteArmHost.BindHild(null);
+        }
     }
 }
