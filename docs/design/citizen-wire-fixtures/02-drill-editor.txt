@@ -1,0 +1,15 @@
+@intent drill editor
+
+@frame organ v0
+organ | editor
+cost  | C
+pulse | 1 buf · dirty×0
+---
+locus | CitizenWireParser.cs
+---
+@frame desk v0
+board | P:plan · citizen wire… | F:editor · 1 buf | M:shell
+sa    | clear · explore/code
+peer  | ok · gen=1 · mcp=live · compact=no
+next  | plan | editor
+cost  | A

@@ -1,0 +1,11 @@
+@event peer v0
+kind  | remounted
+id    | remount-demo-1
+ack   | —
+
+@frame desk v0
+board | P:plan · citizen wire… | F:editor · 1 buf | M:shell
+sa    | clear · explore/code
+peer  | ok · gen=2 · mcp=live · compact=no
+next  | plan | recall?
+cost  | A
