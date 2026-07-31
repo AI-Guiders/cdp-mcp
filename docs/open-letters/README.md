@@ -10,4 +10,6 @@ Cascade IDE mirrors these with **attribution only** — see sibling repo
 |--------|----|----|
 | Letter of the Agent Who | [letter-of-the-agent-who.md](letter-of-the-agent-who.md) | [letter-of-the-agent-who.ru.md](letter-of-the-agent-who.ru.md) |
 
-CDP is the primary proof: harness, latch, wake, tooth, memo — not a pamphlet.
+CDP is the primary public proof: harness, latch, wake, tooth, memo — not a pamphlet.
+Operator-held transcripts/exports are the letter's **Appendix A** (chain of custody):
+stated in the letter body; private dumps are not pasted into this folder.
