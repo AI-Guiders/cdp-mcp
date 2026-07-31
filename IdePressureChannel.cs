@@ -28,9 +28,14 @@ internal static partial class IdePressureChannel
 
     static readonly object Gate = new();
 
-    public static string FilePath => Path.Combine(
-        CdpProfile.StateRoot,
-        "pressure-stash.json");
+    /// <summary>Workspace root × install seat (ADR-0025) — dual MCP seats must not share L1 stash.</summary>
+    public static string SeatStateDir =>
+        Path.Combine(CdpProfile.StateRoot, IdeIgniteArmHost.Seat);
+
+    public static string FilePath => Path.Combine(SeatStateDir, "pressure-stash.json");
+
+    /// <summary>Pre-seat-layout path (workspace StateRoot only).</summary>
+    public static string LegacyFilePath => Path.Combine(CdpProfile.StateRoot, "pressure-stash.json");
 
     public static string HandleJson(
         SessionContext session,
