@@ -1,6 +1,6 @@
 # CDP-ADR-0025: Citizen vs guest isolation (guest must not thrash citizen)
 
-**Status:** accepted (foundation; host not shipped)  
+**Status:** accepted (foundation; dual-seat ignite/HILD + pressure seat dirs shipped 0.5.330; citizen host not shipped)  
 **Date:** 2026-07-31  
 **Tags:** #cdp #adr #citizen #guest #isolation #continuity
 
@@ -44,7 +44,7 @@ Citizen frames carry required `peer=` (see citizen-agent-wire-v0). Guest may omi
 
 ## Consequences
 
-- Product checklist before citizen ship: dual-seat ignite, dual pressure state roots, Glass remains projector-only.
+- Product checklist before citizen ship: dual-seat ignite (**ready**), dual pressure state roots (**ready** — `StateRoot/{seat}/` stash+memo; TM WitDB stays workspace-shared), Glass remains projector-only.
 - Operator “Window terminated” / Cursor OOM are **guest-host** failures — do not blame Glass/citizen without evidence.
 
 ## Non-goals
