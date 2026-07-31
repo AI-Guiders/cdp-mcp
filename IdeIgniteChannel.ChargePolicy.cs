@@ -1,4 +1,5 @@
 #nullable enable
+using System.Net.Http;
 using System.Text.RegularExpressions;
 
 namespace CdpMcp;
@@ -34,6 +35,10 @@ internal static partial class IdeIgniteChannel
     internal const string RemountInitializedLead =
         "MCP remounted / initialized.";
 
+    /// <summary>Lead line after Cursor guest-host OOM / window terminate recovery.</summary>
+    internal const string OomWakeLead =
+        "Cursor host OOM / window terminated — recovered. Habitat=CDP. Run cdp_pressure op=recall then resume.";
+
     internal static string ComposeRemountInitializedCharge(string? projectRoot = null, string? focusHint = null)
     {
         var core = RemountInitializedLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix;
@@ -41,6 +46,32 @@ internal static partial class IdeIgniteChannel
         if (domain.Length == 0)
             return SanitizeComposerCharge(core);
         return SanitizeComposerCharge(core + "\n\n---\n" + domain);
+    }
+
+    internal static string ComposeOomWakeCharge(string? projectRoot = null, string? focusHint = null)
+    {
+        var core = OomWakeLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix;
+        var domain = IdeDomainPulse.RemountDomainAppendix(projectRoot, focusHint);
+        if (domain.Length == 0)
+            return SanitizeComposerCharge(core);
+        return SanitizeComposerCharge(core + "\n\n---\n" + domain);
+    }
+
+    /// <summary>Cheap CDT liveness — /json/version without Composer attach.</summary>
+    internal static async Task<bool> TryPingCdtAsync(int port, CancellationToken ct)
+    {
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(1.5) };
+            var origin = $"http://127.0.0.1:{port}";
+            http.DefaultRequestHeaders.TryAddWithoutValidation("Origin", origin);
+            using var resp = await http.GetAsync(origin + "/json/version", ct).ConfigureAwait(false);
+            return resp.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     /// <summary>Short wake when sync CallTool exceeds timeout_wake — not full continuity resume.</summary>
@@ -84,6 +115,9 @@ internal static partial class IdeIgniteChannel
         if (t.Contains(CanonicalComposerCharge, StringComparison.Ordinal))
             return true;
         if (t.StartsWith(RemountInitializedLead, StringComparison.Ordinal))
+            return true;
+        if (t.StartsWith(OomWakeLead, StringComparison.Ordinal)
+            || t.Contains("Cursor host OOM", StringComparison.Ordinal))
             return true;
         if (t.StartsWith("Tool call still running past wake threshold:", StringComparison.Ordinal))
             return true;

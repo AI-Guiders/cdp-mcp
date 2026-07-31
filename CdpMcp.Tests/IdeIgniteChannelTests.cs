@@ -58,6 +58,15 @@ public class IdeIgniteChannelTests
     }
 
     [Fact]
+    public void ComposeOomWakeCharge_includes_oom_lead_and_recall()
+    {
+        var charge = IdeIgniteChannel.ComposeOomWakeCharge();
+        Assert.StartsWith(IdeIgniteChannel.OomWakeLead, charge, StringComparison.Ordinal);
+        Assert.Contains("cdp_pressure op=recall", charge, StringComparison.Ordinal);
+        Assert.True(IdeIgniteChannel.LooksLikeAutoIgnitionCharge(charge));
+    }
+
+    [Fact]
     public void EventTokenForCharge_maps_shell_finished_event_id()
     {
         Assert.Equal("terminal_finished", IdeIgniteChannel.EventTokenForCharge("shell_finished"));
