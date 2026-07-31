@@ -25,7 +25,7 @@ Silent host summary ≠ memory. Lost axes that already bit dogfood: **AutoIgniti
 4. Durable stash: `%LocalAppData%/cdp-mcp/pressure-stash.json` + `pressure-LATEST.md`.
 5. Slim desk: `pressure` pulse when armed; `next[]` elevates `go=pressure`.
 6. Does **not** auto-offer export to operator. Export remains on request.
-7. Domain axis (0.5.310+): stamp/recall `.cdp/domain` cards; remount Autoi charge appends Domain pulse [A] when cards exist.
+
 
 ---
 
