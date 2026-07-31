@@ -1,6 +1,6 @@
 # CDP-ADR-0026: Citizen AI keys foundation (`ai-keys.toml`)
 
-**Status:** accepted (foundation; loader not shipped for citizen host)  
+**Status:** accepted (foundation; in-proc loader shipped 0.5.329 — unused until citizen completions host)  
 **Date:** 2026-07-31  
 **Tags:** #cdp #adr #citizen #secrets #ai-keys
 
@@ -47,7 +47,7 @@ Citizen host is not shipped; we lock the **contract** before code thrash.
 | Item | Status |
 |------|--------|
 | CIDE `ai-keys.toml` + UI/storage | **Ready** (ADR 0028) |
-| Citizen completions host reader | **Not ready** (blocked on host) |
+| Citizen completions host reader | **Loader ready** (`CitizenAiKeys`, 0.5.329) — host path still open |
 | Example template in docs | `docs/design/ai-keys.example.toml` (placeholders only) |
 
 ---
