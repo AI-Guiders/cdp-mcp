@@ -768,11 +768,18 @@ internal static class IdeRepl
             return (merged, null);
         }
 
-        if (head is "await_operator" or "await" or "epic_closed")
+        if (head is "halt" or "stop_world")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("ignite_desk");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "halt" });
+            return (merged, null);
+        }
+
+        if (head is "await_partner" or "await_operator" or "await" or "epic_closed")
         {
             merged["go"] = JsonSerializer.SerializeToElement("plan");
             merged["tm_op"] = JsonSerializer.SerializeToElement("await_operator");
-            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "await_operator" });
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "await_partner" });
             return (merged, null);
         }
 

@@ -856,12 +856,12 @@ List<Tool> BuildMetaTools() =>
             @as = new { type = "string", description = "open: buffer|edit to force buffer for docs (default text for pdf/docx/…)" }
         }
     }),
-    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list|hygiene|plateau|continuity|resume|autonomous|hild. ARM: when=build_finished|test_finished|shell_finished|human_away|timer task= (TM label only). HILD: Composer text idle 5s on Voice → human_away once → AutoI wake (default ARMED; op=hild_off). Default charge=minimal: canonical wake text + amnesia/compaction postfix at fire (no TM body in composer). charge=custom only for legacy templates. last_once=/await_operator: fire once → awaiting latch. autonomous default ARMED: auto LeafPlateau does not await_operator — seed-wake instead. Alias go=ignite_desk.", new
+    Meta("cdp_ignite", "AutoIgnition via Chrome DevTools (CDT) into Cursor Composer — not Cognitive CDP. Requires Cursor --remote-debugging-port=9222. op=scene|probe|chats|send|arm|disarm|list|hygiene|plateau|continuity|resume|autonomous|hild|halt|await_partner. ARM: when=build_finished|test_finished|shell_finished|human_away|timer task= (TM label only). HILD: Composer text idle 5s on Voice → human_away once → AutoI wake (default ARMED; op=hild_off). Default charge=minimal: canonical wake text + amnesia/compaction postfix at fire (no TM body in composer). charge=custom only for legacy templates. last_once=/await_partner: fire once → awaiting latch. halt=stop-world (autonomous+HILD off, clear arms, await partner). autonomous default ARMED: auto LeafPlateau does not await_partner — seed-wake instead. Alias go=ignite_desk.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|probe|chats|send|arm|disarm|list|autonomous|autonomous_on|autonomous_off|hild|hild_on|hild_off|resume|continuity" },
+            op = new { type = "string", description = "scene|probe|chats|send|arm|disarm|list|autonomous|autonomous_on|autonomous_off|hild|hild_on|hild_off|resume|continuity|halt|await_partner|await_operator" },
             message = new { type = "string", description = "send: optional override; arm: ignored unless charge=custom" },
             task = new { type = "string", description = "arm: Task Manager label (SSOT); not injected into composer" },
             charge = new { type = "string", description = "arm: minimal (default)|custom|legacy — minimal fires canonical+amnesia postfix" },
@@ -870,7 +870,9 @@ List<Tool> BuildMetaTools() =>
             @in = new { type = "string", description = "arm timer: 30s|5m|2h" },
             chat = new { type = "string", description = "optional chat title substring" },
             id = new { type = "string", description = "disarm id= / arm custom id" },
-            all = new { type = "boolean", description = "disarm all=true" },
+            all = new { type = "boolean", description = "disarm all=true (under autonomous: except autonomy means unless force)" },
+            force = new { type = "boolean", description = "disarm: clear autonomy means too; arm: override epic-closed / last_once gates" },
+            last_once = new { type = "boolean", description = "arm: fire once → awaiting_partner latch" },
             armed = new { type = "boolean", description = "autonomous|hild: true|false latch (default ARMED)" },
             ok_only = new { type = "boolean", description = "arm: fire only on green build/test (default true)" },
             settle_seconds = new { type = "integer", description = "arm: delay before CDT send after event (default 8)" },

@@ -30,7 +30,7 @@ internal static partial class IdeIgniteArmHost
 
         var force = OptBool(args, "force") == true;
         if (arm.LastOnce && !force && IsEpicClosed(ProbeFlight()))
-            return LatchEpicClosedAwait(arm, ProbeFlight());
+            return LatchPartnerAwait(arm, ProbeFlight(), halt: false);
 
         var cancelIds = new List<string>();
         lock (Gate)
@@ -57,22 +57,27 @@ internal static partial class IdeIgniteArmHost
         return ArmSuccessPayload(arm);
     }
 
-    /// <summary>Explicit solo plateau: latch awaiting without CDT fire (epic closed / wait operator).</summary>
-    public static object AwaitOperator(IReadOnlyDictionary<string, JsonElement>? args = null)
+    /// <summary>Legacy alias — prefer <see cref="AwaitPartner"/>.</summary>
+    public static object AwaitOperator(IReadOnlyDictionary<string, JsonElement>? args = null) =>
+        AwaitPartner(args, halt: false);
+
+    /// <summary>Explicit epic close: latch awaiting partner without CDT fire. Soft invent-ban (keeps system wakes).</summary>
+    public static object AwaitPartner(IReadOnlyDictionary<string, JsonElement>? args = null, bool halt = false)
     {
         EnsureStarted();
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var task = Opt(args, "task") ?? Opt(args, "message") ?? Opt(args, "label")
-                   ?? "epic closed — await operator";
+                   ?? (halt ? "halt — await partner" : "epic closed — await partner");
         var id = Opt(args, "id");
         if (string.IsNullOrWhiteSpace(id))
-            id = "arm-await-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture)
+            id = (halt ? "arm-halt-" : "arm-await-")
+                 + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture)
                  + "-" + Guid.NewGuid().ToString("N")[..6];
 
         var arm = new IgniteArm
         {
             Id = id!,
-            Event = "plateau",
+            Event = halt ? "halt" : "plateau",
             Message = IdeIgniteChannel.CanonicalComposerCharge,
             ChargeMode = "minimal",
             Task = task,
@@ -87,30 +92,68 @@ internal static partial class IdeIgniteArmHost
             CreatedUtc = DateTimeOffset.UtcNow
         };
 
-        return LatchEpicClosedAwait(arm, ProbeFlight());
+        return LatchPartnerAwait(arm, ProbeFlight(), halt);
     }
 
-    static object LatchEpicClosedAwait(IgniteArm arm, ContinuityFlight flight)
+    /// <summary>
+    /// Conscious stop-world until partner: autonomous off + HILD off + clear all arms (no reseed) + await-partner latch.
+    /// Distinct from <c>disarm all</c> (keeps autonomy means) and soft <c>await_partner</c> (epic invent-ban).
+    /// </summary>
+    public static object Halt(IReadOnlyDictionary<string, JsonElement>? args = null)
+    {
+        args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        var why = Opt(args, "why") ?? "op=halt";
+        SetAutonomous(false, why);
+        SetHild(false, why);
+
+        List<string> cancelled;
+        lock (Gate)
+        {
+            EnsureLoaded();
+            cancelled = Arms.Select(a => a.Id).ToList();
+            Arms.Clear();
+            PersistUnlocked();
+        }
+
+        foreach (var doomedId in cancelled)
+            CancelInFlightFire(doomedId);
+        CancelAllInFlightFires();
+
+        return AwaitPartner(args, halt: true);
+    }
+
+    static object LatchPartnerAwait(IgniteArm arm, ContinuityFlight flight, bool halt)
     {
         var reason = EpicClosedReason(flight);
         if (reason == "fly")
-            reason = "await_operator";
+            reason = halt ? "halt" : "await_partner";
 
         arm.LastOnce = true;
         arm.Once = true;
         arm.Status = "awaiting";
         arm.DueUtc = null;
-        if (string.IsNullOrWhiteSpace(arm.Event) || arm.Event is "timer" or "manual")
+        if (halt)
+            arm.Event = "halt";
+        else if (string.IsNullOrWhiteSpace(arm.Event) || arm.Event is "timer" or "manual")
             arm.Event = "plateau";
 
         lock (Gate)
         {
-            // Latch awaiting — drop continuity work timers, keep event/system wakes + mid-CDT.
             Arms.RemoveAll(a => a.Status is "awaiting" or ProviderBlockedStatus);
-            Arms.RemoveAll(a =>
-                a.Status == "armed"
-                && !IsEventTriggeredArm(a.Event)
-                && !IsSystemWakeArmId(a.Id));
+            if (halt)
+            {
+                // Stop-world: drop everything except this latch (in-flight already cancelled by Halt).
+                Arms.RemoveAll(a => !a.Id.Equals(arm.Id, StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                // Soft epic close — drop continuity work timers, keep event/system wakes + mid-CDT.
+                Arms.RemoveAll(a =>
+                    a.Status == "armed"
+                    && !IsEventTriggeredArm(a.Event)
+                    && !IsSystemWakeArmId(a.Id));
+            }
+
             Arms.RemoveAll(a => a.Id.Equals(arm.Id, StringComparison.OrdinalIgnoreCase));
             Arms.Add(arm);
             PersistUnlocked();
@@ -118,28 +161,40 @@ internal static partial class IdeIgniteArmHost
 
         PublishGlass();
         var list = Snapshot();
+        var opName = halt ? "halt" : "await_partner";
         return new
         {
             schema = IdeIgniteChannel.Schema,
             ok = true,
-            op = "await_operator",
+            op = opName,
             go = IdeIgniteChannel.GoName,
             tool = IdeIgniteChannel.ToolName,
             skipped = true,
-            epic_closed = true,
-            error = "epic_closed",
+            halted = halt,
+            epic_closed = !halt,
+            error = halt ? "halted" : "epic_closed",
             reason,
-            continuity = "awaiting_operator",
-            pulse = $"ignite · epic closed · await operator · {reason}",
+            continuity = "awaiting_partner",
+            await_partner = true,
+            await_operator = true, // legacy alias
+            pulse = halt
+                ? $"ignite · halt · await partner · {reason}"
+                : $"ignite · epic closed · await partner · {reason}",
             arm = Slim(arm),
             arms = SceneSlice(),
             continuity_slice = ContinuitySlice(list),
+            autonomous = IsAutonomousArmed(),
+            hild = IsHildArmed(),
             explain = ExplainCardObject(IdeExplainability.New(
                 "ignite.continuity",
-                "epic_closed",
-                $"solo plateau ({reason}) — do not invent next epic; wait for operator",
-                "cdp_ignite op=resume after operator pick")),
-            hint = "Epic closed / await operator. Do not re-ARM last_once. op=resume when operator seeds next work; force=true only for explicit override."
+                halt ? "halted" : "epic_closed",
+                halt
+                    ? $"stop-world ({reason}) — autonomous/HILD off; wait for partner"
+                    : $"solo plateau ({reason}) — do not invent next epic; wait for partner",
+                "cdp_ignite op=resume after partner pick")),
+            hint = halt
+                ? "Halt: world stopped until partner. op=resume then re-ARM autonomous/HILD/last_once as needed."
+                : "Epic closed / await partner. Do not re-ARM last_once. op=resume when partner seeds next work; force=true only for explicit override."
         };
     }
 

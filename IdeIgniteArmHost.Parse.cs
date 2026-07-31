@@ -89,9 +89,9 @@ internal static partial class IdeIgniteArmHost
     static bool ResolveLastOnce(IReadOnlyDictionary<string, JsonElement> args)
     {
         if (OptBool(args, "last_once") == true) return true;
-        if (OptBool(args, "await_operator") == true) return true;
+        if (OptBool(args, "await_partner") == true || OptBool(args, "await_operator") == true) return true;
         var mode = (Opt(args, "mode") ?? "").Trim().ToLowerInvariant().Replace('-', '_');
-        if (mode is "await" or "await_operator" or "last_once" or "idle") return true;
+        if (mode is "await" or "await_partner" or "await_operator" or "last_once" or "idle" or "halt") return true;
         return false;
     }
 
