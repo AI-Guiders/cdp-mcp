@@ -121,9 +121,9 @@ internal static partial class IdeIgniteArmHost
                 last_edge_utc = HildLastEdgeUtc,
                 edge_count = HildEdgeCount,
                 quiet_since = HildDetector.QuietSince,
-                fired_this_spell = HildDetector.FiredThisSpell,
+                away_latched = HildDetector.AwayLatched,
                 why,
-                hint = "Composer text resets 5s watch; Voice/empty → human_away once → AutoI. op=hild armed=false to disarm."
+                hint = "One shot: Voice/empty 5s → human_away latch → AutoI once; Composer text clears latch. Stay ARMED. After wake: autonomy 1–2s (not 45m)."
             };
         }
     }

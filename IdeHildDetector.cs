@@ -4,8 +4,9 @@ namespace CdpMcp;
 
 /// <summary>
 /// Human-in-the-loop detector (pure FSM).
-/// Voice/empty Composer + no text for <see cref="DefaultIdle"/> → edge <c>human_away</c> once per spell.
-/// Composer text / Send resets; Stop/Queue ends the spell.
+/// Voice/empty Composer + no text for <see cref="DefaultIdle"/> → edge <c>human_away</c> <b>once</b>.
+/// Latch holds until Composer text/Send (human returned) — no re-fire after agent Stop→Voice.
+/// Purpose: one AutoI wake → autonomous flight (not a 5s thrash loop).
 /// </summary>
 internal sealed class IdeHildDetector
 {
@@ -30,18 +31,25 @@ internal sealed class IdeHildDetector
     Status _status = Status.Idle;
     DateTimeOffset? _quietSince;
     string _lastText = "";
-    bool _firedThisSpell;
+    /// <summary>True after edge until human types — blocks plateau thrash.</summary>
+    bool _awayLatched;
 
     public Status Current => _status;
-    public bool FiredThisSpell => _firedThisSpell;
+    public bool AwayLatched => _awayLatched;
     public DateTimeOffset? QuietSince => _quietSince;
 
-    public void Reset()
+    public void ResetSpell()
     {
         _status = Status.Idle;
         _quietSince = null;
         _lastText = "";
-        _firedThisSpell = false;
+        // Keep _awayLatched across agent Stop/Queue.
+    }
+
+    public void Reset()
+    {
+        ResetSpell();
+        _awayLatched = false;
     }
 
     public TickResult Tick(Sample sample)
@@ -53,47 +61,46 @@ internal sealed class IdeHildDetector
         var kind = NormalizeKind(sample.ButtonKind);
         var text = NormalizeText(sample.InputText);
 
-        // Agent flying — not a human-hold window.
+        // Agent flying — end watch clocks; keep away latch.
         if (kind is "stop" or "queue")
         {
-            Reset();
+            ResetSpell();
             return new TickResult(Status.Idle, false, null);
         }
 
-        // Composer text is the primary presence signal (PM: more reliable than Voice alone).
+        // Human typed — clear latch; next leave may edge again.
         if (text.Length > 0 || kind == "send")
         {
             _lastText = text;
             _quietSince = sample.Now;
-            _firedThisSpell = false;
+            _awayLatched = false;
             _status = Status.HumanPresent;
             return new TickResult(Status.HumanPresent, false, TimeSpan.Zero);
         }
 
-        // Empty draft / Voice / mic idle — start or continue quiet watch.
         _lastText = text;
-        if (_status is not (Status.Watching or Status.HumanAway))
+
+        // Already woke for this absence — stay latched, no second shot.
+        if (_awayLatched)
+        {
+            _status = Status.HumanAway;
+            return new TickResult(Status.HumanAway, false, null);
+        }
+
+        if (_status is not Status.Watching)
         {
             _quietSince = sample.Now;
             _status = Status.Watching;
-            _firedThisSpell = false;
         }
         else if (_quietSince is null)
         {
             _quietSince = sample.Now;
-            _status = Status.Watching;
-        }
-
-        if (_firedThisSpell)
-        {
-            _status = Status.HumanAway;
-            return new TickResult(Status.HumanAway, false, sample.Now - _quietSince);
         }
 
         var quietFor = sample.Now - _quietSince!.Value;
         if (quietFor >= idle)
         {
-            _firedThisSpell = true;
+            _awayLatched = true;
             _status = Status.HumanAway;
             return new TickResult(Status.HumanAway, EdgeHumanAway: true, quietFor);
         }

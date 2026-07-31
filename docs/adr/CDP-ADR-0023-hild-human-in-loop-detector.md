@@ -26,7 +26,9 @@ Operator design (Intercom):
 2. Pure FSM `IdeHildDetector`: Voice/empty + no text for 5s → edge `human_away` **once per spell**; Composer text / Send resets; Stop/Queue ends the spell.
 3. On edge: `Notify(human_away)` for `when=human_away` arms + seed minimal AutoI wake (Intercom cannon pattern).
 4. Suppress seed wake while `await_operator` latch is active.
-5. Ops: `cdp_ignite op=hild|hild_on|hild_off`; scene includes `hild` slice.
+5. **Once-latch:** after edge, no re-fire until Composer text/Send (human returned). Agent Stop→Voice must not thrash.
+6. After HILD wake with no human exchange: continuity **1–2s** (or take task immediately) — not 45m idle timer.
+7. Ops: `cdp_ignite op=hild|hild_on|hild_off`; scene includes `hild` slice.
 
 ---
 
@@ -45,4 +47,4 @@ Mic/dictation as presence; Glass Intercom typing as presence; tunable idle witho
 
 ## Ship
 
-`IdeHildDetector` · `IdeIgniteArmHost.Hild` · Meta/domain · **0.5.320**
+`IdeHildDetector` · `IdeIgniteArmHost.Hild` · Meta/domain · **0.5.320** · cooldown **0.5.321**

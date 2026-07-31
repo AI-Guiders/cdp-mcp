@@ -24,6 +24,7 @@ public class IdeHildDetectorTests
         var r3 = d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(5), Idle));
         Assert.Equal(IdeHildDetector.Status.HumanAway, r3.Status);
         Assert.True(r3.EdgeHumanAway);
+        Assert.True(d.AwayLatched);
 
         var r4 = d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(10), Idle));
         Assert.Equal(IdeHildDetector.Status.HumanAway, r4.Status);
@@ -31,40 +32,45 @@ public class IdeHildDetectorTests
     }
 
     [Fact]
-    public void Composer_text_resets_watch()
+    public void Composer_text_resets_latch_for_next_leave()
     {
         var d = new IdeHildDetector();
         var t0 = DateTimeOffset.Parse("2026-07-31T06:00:00Z");
 
         d.Tick(new IdeHildDetector.Sample("voice", "", t0, Idle));
-        d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(4), Idle));
+        Assert.True(d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(5), Idle)).EdgeHumanAway);
 
-        var present = d.Tick(new IdeHildDetector.Sample("send", "hello", t0.AddSeconds(4.5), Idle));
+        var present = d.Tick(new IdeHildDetector.Sample("send", "hello", t0.AddSeconds(6), Idle));
         Assert.Equal(IdeHildDetector.Status.HumanPresent, present.Status);
-        Assert.False(present.EdgeHumanAway);
+        Assert.False(d.AwayLatched);
 
-        // Cleared back to Voice — new 5s spell.
-        var watch = d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(5), Idle));
-        Assert.Equal(IdeHildDetector.Status.Watching, watch.Status);
-
-        var early = d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(9), Idle));
-        Assert.False(early.EdgeHumanAway);
-
-        var edge = d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(10), Idle));
-        Assert.True(edge.EdgeHumanAway);
+        d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(7), Idle));
+        Assert.True(d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(12), Idle)).EdgeHumanAway);
     }
 
     [Fact]
-    public void Stop_resets_spell()
+    public void Stop_after_edge_does_not_refire()
     {
         var d = new IdeHildDetector();
         var t0 = DateTimeOffset.Parse("2026-07-31T06:00:00Z");
 
         d.Tick(new IdeHildDetector.Sample("voice", "", t0, Idle));
-        var stop = d.Tick(new IdeHildDetector.Sample("stop", "", t0.AddSeconds(2), Idle));
-        Assert.Equal(IdeHildDetector.Status.Idle, stop.Status);
+        Assert.True(d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(5), Idle)).EdgeHumanAway);
 
-        // After agent finishes → Voice again needs full idle.
+        d.Tick(new IdeHildDetector.Sample("stop", "", t0.AddSeconds(6), Idle));
+        d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(7), Idle));
+        Assert.False(d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(20), Idle)).EdgeHumanAway);
+        Assert.True(d.AwayLatched);
+    }
+
+    [Fact]
+    public void Stop_before_edge_allows_later_edge()
+    {
+        var d = new IdeHildDetector();
+        var t0 = DateTimeOffset.Parse("2026-07-31T06:00:00Z");
+
+        d.Tick(new IdeHildDetector.Sample("voice", "", t0, Idle));
+        d.Tick(new IdeHildDetector.Sample("stop", "", t0.AddSeconds(2), Idle));
         d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(3), Idle));
         Assert.False(d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(7), Idle)).EdgeHumanAway);
         Assert.True(d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(8), Idle)).EdgeHumanAway);
