@@ -3,8 +3,8 @@
 namespace CdpMcp;
 
 /// <summary>
-/// Cursor "Connection Problems" / Retry overlay — silent transport flake over Composer.
-/// AutoI clicks Retry so the turn can continue (not a playbook; harness organ).
+/// Cursor "Connection Problems" / Try again|Retry overlay — silent transport flake over Composer.
+/// AutoI clicks the retry affordance so the turn can continue (not a playbook; harness organ).
 /// </summary>
 internal static partial class IdeIgniteChannel
 {
