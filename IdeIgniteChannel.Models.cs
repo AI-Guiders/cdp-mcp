@@ -15,6 +15,8 @@ internal static partial class IdeIgniteChannel
         public string? ProviderBlockedText { get; set; }
         public string? StrayInputText { get; set; }
         public bool ComposerScoped { get; set; }
+        public bool ConnectionProblemsVisible { get; set; }
+        public string? ConnectionRetryLabel { get; set; }
     }
 
     sealed class ProviderBlockedProbe
@@ -22,6 +24,15 @@ internal static partial class IdeIgniteChannel
         public bool Blocked { get; set; }
         public string? Source { get; set; }
         public string? Text { get; set; }
+    }
+
+    sealed class ConnectionRetryResult
+    {
+        public bool Visible { get; set; }
+        public bool Clicked { get; set; }
+        public string? Error { get; set; }
+        public string? Context { get; set; }
+        public string? Label { get; set; }
     }
 
     sealed class InsertResult

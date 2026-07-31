@@ -120,6 +120,7 @@ internal static partial class IdeIgniteChannel
         for (var i = 0; i < 24; i++)
         {
             ct.ThrowIfCancellationRequested();
+            await TryDismissConnectionProblemsAsync(session, ct).ConfigureAwait(false);
             var st = await session.EvalStateAsync(ct).ConfigureAwait(false);
             if (st.ProviderBlocked)
             {
@@ -180,6 +181,7 @@ internal static partial class IdeIgniteChannel
         for (var i = 0; i < waitSec; i++)
         {
             ct.ThrowIfCancellationRequested();
+            await TryDismissConnectionProblemsAsync(session, ct).ConfigureAwait(false);
             var st = await session.EvalStateAsync(ct).ConfigureAwait(false);
             if (st.ProviderBlocked)
                 return st;
@@ -204,6 +206,7 @@ internal static partial class IdeIgniteChannel
         for (var i = 0; i < 40; i++)
         {
             ct.ThrowIfCancellationRequested();
+            await TryDismissConnectionProblemsAsync(session, ct).ConfigureAwait(false);
             var st = await session.EvalStateAsync(ct).ConfigureAwait(false);
             if (st.ProviderBlocked)
                 return ProviderBlockedResult("send", st, port, "pre_click");

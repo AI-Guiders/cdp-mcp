@@ -91,6 +91,8 @@ internal static partial class IdeIgniteArmHost
     {
         try
         {
+            // New ignition supersedes post-fire Connection Problems watch.
+            StopConnectionWatch();
             SetStatus(arm.Id, "firing", null);
             if (arm.SettleSeconds > 0)
                 await Task.Delay(TimeSpan.FromSeconds(arm.SettleSeconds), ct).ConfigureAwait(false);
@@ -163,6 +165,7 @@ internal static partial class IdeIgniteArmHost
         RecordSendEvidence(arm.Id, firedOk, firedOk ? null : (TryGetError(result) ?? "fire_failed"));
         if (firedOk)
         {
+            StartConnectionWatch(arm.Port);
             if (arm.LastOnce)
                 SetStatus(arm.Id, "awaiting", null, fired: DateTimeOffset.UtcNow);
             else if (arm.Once)
