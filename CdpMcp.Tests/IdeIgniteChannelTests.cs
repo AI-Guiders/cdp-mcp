@@ -63,6 +63,7 @@ public class IdeIgniteChannelTests
     {
         var charge = IdeIgniteChannel.ComposeOomWakeCharge();
         Assert.StartsWith(IdeIgniteChannel.OomWakeLead, charge, StringComparison.Ordinal);
+        Assert.Contains("reason=oom", charge, StringComparison.Ordinal);
         Assert.Contains("cdp_pressure op=recall", charge, StringComparison.Ordinal);
         Assert.True(IdeIgniteChannel.LooksLikeAutoIgnitionCharge(charge));
     }

@@ -37,7 +37,7 @@ internal static partial class IdeIgniteChannel
 
     /// <summary>Lead line after Cursor guest-host OOM / window terminate recovery.</summary>
     internal const string OomWakeLead =
-        "Cursor host OOM / window terminated — recovered. Habitat=CDP. Run cdp_pressure op=recall then resume.";
+        "reason=oom — Cursor host OOM / window terminated — recovered. Habitat=CDP. Run cdp_pressure op=recall then resume.";
 
     internal static string ComposeRemountInitializedCharge(string? projectRoot = null, string? focusHint = null)
     {
@@ -117,6 +117,7 @@ internal static partial class IdeIgniteChannel
         if (t.StartsWith(RemountInitializedLead, StringComparison.Ordinal))
             return true;
         if (t.StartsWith(OomWakeLead, StringComparison.Ordinal)
+            || t.StartsWith("reason=oom", StringComparison.OrdinalIgnoreCase)
             || t.Contains("Cursor host OOM", StringComparison.Ordinal))
             return true;
         if (t.StartsWith("Tool call still running past wake threshold:", StringComparison.Ordinal))

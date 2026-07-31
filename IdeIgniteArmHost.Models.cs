@@ -11,6 +11,7 @@ internal static partial class IdeIgniteArmHost
         @event = a.Event,
         status = a.Status,
         task = a.Task,
+        reason = a.Reason,
         charge_mode = a.ChargeMode,
         message = a.Message.Length > 160 ? a.Message[..160] + "…" : a.Message,
         chat = a.Chat,
@@ -39,6 +40,7 @@ internal static partial class IdeIgniteArmHost
         Message = a.Message,
         ChargeMode = a.ChargeMode,
         Task = a.Task,
+        Reason = a.Reason,
         Chat = a.Chat,
         Port = a.Port,
         Once = a.Once,
@@ -135,6 +137,8 @@ internal static partial class IdeIgniteArmHost
         /// <summary>minimal (default): fire canonical wake charge; custom/expand/legacy: stored message templates (discouraged).</summary>
         public string ChargeMode { get; set; } = "minimal";
         public string? Task { get; set; }
+        /// <summary>Wake provenance for agent (e.g. oom) — not TM body.</summary>
+        public string? Reason { get; set; }
         public string? Chat { get; set; }
         public int Port { get; set; } = IdeIgniteChannel.DefaultPort;
         public bool Once { get; set; } = true;

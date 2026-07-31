@@ -11,6 +11,8 @@ internal static class IdeOomWake
     public const string ArmIdPrefix = "oom-wake-";
     public const string ArmTask = "cursor-oom-recovered";
     public const string ChargeMode = "oom";
+    /// <summary>Machine-readable wake reason for agent (composer + arm SSOT).</summary>
+    public const string Reason = "oom";
 
     /// <summary>Settle after CDT returns before Composer inject.</summary>
     public static int DefaultDueSeconds { get; set; } = 8;

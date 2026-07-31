@@ -243,7 +243,23 @@ internal static partial class IdeIgniteArmHost
         }
 
         // Default wake (Intercom cannon pattern) — minimal charge.
+        // Skip when OOM wake already owns recovery (else agent sees HILD, not reason=oom).
+        if (HasArmedOomWake())
+        {
+            Console.Error.WriteLine("[ide_ignite] hild wake suppressed — oom-wake armed");
+            return;
+        }
+
         SeedHildWake();
+    }
+
+    static bool HasArmedOomWake()
+    {
+        EnsureLoaded();
+        lock (Gate)
+            return Arms.Any(a =>
+                a.Id.StartsWith(IdeOomWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
+                && a.Status is "armed" or "firing");
     }
 
     static bool HasAwaitingOperatorLatch()
