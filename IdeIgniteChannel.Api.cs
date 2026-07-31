@@ -48,6 +48,12 @@ internal static partial class IdeIgniteChannel
                     IdeIgniteArmHost.Plateau(),
                 "await_operator" or "await" or "epic_closed" =>
                     IdeIgniteArmHost.AwaitOperator(args),
+                "autonomous" or "continuity_mode" =>
+                    IdeIgniteArmHost.Autonomous(args),
+                "autonomous_on" =>
+                    IdeIgniteArmHost.SetAutonomous(true, "op=autonomous_on"),
+                "autonomous_off" =>
+                    IdeIgniteArmHost.SetAutonomous(false, "op=autonomous_off"),
                 "continuity" or "pulse" =>
                     IdeIgniteArmHost.Continuity(),
                 "resume" or "clear_await" or "unawait" =>

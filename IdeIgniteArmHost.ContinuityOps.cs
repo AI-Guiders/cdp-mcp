@@ -196,6 +196,7 @@ internal static partial class IdeIgniteArmHost
             new_thread_required = providerBlocked.Count > 0,
             error = errors,
             await_operator = awaiting.Count > 0,
+            autonomous = IsAutonomousArmed(),
             await_arm = awaiting.Select(Slim).FirstOrDefault(),
             blocked_arm = providerBlocked.Select(Slim).FirstOrDefault(),
             next_due = next,
@@ -212,6 +213,7 @@ internal static partial class IdeIgniteArmHost
         var awaiting = list.Count(a => a.Status == "awaiting");
         if (awaiting > 0)
             return $"ignite · continuity · awaiting_operator · latch={awaiting}";
+        var auto = IsAutonomousArmed() ? " · autonomous" : "";
         var armed = list.Count(a => a.Status is "armed" or "firing");
         var err = list.Count(a => a.Status == "error");
         var next = list
@@ -220,7 +222,7 @@ internal static partial class IdeIgniteArmHost
             .FirstOrDefault();
         var due = next?.DueUtc is { } d ? $" · next {d:HH:mm:ss}Z" : "";
         var noise = err > 0 ? $" · stale={err}" : "";
-        return $"ignite · continuity · armed={armed}{noise}{due}";
+        return $"ignite · continuity · armed={armed}{auto}{noise}{due}";
     }
 
     /// <summary>Mirror AutoIgnition continuity to flat CIDE chrome latch (not EICAS).</summary>
