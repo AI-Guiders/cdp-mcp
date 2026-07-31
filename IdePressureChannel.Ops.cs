@@ -11,7 +11,8 @@ internal static partial class IdePressureChannel
     {
         var doc = Load();
         var armed = doc?.Armed == true;
-        var lines = ChecklistLines(session, doc);
+        var memoCount = CountMemos();
+        var lines = ChecklistLines(session, doc, memoCount);
         return new
         {
             ok = true,
@@ -22,13 +23,15 @@ internal static partial class IdePressureChannel
             pulse = PulseLine(),
             armed,
             stash_path = FilePath,
+            memo_path = MemoPath,
+            memo_count = memoCount,
             has_stash = doc?.Body is { Length: > 0 },
             explain = IdeExplainability.ToObject(Explain(doc)),
             view = new { schema = SchemaVersion, lines },
-            next = SceneNext(armed, doc),
+            next = SceneNext(armed, doc, memoCount),
             hint = armed
                 ? "L1 armed — fill stash (body=) then keep flying in CDP; re-ARM ignite before end turn. Do not offer export ritual."
-                : "On L1 pressure notify: op=arm → checklist → op=stash body=. Habitat=CDP (buffer/cockpit/ignite), not Cursor Write."
+                : "On L1 pressure notify: op=arm → checklist → op=stash body= (also appends memo line). Habitat=CDP, not Cursor Write."
         };
     }
 
@@ -55,8 +58,8 @@ internal static partial class IdePressureChannel
             armed = true,
             why,
             explain = IdeExplainability.ToObject(Explain(doc)),
-            view = new { schema = SchemaVersion, lines = ChecklistLines(session, doc) },
-            next = SceneNext(true, doc),
+            view = new { schema = SchemaVersion, lines = ChecklistLines(session, doc, CountMemos()) },
+            next = SceneNext(true, doc, CountMemos()),
             hint = "Armed. Stash invariants now (AutoIgnition / Task Manager / CDP / Domain). Slim desk shows pressure pulse until clear."
         };
     }
@@ -90,17 +93,16 @@ internal static partial class IdePressureChannel
         doc.IgniteNote = Opt(args, "ignite") ?? doc.IgniteNote;
         doc.PlanNote = Opt(args, "plan") ?? doc.PlanNote;
         Save(doc);
+        var mdPath = WriteLatestMd(doc);
 
-        // Also write human-readable LATEST.md beside JSON for recall without tool.
-        var mdPath = Path.Combine(Path.GetDirectoryName(FilePath)!, "pressure-LATEST.md");
-        try
-        {
-            File.WriteAllText(mdPath, RenderMd(doc), Encoding.UTF8);
-        }
-        catch
-        {
-            /* best-effort */
-        }
+        // Anti-compaction: hot stash also appends agent memo line (konspekt archive).
+        var memo = AppendMemo(
+            session,
+            doc.Body!,
+            kind: "stash",
+            why: doc.Why,
+            ignite: doc.IgniteNote,
+            plan: doc.PlanNote);
 
         return new
         {
@@ -113,16 +115,19 @@ internal static partial class IdePressureChannel
             armed = true,
             stash_path = FilePath,
             md_path = mdPath,
+            memo_id = memo.Id,
+            memo_path = MemoPath,
             chars = doc.Body.Length,
             explain = IdeExplainability.ToObject(Explain(doc)),
             next = new object[]
             {
                 new { go = GoName, label = "Scene", why = "op=scene" },
+                new { go = GoName, label = "Memo line", why = "op=line limit=5" },
                 new { go = "ignite_desk", label = "Re-ARM ignite", why = "op=arm when=timer in=1s — keep autonomy" },
                 new { go = "plan", label = "Task Manager", why = "confirm focus survived" },
                 new { go = GoName, label = "Clear when compact done", why = "op=clear" }
             },
-            hint = "Stashed durable. Keep work in CDP; re-ARM AutoIgnition before ending turn."
+            hint = "Stashed durable + appended memo line. Keep work in CDP; re-ARM AutoIgnition before ending turn."
         };
     }
 
@@ -139,7 +144,19 @@ internal static partial class IdePressureChannel
         doc.IgniteNote = igniteNote ?? doc.IgniteNote;
         doc.PlanNote = planNote ?? doc.PlanNote;
         Save(doc);
+        WriteLatestMd(doc);
 
+        AppendMemo(
+            session: null,
+            body: doc.Body!,
+            kind: "ignite_handoff",
+            why: doc.Why,
+            ignite: doc.IgniteNote,
+            plan: doc.PlanNote);
+    }
+
+    static string WriteLatestMd(PressureDoc doc)
+    {
         var mdPath = Path.Combine(Path.GetDirectoryName(FilePath)!, "pressure-LATEST.md");
         try
         {
@@ -149,5 +166,7 @@ internal static partial class IdePressureChannel
         {
             /* best-effort */
         }
+
+        return mdPath;
     }
 }

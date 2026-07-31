@@ -1,5 +1,4 @@
 #nullable enable
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Cdp.Core;
@@ -10,8 +9,9 @@ namespace CdpMcp;
 /// Soft organ <c>go=pressure</c> / Meta <c>cdp_pressure</c> — L1 pre-compact prep desk.
 /// When Cursor injects pressure notify (~2–3 turns before summarization): arm → checklist → stash.
 /// Does NOT auto-offer export ritual to operator. Durable stash survives remount.
+/// Memo line (<c>op=memo|line</c>): append-only agent konspekt — anti-compaction beyond last-wins stash.
 /// Must-remember axes: AutoIgnition re-ARM, Task Manager focus, CDP habitat, Domain cards.
-/// Partials: Persist (load/save/md), Ops (scene/arm/stash), View (checklist/recall/clear).
+/// Partials: Persist (load/save/md), Ops (scene/arm/stash), Memo (memo/line), View (checklist/recall/clear).
 /// </summary>
 internal static partial class IdePressureChannel
 {
@@ -47,6 +47,8 @@ internal static partial class IdePressureChannel
         {
             "arm" or "armed" or "l1" => Arm(session, args),
             "stash" or "write" or "save" => Stash(session, args),
+            "memo" or "append" or "note" => Memo(session, args),
+            "line" or "history" or "tail" => Line(args),
             "clear" or "disarm" or "done" => Clear(),
             "recall" or "load" or "peek" => Recall(),
             _ => Scene(session)

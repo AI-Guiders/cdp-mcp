@@ -12,14 +12,15 @@ internal static partial class IdeIgniteChannel
         "Resume the current authorized local development task from Task Manager. Habitat=CDP. Verify the result and re-arm when idle.";
 
     /// <summary>
-    /// Honest compaction hint — host may summarize without warning; pairs with cdp_pressure stash.
+    /// Honest compaction hint — host may summarize without warning; pairs with cdp_pressure stash + memo line.
     /// </summary>
     internal const string ChargeAmnesiaPostfix =
         """
 
         ---
         If you feel completely lost / thread amnesia: compaction likely happened.
-        Restore: cdp_pressure op=recall (also %LocalAppData%/cdp-mcp/pressure-LATEST.md)
+        Restore: cdp_pressure op=recall (hot stash) · op=line (memo history).
+        Also: %LocalAppData%/cdp-mcp/…/pressure-LATEST.md · pressure-memo-LATEST.md
         Then: habitat=CDP; re-read pressure axes (AutoIgnition / Task Manager / Domain / next).
         """;
 
