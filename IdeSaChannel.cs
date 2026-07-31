@@ -49,6 +49,8 @@ internal static class IdeSaChannel
                     (dirtyHit is not null ? $" · dirty:{dirtyHit.Risk}" : "") +
                     (clones is { Groups: > 0 } ? $" · clones:{clones.Groups}" : "");
 
+        PublishGlass(pulse, verdict, gates);
+
         var next = BuildNext(locus, scope, verdict);
 
         if (depth == "full")
@@ -110,6 +112,7 @@ internal static class IdeSaChannel
         var dirtyHit = FindDirtyForLocus(dirty, locus.Path, session.ProjectRoot);
         var (verdict, why) = Decide(gates, dirtyHit, clones: null);
         var pulse = $"sa_desk · {verdict} · {gates.Warn}w/{gates.Fail}f";
+        PublishGlass(pulse, verdict, gates);
         return new
         {
             ok = true,
@@ -126,6 +129,22 @@ internal static class IdeSaChannel
             next = BuildNext(locus, scope, verdict),
             hint = "depth=slim for findings."
         };
+    }
+
+    /// <summary>Quiet chrome for CIDE — not EICAS. Clean leave clears the band.</summary>
+    static void PublishGlass(string pulse, string verdict, GatesSnap gates)
+    {
+        try
+        {
+            var leaveClean = string.Equals(verdict, "leave", StringComparison.OrdinalIgnoreCase)
+                && gates.Warn == 0
+                && gates.Fail == 0;
+            CideSaDeskLatch.Publish(active: !leaveClean, pulse, verdict);
+        }
+        catch
+        {
+            /* best-effort */
+        }
     }
 
     static GatesSnap RunGates(
