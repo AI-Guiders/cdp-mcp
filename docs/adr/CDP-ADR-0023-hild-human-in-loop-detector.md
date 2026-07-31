@@ -23,7 +23,7 @@ Operator design (Intercom):
 ## Decision
 
 1. Always-on HILD watch (default ARMED) polls CDT Composer once per second.
-2. Pure FSM `IdeHildDetector`: Voice/empty + no text for 5s → edge `human_away` **once per spell**; Composer text / Send resets; Stop/Queue ends the spell.
+2. Pure FSM `IdeHildDetector`: Voice/empty + no text for 5s → edge `human_away` **once**; latch until **human** Composer text (AutoIgnition wake charge ignored — else Stop→Voice thrash); Stop/Queue ends the watch clocks only.
 3. On edge: `Notify(human_away)` for `when=human_away` arms + seed minimal AutoI wake (Intercom cannon pattern).
 4. Suppress seed wake while `await_operator` latch is active.
 5. **Once-latch:** after edge, no re-fire until Composer text/Send (human returned). Agent Stop→Voice must not thrash.
@@ -47,4 +47,4 @@ Mic/dictation as presence; Glass Intercom typing as presence; tunable idle witho
 
 ## Ship
 
-`IdeHildDetector` · `IdeIgniteArmHost.Hild` · Meta/domain · **0.5.320** · cooldown **0.5.321**
+`IdeHildDetector` · `IdeIgniteArmHost.Hild` · Meta/domain · **0.5.320** · once-latch **0.5.321** · charge-ignore latch **0.5.322**

@@ -70,4 +70,24 @@ internal static partial class IdeIgniteChannel
         t = t.Replace("powershell", "pwsh", StringComparison.OrdinalIgnoreCase);
         return ShellWord.Replace(t, "terminal");
     }
+
+    /// <summary>
+    /// True when Composer text is an AutoIgnition wake charge — not human return.
+    /// HILD must not clear away-latch on these (else Stop→Voice thrash).
+    /// </summary>
+    internal static bool LooksLikeAutoIgnitionCharge(string? text)
+    {
+        var t = (text ?? "").Replace('\u00a0', ' ').Trim();
+        if (t.Length == 0)
+            return false;
+
+        if (t.Contains(CanonicalComposerCharge, StringComparison.Ordinal))
+            return true;
+        if (t.StartsWith(RemountInitializedLead, StringComparison.Ordinal))
+            return true;
+        if (t.StartsWith("Tool call still running past wake threshold:", StringComparison.Ordinal))
+            return true;
+
+        return false;
+    }
 }

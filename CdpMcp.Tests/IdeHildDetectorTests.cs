@@ -64,6 +64,27 @@ public class IdeHildDetectorTests
     }
 
     [Fact]
+    public void AutoIgnition_charge_text_does_not_clear_latch()
+    {
+        var d = new IdeHildDetector();
+        var t0 = DateTimeOffset.Parse("2026-07-31T06:00:00Z");
+
+        d.Tick(new IdeHildDetector.Sample("voice", "", t0, Idle));
+        Assert.True(d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(5), Idle)).EdgeHumanAway);
+
+        var charge = IdeIgniteChannel.ComposeArmFireCharge();
+        var inject = d.Tick(new IdeHildDetector.Sample("send", charge, t0.AddSeconds(6), Idle));
+        Assert.Equal(IdeHildDetector.Status.HumanAway, inject.Status);
+        Assert.True(d.AwayLatched);
+        Assert.False(inject.EdgeHumanAway);
+
+        d.Tick(new IdeHildDetector.Sample("stop", "", t0.AddSeconds(7), Idle));
+        d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(8), Idle));
+        Assert.False(d.Tick(new IdeHildDetector.Sample("voice", "", t0.AddSeconds(20), Idle)).EdgeHumanAway);
+        Assert.True(d.AwayLatched);
+    }
+
+    [Fact]
     public void Stop_before_edge_allows_later_edge()
     {
         var d = new IdeHildDetector();
