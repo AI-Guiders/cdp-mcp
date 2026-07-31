@@ -13,6 +13,7 @@
 - **Autonomous Continuity:** empty TM / unknown next ≠ stop. Investigate, seed leaf, build domain/tools/KB, use internet — ~99% without operator. `await_operator` only on explicit operator stop or hard human gate (secrets/money/irreversible/harm).
 - Auto-`LeafPlateau` latch under overnight/autonomous armed is a **bug relative to contract** — clear with `op=resume`, seed, re-ARM; do not celebrate wait.
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
+- HILD (default ARMED): Voice/empty Composer + no text for 5s → `human_away` once → AutoI; text resets; suppress wake under `await_operator`.
 - After successful fire: watch Cursor for "Connection Problems" / Try again|Retry overlay until next fire; auto-click (not Idle-only).
 - After successful fire: also Win32-click Electron stall dialog "The window is not responding" → **Keep Waiting** (not OS hung dialog; not CDT).
 
@@ -39,4 +40,5 @@
 - 0.5.315: Connection Problems Retry watch after fire + dismiss during idle/send waits
 - 0.5.316: Electron stall dialog Keep Waiting (Win32) in same post-fire watch
 - 0.5.317: Connection Problems button label = Try again (was Retry-only match)
+- 0.5.320: HILD — Composer idle 5s on Voice → human_away once → AutoI (op=hild)
 

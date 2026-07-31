@@ -95,7 +95,7 @@ internal static partial class IdeIgniteArmHost
         return false;
     }
 
-    public static string NormalizeEvent(string? raw)
+        public static string NormalizeEvent(string? raw)
     {
         var e = (raw ?? "").Trim().ToLowerInvariant().Replace('-', '_').Replace(' ', '_');
         return e switch
@@ -103,12 +103,14 @@ internal static partial class IdeIgniteArmHost
             "build" or "build_done" or "build_ok" or "build_finished" or "on_build" => "build_finished",
             "test" or "tests" or "test_done" or "test_finished" or "on_test" => "test_finished",
             "shell" or "shell_done" or "shell_finished" or "on_shell" => "shell_finished",
+            "hild" or "human_away" or "hitl" or "human_idle" or "away" => "human_away",
             "time" or "delay" or "sleep" or "timer" or "in" => "timer",
             "manual" or "now" or "fire" => "manual",
             _ when e.Length == 0 => "timer",
             _ => e
         };
     }
+
 
     public static bool TryParseDuration(string raw, out TimeSpan span)
     {

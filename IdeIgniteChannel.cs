@@ -31,7 +31,7 @@ internal static partial class IdeIgniteChannel
     internal static bool IsProviderBlockedError(string? error) =>
         string.Equals(error, ProviderBlockedError, StringComparison.Ordinal);
 
-    static string AriaKind(string? aria)
+            internal static string AriaKind(string? aria)
     {
         var a = (aria ?? "").Trim().ToLowerInvariant();
         if (a.Contains("stop")) return "stop";
@@ -41,6 +41,26 @@ internal static partial class IdeIgniteChannel
         if (a.Length == 0) return "empty";
         return "other";
     }
+
+
+    /// <summary>HILD / watches — soft CDT sample without throwing.</summary>
+    internal static async Task<(bool Ok, string Kind, string? Text)> TrySampleComposerAsync(
+        int port, CancellationToken ct)
+    {
+        try
+        {
+            await using var session = await CdtSession.ConnectPageAsync(port, ct).ConfigureAwait(false);
+            var state = await session.EvalStateAsync(ct).ConfigureAwait(false);
+            if (!state.ComposerScoped)
+                return (false, "no_composer", state.InputText);
+            return (true, AriaKind(state.SubmitAria), state.InputText);
+        }
+        catch
+        {
+            return (false, "down", null);
+        }
+    }
+
 
     static async Task<JsonElement> GetJsonAsync(int port, string path, CancellationToken ct)
     {
