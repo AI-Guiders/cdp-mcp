@@ -51,6 +51,10 @@ internal static partial class IdePressureChannel
             "line" or "history" or "tail" => Line(args),
             "clear" or "disarm" or "done" => Clear(),
             "recall" or "load" or "peek" => Recall(),
+            "reconcile" or "recon" or "steer" => AdvanceGate(session, args, GateReconcile),
+            "align" or "aligned" => AdvanceGate(session, args, GateAlign),
+            "ready" or "gate_ready" => AdvanceGate(session, args, GateReady),
+            "gate" => AdvanceGate(session, args, Opt(args, "to") ?? Opt(args, "status") ?? Opt(args, "gate") ?? ""),
             _ => Scene(session)
         };
     }
@@ -94,7 +98,9 @@ internal static partial class IdePressureChannel
         if (doc is null || !doc.Armed)
             return "pressure · idle";
         var stash = doc.Body is { Length: > 0 } ? " · stashed" : " · need stash";
-        return $"pressure · ARMED{stash}";
+        var gate = NormalizeGate(doc.RecallGate);
+        var gatePart = gate is { Length: > 0 } ? $" · recall·{gate}" : "";
+        return $"pressure · ARMED{stash}{gatePart}";
     }
 
     public static object? PulseCardOrNull()
@@ -141,6 +147,31 @@ internal static partial class IdePressureChannel
                 "need_stash",
                 "L1 armed but stash empty — durable axes not written yet",
                 "cdp_pressure op=stash body=");
+        }
+
+        var gate = NormalizeGate(doc.RecallGate);
+        if (gate is { Length: > 0 } and not GateReady)
+        {
+            return IdeExplainability.New(
+                "pressure.recall_gate",
+                $"recall_{gate}",
+                gate switch
+                {
+                    GatePull => "Recall pull — compare memo vs priority; self-steer when SSOT suffices (internal locus)",
+                    GateReconcile => "Recall reconcile — decision in progress; persist Domain/TM then align",
+                    GateAlign => "Recall align — corrections should be durable; mark ready to leave recall",
+                    _ => "Recall gate in progress"
+                },
+                NextGateOp(gate));
+        }
+
+        if (gate == GateReady)
+        {
+            return IdeExplainability.New(
+                "pressure.recall_gate",
+                "recall_ready",
+                "Recall gate green — explore/plan/act allowed; clear when L1 done",
+                NextGateOp(GateReady));
         }
 
         return IdeExplainability.New(

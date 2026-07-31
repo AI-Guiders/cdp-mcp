@@ -26,6 +26,7 @@ internal static partial class IdePressureChannel
             memo_path = MemoPath,
             memo_count = memoCount,
             has_stash = doc?.Body is { Length: > 0 },
+            recall_gate = NormalizeGate(doc?.RecallGate),
             explain = IdeExplainability.ToObject(Explain(doc)),
             view = new { schema = SchemaVersion, lines },
             next = SceneNext(armed, doc, memoCount),

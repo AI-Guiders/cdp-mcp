@@ -26,13 +26,30 @@ internal static partial class IdePressureChannel
                 ? "4 Domain — stamp/recall cards (.cdp/domain); dig before ask"
                 : "4 Domain — seed .cdp/domain cards; stamp after ship; dig before ask",
             "5 Invariants / decisions / open / next — into stash body (+ memo line)",
+            GateChecklistLine(doc),
             $"· session {session.Phase}/{session.Object} · root={(session.ProjectRoot is { Length: > 0 } ? Path.GetFileName(session.ProjectRoot) : "—")}"
         ];
+    }
+
+    static string GateChecklistLine(PressureDoc? doc)
+    {
+        var gate = NormalizeGate(doc?.RecallGate);
+        return gate switch
+        {
+            GatePull => "* recall gate · pull — next op=reconcile (self-steer)",
+            GateReconcile => "* recall gate · reconcile — next op=align",
+            GateAlign => "* recall gate · align — next op=ready",
+            GateReady => "* recall gate · ready — exit to explore/plan/act",
+            _ => "· recall gate idle — op=recall enters pull (wake/L1/cold)"
+        };
     }
 
     static object[] SceneNext(bool armed, PressureDoc? doc, int memoCount = 0)
     {
         var list = new List<object>();
+        var gate = NormalizeGate(doc?.RecallGate);
+        if (gate is { Length: > 0 })
+            list.AddRange(GateSceneNext(gate));
         if (!armed)
             list.Add(new { go = GoName, label = "Arm L1", why = "op=arm" });
         else if (doc?.Body is not { Length: > 0 })
@@ -41,7 +58,7 @@ internal static partial class IdePressureChannel
         list.Add(new { go = "ignite_desk", label = "AutoIgnition", why = "op=arm when=timer in=1s" });
         list.Add(new { go = "plan", label = "Task Manager", why = "focus / next task" });
         list.Add(new { go = GoName, label = "Domain axis", why = "stash Domain + .cdp/domain pulse" });
-        if (doc?.Body is { Length: > 0 })
+        if (doc?.Body is { Length: > 0 } && gate is null)
             list.Add(new { go = GoName, label = "Recall stash", why = "op=recall" });
         if (armed)
             list.Add(new { go = GoName, label = "Clear", why = "op=clear after compact" });
@@ -53,6 +70,9 @@ internal static partial class IdePressureChannel
         var doc = Load() ?? new PressureDoc();
         doc.Armed = false;
         doc.ClearedUtc = DateTime.UtcNow.ToString("o");
+        doc.RecallGate = null;
+        doc.RecallGateUtc = null;
+        doc.RecallGateNote = null;
         // Keep last body for recall until overwritten.
         Save(doc);
         return new
@@ -85,11 +105,16 @@ internal static partial class IdePressureChannel
                 op = "recall",
                 pulse = "pressure · idle",
                 empty = true,
+                recall_gate = (string?)null,
                 memo_count = CountMemos(),
                 explain = IdeExplainability.ToObject(Explain(null)),
                 hint = "No hot stash — try op=line for memo history."
             };
         }
+
+        doc.RecallGate = GatePull;
+        doc.RecallGateUtc = DateTime.UtcNow.ToString("o");
+        Save(doc);
 
         return new
         {
@@ -109,13 +134,11 @@ internal static partial class IdePressureChannel
             plan = doc.PlanNote,
             armed_utc = doc.ArmedUtc,
             stash_utc = doc.StashUtc,
+            recall_gate = GatePull,
             memo_count = CountMemos(),
             explain = IdeExplainability.ToObject(Explain(doc)),
-            next = new object[]
-            {
-                new { go = GoName, label = "Memo line", why = "op=line limit=5" }
-            },
-            hint = "Hot stash — use after host summarization. For history beyond last-wins: op=line."
+            next = GateSceneNext(GatePull),
+            hint = "Recall pull — reconcile next: compare memo vs priority; self-steer when SSOT suffices. op=line for history."
         };
     }
 }
