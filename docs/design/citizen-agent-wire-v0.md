@@ -1,8 +1,8 @@
 # Citizen agent wire v0 — system + frame (draft)
 
-**Status:** draft (conversation 2026-07-30 · Glass / habitat)  
+**Status:** design + **CDP-ADR-0028** (accepted; host injection path open)  
 **Audience:** future in-habitat completions host (CDP citizen), not Cursor-guest MCP.  
-**Related:** [dark-cockpit-agent-v1.md](./dark-cockpit-agent-v1.md) · [CDP-ADR-0020](../adr/CDP-ADR-0020-desk-vs-organ-path.md) · [CDP-ADR-0025](../adr/CDP-ADR-0025-citizen-guest-isolation.md) · [CDP-ADR-0026](../adr/CDP-ADR-0026-citizen-ai-keys-foundation.md) · CIDE ADR 0021 (W/C/A)
+**Related:** [dark-cockpit-agent-v1.md](./dark-cockpit-agent-v1.md) · [CDP-ADR-0020](../adr/CDP-ADR-0020-desk-vs-organ-path.md) · [CDP-ADR-0025](../adr/CDP-ADR-0025-citizen-guest-isolation.md) · [CDP-ADR-0026](../adr/CDP-ADR-0026-citizen-ai-keys-foundation.md) · [CDP-ADR-0028](../adr/CDP-ADR-0028-citizen-agent-wire.md) · CIDE ADR 0021 (W/C/A)
 
 ---
 
@@ -193,7 +193,7 @@ Do not invent a second SSOT: citizen wire should **project** the same Dark Cockp
 3. When chat/completions land in habitat — system prompt above as default citizen persona.
 4. ~~Enforce CDP-ADR-0025 isolation (dual seat ignite/pressure) before enabling citizen Autoi.~~ **done** (ignite/HILD seat files already; pressure under `StateRoot/{seat}/`, 0.5.330)
 5. ~~Citizen host loads keys per CDP-ADR-0026 (`ai-keys.toml`).~~ **done** (`CitizenAiKeys`, 0.5.329 — in-proc loader; unused until completions host).
-6. Promote to ADR when fixtures + one host path exist.
+6. ~~Promote to ADR when fixtures + one host path exist.~~ **done as contract** — [CDP-ADR-0028](../adr/CDP-ADR-0028-citizen-agent-wire.md) (fixtures+parser shipped; **host injection still open**).
 
 ---
 
