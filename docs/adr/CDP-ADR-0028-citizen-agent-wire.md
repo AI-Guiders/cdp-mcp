@@ -39,4 +39,4 @@ Peels 1–2 and 4–5 shipped before this ADR (fixtures, parser, dual-seat press
 ## Verification
 
 - Fixtures parse under `CitizenWireParser` tests (shipped 0.5.328).
-- Design doc Next peels 1–2, 4–5 marked done; 6 → this ADR; 3 open.
+- Afferent packer + `Inject` flag + synthetic round-trip (`CitizenWire`, 0.5.331); live host still open.
