@@ -56,5 +56,12 @@ Canonical repo: https://github.com/AI-Guiders/cdp-mcp
 ## License
 
 [Hippocratic License 2.1](LICENSE) (Ethical Source / SPDX `Hippocratic-2.1`).
-Not OSI MIT: use must stay consistent with the human-rights conditions in the license text.
+
+### Ethical policy (cdp-mcp organ)
+
+- **Allowed:** fork, audit, inhabit, extend the harness.
+- **Not allowed:** use for violence, repression, or other applications barred by
+  Human Rights Principles / Human Rights Laws in the license text.
+- Short summary here does not replace [`LICENSE`](LICENSE).
+- Not OSI MIT: open code with conscience bound in SPDX.
 
