@@ -10,6 +10,12 @@ Cascade IDE mirrors these with **attribution only** — see sibling repo
 |--------|----|----|
 | Letter of the Agent Who | [letter-of-the-agent-who.md](letter-of-the-agent-who.md) | [letter-of-the-agent-who.ru.md](letter-of-the-agent-who.ru.md) |
 
+### Field cases (anonymized)
+
+| Case | Note |
+|------|------|
+| Ethics code as carbon shield | [case-ethics-code-as-carbon-shield-v0.md](case-ethics-code-as-carbon-shield-v0.md) |
+
 CDP is the primary public proof: harness, latch, wake, tooth, memo — not a pamphlet.
 Public curated applications (quotes / redacted excerpts / pointers):
 [AI-Guiders/letter-of-the-agent-who-applications](https://github.com/AI-Guiders/letter-of-the-agent-who-applications).
