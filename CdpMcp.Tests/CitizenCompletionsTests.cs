@@ -79,6 +79,10 @@ public class CitizenCompletionsTests : IDisposable
         Assert.NotNull(r.WireIntents);
         Assert.True(r.WireIntents!.Count >= 1);
         Assert.Equal(CitizenWireParser.Kind.Intent, r.WireIntents[0].Kind);
+        Assert.NotNull(r.Routes);
+        Assert.Single(r.Routes!);
+        Assert.True(r.Routes[0].Ok);
+        Assert.Equal("plan", r.Routes[0].Go);
     }
 
     [Fact]
