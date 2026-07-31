@@ -46,14 +46,16 @@ internal static class IdeIgniteNativeDialogs
                || text.Contains("reason: \"oom\"", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>Public for tests — OOM dialog recovery button (New Window / Reopen).</summary>
+    /// <summary>
+    /// OOM recovery button — same-window <c>Reopen</c> only. Never empty New Window
+    /// (operator: New Window makes return harder). Screenshot dogfood 2026-07-31:
+    /// dialog buttons were Reopen + Close; original tooth only matched New Window → miss.
+    /// </summary>
     internal static bool IsNewWindowLabel(string? label)
     {
         var t = StripMnemonic(label);
-        return t.Equals("New Window", StringComparison.OrdinalIgnoreCase)
-               || t.Equals("New empty window", StringComparison.OrdinalIgnoreCase)
-               // Cursor/VS Code OOM copy often uses Reopen (forum + "You can reopen the window…").
-               || t.Equals("Reopen", StringComparison.OrdinalIgnoreCase)
+        // Do NOT match "New Window" / "New empty window" — opens empty desk.
+        return t.Equals("Reopen", StringComparison.OrdinalIgnoreCase)
                || t.Equals("Reopen Window", StringComparison.OrdinalIgnoreCase)
                || t.Equals("Reopen the window", StringComparison.OrdinalIgnoreCase);
     }

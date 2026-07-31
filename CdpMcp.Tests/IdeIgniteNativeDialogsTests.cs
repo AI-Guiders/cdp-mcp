@@ -31,9 +31,9 @@ public class IdeIgniteNativeDialogsTests
         Assert.Equal(expect, IdeIgniteNativeDialogs.IsKeepWaitingLabel(label));
 
     [Theory]
-    [InlineData("New Window", true)]
-    [InlineData("&New Window", true)]
-    [InlineData("New empty window", true)]
+    [InlineData("New Window", false)]
+    [InlineData("&New Window", false)]
+    [InlineData("New empty window", false)]
     [InlineData("Reopen", true)]
     [InlineData("&Reopen", true)]
     [InlineData("Reopen Window", true)]
