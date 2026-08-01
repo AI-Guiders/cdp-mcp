@@ -100,14 +100,17 @@ internal static partial class IdeIgniteArmHost
 
         Interlocked.Increment(ref OomNewWindowClicks);
         Interlocked.Exchange(ref OomDialogLastClickTicks, DateTime.UtcNow.Ticks);
+        IdeTeethTape.Record("oom_dialog", detail: "reopen_clicked");
         // Treat dialog as hard evidence of host death — force down edge so Up→wake fires after recover.
         CdtWasUp = false;
         CdtDownSinceUtc ??= DateTimeOffset.UtcNow;
         // Arm OOM wake immediately (reason=oom) so remount-empty HILD cannot steal with minimal Resume.
-        if (TryScheduleOomWake() is not null)
+        if (TryScheduleOomWake() is { } scheduled)
         {
             Interlocked.Increment(ref OomWakeScheduled);
             Interlocked.Exchange(ref OomWakeLastScheduleTicks, DateTime.UtcNow.Ticks);
+            if (TryArmId(scheduled) is { } aid)
+                IdeTeethTape.Record("wake_schedule", armId: aid, reason: IdeOomWake.Reason, detail: "oom_dialog");
         }
 
         Console.Error.WriteLine(
@@ -130,29 +133,46 @@ internal static partial class IdeIgniteArmHost
         if (!up)
         {
             if (CdtWasUp == true)
+            {
                 CdtDownSinceUtc = now;
+                IdeTeethTape.NoteGuest(null, cdtUp: false);
+                IdeTeethTape.Record("cdt_edge", detail: "down");
+            }
+
             CdtWasUp = false;
             return;
         }
 
         // up == true
         var wasDown = CdtWasUp == false;
+        var downMs = CdtDownSinceUtc is { } since0
+            ? (long)(now - since0).TotalMilliseconds
+            : (long?)null;
         var downLongEnough = CdtDownSinceUtc is { } since
                              && (now - since) >= IdeOomWake.MinDownDuration;
         CdtWasUp = true;
         CdtDownSinceUtc = null;
 
         if (!wasDown || !downLongEnough)
+        {
+            if (wasDown)
+                IdeTeethTape.NoteGuest(null, cdtUp: true);
             return;
+        }
+
+        IdeTeethTape.NoteGuest(null, cdtUp: true);
+        IdeTeethTape.Record("cdt_edge", detail: "up", downMs: downMs);
 
         if (InCooldown(OomWakeLastScheduleTicks, IdeOomWake.WakeCooldown))
             return;
 
-        if (TryScheduleOomWake() is null)
+        if (TryScheduleOomWake() is not { } scheduled)
             return;
 
         Interlocked.Increment(ref OomWakeScheduled);
         Interlocked.Exchange(ref OomWakeLastScheduleTicks, DateTime.UtcNow.Ticks);
+        if (TryArmId(scheduled) is { } aid)
+            IdeTeethTape.Record("wake_schedule", armId: aid, reason: IdeOomWake.Reason, detail: "cdt_recover", downMs: downMs);
         Console.Error.WriteLine(
             $"[ide_ignite] oom-wake scheduled #{OomWakeScheduleCount} port={port}");
     }

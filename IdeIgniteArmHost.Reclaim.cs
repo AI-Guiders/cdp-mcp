@@ -78,6 +78,11 @@ internal static partial class IdeIgniteArmHost
             PersistUnlocked();
         }
 
+        IdeTeethTape.Record(
+            "wake_schedule",
+            armId: arm.Id,
+            reason: IdeRemountWake.Reason,
+            detail: pending?.Reason);
         return Slim(arm);
     }
 
@@ -92,9 +97,9 @@ internal static partial class IdeIgniteArmHost
         if (backoff < TimeSpan.Zero) backoff = TimeSpan.Zero;
         var now = DateTimeOffset.UtcNow;
         var ids = new List<string>();
+        var drop = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         lock (Gate)
         {
-            var drop = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var a in Arms)
             {
                 var stuckFiring = a.Status == "firing";
@@ -135,6 +140,11 @@ internal static partial class IdeIgniteArmHost
             if (ids.Count > 0 || drop.Count > 0)
                 PersistUnlocked();
         }
+
+        foreach (var id in ids)
+            IdeTeethTape.Record("wake_requeue", armId: id, detail: "reclaim");
+        foreach (var id in drop)
+            IdeTeethTape.Record("wake_drop", armId: id, detail: "reclaim_once_fired");
 
         return ids;
     }

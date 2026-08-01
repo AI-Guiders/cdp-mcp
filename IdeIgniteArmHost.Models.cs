@@ -109,6 +109,31 @@ internal static partial class IdeIgniteArmHost
         return null;
     }
 
+    static string? TryGetStringProp(object? result, string name)
+    {
+        if (result is null || string.IsNullOrWhiteSpace(name)) return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            return doc.RootElement.TryGetProperty(name, out var e) ? e.GetString() : null;
+        }
+        catch { return null; }
+    }
+
+    static string? TryArmId(object? slim)
+    {
+        if (slim is null) return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(slim));
+            if (doc.RootElement.TryGetProperty("id", out var id))
+                return id.GetString();
+        }
+        catch { /* ignore */ }
+
+        return null;
+    }
+
     static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key) =>
         args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String ? el.GetString() : null;
 

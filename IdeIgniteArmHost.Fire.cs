@@ -97,6 +97,8 @@ internal static partial class IdeIgniteArmHost
             // New ignition supersedes post-fire Connection Problems watch.
             StopConnectionWatch();
             SetStatus(arm.Id, "firing", null);
+            IdeTeethTape.Record(
+                "wake_fire", armId: arm.Id, reason: arm.Reason, detail: arm.ChargeMode);
             if (arm.SettleSeconds > 0)
                 await Task.Delay(TimeSpan.FromSeconds(arm.SettleSeconds), ct).ConfigureAwait(false);
 
@@ -163,13 +165,27 @@ internal static partial class IdeIgniteArmHost
             live.SendOk = null;
             live.SendError = null;
             PersistUnlocked();
+            IdeTeethTape.Record(
+                "wake_send",
+                armId: armId,
+                reason: live.Reason,
+                detail: "invoked");
         }
     }
 
     static void ApplyFireOutcome(IgniteArm arm, object? result)
     {
         var firedOk = result is { } && TryGetOk(result);
-        RecordSendEvidence(arm.Id, firedOk, firedOk ? null : (TryGetError(result) ?? "fire_failed"));
+        var err = firedOk ? null : (TryGetError(result) ?? "fire_failed");
+        var submit = TryGetStringProp(result, "submit_kind_after")
+                     ?? TryGetStringProp(result, "submit_kind");
+        RecordSendEvidence(arm.Id, firedOk, err);
+        IdeTeethTape.Record(
+            "wake_send",
+            armId: arm.Id,
+            reason: arm.Reason,
+            detail: firedOk ? "ok" : (err ?? "fail"),
+            submitKind: submit);
         if (firedOk)
         {
             StartConnectionWatch(arm.Port);
@@ -182,7 +198,7 @@ internal static partial class IdeIgniteArmHost
             return;
         }
 
-        var err = TryGetError(result) ?? "fire_failed";
+        err ??= "fire_failed";
         IdeStageCycle.TryAppend(
             IdeStageCycle.MapIgniteError(err), "ignite", err, arm.Id);
         if (ShouldRequeueBusy(arm.Event, err) && !IsToolWakeArmId(arm.Id))
@@ -275,6 +291,11 @@ internal static partial class IdeIgniteArmHost
             a.LastError = error;
             a.DueUtc = DateTimeOffset.UtcNow + backoff;
             PersistUnlocked();
+            IdeTeethTape.Record(
+                "wake_requeue",
+                armId: a.Id,
+                reason: a.Reason,
+                detail: error);
         }
     }
 
