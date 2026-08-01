@@ -33,6 +33,7 @@
 
 ## last_ship
 
+- CdpPluginQuarantine.Groups.Infer peel (≤ADX soft-warn) @ 0.5.427 · 2026-08-01
 - ADX-HX-001 habitat mutate + NativeDialogs.Win32 peel @ 0.5.426 · 2026-08-01
 - ADX assertions catalog + recall/ignite Z3 kernels (scope=assert) @ 0.5.425 · 2026-08-01
 - IdeFilesChannel Fs.Path peel (≤ADX soft-warn) @ 0.5.424 · 2026-08-01

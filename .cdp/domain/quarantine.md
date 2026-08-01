@@ -7,7 +7,7 @@
 ## Invariants
 
 - Soft-warn FileLinesWarn=400; `CdpPluginQuarantine` is `partial` by concern.
-- Partials: Core (records/List/mutate) · Install (vsix/unpacked) · Groups (attention/reharvest) · Classify (harvest Mode A|B|D) · Host (PATH probe) · Payload (scan/score/helpers).
+- Partials: Core (records/List/mutate) · Install (vsix/unpacked) · Groups (attention/reharvest) · Groups.Infer (package.json auto-groups) · Classify (harvest Mode A|B|D) · Host (PATH probe) · Payload (scan/score/helpers).
 - Groups = attention filter (enabled plugin ∩ enabled groups); not a second install store.
 
 ## Entry
@@ -21,4 +21,5 @@
 
 ## last_ship
 
+- Groups.Infer peel (≤ADX soft-warn): Groups 371→308 + Infer72 @ 0.5.427 · 2026-08-01
 - soft-warn peel: Core250 Install147 Groups371 Classify163 Host143 Payload231 @ 0.5.396
