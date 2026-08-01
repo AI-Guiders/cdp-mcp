@@ -47,7 +47,7 @@ public static class CabinGlassProjectionCatalog
             "pressure" or "pressure_desk" or "compact_prep" or "pre_compact"
                 => new Projection(null, "agent · M: pressure"),
             "onboard" or "onboard_desk" or "explore_desk"
-                => new Projection(null, "agent · M: onboard"),
+                => new Projection("MarkdownPreview", "agent · M: onboard"),
             "arch" or "arch_desk" or "arch_board"
                 => new Projection("SemanticMap", "agent · M: arch"),
             "mcp" or "mcp_scene" => new Projection("AiChatSettings", "agent · M: mcp"),
