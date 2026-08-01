@@ -84,7 +84,7 @@ internal static partial class IdeRefactorPlanChannel
             convention = "TypeName.Topic.cs — keep partial class name = type_stem",
             hint = suggested is null
                 ? "topic=Ops|View|Persist to suggest next seam path"
-                : "create via cdp_buffer op=create path=suggested — move members with sniper"
+                : "create seam then cdp_peel path= locus members=… out=suggested (apply=false preview)"
         };
     }
 }

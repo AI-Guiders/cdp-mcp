@@ -52,6 +52,8 @@ internal static partial class MetaDispatch
         return IdeSaChannel.HandleJson(docStore, session, callArgs);
     case "cdp_refactor":
         return IdeRefactorPlanChannel.HandleJson(docStore, session, callArgs);
+    case "cdp_peel":
+        return await IdePeelChannel.HandleAsync(session, byDomain, callArgs, cancellationToken).ConfigureAwait(false);
     case "cdp_debug_sa":
         return IdeDebugSaChannel.HandleJson(session, callArgs);
     case "cdp_test_sa":
