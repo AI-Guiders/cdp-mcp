@@ -28,6 +28,7 @@
 
 ## last_ship
 
+- IdePostmortemChannel.Draft peel (≤ADX soft-warn) @ 0.5.440 · 2026-08-01
 - EditorComfort.FindNav.Nav peel (≤ADX soft-warn) @ 0.5.439 · 2026-08-01
 - TakeShip.Helpers peel (≤ADX soft-warn) @ 0.5.438 · 2026-08-01
 - LspOptionsToolkit.Recipes.Catalog peel (≤ADX soft-warn) @ 0.5.437 · 2026-08-01
