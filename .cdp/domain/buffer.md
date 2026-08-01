@@ -19,4 +19,5 @@
 
 ## last_ship
 
+- soft-warn: `EditorComfort` partials (Clipboard/Put/ClipEdit/FindNav/Span/Wire) @ 0.5.394 — see `editorcomfort.md`
 - soft-warn: `DocumentBufferStore` → `DocumentBufferStore.Disk.cs` + `DocBuffer.cs` @ 0.5.387; main~362 / Disk~108 / DocBuffer~282
