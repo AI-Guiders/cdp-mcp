@@ -28,6 +28,7 @@
 
 ## last_ship
 
+- GoToAll.Match peel (≤ADX soft-warn) @ 0.5.436 · 2026-08-01
 - MetaDispatch.Core.Health peel (≤ADX soft-warn) @ 0.5.435 · 2026-08-01
 - InternetBrowserHabitat.Engine→Lynx peel (≤ADX soft-warn) @ 0.5.434 · 2026-08-01
 - FindInFiles.Rg + Search.Util peel (≤ADX soft-warn) @ 0.5.433 · 2026-08-01
