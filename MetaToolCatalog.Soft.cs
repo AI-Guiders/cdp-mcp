@@ -285,19 +285,20 @@ internal static partial class MetaToolCatalog
             output_json_path = new { type = "string", description = "ocr: write JSON path under workspace" }
         }
     }),
-    Meta("cdp_pressure", "L1 pre-compact prep desk. On pressure notify (~2–3 turns before host summarization): op=arm → checklist → op=stash body= (also appends memo line). Anti-compaction: op=memo body= / op=line. Recall gate (ADR-0024): op=recall→pull → op=reconcile (self-steer) → op=align → op=ready. Must axes: AutoIgnition re-ARM, Task Manager, CDP habitat, Domain (.cdp/domain). Alias go=pressure_desk|pressure. Does not offer export ritual to operator.", new
+    Meta("cdp_pressure", "L1 pre-compact prep desk. On pressure notify (~2–3 turns before host summarization): op=arm → checklist → op=stash body= (also appends memo line). Anti-compaction: op=memo body= / op=line. Recall gate (ADR-0024): op=recall → ready when SSOT (body+plan/ignite) else pull → op=reconcile → op=align → op=ready; strict=true forces pull; op=steer|ssot|fast shortcuts. Must axes: AutoIgnition re-ARM, Task Manager, CDP habitat, Domain (.cdp/domain). Alias go=pressure_desk|pressure. Does not offer export ritual to operator.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|arm|stash|memo|line|clear|disarm|recall|reconcile|align|ready|gate" },
+            op = new { type = "string", description = "scene|arm|stash|memo|line|clear|disarm|recall|reconcile|steer|ssot|fast|align|ready|gate" },
             body = new { type = "string", description = "stash|memo: markdown/text — goal, decisions, open, next, ignite, plan" },
             text = new { type = "string", description = "alias of body=" },
             why = new { type = "string", description = "arm|memo: reason (default L1 pressure notify)" },
             ignite = new { type = "string", description = "stash|memo: AutoIgnition note" },
             plan = new { type = "string", description = "stash|memo: Task Manager focus note" },
-                        note = new { type = "string", description = "reconcile|align|ready|gate: optional decision note" },
+            note = new { type = "string", description = "reconcile|align|ready|gate|steer: optional decision note" },
             to = new { type = "string", description = "gate: pull|reconcile|align|ready" },
+            strict = new { type = "boolean", description = "recall: true = force pull even when SSOT sufficient" },
             limit = new { type = "integer", description = "line: last N memos (default 5, max 50)" }
         }
     }),

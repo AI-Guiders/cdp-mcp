@@ -1,4 +1,5 @@
 #nullable enable
+using System.Text.Json;
 using Cdp.Core;
 
 namespace CdpMcp;
@@ -40,7 +41,7 @@ internal static partial class IdePressureChannel
             GateReconcile => "* recall gate · reconcile — next op=align",
             GateAlign => "* recall gate · align — next op=ready",
             GateReady => "* recall gate · ready — exit to explore/plan/act",
-            _ => "· recall gate idle — op=recall enters pull (wake/L1/cold)"
+            _ => "· recall gate idle — op=recall → ready when SSOT else pull"
         };
     }
 
@@ -91,7 +92,7 @@ internal static partial class IdePressureChannel
         };
     }
 
-    static object Recall()
+static object Recall(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
         var doc = Load();
         if (doc is null)
@@ -112,8 +113,17 @@ internal static partial class IdePressureChannel
             };
         }
 
-        doc.RecallGate = GatePull;
+        var strict = BoolOr(args, "strict", defaultValue: false);
+        var autoReady = !strict && SsotSufficient(doc);
+        var gate = autoReady ? GateReady : GatePull;
+        doc.RecallGate = gate;
         doc.RecallGateUtc = DateTime.UtcNow.ToString("o");
+        if (autoReady)
+            doc.RecallGateNote = "ssot_auto";
+        if (session.ProjectRoot is { Length: > 0 })
+            doc.ProjectRoot = session.ProjectRoot;
+        doc.Phase = CdpEnumParse.ToWire(session.Phase);
+        doc.Object = CdpEnumParse.ToWire(session.Object);
         Save(doc);
 
         return new
@@ -134,11 +144,14 @@ internal static partial class IdePressureChannel
             plan = doc.PlanNote,
             armed_utc = doc.ArmedUtc,
             stash_utc = doc.StashUtc,
-            recall_gate = GatePull,
+            recall_gate = gate,
+            ssot_auto = autoReady,
             memo_count = CountMemos(),
             explain = IdeExplainability.ToObject(Explain(doc)),
-            next = GateSceneNext(GatePull),
-            hint = "Recall pull — reconcile next: compare memo vs priority; self-steer when SSOT suffices. op=line for history."
+            next = GateSceneNext(gate),
+            hint = autoReady
+                ? "SSOT already sufficient — gate auto-ready. Exit recall → explore/plan/act. strict=true forces pull."
+                : "Recall pull — reconcile next: compare memo vs priority; self-steer when SSOT suffices. op=line for history."
         };
     }
 }
