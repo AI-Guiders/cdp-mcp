@@ -546,7 +546,7 @@ List<Tool> BuildMetaTools() =>
             limit = new { type = "integer", description = "history: last N messages (default 20, max 200)" }
         }
     }),
-    Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn. turn message= [board=] [dry_run=true] — persona + wire inject + Anthropic via ai-keys.toml. Alias go=citizen.", new
+    Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn. turn message= [board=] [dry_run=true] [model=] — persona + wire inject; OpenAI-compat (Cloud.ru FM via open_ai_*) or Anthropic via ai-keys.toml. Alias go=citizen.", new
     {
         type = "object",
         properties = new
@@ -559,7 +559,7 @@ List<Tool> BuildMetaTools() =>
             peer = new { type = "string", description = "turn: optional peer field" },
             next = new { type = "string", description = "turn: optional next field" },
             tm = new { type = "string", description = "turn: optional tm field" },
-            model = new { type = "string", description = "turn: Anthropic model id (default sonnet)" },
+            model = new { type = "string", description = "turn: model id (default: Cloud.ru FM or Anthropic sonnet by provider)" },
             dry_run = new { type = "boolean", description = "turn: build messages only, no provider call" },
             inject = new { type = "boolean", description = "turn: prepend wire afferent (default true)" }
         }
