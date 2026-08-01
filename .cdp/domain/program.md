@@ -7,21 +7,24 @@
 ## Invariants
 
 - Soft-warn FileLinesWarn=400; top-level statements stay in `Program.cs` (one TLS file).
-- ListTools Meta catalog lives in `MetaToolCatalog` partials (Core/SoftOrgans/IdeLifecycle/HubShell); `BuildMetaTools()` → `MetaToolCatalog.Build()`.
-- DispatchMeta switch lives in `MetaDispatch` partials (Core/Ide/Hub) + `MetaDispatchDeps` (per-call record); Program keeps thin `DispatchMetaAsync` stub + TLS wiring.
+- ListTools Meta catalog: `MetaToolCatalog` partials; `BuildMetaTools()` → `MetaToolCatalog.Build()`.
+- ListTools composition: `VisibleToolCatalog` (+ SoftOrganMetaNames); `BuildVisibleTools()` thin stub.
+- CallTool router: `IdeToolDispatch` (+ Deps per call).
+- Meta switch: `MetaDispatch` partials + `MetaDispatchDeps` (per-call).
+- cdp_work ops: `CdpWorkDispatch` (+ Deps per call).
 - Deps rebuilt each call so mutable `workspaceStore` / `serverRef` stay current.
 
 ## Entry
 
-- `Program.cs` · `MetaToolCatalog.Build` · `MetaDispatch.DispatchAsync` · `DispatchMetaAsync` stub
+- `Program.cs` stubs · `VisibleToolCatalog` · `IdeToolDispatch` · `MetaDispatch.DispatchAsync` · `CdpWorkDispatch`
 
 ## Antipatterns
 
-- Re-inlining Meta(*) catalog or DispatchMeta switch into Program past soft-warn.
+- Re-inlining catalog/dispatch/work switch into Program past soft-warn.
 - Trying `partial` on top-level statements file — peel to static types instead.
-- Capturing `workspaceStore` once into a long-lived Deps instance (stale after EnsureWorkspaceDb).
+- Capturing `workspaceStore` once into a long-lived Deps instance.
 
 ## last_ship
 
-- soft-warn: `DispatchMetaAsync` → `MetaDispatch*.cs` + `MetaDispatchDeps` @ 0.5.391; Program~642 / Core~356 / Ide~329 / Hub~396 / MetaDispatch~109
-- prior: `BuildMetaTools` → `MetaToolCatalog*.cs` @ 0.5.390
+- soft-warn residual: VisibleToolCatalog + IdeToolDispatch + CdpWorkDispatch @ 0.5.392; Program~396
+- prior: DispatchMeta → MetaDispatch @ 0.5.391; MetaToolCatalog @ 0.5.390
