@@ -42,6 +42,7 @@
 - Treat HybridIndex as empty □/■ stub forever — Glass FS status glance (`GlassHybridIndexGlance`) is the presence peel; Avalonia HCI remains SSOT (do not invent SoftOrgan).
 - Treat WorkspaceHealth / EnvironmentReadiness as empty □/■ stubs forever — Glass FS/env presence glances (`GlassWorkspaceHealthGlance` / `GlassEnvironmentReadinessGlance`); Avalonia IdeHealth / EnvReady CCU remain SSOT (do not invent SoftOrgan).
 - Treat Events / Hypotheses as empty □/■ stubs forever — Glass latch/catalog + JSON status glances (`GlassEventsGlance` / `GlassHypothesesGlance`); Avalonia EventsMFD / HypothesesMfd remain SSOT (do not invent SoftOrgan).
+- Invent `MfdShellPage.SemanticMap` to "fix" Glass/CabinGlass string parity — Avalonia graph is PFD `WorkspaceNavigationMapView`; Glass `SemanticMap` = arch projector alias + SoftOrganMfdGlance (do not invent Avalonia MFD page).
 
 ## DoD matrix — MfdShellPage presence (2026-08-01 dig)
 
@@ -72,12 +73,13 @@ Presence DoD = SoftOrgan glance | Glass peel | DIG REJECT hold | deferred stub (
 
 Sources: `Models/MfdShellPage.cs` · `SoftOrganMfdGlance.TryOrganIdForMfdPage` · `MainWindow.MfdBody` · XAML `MfdPages`.
 
-Parity note: Glass XAML lists **SemanticMap**; enum `MfdShellPage` has no SemanticMap member (Glass-only page name via CabinGlass/list). Next invent leaf = enum↔XAML parity dig if needed.
+Parity note: Glass XAML / CabinGlass use page string **SemanticMap** (`arch_desk` → MFD); Avalonia `MfdShellPage` has **no** SemanticMap member — graph SSOT = PFD `WorkspaceNavigationMapView` (not MFD shell). DIG REJECT invent enum member (see last_ship).
 
 **Presence DoD: CLOSED** for all Glass-listed MFD pages. Remaining HOLD = intentional Avalonia SSOT (not orphan stubs).
 
 ## last_ship
 
+- 2026-08-01: dig reject invent `MfdShellPage.SemanticMap` — Glass/CDP CabinGlass string `SemanticMap` is arch SoftOrgan projector alias + latch glance; Avalonia graph stays PFD `WorkspaceNavigationMapView` (RelatedFiles = MFD list only); PageOrder/allowance have no SemanticMap; do not add enum that Avalonia MFD shell does not host
 - 2026-08-01: invent dig Glass 0-sync MfdShellPage DoD matrix — SoftOrgan|peel|reject|hold stamped above; orphan peels closed; presence DoD CLOSED; HOLD stubs WebAiPortal/Correspondence intentional; SemanticMap Glass-only vs enum noted
 - 2026-08-01: invent verify close — Glass orphan MFD peels (WH/EnvReady/Events/Hypotheses) closed: wire in `MainWindow.MfdBody` + SoftOrgan unbound (tests); glance suite 28/28; no `CIDE orphan` stubs remain; SoftOrgan invent still forbidden
 - 2026-08-01: act Glass orphan MFD presence peels Events/Hypotheses — `GlassEventsGlance` (cdp *-LATEST + DataBus catalog) + `GlassHypothesesGlance` (debug-hypotheses.json counts); live dogfood Events·READY + Hypotheses·MISSING; SoftOrgan unbound; orphan MFD set closed
