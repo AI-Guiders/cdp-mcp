@@ -69,7 +69,7 @@ public static class CabinGlassProjectionCatalog
             "plugins" or "plugin" or "vsix"
                 => new Projection(null, "agent · M: plugins"),
             "refactor" or "refactor_plan" or "debt"
-                => new Projection(null, "agent · M: refactor"),
+                => new Projection("RelatedFiles", "agent · M: refactor"),
             "sys" => new Projection(null, "agent · M: sys"),
             "ecl" => new Projection(null, "agent · M: ecl"),
             "qrh" => new Projection(null, "agent · M: qrh"),
