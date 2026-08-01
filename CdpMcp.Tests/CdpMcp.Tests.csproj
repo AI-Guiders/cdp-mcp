@@ -16,6 +16,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Z3" Version="4.12.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CdpMcp.csproj">
