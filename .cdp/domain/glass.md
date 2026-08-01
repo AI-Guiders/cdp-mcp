@@ -43,8 +43,42 @@
 - Treat WorkspaceHealth / EnvironmentReadiness as empty □/■ stubs forever — Glass FS/env presence glances (`GlassWorkspaceHealthGlance` / `GlassEnvironmentReadinessGlance`); Avalonia IdeHealth / EnvReady CCU remain SSOT (do not invent SoftOrgan).
 - Treat Events / Hypotheses as empty □/■ stubs forever — Glass latch/catalog + JSON status glances (`GlassEventsGlance` / `GlassHypothesesGlance`); Avalonia EventsMFD / HypothesesMfd remain SSOT (do not invent SoftOrgan).
 
+## DoD matrix — MfdShellPage presence (2026-08-01 dig)
+
+Presence DoD = SoftOrgan glance | Glass peel | DIG REJECT hold | deferred stub (Avalonia SSOT). Do **not** invent SoftOrgan to fill cells.
+
+| Page | SoftOrgan | Glass peel | Verdict |
+|------|-----------|------------|---------|
+| WorkspaceHealth | unbound | `GlassWorkspaceHealthGlance` FS | DONE peel |
+| EnvironmentReadiness | unbound | `GlassEnvironmentReadinessGlance` env | DONE peel |
+| Events | unbound | `GlassEventsGlance` latch/catalog | DONE peel |
+| Hypotheses | unbound | `GlassHypothesesGlance` JSON | DONE peel |
+| HybridIndex | unbound (DIG REJECT invent) | `GlassHybridIndexGlance` FS | DONE peel |
+| SolutionExplorer | unbound (DIG REJECT files_desk overlay) | TreeView + `GlassSolutionExplorerGlance` | DONE peel |
+| Chat | unbound (DIG REJECT mcp bind) | `GlassIntercomPresence` card | DONE presence |
+| Editor | unbound | AvalonEdit on M when Forward=intercom | DONE peel |
+| Terminal | `sys` glance | redirected TextBox (DIG REJECT ConPTY) | DONE peel |
+| Build | `toolchain` glance | redirected log TextBox | DONE peel |
+| Tests | `test_desk` glance | redirected log TextBox | DONE peel |
+| Git | unbound (DIG REJECT invent) | redirected `git status` TextBox | DONE peel |
+| DebugStack | `debug_desk` glance | DIG REJECT DAP fork | HOLD latch |
+| Problems | `review` glance | DIG REJECT Roslyn list | HOLD latch |
+| RelatedFiles | `refactor` glance | DIG REJECT related list | HOLD latch |
+| SemanticMap | `arch` glance | DIG REJECT Skia graph | HOLD latch |
+| MarkdownPreview | `report` glance | DIG REJECT Markdig host | HOLD latch |
+| AiChatSettings | `mcp` glance | settings.toml SSOT | HOLD latch |
+| WebAiPortal | unbound | DIG REJECT WebView2 | HOLD stub |
+| Correspondence | unbound (DIG REJECT CRS SoftOrgan) | DIG REJECT CRS host | HOLD stub |
+
+Sources: `Models/MfdShellPage.cs` · `SoftOrganMfdGlance.TryOrganIdForMfdPage` · `MainWindow.MfdBody` · XAML `MfdPages`.
+
+Parity note: Glass XAML lists **SemanticMap**; enum `MfdShellPage` has no SemanticMap member (Glass-only page name via CabinGlass/list). Next invent leaf = enum↔XAML parity dig if needed.
+
+**Presence DoD: CLOSED** for all Glass-listed MFD pages. Remaining HOLD = intentional Avalonia SSOT (not orphan stubs).
+
 ## last_ship
 
+- 2026-08-01: invent dig Glass 0-sync MfdShellPage DoD matrix — SoftOrgan|peel|reject|hold stamped above; orphan peels closed; presence DoD CLOSED; HOLD stubs WebAiPortal/Correspondence intentional; SemanticMap Glass-only vs enum noted
 - 2026-08-01: invent verify close — Glass orphan MFD peels (WH/EnvReady/Events/Hypotheses) closed: wire in `MainWindow.MfdBody` + SoftOrgan unbound (tests); glance suite 28/28; no `CIDE orphan` stubs remain; SoftOrgan invent still forbidden
 - 2026-08-01: act Glass orphan MFD presence peels Events/Hypotheses — `GlassEventsGlance` (cdp *-LATEST + DataBus catalog) + `GlassHypothesesGlance` (debug-hypotheses.json counts); live dogfood Events·READY + Hypotheses·MISSING; SoftOrgan unbound; orphan MFD set closed
 - 2026-08-01: act Glass orphan MFD presence peels — `GlassWorkspaceHealthGlance` (READY/THIN/MISSING · root/git/sln/.cascade-ide) + `GlassEnvironmentReadinessGlance` (AGENT_NOTES_FILE / NETCOREDBG_PATH / dotnet PATH); live dogfood WH·READY + EnvReady·READY; SoftOrgan still unbound
