@@ -31,6 +31,7 @@
 
 ## last_ship
 
+- WorkspaceDbHost peel — Program TLS EnsureWorkspaceDb @ 0.5.418 · 2026-08-01
 - QualityGates.Eval + .Policy peel (hub ≤soft-warn) @ 0.5.417 · 2026-08-01
 - FindIntentIdByTitle StripBoardChrome + prefix; Find.Title peel @ 0.5.416 · 2026-08-01
 - MetaToolCatalog Ide→Ide.Pkg peel (pkg→sln) @ 0.5.415 · 2026-08-01
