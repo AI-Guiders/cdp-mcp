@@ -33,4 +33,4 @@
 - 0.5.360: Cloud.ru FM OpenAI-compat path + AiKeys helpers
 - 0.5.361: `InviteReady` as serializable record
 - 0.5.362: meta docs OAI/Cloud.ru on `cdp_citizen`
-- 2026-08-01: dogfood blocked on human `open_ai_api_key` gate
+- 2026-08-01: dogfood — `open_ai_api_key` set in CascadeIDE ai-keys.toml; invite_ready=true; live turn `http_402` Not enough money (key auth OK, FM billing/bonus not covering inference yet)
