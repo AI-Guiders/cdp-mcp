@@ -39,12 +39,17 @@ internal static class IdeCitizenChannel
             pulse,
             persona_chars = CitizenPersona.SystemPrompt.Length,
             inject_default = true,
-            model_default = CitizenCompletions.DefaultModel,
+            model_default = keys.HasOpenAi
+                ? keys.ResolvedOpenAiModel
+                : CitizenCompletions.DefaultModel,
+            provider_default = keys.HasOpenAi
+                ? CitizenCompletions.ProviderOpenAiCompat
+                : CitizenCompletions.ProviderAnthropic,
             keys = keys.ToPublicPulse(),
             invite_ready = invite,
             hint = invite.Ready
-                ? "invite ready — op=turn message=… pours tea (live Anthropic). dry_run= still free."
-                : "not invite-ready — copy docs/design/ai-keys.example.toml → CascadeIDE ai-keys.toml; fill anthropic_api_key. dry_run= explains without keys.",
+                ? "invite ready — op=turn message=… pours tea (OpenAI-compat Cloud.ru FM or Anthropic). dry_run= still free."
+                : "not invite-ready — copy docs/design/ai-keys.example.toml → CascadeIDE ai-keys.toml; fill open_ai_api_key (Cloud.ru) or anthropic_api_key. dry_run= explains without keys.",
             next = invite.Ready
                 ? new object[]
                 {
@@ -61,7 +66,7 @@ internal static class IdeCitizenChannel
         });
     }
 
-    /// <summary>Hospitality gate: persona+wire always; live invite needs Anthropic key.</summary>
+    /// <summary>Hospitality gate: persona+wire always; live invite needs OpenAI-compat or Anthropic key.</summary>
     static (bool Ready, string Status, string[] Checklist, string? Blocker) InviteReady(CitizenAiKeys.Snapshot keys)
     {
         var checklist = new List<string>
@@ -74,11 +79,16 @@ internal static class IdeCitizenChannel
                     ? "ai-keys.toml · file empty"
                     : "ai-keys.toml · missing"
         };
-        if (!string.IsNullOrWhiteSpace(keys.AnthropicApiKey))
+        if (keys.HasOpenAi)
+            checklist.Add("provider · openai_compat");
+        else if (keys.HasAnthropic)
+            checklist.Add("provider · anthropic");
+
+        if (keys.HasLiveProvider)
             return (true, "ready", checklist.ToArray(), null);
 
         var blocker = keys.FileExists
-            ? "anthropic_api_key empty in CascadeIDE ai-keys.toml"
+            ? "open_ai_api_key / anthropic_api_key empty in CascadeIDE ai-keys.toml"
             : "missing %LocalAppData%/CascadeIDE/ai-keys.toml (see docs/design/ai-keys.example.toml)";
         checklist.Add("live turn · blocked");
         return (false, "blocked", checklist.ToArray(), blocker);
@@ -93,9 +103,9 @@ internal static class IdeCitizenChannel
             ok = true,
             op = "keys",
             keys = keys.ToPublicPulse(),
-            hint = keys.HasAny
-                ? "keyring ready — turn can call Anthropic"
-                : "missing keys — write anthropic_api_key to CascadeIDE ai-keys.toml"
+            hint = keys.HasLiveProvider
+                ? "keyring ready — turn prefers open_ai (Cloud.ru FM) then Anthropic"
+                : "missing keys — write open_ai_api_key or anthropic_api_key to CascadeIDE ai-keys.toml"
         });
     }
 
