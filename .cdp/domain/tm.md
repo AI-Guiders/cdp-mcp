@@ -29,6 +29,7 @@
 
 ## last_ship
 
+- 0.5.416 `FindIntentIdByTitle` StripBoardChrome + unique prefix (parity with FindStageMatching); peel Find.Title
 - 0.5.412 done/shipped feature-title fallback + shipped without start
 - soft-warn peel: Core126 Intent140 Stage264 Scene221 Persist318 Find373 @ 0.5.401 (existing Leaf148 StageCriteria366 StageEvents200 StageProduct60)
 - 0.5.309 leaf AutoI — `6a97f48` (2026-07-30)
