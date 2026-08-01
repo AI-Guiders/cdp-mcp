@@ -5,6 +5,8 @@ namespace CdpMcp.Tests;
 
 public sealed class CitizenIntentRouterTests
 {
+    static string ReadFixture(string name) => CitizenWireFixtureFiles.Read(name);
+
     [Fact]
     public void Go_intent_routes_to_go()
     {
@@ -57,18 +59,21 @@ public sealed class CitizenIntentRouterTests
     }
 
     [Fact]
-    public void Drill_fixture_shape_routes()
+    public void Drill_corpus_fixture_routes_editor_scene()
     {
-        var msgs = CitizenWireParser.Parse("""
-            @intent drill editor
-
-            @frame organ v0
-            organ | editor
-            cost  | C
-            """);
+        var msgs = CitizenWireParser.Parse(ReadFixture("02-drill-editor.txt"));
         var routes = CitizenIntentRouter.RouteAll(msgs);
         Assert.Single(routes);
         Assert.Equal(CitizenIntentRouter.Verb.Drill, routes[0].Verb);
+        Assert.Equal("editor", routes[0].Organ);
         Assert.Equal("editor_scene", routes[0].Go);
+    }
+
+    [Fact]
+    public void Remount_corpus_fixture_has_no_intent_routes()
+    {
+        var msgs = CitizenWireParser.Parse(ReadFixture("03-remount-event.txt"));
+        Assert.Contains(msgs, m => m.Kind == CitizenWireParser.Kind.Event);
+        Assert.Empty(CitizenIntentRouter.RouteAll(msgs));
     }
 }

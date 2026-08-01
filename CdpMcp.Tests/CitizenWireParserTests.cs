@@ -5,34 +5,7 @@ namespace CdpMcp.Tests;
 
 public class CitizenWireParserTests
 {
-    // Prefer repo-relative from test project dir when BaseDirectory layout differs.
-    static string ReadFixture(string name)
-    {
-        var fromCwd = Path.GetFullPath(Path.Combine(
-            Directory.GetCurrentDirectory(),
-            "docs", "design", "citizen-wire-fixtures", name));
-        if (File.Exists(fromCwd))
-            return File.ReadAllText(fromCwd);
-
-        var fromProj = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory,
-            "..", "..", "..", "..",
-            "docs", "design", "citizen-wire-fixtures", name));
-        if (File.Exists(fromProj))
-            return File.ReadAllText(fromProj);
-
-        // Fallback: search upward for docs/design/citizen-wire-fixtures
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null)
-        {
-            var candidate = Path.Combine(dir.FullName, "docs", "design", "citizen-wire-fixtures", name);
-            if (File.Exists(candidate))
-                return File.ReadAllText(candidate);
-            dir = dir.Parent;
-        }
-
-        throw new FileNotFoundException("citizen wire fixture: " + name);
-    }
+    static string ReadFixture(string name) => CitizenWireFixtureFiles.Read(name);
 
     [Fact]
     public void Clear_desk_fixture_parses_peer_required_fields()
