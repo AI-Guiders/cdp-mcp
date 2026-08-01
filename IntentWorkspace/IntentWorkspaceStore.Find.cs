@@ -207,24 +207,6 @@ internal sealed partial class IntentWorkspaceStore
         WorkFocusSave(state);
     }
 
-    public Guid? FindIntentIdByTitle(string? title)
-    {
-        if (string.IsNullOrWhiteSpace(title))
-            return null;
-        var t = title.Trim();
-        return WithDb(db =>
-            db.Intents.AsNoTracking()
-                .Where(x => x.Title == t)
-                .OrderByDescending(x => x.UpdatedUtc)
-                .Select(x => (Guid?)x.Id)
-                .FirstOrDefault()
-            ?? db.Intents.AsNoTracking()
-                .Where(x => x.Title.ToLower() == t.ToLower())
-                .OrderByDescending(x => x.UpdatedUtc)
-                .Select(x => (Guid?)x.Id)
-                .FirstOrDefault());
-    }
-
     public Guid? FindStageIdByTitle(IntentWorkspaceState state, string? title) =>
         FindStageMatching(state, title, parentId: null, matchParent: false);
 
@@ -285,27 +267,6 @@ internal sealed partial class IntentWorkspaceStore
                 .ToList();
             return prefix.Count == 1 ? prefix[0].Id : null;
         });
-    }
-
-    /// <summary>
-    /// Peel trailing board chrome (<c>@act</c>/<c>@todo</c>/<c>#CDP</c>) so drop/focus pasted from the board matches the stored title.
-    /// </summary>
-    internal static string StripBoardChrome(string title)
-    {
-        var words = title.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-        while (words.Count > 0)
-        {
-            var last = words[^1];
-            if ((last.StartsWith('@') || last.StartsWith('#')) && last.Length > 1)
-            {
-                words.RemoveAt(words.Count - 1);
-                continue;
-            }
-
-            break;
-        }
-
-        return string.Join(' ', words);
     }
 
     public Guid? FindNextPendingStage(IntentWorkspaceState state)

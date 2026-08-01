@@ -280,6 +280,38 @@ public sealed class IdeTaskManagerTitlePrecedenceTests
 
 
     [Fact]
+    public void Done_by_feature_title_strips_board_chrome()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-feat-chrome-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "invent ADX soft-warn peel conveyor @explore #CDP", null);
+            var a = store.StageUpsert(state, "leaf-a", null, null, null).stage_id;
+            store.FocusStage(state, a);
+
+            var result = IdeTaskManager.Handle(store, state, Args(new
+            {
+                tm_op = "done",
+                title = "invent ADX soft-warn peel conveyor"
+            }));
+
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal("feature_done", doc.RootElement.GetProperty("mutation").GetProperty("op").GetString());
+            Assert.Null(state.ActiveIntentId);
+
+            using var db = Open(path);
+            Assert.Equal("done", db.Stages.Single(s => s.Id == a).Status);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
     public void Done_by_feature_title_closes_incomplete_leaves()
     {
         var path = Path.Combine(Path.GetTempPath(), "cdp-tm-feat-done-" + Guid.NewGuid().ToString("N") + ".witdb");
