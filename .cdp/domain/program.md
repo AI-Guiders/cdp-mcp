@@ -26,6 +26,7 @@
 
 ## last_ship
 
+- soft-warn peel: MetaToolCatalog Ide164 / Ide.Pkg162 (pkg→sln) @ 0.5.415
 - soft-warn peel: MetaToolCatalog Soft210 / Soft.Ops144 (files→cockpit_host) @ 0.5.414
 - soft-warn peel: MetaToolCatalog Core183 / Core.Ops212 (recent→sa) @ 0.5.413
 - soft-warn near-miss: MetaDispatch.Hub → Hub163 / HubCsx202 / HubShell125 @ 0.5.403 (chain Core→Ide→Hub→HubCsx→HubShell).
