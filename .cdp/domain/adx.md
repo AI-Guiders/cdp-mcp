@@ -31,6 +31,7 @@
 
 ## last_ship
 
+- IdePluginsChannel Marketplace.Want peel (≤ADX soft-warn) @ 0.5.423 · 2026-08-01
 - IdeFilesChannel Open+Search peel (façade ≤ADX soft-warn) @ 0.5.422 · 2026-08-01
 - IdeChkChannel Builtins peel (façade ≤ADX soft-warn) @ 0.5.421 · 2026-08-01
 - ScriptScene Check+Run peels (façade ≤ADX soft-warn) @ 0.5.420 · 2026-08-01
