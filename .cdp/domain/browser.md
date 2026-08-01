@@ -6,7 +6,8 @@
 
 ## Invariants
 
-- Soft-warn FileLinesWarn=400; Dispatch/Scene/Which/Open/Search/Dump/Links + Fail/Opt helpers stay in main; Engine partial owns Follow..Close, lynx Fetch/RunProcess, Tab/PageFetch types.
+- Soft-warn FileLinesWarn=400; `InternetBrowserHabitat` is `partial` by concern.
+- Partials: Core (Dispatch/Scene/Pulse/Which) · Nav (Search/Annotate/Open/Dump/Links/helpers) · Engine (Follow→Tab + lynx Fetch/RunProcess).
 - Lynx dump engine (ADR 0188); agent control via scene_internet_browser — not host Cursor Browser.
 
 ## Entry
@@ -15,8 +16,10 @@
 
 ## Antipatterns
 
-- Growing Open/Search with FetchPage/RunProcess/Tab history — peel to `InternetBrowserHabitat.Engine.cs`.
+- Re-inlining Nav + Engine into Core past soft-warn.
+- Growing Open/Search with FetchPage/RunProcess/Tab history — keep in Engine.
 
 ## last_ship
 
-- soft-warn: `InternetBrowserHabitat` → `InternetBrowserHabitat.Engine.cs` (Follow→Tab + Fetch/Lynx) @ 0.5.385; main~399 / Engine~363
+- soft-warn near-miss peel: Core172 Nav238 Engine362 @ 0.5.402
+- soft-warn: Engine peel (Follow→Tab + Fetch/Lynx) @ 0.5.385
