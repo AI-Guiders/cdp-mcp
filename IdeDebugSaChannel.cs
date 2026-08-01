@@ -32,6 +32,17 @@ internal static partial class IdeDebugSaChannel
         var (verdict, why) = Decide(snap, scope);
         var pulse = PulseLine(snap, verdict);
 
+        var active = snap.Stopped
+            || snap.ActiveDap
+            || verdict is "continue" or "step" or "fix_bp" or "stop_rebuild" or "need_more" or "attach";
+        CideDebugDeskLatch.Publish(
+            active,
+            pulse,
+            verdict,
+            bpCount: snap.Breakpoints.Count,
+            stopped: snap.Stopped,
+            activeDap: snap.ActiveDap);
+
         if (depth == "pulse")
         {
             return new
