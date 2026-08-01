@@ -28,3 +28,4 @@
 
 - 2026-08-01: WPF Glass ecl-LATEST EICAS wire (Avalonia parity) · cascade-ide `08cc8f34`
 - 0.5.364: hydrate domain + sa-desk on cockpit host start
+- 0.5.365: `arch_desk` → MFD `SemanticMap` (+ chrome hint) in CabinGlassProjectionCatalog
