@@ -20,6 +20,8 @@ internal static partial class IdeIgniteArmHost
         || (!string.IsNullOrWhiteSpace(id)
             && (id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
                 || id.StartsWith(IdeOomWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
+                || id.Equals(HildAwayArmId, StringComparison.OrdinalIgnoreCase)
+                || id.StartsWith(HildArmIdPrefix, StringComparison.OrdinalIgnoreCase)
                 || id.StartsWith(HildEscalateArmIdPrefix, StringComparison.OrdinalIgnoreCase)));
 
     /// <summary>Harness event wakes (build/test/shell/hild) — never superseded by a continuity timer.</summary>
@@ -177,10 +179,19 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
+    /// <summary>
+    /// Insert landed and Composer already Stop — peer/zombie click or auto-send.
+    /// Treat as delivery so once-arms do not thrash (dogfood escalate became_stop storm).
+    /// </summary>
+    internal static bool IsSoftDeliveredError(string? error) =>
+        string.Equals(error, "became_stop", StringComparison.Ordinal);
+
     static void ApplyFireOutcome(IgniteArm arm, object? result)
     {
-        var firedOk = result is { } && TryGetOk(result);
-        var err = firedOk ? null : (TryGetError(result) ?? "fire_failed");
+        var rawErr = result is { } && TryGetOk(result) ? null : (TryGetError(result) ?? "fire_failed");
+        var softStop = IsSoftDeliveredError(rawErr);
+        var firedOk = rawErr is null || softStop;
+        var err = firedOk ? null : rawErr;
         var submit = TryGetStringProp(result, "submit_kind_after")
                      ?? TryGetStringProp(result, "submit_kind");
         RecordSendEvidence(arm.Id, firedOk, err);
@@ -188,8 +199,8 @@ internal static partial class IdeIgniteArmHost
             "wake_send",
             armId: arm.Id,
             reason: arm.Reason,
-            detail: firedOk ? "ok" : (err ?? "fail"),
-            submitKind: submit);
+            detail: softStop ? "ok_soft_stop" : firedOk ? "ok" : (err ?? "fail"),
+            submitKind: submit ?? (softStop ? "stop" : null));
         if (firedOk)
         {
             StartConnectionWatch(arm.Port);
