@@ -122,4 +122,60 @@ internal static partial class IdePressureChannel
 
         return list.ToArray();
     }
+
+    /// <summary>Stash body + plan and/or ignite note — enough to skip ceremony.</summary>
+    static bool SsotSufficient(PressureDoc doc) =>
+        doc.Body is { Length: >= 40 }
+        && (doc.PlanNote is { Length: > 0 } || doc.IgniteNote is { Length: > 0 });
+
+    /// <summary>op=steer|ssot|fast — jump to ready when SSOT ok; else land on reconcile.</summary>
+    static object SteerSsot(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var doc = Load() ?? new PressureDoc();
+        if (!SsotSufficient(doc))
+        {
+            return AdvanceGate(session, args, GateReconcile);
+        }
+
+        doc.RecallGate = GateReady;
+        doc.RecallGateUtc = DateTime.UtcNow.ToString("o");
+        doc.RecallGateNote = Opt(args, "note") ?? Opt(args, "body") ?? "ssot_steer";
+        if (session.ProjectRoot is { Length: > 0 })
+            doc.ProjectRoot = session.ProjectRoot;
+        doc.Phase = CdpEnumParse.ToWire(session.Phase);
+        doc.Object = CdpEnumParse.ToWire(session.Object);
+        Save(doc);
+
+        return new
+        {
+            ok = true,
+            schema = SchemaVersion,
+            go = GoName,
+            tool = ToolName,
+            op = "steer",
+            pulse = PulseLine(),
+            armed = doc.Armed,
+            recall_gate = GateReady,
+            recall_gate_note = doc.RecallGateNote,
+            ssot_auto = true,
+            has_stash = doc.Body is { Length: > 0 },
+            explain = IdeExplainability.ToObject(Explain(doc)),
+            next = GateSceneNext(GateReady),
+            hint = "SSOT sufficient — gate ready. Exit recall → explore/plan/act."
+        };
+    }
+
+    static bool BoolOr(IReadOnlyDictionary<string, JsonElement> args, string key, bool defaultValue)
+    {
+        if (!args.TryGetValue(key, out var el))
+            return defaultValue;
+        return el.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.String => bool.TryParse(el.GetString(), out var b) ? b : defaultValue,
+            JsonValueKind.Number => el.TryGetInt32(out var n) ? n != 0 : defaultValue,
+            _ => defaultValue
+        };
+    }
 }
