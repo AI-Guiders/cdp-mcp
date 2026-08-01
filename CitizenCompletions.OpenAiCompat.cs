@@ -11,6 +11,17 @@ internal static partial class CitizenCompletions
     /// Prefer OpenAI-compat when open_ai key present (Cloud.ru FM dogfood);
     /// else Anthropic. TestApiKey forces Anthropic; TestOpenAiApiKey forces OAI.
     /// </summary>
+    /// <summary>Dry-run model label mirrors live <see cref="ResolveProvider"/> (FM-first when keys empty).</summary>
+    static string ResolveDryRunModel(string? model)
+    {
+        var resolved = ResolveProvider(CitizenAiKeys.Load(), model);
+        if (resolved is not null)
+            return resolved.Model;
+        if (!string.IsNullOrWhiteSpace(model))
+            return model.Trim();
+        return CitizenAiKeys.DefaultOpenAiModel;
+    }
+
     static Resolved? ResolveProvider(CitizenAiKeys.Snapshot keys, string? model)
     {
         if (!string.IsNullOrWhiteSpace(TestApiKey))

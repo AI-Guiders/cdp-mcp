@@ -66,6 +66,28 @@ public class CitizenCompletionsTests : IDisposable
     }
 
     [Fact]
+    public void Turn_dry_run_resolves_openai_model_label()
+    {
+        CitizenCompletions.TestApiKey = null;
+        CitizenCompletions.TestOpenAiApiKey = "sk-test-openai-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        try
+        {
+            var r = CitizenCompletions.Turn("hi", dryRun: true);
+            Assert.True(r.Ok);
+            Assert.True(r.DryRun);
+            Assert.Equal("dry_run", r.Provider);
+            Assert.Equal(CitizenAiKeys.DefaultOpenAiModel, r.Model);
+            Assert.NotEqual(CitizenCompletions.DefaultModel, r.Model);
+        }
+        finally
+        {
+            CitizenCompletions.TestOpenAiApiKey = null;
+            CitizenCompletions.TestOpenAiBaseUrl = null;
+        }
+    }
+
+    [Fact]
     public void Turn_live_parses_wire_intents_from_mock()
     {
         var payload = """
