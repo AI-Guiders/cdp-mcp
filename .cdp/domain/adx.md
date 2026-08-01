@@ -33,6 +33,7 @@
 
 ## last_ship
 
+- LspOptionsToolkit.Recipes.Catalog peel (≤ADX soft-warn) @ 0.5.437 · 2026-08-01
 - GoToAll.Match peel (≤ADX soft-warn) @ 0.5.436 · 2026-08-01
 - MetaDispatch.Core.Health peel (≤ADX soft-warn) @ 0.5.435 · 2026-08-01
 - InternetBrowserHabitat.Engine→Lynx peel (≤ADX soft-warn) @ 0.5.434 · 2026-08-01
