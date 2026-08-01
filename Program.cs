@@ -211,89 +211,25 @@ var mcpVersion = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "0.4
 var Pretty = new JsonSerializerOptions { WriteIndented = true };
 McpServer? serverRef = null;
 
-/// Soft organs with go= aliases — schemas stay for CallTool, but omit from ListTools thrash.
-/// Keep cdp_ignite + cdp_pressure visible (autonomy axes).
-var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-{
-    "cdp_search",
-    "cdp_sa",
-    "cdp_refactor",
-    "cdp_debug_sa",
-    "cdp_test_sa",
-    "cdp_build_sa",
-    "cdp_crm",
-    "cdp_arch",
-    "cdp_onboard",
-    "cdp_toolchain",
-    "cdp_files",
-    "cdp_md_author",
-    "cdp_learn",
-    "cdp_domain",
-    "cdp_fdr",
-    "cdp_teeth",
-    "cdp_postmortem",
-    "cdp_scope",
-    "cdp_webcam",
-    "cdp_ps1_scene"
-};
-
-List<Tool> BuildVisibleTools()
-{
-    // Soft-organ Metas stay CallTool-routable but off always-ListTools (go= / cdp_cockpit).
-    var meta = BuildMetaTools()
-        .Where(t => !SoftOrganMetaNames.Contains(t.Name))
-        .ToList();
-    var ide = IdeLanguageTools.BuildBareVerbTools().ToList();
-    var hits = PhaseObjectCatalog.Query(
-        allAffordances, session.Phase, session.Object, session.Intent,
-        limit: PhaseObjectCatalog.DefaultListToolsLimit, language: session.Language);
-    var domainTools = new List<Tool>();
-    foreach (var hit in hits)
+List<Tool> BuildVisibleTools() =>
+    VisibleToolCatalog.Build(new VisibleToolCatalogDeps
     {
-        var a = hit.Affordance;
-        var schemaTool = ResolveSchema(a.Domain, a.UnderlyingName);
-        if (schemaTool is null) continue;
-        var schema = a.Domain == CdpDomains.Git
-            ? GitSessionDefaults.OptionalWorkspaceSchema(schemaTool.InputSchema)
-            : a.Domain == CdpDomains.CodebaseIndex
-            ? CodebaseIndexSessionDefaults.OptionalSessionSchema(schemaTool.InputSchema)
-            : a.Domain == CdpDomains.Build
-            ? BuildSessionDefaults.OptionalSessionSchema(schemaTool.InputSchema)
-            : MemorySessionDefaults.IsMemoryDomain(a.Domain)
-            ? MemorySessionDefaults.OptionalWorkspaceSchema(schemaTool.InputSchema)
-            : schemaTool.InputSchema;
-        domainTools.Add(new Tool
-        {
-            Name = a.PrefixedName,
-            Description = $"[{a.Domain}] {schemaTool.Description}",
-            InputSchema = schema
-        });
-    }
-    return meta.Concat(ide).Concat(domainTools).ToList();
-}
-
-Tool? ResolveSchema(string domain, string underlying) => domain switch
-{
-    CdpDomains.MemoryWorld or CdpDomains.MemoryProject or CdpDomains.MemorySkill or CdpDomains.MemorySession
-        => anTools.GetValueOrDefault(underlying),
-    CdpDomains.MemoryTask => tkTools.GetValueOrDefault(underlying),
-    CdpDomains.MemorySelfFinding => findTools.GetValueOrDefault(underlying),
-    CdpDomains.MemorySelfFailure => failTools.GetValueOrDefault(underlying),
-    CdpDomains.Debug => dbgTools.GetValueOrDefault(underlying),
-    CdpDomains.Build => btTools.GetValueOrDefault(underlying),
-    CdpDomains.Roslyn => roslynTools.GetValueOrDefault(underlying),
-    CdpDomains.Git => gitTools.GetValueOrDefault(underlying),
-    CdpDomains.CodebaseIndex => hciTools.GetValueOrDefault(underlying),
-    CdpDomains.Anui => anuiTools.GetValueOrDefault(underlying),
-    _ => null
-};
+        Session = session,
+        AllAffordances = allAffordances,
+        BuildMetaTools = BuildMetaTools,
+        AnTools = anTools,
+        TkTools = tkTools,
+        FindTools = findTools,
+        FailTools = failTools,
+        DbgTools = dbgTools,
+        BtTools = btTools,
+        RoslynTools = roslynTools,
+        GitTools = gitTools,
+        HciTools = hciTools,
+        AnuiTools = anuiTools
+    });
 
 List<Tool> BuildMetaTools() => MetaToolCatalog.Build();
-
-
-const string DomainPrefixHint =
-    "memory_world_|memory_project_|memory_task_|memory_session_|memory_skill_|" +
-    "memory_self_finding_|memory_self_failure_|debug_|build_|roslyn_|git_|codebase_index_|anui_";
 
 var options = new McpServerOptions
 {
@@ -315,7 +251,7 @@ var options = new McpServerOptions
         "Agent shell habitat: cdp_shell_* = primary IDE terminal; sibling terminal-mcp (terminal_*) = escape only. " +
         "CSX: cdp_script_scene (put→diags→check→run) | cdp_csx_help | cdp_csx_check | cdp_csx_run | cdp_csx_run_plan | promote | discard | cdp_evidence. " +
         "PS1: cdp_ps1_scene (ISE put→AST check→pwsh -File→last). " +
-        "Domain tools prefixed " + DomainPrefixHint + " (roslyn_* = legacy aliases; prefer bare IDE verbs). " +
+        "Domain tools prefixed memory_world_|memory_project_|memory_task_|memory_session_|memory_skill_|memory_self_finding_|memory_self_failure_|debug_|build_|roslyn_|git_|codebase_index_|anui_ (roslyn_* = legacy aliases; prefer bare IDE verbs). " +
         "ListTools = core meta + bare IDE verbs + ≤10 domain shortlist (soft-organ Metas via go=/CallTool; not always-ListTools). " +
         "Too many tools = agent thrash — use cdp_context to retarget, cdp_tools to preview, cdp_session (A; include_pack=true only when needed). " +
         "Continuity: route/handoff before deep topic; evidence-first (stop_context), PNG last.",
@@ -374,70 +310,21 @@ var options = new McpServerOptions
 async Task<string> DispatchAsync(
     string name,
     IReadOnlyDictionary<string, JsonElement> callArgs,
-    CancellationToken cancellationToken)
-{
-    // Sticky desk: cold tools hydrate bookmark under the hood (once/process).
-    var warm = DeskWarm.TryWarm(
+    CancellationToken cancellationToken) =>
+    await IdeToolDispatch.DispatchAsync(
+        new IdeToolDispatchDeps
+        {
+            Session = session,
+            DocStore = docStore,
+            ByDomain = byDomain,
+            Settings = settings,
+            ShellHabitat = shellHabitat,
+            NotifyListChanged = NotifyListChanged,
+            DispatchMetaAsync = DispatchMetaAsync
+        },
         name,
-        session,
-        docStore,
-        detectOpen: p => settings.Languages.Detect(p),
-        syncShellCwd: () => shellHabitat.SyncSessionCwd(session.ProjectRoot),
-        notifyListChanged: NotifyListChanged,
-        callArgs);
-
-    if (DocumentEditPlane.IsDocTool(name))
-        return await DocumentEditPlane.DispatchAsync(name, docStore, session, byDomain, callArgs, cancellationToken)
-            .ConfigureAwait(false);
-
-    if (EditorPlane.IsEditorTool(name))
-        return await EditorPlane.DispatchAsync(name, docStore, session, byDomain, callArgs, cancellationToken)
-            .ConfigureAwait(false);
-
-    if (AnalysisScene.IsAnalysisTool(name))
-        return await AnalysisScene.DispatchAsync(docStore, session, byDomain, callArgs, cancellationToken)
-            .ConfigureAwait(false);
-
-    if (ScriptScene.IsScriptTool(name))
-        return await ScriptScene.DispatchAsync(
-                docStore, session, byDomain, callArgs,
-                (n, a, ct) => DispatchMetaAsync(n, a, ct),
-                cancellationToken)
-            .ConfigureAwait(false);
-
-    if (Ps1Scene.IsPs1Tool(name))
-        return await Ps1Scene.DispatchAsync(docStore, session, byDomain, callArgs, cancellationToken)
-            .ConfigureAwait(false);
-
-    if (GoToAll.IsGoToTool(name))
-        return GoToAll.Dispatch(docStore, session, callArgs);
-
-    if (DebugPlane.IsDebugPlaneTool(name))
-        return await DebugPlane.DispatchAsync(session, byDomain, callArgs, cancellationToken)
-            .ConfigureAwait(false);
-
-    if (name.StartsWith("cdp_", StringComparison.Ordinal))
-        return await DispatchMetaAsync(name, callArgs, cancellationToken, warm).ConfigureAwait(false);
-
-    if (IdeLanguageTools.IsBareVerb(name))
-        return await IdeLanguageTools.DispatchBareAsync(name, session, byDomain, callArgs, cancellationToken)
-            .ConfigureAwait(false);
-
-    if (!CdpDomains.TrySplit(name, out var domain, out var underlying))
-        throw new ArgumentException($"Unknown tool: {name}");
-    if (!byDomain.TryGetValue(domain, out var mod))
-        throw new ArgumentException($"Backend '{domain}' not mounted.");
-    if (domain == CdpDomains.Git)
-        callArgs = GitSessionDefaults.WithWorkspace(callArgs, session);
-    else if (domain == CdpDomains.CodebaseIndex)
-        callArgs = CodebaseIndexSessionDefaults.WithSession(callArgs, session);
-    else if (domain == CdpDomains.Build)
-        callArgs = BuildSessionDefaults.WithSession(callArgs, session);
-    else if (MemorySessionDefaults.IsMemoryDomain(domain))
-        callArgs = MemorySessionDefaults.WithWorkspace(callArgs, session);
-    underlying = CdpDomains.ExpandUnderlying(domain, underlying);
-    return await mod.CallAsync(underlying, callArgs).ConfigureAwait(false);
-}
+        callArgs,
+        cancellationToken).ConfigureAwait(false);
 
 async Task<string> DispatchMetaAsync(
     string name,
@@ -454,7 +341,7 @@ async Task<string> DispatchMetaAsync(
             AllAffordances = allAffordances,
             Settings = settings,
             McpVersion = mcpVersion,
-            SoftOrganMetaNames = SoftOrganMetaNames,
+            SoftOrganMetaNames = VisibleToolCatalog.SoftOrganMetaNames,
             Pretty = Pretty,
             ShellHabitat = shellHabitat,
             McpOutlet = mcpOutlet,
@@ -477,11 +364,7 @@ async Task<string> DispatchMetaAsync(
         cancellationToken,
         warm).ConfigureAwait(false);
 
-TerminalMcp.Core.ShellCwdDefaults ShellDefaults(SessionContext s) => new()
-{
-    ProjectRoot = s.ProjectRoot,
-    ScmRoot = s.ScmRoot
-};
+TerminalMcp.Core.ShellCwdDefaults ShellDefaults(SessionContext s) => new() { ProjectRoot = s.ProjectRoot, ScmRoot = s.ScmRoot };
 
 void NotifyListChanged()
 {
@@ -491,144 +374,17 @@ void NotifyListChanged()
         cancellationToken: CancellationToken.None);
 }
 
-object DispatchCdpWork(IReadOnlyDictionary<string, JsonElement> callArgs)
-{
-    var store = RequireWorkspace();
-    if (!callArgs.TryGetValue("op", out var opEl) || opEl.GetString() is not { Length: > 0 } op)
-        throw new ArgumentException("op is required for cdp_work.");
-    op = op.Trim().ToLowerInvariant();
-
-    string? Str(string key) =>
-        callArgs.TryGetValue(key, out var el) && el.GetString() is { Length: > 0 } s ? s.Trim() : null;
-    Guid? GuidArg(string key)
-    {
-        var s = Str(key);
-        if (s is null) return null;
-        return Guid.TryParse(s, out var g) ? g : throw new ArgumentException($"{key} must be a GUID.");
-    }
-    int? IntArg(string key)
-    {
-        if (!callArgs.TryGetValue(key, out var el) || !el.TryGetInt32(out var n)) return null;
-        return n;
-    }
-
-    var sceneName = Str("name") ?? Str("scene_name");
-
-    return op switch
-    {
-        "intent_upsert" => store.IntentUpsert(workspaceState, Str("title") ?? "", GuidArg("intent_id")),
-        "intent_list" => store.IntentList(),
-        "intent_select" => store.IntentSelect(
-            workspaceState,
-            GuidArg("intent_id") ?? throw new ArgumentException("intent_id is required for intent_select.")),
-        "stage_upsert" => store.StageUpsert(
-            workspaceState, Str("title") ?? "", GuidArg("stage_id"), GuidArg("parent_id"), sceneName),
-        "stage_list" => store.StageList(workspaceState),
-        "stage_set_status" => store.StageSetStatus(
-            workspaceState,
-            GuidArg("stage_id") ?? throw new ArgumentException("stage_id is required."),
-            Str("status") ?? throw new ArgumentException("status is required.")),
-        "stage_enqueue" => EnqueueStageJob(store, Str("title") ?? "", Str("job_json"), callArgs),
-        "stage_get" => store.StageGet(
-            GuidArg("stage_id") ?? throw new ArgumentException("stage_id is required for stage_get.")),
-        "scene_park" => store.ScenePark(
-            workspaceState, session,
-            sceneName ?? throw new ArgumentException("name (or scene_name) is required for scene_park."),
-            Str("loot"), Str("focus_path"), IntArg("focus_line"), GuidArg("bind_stage_id")),
-        "scene_switch" => store.SceneSwitch(
-            workspaceState, session,
-            sceneName ?? throw new ArgumentException("name (or scene_name) is required for scene_switch."),
-            NotifyListChanged),
-        "scene_list" => store.SceneList(workspaceState),
-        "status" => store.Status(workspaceState, session),
-        "tasks" or "board" or "plan" or "feature" or "task" or "focus" or "done"
-            or "park" or "defer" or "deferred" or "pending" or "active" or "drop" or "rm" or "delete"
-            or "feature_drop" or "task_drop"
-            or "criteria" or "criterion" or "criterion_list" or "criterion_add"
-            or "criterion_met" or "criterion_unmet" or "criterion_waived" or "criterion_pending"
-            or "criterion_status" or "criterion_drop"
-            or "promote" or "promote_plan" or "ask_confirm"
-            or "share" or "share_plan"
-            or "confirm" or "plan_confirm" or "approved"
-            or "reject" or "plan_reject" or "denied" => IdeTaskManager.Handle(
-            store,
-            workspaceState,
-            MergeTmOp(InjectProjectRoot(callArgs, session), op)),
-        "intent_delete" => store.IntentDelete(
-            workspaceState,
-            GuidArg("intent_id") ?? throw new ArgumentException("intent_id is required for intent_delete.")),
-        "stage_delete" => store.StageDelete(
-            workspaceState,
-            GuidArg("stage_id") ?? throw new ArgumentException("stage_id is required for stage_delete.")),
-        _ => throw new ArgumentException(
-            $"Unknown cdp_work op '{op}'. Use intent_*|stage_*|criterion_*|scene_*|status|tasks|feature|task|focus|done|drop.")
-    };
-}
-
-static IReadOnlyDictionary<string, JsonElement> MergeTmOp(
-    IReadOnlyDictionary<string, JsonElement> callArgs,
-    string op)
-{
-    var d = new Dictionary<string, JsonElement>(callArgs, StringComparer.Ordinal)
-    {
-        ["tm_op"] = JsonSerializer.SerializeToElement(op is "tasks" or "board" or "plan" or "status" ? "board" : op)
-    };
-    return d;
-}
-
-static IReadOnlyDictionary<string, JsonElement> InjectProjectRoot(
-    IReadOnlyDictionary<string, JsonElement> callArgs,
-    SessionContext session)
-{
-    if (callArgs.TryGetValue("project_root", out var existing)
-        && existing.ValueKind == JsonValueKind.String
-        && existing.GetString() is { Length: > 0 })
-        return callArgs;
-    if (session.ProjectRoot is not { Length: > 0 } pr)
-        return callArgs;
-    var d = new Dictionary<string, JsonElement>(callArgs, StringComparer.Ordinal)
-    {
-        ["project_root"] = JsonSerializer.SerializeToElement(pr)
-    };
-    return d;
-}
-
-object EnqueueStageJob(
-    IntentWorkspaceStore store,
-    string title,
-    string? jobJson,
-    IReadOnlyDictionary<string, JsonElement> callArgs)
-{
-    if (string.IsNullOrWhiteSpace(jobJson))
-        throw new ArgumentException("job_json is required for stage_enqueue.");
-    using var doc = JsonDocument.Parse(jobJson);
-    var root = doc.RootElement;
-    var dict = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
-    foreach (var p in root.EnumerateObject())
-        dict[p.Name] = p.Value.Clone();
-    if ((!dict.ContainsKey("solution_or_project_path")
-         || dict["solution_or_project_path"].ValueKind != JsonValueKind.String
-         || string.IsNullOrWhiteSpace(dict["solution_or_project_path"].GetString()))
-        && session.SolutionOrProjectPath is { Length: > 0 } sol)
-    {
-        dict["solution_or_project_path"] = JsonSerializer.SerializeToElement(sol);
-    }
-
-    var enriched = JsonSerializer.Serialize(dict);
-    var created = store.StageEnqueue(workspaceState, title, enriched);
-    var start = true;
-    if (callArgs.TryGetValue("start_job", out var sj) && sj.ValueKind == JsonValueKind.False)
-        start = false;
-    if (start)
-    {
-        using var cdoc = JsonDocument.Parse(JsonSerializer.Serialize(created));
-        var stageId = cdoc.RootElement.GetProperty("stage_id").GetGuid();
-        RequireJobRunner().Enqueue(stageId, enriched);
-    }
-
-    return created;
-}
-
+object DispatchCdpWork(IReadOnlyDictionary<string, JsonElement> callArgs) =>
+    CdpWorkDispatch.Dispatch(
+        new CdpWorkDispatchDeps
+        {
+            Session = session,
+            WorkspaceState = workspaceState,
+            RequireWorkspace = RequireWorkspace,
+            RequireJobRunner = RequireJobRunner,
+            NotifyListChanged = NotifyListChanged
+        },
+        callArgs);
 
 IdeCommandModule.Bind(DispatchAsync);
 
