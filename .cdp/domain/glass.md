@@ -52,6 +52,8 @@
 - Chat/Intercom: primary presence = Glass Forward Intercom feed (latch/journal); MFD `Chat` stays secondary stub — not SoftOrgan bind
 - MFD instrument glance: `Build`←`toolchain`, `Terminal`←`sys`, `Problems`←`review`, `SemanticMap`←`arch`, `AiChatSettings`←`mcp`, `MarkdownPreview`←`report`, `RelatedFiles`←`refactor` (`SoftOrganMfdGlance`); field-enrich DoD closed for mapped SoftOrgans; ConPTY/MSBuild/Roslyn Problems/graph/mount/md/find_usages host later
 - dig reject: Glass WPF Terminal ConPTY — SSOT = CIDE Avalonia `TerminalMfdPageView`/`IntegratedShellLaunch`; Glass stays `sys` latch glance until Windows terminal-control peel (do not fork PTY into TextBlock) · cascade-ide `131cc677`/`46be0e27`
+- dig reject: Glass WPF Build MSBuild — SSOT = CIDE Avalonia `BuildMfdPageView`/`BuildOutputPanelViewModel`; Glass stays `toolchain` latch glance until WPF build-log host peel · cascade-ide `f2a6cf10`/`51655639`
+- invariant: Glass SoftOrgan MFD glance = dual-HCI peel DoD for instrument *presence*; live Terminal/Build hosts stay on CIDE Avalonia (do not duplicate orchestration into Glass TextBlock)
 - 2026-08-01: SoftOrganMfdGlance Problems/SemanticMap field enrich · cascade-ide `313c650d`
 - 2026-08-01: SoftOrganMfdGlance mcp/report field enrich · cascade-ide `8598e179`
 - 2026-08-01: SoftOrganMfdGlance RelatedFiles/refactor field enrich · cascade-ide `2d0190c2`
