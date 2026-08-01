@@ -33,6 +33,16 @@ internal static partial class IdeTestSaChannel
         var (verdict, why) = Decide(snap, scope);
         var pulse = PulseLine(snap, verdict);
 
+        var active = verdict is "retest" or "need_more" or "discover" or "run";
+        CideTestDeskLatch.Publish(
+            active,
+            pulse,
+            verdict,
+            okCount: snap.Last?.Passed ?? 0,
+            totalCount: snap.Last?.Total ?? 0,
+            failed: snap.Last?.Failed ?? 0,
+            skipped: snap.Last?.Skipped ?? 0);
+
         if (depth == "pulse")
         {
             return new
