@@ -1,12 +1,10 @@
-using System.Diagnostics;
-using System.Text;
 using System.Text.Json;
 using Cdp.Core;
 using Cdp.ScriptableIde;
 
 namespace CdpMcp;
 
-/// <summary>Search root resolve, rg runner, hit parse for Find in Files.</summary>
+/// <summary>Search root resolve, hit parse, land for Find in Files.</summary>
 internal static partial class FindInFiles
 {
     static bool TryResolveSearchRoot(
@@ -74,39 +72,6 @@ internal static partial class FindInFiles
 
         cwd = root!;
         return true;
-    }
-
-    static string ExpandPath(string raw)
-    {
-        var s = raw.Trim().Trim('"');
-        if (s.StartsWith("~/", StringComparison.Ordinal) || s.StartsWith("~\\", StringComparison.Ordinal))
-        {
-            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            s = Path.Combine(home, s[2..]);
-        }
-        else if (s == "~")
-        {
-            s = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        }
-
-        return Path.GetFullPath(s);
-    }
-
-    static bool IsVolumeRoot(string path)
-    {
-        try
-        {
-            var full = Path.GetFullPath(path)
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            var root = Path.GetPathRoot(full)?
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            return root is { Length: > 0 } &&
-                   full.Equals(root, StringComparison.OrdinalIgnoreCase);
-        }
-        catch
-        {
-            return false;
-        }
     }
 
     static List<Hit> ParseJsonHits(SessionContext session, string stdout, int max)
@@ -195,164 +160,4 @@ internal static partial class FindInFiles
             return null;
         }
     }
-
-    static bool TryRunRg(
-        string rg,
-        List<string> argv,
-        string cwd,
-        int timeoutMs,
-        out string stdout,
-        out string stderr,
-        out int exit,
-        out string? error)
-    {
-        stdout = "";
-        stderr = "";
-        exit = -1;
-        error = null;
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = rg,
-                WorkingDirectory = cwd,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8
-            };
-            foreach (var a in argv)
-                psi.ArgumentList.Add(a);
-
-            using var p = Process.Start(psi);
-            if (p is null)
-            {
-                error = "process_start_null";
-                return false;
-            }
-
-            var outTask = p.StandardOutput.ReadToEndAsync();
-            var errTask = p.StandardError.ReadToEndAsync();
-            if (!p.WaitForExit(timeoutMs))
-            {
-                try { p.Kill(entireProcessTree: true); } catch { /* ignore */ }
-                error = "timeout";
-                return false;
-            }
-
-            stdout = outTask.GetAwaiter().GetResult();
-            stderr = errTask.GetAwaiter().GetResult();
-            exit = p.ExitCode;
-            return true;
-        }
-        catch (Exception ex)
-        {
-            error = ex.Message;
-            return false;
-        }
-    }
-
-    static string? ResolveRg()
-    {
-        var env = Environment.GetEnvironmentVariable("CDP_RG");
-        if (env is { Length: > 0 } && File.Exists(env))
-            return env;
-
-        // Prefer PATH resolution via where/where.exe semantics — try common names.
-        foreach (var name in new[] { "rg.exe", "rg" })
-        {
-            var hit = FindOnPath(name);
-            if (hit is not null)
-                return hit;
-        }
-
-        return null;
-    }
-
-    static string? FindOnPath(string fileName)
-    {
-        var path = Environment.GetEnvironmentVariable("PATH") ?? "";
-        foreach (var dir in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
-        {
-            try
-            {
-                var candidate = Path.Combine(dir.Trim('"'), fileName);
-                if (File.Exists(candidate))
-                    return candidate;
-            }
-            catch
-            {
-                // ignore bad PATH entries
-            }
-        }
-
-        return null;
-    }
-
-    static string FileLabel(SessionContext session, string absolutePath)
-    {
-        var root = session.ProjectRoot;
-        if (root is { Length: > 0 })
-        {
-            var fullRoot = Path.GetFullPath(root);
-            var full = Path.GetFullPath(absolutePath);
-            if (full.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase))
-            {
-                var rel = full[fullRoot.Length..].TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                if (rel.Length > 0)
-                    return rel.Replace('\\', '/');
-            }
-        }
-
-        // Outside project: keep rooted path so anchors stay unique (F: value may contain drive ':').
-        return Path.GetFullPath(absolutePath).Replace('\\', '/');
-    }
-
-    static List<string> SplitLines(string text)
-    {
-        var list = new List<string>();
-        using var reader = new StringReader(text);
-        while (reader.ReadLine() is { } line)
-            list.Add(line);
-        return list;
-    }
-
-    static string Trim(string s, int max) =>
-        s.Length <= max ? s : s[..max] + "…";
-
-    static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)
-    {
-        if (!args.TryGetValue(key, out var el) || el.ValueKind != JsonValueKind.String)
-            return null;
-        var s = el.GetString();
-        return string.IsNullOrWhiteSpace(s) ? null : s.Trim();
-    }
-
-    static bool BoolOr(IReadOnlyDictionary<string, JsonElement> args, string key, bool defaultValue)
-    {
-        if (!args.TryGetValue(key, out var el))
-            return defaultValue;
-        return el.ValueKind switch
-        {
-            JsonValueKind.True => true,
-            JsonValueKind.False => false,
-            _ => defaultValue
-        };
-    }
-
-    static int IntOr(IReadOnlyDictionary<string, JsonElement> args, string key, int defaultValue)
-    {
-        if (!args.TryGetValue(key, out var el))
-            return defaultValue;
-        return el.ValueKind switch
-        {
-            JsonValueKind.Number when el.TryGetInt32(out var n) => n,
-            JsonValueKind.String when int.TryParse(el.GetString(), out var n) => n,
-            _ => defaultValue
-        };
-    }
-
-    sealed record Hit(string Anchor, string AbsolutePath, int Line, int Column, string Preview);
 }
