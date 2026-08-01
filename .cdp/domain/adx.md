@@ -9,6 +9,7 @@
 - **ADX** = Agent Developer eXperience inside CDP desk — not open-letter text as the epic.
 - North star: harness perception → agent-ready ingress → stamped memory → tokens ≈0.
 - Soft-warn FileLines: prefer `go=quality scope=disk` over shell `Measure-Object`.
+- ADX assertions: `go=quality scope=assert` loads `.cdp/assertions.toml`; kernels in-proc; Z3 proofs in tests (no Z3 natives in MCP publish).
 - Default `go=quality` stays **open buffers**; disk map is opt-in (`scope=disk|project|map`).
 - Dual-seat: `cdp_health` / `ops_pulse` show `self=` / `sib=` / `lag` — do not shell FileVersionInfo.
 - Pressure wake: `op=recall` → ready when SSOT (body+plan/ignite); do not force 4-op ceremony.
@@ -18,6 +19,7 @@
 ## Entry
 
 - `go=quality scope=disk` — project `*.cs` FileLines warn/fail + near-miss band
+- `go=quality scope=assert` — ADX assertion catalog (`.cdp/assertions.toml`) + kernels
 - `cdp_health` → `seats` + `ops.self_version` / `sibling_version` / `lag`
 - `.cdp/quality-gates.toml` — thresholds
 - Letters (cold guidelines): `docs/open-letters/letter-of-agent-developer-experience.md`
@@ -31,6 +33,7 @@
 
 ## last_ship
 
+- ADX assertions catalog + recall/ignite Z3 kernels (scope=assert) @ 0.5.425 · 2026-08-01
 - IdeFilesChannel Fs.Path peel (≤ADX soft-warn) @ 0.5.424 · 2026-08-01
 - IdePluginsChannel Marketplace.Want peel (≤ADX soft-warn) @ 0.5.423 · 2026-08-01
 - IdeFilesChannel Open+Search peel (façade ≤ADX soft-warn) @ 0.5.422 · 2026-08-01
