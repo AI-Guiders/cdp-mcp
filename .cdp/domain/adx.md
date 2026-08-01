@@ -11,6 +11,8 @@
 - Soft-warn FileLines: prefer `go=quality scope=disk` over shell `Measure-Object`.
 - Default `go=quality` stays **open buffers**; disk map is opt-in (`scope=disk|project|map`).
 - Dual-seat: `cdp_health` / `ops_pulse` show `self=` / `sib=` / `lag` — do not shell FileVersionInfo.
+- Pressure wake: `op=recall` → ready when SSOT (body+plan/ignite); do not force 4-op ceremony.
+- TM: `done`/`shipped` accept **feature title** (closes incomplete leaves); `shipped` without `start` starts wall implicitly.
 
 ## Entry
 
@@ -28,6 +30,7 @@
 
 ## last_ship
 
+- TM done/shipped feature-title fallback + shipped without start @ 0.5.412 · 2026-08-01
 - pressure recall SSOT auto-ready (ceremony tax cut) @ 0.5.411 · 2026-08-01
 - ops/health dual-seat version pulse (`IdeOpsPulse` self/sib/lag) @ 0.5.410 · 2026-08-01
 - prior: `go=quality scope=disk` @ 0.5.409 · 2026-08-01
