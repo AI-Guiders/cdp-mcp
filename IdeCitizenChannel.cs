@@ -27,24 +27,61 @@ internal static class IdeCitizenChannel
     static string Scene()
     {
         var keys = CitizenAiKeys.Load();
+        var invite = InviteReady(keys);
+        var pulse = invite.Ready
+            ? "citizen · invite=ready · keys=set · tea"
+            : "citizen · invite=blocked · keys=" + (keys.FileExists ? "empty" : "missing");
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
             ok = true,
             op = "scene",
-            pulse = "citizen · host v0 · keys=" + (keys.HasAny ? "set" : "missing"),
+            pulse,
             persona_chars = CitizenPersona.SystemPrompt.Length,
             inject_default = true,
             model_default = CitizenCompletions.DefaultModel,
             keys = keys.ToPublicPulse(),
-            hint = "turn message=… [board=…] [dry_run=true] — persona + wire inject + Anthropic. keys= for keyring pulse.",
-            next = new object[]
-            {
-                new { go = "citizen", label = "Dry turn", why = "op=turn dry_run=true message=hello" },
-                new { go = "citizen", label = "Keys", why = "op=keys" },
-                new { go = "citizen", label = "Scene", why = "op=scene" }
-            }
+            invite_ready = invite,
+            hint = invite.Ready
+                ? "invite ready — op=turn message=… pours tea (live Anthropic). dry_run= still free."
+                : "not invite-ready — copy docs/design/ai-keys.example.toml → CascadeIDE ai-keys.toml; fill anthropic_api_key. dry_run= explains without keys.",
+            next = invite.Ready
+                ? new object[]
+                {
+                    new { go = "citizen", label = "Pour tea", why = "op=turn message=hello" },
+                    new { go = "citizen", label = "Dry turn", why = "op=turn dry_run=true message=hello" },
+                    new { go = "citizen", label = "Keys", why = "op=keys" }
+                }
+                : new object[]
+                {
+                    new { go = "citizen", label = "Dry turn (explain)", why = "op=turn dry_run=true message=hello" },
+                    new { go = "citizen", label = "Keys", why = "op=keys" },
+                    new { go = "citizen", label = "Scene", why = "op=scene" }
+                }
         });
+    }
+
+    /// <summary>Hospitality gate: persona+wire always; live invite needs Anthropic key.</summary>
+    static (bool Ready, string Status, string[] Checklist, string? Blocker) InviteReady(CitizenAiKeys.Snapshot keys)
+    {
+        var checklist = new List<string>
+        {
+            "persona · ok",
+            "wire inject · ok",
+            keys.HasAny
+                ? "ai-keys.toml · set"
+                : keys.FileExists
+                    ? "ai-keys.toml · file empty"
+                    : "ai-keys.toml · missing"
+        };
+        if (!string.IsNullOrWhiteSpace(keys.AnthropicApiKey))
+            return (true, "ready", checklist.ToArray(), null);
+
+        var blocker = keys.FileExists
+            ? "anthropic_api_key empty in CascadeIDE ai-keys.toml"
+            : "missing %LocalAppData%/CascadeIDE/ai-keys.toml (see docs/design/ai-keys.example.toml)";
+        checklist.Add("live turn · blocked");
+        return (false, "blocked", checklist.ToArray(), blocker);
     }
 
     static string Keys()
