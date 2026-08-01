@@ -24,7 +24,8 @@ internal static class IdeCideIntercomChannel
             "send" or "say" or "tx" => Send(args),
             "ack" or "read" or "clear" => Ack(args),
             "history" or "line" or "journal" or "tail" => History(args),
-            _ => Fail("unknown_op", "op=scene|send|ack|history  to=pm|pf body=")
+            "presence" or "status" or "pulse_presence" => Presence(args),
+            _ => Fail("unknown_op", "op=scene|send|ack|history|presence  to=pm|pf body= | seat= state=")
         };
     }
 
@@ -34,6 +35,8 @@ internal static class IdeCideIntercomChannel
         var unread = CideIntercomVoiceLatch.TryUnreadForPf();
         var pulse = CideIntercomVoiceLatch.DeskPulseLine();
         var journalCount = CideIntercomVoiceLatch.JournalCount();
+        var presence = CideIntercomPresenceLatch.TryReadEffective();
+        var partnerPresence = CideIntercomPresenceLatch.PartnerLine(CideIntercomVoiceLatch.SeatPf, presence);
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
@@ -44,18 +47,22 @@ internal static class IdeCideIntercomChannel
             latch_path = CideIntercomVoiceLatch.LatchPath,
             journal_path = CideIntercomVoiceLatch.JournalPath,
             journal_count = journalCount,
+            presence_path = CideIntercomPresenceLatch.LatchPath,
+            presence = PresenceCard(presence),
+            partner_presence = partnerPresence,
             pulse,
             unread = unread is null ? null : Card(unread),
             latest = latch is null ? null : Card(latch),
             hint =
                 "send to=pm body=… → @PM on Glass Intercom (origin=agent). " +
                 "from=pm|operator body=… → Who-as-Operator (origin=human). " +
-                "Operator @PF … → unread here + cockpit pulse. " +
+                "presence seat=pf|pm state=idle|composing|busy — partner observability (no thinking dump). " +
                 "history limit= — Virtual History on demand (not auto into flight). " +
                 "ack id= after you read.",
             next = new object[]
             {
                 new { go = "intercom_send", label = "@PM say", why = "to=pm body=…" },
+                new { go = "intercom_presence", label = "Presence", why = "op=presence seat=pf state=busy" },
                 new { go = "intercom_ack", label = "Ack unread", why = "op=ack" },
                 new { go = "intercom", label = "History", why = "op=history limit=20" },
                 new { go = "intercom", label = "Scene", why = "op=scene" }
@@ -121,6 +128,62 @@ internal static class IdeCideIntercomChannel
             hint = "Unread cleared from cockpit pulse."
         });
     }
+
+    static string Presence(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var seatRaw = Arg(args, "seat") ?? Arg(args, "from") ?? Arg(args, "who") ?? CideIntercomVoiceLatch.SeatPf;
+        var stateRaw = Arg(args, "state") ?? Arg(args, "status") ?? Arg(args, "presence");
+        if (string.IsNullOrWhiteSpace(stateRaw))
+            return Fail("state_required", "presence seat=pf|pm state=idle|composing|busy");
+
+        int? ttl = null;
+        if (args.TryGetValue("ttl_s", out var ttlEl)
+            && ttlEl.ValueKind == JsonValueKind.Number
+            && ttlEl.TryGetInt32(out var ttlN))
+            ttl = ttlN;
+        else if (args.TryGetValue("ttl", out var ttlAlias)
+                 && ttlAlias.ValueKind == JsonValueKind.Number
+                 && ttlAlias.TryGetInt32(out var ttlA))
+            ttl = ttlA;
+
+        var doc = CideIntercomPresenceLatch.PublishSeat(seatRaw, stateRaw!, ttl);
+        if (doc is null)
+            return Fail("presence_failed", "seat=pf|pm state=idle|composing|busy (not stale — stale is reader-side)");
+
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "presence",
+            presence_path = CideIntercomPresenceLatch.LatchPath,
+            presence = PresenceCard(doc),
+            partner_for_glass = CideIntercomPresenceLatch.PartnerLine(CideIntercomVoiceLatch.SeatPm, doc),
+            partner_for_agent = CideIntercomPresenceLatch.PartnerLine(CideIntercomVoiceLatch.SeatPf, doc),
+            hint = "Presence latch updated — Glass paints partner on IntercomSubtitle; no journal / no thinking dump."
+        });
+    }
+
+    static object? PresenceCard(CideIntercomPresenceLatch.PresenceDoc? doc)
+    {
+        if (doc is null)
+            return null;
+        return new
+        {
+            schema = doc.Schema,
+            pf = SeatCard(doc.Pf),
+            pm = SeatCard(doc.Pm)
+        };
+    }
+
+    static object? SeatCard(CideIntercomPresenceLatch.PresenceSeat? s) =>
+        s is null
+            ? null
+            : new
+            {
+                state = s.State,
+                stamped_utc = s.StampedUtc,
+                ttl_s = s.TtlSeconds
+            };
 
     static string History(IReadOnlyDictionary<string, JsonElement> args)
     {
