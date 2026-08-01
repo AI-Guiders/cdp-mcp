@@ -50,3 +50,4 @@
 - Glass reverse: MFD orphans `WorkspaceHealth`/`EnvironmentReadiness`/`Events`/`Hypotheses` added as WPF list+stub (CIDE enum parity)
 - SoftOrgan peel DoD closed: every `SoftOrganKind` resolves (MFD or chrome); orphan MFDs stay unbound — do not invent SoftOrgan to fill CIDE pages; EnvironmentReadiness/IdeHealth are CCUs not SoftOrgans
 - Chat/Intercom: primary presence = Glass Forward Intercom feed (latch/journal); MFD `Chat` stays secondary stub — not SoftOrgan bind
+- MFD instrument glance: `Build`←`toolchain` latch, `Terminal`←`sys` latch (`SoftOrganMfdGlance`); ConPTY/MSBuild host later
