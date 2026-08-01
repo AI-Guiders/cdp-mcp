@@ -23,6 +23,10 @@ internal static partial class MetaDispatch
         if (hit is not null) return hit;
         hit = await HubAsync(d, name, callArgs, cancellationToken, warm).ConfigureAwait(false);
         if (hit is not null) return hit;
+        hit = await HubCsxAsync(d, name, callArgs, cancellationToken, warm).ConfigureAwait(false);
+        if (hit is not null) return hit;
+        hit = await HubShellAsync(d, name, callArgs, cancellationToken, warm).ConfigureAwait(false);
+        if (hit is not null) return hit;
         throw new ArgumentException($"Unknown meta tool: {name}");
     }
 
