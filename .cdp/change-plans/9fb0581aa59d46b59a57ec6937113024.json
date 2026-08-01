@@ -1,0 +1,13 @@
+{
+  "schema": "change_plan/v0",
+  "plan_id": "c4003a96ac81",
+  "stage_id": "9fb0581a-a59d-46b5-9a57-ec6937113024",
+  "criterion_id": "41393149-52a1-4186-ba48-823d0b7a1782",
+  "anchors": [
+    {
+      "anchor": "[F:IdeChangePlanner.cs;M:Handle]"
+    }
+  ],
+  "manual_acked": true,
+  "updated_utc": "2026-07-28T11:02:49.4970307+00:00"
+}

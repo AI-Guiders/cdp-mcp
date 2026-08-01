@@ -1,0 +1,162 @@
+{
+  "schema": "onboard/v0",
+  "title": "onboard \u00B7 cdp-mcp",
+  "project_name": "cdp-mcp",
+  "root": "D:\\Experiments\\Personal Cursor Folder\\Financial\\software\\open\\cdp-mcp",
+  "updated_utc": "2026-07-28T14:39:48.2781544+00:00",
+  "profile_hint": "cide",
+  "docs": {
+    "has_readme": true,
+    "has_docs_dir": true,
+    "adr_count": 2,
+    "readme_path": "README.md"
+  },
+  "entrypoints": [
+    {
+      "kind": "entrypoint",
+      "label": "Program",
+      "path": "Program.cs",
+      "anchor": "[F:Program.cs;M:Program]",
+      "score": 100
+    },
+    {
+      "kind": "entrypoint",
+      "label": "Program",
+      "path": "tools/CdpProbe/Program.cs",
+      "anchor": "[F:tools/CdpProbe/Program.cs;M:Program]",
+      "score": 100
+    },
+    {
+      "kind": "entrypoint",
+      "label": "Program",
+      "path": "tools/_mutate_dogfood/Program.cs",
+      "anchor": "[F:tools/_mutate_dogfood/Program.cs;M:Program]",
+      "score": 100
+    },
+    {
+      "kind": "entrypoint",
+      "label": "IdeIgniteArmHost.Api",
+      "path": "IdeIgniteArmHost.Api.cs",
+      "anchor": "[F:IdeIgniteArmHost.Api.cs;M:IdeIgniteArmHost.Api]",
+      "score": 70
+    },
+    {
+      "kind": "entrypoint",
+      "label": "IdeIgniteArmHost",
+      "path": "IdeIgniteArmHost.cs",
+      "anchor": "[F:IdeIgniteArmHost.cs;M:IdeIgniteArmHost]",
+      "score": 70
+    },
+    {
+      "kind": "entrypoint",
+      "label": "IdeIgniteArmHost.Delivery",
+      "path": "IdeIgniteArmHost.Delivery.cs",
+      "anchor": "[F:IdeIgniteArmHost.Delivery.cs;M:IdeIgniteArmHost.Delivery]",
+      "score": 70
+    },
+    {
+      "kind": "entrypoint",
+      "label": "IdeIgniteArmHost.Fire",
+      "path": "IdeIgniteArmHost.Fire.cs",
+      "anchor": "[F:IdeIgniteArmHost.Fire.cs;M:IdeIgniteArmHost.Fire]",
+      "score": 70
+    },
+    {
+      "kind": "entrypoint",
+      "label": "IdeIgniteArmHost.Models",
+      "path": "IdeIgniteArmHost.Models.cs",
+      "anchor": "[F:IdeIgniteArmHost.Models.cs;M:IdeIgniteArmHost.Models]",
+      "score": 70
+    },
+    {
+      "kind": "entrypoint",
+      "label": "IdeIgniteArmHost.Parse",
+      "path": "IdeIgniteArmHost.Parse.cs",
+      "anchor": "[F:IdeIgniteArmHost.Parse.cs;M:IdeIgniteArmHost.Parse]",
+      "score": 70
+    },
+    {
+      "kind": "entrypoint",
+      "label": "IdeIgniteArmHost.Persist",
+      "path": "IdeIgniteArmHost.Persist.cs",
+      "anchor": "[F:IdeIgniteArmHost.Persist.cs;M:IdeIgniteArmHost.Persist]",
+      "score": 70
+    },
+    {
+      "kind": "entrypoint",
+      "label": "IdeIgniteArmHost.ProviderBlocked",
+      "path": "IdeIgniteArmHost.ProviderBlocked.cs",
+      "anchor": "[F:IdeIgniteArmHost.ProviderBlocked.cs;M:IdeIgniteArmHost.ProviderBlocked]",
+      "score": 70
+    },
+    {
+      "kind": "entrypoint",
+      "label": "IdeIgniteArmHost.Reclaim",
+      "path": "IdeIgniteArmHost.Reclaim.cs",
+      "anchor": "[F:IdeIgniteArmHost.Reclaim.cs;M:IdeIgniteArmHost.Reclaim]",
+      "score": 70
+    }
+  ],
+  "top_folders": [
+    {
+      "path": "CdpMcp.Tests",
+      "file_count": 51
+    },
+    {
+      "path": "Cockpit",
+      "file_count": 43
+    },
+    {
+      "path": "IntentWorkspace",
+      "file_count": 10
+    },
+    {
+      "path": "tools",
+      "file_count": 6
+    },
+    {
+      "path": "CdpMcp.ArchitectureAnalyzers",
+      "file_count": 4
+    },
+    {
+      "path": "Backends",
+      "file_count": 4
+    }
+  ],
+  "verticals": [
+    {
+      "name": "Cockpit",
+      "file_count": 43,
+      "sample_path": "Cockpit/Transport/DeskIngestionBus.cs",
+      "sample_anchor": "[F:Cockpit/Transport/DeskIngestionBus.cs;M:DeskIngestionBus]"
+    },
+    {
+      "name": "IntentWorkspace",
+      "file_count": 10,
+      "sample_path": "IntentWorkspace/IdeReportJobRunner.cs",
+      "sample_anchor": "[F:IntentWorkspace/IdeReportJobRunner.cs;M:IdeReportJobRunner]"
+    },
+    {
+      "name": "tools",
+      "file_count": 6,
+      "sample_path": "tools/_mutate_dogfood/Alpha.cs",
+      "sample_anchor": "[F:tools/_mutate_dogfood/Alpha.cs;M:Alpha]"
+    },
+    {
+      "name": "CdpMcp.ArchitectureAnalyzers",
+      "file_count": 4,
+      "sample_path": "CdpMcp.ArchitectureAnalyzers/DeskCabinLayerAnalyzer.cs",
+      "sample_anchor": "[F:CdpMcp.ArchitectureAnalyzers/DeskCabinLayerAnalyzer.cs;M:DeskCabinLayerAnalyzer]"
+    },
+    {
+      "name": "Backends",
+      "file_count": 4,
+      "sample_path": "Backends/MemoryScopeGateway.cs",
+      "sample_anchor": "[F:Backends/MemoryScopeGateway.cs;M:MemoryScopeGateway]"
+    }
+  ],
+  "solutions": [],
+  "csproj_count": 6,
+  "files_scanned": 330,
+  "truncated": false
+}

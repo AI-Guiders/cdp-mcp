@@ -1,0 +1,13 @@
+{
+  "schema": "change_plan/v0",
+  "plan_id": "475de115a370",
+  "stage_id": "b1eaaf11-c706-4b68-b1d9-565344210161",
+  "criterion_id": "134600eb-1d4d-41db-b05e-2533fb01b108",
+  "anchors": [
+    {
+      "anchor": "Blast radius: Stage.Product column \u002B REPL product/category \u002B board #tag; no full regroup UI yet"
+    }
+  ],
+  "manual_acked": false,
+  "updated_utc": "2026-07-28T11:22:13.9068807+00:00"
+}
