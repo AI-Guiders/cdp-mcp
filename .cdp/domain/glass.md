@@ -116,9 +116,13 @@ Hydration already lists all three (`CockpitHostLatchHydration`). SoftOrganLatchC
 
 **Residual latch triad: CLOSED** (land + shared + disk).
 
-**Next act:** invent dig Glass 0-sync after residual latch triad — any remaining CDP↔CIDE entity gaps.
+
+**Post-triad invent dig: CLOSED** — Avalonia dual-cockpit projectors (Disk/Land/Shared/Seats/Presentation/Intercom/Presence/Alert/Qrh/Ecl) all have Glass LatchHub peels; SoftOrgan path covers catalog SoftOrgans; hydration minus intercom-presence (intentional). Remaining HOLD = DIG REJECT Avalonia SSOT (DAP/Problems/RelatedFiles/SemanticMap/Markdig/WebAiPortal/Correspondence). No open act peel leaf.
+
+**Glass 0-sync entity presence epic: CLOSED** for catalog completeness (stub OK). Next board = soft-warn peel / other epic — not orphan Glass entity.
 
 ## last_ship
+- 2026-08-01: invent dig Glass 0-sync after residual latch triad — GAP none; dual-cockpit projector↔LatchHub matrix green; epic presence DoD CLOSED
 
 - 2026-08-01: act Glass `disk-LATEST` peel — `CdpHabitatPaths.DiskLatchFileName` · `LatchHub.DiskChanged` · `LatchPaint.PaintDisk` · `MainWindow.DiskSurface` → AvalonEdit reload + human Save publish; UIA ` · disk`
 - 2026-08-01: act Glass `shared-LATEST` peel — `CdpHabitatPaths.SharedLatchFileName` · `LatchHub.SharedChanged` · `LatchPaint.PaintShared` · `MainWindow.SharedSurface` → EditorPathLabel ` · shared`; UIA dogfood LatchHub.cs
