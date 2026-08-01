@@ -13,6 +13,7 @@
 - Wire: Bearer + `{base}/v1/chat/completions` (non-stream for citizen turns); system-as-message on OAI path.
 - `invite_ready` is a **record** (not ValueTuple) — JSON must expose Ready/Status/Checklist/Blocker.
 - `dry_run=true` builds persona+wire messages without provider; works with empty keys.
+- Dry-run **model** label mirrors live `ResolveProvider` (FM-first / `DefaultOpenAiModel`), not raw `DefaultModel` (claude).
 - Soft deploy ≠ live code; hard-self for this seat needs **terminal_*** + KillRunning (not in-proc `cdp_shell_*`).
 
 ## Entry
@@ -34,3 +35,4 @@
 - 0.5.361: `InviteReady` as serializable record
 - 0.5.362: meta docs OAI/Cloud.ru on `cdp_citizen`
 - 2026-08-01: dogfood — `open_ai_api_key` set in CascadeIDE ai-keys.toml; invite_ready=true; live turn `http_402` Not enough money (key auth OK, FM billing/bonus not covering inference yet)
+- 2026-08-01: dry_run model label follows ResolveProvider (no more false claude DefaultModel when FM keys present)
