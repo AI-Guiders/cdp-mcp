@@ -175,7 +175,7 @@ internal static class IdeToolCallWatch
             return DefaultThresholdSeconds;
 
         // Never nest wake on ignite itself / trivial pulse tools.
-        if (name is "cdp_ignite" or "cdp_health" or "cdp_pressure" or "ping" or "cdp_fdr" or "cdp_postmortem")
+        if (name is "cdp_ignite" or "cdp_health" or "cdp_pressure" or "ping" or "cdp_fdr" or "cdp_teeth" or "cdp_postmortem")
             return 0;
 
         return name switch
