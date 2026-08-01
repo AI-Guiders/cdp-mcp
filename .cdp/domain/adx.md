@@ -31,6 +31,7 @@
 
 ## last_ship
 
+- IdeFilesChannel Fs.Path peel (≤ADX soft-warn) @ 0.5.424 · 2026-08-01
 - IdePluginsChannel Marketplace.Want peel (≤ADX soft-warn) @ 0.5.423 · 2026-08-01
 - IdeFilesChannel Open+Search peel (façade ≤ADX soft-warn) @ 0.5.422 · 2026-08-01
 - IdeChkChannel Builtins peel (façade ≤ADX soft-warn) @ 0.5.421 · 2026-08-01
