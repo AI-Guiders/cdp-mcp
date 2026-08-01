@@ -531,19 +531,23 @@ List<Tool> BuildMetaTools() =>
             page = new { type = "string", description = "alias of mfd_page" }
         }
     }),
-    Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack|history. send to=pm body= → intercom-LATEST + journal. Virtual History: op=history limit= (PF on-demand). Operator @PF → unread on desk. Alias go=intercom.", new
+    Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack|history|presence. send to=pm body= → intercom-LATEST + journal. presence seat= state=idle|composing|busy → intercom-presence-LATEST (partner observability; no thinking dump). Virtual History: op=history. Alias go=intercom.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|get|inbox|send|ack|history (default scene)" },
+            op = new { type = "string", description = "scene|get|inbox|send|ack|history|presence (default scene)" },
             to = new { type = "string", description = "send: pm|pf or @PM|@PF (default pm)" },
-            from = new { type = "string", description = "send: optional seat override (default pf)" },
+            from = new { type = "string", description = "send: optional seat override (default pf); presence: alias of seat" },
             body = new { type = "string", description = "send: message text" },
             message = new { type = "string", description = "send: alias of body" },
             text = new { type = "string", description = "send: alias of body" },
             id = new { type = "string", description = "ack: optional message id" },
-            limit = new { type = "integer", description = "history: last N messages (default 20, max 200)" }
+            limit = new { type = "integer", description = "history: last N messages (default 20, max 200)" },
+            seat = new { type = "string", description = "presence: pf|pm (default pf)" },
+            state = new { type = "string", description = "presence: idle|composing|busy" },
+            status = new { type = "string", description = "presence: alias of state" },
+            ttl_s = new { type = "integer", description = "presence: optional TTL seconds (composing/busy stale after)" }
         }
     }),
     Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn. turn message= [board=] [dry_run=true] [model=] — persona + wire inject; OpenAI-compat (Cloud.ru FM via open_ai_*) or Anthropic via ai-keys.toml. Alias go=citizen.", new
