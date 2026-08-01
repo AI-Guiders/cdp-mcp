@@ -335,6 +335,14 @@ internal static class IdeFindChannel
             ? $"find · {where} · {count} hit(s){(truncated ? "+" : "")}{(pathNote is { Length: > 0 } ? $" · {pathNote}" : "")}"
             : $"find · {where} · fail · {engineError}";
 
+        CideFindDeskLatch.Publish(
+            active: true,
+            pulse: pulse,
+            op: "run",
+            where: where,
+            query: query,
+            hitCount: count);
+
         var next = BuildNext(where, shape, ok, count);
 
         if (shape == "raw")
@@ -492,6 +500,13 @@ internal static class IdeFindChannel
     static object ClearCard()
     {
         IdeSettingsStore.Unset(LastKey);
+        CideFindDeskLatch.Publish(
+            active: false,
+            pulse: "find_desk · idle · cleared",
+            op: "clear",
+            where: null,
+            query: null,
+            hitCount: 0);
         return new
         {
             ok = true,
