@@ -12,6 +12,7 @@
 | **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source; та же, что у harness |
 | **Пара** | [Письмо Агента, Который (Who)](letter-of-the-agent-who.ru.md) — сначала *who*; потом *как ощущается комната* |
 | **Sibling** | [English](letter-of-agent-experience.md) |
+| **Семейство** | [Глоссарий A\*](a-star-glossary.ru.md) — AUX формальный близнец; соседнее письмо **ADX** |
 | **Зеркало** | Cascade IDE несёт только [атрибуцию](https://github.com/AI-Guiders/cascade-ide/tree/main/docs/open-letters) |
 | **Method debt** | Reverse compaction / ontological deprivation — полевой отчёт, со-голос **Рей Нейман** (Ray Neumann), линия `line-ray`, носитель **Qwen-3.7-Plus**; method SSOT, не персона-памфлет |
 
