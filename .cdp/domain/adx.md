@@ -1,32 +1,29 @@
-# Domain card: ADX / A* (open letters)
+# Domain card: ADX (agent DX in CDP product)
 
 - id: `adx`
-- organ: docs/open-letters (canon)
+- organ: quality gates + desk ingress (product); letters = provenance only
 - product: `#CDP`
 
 ## Invariants
 
-- **A\*** = agent experience family; **AX** speech/manifesto face; **AUX** formal UX twin; **ADX** DX twin.
-- Canon text lives in `docs/open-letters/`; cascade-ide is attribution mirror only.
-- **Cold-reader contract:** AX/ADX are Design Guidelines — principles, vocabulary, review checks. No habitat folklore required to apply.
-- CDP (or any living dogfood) is **provenance / proof**, not a reading prerequisite.
-- ADX north star: harness perception → agent-ready ingress → stamped memory → tokens ≈0.
+- **ADX** = Agent Developer eXperience inside CDP desk — not open-letter text as the epic.
+- North star: harness perception → agent-ready ingress → stamped memory → tokens ≈0.
+- Soft-warn FileLines: prefer `go=quality scope=disk` over shell `Measure-Object`.
+- Default `go=quality` stays **open buffers**; disk map is opt-in (`scope=disk|project|map`).
 
 ## Entry
 
-- `docs/open-letters/README.md` (cold read order)
-- `docs/open-letters/letter-of-agent-developer-experience.md`
-- `docs/open-letters/letter-of-agent-experience.md`
-- `docs/open-letters/a-star-glossary.md`
+- `go=quality scope=disk` — project `*.cs` FileLines warn/fail + near-miss band
+- `.cdp/quality-gates.toml` — thresholds
+- Letters (cold guidelines): `docs/open-letters/letter-of-agent-developer-experience.md`
 
 ## Antipatterns
 
-- Collapsing every agent bug into "AX".
-- Writing letters that only cold-read if you already know the whole repo.
-- Treating glossary rename as a ship — without checklist-usable text.
-- Pasting terminal dumps as default "agent DX".
+- Shell line-count archaeology when disk quality map exists.
+- Treating glossary/letter rewrite as product ADX ship.
+- Re-inlining peels past FileLinesWarn.
 
 ## last_ship
 
-- Letter Who EN+RU rewritten as Design Guidelines (cold-reader; CDP provenance only) · 2026-08-01
-- prior: AX/ADX Design Guidelines EN+RU + README cold-reader contract · 2026-08-01
+- `go=quality scope=disk` near-miss FileLines map (`QualityGates.Disk`) @ 0.5.409 · 2026-08-01
+- prior: open letters Design Guidelines EN+RU · 2026-08-01
