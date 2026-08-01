@@ -230,6 +230,7 @@ var SoftOrganMetaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "cdp_learn",
     "cdp_domain",
     "cdp_fdr",
+    "cdp_teeth",
     "cdp_postmortem",
     "cdp_scope",
     "cdp_webcam",
@@ -778,6 +779,19 @@ List<Tool> BuildMetaTools() =>
                 limit = new { type = "integer", description = "tail/stats/slow lookback" },
                 lookback = new { type = "integer", description = "alias of limit for stats/slow" },
                 min_ms = new { type = "integer", description = "slow: min elapsed ms (default 1000)" }
+            }
+        }),
+    Meta("cdp_teeth", "Guest-host teeth organ — one-glance CDT/Stop, remount·oom delivery, OOM tooth, partner away/here. Afferent teeth-tape (not FDR). op=scene|tail|explain. Alias go=teeth. Related ADR-0027/0029.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|tail|explain" },
+                limit = new { type = "integer", description = "tail lookback" },
+                id = new { type = "string", description = "explain: arm id focus" },
+                arm = new { type = "string", description = "alias of id" },
+                cdt = new { type = "boolean", description = "scene: live CDT sample (default false)" }
             }
         }),
     Meta("cdp_postmortem", "Ethical SoftOrgan postmortem — blameless peel (happened/system_root/why_repeated/fix/do_not). Scrubs secrets; refuses blame + chat dump. op=scene|template|draft|record|list. Persist failure+finding+FDR call_id. Alias go=postmortem|pm|retro. Integrity=honesty+exit.",
@@ -1748,6 +1762,7 @@ async Task<string> DispatchMetaAsync(
                 isolation = CdpClientWorkspace.StatusCard(),
                 ops = IdeOpsPulse.Snap(),
                 ops_pulse = IdeOpsPulse.Line(),
+                teeth_pulse = IdeTeethChannel.PulseLine(),
                 backends = modules.Select(m => new { domain = m.Domain, enabled = m.IsEnabled, health = m.HealthSummary }),
                 typescript_worker = IdeLanguageTools.TsHealth(),
                 lsp = IdeLanguageTools.LspHealth(),
@@ -1993,6 +2008,8 @@ async Task<string> DispatchMetaAsync(
             return IdeMdAuthorChannel.HandleJson(session, callArgs);
         case "cdp_fdr":
             return IdeFdrChannel.HandleJson(session, callArgs);
+        case "cdp_teeth":
+            return IdeTeethChannel.HandleJson(session, callArgs);
         case "cdp_postmortem":
             return IdePostmortemChannel.HandleJson(session, callArgs);
         case "cdp_learn":
