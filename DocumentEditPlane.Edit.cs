@@ -17,6 +17,7 @@ internal static partial class DocumentEditPlane
         // Diagnostics run AFTER the gate: Roslyn/MSBuild is not parallel-safe and held the
         // mutate lock for minutes (dogfood hang on parallel anchor edits).
         var pathKey = ResolvePathKey(store, session, args);
+        var pathExistedBefore = File.Exists(pathKey);
         var applied = await store.MutateAsync(pathKey, async () =>
         {
             // Must not call Resolve/Open here: they take PathMutateGate again → self-deadlock
@@ -84,6 +85,11 @@ internal static partial class DocumentEditPlane
 
         EditorComfort.RecordEdit(applied.Buf.Path, applied.BeforeText, applied.Buf.Text, applied.Op);
         EditorComfort.RememberFile(applied.Buf.Path);
+        AdxMutateTrace.Record(
+            applied.Buf.Path,
+            applied.Op,
+            isCreate: false,
+            pathExistedBefore: pathExistedBefore);
         if (applied.Anchor is not null)
         {
             // Best-effort locus from anchor edit result if it carries a wire.

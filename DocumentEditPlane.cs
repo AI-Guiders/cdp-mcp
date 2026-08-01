@@ -216,9 +216,11 @@ internal static partial class DocumentEditPlane
     {
         var path = ResolveUserPath(session, RequireString(args, "path"));
         var overwrite = BoolOr(args, "overwrite", defaultValue: false);
+        var existed = File.Exists(path);
         var text = OptString(args, "text");
         var diagnose = BoolOr(args, "diagnose", defaultValue: true);
         var buf = store.Create(path, text, overwrite);
+        AdxMutateTrace.Record(buf.Path, "create", isCreate: true, pathExistedBefore: existed);
         object? diagnostics = null;
         string? diagNote = null;
         if (diagnose)

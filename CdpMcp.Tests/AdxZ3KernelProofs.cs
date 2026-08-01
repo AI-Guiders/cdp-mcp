@@ -130,4 +130,26 @@ public sealed class AdxZ3KernelProofs
         Assert.False(AdxIgniteLatchKernel.LastOnceFireAwaitingOk(true, true, false));
         Assert.True(AdxIgniteLatchKernel.LastOnceFireAwaitingOk(true, true, true));
     }
+
+    [Fact]
+    public void HabitatMutate_SetTextOnExisting_WithoutCreate_IsUnsat_WhenGuidelineRequired()
+    {
+        using var ctx = new Context();
+        var pathExisted = ctx.MkBoolConst("path_existed");
+        var isCreate = ctx.MkBoolConst("is_create");
+        var isSetText = ctx.MkBoolConst("is_set_text");
+
+        // GuidelineOk := isCreate ∨ ¬pathExisted ∨ ¬isSetText
+        var ok = ctx.MkOr(isCreate, ctx.MkNot(pathExisted), ctx.MkNot(isSetText));
+
+        var s = ctx.MkSolver();
+        s.Add(ok);
+        s.Add(pathExisted);
+        s.Add(ctx.MkNot(isCreate));
+        s.Add(isSetText);
+        Assert.Equal(Status.UNSATISFIABLE, s.Check());
+
+        Assert.False(AdxHabitatMutateKernel.GuidelineOk(false, true, "set_text"));
+        Assert.True(AdxHabitatMutateKernel.GuidelineOk(false, true, "anchor"));
+    }
 }

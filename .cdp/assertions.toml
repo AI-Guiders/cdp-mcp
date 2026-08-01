@@ -23,9 +23,8 @@ check = "ignite_latch"
 
 [[assertions.item]]
 id = "ADX-HX-001"
-kind = "guideline"
+kind = "kernel"
 topic = "habitat.mutate"
-engine = "deferred"
-statement = "SSOT mutate via cdp_buffer/cockpit/sniper; full-file rewrite only when path absent (draft bootstrap)."
-check = "session_trace"
-status = "deferred"
+engine = "csharp+z3+trace"
+statement = "SSOT mutate via cdp_buffer; full-file rewrite only when path absent (draft bootstrap); existing paths prefer anchor/replace."
+check = "habitat_mutate"
