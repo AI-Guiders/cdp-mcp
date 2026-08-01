@@ -1,0 +1,10 @@
+{
+  "name": "cdp-ts-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CDP TypeScript LanguageService worker (stdio JSON lines)",
+  "dependencies": {
+    "typescript": "^5.8.3"
+  }
+}

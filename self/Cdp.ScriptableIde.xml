@@ -1,0 +1,2045 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Cdp.ScriptableIde</name>
+    </assembly>
+    <members>
+        <member name="T:Cdp.ScriptableIde.AccessIntent">
+            <summary>Closed access intent — language projects modifiers (csharp: public/private/…).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Field">
+            <summary>Field intent for Create composition: <c>Field.Named("x").Of(Types.String)</c>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Anchor">
+            <summary>
+            Locate <b>entity</b> (locus) — agent surface without wire-string tax.
+            Bracket notation <c>[F:…;M:…;S:…;K:…]</c> is only the wire projection via <see cref="M:Cdp.ScriptableIde.Anchor.ToWire"/>.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Parse(System.String)">
+            <summary>Escape: parse bracket wire into an Anchor (round-trip).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Element(System.String)">
+            <summary>XML element path — <c>X:Project/PropertyGroup/OutputType</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Attr(System.String)">
+            <summary>XML attribute — <c>Attribute:Version</c> (alias <c>A:</c>).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Family(System.String)">
+            <summary><c>Family:code|xml|navigation</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Command(System.String)">
+            <summary>Navigation <c>Command:open|goto|restore|show|go</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Go(System.String)">
+            <summary>Navigation organ — <c>Go:editor_scene</c> with <c>Command:go</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Nested(Cdp.ScriptableIde.Anchor)">
+            <summary>Nested locus Anchor — <c>Anchor:[…]</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.CreateElement">
+            <summary>Upsert missing XML element under parent — <c>K:Element</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Member(System.String)">
+            <summary>Alias of <see cref="M:Cdp.ScriptableIde.Anchor.Method(System.String)"/> (types, props, fields share M:).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Expression">
+            <summary>foreach <c>in</c> expression (foreach has no boolean Condition).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Collection">
+            <summary>Alias of <see cref="M:Cdp.ScriptableIde.Anchor.Expression"/> for foreach collection.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Initializer">
+            <summary>RHS of <c>var x = …</c> / field init / assignment (L:+K:Initializer).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Parameter(System.String)">
+            <summary>Method/ctor parameter by name — <c>K:Parameter:a</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Name">
+            <summary>Identifier token of member/type/local — <c>K:Name</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.ReturnType">
+            <summary>Method/property return type — <c>K:ReturnType</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Body">
+            <summary>Method/accessor body — <c>K:Body</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.Type">
+            <summary>Type of local/field/param — <c>K:Type</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Anchor.ToWire">
+            <summary>Bracket-notation wire for harness parse.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.AnchorLocus">
+            <summary>Shared Anchor / bracket-wire → file / type position for Generate &amp; Refactor.Move.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Bracket">
+            <summary>
+            Structured 0128 locate builder — agent surface without wire-string tax.
+            Emits <c>[F:…;M:…;S:…;K:…]</c> via <see cref="M:Cdp.ScriptableIde.Bracket.ToWire"/> for harness parse.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Bracket.Parse(System.String)">
+            <summary>Escape: parse existing wire into a builder (round-trip).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Bracket.Member(System.String)">
+            <summary>Alias of <see cref="M:Cdp.ScriptableIde.Bracket.Method(System.String)"/> (types, props, fields share M:).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.BracketLocate">
+            <summary>
+            0128 bracket locate — families <c>code</c> / <c>xml</c> / <c>navigation</c> (ADR 0186).
+            Full axis names canonical; short letters are aliases.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BracketLocate.ClassifyFamily(Cdp.ScriptableIde.BracketLocate.Span,System.String@)">
+            <summary>
+            Explicit <c>Family:</c> wins; else infer code (M/S/L) vs xml (Element/Attribute).
+            Navigation = Family or Command/Go/nested.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BracketLocate.Format(Cdp.ScriptableIde.BracketLocate.Span,System.Boolean)">
+            <summary>
+            Emit wire. Navigation → canonical names + Family.
+            Code/xml → short aliases (compat) unless <paramref name="preferCanonical"/>.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.BracketSyntaxResolve">
+            <summary>Resolve S(+K) to line/column range via local C# parse (no MSBuild).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BracketSyntaxResolve.TryResolve(System.String,System.String,Cdp.ScriptableIde.BracketLocate.Span,Cdp.ScriptableIde.BracketSyntaxResolve.TextRange@,System.String@)">
+            <param name="sourceText">
+            Optional buffer text (cdp_buffer). When null, reads <paramref name="absoluteFilePath"/> from disk.
+            </param>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BracketSyntaxResolve.TryFindAttachTarget(System.String,Cdp.ScriptableIde.BracketLocate.Span,Cdp.ScriptableIde.BracketSyntaxResolve.AttachTarget@,System.String@)">
+            <summary>Resolve F+(M|L|S[+K]) to a syntax node for annotate/mutate attach.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BracketSyntaxResolve.TryFindAttachTarget(System.String,System.String,Cdp.ScriptableIde.BracketLocate.Span,Cdp.ScriptableIde.BracketSyntaxResolve.AttachTarget@,System.String@)">
+            <param name="sourceText">When set, parse this instead of disk (dirty buffer / in-memory).</param>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BracketSyntaxResolve.TryApplyLineRole(Microsoft.CodeAnalysis.SyntaxNode,System.String,Microsoft.CodeAnalysis.SyntaxNode@,System.String@)">
+            <summary>
+            Roles on L: (no S:) — Initializer / Type / Name / Parameter of local or nearby decl.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BracketSyntaxResolve.TryApplyMemberRole(Microsoft.CodeAnalysis.SyntaxNode,System.String,Microsoft.CodeAnalysis.SyntaxNode@,System.String@)">
+            <summary>Roles on member / local / parameter nodes (K:Name, Parameter:x, ReturnType, Body, Type).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.BracketLocus">
+            <summary>Shared bracket → file / type position for Generate &amp; Refactor.Move.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.BracketXmlResolve">
+            <summary>
+            Resolve <c>X:</c>/<c>A:</c> to a 1-based text range (MSBuild-ish XML, no namespaces).
+            Segments: <c>Name</c>, <c>Name@Attr=value</c>, <c>Name:2</c> (1-based among matching siblings).
+            <c>K:Element</c> — if leaf missing, insert under parent (zero-width range + insert name).
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CallAnchorResolve">
+            <summary>Resolve method Anchor → containing type name + method name for Act.Call.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CodeAnchor">
+            <summary>
+            Internal MCP projection (file + line/col). Agent surface = <see cref="T:Cdp.ScriptableIde.Anchor"/>; prefer <see cref="M:Cdp.ScriptableIde.CodeAnchor.FromAnchor(Cdp.ScriptableIde.PlanContext,Cdp.ScriptableIde.Anchor,System.String)"/>.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeAnchor.#ctor(System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.String)">
+            <summary>
+            Internal MCP projection (file + line/col). Agent surface = <see cref="T:Cdp.ScriptableIde.Anchor"/>; prefer <see cref="M:Cdp.ScriptableIde.CodeAnchor.FromAnchor(Cdp.ScriptableIde.PlanContext,Cdp.ScriptableIde.Anchor,System.String)"/>.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeAnchor.FromAnchor(Cdp.ScriptableIde.PlanContext,Cdp.ScriptableIde.Anchor,System.String)">
+            <summary>Internal: mutate <see cref="T:Cdp.ScriptableIde.Anchor"/> → MCP line/col projection.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CodeAnchorResolve">
+            <summary>Resolve <see cref="T:Cdp.ScriptableIde.CodeAnchor"/> by symbol name (no manual line/column).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeAnchorResolve.ResolveReadableFile(Cdp.ScriptableIde.PlanContext,System.String)">
+            <summary>Prefer existing absolute/work path; avoid worktree remap that drops a readable primary file.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CsharpXmlDocProjection">
+            <summary>C# XML doc projection (<c>///</c>). Other languages = later projections.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CsharpXmlDocProjection.Format(Cdp.ScriptableIde.DocModel,System.String[]@)">
+            <summary>Returns lines each starting with <c>///</c> (no trailing indent).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CsxDiagnosticProjection">
+            <summary>
+            Project Roslyn CSX diagnostics to agent-friendly anchors (not raw <c>(line,col)</c> dump alone).
+            Also folds into shared <see cref="T:Cdp.Evidence.EvidencePreprocess"/> <c>evidence/v0</c>.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CsxHelpCatalog">
+            <summary>
+            Live CSX surface help from assembly XML docs (not a static man page).
+            Prefer <c>Help.Toc()</c> / <c>Help.Of("Symbol")</c> before inventing facade APIs.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CsxHelpCatalog.Toc(System.Int32)">
+            <summary>Top-level ScriptGlobals facades with summaries.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CsxHelpCatalog.Of(System.String,System.Int32)">
+            <summary>
+            Members for a facade path: <c>Symbol</c>, <c>SemanticMap</c>, <c>Symbol.Named</c>.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Declare">
+            <summary>
+            Declare intents — agent owns facts (name / type / value); harness owns syntax.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Declare.Variable">
+            <summary><c>Declare.Variable.Name("n").Type(Types.Integer).Value("1")</c></summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Declare.Constant">
+            <summary><c>Declare.Constant.Name("Max").Type(Types.Integer).Value("10")</c> — lang projects const/Final.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.DeclareBuilder.Value(System.String)">
+            <summary>RHS expression wire (escape) — prefer <see cref="M:Cdp.ScriptableIde.DeclareBuilder.Value(Cdp.ScriptableIde.ExprIntent)"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.DeclareBuilder.Value(Cdp.ScriptableIde.ExprIntent)">
+            <summary>RHS via closed <see cref="T:Cdp.ScriptableIde.ExprIntent"/> (harness projects).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.DeclareProjection">
+            <summary>Project <see cref="T:Cdp.ScriptableIde.DeclareArrange"/> → statement wire (shared by TestMethod Arrange + Body.AddDeclare).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.DocModel">
+            <summary>Language-agnostic doc intent (MLP DocModel). Wire via projection.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.DocModel.Raw">
+            <summary>Escape hatch: full doc body; when set, structured fields are ignored for projection.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.EnginePolicy">
+            <summary>
+            Node engine policy — same shape as <see cref="T:Cdp.ScriptableIde.TfmPolicy"/>.
+            LTS SSOT: Node dist index <c>lts</c> field (string codename or false), not prose.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.EngineResolver">
+            <summary>Resolve Node major for new typescript projects from vendor meta.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.EngineResolver.NodeDistRow.Lts">
+            <summary>false or LTS codename string — official machine flag.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ExecutionRegistry">
+            <summary>CI-like step registry (ADR 0040 spirit: executable + arguments in TOML, no rebuild).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ExecutionTomlLite">
+            <summary>
+            Tiny subset parser for [steps.id] / executable / arguments / working_directory.
+            Avoids Tomlyn version skew between hosts; full TOML can come later via shared binder.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ExprIntent">
+            <summary>Closed expression intent — harness projects wire; prefer catalog over <see cref="T:Cdp.ScriptableIde.WireExpr"/>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.WireExpr">
+            <summary>Escape — raw expr wire. Prefer <see cref="M:Cdp.ScriptableIde.Expr.Id(System.String)"/> / <see cref="M:Cdp.ScriptableIde.Expr.Add(Cdp.ScriptableIde.ExprIntent,Cdp.ScriptableIde.ExprIntent)"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WireExpr.#ctor(System.String)">
+            <summary>Escape — raw expr wire. Prefer <see cref="M:Cdp.ScriptableIde.Expr.Id(System.String)"/> / <see cref="M:Cdp.ScriptableIde.Expr.Add(Cdp.ScriptableIde.ExprIntent,Cdp.ScriptableIde.ExprIntent)"/>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Expr">
+            <summary>
+            Thin expr nucleus for Declare / Predicate / Stmt — not a full expression algebra
+            (no lambdas, casts, generics, indexing…). Escape: <see cref="M:Cdp.ScriptableIde.Expr.Wire(System.String)"/>.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Expr.Wire(System.String)">
+            <summary>Rare escape — agent-authored expr wire.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ExprProjection">
+            <summary>Project <see cref="T:Cdp.ScriptableIde.ExprIntent"/> → language expr wire (csharp-first; python/ts operators shared).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.AnnotateFacade">
+            <summary>Annotate intents — Comment / DocComment at 0128 bracket (MLP §3.9).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.AnnotateFacade.#ctor(Cdp.ScriptableIde.ScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>Annotate intents — Comment / DocComment at 0128 bracket (MLP §3.9).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.AnnotateCommentFactory.At(System.String)">
+            <summary>Escape: raw 0128 wire string.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.AnnotateDocCommentFactory.At(System.String)">
+            <summary>Escape: raw 0128 wire string.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.AnnotateCommentAt.Content(System.String)">
+            <summary>Alias for <see cref="M:Cdp.ScriptableIde.AnnotateCommentAt.WithText(System.String)"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.AnnotateRunner.StripTrailingWhitespaceAndEol(Microsoft.CodeAnalysis.SyntaxTriviaList)">
+            <summary>Drop trailing whitespace/EOL so we can re-attach indent after inserted comments.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.BodyFacade">
+            <summary>Body entity ops — AddCondition / AddLoop (intent); syntax is projection tax.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BodyFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>Body entity ops — AddCondition / AddLoop (intent); syntax is projection tax.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BodyAt.AddDeclare(Cdp.ScriptableIde.DeclareBuilder)">
+            <summary>Insert a <see cref="T:Cdp.ScriptableIde.Declare"/> local/const into the method body (default Append).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.BodyDeclareEntity">
+            <summary><see cref="T:Cdp.ScriptableIde.Declare"/> → method body statement.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BodyDeclareEntity.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext,System.String,Cdp.ScriptableIde.DeclareBuilder)">
+            <summary><see cref="T:Cdp.ScriptableIde.Declare"/> → method body statement.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.BodyInsert">
+            <summary>Where to splice into the method body (default = append before <c>}</c>).</summary>
+        </member>
+        <member name="F:Cdp.ScriptableIde.BodyInsert.Append">
+            <summary>Before closing brace — after existing statements (declare-then-branch).</summary>
+        </member>
+        <member name="F:Cdp.ScriptableIde.BodyInsert.AtStart">
+            <summary>Right after opening brace — guards / early setup.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.BodyConditionEntity">
+            <summary>if / guard — <see cref="M:Cdp.ScriptableIde.BodyConditionEntity.When(System.String)"/> + <see cref="M:Cdp.ScriptableIde.BodyConditionEntity.Then(System.String)"/> (+ optional <see cref="M:Cdp.ScriptableIde.BodyConditionEntity.Else(System.String)"/>).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BodyConditionEntity.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext,System.String)">
+            <summary>if / guard — <see cref="M:Cdp.ScriptableIde.BodyConditionEntity.When(System.String)"/> + <see cref="M:Cdp.ScriptableIde.BodyConditionEntity.Then(System.String)"/> (+ optional <see cref="M:Cdp.ScriptableIde.BodyConditionEntity.Else(System.String)"/>).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BodyConditionEntity.When(System.String)">
+            <summary>Wire escape — prefer <see cref="M:Cdp.ScriptableIde.BodyConditionEntity.When(Cdp.ScriptableIde.PredicateIntent)"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BodyConditionEntity.Then(System.String)">
+            <summary>Wire escape — prefer <see cref="M:Cdp.ScriptableIde.BodyConditionEntity.Then(Cdp.ScriptableIde.StmtIntent,Cdp.ScriptableIde.StmtIntent[])"/> (no <c>;</c> in intent).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BodyConditionEntity.Then(Cdp.ScriptableIde.StmtIntent[])">
+            <summary>Block of statements — at least one.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BodyConditionEntity.AtStart">
+            <summary>Insert after <c>{</c> (guards). Default is <see cref="F:Cdp.ScriptableIde.BodyInsert.Append"/>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.BodyLoopEntity">
+            <summary>
+            Loop — one exclusive axis: <see cref="M:Cdp.ScriptableIde.BodyLoopEntity.OnCollection(System.String,System.String)"/> | <see cref="M:Cdp.ScriptableIde.BodyLoopEntity.PreCondition(System.String)"/> |
+            <see cref="M:Cdp.ScriptableIde.BodyLoopEntity.PostCondition(System.String)"/> | <see cref="M:Cdp.ScriptableIde.BodyLoopEntity.WithCounter(System.String,System.String,System.String)"/>; then <see cref="M:Cdp.ScriptableIde.BodyLoopEntity.Body(System.String)"/>.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BodyLoopEntity.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext,System.String)">
+            <summary>
+            Loop — one exclusive axis: <see cref="M:Cdp.ScriptableIde.BodyLoopEntity.OnCollection(System.String,System.String)"/> | <see cref="M:Cdp.ScriptableIde.BodyLoopEntity.PreCondition(System.String)"/> |
+            <see cref="M:Cdp.ScriptableIde.BodyLoopEntity.PostCondition(System.String)"/> | <see cref="M:Cdp.ScriptableIde.BodyLoopEntity.WithCounter(System.String,System.String,System.String)"/>; then <see cref="M:Cdp.ScriptableIde.BodyLoopEntity.Body(System.String)"/>.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.BodyLoopEntity.AtStart">
+            <summary>Insert after <c>{</c>. Default is <see cref="F:Cdp.ScriptableIde.BodyInsert.Append"/>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ChangeSignatureRunner">
+            <summary>
+            Change signature via local C# rewrite (declaration + same-file call sites).
+            Prefer Roslyn Change Signature when action_options mapping is reliable; this path is fail-loud and smokeable.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ChangeSignatureRunner.TryBuildNewParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax,System.Collections.Generic.IReadOnlyList{Cdp.ScriptableIde.ChangeSignatureOp},System.String,System.Collections.Generic.List{Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax}@,System.Collections.Generic.List{System.Int32}@,System.String@)">
+            <summary>
+            Builds new parameter list and a reorder map: newIndex → oldIndex (-1 = new arg / use default).
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CodeOp">
+            <summary>Binary fold ops for <see cref="M:Cdp.ScriptableIde.CodeMoveTo.Operation(Cdp.ScriptableIde.CodeOp)"/> into an expression locus (e.g. K:Condition).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CodeFacade">
+            <summary>Statement/span relocate — and expression fold (And/Or) into Condition-class anchors.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>Statement/span relocate — and expression fold (And/Or) into Condition-class anchors.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeMoveFrom.To(System.String)">
+            <summary>Destination locus — then <see cref="M:Cdp.ScriptableIde.CodeMoveTo.Before"/> / <see cref="M:Cdp.ScriptableIde.CodeMoveTo.After"/> / <see cref="M:Cdp.ScriptableIde.CodeMoveTo.Operation(Cdp.ScriptableIde.CodeOp)"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeMoveFrom.Before(System.String)">
+            <summary>Shortcut: move From before dest (same as <c>To(dest).Before()</c>).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeMoveFrom.After(System.String)">
+            <summary>Shortcut: move From after dest.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeMoveFrom.And(System.String)">
+            <summary>Shortcut: fold From into dest expression with <c>&amp;&amp;</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeMoveFrom.Or(System.String)">
+            <summary>Shortcut: fold From into dest expression with <c>||</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeMoveTo.And">
+            <summary>Fold From into To expression: <c>to &amp;&amp; from</c> (cut From). Dest = expression locus (K:Condition).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeMoveTo.Or">
+            <summary>Fold From into To expression: <c>to || from</c> (cut From).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeMoveTo.Operation(Cdp.ScriptableIde.CodeOp)">
+            <summary>Fold From into To with binary op — e.g. <c>Operation(CodeOp.And)</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CodeMoveRunner.IsLineOnlySpan(Cdp.ScriptableIde.BracketLocate.Span)">
+            <summary>
+            L-only anchors = whole lines (incl. line break). Syntax/M/S = node span.
+            Dogfood: L: must not collapse to innermost token (e.g. just <c>var</c>).
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ConvertFacade">
+            <summary>Form change: <c>Convert.ToProperty.At(fieldAnchor)</c> / <c>Convert.AnonymousReturn.At(method).To(T)</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ConvertFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>Form change: <c>Convert.ToProperty.At(fieldAnchor)</c> / <c>Convert.AnonymousReturn.At(method).To(T)</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ConvertFacade.AnonymousReturn">
+            <summary>
+            <c>Convert.AnonymousReturn.At(method).To(Types.Of("X"))</c> —
+            <c>return new { a = e1, b = e2 };</c> → <c>return new X(a: e1, b: e2);</c> inside the method.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ConvertToPropertyAt.Name(System.String)">
+            <summary>Optional property name (default: field name with leading _ / m_ stripped).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.RefactorChangeBuilder">
+            <summary><c>Refactor.Change.At(…ReturnType()).To(Types.Of(…))</c> — local TypeSyntax rewrite.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.RefactorChangeBuilder.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary><c>Refactor.Change.At(…ReturnType()).To(Types.Of(…))</c> — local TypeSyntax rewrite.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.MemberAnchorNames.TryResolve(System.String,Cdp.ScriptableIde.Anchor[],System.String[]@,Cdp.ScriptableIde.StepResponse@)">
+            <summary>Resolve Members(Anchor…) → identifier list via M:.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CreateFacade">
+            <summary>
+            Declare family: <c>Create.Record|Class|Method|Property|Field</c> — Anchors-out; not Refactor.At clone.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CreateFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>
+            Declare family: <c>Create.Record|Class|Method|Property|Field</c> — Anchors-out; not Refactor.At clone.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CsharpTestEmitter">
+            <summary>C# test method envelope — Information Expert for type-from-method + append.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.DebugFacade.SetBreakpointOnLineAsync(System.String,System.String,System.String,System.Int32,System.String,System.Threading.CancellationToken)">
+            <summary>Persist breakpoints for a target (same as debug_set_breakpoints).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ExecEnvironment">
+            <summary>Binds a TOML step registry for this plan (same idea as CIDE LSP settings.toml).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ExecEnvironment.#ctor(Cdp.ScriptableIde.ScriptGlobals)">
+            <summary>Binds a TOML step registry for this plan (same idea as CIDE LSP settings.toml).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ExecutionConfiguration.Set(System.String)">
+            <summary>Path to TOML file, or inline TOML text containing [steps.*].</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ExecutionFacade">
+            <summary>CI-like named steps resolved from ExecEnvironment.Configuration.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ExecutionFacade.#ctor(Cdp.ScriptableIde.ScriptGlobals)">
+            <summary>CI-like named steps resolved from ExecEnvironment.Configuration.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.FixFacade">
+            <summary>Fix intents — diag locus → code action (MLP W1).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.FixFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>Fix intents — diag locus → code action (MLP W1).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.FixFacade.At(Cdp.ScriptableIde.Anchor)">
+            <summary>Primary: fix at Anchor locus (resolves caret like Rename).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.FixFacade.At(System.String)">
+            <summary>Primary wire: bracket Anchor string.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.FixFacade.At(System.String,System.Int32,System.Int32,System.String)">
+            <summary>Escape: bare file/line/column.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.FixAt.TitleContains(System.String)">
+            <summary>Pick action whose title contains this (case-insensitive).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.FixAt.Index(System.Int32)">
+            <summary>Escape: pick action_index from get_code_actions directly.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.IdeDiagnostic">
+            <summary>One compiler/analyzer diagnostic locus (agent-facing).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.IdeDiagnostic.#ctor(System.String,System.Int32,System.Int32,System.String,System.String,System.String)">
+            <summary>One compiler/analyzer diagnostic locus (agent-facing).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.IdeDiagnostic.DiagnosticLine">
+            <remarks>
+            Pattern:<br/>
+            <code>^(?&lt;file&gt;.+):(?&lt;line&gt;\\d+):(?&lt;column&gt;\\d+)\\s+(?&lt;severity&gt;\\w+)\\s+(?&lt;id&gt;[A-Za-z]+\\d+)\\s+[—\\-–]\\s*(?&lt;message&gt;.*)$</code><br/>
+            Options:<br/>
+            <code>RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ "file" capture group.<br/>
+                ○ Match a character other than '\n' greedily at least once.<br/>
+            ○ Match ':'.<br/>
+            ○ "line" capture group.<br/>
+                ○ Match a Unicode digit atomically at least once.<br/>
+            ○ Match ':'.<br/>
+            ○ "column" capture group.<br/>
+                ○ Match a Unicode digit atomically at least once.<br/>
+            ○ Match a whitespace character atomically at least once.<br/>
+            ○ "severity" capture group.<br/>
+                ○ Match a word character atomically at least once.<br/>
+            ○ Match a whitespace character atomically at least once.<br/>
+            ○ "id" capture group.<br/>
+                ○ Match an ASCII letter atomically at least once.<br/>
+                ○ Match a Unicode digit atomically at least once.<br/>
+            ○ Match a whitespace character atomically at least once.<br/>
+            ○ Match a character in the set [\-\u2013\u2014].<br/>
+            ○ Match a whitespace character greedily any number of times.<br/>
+            ○ "message" capture group.<br/>
+                ○ Match a character other than '\n' greedily any number of times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.FixRunner.ActionLine">
+            <remarks>
+            Pattern:<br/>
+            <code>^(?&lt;idx&gt;\\d+)\\t(?&lt;title&gt;.+)$</code><br/>
+            Options:<br/>
+            <code>RegexOptions.Multiline | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of a line.<br/>
+            ○ "idx" capture group.<br/>
+                ○ Match a Unicode digit atomically at least once.<br/>
+            ○ Match '\t'.<br/>
+            ○ "title" capture group.<br/>
+                ○ Match a character other than '\n' greedily at least once.<br/>
+            ○ Match if at the end of a line.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.FsFacade.ReplaceTextAsync(System.String,System.String,System.String,System.Boolean,System.Threading.CancellationToken)">
+            <summary>Exact text replace (StrReplace-shaped). Fails if oldText missing or not unique when requireUnique.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.GenerateFacade">
+            <summary>W2 Generate intents — overrides / ctor / Equals over RoslynMCP generators.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.GenerateFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>W2 Generate intents — overrides / ctor / Equals over RoslynMCP generators.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.GenerateFacade.TestMethod(System.String,System.String)">
+            <summary>W3 — TestMethod entity (assertions accumulate until Apply).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.GenerateFacade.UnitTestAsync(System.String,System.String,System.String,System.Threading.CancellationToken)">
+            <summary>W3 — scaffold empty test class file next to SUT (xUnit projection).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.GenerateMemberAt.PreviewOnly(System.Boolean)">
+            <summary>false = return generated text only (Roslyn preview).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.GitFacade.SceneAsync(System.String,System.Collections.Generic.IReadOnlyList{System.String},System.Boolean,System.Boolean,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>Compact SCM scene (ADR 0178): dirty counts, ahead/behind, submodule map — prefer before Status dump.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.GitFacade.DiffSceneAsync(System.String,System.String,System.Boolean,System.Boolean,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>Diff scene: omit path → file list+numstat; path= → structured hunks (prefer over DiffAsync dump).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.GitFacade.CommitAsync(System.String,System.Collections.Generic.IReadOnlyList{System.Object},System.Threading.CancellationToken)">
+            <summary>Related multi-root commit: slices with per-root paths (no add -A). Prefer over N× CommitAsync.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.GitFacade.PushAsync(System.Collections.Generic.IReadOnlyList{System.Object},System.Boolean,System.Threading.CancellationToken)">
+            <summary>Related multi-root push: slices=[{root,...}].</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.HelpFacade">
+            <summary>
+            CSX explore help — live from XML doc comments on the allowlisted surface.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.HelpFacade.Toc(System.Int32)">
+            <summary>List ScriptGlobals facades (+ summaries when XML docs are present).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.HelpFacade.Of(System.String,System.Int32)">
+            <summary>
+            Members for a path: <c>Symbol</c>, <c>SemanticMap</c>, <c>Symbol.Named</c>, <c>Help</c>.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.SymbolFacade">
+            <summary>
+            Explore by name — not SearchAsync. Canonical: <c>Symbol.Named("T").In("F.cs")</c>
+            then FindUsages / pass to <see cref="M:Cdp.ScriptableIde.SemanticMapFacade.Explore(Cdp.ScriptableIde.CodeAnchor)"/>.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SymbolFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>
+            Explore by name — not SearchAsync. Canonical: <c>Symbol.Named("T").In("F.cs")</c>
+            then FindUsages / pass to <see cref="M:Cdp.ScriptableIde.SemanticMapFacade.Explore(Cdp.ScriptableIde.CodeAnchor)"/>.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SymbolFacade.Named(System.String)">
+            <summary>Resolve by name — no manual line/column. Chain <c>.In(file)</c> then Resolve/FindUsages.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.NamedCodeAnchor">
+            <summary>Fluent named resolve → <see cref="T:Cdp.ScriptableIde.CodeAnchor"/> / FindUsages.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.NamedCodeAnchor.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext,System.String)">
+            <summary>Fluent named resolve → <see cref="T:Cdp.ScriptableIde.CodeAnchor"/> / FindUsages.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.SemanticMapFacade">
+            <summary>
+            Related/scene map around an anchor. Canonical:
+            <c>await SemanticMap.Explore(Symbol.Named("X").In("X.cs")).Mode("related").GetSceneAsync()</c>
+            — not a free-form Search.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SemanticMapFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>
+            Related/scene map around an anchor. Canonical:
+            <c>await SemanticMap.Explore(Symbol.Named("X").In("X.cs")).Mode("related").GetSceneAsync()</c>
+            — not a free-form Search.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SemanticMapFacade.Explore(Cdp.ScriptableIde.CodeAnchor)">
+            <summary>Explore surface: wide strokes around an anchor (preset / caps / kinds). Prefer GetSceneAsync.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SemanticMapFacade.AroundRawAsync(Cdp.ScriptableIde.CodeAnchor,System.String,System.String,System.Nullable{System.Int32},System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IReadOnlyList{System.String},System.Threading.CancellationToken)">
+            <summary>Raw Map JSON (for scene merge) — not IdeReport.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.SemanticMapExplore">
+            <summary>Fluent Map wide-strokes builder (not usages alone — use <see cref="M:Cdp.ScriptableIde.SemanticMapExplore.WithUsages(System.Boolean)"/> for scene).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SemanticMapExplore.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext,Cdp.ScriptableIde.CodeAnchor)">
+            <summary>Fluent Map wide-strokes builder (not usages alone — use <see cref="M:Cdp.ScriptableIde.SemanticMapExplore.WithUsages(System.Boolean)"/> for scene).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SemanticMapExplore.WithUsages(System.Boolean)">
+            <summary>Include FindUsages detail in one scene report (needs positional anchor — use Symbol.Named).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.InsertFacade">
+            <summary>Positional insert — Before/After Anchor (MLP map; entity intents preferred when they apply).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.InsertFacade.#ctor(Cdp.ScriptableIde.ScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>Positional insert — Before/After Anchor (MLP map; entity intents preferred when they apply).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.OpenFacade">
+            <summary>
+            Agent Open Recent — classic IDE list + CIDE-style Anchor→solution bind.
+            <c>Open.At(anchor)</c>, <c>Open.Recent.ListAsync()</c>, <c>Open.Recent.AtAsync(0)</c>, <c>Open.Path(…)</c>.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.OpenFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>
+            Agent Open Recent — classic IDE list + CIDE-style Anchor→solution bind.
+            <c>Open.At(anchor)</c>, <c>Open.Recent.ListAsync()</c>, <c>Open.Recent.AtAsync(0)</c>, <c>Open.Path(…)</c>.
+            </summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.OpenFacade.Recent">
+            <summary>Classic Open Recent list / open-by-index.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.OpenFacade.AtAsync(System.String,System.Threading.CancellationToken)">
+            <summary>CIDE mirror: Anchor (F:…) → detect solution/project → rebind Plan (+ session via bus).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.OpenFacade.PathAsync(System.String,System.Threading.CancellationToken)">
+            <summary>Open path (.sln/.csproj/file/dir) — detect project, rebind Plan, push Recent, notify session.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.OpenRecentFacade.ListAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>List recent projects/solutions (most recent first).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.OpenRecentFacade.AtAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>Open recent entry by 0-based index (0 = last opened). Alias of classic Open Recent[0].</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.PackageOps">
+            <summary>Language-agnostic package intents — NuGet / npm projections.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.PackagesFacade">
+            <summary>CSX brand: <c>Packages.Find/Add/Remove/…</c> — NuGet or npm by session language.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.PackagesFacade.#ctor(Cdp.ScriptableIde.ScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>CSX brand: <c>Packages.Find/Add/Remove/…</c> — NuGet or npm by session language.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ProjectOps">
+            <summary>Project lifecycle intents — create/list (open/close = session meta).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ProjectOps.SceneAsync(Cdp.ScriptableIde.ScriptToolBus,Cdp.ScriptableIde.PlanContext,System.String,System.Boolean,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>Project map: curated templates + optional installed list + existing projects/solutions.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ProjectScaffoldHygiene">
+            <summary>
+            Post-<c>dotnet new</c> hygiene: promote template <c>Class1.cs</c> to the project type name
+            so agents are not stuck with a throwaway filename after rewrite.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ProjectScaffoldHygiene.TryPromoteClass1(System.String,System.String)">
+            <summary>
+            If <c>Class1.cs</c> exists and <paramref name="projectName"/> yields a safe type name,
+            rename file + type to that name. No-op when destination already exists.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ProjectsFacade">
+            <summary>CSX brand: <c>Projects.Scene/Create/List</c> — TFM via <see cref="T:Cdp.ScriptableIde.TfmPolicy"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ProjectsFacade.#ctor(Cdp.ScriptableIde.ScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>CSX brand: <c>Projects.Scene/Create/List</c> — TFM via <see cref="T:Cdp.ScriptableIde.TfmPolicy"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ProjectsFacade.SceneAsync(System.String,System.Boolean,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>Project map before create — curated templates + session + existing (prefer over inventing files).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ProjectsFacade.AddToSlnAsync(System.String,System.String,System.Boolean,System.String,System.Threading.CancellationToken)">
+            <summary>Add csproj to solution (session sln or <paramref name="solution"/>).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.PythonTestEmitter">
+            <summary>Python test file envelope (thin — new file only).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.RefactorCodeActionRunner">
+            <summary>
+            Shared zone → get_code_actions → title pick → apply (+ optional action_options / constant_name).
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.RefactorCodeActionRunner.ActionLine">
+            <remarks>
+            Pattern:<br/>
+            <code>^(?&lt;idx&gt;\\d+)\\t(?&lt;title&gt;.+)$</code><br/>
+            Options:<br/>
+            <code>RegexOptions.Multiline | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of a line.<br/>
+            ○ "idx" capture group.<br/>
+                ○ Match a Unicode digit atomically at least once.<br/>
+            ○ Match '\t'.<br/>
+            ○ "title" capture group.<br/>
+                ○ Match a character other than '\n' greedily at least once.<br/>
+            ○ Match if at the end of a line.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:Cdp.ScriptableIde.RefactorFacade">
+            <summary>Named refactor intents — Anchor zones; wraps RoslynMCP code actions (CDP-ADR-0008).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.RefactorFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>Named refactor intents — Anchor zones; wraps RoslynMCP code actions (CDP-ADR-0008).</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.RefactorFacade.Extract">
+            <summary><c>Refactor.Extract.Method.From(a).Till(b).Name("X").ApplyAsync()</c></summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.RefactorFacade.Method">
+            <summary>Alias path: <c>Refactor.Method.Extract</c> ≡ <c>Refactor.Extract.Method</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.RefactorFacade.Rename">
+            <summary><c>Refactor.Rename.At(anchor).To("NewName").ApplyAsync()</c></summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.RefactorFacade.Inline">
+            <summary><c>Refactor.Inline.At(anchor).ApplyAsync()</c> — variable / method / temp.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.RefactorFacade.Introduce">
+            <summary><c>Refactor.Introduce.Local.At(expr).Name("x")</c> / <c>.Param</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.RefactorFacade.ChangeSignature">
+            <summary><c>Refactor.ChangeSignature.At(method).Add(...).Remove(...).Move(...)</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.RefactorFacade.Change">
+            <summary><c>Refactor.Change.At(method.ReturnType()).To(Types.Of("X"))</c> — type socket rewrite.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.MoveMembersToPartialAt.Members(Cdp.ScriptableIde.Anchor[])">
+            <summary>Primary: member Anchors (<c>M:</c> names).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.MoveMembersToPartialAt.Members(System.String[])">
+            <summary>Escape: bare member names.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ExtractMethodBuilder.From(System.String)">
+            <summary>Start of extract zone (statement/expression Anchor).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ExtractMethodBuilder.At(System.String)">
+            <summary>Escape: single zone wire (L:range or S:). Prefer <see cref="M:Cdp.ScriptableIde.ExtractMethodBuilder.From(System.String)"/>.<see cref="M:Cdp.ScriptableIde.ExtractMethodFrom.Till(System.String)"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ExtractMethodFrom.Till(System.String)">
+            <summary>End of extract zone (inclusive).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ExtractMethodAt.NameAsync(System.String,System.Threading.CancellationToken)">
+            <summary>Legacy one-shot: zone already in wire.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ExtractMethodRunner.ActionLine">
+            <remarks>
+            Pattern:<br/>
+            <code>^(?&lt;idx&gt;\\d+)\\t(?&lt;title&gt;.+)$</code><br/>
+            Options:<br/>
+            <code>RegexOptions.Multiline | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of a line.<br/>
+            ○ "idx" capture group.<br/>
+                ○ Match a Unicode digit atomically at least once.<br/>
+            ○ Match '\t'.<br/>
+            ○ "title" capture group.<br/>
+                ○ Match a character other than '\n' greedily at least once.<br/>
+            ○ Match if at the end of a line.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ExtractTypeAt.Members(Cdp.ScriptableIde.Anchor[])">
+            <summary>Primary: member Anchors.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ExtractTypeAt.Members(System.String[])">
+            <summary>Escape: bare names.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.RoslynFacade.FormatAsync(System.String,System.String,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+            <summary>In-proc format; returns <see cref="T:Cdp.ScriptableIde.StepResponse"/> (<c>kind=roslyn.format</c>).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.RoslynFacade.CleanupAsync(System.String,System.String,System.Boolean,System.String,System.Threading.CancellationToken)">
+            <summary>Explicit Code Cleanup (<c>dotnet format</c>). Not part of Extract. Returns <see cref="T:Cdp.ScriptableIde.StepResponse"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.RoslynFacade.GetCodeActionsAsync(System.String,System.String,System.Int32,System.Int32,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>Escape hatch — prefer <c>Fix.At</c> for agent brand.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.RoslynFacade.ApplyCodeActionAsync(System.String,System.String,System.Int32,System.Int32,System.Int32,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>Escape hatch — prefer <c>Fix.At</c> for agent brand.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ScratchFacade">
+            <summary>
+            Ephemeral dirs for probes — always under TEMP (never under WorkRoot / csproj tree).
+            ScriptHost deletes registered scratches after CSX run.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ScratchFacade.#ctor(Cdp.ScriptableIde.ScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>
+            Ephemeral dirs for probes — always under TEMP (never under WorkRoot / csproj tree).
+            ScriptHost deletes registered scratches after CSX run.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ScratchFacade.Create(System.String)">
+            <summary>Create <c>%TEMP%/cdp-scratch-{prefix}-{id}</c> and register for auto-cleanup.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.SettingsFacade">
+            <summary>CSX: read/update project conventions (<c>.cdp/project.toml</c>).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SettingsFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>CSX: read/update project conventions (<c>.cdp/project.toml</c>).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SettingsFacade.RefreshAsync(System.Threading.CancellationToken)">
+            <summary>Re-read file + Detect-fill.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SettingsFacade.SetTestFrameworkAsync(Cdp.ScriptableIde.TestFrameworkKind,System.Boolean,System.Threading.CancellationToken)">
+            <summary>Pin test FW into project settings (persist to toml by default).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.SolutionOps">
+            <summary>
+            Solution lifecycle — create/list + membership (add/remove/list projects).
+            csharp-only for now (dotnet new sln / dotnet sln); open/close = session meta.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.SolutionsFacade">
+            <summary>CSX brand: <c>Solutions.Create/List/ListProjects/Add/Remove</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SolutionsFacade.#ctor(Cdp.ScriptableIde.ScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>CSX brand: <c>Solutions.Create/List/ListProjects/Add/Remove</c>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TestBodyProjection">
+            <summary>Intent → test body lines (arrange / act / assert). Language wire stays in projection.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TestBodyProjection.ProjectCallArgs(System.String,System.Collections.Generic.IReadOnlyList{Cdp.ScriptableIde.CallArg})">
+            <summary>Param types are not in intent — only name/expr; named form is lang projection.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.AssertionIntent">
+            <summary>Closed assertion intents (W3) — projection owns assert syntax.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.AssertionIntent.#ctor(System.String)">
+            <summary>Closed assertion intents (W3) — projection owns assert syntax.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Assertion">
+            <summary>Factory for closed assertion catalog (lang/FW via harness projection).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ArrangeIntent">
+            <summary>Closed arrange intents — harness owns <c>var</c> / ctor wire.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ArrangeIntent.#ctor(System.String)">
+            <summary>Closed arrange intents — harness owns <c>var</c> / ctor wire.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.SutArrange">
+            <summary>Bind local to <c>new {SutType}(args)</c> — type resolved at Apply.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.SutArrange.#ctor(System.String,System.String)">
+            <summary>Bind local to <c>new {SutType}(args)</c> — type resolved at Apply.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.NewArrange">
+            <summary>Bind local to <c>new TypeName(args)</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.NewArrange.#ctor(System.String,System.String,System.String)">
+            <summary>Bind local to <c>new TypeName(args)</c>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.StmtArrange">
+            <summary>Escape — raw statement(s) without trailing semicolon requirement (harness may add).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.StmtArrange.#ctor(System.String)">
+            <summary>Escape — raw statement(s) without trailing semicolon requirement (harness may add).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.DeclareArrange">
+            <summary>Typed local / const from <see cref="T:Cdp.ScriptableIde.Declare"/> — type via closed <see cref="T:Cdp.ScriptableIde.TypeIntent"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.DeclareArrange.#ctor(System.String,Cdp.ScriptableIde.TypeIntent,System.String,System.Boolean,Cdp.ScriptableIde.ExprIntent)">
+            <summary>Typed local / const from <see cref="T:Cdp.ScriptableIde.Declare"/> — type via closed <see cref="T:Cdp.ScriptableIde.TypeIntent"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Arrange.New(System.String,Cdp.ScriptableIde.TypeIntent,System.String)">
+            <summary>Ctor bind with closed type: <c>Arrange.New("c", Types.Of("Counter"), "3")</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Arrange.From(Cdp.ScriptableIde.DeclareBuilder)">
+            <summary>From <see cref="T:Cdp.ScriptableIde.Declare.Variable"/> / <see cref="T:Cdp.ScriptableIde.Declare.Constant"/> builder.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TypedNewArrange">
+            <summary><c>new T(args)</c> with <see cref="T:Cdp.ScriptableIde.TypeIntent"/> (no string type wire).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TypedNewArrange.#ctor(System.String,Cdp.ScriptableIde.TypeIntent,System.String)">
+            <summary><c>new T(args)</c> with <see cref="T:Cdp.ScriptableIde.TypeIntent"/> (no string type wire).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ActIntent">
+            <summary>Closed act intents — harness owns call / bind wire.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ActIntent.#ctor(System.String)">
+            <summary>Closed act intents — harness owns call / bind wire.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CallAct">
+            <summary>Call — Args empty or positional/named. Prefer <see cref="M:Cdp.ScriptableIde.Act.Call(Cdp.ScriptableIde.Anchor)"/> over string names.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CallAct.#ctor(System.String,System.String,System.Collections.Generic.IReadOnlyList{Cdp.ScriptableIde.CallArg},System.String,System.String)">
+            <summary>Call — Args empty or positional/named. Prefer <see cref="M:Cdp.ScriptableIde.Act.Call(Cdp.ScriptableIde.Anchor)"/> over string names.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CallBuilder">
+            <summary>Fluent call from method <see cref="T:Cdp.ScriptableIde.Anchor"/> — Arg / Bind / On(instance).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CallBuilder.On(System.String)">
+            <summary>Instance receiver local (omit for static Type.Method projection).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Act.Call(Cdp.ScriptableIde.Anchor)">
+            <summary>Locate method via Anchor — preferred over string receiver/method.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Act.Call(System.String,System.String,System.String,System.String)">
+            <summary>Wire escape — prefer <see cref="M:Cdp.ScriptableIde.Act.Call(Cdp.ScriptableIde.Anchor)"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Act.Invoke(Cdp.ScriptableIde.InvocationEntity)">
+            <summary>Rich path — <see cref="T:Cdp.ScriptableIde.Invocation"/> entity.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TestMethodEntity">
+            <summary>TestMethod entity — accumulate arrange/act/assertions, one Apply → wire.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TestMethodEntity.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext,System.String,System.String)">
+            <summary>TestMethod entity — accumulate arrange/act/assertions, one Apply → wire.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TestMethodEntity.Framework(Cdp.ScriptableIde.TestFrameworkKind)">
+            <summary>Pin framework (sets policy = Specified).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TestMethodEntity.EnsurePackage(System.Boolean)">
+            <summary>When Detect/fallback and package missing — test package bundle.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TestMethodRunner">
+            <summary>Orchestrate TestMethod Apply: FW resolve, package, thin language dispatch.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TypescriptTestEmitter">
+            <summary>TypeScript test file envelope (thin — new file only).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.VerifyFacade.RungAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>Named AEE rung — maps to build/test/diagnostics for MVP.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.GitRootResolver">
+            <summary>Resolve owning git root + plan scope for monorepo/submodule dogfood.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.GitRootResolver.ResolveGitRoot(System.String)">
+            <summary>
+            <paramref name="entryPath"/> = workspace_path or session project root (file or dir).
+            Uses <c>git rev-parse --show-toplevel</c> so submodule paths resolve to the submodule, not the parent.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.GitRootResolver.ResolvePlanScope(System.String,System.String)">
+            <summary>
+            Relative scope under git root (forward slashes). Empty = whole repo.
+            <paramref name="focusPath"/> defaults to entry (project dir after cdp_open).
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.GitRootResolver.EnsureScopePopulated(System.String,System.String,System.String)">
+            <summary>
+            Fail-fast when primary has a populated scope but worktree scope is missing/empty
+            (typical: wrong parent monorepo worktree with unpopulated submodule).
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.IdeReport">
+            <summary>Compact IDE report for one-gaze consumption (not raw Roslyn dump).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.IdeReport.Correspondence(Cdp.ScriptableIde.CodeAnchor,System.String)">
+            <summary>Resolve L1 correspondence from <c>.cascade/workspace.toml</c> (standalone).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.IdeReport.CorrespondenceStub(Cdp.ScriptableIde.CodeAnchor)">
+            <summary>Obsolete name — use <see cref="M:Cdp.ScriptableIde.IdeReport.Correspondence(Cdp.ScriptableIde.CodeAnchor,System.String)"/>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.IdeReportBuilder">
+            <summary>Build compact IdeReport from Roslyn MCP JSON payloads.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.IdeReportBuilder.FromExploreScene(Cdp.ScriptableIde.CodeAnchor,System.String,System.String,System.String)">
+            <summary>One-gaze: Map wide strokes + optional usages detail.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.IdeReportBuilder.TryParseFindUsagesMarkdown(System.String,System.Collections.Generic.List{Cdp.ScriptableIde.IdeReportHighlight},System.Int32)">
+            <summary>RoslynMCP FindUsages text: lines like <c>D:\path\File.cs:12:3</c>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.CallArg">
+            <summary>One call argument — Name null = positional. Types are projection (not stored here).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.CallArg.#ctor(System.String,System.String)">
+            <summary>One call argument — Name null = positional. Types are projection (not stored here).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.InvocationEntity">
+            <summary>
+            Invocation entity — Receiver / Name / Params / Bind.
+            Short path remains <see cref="M:Cdp.ScriptableIde.Act.Call(Cdp.ScriptableIde.Anchor)"/>; use this when arity / named args matter.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.InvocationEntity.Arg(System.String)">
+            <summary>Positional argument (expression wire — no type field).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.InvocationEntity.Arg(System.String,System.String)">
+            <summary>Named argument — projection emits lang form (csharp <c>name: expr</c>, py <c>name=expr</c>).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Invocation.At(Cdp.ScriptableIde.Anchor)">
+            <summary>Start from method Anchor — resolves to Type.Method (static) unless <see cref="M:Cdp.ScriptableIde.InvocationEntity.On(System.String)"/> set.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.MethodFacade">
+            <summary>Create a method on an existing type (Anchor M:TypeName).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.MethodFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>Create a method on an existing type (Anchor M:TypeName).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Modules">
+            <summary>
+            Language imports — csharp <c>using</c>, python <c>import</c>, typescript <c>import</c>.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ModulesFacade">
+            <summary>CSX surface — bus/plan from globals via extension-style Apply on ScriptGlobals later; use ModulesFacade.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ModulesFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>CSX surface — bus/plan from globals via extension-style Apply on ScriptGlobals later; use ModulesFacade.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.IOpenRecentBackend">
+            <summary>Pluggable Open Recent persistence (CDP wires WitDB; smoke uses memory).</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.IOpenRecentBackend.Location">
+            <summary>Human-readable location (witdb path or "memory").</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.OpenRecentStore">
+            <summary>
+            Open Recent façade — agent mirror of classic IDE + CIDE anchor→solution.
+            Host (cdp-mcp) configures WitDB backend; without host → in-memory only.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.MemoryOpenRecentBackend">
+            <summary>In-process fallback when CDP WitDB is not configured (unit/smoke).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ProjectBind">
+            <summary>Walk up from a file/dir to nearest .sln/.slnx/.csproj (csharp) or tsconfig.json.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.PlanContext">
+            <summary>Execution root for a plan. In worktree mode WorkRoot ≠ PrimaryRoot. Open.* may rebind roots mid-script.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.PlanContext.SolutionOrProjectPath">
+            <summary>Optional csharp anchor from CDP session after cdp_open / Open.At.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.PlanContext.Settings">
+            <summary>Project conventions — hydrate via <see cref="M:Cdp.ScriptableIde.ProjectSettingsLoader.Hydrate(Cdp.ScriptableIde.PlanContext)"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.PlanContext.Rebind(System.String,System.String,System.String)">
+            <summary>Rebind session roots (Open Recent / Anchor→solution). Keeps PlanId.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.PredicateIntent">
+            <summary>Closed predicate intent for When / loop guards — operators projected; operands prefer <see cref="T:Cdp.ScriptableIde.ExprIntent"/>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ExprPredicate">
+            <summary>Wire escape — prefer <see cref="M:Cdp.ScriptableIde.Predicate.Lt(Cdp.ScriptableIde.ExprIntent,Cdp.ScriptableIde.ExprIntent)"/> / <see cref="M:Cdp.ScriptableIde.Predicate.And(Cdp.ScriptableIde.PredicateIntent,Cdp.ScriptableIde.PredicateIntent)"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ExprPredicate.#ctor(System.String)">
+            <summary>Wire escape — prefer <see cref="M:Cdp.ScriptableIde.Predicate.Lt(Cdp.ScriptableIde.ExprIntent,Cdp.ScriptableIde.ExprIntent)"/> / <see cref="M:Cdp.ScriptableIde.Predicate.And(Cdp.ScriptableIde.PredicateIntent,Cdp.ScriptableIde.PredicateIntent)"/>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Predicate">
+            <summary>Predicate nucleus (lang projection owns <c>&lt;</c> / <c>and</c> / <c>!</c>).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Predicate.Lt(System.String,System.String)">
+            <summary>Escape — string operands as expr wire.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Predicate.Wire(System.String)">
+            <summary>Rare escape — full predicate wire.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Predicate.Expr(System.String)">
+            <summary>Obsolete name — use <see cref="M:Cdp.ScriptableIde.Predicate.Wire(System.String)"/>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ProjectScene">
+            <summary>Compact project map before <c>Projects.Create</c> — mirrors <c>git_scene</c> (templates + session + existing).</summary>
+        </member>
+        <member name="F:Cdp.ScriptableIde.ProjectScene.Curated">
+            <summary>VS-like shortlist — prefer these over inventing paths by hand.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ProjectScene.ParseDotnetNewList(System.String,System.Int32)">
+            <summary>Parse <c>dotnet new list --type project</c> table rows → short names.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ProjectScene.SplitColumns(System.String)">
+            <summary>Heuristic column split for fixed-width <c>dotnet new list</c> output.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ProjectScene.IsHostHabitatRoot(System.String)">
+            <summary>
+            Host / protected roots are unsafe for AllDirectories project scans
+            (MCP cold cwd often lands under AppData → Access denied on Application Data).
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ProjectSettings">
+            <summary>
+            Per-project conventions (language-aware harness fills Detect).
+            Primary store: <c>.cdp/project.toml</c> under work root; rare escape = per-call overrides.
+            </summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ProjectSettings.TestFramework">
+            <summary>Pinned test FW when set; null ⇒ follow <see cref="P:Cdp.ScriptableIde.ProjectSettings.TestFrameworkPolicy"/>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ProjectSettings.TestFrameworkSource">
+            <summary>Where current TestFramework came from (file / detect / set).</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ProjectSettings.DocstringStyle">
+            <summary>Placeholder — python docstring / jsdoc style later.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ProjectSettings.FormatProfile">
+            <summary>Placeholder — roslyn cleanup / format profile later.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ProjectSettingsLoader">
+            <summary>Load/save <see cref="T:Cdp.ScriptableIde.ProjectSettings"/>; language-dependent Detect fills gaps.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ProjectSettingsLoader.Hydrate(Cdp.ScriptableIde.PlanContext)">
+            <summary>Read file (if any) then Detect-fill unset test FW.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ScriptGlobals">
+            <summary>Globals injected into every CSX — allowlisted surface only.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.Symbol">
+            <summary>Explore by name: <c>Symbol.Named("T").In("F.cs")</c> — not SearchAsync.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.SemanticMap">
+            <summary>Related/scene map: <c>SemanticMap.Explore(anchor).Mode("related").GetSceneAsync()</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.Refactor">
+            <summary>Refactor: <c>Extract.Method.From(a).Till(b).Name(…).ApplyAsync()</c>, Rename.At, Move.MembersToPartial.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.Body">
+            <summary>Method-body authoring: AddCondition / AddLoop / AddDeclare.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.Code">
+            <summary>Relocate span: <c>Code.Move().From(a).To(b).Before().ApplyAsync()</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.Modules">
+            <summary>Imports: <c>Modules.Import("System").Into(file)</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.TypeDecl">
+            <summary>Create type shell: <c>TypeDecl.Create("Quadratic").Static().Namespace(…).Into(file)</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.Method">
+            <summary>Alias: prefer <see cref="P:Cdp.ScriptableIde.ScriptGlobals.Create"/>.Method.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.Create">
+            <summary>Declare: <c>Create.Record|Class|Method|Property|Field</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.Convert">
+            <summary>Form change: <c>Convert.ToProperty</c> / <c>Convert.AnonymousReturn.At(method).To(T)</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.Scratch">
+            <summary>TEMP probes — auto-cleaned after CSX; never under WorkRoot.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.Open">
+            <summary>Open Recent + Anchor→solution: <c>Open.At(anchor)</c>, <c>Open.Recent.ListAsync()</c>, <c>Open.Recent.AtAsync(0)</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptGlobals.Help">
+            <summary>Live CSX API help from XML docs: <c>Help.Toc()</c>, <c>Help.Of("Symbol")</c>.</summary>
+        </member>
+        <member name="F:Cdp.ScriptableIde.ScriptHost.ConsoleGate">
+            <summary>Serialize Console.Out redirect — MCP stdio process must not see CSX prints.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.IScriptToolBus">
+            <summary>Dispatch CSX facade calls into CDP mounted domains (same CallAsync path as MCP).</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptReport.GitRoot">
+            <summary>Owning git repo (<c>rev-parse --show-toplevel</c>).</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptReport.PlanScope">
+            <summary>Relative scope under GitRoot (empty = whole repo).</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptReport.OverlayPathCount">
+            <summary>Primary dirty/untracked files copied into worktree under PlanScope.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptReport.PromotePolicy">
+            <summary><c>overlap_safe</c> (default) or <c>strict_clean</c>.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptReport.BaseTreeSha">
+            <summary>Tree SHA after overlay (plan delta base).</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptReport.ConsoleOut">
+            <summary>Captured <see cref="P:System.Console.Out"/> during CSX (stdio MCP must stay JSON-only).</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptReport.ScratchesRemoved">
+            <summary>TEMP scratch dirs deleted after run (hygiene).</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptReport.DiagnosticItems">
+            <summary>Structured CSX diagnostics with anchors (prefer over raw Diagnostics strings alone).</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.ScriptReport.Evidence">
+            <summary>Shared <c>evidence/v0</c> locus projection (same schema as build/test).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ScriptToolBus.CleanupScratches">
+            <summary>Best-effort delete of registered TEMP scratches (never touches WorkRoot).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.StepResponse">
+            <summary>
+            Structured outcome of one tool/mutate step (wire JSON over MCP/bus).
+            Not <see cref="T:Cdp.ScriptableIde.IdeReport"/> (explore gaze) and not <see cref="T:Cdp.ScriptableIde.ScriptReport"/> (whole CSX run).
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.StepResponse.ParseOrWrap(System.String,System.String)">
+            <summary>Parse StepResponse JSON; non-JSON / legacy text → wrap as fail with detail in data.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.StmtIntent">
+            <summary>Closed statement intent for Then / loop Body — no semicolon in agent surface.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.ReturnInterpStmt">
+            <summary>C# <c>$"…"</c> / later lang interp — template like <c>one:{x}</c> (no outer quotes).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.ReturnInterpStmt.#ctor(System.String)">
+            <summary>C# <c>$"…"</c> / later lang interp — template like <c>one:{x}</c> (no outer quotes).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.WireStmt">
+            <summary>Wire escape — prefer catalog. Trailing <c>;</c> stripped if present.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WireStmt.#ctor(System.String)">
+            <summary>Wire escape — prefer catalog. Trailing <c>;</c> stripped if present.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Stmt.Return(System.String)">
+            <summary>Return expression — agent omits <c>;</c> (e.g. <c>x</c>, <c>a + b</c>).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Stmt.Return(Cdp.ScriptableIde.ExprIntent)">
+            <summary>Return via closed <see cref="T:Cdp.ScriptableIde.ExprIntent"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Stmt.ReturnLit(System.String)">
+            <summary>Return string literal — no quotes/escapes in agent call: <c>ReturnLit("no real roots")</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Stmt.ReturnInterp(System.String)">
+            <summary>Return interpolated string — template <c>one:{x}</c> → csharp <c>$"one:{x}"</c>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Stmt.Wire(System.String)">
+            <summary>Rare escape — full statement wire; <c>;</c> optional.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TestFrameworkPolicy">
+            <summary>How to pick a test framework — same grain as <see cref="T:Cdp.ScriptableIde.TfmPolicy"/>.</summary>
+        </member>
+        <member name="F:Cdp.ScriptableIde.TestFrameworkPolicy.Detect">
+            <summary>Read project deps / existing test markers; fallback = language default.</summary>
+        </member>
+        <member name="F:Cdp.ScriptableIde.TestFrameworkPolicy.PreferInRepo">
+            <summary>Mode across nearby projects (v1: same as Detect).</summary>
+        </member>
+        <member name="F:Cdp.ScriptableIde.TestFrameworkPolicy.Specified">
+            <summary>Explicit <see cref="T:Cdp.ScriptableIde.TestFrameworkKind"/> from authoring.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TestFrameworkKind">
+            <summary>Closed catalog of test FW projections (extend slowly).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TestFrameworkResolver.NugetPackageRef">
+            <remarks>
+            Pattern:<br/>
+            <code>PackageReference\\s+Include\\s*=\\s*"(?&lt;id&gt;[^"]+)"</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match a character in the set [Pp].<br/>
+            ○ Match a character in the set [Aa].<br/>
+            ○ Match a character in the set [Cc].<br/>
+            ○ Match a character in the set [Kk\u212A].<br/>
+            ○ Match a character in the set [Aa].<br/>
+            ○ Match a character in the set [Gg].<br/>
+            ○ Match a character in the set [Ee].<br/>
+            ○ Match a character in the set [Rr].<br/>
+            ○ Match a character in the set [Ee].<br/>
+            ○ Match a character in the set [Ff].<br/>
+            ○ Match a character in the set [Ee].<br/>
+            ○ Match a character in the set [Rr].<br/>
+            ○ Match a character in the set [Ee].<br/>
+            ○ Match a character in the set [Nn].<br/>
+            ○ Match a character in the set [Cc].<br/>
+            ○ Match a character in the set [Ee].<br/>
+            ○ Match a whitespace character atomically at least once.<br/>
+            ○ Match a character in the set [Ii].<br/>
+            ○ Match a character in the set [Nn].<br/>
+            ○ Match a character in the set [Cc].<br/>
+            ○ Match a character in the set [Ll].<br/>
+            ○ Match a character in the set [Uu].<br/>
+            ○ Match a character in the set [Dd].<br/>
+            ○ Match a character in the set [Ee].<br/>
+            ○ Match a whitespace character atomically any number of times.<br/>
+            ○ Match '='.<br/>
+            ○ Match a whitespace character atomically any number of times.<br/>
+            ○ Match '"'.<br/>
+            ○ "id" capture group.<br/>
+                ○ Match a character other than '"' atomically at least once.<br/>
+            ○ Match '"'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TestFrameworkResolver.ResolveEffective(Cdp.ScriptableIde.PlanContext,Cdp.ScriptableIde.TestFrameworkPolicy,System.Nullable{Cdp.ScriptableIde.TestFrameworkKind})">
+            <summary>
+            Per-call override → project settings pin → Detect.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TestPackageBundle">
+            <summary>
+            C# test run needs more than the FW package — Sdk + adapter or <c>dotnet test</c> sees 0 tests / build fails.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TestPackageBundle.EnsureAsync(Cdp.ScriptableIde.ScriptToolBus,Cdp.ScriptableIde.PlanContext,Cdp.ScriptableIde.TestFrameworkKind,System.Threading.CancellationToken)">
+            <summary>Add missing packages; also keep underscore scratch dirs out of SDK globs.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TestPackageBundle.TryExcludeUnderscoreScratchDirs(Cdp.ScriptableIde.PlanContext)">
+            <summary>
+            SDK-style projects compile every <c>**/*.cs</c> under the csproj dir — agent scratch
+            folders like <c>_empty_mstest</c> must not land on the compile graph.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TfmPolicy">
+            <summary>How harness picks TargetFramework for new csharp projects.</summary>
+        </member>
+        <member name="F:Cdp.ScriptableIde.TfmPolicy.PreferMostUsed">
+            <summary>Mode of TFMs in nearby projects; fallback <see cref="F:Cdp.ScriptableIde.TfmPolicy.Latest"/>.</summary>
+        </member>
+        <member name="F:Cdp.ScriptableIde.TfmPolicy.Latest">
+            <summary>Highest major from installed SDKs → net{N}.0.</summary>
+        </member>
+        <member name="F:Cdp.ScriptableIde.TfmPolicy.Lts">
+            <summary>
+            Highest installed major whose channel has <c>release-type=lts</c> in the
+            configured releases-index (<see cref="T:Cdp.ScriptableIde.VendorCatalog"/>), not parity heuristic.
+            </summary>
+        </member>
+        <member name="F:Cdp.ScriptableIde.TfmPolicy.Specified">
+            <summary>Exact TFM from caller (<c>tfm=</c>) — rare escape.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TfmResolver.SdkLine">
+            <remarks>
+            Pattern:<br/>
+            <code>^\\s*(?&lt;ver&gt;\\d+\\.\\d+\\.\\d+)</code><br/>
+            Options:<br/>
+            <code>RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a whitespace character atomically any number of times.<br/>
+            ○ "ver" capture group.<br/>
+                ○ Match a Unicode digit atomically at least once.<br/>
+                ○ Match '.'.<br/>
+                ○ Match a Unicode digit atomically at least once.<br/>
+                ○ Match '.'.<br/>
+                ○ Match a Unicode digit atomically at least once.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TfmResolver.TfmToken">
+            <remarks>
+            Pattern:<br/>
+            <code>net(?&lt;maj&gt;\\d+)(?:\\.(?&lt;min&gt;\\d+))?</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match a character in the set [Nn].<br/>
+            ○ Match a character in the set [Ee].<br/>
+            ○ Match a character in the set [Tt].<br/>
+            ○ "maj" capture group.<br/>
+                ○ Match a Unicode digit greedily at least once.<br/>
+            ○ Optional (greedy).<br/>
+                ○ Match '.'.<br/>
+                ○ "min" capture group.<br/>
+                    ○ Match a Unicode digit atomically at least once.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TfmResolver.FallbackEvenMajorLts(System.Collections.Generic.IReadOnlyList{System.Int32},System.String)">
+            <summary>Offline / fetch failure only — even-major cadence is not SSOT.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TypeDeclFacade">
+            <summary>Create a type shell in a file (csharp class / …).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TypeDeclFacade.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>Create a type shell in a file (csharp class / …).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.TypeDeclBuilder.Replace(System.Boolean)">
+            <summary>Bootstrap: overwrite file with a fresh type shell (drops prior body/imports).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TypeIntent">
+            <summary>Closed type intent — harness projects wire; prefer catalog over <see cref="T:Cdp.ScriptableIde.NamedTypeIntent"/>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.OfTypeIntent">
+            <summary>Simple type id (e.g. Counter) — identifier / dotted; no angle-brackets.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.OfTypeIntent.#ctor(System.String)">
+            <summary>Simple type id (e.g. Counter) — identifier / dotted; no angle-brackets.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.NamedTypeIntent">
+            <summary>Wire escape — syntax tax. Prefer <see cref="M:Cdp.ScriptableIde.Type.ListOf(Cdp.ScriptableIde.TypeIntent)"/> / <see cref="M:Cdp.ScriptableIde.Type.Of(System.String)"/>.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.NamedTypeIntent.#ctor(System.String)">
+            <summary>Wire escape — syntax tax. Prefer <see cref="M:Cdp.ScriptableIde.Type.ListOf(Cdp.ScriptableIde.TypeIntent)"/> / <see cref="M:Cdp.ScriptableIde.Type.Of(System.String)"/>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Type">
+            <summary>Shared type nucleus for declare intents (lang projection owns syntax).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.Type.Named(System.String)">
+            <summary>Rare escape — agent-authored wire (e.g. exotic generics). Prefer catalog ctors.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.TypeProjection">
+            <summary>Project <see cref="T:Cdp.ScriptableIde.TypeIntent"/> → language type wire (not a full type system).</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.Types">
+            <summary>Alias used by Convert/Create facades.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.VendorCatalogOptions">
+            <summary>
+            Vendor catalog endpoints for TFM/engine/package resolvers.
+            SSOT for URLs = host config (<c>[vendor_catalog]</c> in cdp-mcp.toml); code only reads <see cref="!:Current"/>.
+            </summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.VendorCatalogOptions.DotnetReleasesIndexUrls">
+            <summary>.NET releases-index mirrors (first success wins). Field <c>release-type</c> = lts|sts.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.VendorCatalogOptions.NodeDistIndexUrl">
+            <summary>Node dist index. Field <c>lts</c> = codename string | false.</summary>
+        </member>
+        <member name="P:Cdp.ScriptableIde.VendorCatalogOptions.NugetSearchUrl">
+            <summary>NuGet query URL template; placeholders <c>{query}</c>, <c>{take}</c>.</summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.VendorCatalog">
+            <summary>Process-wide vendor catalog options (configured by CDP host from TOML).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.VendorCatalog.CreateBuiltInDefaults">
+            <summary>
+            Built-in defaults when host omits <c>[vendor_catalog]</c> — same values as sample TOML.
+            Prefer overriding via config rather than editing call sites.
+            </summary>
+        </member>
+        <member name="T:Cdp.ScriptableIde.WorkspaceCorrespondence">
+            <summary>
+            Standalone L1 correspondence from <c>.cascade/workspace.toml</c> (ADR 0061 / 0155 / 0156).
+            Forward: path → feature + ADR docs. Reverse: explicit <c>code_anchors</c>.
+            </summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WorkspaceCorrespondence.BuildContext(Cdp.ScriptableIde.WorkspaceCorrespondence.Result)">
+            <summary>Unified correspondence context (ADR 0156 get_correspondence_context shape).</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WorkspaceCorrespondence.ResolveReport(Cdp.ScriptableIde.CodeAnchor,System.String)">
+            <summary>Replace stub: resolve from file path (walk-up) or optional root hint.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WorkspaceCorrespondence.BacktickPathRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>`(?&lt;path&gt;[\\w./\\\\-]+\\.(?:cs|fs|vb|csx))`</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match '`'.<br/>
+            ○ "path" capture group.<br/>
+                ○ Match a character in the set [\--/\\\w] greedily at least once.<br/>
+                ○ Match '.'.<br/>
+                ○ Match with 4 alternative expressions.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Cc].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Ff].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Vv].<br/>
+                        ○ Match a character in the set [Bb].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Cc].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                        ○ Match a character in the set [Xx].<br/>
+            ○ Match '`'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WorkspaceCorrespondence.MarkdownCodeLinkRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>\\[(?&lt;label&gt;[^\\]]+)\\]\\((?&lt;path&gt;[^)\\s#]+\\.(?:cs|fs|vb|csx)[^)]*)\\)</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match '['.<br/>
+            ○ "label" capture group.<br/>
+                ○ Match a character other than ']' atomically at least once.<br/>
+            ○ Match the string "](".<br/>
+            ○ "path" capture group.<br/>
+                ○ Match a character in the set [^#)\s] greedily at least once.<br/>
+                ○ Match '.'.<br/>
+                ○ Match with 4 alternative expressions.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Cc].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Ff].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Vv].<br/>
+                        ○ Match a character in the set [Bb].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Cc].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                        ○ Match a character in the set [Xx].<br/>
+                ○ Match a character other than ')' atomically any number of times.<br/>
+            ○ Match ')'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WorkspaceCorrespondence.FileLineRangeRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>(?&lt;path&gt;[\\w./\\\\-]+\\.(?:cs|fs|vb|csx)):(?&lt;start&gt;\\d+)(?:\\s*[-–]\\s*(?&lt;end&gt;\\d+))?</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ "path" capture group.<br/>
+                ○ Match a character in the set [\--/\\\w] greedily at least once.<br/>
+                ○ Match '.'.<br/>
+                ○ Match with 4 alternative expressions.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Cc].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Ff].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Vv].<br/>
+                        ○ Match a character in the set [Bb].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Cc].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                        ○ Match a character in the set [Xx].<br/>
+            ○ Match ':'.<br/>
+            ○ "start" capture group.<br/>
+                ○ Match a Unicode digit greedily at least once.<br/>
+            ○ Optional (greedy).<br/>
+                ○ Match a whitespace character atomically any number of times.<br/>
+                ○ Match a character in the set [\-\u2013].<br/>
+                ○ Match a whitespace character atomically any number of times.<br/>
+                ○ "end" capture group.<br/>
+                    ○ Match a Unicode digit atomically at least once.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WorkspaceCorrespondence.BracketInProseRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>\\[F:[^\\]]+\\]</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match '['.<br/>
+            ○ Match a character in the set [Ff].<br/>
+            ○ Match ':'.<br/>
+            ○ Match a character other than ']' atomically at least once.<br/>
+            ○ Match ']'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WorkspaceCorrespondence.BracketKeySepRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>(?&lt;=\\S)\\s+(?=[FMLSK]:)</code><br/>
+            Options:<br/>
+            <code>RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Zero-width positive lookbehind.<br/>
+                ○ Match any character other than a whitespace character right-to-left.<br/>
+            ○ Match a whitespace character atomically at least once.<br/>
+            ○ Zero-width positive lookahead.<br/>
+                ○ Match a character in the set [FK-MS].<br/>
+                ○ Match ':'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WorkspaceCorrespondence.MdLinkRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>\\[[^\\]]*\\]\\((?&lt;target&gt;[^)]+)\\)</code><br/>
+            Options:<br/>
+            <code>RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match '['.<br/>
+            ○ Match a character other than ']' atomically any number of times.<br/>
+            ○ Match the string "](".<br/>
+            ○ "target" capture group.<br/>
+                ○ Match a character other than ')' atomically at least once.<br/>
+            ○ Match ')'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WorkspaceCorrespondence.AdrIdRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>(?:^|/)docs/adr/(?&lt;id&gt;\\d{4})-</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match with 2 alternative expressions.<br/>
+                ○ Match if at the beginning of the string.<br/>
+                ○ Match '/'.<br/>
+            ○ Match a character in the set [Dd].<br/>
+            ○ Match a character in the set [Oo].<br/>
+            ○ Match a character in the set [Cc].<br/>
+            ○ Match a character in the set [Ss].<br/>
+            ○ Match '/'.<br/>
+            ○ Match a character in the set [Aa].<br/>
+            ○ Match a character in the set [Dd].<br/>
+            ○ Match a character in the set [Rr].<br/>
+            ○ Match '/'.<br/>
+            ○ "id" capture group.<br/>
+                ○ Match a Unicode digit exactly 4 times.<br/>
+            ○ Match '-'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:Cdp.ScriptableIde.PathRemappingToolBus">
+            <summary>Remap path-like JSON args from primary root into worktree root.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.PathRemappingToolBus.#ctor(Cdp.ScriptableIde.IScriptToolBus,Cdp.ScriptableIde.PlanContext)">
+            <summary>Remap path-like JSON args from primary root into worktree root.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WorktreePlanRunner.OverlayPrimaryWorkingTree(System.String,System.String,System.String)">
+            <summary>Copy primary dirty/untracked files under scope into worktree; hash for promote conflicts.</summary>
+        </member>
+        <member name="M:Cdp.ScriptableIde.WorktreePlanRunner.ApplyPlanDeltaFiles(System.String,System.String,System.Collections.Generic.IReadOnlyList{System.ValueTuple{System.Char,System.String}})">
+            <summary>Copy/delete plan-delta paths from worktree onto primary (avoids fragile git-apply patches).</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DiagnosticLine_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the DiagnosticLine method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.DiagnosticLine_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DiagnosticLine_0.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ActionLine_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ActionLine method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.ActionLine_1.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ActionLine_1.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ActionLine_1.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ActionLine_1.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ActionLine_1.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ActionLine_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ActionLine_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ActionLine_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.NugetPackageRef_2">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the NugetPackageRef method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.NugetPackageRef_2.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.NugetPackageRef_2.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.NugetPackageRef_2.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.NugetPackageRef_2.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.NugetPackageRef_2.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.NugetPackageRef_2.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.NugetPackageRef_2.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.NugetPackageRef_2.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.SdkLine_3">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the SdkLine method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.SdkLine_3.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.SdkLine_3.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.SdkLine_3.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.SdkLine_3.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.SdkLine_3.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.SdkLine_3.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.SdkLine_3.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.SdkLine_3.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.TfmToken_4">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the TfmToken method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.TfmToken_4.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TfmToken_4.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.TfmToken_4.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TfmToken_4.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.TfmToken_4.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TfmToken_4.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TfmToken_4.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.TfmToken_4.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BacktickPathRegex_5">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the BacktickPathRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.BacktickPathRegex_5.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BacktickPathRegex_5.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BacktickPathRegex_5.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BacktickPathRegex_5.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BacktickPathRegex_5.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BacktickPathRegex_5.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BacktickPathRegex_5.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BacktickPathRegex_5.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.MarkdownCodeLinkRegex_6">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the MarkdownCodeLinkRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.MarkdownCodeLinkRegex_6.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MarkdownCodeLinkRegex_6.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.MarkdownCodeLinkRegex_6.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MarkdownCodeLinkRegex_6.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.MarkdownCodeLinkRegex_6.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MarkdownCodeLinkRegex_6.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MarkdownCodeLinkRegex_6.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MarkdownCodeLinkRegex_6.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.FileLineRangeRegex_7">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the FileLineRangeRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.FileLineRangeRegex_7.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.FileLineRangeRegex_7.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.FileLineRangeRegex_7.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.FileLineRangeRegex_7.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.FileLineRangeRegex_7.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.FileLineRangeRegex_7.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.FileLineRangeRegex_7.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.FileLineRangeRegex_7.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BracketInProseRegex_8">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the BracketInProseRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.BracketInProseRegex_8.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BracketInProseRegex_8.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BracketInProseRegex_8.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BracketInProseRegex_8.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BracketInProseRegex_8.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BracketInProseRegex_8.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BracketInProseRegex_8.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BracketInProseRegex_8.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BracketKeySepRegex_9">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the BracketKeySepRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.BracketKeySepRegex_9.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BracketKeySepRegex_9.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BracketKeySepRegex_9.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BracketKeySepRegex_9.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.BracketKeySepRegex_9.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BracketKeySepRegex_9.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BracketKeySepRegex_9.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.BracketKeySepRegex_9.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.MdLinkRegex_10">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the MdLinkRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.MdLinkRegex_10.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MdLinkRegex_10.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.MdLinkRegex_10.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MdLinkRegex_10.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.MdLinkRegex_10.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MdLinkRegex_10.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MdLinkRegex_10.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.MdLinkRegex_10.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.AdrIdRegex_11">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the AdrIdRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.AdrIdRegex_11.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.AdrIdRegex_11.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.AdrIdRegex_11.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.AdrIdRegex_11.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.AdrIdRegex_11.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.AdrIdRegex_11.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.AdrIdRegex_11.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.AdrIdRegex_11.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Utilities">
+            <summary>Helper methods used by generated <see cref="T:System.Text.RegularExpressions.Regex"/>-derived implementations.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout">
+            <summary>Default timeout value set in <see cref="T:System.AppContext"/>, or <see cref="F:System.Text.RegularExpressions.Regex.InfiniteMatchTimeout"/> if none was set.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_hasTimeout">
+            <summary>Whether <see cref="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout"/> is non-infinite.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.IndexOfAnyDigit(System.ReadOnlySpan{System.Char})">
+            <summary>Finds the next index of any character that matches a Unicode digit.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.IndexOfNonAsciiOrAny_312E22BAC976BB0484EB8A3ACC9A508061D6AC699DF32A8A14A9F4484ADEEABC(System.ReadOnlySpan{System.Char})">
+            <summary>Finds the next index of any character that matches a character in the set [\--/\\\w].</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.IsWordChar(System.Char)">
+            <summary>Determines whether the character is part of the [\w] set.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.StackPush(System.Int32[]@,System.Int32@,System.Int32,System.Int32)">
+            <summary>Pushes 2 values onto the backtracking stack.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.WordCategoriesMask">
+            <summary>Provides a mask of Unicode categories that combine to form [\w].</summary>
+        </member>
+        <member name="P:System.Text.RegularExpressions.Generated.Utilities.WordCharBitmap">
+            <summary>Gets a bitmap for whether each character 0 through 127 is in [\w]</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiExceptDigits">
+            <summary>Supports searching for characters in or not in "\0\u0001\u0002\u0003\u0004\u0005\u0006\a\b\t\n\v\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f !\"#$%&amp;'()*+,-./:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u007f".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_asciiLetters">
+            <summary>Supports searching for characters in or not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_FFFFFFFFFF1F00FC01000068010000F8">
+            <summary>Supports searching for characters in or not in "\0\u0001\u0002\u0003\u0004\u0005\u0006\a\b\t\n\v\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f !\"#$%&amp;'()*+,:;&lt;=&gt;?@[]^`{|}~\u007f".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_7A21C7BD3C45901B77B515789116D7E18F701022C1296458B003E3316EC60358">
+            <summary>Supports searching for the string "[f:".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_net_OrdinalIgnoreCase">
+            <summary>Supports searching for the string "net".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_pac_OrdinalIgnoreCase">
+            <summary>Supports searching for the string "pac".</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_whitespace">
+            <summary>Supports searching for characters in or not in "\t\n\v\f\r \u0085             \u2028\u2029  　".</summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,13 @@
+{
+  "schema": "change_plan/v0",
+  "plan_id": "529cd53eeca4",
+  "stage_id": "1ab46816-2f62-44f7-a284-ba0ad7860dcf",
+  "criterion_id": "255904ee-69be-45e1-9da6-d06028189f06",
+  "anchors": [
+    {
+      "anchor": "[F:IdeIgniteArmHost.Delivery.cs;M:Watchdog]"
+    }
+  ],
+  "manual_acked": true,
+  "updated_utc": "2026-07-28T11:09:19.9928692+00:00"
+}

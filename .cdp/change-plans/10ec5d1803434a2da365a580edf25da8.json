@@ -1,0 +1,9 @@
+{
+  "schema": "change_plan/v0",
+  "plan_id": "77c08946e424",
+  "stage_id": "10ec5d18-0343-4a2d-a365-a580edf25da8",
+  "criterion_id": "71240a38-3461-4168-a38f-ad90c6680bae",
+  "anchors": [],
+  "manual_acked": false,
+  "updated_utc": "2026-07-28T11:10:30.1075306+00:00"
+}

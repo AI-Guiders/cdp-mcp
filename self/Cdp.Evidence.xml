@@ -1,0 +1,251 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Cdp.Evidence</name>
+    </assembly>
+    <members>
+        <member name="T:Cdp.Evidence.EvidenceSource">
+            <summary>Source channel of the pipe being projected.</summary>
+        </member>
+        <member name="T:Cdp.Evidence.EvidenceDocumentDto">
+            <summary>DTO for JSON serialization (property names match evidence/v0).</summary>
+        </member>
+        <member name="T:Cdp.Evidence.EvidencePreprocess">
+            <summary>
+            Locus projection: raw pipe / structured diags → <c>evidence/v0</c> with Anchor wires.
+            Shared agent + human surface (kj-20260724-1238).
+            </summary>
+        </member>
+        <member name="M:Cdp.Evidence.EvidencePreprocess.Project(System.String,System.String,Cdp.Evidence.EvidenceContext)">
+            <summary>Project text for a known or auto-detected source kind.</summary>
+        </member>
+        <member name="M:Cdp.Evidence.EvidencePreprocess.FromBuildDiagnostics(System.Collections.Generic.IEnumerable{System.ValueTuple{System.String,System.Int32,System.Nullable{System.Int32},System.String,System.String,System.Boolean}},Cdp.Evidence.EvidenceContext,Cdp.Evidence.EvidenceSource)">
+            <summary>From already-parsed MSBuild diagnostics (build/publish structured path).</summary>
+        </member>
+        <member name="M:Cdp.Evidence.EvidencePreprocess.FromFailedTests(System.Collections.Generic.IEnumerable{System.ValueTuple{System.String,System.String}},Cdp.Evidence.EvidenceContext,System.String)">
+            <summary>From failed test rows (name + message).</summary>
+        </member>
+        <member name="M:Cdp.Evidence.EvidencePreprocess.FromCsxItems(System.Collections.Generic.IEnumerable{System.ValueTuple{System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.String,System.String}},Cdp.Evidence.EvidenceContext)">
+            <summary>From CSX / Roslyn-style items already shaped (fold into evidence/v0).</summary>
+        </member>
+        <member name="T:Cdp.Evidence.LocusWire">
+            <summary>
+            Minimal CDP locus wire compatible with BracketLocate <c>[F:…;L:n]</c> (no Roslyn dependency).
+            </summary>
+        </member>
+        <member name="T:Cdp.Evidence.MsBuildExtractor">
+            <summary>MSBuild / dotnet build lines: path(line[,col]): error|warning CODE: message</summary>
+        </member>
+        <member name="M:Cdp.Evidence.MsBuildExtractor.DiagnosticLine">
+            <remarks>
+            Pattern:<br/>
+            <code>^(?&lt;file&gt;.+?)\\((?&lt;line&gt;\\d+)(?:,(?&lt;col&gt;\\d+))?\\)\\s*:\\s*(?&lt;sev&gt;error|warning)\\s*(?&lt;code&gt;\\S*?)?\\s*:\\s*(?&lt;msg&gt;.*)$</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ "file" capture group.<br/>
+                ○ Match a character other than '\n' lazily at least once.<br/>
+            ○ Match '('.<br/>
+            ○ "line" capture group.<br/>
+                ○ Match a Unicode digit greedily at least once.<br/>
+            ○ Optional (greedy).<br/>
+                ○ Match ','.<br/>
+                ○ "col" capture group.<br/>
+                    ○ Match a Unicode digit atomically at least once.<br/>
+            ○ Match ')'.<br/>
+            ○ Match a whitespace character atomically any number of times.<br/>
+            ○ Match ':'.<br/>
+            ○ Match a whitespace character atomically any number of times.<br/>
+            ○ "sev" capture group.<br/>
+                ○ Match with 2 alternative expressions.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Ee].<br/>
+                        ○ Match a character in the set [Rr] exactly 2 times.<br/>
+                        ○ Match a character in the set [Oo].<br/>
+                        ○ Match a character in the set [Rr].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Ww].<br/>
+                        ○ Match a character in the set [Aa].<br/>
+                        ○ Match a character in the set [Rr].<br/>
+                        ○ Match a character in the set [Nn].<br/>
+                        ○ Match a character in the set [Ii].<br/>
+                        ○ Match a character in the set [Nn].<br/>
+                        ○ Match a character in the set [Gg].<br/>
+            ○ Match a whitespace character greedily any number of times.<br/>
+            ○ Optional (greedy).<br/>
+                ○ "code" capture group.<br/>
+                    ○ Match any character other than a whitespace character lazily any number of times.<br/>
+            ○ Match a whitespace character atomically any number of times.<br/>
+            ○ Match ':'.<br/>
+            ○ Match a whitespace character greedily any number of times.<br/>
+            ○ "msg" capture group.<br/>
+                ○ Match a character other than '\n' greedily any number of times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:Cdp.Evidence.StackTraceExtractor">
+            <summary>
+            .NET / CLR stack frames and "in file:line N" loci from test failure bodies.
+            </summary>
+        </member>
+        <member name="M:Cdp.Evidence.StackTraceExtractor.InFileLine">
+            <remarks>
+            Pattern:<br/>
+            <code>\\bin\\s+(?&lt;file&gt;.+?\\.(?:cs|fs|vb|ts|tsx|js|py))\\s*:\\s*line\\s+(?&lt;line&gt;\\d+)</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase | RegexOptions.CultureInvariant</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at a word boundary.<br/>
+            ○ Match a character in the set [Ii].<br/>
+            ○ Match a character in the set [Nn].<br/>
+            ○ Match a whitespace character greedily at least once.<br/>
+            ○ "file" capture group.<br/>
+                ○ Match a character other than '\n' lazily at least once.<br/>
+                ○ Match '.'.<br/>
+                ○ Match with 6 alternative expressions.<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Cc].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Ff].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Vv].<br/>
+                        ○ Match a character in the set [Bb].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Tt].<br/>
+                        ○ Match with 2 alternative expressions.<br/>
+                            ○ Match a character in the set [Ss].<br/>
+                            ○ Match a sequence of expressions.<br/>
+                                ○ Match a character in the set [Ss].<br/>
+                                ○ Match a character in the set [Xx].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Jj].<br/>
+                        ○ Match a character in the set [Ss].<br/>
+                    ○ Match a sequence of expressions.<br/>
+                        ○ Match a character in the set [Pp].<br/>
+                        ○ Match a character in the set [Yy].<br/>
+            ○ Match a whitespace character atomically any number of times.<br/>
+            ○ Match ':'.<br/>
+            ○ Match a whitespace character atomically any number of times.<br/>
+            ○ Match a character in the set [Ll].<br/>
+            ○ Match a character in the set [Ii].<br/>
+            ○ Match a character in the set [Nn].<br/>
+            ○ Match a character in the set [Ee].<br/>
+            ○ Match a whitespace character atomically at least once.<br/>
+            ○ "line" capture group.<br/>
+                ○ Match a Unicode digit atomically at least once.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:Cdp.Evidence.StackTraceExtractor.FromFailedTest(System.String,System.String,Cdp.Evidence.EvidenceContext)">
+            <summary>One failed test → prefer first stack locus in message, else title-only item.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DiagnosticLine_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the DiagnosticLine method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.DiagnosticLine_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DiagnosticLine_0.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.DiagnosticLine_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.InFileLine_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the InFileLine method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.InFileLine_1.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.InFileLine_1.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.InFileLine_1.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.InFileLine_1.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.InFileLine_1.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.InFileLine_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.InFileLine_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.InFileLine_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Utilities">
+            <summary>Helper methods used by generated <see cref="T:System.Text.RegularExpressions.Regex"/>-derived implementations.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout">
+            <summary>Default timeout value set in <see cref="T:System.AppContext"/>, or <see cref="F:System.Text.RegularExpressions.Regex.InfiniteMatchTimeout"/> if none was set.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_hasTimeout">
+            <summary>Whether <see cref="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout"/> is non-infinite.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.IsBoundaryWordChar(System.Char)">
+            <summary>Determines whether the specified index is a boundary word character.</summary>
+            <remarks>This is the same as \w plus U+200C ZERO WIDTH NON-JOINER and U+200D ZERO WIDTH JOINER.</remarks>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.IsPreWordCharBoundary(System.ReadOnlySpan{System.Char},System.Int32)">
+            <summary>Determines whether the specified index is a boundary.</summary>
+            <remarks>This variant is only employed when the subsequent character will separately be validated as a word character.</remarks>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.StackPop(System.Int32[],System.Int32@,System.Int32@,System.Int32@)">
+            <summary>Pops 2 values from the backtracking stack.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.StackPush(System.Int32[]@,System.Int32@,System.Int32)">
+            <summary>Pushes 1 value onto the backtracking stack.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.StackPush(System.Int32[]@,System.Int32@,System.Int32,System.Int32)">
+            <summary>Pushes 2 values onto the backtracking stack.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.Utilities.StackPush(System.Int32[]@,System.Int32@,System.Int32,System.Int32,System.Int32)">
+            <summary>Pushes 3 values onto the backtracking stack.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.WordCategoriesMask">
+            <summary>Provides a mask of Unicode categories that combine to form [\w].</summary>
+        </member>
+        <member name="P:System.Text.RegularExpressions.Generated.Utilities.WordCharBitmap">
+            <summary>Gets a bitmap for whether each character 0 through 127 is in [\w]</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_indexOfString_in_OrdinalIgnoreCase">
+            <summary>Supports searching for the string "in".</summary>
+        </member>
+    </members>
+</doc>
