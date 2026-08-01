@@ -145,4 +145,37 @@ internal sealed partial class IntentWorkspaceStore
 
     public string? StageTitle(IntentWorkspaceState state, Guid stageId) =>
         WithDb(db => db.Stages.AsNoTracking().FirstOrDefault(x => x.Id == stageId)?.Title);
+
+    /// <summary>Mark every incomplete stage under the active intent as done. Returns count.</summary>
+    public int MarkIncompleteStagesDone(IntentWorkspaceState state)
+    {
+        if (state.ActiveIntentId is not { } intentId)
+            return 0;
+
+        return WithDb(db =>
+        {
+            var rows = db.Stages
+                .Where(x => x.IntentId == intentId && (x.Status == "pending" || x.Status == "active"))
+                .ToList();
+            var now = DateTimeOffset.UtcNow;
+            foreach (var row in rows)
+            {
+                row.Status = "done";
+                row.UpdatedUtc = now;
+            }
+
+            if (rows.Count > 0)
+                db.SaveChanges();
+            return rows.Count;
+        });
+    }
+
+    public bool StageHasWallStart(IntentWorkspaceState state, Guid stageId)
+    {
+        if (state.ActiveIntentId is not { } intentId)
+            return false;
+        return WithDb(db =>
+            db.Stages.AsNoTracking()
+                .Any(x => x.Id == stageId && x.IntentId == intentId && x.StartedUtc != null));
+    }
 }

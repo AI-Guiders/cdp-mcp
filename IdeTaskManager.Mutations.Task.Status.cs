@@ -11,9 +11,13 @@ internal static partial class IdeTaskManager
         var title = Title(args);
         var id = ResolveStageTarget(store, state, args);
         if (id is null)
+        {
+            if (TryResolveFeatureId(store, state, args) is { } featureId)
+                return FeatureDone(store, state, featureId, reason: "done");
             throw new ArgumentException(title.Length > 0
                 ? $"task not found: {title}"
-                : "done needs active task or title — focus X | done X");
+                : "done needs active task or title — focus X | done X | done feature Y");
+        }
 
         var wasActive = state.ActiveStageId == id;
         var r = store.StageSetStatus(state, id.Value, "done");
@@ -106,10 +110,26 @@ internal static partial class IdeTaskManager
 
     static object TaskClockShipped(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
     {
-        var id = ResolveClockStageId(store, state, args)
-                 ?? throw new ArgumentException("shipped needs active task or title — start first, then shipped");
+        var id = ResolveClockStageId(store, state, args);
+        if (id is null)
+        {
+            if (TryResolveFeatureId(store, state, args) is { } featureId)
+                return FeatureDone(store, state, featureId, reason: "shipped");
+            throw new ArgumentException("shipped needs active task or title — focus + shipped; or shipped feature Y");
+        }
+
         IdeStageCycle.TryPhaseComplete(); // close open phase segment before clock end
-        return store.StageClockShipped(state, id);
+        var startedImplicit = false;
+        if (!store.StageHasWallStart(state, id.Value))
+        {
+            store.StageClockStart(state, id.Value);
+            startedImplicit = true;
+        }
+
+        var clock = store.StageClockShipped(state, id.Value);
+        return startedImplicit
+            ? new { clock, started_implicit = true, hint = "wall start was missing — started implicitly at ship" }
+            : clock;
     }
 
     static object TaskPhaseStart(IntentWorkspaceStore store, IntentWorkspaceState state, IReadOnlyDictionary<string, JsonElement> args)
