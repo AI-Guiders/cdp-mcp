@@ -31,8 +31,8 @@
 
 ## last_ship
 
-- 2026-08-01 night: **live tea OK** — invite=ready, Cloud.ru FM `GigaChat3-10B-A1.8B`, op=turn returns text (smoke «Привет, я здесь»).
-- **Full wire still blocked by model compliance**: even forced «ответь только `@intent go=plan`» → prose, `wire_intents=[]`. Parser/tests OK (mock). Need stronger FM / persona+format hard-gate before citizen-way accept.
+- 2026-08-01 → **0.5.442 live**: persona HARD WIRE OUTPUT CONTRACT + OpenAI-compat `temperature=0`. Forced ONLY `@intent go=plan` → exact wire line, `wire_intents`+routes ok on GigaChat3-10B.
+- Prior soft persona failed wire (prose / empty intents) — fixed by hard contract + temp=0.
 - 0.5.360: Cloud.ru FM OpenAI-compat path + AiKeys helpers
 - 0.5.361: `InviteReady` as serializable record
 - 0.5.362: meta docs OAI/Cloud.ru on `cdp_citizen`
