@@ -37,9 +37,11 @@
 - Festive per-zone accents (cyan P / gold F / purple M) — Dark Cockpit violation; geography by label, color only on deviation (ON GND / select / EICAS).
 - MFD text-wall dig notes for humans — prefer concise+graphic presence cards (`□ Glass peel` / `■ Avalonia`).
 - Invent SoftOrgan for Editor MFD when Forward=intercom — AvalonEdit peel already mounts on M (ADR 0120).
+- Fork Glass WPF DAP / DebugStack session into TextBlock — SSOT = Avalonia `IdeDapDebugSession` + `DebugStackMfdPageView`; Glass stays `debug_desk` SoftOrganMfdGlance (+ quiet chrome projector).
 
 ## last_ship
 
+- 2026-08-01: dig reject hold Glass DebugStack DAP — SSOT Avalonia `IdeDapDebugSession` + `DebugStackMfdPageView`; SoftOrganMfdGlance ←`debug_desk` + `CdpDebugDeskProjector` chrome; do not fork DAP protocol/session into TextBlock (unlike Terminal/Build/Tests Process-redirect peels)
 - 2026-08-01: act Glass Tests redirected log TextBox thin peel — `GlassRedirectedTest` + `MainWindow.TestSurface` (`dotnet test` Process redirect, prefer CascadeIDE.Tests + SoftOrganMfdGlance filter); live MFD dogfood `redirected · CascadeIDE.Tests.csproj`; SoftOrganMfdGlance test_desk footnote `■ Glass redirected log TextBox` / `□ Avalonia TestsMfdPageView`; Avalonia test host remains SSOT
 - 2026-08-01: act Glass Build redirected log TextBox thin peel — `GlassRedirectedBuild` + `MainWindow.BuildSurface` (`dotnet build` Process redirect, ANSI strip); live MFD dogfood `redirected · CascadeIDE.sln` + restore stream; SoftOrganMfdGlance toolchain footnote `■ Glass redirected log TextBox` / `□ Avalonia BuildMfdPageView`; Avalonia MSBuild host remains SSOT
 - 2026-08-01: act Glass Terminal redirected TextBox thin peel — `GlassRedirectedShell` + `MainWindow.TerminalSurface` (Process redirect, ANSI strip, no ConPTY); live MFD dogfood `redirected · pwsh` + prompt; SoftOrganMfdGlance Terminal footnote `■ Glass redirected TextBox` / `□ Avalonia ConPTY SSOT`; ConPTY remains Avalonia-only
@@ -70,8 +72,9 @@
 - Glass reverse: MFD orphans `WorkspaceHealth`/`EnvironmentReadiness`/`Events`/`Hypotheses` added as WPF list+stub (CIDE enum parity)
 - SoftOrgan peel DoD closed: every `SoftOrganKind` resolves (MFD or chrome); orphan MFDs stay unbound — do not invent SoftOrgan to fill CIDE pages; EnvironmentReadiness/IdeHealth are CCUs not SoftOrgans
 - Chat/Intercom: primary presence = Glass Forward Intercom feed (latch/journal); MFD `Chat` stays secondary stub — not SoftOrgan bind
-- MFD instrument glance: `Build`←`toolchain`, `Terminal`←`sys`, `Tests`←`test_desk`, `DebugStack`←`debug_desk`, `Problems`←`review`, `SemanticMap`←`arch`, `AiChatSettings`←`mcp`, `MarkdownPreview`←`report`, `RelatedFiles`←`refactor` (`SoftOrganMfdGlance`); field-enrich DoD closed for mapped SoftOrgans; ConPTY/MSBuild/mount/DAP stack host later (graph+Problems+RelatedFiles DIG REJECT below)
-- dig reject: Glass WPF Terminal ConPTY — SSOT = CIDE Avalonia `TerminalMfdPageView`/`IntegratedShellLaunch`; Glass stays `sys` latch glance until Windows terminal-control peel (do not fork PTY into TextBlock) · cascade-ide `131cc677`/`46be0e27`
+- MFD instrument glance: `Build`←`toolchain`, `Terminal`←`sys`, `Tests`←`test_desk`, `DebugStack`←`debug_desk`, `Problems`←`review`, `SemanticMap`←`arch`, `AiChatSettings`←`mcp`, `MarkdownPreview`←`report`, `RelatedFiles`←`refactor` (`SoftOrganMfdGlance`); field-enrich DoD closed for mapped SoftOrgans; Terminal/Build/Tests have Glass Process-redirect thin peels (Avalonia ConPTY/MSBuild/Tests hosts remain SSOT); DAP/DebugStack stays Avalonia-only (DIG REJECT below); graph+Problems+RelatedFiles DIG REJECT below
+- dig reject: Glass WPF DebugStack DAP — SSOT = CIDE Avalonia `IdeDapDebugSession` + `DebugStackMfdPageView`; SoftOrganMfdGlance ←`debug_desk` + `CdpDebugDeskProjector` quiet chrome; Glass stays latch glance + CabinGlass stub (do not fork DAP protocol/session/stack into TextBlock; Process-redirect peels ≠ DAP)
+- dig reject: Glass WPF Terminal ConPTY — SSOT = CIDE Avalonia `TerminalMfdPageView`/`IntegratedShellLaunch`; Glass ConPTY fork rejected; redirected TextBox peel shipped separately
 - dig reject: Glass WPF Build MSBuild — SSOT = CIDE Avalonia `BuildMfdPageView`/`BuildOutputPanelViewModel`; Glass stays `toolchain` latch glance until WPF build-log host peel · cascade-ide `f2a6cf10`/`51655639`
 - dig reject: Glass HybridIndex SoftOrgan glance — CabinGlass `hybrid_index`/`hci`/`codebase_index` → MFD only; no SoftOrganKind; live HCI SSOT = Avalonia `HybridIndexMfdPageView`/`HybridIndexOrchestrator` (do not invent SoftOrgan) · cascade-ide `31c962a9`
 - 2026-08-01: DebugStack←`debug_desk` SoftOrganMfdGlance + `CideDebugDeskLatch` · cascade-ide `ad2e9b56` · cdp-mcp `ab90576`
