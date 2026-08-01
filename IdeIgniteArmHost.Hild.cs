@@ -1,5 +1,4 @@
 #nullable enable
-using System.Globalization;
 using System.Text.Json;
 
 namespace CdpMcp;
@@ -12,6 +11,8 @@ namespace CdpMcp;
 internal static partial class IdeIgniteArmHost
 {
     public const string HildArmIdPrefix = "hild-away-";
+    /// <summary>Stable first-away wake id — replaces prior GUID storm under zombie remounts.</summary>
+    public const string HildAwayArmId = "hild-away";
     /// <summary>Escalate wake — must fire even if the first away turn already ended.</summary>
     public const string HildEscalateArmIdPrefix = "hild-escalate-";
     /// <summary>Stable escalate wake id (like leaf-wake) — replaces prior; still matches prefix.</summary>
@@ -65,10 +66,12 @@ internal static partial class IdeIgniteArmHost
             return HildArmed;
     }
 
+    static int HildLoopStarted;
+
     static void EnsureHildStarted()
     {
         EnsureHildLoaded();
-        if (Volatile.Read(ref HildCts) is { IsCancellationRequested: false })
+        if (Interlocked.Exchange(ref HildLoopStarted, 1) != 0)
             return;
 
         var cts = new CancellationTokenSource();
@@ -255,6 +258,7 @@ internal static partial class IdeIgniteArmHost
             AwayEscalateDone = false;
         }
 
+        IdeHildCrossProcessClaim.ClearAwayEpoch();
         IdeTeethTape.Record("partner_here", detail: "hild_latch_cleared");
         Console.Error.WriteLine("[ide_ignite] hild partner here — away latch cleared");
     }
@@ -267,6 +271,13 @@ internal static partial class IdeIgniteArmHost
             HildEdgeCount++;
             AwayEscalateDueUtc = DateTimeOffset.UtcNow + AwayEscalateAfter;
             AwayEscalateDone = false;
+        }
+
+        // Zombie remounts: only one process seeds Composer wake for this absence.
+        if (!IdeHildCrossProcessClaim.TryClaimAwayEdge())
+        {
+            IdeTeethTape.Record("partner_away", detail: "edge_claim_lost");
+            return;
         }
 
         IdeTeethTape.Record("partner_away", detail: $"escalate_in={(int)AwayEscalateAfter.TotalSeconds}s");
@@ -308,6 +319,13 @@ internal static partial class IdeIgniteArmHost
             AwayEscalateDone = true;
         }
 
+        // Cross-process: only one of N zombie CdpMcp schedules escalate (dogfood 0.5.342).
+        if (!IdeHildCrossProcessClaim.TryClaimEscalate())
+        {
+            IdeTeethTape.Record("partner_away_escalate", detail: "escalate_claim_lost");
+            return;
+        }
+
         IdeTeethTape.Record("partner_away_escalate", detail: "still_away→autonomy+wake");
         SetAutonomous(true, "hild_away_escalate");
         var scheduled = TryScheduleHildEscalateWake();
@@ -328,9 +346,15 @@ internal static partial class IdeIgniteArmHost
         IgniteArm arm;
         lock (Gate)
         {
-            Arms.RemoveAll(a =>
-                a.Id.StartsWith(HildEscalateArmIdPrefix, StringComparison.OrdinalIgnoreCase)
+            // Already armed/firing — do not reset DueUtc (TimerLoop storm under replace).
+            var existing = Arms.FirstOrDefault(a =>
+                a.Id.Equals(HildEscalateArmId, StringComparison.OrdinalIgnoreCase)
                 && a.Status is "armed" or "firing");
+            if (existing is not null)
+                return Slim(existing);
+
+            Arms.RemoveAll(a =>
+                a.Id.StartsWith(HildEscalateArmIdPrefix, StringComparison.OrdinalIgnoreCase));
 
             arm = new IgniteArm
             {
@@ -385,13 +409,23 @@ internal static partial class IdeIgniteArmHost
 
     static void SeedHildWake(out string armId)
     {
-        armId = HildArmIdPrefix
-            + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)
-            + "-"
-            + Guid.NewGuid().ToString("N")[..6];
-
+        armId = HildAwayArmId;
         try
         {
+            EnsureLoaded();
+            lock (Gate)
+            {
+                var live = Arms.FirstOrDefault(a =>
+                    a.Id.Equals(HildAwayArmId, StringComparison.OrdinalIgnoreCase)
+                    && a.Status is "armed" or "firing");
+                if (live is not null)
+                    return;
+
+                Arms.RemoveAll(a =>
+                    a.Id.Equals(HildAwayArmId, StringComparison.OrdinalIgnoreCase)
+                    || a.Id.StartsWith(HildArmIdPrefix, StringComparison.OrdinalIgnoreCase));
+            }
+
             var args = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
             {
                 ["op"] = JsonSerializer.SerializeToElement("arm"),
