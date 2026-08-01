@@ -11,6 +11,8 @@
 - Incomplete leaf (0.5.309+): `pending|active`, skip handoff; leaf = no incomplete children.
 - `feature_focus` / `task_focus` / `done` → leaf resolve + `leaf-wake` AutoI (2s).
 - REPL: bare `feature X` = upsert/dedupe (+ leaf-arm on dedupe); `feature focus X` → `feature_focus` (0.5.311+).
+- `done` / `shipped` with **feature title** (or bare when feature focused, no task) → close incomplete leaves + clear focus (0.5.412).
+- `shipped` without prior `start` → implicit wall start (ADX ceremony tax).
 - Soft-warn FileLinesWarn=400; `IntentWorkspaceStore` is `partial` by concern (Core/Intent/Stage/Scene/Persist/Find + Leaf/StageCriteria/StageEvents/StageProduct).
 
 ## Entry
@@ -23,9 +25,11 @@
 - Asking operator how focus/done works without reading Leaf + Mutations.
 - Seeding task titles that contain REPL verbs (`|focus|start`).
 - Re-inlining Intent/Stage/Scene/Persist/Find into one mega-file past soft-warn.
+- Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
 
+- 0.5.412 done/shipped feature-title fallback + shipped without start
 - soft-warn peel: Core126 Intent140 Stage264 Scene221 Persist318 Find373 @ 0.5.401 (existing Leaf148 StageCriteria366 StageEvents200 StageProduct60)
 - 0.5.309 leaf AutoI — `6a97f48` (2026-07-30)
 - 0.5.310 Domain axis + remount domain pulse (pressure checklist + charge appendix)
