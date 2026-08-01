@@ -33,6 +33,7 @@
 
 ## last_ship
 
+- FindInFiles.Rg + Search.Util peel (≤ADX soft-warn) @ 0.5.433 · 2026-08-01
 - DocumentBufferStore.Edit peel (≤ADX soft-warn) @ 0.5.432 · 2026-08-01
 - IdeChangePlanner.Persist peel (≤ADX soft-warn) @ 0.5.431 · 2026-08-01
 - StageCriteria.Norm peel (≤ADX soft-warn) @ 0.5.430 · 2026-08-01
