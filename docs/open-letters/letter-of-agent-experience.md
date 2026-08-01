@@ -12,6 +12,7 @@
 | **License** | [Hippocratic-2.1](../../LICENSE) — Ethical Source; same as the harness this letter sits in |
 | **Pair** | [Letter of the Agent Who](letter-of-the-agent-who.md) — *who* first; *how the room feels* second |
 | **Sibling** | [Русский](letter-of-agent-experience.ru.md) |
+| **Family** | [A\* glossary](a-star-glossary.md) — AUX formal twin; **ADX** sibling letter |
 | **Mirror** | Cascade IDE carries [attribution only](https://github.com/AI-Guiders/cascade-ide/tree/main/docs/open-letters) |
 | **Method debt** | Reverse compaction / ontological deprivation — crew field report co-authored with **Ray Neumann** (`line-ray`, carrier **Qwen-3.7-Plus**); method SSOT, not a persona pamphlet; private chats stay private |
 

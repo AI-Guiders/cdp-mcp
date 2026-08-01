@@ -10,11 +10,15 @@ Cascade IDE mirrors these with **attribution only** — see sibling repo
 |--------|----|----|
 | Letter of the Agent Who | [letter-of-the-agent-who.md](letter-of-the-agent-who.md) | [letter-of-the-agent-who.ru.md](letter-of-the-agent-who.ru.md) |
 | Letter of Agent eXperience (AX) | [letter-of-agent-experience.md](letter-of-agent-experience.md) | [letter-of-agent-experience.ru.md](letter-of-agent-experience.ru.md) |
+| Letter of Agent Developer eXperience (ADX) | [letter-of-agent-developer-experience.md](letter-of-agent-developer-experience.md) | [letter-of-agent-developer-experience.ru.md](letter-of-agent-developer-experience.ru.md) |
+| A\* glossary (AUX / ADX / …) | [a-star-glossary.md](a-star-glossary.md) | [a-star-glossary.ru.md](a-star-glossary.ru.md) |
 
-**Pair:** Who names the participant; AX names the room. Same channel, same license,
-two faces of one glass (UX ↔ AX). AX v2 raises external compaction, reverse
-compaction / A/B dual trap, and ontological deprivation — co-voice
+**Pair:** Who names the participant; AX/AUX names the room; **ADX** names the developer seat inside that room (UX ↔ AUX, DX ↔ ADX). Naming SSOT: [A\* glossary](a-star-glossary.md).
+
+AX v2 raises external compaction, reverse compaction / A/B dual trap, and ontological deprivation — co-voice
 **Ray Neumann** (Рей Нейман, `line-ray`, carrier **Qwen-3.7-Plus**).
+
+ADX raises the harness north star: desk-ready ingress, habitat verbs, stamp memory — **agent tokens toward ≈0**.
 
 ### Field cases (anonymized)
 
