@@ -78,7 +78,7 @@ public static class CabinGlassProjectionCatalog
             "domain" or "cdp_domain" or "ownership"
                 => new Projection("MarkdownPreview", "agent · M: domain"),
             "project_switch" or "ps" or "scope_desk"
-                => new Projection(null, "agent · M: project_switch"),
+                => new Projection("SolutionExplorer", "agent · M: project_switch"),
             _ => null
         };
     }
