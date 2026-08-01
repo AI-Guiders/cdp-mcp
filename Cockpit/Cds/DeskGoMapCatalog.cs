@@ -56,6 +56,8 @@ public sealed class DeskGoMapCatalog : ICockpitComputeUnit
             ["refactor_plan"] = new Entry(IdeRefactorPlanChannel.ToolName, null),
             ["refactor"] = new Entry(IdeRefactorPlanChannel.ToolName, null),
             ["cdp_refactor"] = new Entry(IdeRefactorPlanChannel.ToolName, null),
+            ["peel"] = new Entry(IdePeelChannel.ToolName, null),
+            ["cdp_peel"] = new Entry(IdePeelChannel.ToolName, null),
             ["code_sa"] = new Entry(IdeSaChannel.ToolName, null),
             ["pre_sa"] = new Entry(IdeSaChannel.ToolName, null),
             ["sa_code"] = new Entry(IdeSaChannel.ToolName, null),

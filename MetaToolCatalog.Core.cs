@@ -131,6 +131,24 @@ internal static partial class MetaToolCatalog
             skip_validate = new { type = "boolean", description = "apply: skip pre-validate (default false)" }
         }
     }),
+    Meta("cdp_peel", "FileLines peel — thin Meta over live Roslyn move_members_to_partial_file. path= + members= + out=; apply=false preview (default), true writes + DependentUpon. Session injects solution after cdp_open. Alias go=peel. Prefer after go=refactor partials.", new
+    {
+        type = "object",
+        properties = new
+        {
+            path = new { type = "string", description = "Source .cs (type locus); alias file_path=" },
+            file_path = new { type = "string", description = "Alias of path=" },
+            members = new { type = "array", items = new { type = "string" }, description = "Member names to move; alias member_names=. CSV string also ok." },
+            member_names = new { type = "array", items = new { type = "string" }, description = "Alias of members=" },
+            @out = new { type = "string", description = "New partial .cs path; alias output_file_path=" },
+            output_file_path = new { type = "string", description = "Alias of out=" },
+            line = new { type = "integer", description = "1-based cursor on type (default 1)" },
+            column = new { type = "integer", description = "1-based column (default 1)" },
+            apply = new { type = "boolean", description = "false=preview (default); true=TryApplyChanges" },
+            add_dependent_upon = new { type = "boolean", description = "After apply: DependentUpon in csproj (default true)" },
+            solution_or_project_path = new { type = "string", description = "Optional; default = session after cdp_open" }
+        }
+    }),
     Meta("cdp_edit_sniper", "Edit sniper process: sight→lock→arm→fire. scope=lock (full-line + auto-peek → phase=armed). put/paste sniper hard-blocked until armed. Prefer [F:;M:;K:]/X:; [F:;T:needle] content (survives L-drift); L:=line_literal. Prefer go=scope/target on cdp_cockpit.", new
     {
         type = "object",
