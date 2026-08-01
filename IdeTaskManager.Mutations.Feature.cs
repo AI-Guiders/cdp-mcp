@@ -72,4 +72,61 @@ internal static partial class IdeTaskManager
 
         return store.IntentDelete(state, id.Value);
     }
+
+    /// <summary>
+    /// Resolve feature like DropSmart: kind=feature | title match | active feature when no stage focus.
+    /// </summary>
+    static Guid? TryResolveFeatureId(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var kind = (Opt(args, "kind") ?? OptGoArg(args, "kind") ?? "").Trim().ToLowerInvariant();
+        if (kind is "feature" or "intent")
+        {
+            var id = GuidArg(args, "intent_id") ?? GuidArg(args, "feature_id")
+                     ?? GuidArgGo(args, "intent_id") ?? GuidArgGo(args, "feature_id");
+            if (id is not null)
+                return id;
+            var t = Title(args);
+            if (t.Length > 0)
+                return store.FindIntentIdByTitle(t);
+            return state.ActiveIntentId;
+        }
+
+        var title = Title(args);
+        if (title.Length > 0)
+            return store.FindIntentIdByTitle(title);
+
+        // Bare done/shipped with feature focus and no active task.
+        if (state.ActiveStageId is null && state.ActiveIntentId is { } aid)
+            return aid;
+
+        return null;
+    }
+
+    /// <summary>Close remaining incomplete leaves under a feature, then plateau.</summary>
+    static object FeatureDone(
+        IntentWorkspaceStore store,
+        IntentWorkspaceState state,
+        Guid featureId,
+        string reason)
+    {
+        store.IntentSelect(state, featureId);
+        var closed = store.MarkIncompleteStagesDone(state);
+        state.ActiveStageId = null;
+        state.ActiveIntentId = null;
+        store.WorkFocusSave(state);
+        var leaf = LeafPlateau(store, state, $"feature_{reason}");
+        return new
+        {
+            op = $"feature_{reason}",
+            feature_id = featureId,
+            closed_tasks = closed,
+            leaf_continuity = leaf,
+            hint = closed > 0
+                ? "Feature closed — incomplete leaves marked done; focus cleared."
+                : "Feature had no incomplete leaves — focus cleared."
+        };
+    }
 }
