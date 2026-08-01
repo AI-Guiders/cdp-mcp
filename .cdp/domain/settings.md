@@ -16,7 +16,8 @@
 ## Antipatterns
 
 - Growing Options/Page/Set with Specs/Effective catalog — peel to `IdeSettingsHabitat.Keys.cs`.
+- Growing Catalog/Get/Set/ControlCard on façade — peel to `IdeSettingsHabitat.Ops.cs`.
 
 ## last_ship
 
-- soft-warn: `IdeSettingsHabitat` → `IdeSettingsHabitat.Keys.cs` (ApplyHot→SettingsPulse) @ 0.5.381; main~384 / Keys~333
+- soft-warn near-miss: peel Catalog→SnapshotEffective → `IdeSettingsHabitat.Ops.cs` @ 0.5.408; main~214 / Ops~181 / Keys~333
