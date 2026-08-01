@@ -121,11 +121,18 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
 
         return Hit(IdeTaskManager.Handle(_bag.WorkspaceStore, _bag.WorkspaceState!, tmArgs));
     }
+
     SoftOrganBoardHit BuildQuality()
     {
         var store = _bag.DocStore!;
         var root = _bag.Session.ProjectRoot;
         var scope = OptTileString("scope") ?? OptTileString("scan");
+        if (scope is "assert" or "assertions" or "adx")
+        {
+            var board = AdxAssertions.Evaluate(root);
+            return Hit(board, AssertPulse(board));
+        }
+
         if (scope is "disk" or "project" or "map")
         {
             var limit = OptTileInt("limit") ?? 40;
@@ -139,6 +146,22 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
             ? QualityGates.EvaluateStore(store, root)
             : QualityGates.EvaluatePath(store, root, path!);
         return Hit(openBoard, QualityGates.Snap(store, root).Pulse);
+    }
+
+    static string AssertPulse(object board)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(board));
+            if (doc.RootElement.TryGetProperty("pulse", out var p) && p.ValueKind == JsonValueKind.String)
+                return p.GetString() ?? "assert";
+        }
+        catch
+        {
+            /* pulse best-effort */
+        }
+
+        return "assert";
     }
 
     static string DiskPulse(object board)

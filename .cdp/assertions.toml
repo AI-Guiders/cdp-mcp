@@ -1,0 +1,31 @@
+# ADX assertions — machine-checkable guidelines (cognitive offload).
+# Runtime: go=quality scope=assert
+# Proofs: CdpMcp.Tests + Microsoft.Z3 (not shipped in live MCP natives).
+
+[assertions]
+schema = "adx_assertions/v0"
+
+[[assertions.item]]
+id = "ADX-RG-001"
+kind = "kernel"
+topic = "pressure.recall_gate"
+engine = "csharp+z3"
+statement = "Ceremony pull→reconcile→align→ready; SSOT may jump to ready; strict recall forces pull."
+check = "recall_gate"
+
+[[assertions.item]]
+id = "ADX-IG-001"
+kind = "kernel"
+topic = "ignite.latch"
+engine = "csharp+z3"
+statement = "halt ⇒ ¬autonomous ∧ ¬hild ∧ await_partner; last_once fire ⇒ awaiting."
+check = "ignite_latch"
+
+[[assertions.item]]
+id = "ADX-HX-001"
+kind = "guideline"
+topic = "habitat.mutate"
+engine = "deferred"
+statement = "SSOT mutate via cdp_buffer/cockpit/sniper; full-file rewrite only when path absent (draft bootstrap)."
+check = "session_trace"
+status = "deferred"
