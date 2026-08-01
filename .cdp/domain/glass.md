@@ -45,6 +45,7 @@
 - Invent `MfdShellPage.SemanticMap` to "fix" Glass/CabinGlass string parity — Avalonia graph is PFD `WorkspaceNavigationMapView`; Glass `SemanticMap` = arch projector alias + SoftOrganMfdGlance (do not invent Avalonia MFD page).
 - Invent SoftOrgan latches for Ps1Desk/MdAuthor to paint SoftOrganBand — CabinGlass already resolves MFD Terminal/MarkdownPreview; SoftOrganBand stays latch-first (do not invent SoftOrgan).
 - Treat Glass SoftOrganBand cabin chrome as inventing `cabin-LATEST` SoftOrgan writer — cabin chrome comes from `seats-LATEST` peel (`LatchHub.SeatsChanged`), same as Avalonia `CdpSeatsProjector`.
+- Treat `shared`/`land`/`disk` as SoftOrgan catalog fills — they are dual-cockpit latches with dedicated Avalonia projectors; Glass peels them separately (do not invent SoftOrgan ids).
 
 ## DoD matrix — MfdShellPage presence (2026-08-01 dig)
 
@@ -95,8 +96,23 @@ Chrome DoD = SoftOrgan latch → Glass SoftOrganBand · Avalonia Cdp*Projector �
 
 **Seats peel DoD: CLOSED** — Glass watches `seats-LATEST` (`LatchHub.SeatsChanged` → `LatchPaint.PaintSeats` → `SelectMfdPage` + SoftOrganBand cabin).
 
+## DoD matrix — residual dual-cockpit latches beyond SoftOrgan/MFD (2026-08-01 dig)
+
+After MFD presence + SoftOrgan chrome closed: Avalonia still has non-catalog latch projectors that Glass LatchHub does **not** peel. Presence ≠ invent SoftOrgan.
+
+| Latch | Schema / role | Avalonia | Glass | Verdict |
+|-------|---------------|----------|-------|---------|
+| `shared-LATEST` | `shared_file_latch/v1` co-presence (human focus ∩ agent buffers) | `CdpSharedFileProjector` → tab ` · shared` | **no watcher** | **GAP** |
+| `land-LATEST` | `navigation_land_latch/v1` agent `cdp_land` open\|goto | `CdpLandProjector` → OpenFile/GoToPosition | **no watcher** | **GAP** |
+| `disk-LATEST` | `document_disk_sync_latch/v1` Instant Save → reload | `CdpDiskSyncProjector` → Monaco reload | **no watcher** | **GAP** |
+
+Hydration already lists all three (`CockpitHostLatchHydration`). SoftOrganLatchCatalog does **not** include `shared`/`land`/`disk` — correct (not SoftOrgan).
+
+**Next act (priority):** Glass `land-LATEST` peel → open/goto AvalonEdit (operator Glass primary). Then shared co-presence chrome; then disk Instant Save reload.
+
 ## last_ship
 
+- 2026-08-01: invent dig Glass 0-sync residual after SoftOrgan chrome — GAP triad `land`/`shared`/`disk` (Avalonia projectors exist; Glass LatchHub silent); next = land peel
 - 2026-08-01: act Glass `seats-LATEST` peel — `CdpHabitatPaths.SeatsLatchFileName` · `LatchHub.SeatsChanged` · `LatchPaint.PaintSeats` · `MainWindow.SeatsSurface` → SelectMfdPage + SoftOrganBand `cabin`; dogfood Terminal MFD + cabin chrome; SoftOrgan chrome GAP closed
 - 2026-08-01: invent dig SoftOrgan chrome parity beyond MFD — latch SoftOrgans DONE; Ps1/MdAuthor DIG REJECT invent SoftOrgan latch; GAP = Glass missing `seats-LATEST` cabin chrome (Avalonia has CdpSeatsProjector)
 - 2026-08-01: invent verify close — Glass 0-sync MFD presence DoD CLOSED (matrix SoftOrgan|peel|reject|hold + SemanticMap DIG REJECT enum invent); next invent = SoftOrgan chrome parity beyond MFD
