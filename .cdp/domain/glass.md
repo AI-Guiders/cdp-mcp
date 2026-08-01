@@ -35,3 +35,4 @@
 - 0.5.367: `mcp` → MFD `AiChatSettings` (+ chrome hint); Chat MFD held for Intercom/citizen
 - 0.5.368: `project_switch` → MFD `SolutionExplorer` (+ chrome hint)
 - 0.5.369: `onboard` → MFD `MarkdownPreview` (+ chrome hint) — onboard docs are md
+- 0.5.370: `review` → MFD `Problems` (+ chrome hint) — same family as quality/gates

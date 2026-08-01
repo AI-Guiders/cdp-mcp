@@ -25,6 +25,7 @@ public class CabinGlassProjectionCatalogTests
     [InlineData("alert", null, "agent · M: alert")]
     [InlineData("ecl", null, "agent · M: ecl")]
     [InlineData("qrh", null, "agent · M: qrh")]
+    [InlineData("review", "Problems", "agent · M: review")]
     [InlineData("learn", "MarkdownPreview", "agent · M: learn")]
     [InlineData("webcam_desk", null, "agent · M: webcam")]
     [InlineData("find_desk", "RelatedFiles", "agent · M: find")]
