@@ -23,3 +23,4 @@
 ## last_ship
 
 - ADR-0020 peels / pane_full pulse path (see board Glass epic)
+- soft-warn: `IdeDeskSeats` → `IdeDeskSeats.Placement.cs` (ResolveSeat→Opt) @ 0.5.377; main~364
