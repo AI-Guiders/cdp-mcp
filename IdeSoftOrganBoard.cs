@@ -125,11 +125,36 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
     {
         var store = _bag.DocStore!;
         var root = _bag.Session.ProjectRoot;
+        var scope = OptTileString("scope") ?? OptTileString("scan");
+        if (scope is "disk" or "project" or "map")
+        {
+            var limit = OptTileInt("limit") ?? 40;
+            var board = QualityGates.EvaluateDisk(root, limit);
+            var pulse = DiskPulse(board);
+            return Hit(board, pulse);
+        }
+
         var path = OptTileString("path");
-        var board = string.IsNullOrWhiteSpace(path)
+        var openBoard = string.IsNullOrWhiteSpace(path)
             ? QualityGates.EvaluateStore(store, root)
             : QualityGates.EvaluatePath(store, root, path!);
-        return Hit(board, QualityGates.Snap(store, root).Pulse);
+        return Hit(openBoard, QualityGates.Snap(store, root).Pulse);
+    }
+
+    static string DiskPulse(object board)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(board));
+            if (doc.RootElement.TryGetProperty("pulse", out var p) && p.ValueKind == JsonValueKind.String)
+                return p.GetString() ?? "disk";
+        }
+        catch
+        {
+            // fall through
+        }
+
+        return "disk";
     }
 
     SoftOrganBoardHit BuildPs1()
@@ -142,6 +167,18 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
         _bag.TileArgs.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String
             ? el.GetString()
             : null;
+
+    int? OptTileInt(string key)
+    {
+        if (!_bag.TileArgs.TryGetValue(key, out var el))
+            return null;
+        if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var n))
+            return n;
+        if (el.ValueKind == JsonValueKind.String
+            && int.TryParse(el.GetString(), out var parsed))
+            return parsed;
+        return null;
+    }
 
 
     SoftOrganBoardHit BuildReview()

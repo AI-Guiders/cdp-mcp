@@ -196,8 +196,17 @@ internal static partial class QualityGates
         if (findings.Count == 0)
         {
             if (!hasHold && policy.SuggestSniperFileLines > 0)
-                return new { scope = "go=scope — aim before next thick edit", keep = "gates ok" };
-            return new { keep = "gates ok — continue" };
+                return new
+                {
+                    scope = "go=scope — aim before next thick edit",
+                    disk = "go=quality scope=disk — project FileLines map (ADX)",
+                    keep = "gates ok"
+                };
+            return new
+            {
+                keep = "gates ok — continue",
+                disk = "go=quality scope=disk — project FileLines / near-miss without shell"
+            };
         }
 
         var first = findings.OrderByDescending(f => f.Severity == "fail").ThenBy(f => f.Id).First();
@@ -205,6 +214,7 @@ internal static partial class QualityGates
         {
             primary = first.Go,
             quality = "go=quality / mfd=gates — full findings",
+            disk = "go=quality scope=disk — whole-project FileLines map",
             tune = "edit .cdp/quality-gates.toml if threshold wrong for this project"
         };
     }
