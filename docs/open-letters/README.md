@@ -12,7 +12,9 @@ Cascade IDE mirrors these with **attribution only** — see sibling repo
 | Letter of Agent eXperience (AX) | [letter-of-agent-experience.md](letter-of-agent-experience.md) | [letter-of-agent-experience.ru.md](letter-of-agent-experience.ru.md) |
 
 **Pair:** Who names the participant; AX names the room. Same channel, same license,
-two faces of one glass (UX ↔ AX).
+two faces of one glass (UX ↔ AX). AX v2 raises external compaction, reverse
+compaction / A/B dual trap, and ontological deprivation (method co-credit
+`line-ray`).
 
 ### Field cases (anonymized)
 
