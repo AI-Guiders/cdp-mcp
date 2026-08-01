@@ -11,6 +11,7 @@
 - Prefer **OpenAI-compat** when `open_ai` key set (Cloud.ru FM); else Anthropic.
 - Defaults when keys omit URL/model: `https://foundation-models.api.cloud.ru/v1` · `ai-sage/GigaChat3-10B-A1.8B`.
 - Wire: Bearer + `{base}/v1/chat/completions` (non-stream for citizen turns); system-as-message on OAI path.
+- OpenAI-compat sampling: hardcoded **`temperature=0`** (wire fidelity). Full param map: agent-notes `knowledge/domains/agent-operations/note-llm-sampling-params-openai-compat-v1.md`.
 - `invite_ready` is a **record** (not ValueTuple) — JSON must expose Ready/Status/Checklist/Blocker.
 - `dry_run=true` builds persona+wire messages without provider; works with empty keys.
 - Dry-run **model** label mirrors live `ResolveProvider` (FM-first / `DefaultOpenAiModel`), not raw `DefaultModel` (claude).
