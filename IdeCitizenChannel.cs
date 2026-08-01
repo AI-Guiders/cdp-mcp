@@ -67,7 +67,9 @@ internal static class IdeCitizenChannel
     }
 
     /// <summary>Hospitality gate: persona+wire always; live invite needs OpenAI-compat or Anthropic key.</summary>
-    static (bool Ready, string Status, string[] Checklist, string? Blocker) InviteReady(CitizenAiKeys.Snapshot keys)
+    sealed record InviteGate(bool Ready, string Status, string[] Checklist, string? Blocker);
+
+    static InviteGate InviteReady(CitizenAiKeys.Snapshot keys)
     {
         var checklist = new List<string>
         {
@@ -85,13 +87,13 @@ internal static class IdeCitizenChannel
             checklist.Add("provider · anthropic");
 
         if (keys.HasLiveProvider)
-            return (true, "ready", checklist.ToArray(), null);
+            return new InviteGate(true, "ready", checklist.ToArray(), null);
 
         var blocker = keys.FileExists
             ? "open_ai_api_key / anthropic_api_key empty in CascadeIDE ai-keys.toml"
             : "missing %LocalAppData%/CascadeIDE/ai-keys.toml (see docs/design/ai-keys.example.toml)";
         checklist.Add("live turn · blocked");
-        return (false, "blocked", checklist.ToArray(), blocker);
+        return new InviteGate(false, "blocked", checklist.ToArray(), blocker);
     }
 
     static string Keys()
