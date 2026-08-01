@@ -49,7 +49,7 @@ public static class CabinGlassProjectionCatalog
             "onboard" or "onboard_desk" or "explore_desk"
                 => new Projection(null, "agent · M: onboard"),
             "arch" or "arch_desk" or "arch_board"
-                => new Projection(null, "agent · M: arch"),
+                => new Projection("SemanticMap", "agent · M: arch"),
             "mcp" or "mcp_scene" => new Projection(null, "agent · M: mcp"),
             "plan" or "work" or "tm" or "tasks"
                 => new Projection(null, "agent · P: plan"),

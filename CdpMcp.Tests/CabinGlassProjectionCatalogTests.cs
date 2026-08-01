@@ -18,7 +18,7 @@ public class CabinGlassProjectionCatalogTests
     [InlineData("options", "AiChatSettings", null)]
     [InlineData("pressure_desk", null, "agent · M: pressure")]
     [InlineData("onboard_desk", null, "agent · M: onboard")]
-    [InlineData("arch_desk", null, "agent · M: arch")]
+    [InlineData("arch_desk", "SemanticMap", "agent · M: arch")]
     [InlineData("mcp", null, "agent · M: mcp")]
     [InlineData("plan", null, "agent · P: plan")]
     [InlineData("ignite", "AiChatSettings", "agent · M: ignite")]
