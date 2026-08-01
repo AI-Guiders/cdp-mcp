@@ -31,6 +31,7 @@
 
 ## last_ship
 
+- ScriptScene Check+Run peels (façade ≤ADX soft-warn) @ 0.5.420 · 2026-08-01
 - Ps1Scene.Run → .Pwsh + .Helpers peel @ 0.5.419 · 2026-08-01
 - WorkspaceDbHost peel — Program TLS EnsureWorkspaceDb @ 0.5.418 · 2026-08-01
 - QualityGates.Eval + .Policy peel (hub ≤soft-warn) @ 0.5.417 · 2026-08-01
