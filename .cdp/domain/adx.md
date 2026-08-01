@@ -28,5 +28,6 @@
 
 ## last_ship
 
+- pressure recall SSOT auto-ready (ceremony tax cut) @ 0.5.411 · 2026-08-01
 - ops/health dual-seat version pulse (`IdeOpsPulse` self/sib/lag) @ 0.5.410 · 2026-08-01
 - prior: `go=quality scope=disk` @ 0.5.409 · 2026-08-01

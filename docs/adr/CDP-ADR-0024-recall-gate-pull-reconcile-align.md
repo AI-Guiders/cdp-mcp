@@ -26,7 +26,7 @@ Agreement: difficulties easable by cockpit → ease via cockpit.
    - **reconcile** — compare memo vs priority **and self-steer** (fix Domain/TM/next; invent/park). Internal locus: decide when SSOT+memo suffice; do not wait for operator to name the slice.
    - **align** — persist corrections (`op=stash` + TM)
    - **ready** — gate green; exit to explore/plan/act
-2. Wire on `cdp_pressure`: `op=reconcile|align|ready` (aliases `op=gate to=`). `op=recall` enters **pull**.
+2. Wire on `cdp_pressure`: `op=reconcile|align|ready` (aliases `op=gate to=`). `op=recall` enters **pull**, or **ready** when SSOT already sufficient (stash body ≥40 + plan and/or ignite); `strict=true` forces pull. `op=steer|ssot|fast` jumps to ready when SSOT else reconcile.
 3. Pulse/explain/checklist expose `recall·{status}` so cockpit SA/pressure seat shows the gate.
 4. Persist `recall_gate` on `PressureDoc` (survives remount with stash).
 5. Anti-pattern: «blocked on: operator names X» when konspekt+README/TM already suffice = learned helplessness / external locus.
@@ -49,4 +49,4 @@ New top-level `CdpPhase` enum values; affordance seed explosion; auto-LLM reconc
 
 ## Ship
 
-`IdePressureChannel.Gate` · pulse/explain/checklist · domain card · tests · **0.5.324**
+`IdePressureChannel.Gate` · pulse/explain/checklist · domain card · tests · **0.5.324** · SSOT auto-ready on recall **0.5.411**
