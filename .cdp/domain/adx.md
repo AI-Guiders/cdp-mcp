@@ -30,6 +30,7 @@
 
 ## last_ship
 
+- MetaToolCatalog Ide→Ide.Pkg peel (pkg→sln) @ 0.5.415 · 2026-08-01
 - MetaToolCatalog Soft→Soft.Ops peel (files→cockpit_host) @ 0.5.414 · 2026-08-01
 - MetaToolCatalog soft-warn peel Core→Core.Ops (recent→sa) @ 0.5.413 · 2026-08-01
 - TM done/shipped feature-title fallback + shipped without start @ 0.5.412 · 2026-08-01
