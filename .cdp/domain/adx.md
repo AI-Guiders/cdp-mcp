@@ -33,6 +33,7 @@
 
 ## last_ship
 
+- IdeIgniteArmHost.Fire.Charge peel (≤ADX soft-warn) @ 0.5.428 · 2026-08-01
 - CdpPluginQuarantine.Groups.Infer peel (≤ADX soft-warn) @ 0.5.427 · 2026-08-01
 - ADX-HX-001 habitat mutate + NativeDialogs.Win32 peel @ 0.5.426 · 2026-08-01
 - ADX assertions catalog + recall/ignite Z3 kernels (scope=assert) @ 0.5.425 · 2026-08-01

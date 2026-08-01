@@ -37,6 +37,7 @@
 
 ## last_ship
 
+- IdeIgniteArmHost.Fire.Charge peel (≤ADX soft-warn): Fire 366→327 + Charge47 @ 0.5.428 · 2026-08-01
 - IdeIgniteNativeDialogs.Win32 peel (≤ADX soft-warn) @ 0.5.426 · 2026-08-01
 - 0.5.306–308 page pick + remount/event protect; 0.5.309 leaf-wake chain
 - 0.5.310 remount charge appends Domain pulse [A]
