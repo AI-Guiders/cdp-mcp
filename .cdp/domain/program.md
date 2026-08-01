@@ -7,6 +7,7 @@
 ## Invariants
 
 - Soft-warn FileLinesWarn=400; top-level statements stay in `Program.cs` (one TLS file).
+- WitDB bootstrap: `WorkspaceDbHost` owns Ensure/Invalidate/Require (not re-inlined in TLS).
 - ListTools Meta catalog: `MetaToolCatalog` partials; `BuildMetaTools()` → `MetaToolCatalog.Build()`.
 - ListTools composition: `VisibleToolCatalog` (+ SoftOrganMetaNames); `BuildVisibleTools()` thin stub.
 - CallTool router: `IdeToolDispatch` (+ Deps per call).
@@ -26,6 +27,7 @@
 
 ## last_ship
 
+- WorkspaceDbHost peel (EnsureWorkspaceDb cluster) — Program.cs 396→341 @ 0.5.418 · 2026-08-01
 - soft-warn peel: MetaToolCatalog Ide164 / Ide.Pkg162 (pkg→sln) @ 0.5.415
 - soft-warn peel: MetaToolCatalog Soft210 / Soft.Ops144 (files→cockpit_host) @ 0.5.414
 - soft-warn peel: MetaToolCatalog Core183 / Core.Ops212 (recent→sa) @ 0.5.413
