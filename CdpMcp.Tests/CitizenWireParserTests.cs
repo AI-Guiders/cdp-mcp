@@ -5,10 +5,6 @@ namespace CdpMcp.Tests;
 
 public class CitizenWireParserTests
 {
-    static string Fixture(string name) =>
-        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..",
-            "docs", "design", "citizen-wire-fixtures", name));
-
     // Prefer repo-relative from test project dir when BaseDirectory layout differs.
     static string ReadFixture(string name)
     {
@@ -75,6 +71,22 @@ public class CitizenWireParserTests
         Assert.Equal("remounted", msgs[0].Fields["kind"]);
         Assert.Equal("desk", msgs[1].Type);
         Assert.Contains("gen=2", msgs[1].Fields["peer"]);
+    }
+
+    [Fact]
+    public void Refuse_fixture_parses_intent_and_routes_refuse()
+    {
+        var msgs = CitizenWireParser.Parse(ReadFixture("04-refuse-w-spray.txt"));
+        Assert.Equal(2, msgs.Count);
+        Assert.Equal(CitizenWireParser.Kind.Intent, msgs[0].Kind);
+        Assert.Equal("seats_detail=full", msgs[0].IntentText);
+        Assert.Equal("desk", msgs[1].Type);
+
+        var routes = CitizenIntentRouter.RouteAll(msgs);
+        Assert.Single(routes);
+        Assert.False(routes[0].Ok);
+        Assert.Equal(CitizenIntentRouter.Verb.Refuse, routes[0].Verb);
+        Assert.Contains("refuse_w_spray", routes[0].Reason!);
     }
 
     [Fact]
