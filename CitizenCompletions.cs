@@ -147,12 +147,13 @@ internal static partial class CitizenCompletions
         var built = Build(userText, boardLines, sa, peer, next, tm, inject);
         if (dryRun)
         {
+            var dryModel = ResolveDryRunModel(model);
             return new TurnResult(
                 Ok: true,
                 Error: null,
                 Hint: "dry_run — no provider call; messages built with persona + wire inject",
                 Text: null,
-                Model: model ?? DefaultModel,
+                Model: dryModel,
                 Provider: "dry_run",
                 Built: built,
                 WireIntents: null,
@@ -169,7 +170,7 @@ internal static partial class CitizenCompletions
                 "keys_missing",
                 "set open_ai_api_key (Cloud.ru FM) or anthropic_api_key in %LocalAppData%\\CascadeIDE\\ai-keys.toml (CDP-ADR-0026)",
                 null,
-                model ?? DefaultModel,
+                model ?? CitizenAiKeys.DefaultOpenAiModel,
                 null,
                 built,
                 null,
