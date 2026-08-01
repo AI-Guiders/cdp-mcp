@@ -18,4 +18,5 @@ Cursor Electron can terminate with `reason: 'oom'` ("The window terminated unexp
 
 - Operator still may need to reattach workspace; wake tells agent to `cdp_pressure op=recall`.
 - False positives: brief CDT blips under MinDown ignored; WakeCooldown limits thrash.
+- **Miss dogfood 2026-08-01:** stream-time OOM showed standard Reopen dialog but tooth silent — DirectUI empty WM_GETTEXT + shape fallback gated on live Cursor PID (already dead). Fix: MSAA names into text blob; Electron class (`Chrome_WidgetWin*`) accepts shape without live owner; dialog poll 500ms.
 - Does not prevent Cursor OOM — recovers the loop after it.

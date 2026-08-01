@@ -12,7 +12,7 @@ namespace CdpMcp;
 internal static partial class IdeIgniteNativeDialogs
 {
     const int BmClick = 0x00F5;
-    const int MaxEnum = 400;
+    const int MaxEnum = 2000;
 
     /// <summary>Public for tests — VS Code stall copy (not Win32 "End task").</summary>
     internal static bool LooksLikeStallMessage(string? text) =>
@@ -145,20 +145,26 @@ internal static partial class IdeIgniteNativeDialogs
             if (!string.IsNullOrWhiteSpace(title))
                 blob.Append(title).Append(' ');
             CollectChildText(hWnd, blob, depth: 0);
+            // DirectUI/Chromium often leaves WM_GETTEXT empty — OOM body lives in MSAA.
+            CollectAccessibleNamesInto(hWnd, blob);
 
             var text = blob.ToString();
             var labels = CollectButtonLabels(hWnd);
             var textMatch = looksLikeDialog(text)
                             || (logTag == "stall-dialog"
                                 && text.Contains("not responding", StringComparison.OrdinalIgnoreCase));
+            var cursorOwned = IsCursorLikeOwner(hWnd);
+            var electronish = IsElectronLikeClass(hWnd);
+            // During OOM the owner process may already be dead — GetProcessById fails.
+            // Still accept Reopen+Close shape on Electron class (dogfood 2026-08-01 stream-OOM miss).
             var shapeMatch = buttonShapeFallback is not null
-                             && IsCursorLikeOwner(hWnd)
+                             && (cursorOwned || electronish)
                              && buttonShapeFallback(labels);
 
             if (!textMatch && !shapeMatch)
                 return true;
 
-            if (!IsCursorLikeOwner(hWnd) && !textMatch)
+            if (!cursorOwned && !electronish && !textMatch)
                 return true;
 
             if (TryFindButtonByLabel(hWnd, isButtonLabel, out var button))
@@ -304,6 +310,27 @@ internal static partial class IdeIgniteNativeDialogs
         }
     }
 
+    /// <summary>
+    /// Electron/Chromium top-level (Cursor dialog). Used when owner PID is already dead after OOM.
+    /// </summary>
+    internal static bool LooksLikeElectronClassName(string? cls)
+    {
+        if (string.IsNullOrWhiteSpace(cls))
+            return false;
+        return cls.StartsWith("Chrome_WidgetWin", StringComparison.OrdinalIgnoreCase)
+               || cls.Equals("#32770", StringComparison.OrdinalIgnoreCase)
+               || cls.Contains("Electron", StringComparison.OrdinalIgnoreCase);
+    }
+
+    internal static bool IsElectronLikeClass(nint hWnd) =>
+        LooksLikeElectronClassName(GetClassName(hWnd));
+
+    static string GetClassName(nint hWnd)
+    {
+        var sb = new StringBuilder(256);
+        return GetClassName(hWnd, sb, sb.Capacity) > 0 ? sb.ToString() : "";
+    }
+
     static string GetWindowText(nint hWnd)
     {
         var len = GetWindowTextLength(hWnd);
@@ -330,6 +357,9 @@ internal static partial class IdeIgniteNativeDialogs
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     static extern int GetWindowTextLength(nint hWnd);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    static extern int GetClassName(nint hWnd, StringBuilder lpClassName, int nMaxCount);
 
     [DllImport("user32.dll")]
     static extern uint GetWindowThreadProcessId(nint hWnd, out uint lpdwProcessId);
