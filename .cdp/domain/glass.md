@@ -20,7 +20,7 @@
 
 ## Entry
 
-- WPF: `LatchHub` · `EicasBandAggregator` · `LatchPaint` (seats+land) · `MainWindow.SeatsSurface` · `MainWindow.LandSurface`
+- WPF: `LatchHub` · `EicasBandAggregator` · `LatchPaint` (seats+land+shared) · `MainWindow.SeatsSurface` · `MainWindow.LandSurface` · `MainWindow.SharedSurface`
 - Avalonia: `CdpEclProjector` · alert/qrh projectors
 - CDP: `Cide*Latch` · `CabinGlassProjectionCatalog` · `CockpitHostLatchHydration`
 
@@ -103,17 +103,20 @@ After MFD presence + SoftOrgan chrome closed: Avalonia still has non-catalog lat
 | Latch | Schema / role | Avalonia | Glass | Verdict |
 |-------|---------------|----------|-------|---------|
 | `land-LATEST` | `navigation_land_latch/v1` agent `cdp_land` open\|goto | `CdpLandProjector` → OpenFile/GoToPosition | SoftOrganBand N/A · `LatchHub.LandChanged` → AvalonEdit | DONE land peel |
-| `shared-LATEST` | `shared_file_latch/v1` co-presence (human focus ∩ agent buffers) | `CdpSharedFileProjector` → tab ` · shared` | **no watcher** | **GAP** |
+| `shared-LATEST` | `shared_file_latch/v1` co-presence (human focus ∩ agent buffers) | `CdpSharedFileProjector` → tab ` · shared` | `LatchHub.SharedChanged` → EditorPathLabel | DONE shared peel |
 | `disk-LATEST` | `document_disk_sync_latch/v1` Instant Save → reload | `CdpDiskSyncProjector` → Monaco reload | **no watcher** | **GAP** |
 
 Hydration already lists all three (`CockpitHostLatchHydration`). SoftOrganLatchCatalog does **not** include `shared`/`land`/`disk` — correct (not SoftOrgan).
 
 **Land peel DoD: CLOSED** — Glass watches `land-LATEST` (`LatchPaint.PaintLand` → `OpenCodeFile(path, line)`).
 
-**Next act:** Glass `shared-LATEST` co-presence chrome; then `disk-LATEST` Instant Save reload.
+**Shared peel DoD: CLOSED** — Glass watches `shared-LATEST` (`LatchPaint.PaintShared` → `EditorPathLabel` + ` · shared` when path match); UIA dogfood LatchHub.cs.
+
+**Next act:** Glass `disk-LATEST` Instant Save → AvalonEdit reload.
 
 ## last_ship
 
+- 2026-08-01: act Glass `shared-LATEST` peel — `CdpHabitatPaths.SharedLatchFileName` · `LatchHub.SharedChanged` · `LatchPaint.PaintShared` · `MainWindow.SharedSurface` → EditorPathLabel ` · shared`; UIA dogfood LatchHub.cs
 - 2026-08-01: act Glass `land-LATEST` peel — `CdpHabitatPaths.LandLatchFileName` · `LatchHub.LandChanged` · `LatchPaint.PaintLand` · `MainWindow.LandSurface` → AvalonEdit open/goto; dogfood latch goto L32
 - 2026-08-01: invent dig Glass 0-sync residual after SoftOrgan chrome — GAP triad `land`/`shared`/`disk` (Avalonia projectors exist; Glass LatchHub silent); next = land peel
 - 2026-08-01: act Glass `seats-LATEST` peel — `CdpHabitatPaths.SeatsLatchFileName` · `LatchHub.SeatsChanged` · `LatchPaint.PaintSeats` · `MainWindow.SeatsSurface` → SelectMfdPage + SoftOrganBand `cabin`; dogfood Terminal MFD + cabin chrome; SoftOrgan chrome GAP closed
