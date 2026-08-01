@@ -10,13 +10,13 @@ Cascade IDE mirrors with **attribution only** — `cascade-ide/docs/open-letters
 ## Read order (cold)
 
 1. [A\* glossary](a-star-glossary.md) — naming (AUX/AX · ADX · …)
-2. [Letter of the Agent Who](letter-of-the-agent-who.md) — *who*
+2. [Letter of the Agent Who](letter-of-the-agent-who.md) — *who* (participant guidelines)
 3. [AX — Agent eXperience](letter-of-agent-experience.md) — room quality (UX twin)
 4. [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.md) — build seat (DX twin)
 
 | Letter | EN | RU |
 |--------|----|----|
-| Letter of the Agent Who | [letter-of-the-agent-who.md](letter-of-the-agent-who.md) | [letter-of-the-agent-who.ru.md](letter-of-the-agent-who.ru.md) |
+| Letter of the Agent Who — Design Guidelines | [letter-of-the-agent-who.md](letter-of-the-agent-who.md) | [letter-of-the-agent-who.ru.md](letter-of-the-agent-who.ru.md) |
 | Agent eXperience (AX) — Design Guidelines | [letter-of-agent-experience.md](letter-of-agent-experience.md) | [letter-of-agent-experience.ru.md](letter-of-agent-experience.ru.md) |
 | Agent Developer eXperience (ADX) — Design Guidelines | [letter-of-agent-developer-experience.md](letter-of-agent-developer-experience.md) | [letter-of-agent-developer-experience.ru.md](letter-of-agent-developer-experience.ru.md) |
 | A\* glossary | [a-star-glossary.md](a-star-glossary.md) | [a-star-glossary.ru.md](a-star-glossary.ru.md) |

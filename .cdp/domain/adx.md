@@ -28,4 +28,5 @@
 
 ## last_ship
 
-- AX/ADX rewritten as Design Guidelines (EN+RU) + README cold-reader contract · 2026-08-01
+- Letter Who EN+RU rewritten as Design Guidelines (cold-reader; CDP provenance only) · 2026-08-01
+- prior: AX/ADX Design Guidelines EN+RU + README cold-reader contract · 2026-08-01
