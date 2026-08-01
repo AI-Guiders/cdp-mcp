@@ -14,15 +14,15 @@ internal static partial class IdeIgniteArmHost
         !string.IsNullOrWhiteSpace(id)
         && id.StartsWith("tool-wake-", StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>Remount / OOM / tool wake — must not be wiped by a later continuity timer re-arm.</summary>
+    /// <summary>Remount / OOM / escalate / tool wake — must not be wiped by a later continuity timer re-arm.</summary>
     internal static bool IsSystemWakeArmId(string? id) =>
         IsToolWakeArmId(id)
         || (!string.IsNullOrWhiteSpace(id)
             && (id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
-                || id.StartsWith(IdeOomWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)));
+                || id.StartsWith(IdeOomWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
+                || id.StartsWith(HildEscalateArmIdPrefix, StringComparison.OrdinalIgnoreCase)));
 
-    /// <summary>Harness event wakes (build/test/shell) — never superseded by a continuity timer.</summary>
-        /// <summary>Harness event wakes (build/test/shell/hild) — never superseded by a continuity timer.</summary>
+    /// <summary>Harness event wakes (build/test/shell/hild) — never superseded by a continuity timer.</summary>
     internal static bool IsEventTriggeredArm(string? eventName)
     {
         var e = NormalizeEvent(eventName);
@@ -152,7 +152,11 @@ internal static partial class IdeIgniteArmHost
                     ? IdeIgniteChannel.ComposeOomWakeCharge(
                         IdePressureChannel.TryPeekProjectRoot(),
                         IdeDomainPulse.FocusHintFromPlanLatch())
-                    : IdeIgniteChannel.ComposeArmFireCharge();
+                    : IsEscalateChargeMode(arm.ChargeMode)
+                        ? IdeIgniteChannel.ComposeEscalateWakeCharge(
+                            IdePressureChannel.TryPeekProjectRoot(),
+                            IdeDomainPulse.FocusHintFromPlanLatch())
+                        : IdeIgniteChannel.ComposeArmFireCharge();
 
     static void MarkSendInvoked(string armId)
     {
@@ -326,6 +330,12 @@ internal static partial class IdeIgniteArmHost
         string.Equals(
             (mode ?? "").Trim(),
             IdeOomWake.ChargeMode,
+            StringComparison.OrdinalIgnoreCase);
+
+    static bool IsEscalateChargeMode(string? mode) =>
+        string.Equals(
+            (mode ?? "").Trim(),
+            HildEscalateChargeMode,
             StringComparison.OrdinalIgnoreCase);
 
     static string Expand(string template, IgniteArm arm, bool ok, string? pulse, string? detail)

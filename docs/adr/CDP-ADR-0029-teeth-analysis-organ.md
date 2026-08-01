@@ -13,7 +13,7 @@ Guest-host picture (CDT/Stop, remount·oom delivery, OOM tooth, partner away) wa
 1. Soft organ `cdp_teeth` / `go=teeth` — scene|tail|explain; cheap default without CDT attach (`cdt=true` opt-in).
 2. Append-only `teeth-tape.jsonl` under `%LocalAppData%/cdp-mcp` — wake lifecycle + tooth + CDT edges + partner away/here/escalate. Not mixed with FDR tool-call tape.
 3. `teeth_pulse` on `cdp_health` next to `ops_pulse`.
-4. Partner: first HILD away = status + schedule escalate (~60s); still away → `SetAutonomous(true)`.
+4. Partner: first HILD away = status + schedule escalate (~60s); still away → `SetAutonomous(true)` **and** one-shot wake `hild-escalate-*` (`charge_mode=escalate`, composer lead `reason=escalate`). Autonomy latch alone is not a wake — agent must receive Composer charge if the first away turn already ended.
 
 ## Consequences
 

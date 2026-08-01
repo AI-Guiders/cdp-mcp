@@ -70,6 +70,17 @@ public class IdeIgniteChannelTests
     }
 
     [Fact]
+    public void ComposeEscalateWakeCharge_includes_escalate_lead()
+    {
+        var charge = IdeIgniteChannel.ComposeEscalateWakeCharge();
+        Assert.StartsWith(IdeIgniteChannel.EscalateWakeLead, charge, StringComparison.Ordinal);
+        Assert.Contains("reason=escalate", charge, StringComparison.Ordinal);
+        Assert.Contains("cdp_pressure op=recall", charge, StringComparison.Ordinal);
+        Assert.True(IdeIgniteChannel.LooksLikeAutoIgnitionCharge(charge));
+    }
+
+
+    [Fact]
     public void EventTokenForCharge_maps_shell_finished_event_id()
     {
         Assert.Equal("terminal_finished", IdeIgniteChannel.EventTokenForCharge("shell_finished"));
