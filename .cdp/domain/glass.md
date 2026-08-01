@@ -40,7 +40,8 @@
 
 ## last_ship
 
-- 2026-08-01: dig reject hold Glass Terminal ConPTY — SSOT Avalonia `TerminalMfdPageView`/`IntegratedShellLaunch`; do not fork into TextBlock; next intentional peel = redirected TextBox epic (or Windows terminal control)
+- 2026-08-01: act Glass Terminal redirected TextBox thin peel — `GlassRedirectedShell` + `MainWindow.TerminalSurface` (Process redirect, ANSI strip, no ConPTY); live MFD dogfood `redirected · pwsh` + prompt; SoftOrganMfdGlance Terminal footnote `■ Glass redirected TextBox` / `□ Avalonia ConPTY SSOT`; ConPTY remains Avalonia-only
+- 2026-08-01: dig reject hold Glass Terminal ConPTY — SSOT Avalonia `TerminalMfdPageView`/`IntegratedShellLaunch`; do not fork ConPTY into TextBlock; intentional peel = redirected TextBox (shipped)
 - 2026-08-01: live `cdp_intercom op=presence` after hard self remount — Cursor seat was on stale `D:\cdp-mcp` (`unknown_op`); terminal_* hard → 0.5.373; latch PF busy / PM composing; partner_for_glass=`@PF · busy` (host currently undocked `M · MFD` — IntercomSubtitle not in that window)
 - 2026-08-01: invent dig-queue drain verify — SoftOrgan peel DoD closed (MFD glance or chrome); orphan MFDs unbound; no open SoftOrgan invent leaf; next = act peels / dogfood holds · glass card
 - 2026-08-01: dig close Glass Editor AvalonEdit when Forward=intercom — peel already ADR 0120 (`MountEditor(MfdEditorHost)`); drop misleading stub; body clears when chrome on M · cascade-ide `ce66a661`
