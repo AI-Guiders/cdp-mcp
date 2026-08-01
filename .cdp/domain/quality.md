@@ -28,6 +28,7 @@
 
 ## last_ship
 
+- DocumentBufferStore.Edit peel (≤ADX soft-warn) @ 0.5.432 · 2026-08-01
 - IdeChangePlanner.Persist peel (≤ADX soft-warn) @ 0.5.431 · 2026-08-01
 - StageCriteria.Norm peel (≤ADX soft-warn) @ 0.5.430 · 2026-08-01
 - IdeDeskSeats.Presets peel (≤ADX soft-warn) @ 0.5.429 · 2026-08-01
