@@ -14,7 +14,8 @@ public sealed class AdxAssertionsEvaluateTests
         using var doc = JsonDocument.Parse(JsonSerializer.Serialize(board));
         Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal("assert", doc.RootElement.GetProperty("scope").GetString());
-        Assert.True(doc.RootElement.GetProperty("deferred").GetInt32() >= 1);
+        Assert.Equal(0, doc.RootElement.GetProperty("deferred").GetInt32());
+        Assert.Equal(0, doc.RootElement.GetProperty("fail").GetInt32());
     }
 
     static string FindRepoRoot()

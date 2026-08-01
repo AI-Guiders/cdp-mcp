@@ -42,6 +42,7 @@ internal static class AdxAssertions
         var catalog = LoadCatalog(path);
         var findings = new List<object>();
         var fail = 0;
+        var warn = 0;
         var deferred = 0;
 
         foreach (var item in catalog)
@@ -75,9 +76,30 @@ internal static class AdxAssertions
                 detail = card.Detail,
                 pulse = card.Pulse
             });
+
+            if (item.Check?.Trim().ToLowerInvariant() is "habitat_mutate" or "session_trace")
+            {
+                var trObj = AdxMutateTrace.EvaluateRecent();
+                using var trDoc = System.Text.Json.JsonDocument.Parse(
+                    System.Text.Json.JsonSerializer.Serialize(trObj));
+                var tr = trDoc.RootElement;
+                var trOk = tr.GetProperty("ok").GetBoolean();
+                if (!trOk) warn++;
+                findings.Add(new
+                {
+                    id = "ADX-HX-001.trace",
+                    severity = trOk ? "ok" : "warn",
+                    status = trOk ? "pass" : "warn",
+                    topic = "habitat.mutate.trace",
+                    statement = "Recent harness mutates — set_text on existing = warn",
+                    detail = trObj,
+                    pulse = tr.GetProperty("pulse").GetString()
+                });
+            }
         }
 
         var pulse = fail > 0 ? $"assert FAIL×{fail}"
+            : warn > 0 ? $"assert ok · WARN×{warn}"
             : deferred > 0 ? $"assert ok · deferred×{deferred}"
             : "assert ok";
 
@@ -88,7 +110,7 @@ internal static class AdxAssertions
             scope = "assert",
             pulse,
             fail,
-            warn = 0,
+            warn,
             deferred,
             catalog = path,
             findings = findings.ToArray(),
@@ -103,6 +125,7 @@ internal static class AdxAssertions
     {
         "recall_gate" => RecallSelfCheck(),
         "ignite_latch" => IgniteSelfCheck(),
+        "habitat_mutate" or "session_trace" => HabitatSelfCheck(),
         _ => new CheckResult(false, "unknown_check", $"unknown check={check}")
     };
 
@@ -154,6 +177,21 @@ internal static class AdxAssertions
             return new CheckResult(false, null, "armed+await must fail");
 
         return new CheckResult(true, new { halt = true, last_once = true }, "ignite_latch ok");
+    }
+
+    static CheckResult HabitatSelfCheck()
+    {
+        if (!AdxHabitatMutateKernel.GuidelineOk(isCreate: true, pathExistedBefore: false, editOp: "create"))
+            return new CheckResult(false, null, "create bootstrap failed");
+        if (!AdxHabitatMutateKernel.GuidelineOk(isCreate: false, pathExistedBefore: false, editOp: "set_text"))
+            return new CheckResult(false, null, "first-write set_text failed");
+        if (!AdxHabitatMutateKernel.GuidelineOk(isCreate: false, pathExistedBefore: true, editOp: "anchor"))
+            return new CheckResult(false, null, "anchor on existing failed");
+        if (AdxHabitatMutateKernel.GuidelineOk(isCreate: false, pathExistedBefore: true, editOp: "set_text"))
+            return new CheckResult(false, null, "set_text on existing must fail guideline");
+
+        var trace = AdxMutateTrace.EvaluateRecent();
+        return new CheckResult(true, new { kernel = true, trace }, "habitat_mutate ok");
     }
 
     static List<CatalogItem> LoadCatalog(string path)
