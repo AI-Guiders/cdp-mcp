@@ -1,6 +1,6 @@
 # CDP-ADR-0026: Citizen AI keys foundation (`ai-keys.toml`)
 
-**Status:** accepted (foundation; in-proc loader shipped 0.5.329 — unused until citizen completions host)  
+**Status:** accepted (foundation; loader 0.5.329; host consume via `CitizenCompletions` / `cdp_citizen` — shipped)  
 **Date:** 2026-07-31  
 **Tags:** #cdp #adr #citizen #secrets #ai-keys
 
@@ -14,7 +14,7 @@
 
 Citizen completions need provider keys without putting them in `settings.toml` or MCP env dumps.  
 CIDE already stores Anthropic/OpenAI/DeepSeek in `%LocalAppData%\CascadeIDE\ai-keys.toml` (`AiKeys` / `AiKeysStorage`).  
-Citizen host is not shipped; we lock the **contract** before code thrash.
+Loader + host path consume the same file in-proc (`CitizenAiKeys` → `CitizenCompletions` / desk `cdp_citizen`).
 
 ---
 
@@ -25,7 +25,7 @@ Citizen host is not shipped; we lock the **contract** before code thrash.
 | Consumer | Path |
 |----------|------|
 | CIDE / GlassCore settings reuse | `%LocalAppData%\CascadeIDE\ai-keys.toml` (existing) |
-| CDP citizen host (when shipped) | Prefer **same file** first (one operator machine, one keyring). Optional later: `%LocalAppData%\cdp-mcp\ai-keys.toml` only if seat isolation requires split. |
+| CDP citizen host | **Same file** first (one operator machine, one keyring). Optional later: `%LocalAppData%\cdp-mcp\ai-keys.toml` only if seat isolation requires split. |
 
 ### 2. Format
 
@@ -39,25 +39,26 @@ Citizen host is not shipped; we lock the **contract** before code thrash.
 ### 3. Security
 
 - Never in `settings.toml`, never in repo, never in Intercom latch JSON, never in pressure stash body.
-- Guest MCP must not echo keys in tool results.
-- Citizen host loads keys in-proc; guest continues to use Cursor/provider UI until citizen ships.
+- Guest MCP must not echo keys in tool results (`ToPublicPulse` / `Masked` only).
+- Citizen host loads keys in-proc; guest continues to use Cursor/provider UI for Cursor agents.
 
 ### 4. Readiness
 
 | Item | Status |
 |------|--------|
 | CIDE `ai-keys.toml` + UI/storage | **Ready** (ADR 0028) |
-| Citizen completions host reader | **Loader ready** (`CitizenAiKeys`, 0.5.329) — host path still open |
+| Citizen loader | **Shipped** (`CitizenAiKeys`, 0.5.329) |
+| Citizen host consume | **Shipped** (`CitizenCompletions` + `IdeCitizenChannel` / `cdp_citizen` op=keys|scene|turn) |
 | Example template in docs | `docs/design/ai-keys.example.toml` (placeholders only) |
 
 ---
 
 ## Consequences
 
-- “Are we ready for api-keys?” → **keys file line yes for CIDE; citizen consume no until host.**
+- “Are we ready for api-keys?” → **yes for citizen host** when `anthropic_api_key` is set in CascadeIDE `ai-keys.toml`; otherwise invite blocked / `keys_missing` on live turn (dry_run still free).
 - Avoid renaming to `api-keys.toml` — breaks existing CIDE installs.
 
 ## Non-goals
 
-- Implementing citizen HTTP client in this ADR.
 - OS secret store / DPAPI (later peel).
+- Per-seat split keyring (only if isolation requires it).
