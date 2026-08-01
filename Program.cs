@@ -7,10 +7,8 @@ using Cdp.ScriptableIde;
 using CdpMcp;
 using CdpMcp.Backends;
 using CdpMcp.IntentWorkspace;
-using Microsoft.EntityFrameworkCore;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using OutWit.Database.EntityFramework.Extensions;
 using Tool = ModelContextProtocol.Protocol.Tool;
 
 var configPath = args.SkipWhile(a => a != "--config").Skip(1).FirstOrDefault()
@@ -22,71 +20,24 @@ IdeCockpitHostChannel.Configure(settings.CockpitHost);
 VendorCatalog.Configure(settings.Vendor);
 IdeIgniteArmHost.EnsureStarted();
 
-var workspaceDbPathOverride = settings.IntentWorkspace.DatabasePath;
-var workspaceDbPath = workspaceDbPathOverride
-    ?? Path.Combine(CdpProfile.StateRoot, "intent-workspace.witdb");
-IntentWorkspaceStore? workspaceStore = null;
-var workspaceState = new IntentWorkspaceState { DatabasePath = workspaceDbPath };
-string? openedWorkspaceDbPath = null;
-
-void InvalidateWorkspaceScope()
-{
-    IdeSettingsStore.Invalidate();
-    workspaceStore = null;
-    openedWorkspaceDbPath = null;
-}
-
-CdpProfile.OnStateRootChanged(InvalidateWorkspaceScope);
-
 var session = new SessionContext();
 IdeCockpitHostChannel.ProjectRootResolver = () => session.ProjectRoot;
 
-void EnsureWorkspaceDb()
+var workspace = new WorkspaceDbHost(settings.IntentWorkspace.DatabasePath, session);
+CdpProfile.OnStateRootChanged(() =>
 {
-    CdpClientWorkspace.EnsureSessionFallback(session);
-    var path = workspaceDbPathOverride
-        ?? Path.Combine(CdpProfile.StateRoot, "intent-workspace.witdb");
-    if (workspaceStore is not null &&
-        string.Equals(openedWorkspaceDbPath, path, StringComparison.OrdinalIgnoreCase))
-        return;
-
-    workspaceDbPath = path;
-    workspaceState.DatabasePath = path;
-    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-    var wsOptions = new DbContextOptionsBuilder<IntentWorkspaceDbContext>()
-        .UseWitDb($"Data Source={path}")
-        .Options;
-    using (var bootGate = IntentWorkspaceStore.EnterFileGate(path))
-    using (var boot = new IntentWorkspaceDbContext(wsOptions))
-        boot.Database.EnsureCreated();
-    workspaceStore = new IntentWorkspaceStore(wsOptions, path);
-    workspaceStore.EnsureOpenRecentTable();
-    workspaceStore.MigrateLegacyOpenRecentJsonIfPresent();
-    workspaceStore.EnsureDeskSeatsTable();
-    workspaceStore.MigrateLegacyDeskSeatsJsonIfPresent();
-    workspaceStore.EnsureStagePhaseAffinityColumn();
-    workspaceStore.EnsureStageClockColumns();
-    workspaceStore.EnsureStageProductColumn();
-    workspaceStore.EnsureStageEventsTable();
-    workspaceStore.EnsureStageCriteriaTable();
-    workspaceStore.EnsureWorkFocusTable();
-    workspaceStore.WorkFocusHydrate(workspaceState);
-    workspaceStore.EnsureScriptLastRunTable();
-    IdeDeskSeats.Bind(workspaceStore);
-    ScriptScene.Bind(workspaceStore);
-    IdeStageCycle.Bind(workspaceStore, () => workspaceState, () => CdpEnumParse.ToWire(session.Phase));
-    OpenRecentStore.Configure(new WitDbOpenRecentBackend(workspaceStore, path));
-    openedWorkspaceDbPath = path;
-}
+    IdeSettingsStore.Invalidate();
+    workspace.Invalidate();
+});
 
 IdeIgniteArmHost.BindFlightProbe(() =>
 {
-    if (workspaceState.ActiveStageId is null)
+    if (workspace.State.ActiveStageId is null)
         return ContinuityFlight.NoActiveTask;
     try
     {
-        EnsureWorkspaceDb();
-        return IdeTaskManager.ProbeContinuityFlight(workspaceStore, workspaceState);
+        workspace.Ensure();
+        return IdeTaskManager.ProbeContinuityFlight(workspace.Store, workspace.State);
     }
     catch
     {
@@ -95,16 +46,9 @@ IdeIgniteArmHost.BindFlightProbe(() =>
 });
 
 /// <summary>Open Recent lives in WitDB — ensure store before push/list (cdp_open / CSX Open.*).</summary>
-void EnsureOpenRecentWired()
-{
-    EnsureWorkspaceDb();
-}
+void EnsureOpenRecentWired() => workspace.Ensure();
 
-IntentWorkspaceStore RequireWorkspace()
-{
-    EnsureWorkspaceDb();
-    return workspaceStore!;
-}
+IntentWorkspaceStore RequireWorkspace() => workspace.Require();
 
 var modules = new List<ICdpBackendModule>();
 var notesRuntime = SharedNotesRuntime.TryCreate(settings);
@@ -347,13 +291,13 @@ async Task<string> DispatchMetaAsync(
             McpOutlet = mcpOutlet,
             InternetBrowser = internetBrowser,
             IdeSettings = ideSettings,
-            WorkspaceStore = workspaceStore,
-            WorkspaceState = workspaceState,
-            WorkspaceDbPath = workspaceDbPath,
+            WorkspaceStore = workspace.Store,
+            WorkspaceState = workspace.State,
+            WorkspaceDbPath = workspace.DatabasePath,
             ServerRef = serverRef,
             NotifyListChanged = NotifyListChanged,
             EnsureOpenRecentWired = EnsureOpenRecentWired,
-            EnsureWorkspaceDb = EnsureWorkspaceDb,
+            EnsureWorkspaceDb = workspace.Ensure,
             BuildVisibleTools = BuildVisibleTools,
             BuildMetaTools = BuildMetaTools,
             DispatchToolAsync = DispatchAsync,
@@ -379,7 +323,7 @@ object DispatchCdpWork(IReadOnlyDictionary<string, JsonElement> callArgs) =>
         new CdpWorkDispatchDeps
         {
             Session = session,
-            WorkspaceState = workspaceState,
+            WorkspaceState = workspace.State,
             RequireWorkspace = RequireWorkspace,
             RequireJobRunner = RequireJobRunner,
             NotifyListChanged = NotifyListChanged
