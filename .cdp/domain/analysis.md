@@ -15,8 +15,9 @@
 
 ## Antipatterns
 
-- Growing Run/GroupClones with ExtractWindows/corpus — peel to `CodeClones.Extract.cs`.
+- Growing Run/GroupClones with ExtractWindows/corpus — peel to `CodeClones.Extract*.cs`.
+- Letting Extract.cs absorb corpus walk again — keep `Extract.Corpus`.
 
 ## last_ship
 
-- soft-warn: `CodeClones` → `CodeClones.Extract.cs` (ExtractWindows→corpus helpers) @ 0.5.380; main~245 / Extract~388
+- soft-warn near-miss: peel `TryCollectCorpus`→`ResolveUserPath` (+`MemberName`) → `CodeClones.Extract.Corpus.cs` @ 0.5.406; Extract~217 / Corpus~182
