@@ -73,7 +73,7 @@ public static class CabinGlassProjectionCatalog
             "sys" => new Projection(null, "agent · M: sys"),
             "ecl" => new Projection(null, "agent · M: ecl"),
             "qrh" => new Projection(null, "agent · M: qrh"),
-            "review" => new Projection(null, "agent · M: review"),
+            "review" => new Projection("Problems", "agent · M: review"),
             "learn" => new Projection("MarkdownPreview", "agent · M: learn"),
             "domain" or "cdp_domain" or "ownership"
                 => new Projection("MarkdownPreview", "agent · M: domain"),
