@@ -26,6 +26,7 @@
 
 ## last_ship
 
+- soft-warn peel: MetaToolCatalog Core183 / Core.Ops212 (recent→sa) @ 0.5.413
 - soft-warn near-miss: MetaDispatch.Hub → Hub163 / HubCsx202 / HubShell125 @ 0.5.403 (chain Core→Ide→Hub→HubCsx→HubShell).
 - dig Program~396: TLS residual confirmed — next Program peel needs deps-bag static type (EnsureWorkspaceDb cluster), not partial.
 - soft-warn residual: VisibleToolCatalog + IdeToolDispatch + CdpWorkDispatch @ 0.5.392; Program~396

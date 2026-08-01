@@ -30,6 +30,7 @@
 
 ## last_ship
 
+- MetaToolCatalog soft-warn peel Core→Core.Ops (recent→sa) @ 0.5.413 · 2026-08-01
 - TM done/shipped feature-title fallback + shipped without start @ 0.5.412 · 2026-08-01
 - pressure recall SSOT auto-ready (ceremony tax cut) @ 0.5.411 · 2026-08-01
 - ops/health dual-seat version pulse (`IdeOpsPulse` self/sib/lag) @ 0.5.410 · 2026-08-01
