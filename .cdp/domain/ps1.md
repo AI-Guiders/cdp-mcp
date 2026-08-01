@@ -6,7 +6,7 @@
 
 ## Invariants
 
-- Soft-warn FileLinesWarn=400; Dispatch/put/open/check façade stays slim; Run partial owns RunAsync/last/help/pwsh/path helpers.
+- Soft-warn FileLinesWarn=400; Dispatch/put/open/check façade stays slim; Run/Pwsh/Helpers partials own exec + path helpers.
 - ISE habitat: put → check (AST) → run (pwsh -File) → last.
 
 ## Entry
@@ -15,8 +15,10 @@
 
 ## Antipatterns
 
-- Growing Put/Check with RunPwsh/ResolvePwsh — peel to `Ps1Scene.Run.cs`.
+- Growing Put/Check with RunPwsh/ResolvePwsh — peel to `Ps1Scene.Pwsh` / `.Helpers`.
+- Re-inlining peels past FileLinesWarn.
 
 ## last_ship
 
+- soft-warn: `Ps1Scene.Run` → `.Pwsh` + `.Helpers` (Run~125) @ 0.5.419 · 2026-08-01
 - soft-warn: `Ps1Scene` → `Ps1Scene.Run.cs` (RunAsync→helpers) @ 0.5.383; main~252 / Run~382
