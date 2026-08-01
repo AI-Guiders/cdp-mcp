@@ -75,6 +75,23 @@ public class CideIntercomVoiceLatchTests : IDisposable
     }
 
     [Fact]
+    public void Channel_send_from_pm_defaults_origin_human()
+    {
+        var sendJson = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("send"),
+            ["from"] = JsonSerializer.SerializeToElement("pm"),
+            ["to"] = JsonSerializer.SerializeToElement("pf"),
+            ["body"] = JsonSerializer.SerializeToElement("who as operator")
+        });
+        using var send = JsonDocument.Parse(sendJson);
+        Assert.True(send.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal("pm", send.RootElement.GetProperty("message").GetProperty("from").GetString());
+        Assert.Equal("human", send.RootElement.GetProperty("message").GetProperty("origin").GetString());
+        Assert.NotNull(CideIntercomVoiceLatch.TryUnreadForPf());
+    }
+
+    [Fact]
     public void Channel_send_and_scene_roundtrip()
     {
         var sendJson = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)

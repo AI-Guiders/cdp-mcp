@@ -48,7 +48,8 @@ internal static class IdeCideIntercomChannel
             unread = unread is null ? null : Card(unread),
             latest = latch is null ? null : Card(latch),
             hint =
-                "send to=pm body=… → @PM on CIDE Intercom. " +
+                "send to=pm body=… → @PM on Glass Intercom (origin=agent). " +
+                "from=pm|operator body=… → Who-as-Operator (origin=human). " +
                 "Operator @PF … → unread here + cockpit pulse. " +
                 "history limit= — Virtual History on demand (not auto into flight). " +
                 "ack id= after you read.",
@@ -73,15 +74,21 @@ internal static class IdeCideIntercomChannel
         if (to is null)
             return Fail("to_invalid", "to=pm|pf (or @PM|@PF)");
 
-        // v0: agent speaks as PF unless from= overrides.
+        // v0: agent speaks as PF unless from= overrides. Origin follows seat:
+        // PF→agent, PM→human (Who-as-Operator / Glass PM voice).
         var fromRaw = Arg(args, "from") ?? CideIntercomVoiceLatch.SeatPf;
         var from = CideIntercomVoiceLatch.NormalizeSeat(fromRaw) ?? CideIntercomVoiceLatch.SeatPf;
+
+        var originRaw = Arg(args, "origin");
+        var origin = ResolveOrigin(from, originRaw);
+        if (origin is null)
+            return Fail("origin_invalid", "origin=agent|human (default: pf→agent, pm→human)");
 
         var published = CideIntercomVoiceLatch.Publish(
             from,
             to,
             body!,
-            CideIntercomVoiceLatch.OriginAgent);
+            origin);
         if (published is null)
             return Fail("publish_failed", "could not write intercom latch");
 
@@ -152,6 +159,24 @@ internal static class IdeCideIntercomChannel
         acked = d.Acked,
         stamped_utc = d.StampedUtc
     };
+
+    /// <summary>PF defaults to agent; PM (operator/Who) defaults to human. Explicit origin= wins.</summary>
+    static string? ResolveOrigin(string fromSeat, string? originRaw)
+    {
+        if (!string.IsNullOrWhiteSpace(originRaw))
+        {
+            var o = originRaw.Trim().ToLowerInvariant();
+            if (o is "agent" or "pf" or "pilot")
+                return CideIntercomVoiceLatch.OriginAgent;
+            if (o is "human" or "operator" or "pm" or "who")
+                return CideIntercomVoiceLatch.OriginHuman;
+            return null;
+        }
+
+        return string.Equals(fromSeat, CideIntercomVoiceLatch.SeatPm, StringComparison.OrdinalIgnoreCase)
+            ? CideIntercomVoiceLatch.OriginHuman
+            : CideIntercomVoiceLatch.OriginAgent;
+    }
 
     static string TrimChat(string body) =>
         body.Length <= 120 ? body : body[..117] + "…";
