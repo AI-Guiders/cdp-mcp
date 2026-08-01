@@ -66,6 +66,10 @@ internal static class IdeRemountWake
             StampedUtc = DateTimeOffset.UtcNow
         };
         File.WriteAllText(path, JsonSerializer.Serialize(doc, JsonOpts));
+        IdeTeethTape.Record(
+            "deploy_hard",
+            detail: reason,
+            reason: Reason);
     }
 
     /// <summary>Atomically consume pending for this seat (delete file). Returns false if none.</summary>

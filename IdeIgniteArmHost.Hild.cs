@@ -7,6 +7,7 @@ namespace CdpMcp;
 /// <summary>
 /// HILD — Human-in-the-loop detector via CDT Composer.
 /// Voice/empty + no Composer text for 5s → <c>human_away</c> once → AutoIgnition wake.
+/// First away = partner status; still away after <see cref="AwayEscalateAfter"/> → autonomy.
 /// </summary>
 internal static partial class IdeIgniteArmHost
 {
@@ -14,6 +15,9 @@ internal static partial class IdeIgniteArmHost
     public const string HildStoreSchema = "hild/v0";
 
     static readonly TimeSpan HildPollInterval = TimeSpan.FromSeconds(1);
+    /// <summary>First away = status; still away after this → autonomy (partner likely gone long).</summary>
+    internal static TimeSpan AwayEscalateAfter { get; set; } = TimeSpan.FromSeconds(60);
+
     static readonly IdeHildDetector HildDetector = new();
     static readonly object HildGate = new();
 
@@ -26,6 +30,8 @@ internal static partial class IdeIgniteArmHost
     static DateTimeOffset? HildLastEdgeUtc;
     static string? HildLastSampleKind;
     static int HildEdgeCount;
+    static DateTimeOffset? AwayEscalateDueUtc;
+    static bool AwayEscalateDone;
 
     public static string HildStorePath { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -122,8 +128,12 @@ internal static partial class IdeIgniteArmHost
                 edge_count = HildEdgeCount,
                 quiet_since = HildDetector.QuietSince,
                 away_latched = HildDetector.AwayLatched,
+                away_escalate_due_utc = AwayEscalateDueUtc,
+                away_escalate_after_s = AwayEscalateAfter.TotalSeconds,
                 why,
-                hint = "One shot: Voice/empty 5s → human_away latch → AutoI once; human Composer text clears latch (AutoI charge ignored). Stay ARMED. After wake: autonomy 1–2s (not 45m)."
+                hint =
+                    "Voice/empty 5s → partner=away (status) + wake. Still away after AwayEscalateAfter → autonomous on. " +
+                    "Human Composer text → partner=here. AutoI charge ignored as return."
             };
         }
     }
@@ -204,21 +214,42 @@ internal static partial class IdeIgniteArmHost
         if (!sample.Ok)
             return; // CDT blip — do not advance quiet clock
 
+        IdeTeethTape.NoteGuest(sample.Kind, cdtUp: true);
+
         IdeHildDetector.TickResult tick;
+        bool latchedBefore;
+        bool latchedAfter;
         lock (HildGate)
         {
             HildLastSampleKind = sample.Kind;
+            latchedBefore = HildDetector.AwayLatched;
             tick = HildDetector.Tick(new IdeHildDetector.Sample(
                 sample.Kind,
                 sample.Text,
                 DateTimeOffset.UtcNow));
             HildLastStatus = tick.Status;
+            latchedAfter = HildDetector.AwayLatched;
         }
 
-        if (!tick.EdgeHumanAway)
-            return;
+        if (latchedBefore && !latchedAfter)
+            OnPartnerHere();
 
-        OnHumanAwayEdge();
+        if (tick.EdgeHumanAway)
+            OnHumanAwayEdge();
+        else
+            TryEscalateAwayToAutonomy();
+    }
+
+    static void OnPartnerHere()
+    {
+        lock (HildGate)
+        {
+            AwayEscalateDueUtc = null;
+            AwayEscalateDone = false;
+        }
+
+        IdeTeethTape.Record("partner_here", detail: "hild_latch_cleared");
+        Console.Error.WriteLine("[ide_ignite] hild partner here — away latch cleared");
     }
 
     static void OnHumanAwayEdge()
@@ -227,30 +258,60 @@ internal static partial class IdeIgniteArmHost
         {
             HildLastEdgeUtc = DateTimeOffset.UtcNow;
             HildEdgeCount++;
+            AwayEscalateDueUtc = DateTimeOffset.UtcNow + AwayEscalateAfter;
+            AwayEscalateDone = false;
         }
 
-        Console.Error.WriteLine(
-            $"[ide_ignite] hild human_away edge #{HildEdgeCount} — notify + wake");
+        IdeTeethTape.Record("partner_away", detail: $"escalate_in={(int)AwayEscalateAfter.TotalSeconds}s");
 
-        // Event arms first (when=human_away).
+        Console.Error.WriteLine(
+            $"[ide_ignite] hild human_away edge #{HildEdgeCount} — status away; escalate@{AwayEscalateAfter.TotalSeconds:0}s");
+
         Notify("human_away", ok: true, pulse: "hild", detail: "composer_idle_5s");
 
-        // Hard stop: explicit await_operator latch — do not steal the loop.
         if (HasAwaitingOperatorLatch())
         {
             Console.Error.WriteLine("[ide_ignite] hild wake suppressed — await_operator latch");
             return;
         }
 
-        // Default wake (Intercom cannon pattern) — minimal charge.
-        // Skip when OOM or remount wake already owns recovery (else agent sees HILD, not reason=*).
         if (HasArmedOomWake() || HasArmedRemountWake())
         {
             Console.Error.WriteLine("[ide_ignite] hild wake suppressed — oom/remount-wake armed");
             return;
         }
 
-        SeedHildWake();
+        SeedHildWake(out var hildArmId);
+        IdeTeethTape.Record("wake_schedule", armId: hildArmId, reason: "hild", detail: "human_away");
+    }
+
+    /// <summary>
+    /// Still away after <see cref="AwayEscalateAfter"/> → partner likely gone long → autonomy.
+    /// </summary>
+    static void TryEscalateAwayToAutonomy()
+    {
+        DateTimeOffset? due;
+        bool done;
+        bool latched;
+        lock (HildGate)
+        {
+            due = AwayEscalateDueUtc;
+            done = AwayEscalateDone;
+            latched = HildDetector.AwayLatched;
+        }
+
+        if (done || due is null || !latched)
+            return;
+        if (DateTimeOffset.UtcNow < due.Value)
+            return;
+
+        lock (HildGate)
+            AwayEscalateDone = true;
+
+        IdeTeethTape.Record("partner_away_escalate", detail: "still_away→autonomy");
+        SetAutonomous(true, "hild_away_escalate");
+        Console.Error.WriteLine(
+            $"[ide_ignite] hild away escalate — still away after {AwayEscalateAfter.TotalSeconds:0}s → autonomous on");
     }
 
     static bool HasArmedOomWake()
@@ -278,9 +339,9 @@ internal static partial class IdeIgniteArmHost
             return Arms.Any(a => a.Status == "awaiting");
     }
 
-    static void SeedHildWake()
+    static void SeedHildWake(out string armId)
     {
-        var id = HildArmIdPrefix
+        armId = HildArmIdPrefix
             + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)
             + "-"
             + Guid.NewGuid().ToString("N")[..6];
@@ -295,7 +356,7 @@ internal static partial class IdeIgniteArmHost
                 ["once"] = JsonSerializer.SerializeToElement(true),
                 ["charge"] = JsonSerializer.SerializeToElement("minimal"),
                 ["task"] = JsonSerializer.SerializeToElement("HILD human_away"),
-                ["id"] = JsonSerializer.SerializeToElement(id),
+                ["id"] = JsonSerializer.SerializeToElement(armId),
                 ["settle_seconds"] = JsonSerializer.SerializeToElement(1)
             };
             _ = IdeIgniteChannel.HandleJson(args);
