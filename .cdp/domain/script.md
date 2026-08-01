@@ -15,8 +15,9 @@
 
 ## Antipatterns
 
-- Growing Run/Check with FlattenJson/TryResolve — peel to `ScriptScene.Helpers.cs`.
+- Growing Run/Check with FlattenJson/TryResolve — peel to `ScriptScene.Helpers*.cs`.
+- Letting Helpers.cs reabsorb FlattenJson/last-run — keep `Helpers.Flatten`.
 
 ## last_ship
 
-- soft-warn: `ScriptScene` → `ScriptScene.Helpers.cs` (TryBufferDiagnostics→BoolOr) @ 0.5.384; main~376 / Helpers~385
+- soft-warn near-miss: peel FlattenJson→BoolOr (+TryGetLast/path wire) → `ScriptScene.Helpers.Flatten.cs` @ 0.5.407; Helpers~195 / Flatten~205
