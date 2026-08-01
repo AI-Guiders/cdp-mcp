@@ -20,7 +20,7 @@
 
 ## Entry
 
-- WPF: `LatchHub` · `EicasBandAggregator` · `LatchPaint.Eicas`
+- WPF: `LatchHub` · `EicasBandAggregator` · `LatchPaint` (incl. seats) · `MainWindow.SeatsSurface`
 - Avalonia: `CdpEclProjector` · alert/qrh projectors
 - CDP: `Cide*Latch` · `CabinGlassProjectionCatalog` · `CockpitHostLatchHydration`
 
@@ -44,7 +44,7 @@
 - Treat Events / Hypotheses as empty □/■ stubs forever — Glass latch/catalog + JSON status glances (`GlassEventsGlance` / `GlassHypothesesGlance`); Avalonia EventsMFD / HypothesesMfd remain SSOT (do not invent SoftOrgan).
 - Invent `MfdShellPage.SemanticMap` to "fix" Glass/CabinGlass string parity — Avalonia graph is PFD `WorkspaceNavigationMapView`; Glass `SemanticMap` = arch projector alias + SoftOrganMfdGlance (do not invent Avalonia MFD page).
 - Invent SoftOrgan latches for Ps1Desk/MdAuthor to paint SoftOrganBand — CabinGlass already resolves MFD Terminal/MarkdownPreview; SoftOrganBand stays latch-first (do not invent SoftOrgan).
-- Treat Glass SoftOrganBand as seats-aware without `seats-LATEST` peel — Avalonia `CdpSeatsProjector` owns seats→cabin chrome; Glass must watch seats latch (not invent cabin SoftOrgan writer).
+- Treat Glass SoftOrganBand cabin chrome as inventing `cabin-LATEST` SoftOrgan writer — cabin chrome comes from `seats-LATEST` peel (`LatchHub.SeatsChanged`), same as Avalonia `CdpSeatsProjector`.
 
 ## DoD matrix — MfdShellPage presence (2026-08-01 dig)
 
@@ -91,12 +91,13 @@ Chrome DoD = SoftOrgan latch → Glass SoftOrganBand · Avalonia Cdp*Projector �
 | Alert/Qrh/Ecl | EICAS latches | EICAS band (not SoftOrgan) | CdpAlert/Qrh/Ecl | EICAS HOLD |
 | Problems/Quality/BuildDesk | none SoftOrgan | — | — | CabinGlass MFD only |
 | Ps1Desk / MdAuthor | **none** | chrome_hint dropped | no projector | DIG REJECT invent SoftOrgan latch — presence = Terminal / MarkdownPreview MFD |
-| (catalog) `cabin` | reserved | **no seats watcher** | Avalonia `CdpSeatsProjector` → `AgentCabinChromeHint` from `seats-LATEST` | **GAP** — Glass missing seats peel |
+| (catalog) `cabin` | reserved (via seats) | SoftOrganBand Apply(`cabin`) from `seats-LATEST` | Avalonia `CdpSeatsProjector` → `AgentCabinChromeHint` | DONE seats peel |
 
-**Next act:** Glass WPF `seats-LATEST` peel (parity with Avalonia `CdpSeatsProjector`): select MFD + SoftOrganBand Apply(`cabin`, chrome_hint).
+**Seats peel DoD: CLOSED** — Glass watches `seats-LATEST` (`LatchHub.SeatsChanged` → `LatchPaint.PaintSeats` → `SelectMfdPage` + SoftOrganBand cabin).
 
 ## last_ship
 
+- 2026-08-01: act Glass `seats-LATEST` peel — `CdpHabitatPaths.SeatsLatchFileName` · `LatchHub.SeatsChanged` · `LatchPaint.PaintSeats` · `MainWindow.SeatsSurface` → SelectMfdPage + SoftOrganBand `cabin`; dogfood Terminal MFD + cabin chrome; SoftOrgan chrome GAP closed
 - 2026-08-01: invent dig SoftOrgan chrome parity beyond MFD — latch SoftOrgans DONE; Ps1/MdAuthor DIG REJECT invent SoftOrgan latch; GAP = Glass missing `seats-LATEST` cabin chrome (Avalonia has CdpSeatsProjector)
 - 2026-08-01: invent verify close — Glass 0-sync MFD presence DoD CLOSED (matrix SoftOrgan|peel|reject|hold + SemanticMap DIG REJECT enum invent); next invent = SoftOrgan chrome parity beyond MFD
 - 2026-08-01: dig reject invent `MfdShellPage.SemanticMap` — Glass/CDP CabinGlass string `SemanticMap` is arch SoftOrgan projector alias + latch glance; Avalonia graph stays PFD `WorkspaceNavigationMapView` (RelatedFiles = MFD list only); PageOrder/allowance have no SemanticMap; do not add enum that Avalonia MFD shell does not host
