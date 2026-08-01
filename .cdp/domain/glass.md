@@ -41,9 +41,11 @@
 - Fork Glass WPF Git panel into TextBlock — SSOT = Avalonia `GitMfdPageView` + `GitPanel`; no SoftOrganKind (do not invent); Glass stays CabinGlass stub (optional later: `git status` Process-redirect thin peel ≠ full panel).
 - Treat HybridIndex as empty □/■ stub forever — Glass FS status glance (`GlassHybridIndexGlance`) is the presence peel; Avalonia HCI remains SSOT (do not invent SoftOrgan).
 - Treat WorkspaceHealth / EnvironmentReadiness as empty □/■ stubs forever — Glass FS/env presence glances (`GlassWorkspaceHealthGlance` / `GlassEnvironmentReadinessGlance`); Avalonia IdeHealth / EnvReady CCU remain SSOT (do not invent SoftOrgan).
+- Treat Events / Hypotheses as empty □/■ stubs forever — Glass latch/catalog + JSON status glances (`GlassEventsGlance` / `GlassHypothesesGlance`); Avalonia EventsMFD / HypothesesMfd remain SSOT (do not invent SoftOrgan).
 
 ## last_ship
 
+- 2026-08-01: act Glass orphan MFD presence peels Events/Hypotheses — `GlassEventsGlance` (cdp *-LATEST + DataBus catalog) + `GlassHypothesesGlance` (debug-hypotheses.json counts); live dogfood Events·READY + Hypotheses·MISSING; SoftOrgan unbound; orphan MFD set closed
 - 2026-08-01: act Glass orphan MFD presence peels — `GlassWorkspaceHealthGlance` (READY/THIN/MISSING · root/git/sln/.cascade-ide) + `GlassEnvironmentReadinessGlance` (AGENT_NOTES_FILE / NETCOREDBG_PATH / dotnet PATH); live dogfood WH·READY + EnvReady·READY; SoftOrgan still unbound
 - 2026-08-01: act Glass Git status Process-redirect TextBox thin peel — `GlassRedirectedGit` + `MainWindow.GitSurface` (`git status -sb` + `log -5 --oneline`); live dogfood `redirected · status -sb`; Avalonia GitPanel SSOT
 - 2026-08-01: act Glass HybridIndex FS status glance peel — `GlassHybridIndexGlance` (MISSING/READY + db path/size); live dogfood HybridIndex · MISSING; SoftOrgan still unbound; Avalonia HCI SSOT
