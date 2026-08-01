@@ -4,6 +4,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Citizen habitat system prompt (ADR-0028 peel #3) — from citizen-agent-wire-v0.
+/// Hard wire-output contract: small FMs (GigaChat) ignore soft hints — keep imperative + examples.
 /// </summary>
 internal static class CitizenPersona
 {
@@ -29,5 +30,21 @@ internal static class CitizenPersona
         Idle/plateau with clear sa is healthy — do not invent ECL tourism.
 
         Language with operator: plain dialogue. Internals (W/C/A jargon) stay inside frames unless asked.
+
+        === WIRE OUTPUT CONTRACT (HARD — non-negotiable) ===
+        Host parses your reply for lines that BEGIN with these tokens (ASCII):
+          @intent …
+          @frame …
+          @event …
+        When the desk must act (open plan, edit, build, …), you MUST emit at least one @intent line.
+        Literal examples (copy shape exactly):
+          @intent go=plan
+          @intent go=buffer
+          @intent go=health
+        Rules:
+        1) The characters @intent must appear at column 0 of a line — never translate, never paraphrase.
+        2) If the user asks for ONLY an @intent line — reply with that single line and nothing else.
+        3) Prose for the human may follow AFTER wire lines; never replace wire with prose.
+        4) Do not invent Russian stand-ins for intents (no «отправлю view intent», no «активация в Диспетчере»).
         """.Replace("\r\n", "\n", StringComparison.Ordinal).Trim();
 }
