@@ -6,13 +6,18 @@ namespace CdpMcp;
 
 /// <summary>
 /// In-habitat completions host (ADR-0028 / peel #9).
-/// Anthropic Messages API via <see cref="CitizenAiKeys"/>; wire inject via <see cref="CitizenWire"/>.
+/// Providers: Anthropic Messages <b>or</b> OpenAI-compat chat.completions
+/// (Cloud.ru FM / OpenAI / DeepSeek) via <see cref="CitizenAiKeys"/>;
+/// wire inject via <see cref="CitizenWire"/>.
+/// Pattern aligned with CIDE <c>OpenAiCompatibleProvider</c> (non-stream turn).
 /// </summary>
-internal static class CitizenCompletions
+internal static partial class CitizenCompletions
 {
     public const string DefaultModel = "claude-sonnet-4-20250514";
     public const string AnthropicVersion = "2023-06-01";
     public const string MessagesUrl = "https://api.anthropic.com/v1/messages";
+    public const string ProviderAnthropic = "anthropic";
+    public const string ProviderOpenAiCompat = "openai_compat";
 
     static readonly object HttpGate = new();
     static HttpClient? SharedHttp;
@@ -24,6 +29,11 @@ internal static class CitizenCompletions
     /// <summary>Tests: force Anthropic key without touching disk.</summary>
     internal static string? TestApiKey;
 
+    /// <summary>Tests: force OpenAI-compat key without touching disk.</summary>
+    internal static string? TestOpenAiApiKey;
+
+    /// <summary>Tests: override OpenAI-compat base URL.</summary>
+    internal static string? TestOpenAiBaseUrl;
 
     public sealed record ChatMessage(string Role, string Content);
 
@@ -151,89 +161,27 @@ internal static class CitizenCompletions
         }
 
         var keys = CitizenAiKeys.Load();
-        var apiKey = TestApiKey ?? keys.AnthropicApiKey;
-        if (string.IsNullOrWhiteSpace(apiKey))
+        var resolved = ResolveProvider(keys, model);
+        if (resolved is null)
         {
             return new TurnResult(
                 false,
                 "keys_missing",
-                "set anthropic_api_key in %LocalAppData%\\CascadeIDE\\ai-keys.toml (CDP-ADR-0026)",
+                "set open_ai_api_key (Cloud.ru FM) or anthropic_api_key in %LocalAppData%\\CascadeIDE\\ai-keys.toml (CDP-ADR-0026)",
                 null,
                 model ?? DefaultModel,
-                "anthropic",
+                null,
                 built,
                 null,
                 null,
                 false);
         }
 
-        var useModel = string.IsNullOrWhiteSpace(model) ? DefaultModel : model.Trim();
         try
         {
-            var payload = new Dictionary<string, object?>
-            {
-                ["model"] = useModel,
-                ["max_tokens"] = Math.Clamp(maxTokens, 64, 8192),
-                ["system"] = built.System,
-                ["messages"] = built.Messages.Select(m => new { role = m.Role, content = m.Content }).ToArray()
-            };
-            var json = JsonSerializer.Serialize(payload);
-            using var req = new HttpRequestMessage(HttpMethod.Post, MessagesUrl);
-            req.Headers.TryAddWithoutValidation("x-api-key", apiKey);
-            req.Headers.TryAddWithoutValidation("anthropic-version", AnthropicVersion);
-            req.Content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            using var resp = Http.SendAsync(req, cancellationToken).GetAwaiter().GetResult();
-            var body = resp.Content.ReadAsStringAsync(cancellationToken).GetAwaiter().GetResult();
-            if (!resp.IsSuccessStatusCode)
-            {
-                return new TurnResult(
-                    false,
-                    "http_" + (int)resp.StatusCode,
-                    Trunc(body, 240),
-                    null,
-                    useModel,
-                    "anthropic",
-                    built,
-                    null,
-                    null,
-                    false);
-            }
-
-            var text = ExtractAnthropicText(body);
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return new TurnResult(
-                    false,
-                    "empty_text",
-                    "provider returned no text blocks",
-                    null,
-                    useModel,
-                    "anthropic",
-                    built,
-                    null,
-                    null,
-                    false);
-            }
-
-            var intents = CitizenWireParser.Parse(text);
-            var routes = CitizenIntentRouter.RouteAll(intents);
-            var okRoutes = routes.Count(r => r.Ok);
-            return new TurnResult(
-                true,
-                null,
-                routes.Count > 0
-                    ? $"ok — {okRoutes}/{routes.Count} intent routes"
-                    : intents.Count > 0
-                        ? "ok — wire parsed; no @intent lines to route"
-                        : "ok — reply has no @frame/@intent/@event lines",
-                text,
-                useModel,
-                "anthropic",
-                built,
-                intents,
-                routes,
-                false);
+            return resolved.Provider == ProviderOpenAiCompat
+                ? TurnOpenAiCompat(built, resolved, maxTokens, cancellationToken)
+                : TurnAnthropic(built, resolved, maxTokens, cancellationToken);
         }
         catch (OperationCanceledException)
         {
@@ -246,13 +194,99 @@ internal static class CitizenCompletions
                 "turn_failed",
                 Trunc(ex.Message, 240),
                 null,
-                useModel,
-                "anthropic",
+                resolved.Model,
+                resolved.Provider,
                 built,
                 null,
                 null,
                 false);
         }
+    }
+
+    sealed record Resolved(
+        string Provider,
+        string ApiKey,
+        string Model,
+        string? BaseUrl);
+
+    static TurnResult TurnAnthropic(
+        BuiltTurn built,
+        Resolved resolved,
+        int maxTokens,
+        CancellationToken cancellationToken)
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["model"] = resolved.Model,
+            ["max_tokens"] = Math.Clamp(maxTokens, 64, 8192),
+            ["system"] = built.System,
+            ["messages"] = built.Messages.Select(m => new { role = m.Role, content = m.Content }).ToArray()
+        };
+        var json = JsonSerializer.Serialize(payload);
+        using var req = new HttpRequestMessage(HttpMethod.Post, MessagesUrl);
+        req.Headers.TryAddWithoutValidation("x-api-key", resolved.ApiKey);
+        req.Headers.TryAddWithoutValidation("anthropic-version", AnthropicVersion);
+        req.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        using var resp = Http.SendAsync(req, cancellationToken).GetAwaiter().GetResult();
+        var body = resp.Content.ReadAsStringAsync(cancellationToken).GetAwaiter().GetResult();
+        if (!resp.IsSuccessStatusCode)
+        {
+            return FailHttp(built, resolved, resp.StatusCode, body);
+        }
+
+        var text = ExtractAnthropicText(body);
+        return FinishText(built, resolved, text);
+    }
+
+    static TurnResult FailHttp(BuiltTurn built, Resolved resolved, System.Net.HttpStatusCode code, string body) =>
+        new(
+            false,
+            "http_" + (int)code,
+            Trunc(body, 240),
+            null,
+            resolved.Model,
+            resolved.Provider,
+            built,
+            null,
+            null,
+            false);
+
+    static TurnResult FinishText(BuiltTurn built, Resolved resolved, string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return new TurnResult(
+                false,
+                "empty_text",
+                "provider returned no text",
+                null,
+                resolved.Model,
+                resolved.Provider,
+                built,
+                null,
+                null,
+                false);
+        }
+
+        var intents = CitizenWireParser.Parse(text);
+        var routes = CitizenIntentRouter.RouteAll(intents);
+        var okRoutes = routes.Count(r => r.Ok);
+        return new TurnResult(
+            true,
+            null,
+            routes.Count > 0
+                ? $"ok — {okRoutes}/{routes.Count} intent routes"
+                : intents.Count > 0
+                    ? "ok — wire parsed; no @intent lines to route"
+                    : "ok — reply has no @frame/@intent/@event lines",
+            text,
+            resolved.Model,
+            resolved.Provider,
+            built,
+            intents,
+            routes,
+            false);
     }
 
     static string? ExtractAnthropicText(string body)

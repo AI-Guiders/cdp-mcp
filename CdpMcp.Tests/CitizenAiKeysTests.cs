@@ -12,12 +12,17 @@ public class CitizenAiKeysTests
             anthropic_api_key = "sk-ant-test-abcdefgh"
             open_ai_api_key = "sk-openai-xyz"
             deep_seek_api_key = ""
+            open_ai_base_url = "https://foundation-models.api.cloud.ru/v1"
+            open_ai_model = "ai-sage/GigaChat3-10B-A1.8B"
             """, "mem://test");
 
         Assert.Equal("sk-ant-test-abcdefgh", snap.AnthropicApiKey);
         Assert.Equal("sk-openai-xyz", snap.OpenAiApiKey);
         Assert.Null(snap.DeepSeekApiKey);
+        Assert.Equal("https://foundation-models.api.cloud.ru/v1", snap.OpenAiBaseUrl);
+        Assert.Equal("ai-sage/GigaChat3-10B-A1.8B", snap.OpenAiModel);
         Assert.True(snap.HasAny);
+        Assert.True(snap.HasLiveProvider);
         Assert.True(snap.FileExists);
     }
 

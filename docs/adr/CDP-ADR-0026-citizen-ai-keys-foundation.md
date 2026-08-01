@@ -35,6 +35,7 @@ Loader + host path consume the same file in-proc (`CitizenAiKeys` → `CitizenCo
   - `open_ai_api_key`
   - `deep_seek_api_key`
 - Extensible later (`cloud_ru_*`, OpenRouter, …) without moving file.
+- OpenAI-compat extras (v0.5.360+): `open_ai_base_url`, `open_ai_model` — defaults to Cloud.ru FM when key set and fields empty.
 
 ### 3. Security
 
@@ -55,7 +56,7 @@ Loader + host path consume the same file in-proc (`CitizenAiKeys` → `CitizenCo
 
 ## Consequences
 
-- “Are we ready for api-keys?” → **yes for citizen host** when `anthropic_api_key` is set in CascadeIDE `ai-keys.toml`; otherwise invite blocked / `keys_missing` on live turn (dry_run still free).
+- “Are we ready for api-keys?” → **yes for citizen host** when `open_ai_api_key` (Cloud.ru FM / OAI-compat) **or** `anthropic_api_key` is set in CascadeIDE `ai-keys.toml`; otherwise invite blocked / `keys_missing` on live turn (dry_run still free).
 - Avoid renaming to `api-keys.toml` — breaks existing CIDE installs.
 
 ## Non-goals

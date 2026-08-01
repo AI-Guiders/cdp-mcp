@@ -13,6 +13,8 @@ public class CitizenCompletionsTests : IDisposable
         CitizenWire.Inject = false;
         CitizenCompletions.TestHandler = null;
         CitizenCompletions.TestApiKey = null;
+        CitizenCompletions.TestOpenAiApiKey = null;
+        CitizenCompletions.TestOpenAiBaseUrl = null;
         CitizenCompletions.ResetHttpForTests();
     }
 
@@ -21,6 +23,8 @@ public class CitizenCompletionsTests : IDisposable
         CitizenWire.Inject = false;
         CitizenCompletions.TestHandler = null;
         CitizenCompletions.TestApiKey = null;
+        CitizenCompletions.TestOpenAiApiKey = null;
+        CitizenCompletions.TestOpenAiBaseUrl = null;
         CitizenCompletions.ResetHttpForTests();
     }
 
@@ -83,6 +87,38 @@ public class CitizenCompletionsTests : IDisposable
         Assert.Single(r.Routes!);
         Assert.True(r.Routes[0].Ok);
         Assert.Equal("plan", r.Routes[0].Go);
+    }
+
+    [Fact]
+    public void Turn_openai_compat_parses_choices_message()
+    {
+        var payload = """
+            {"choices":[{"message":{"role":"assistant","content":"@intent go=plan\nok"}}]}
+            """;
+        CitizenCompletions.TestOpenAiApiKey = "sk-cloud-ru-test-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        CitizenCompletions.TestHandler = new StubHandler(HttpStatusCode.OK, payload);
+        CitizenCompletions.ResetHttpForTests();
+
+        var r = CitizenCompletions.Turn("status?", dryRun: false);
+        Assert.True(r.Ok);
+        Assert.Equal(CitizenCompletions.ProviderOpenAiCompat, r.Provider);
+        Assert.Equal(CitizenAiKeys.DefaultOpenAiModel, r.Model);
+        Assert.Contains("@intent go=plan", r.Text!);
+        Assert.NotNull(r.Routes);
+        Assert.Single(r.Routes!);
+        Assert.Equal("plan", r.Routes[0].Go);
+    }
+
+    [Fact]
+    public void ChatCompletionsUrl_normalizes_cloud_ru_base()
+    {
+        Assert.Equal(
+            "https://foundation-models.api.cloud.ru/v1/chat/completions",
+            CitizenCompletions.ChatCompletionsUrl("https://foundation-models.api.cloud.ru"));
+        Assert.Equal(
+            "https://foundation-models.api.cloud.ru/v1/chat/completions",
+            CitizenCompletions.ChatCompletionsUrl("https://foundation-models.api.cloud.ru/v1/"));
     }
 
     [Fact]
