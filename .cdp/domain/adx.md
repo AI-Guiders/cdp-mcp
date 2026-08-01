@@ -33,7 +33,7 @@
 
 ## last_ship
 
-- IdePostmortemChannel.Draft peel (≤ADX soft-warn) @ 0.5.440 · 2026-08-01
+- FileLines batch peel×12 (ArchBoard.Ops.Candidate, EditorPlane.Parse.Yaml, Program.Instructions+Dispatch, Find.Build, PlanPulse.Finish, Settings.Keys.Specs, Qrh.Overlay.Persist, Runners.Process, EditSniper.Ops.Target, MetaDispatch.Ide.Packages, Ignite.Fire.Timer, Scope.Persist) @ 0.5.441 · 2026-08-02
 - EditorComfort.FindNav.Nav peel (≤ADX soft-warn) @ 0.5.439 · 2026-08-01
 - TakeShip.Helpers peel (≤ADX soft-warn) @ 0.5.438 · 2026-08-01
 - LspOptionsToolkit.Recipes.Catalog peel (≤ADX soft-warn) @ 0.5.437 · 2026-08-01

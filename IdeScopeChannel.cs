@@ -13,7 +13,7 @@ namespace CdpMcp;
 /// Sticky under workspace state. Learn stash inherits. Note: <c>go=scope</c> remains EditSniper — use <c>go=ps</c>.
 /// Ops: scene|set|recall|clear.
 /// </summary>
-internal static class IdeScopeChannel
+internal static partial class IdeScopeChannel
 {
     public const string SchemaVersion = "scope_channel/v0";
     public const string ToolName = "cdp_scope";
@@ -266,36 +266,9 @@ internal static class IdeScopeChannel
         return s;
     }
 
-    static ScopeDoc? Load()
-    {
-        lock (Gate)
-        {
-            try
-            {
-                if (!File.Exists(FilePath))
-                    return null;
-                return JsonSerializer.Deserialize<ScopeDoc>(File.ReadAllText(FilePath), JsonOpts);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-    }
+    
 
-    static void Save(ScopeDoc doc)
-    {
-        lock (Gate)
-        {
-            var dir = Path.GetDirectoryName(FilePath)!;
-            Directory.CreateDirectory(dir);
-            var tmp = FilePath + ".tmp";
-            File.WriteAllText(tmp, JsonSerializer.Serialize(doc, JsonOpts), Encoding.UTF8);
-            File.Move(tmp, FilePath, overwrite: true);
-        }
-
-        PublishGlass();
-    }
+    
 
     static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)
     {
@@ -309,16 +282,6 @@ internal static class IdeScopeChannel
             JsonValueKind.False => "false",
             _ => el.ToString()
         };
-    }
-
-    sealed class ScopeDoc
-    {
-        public string Schema { get; set; } = SchemaVersion;
-        public string? Primary { get; set; }
-        public string? Scope { get; set; }
-        public string? SetUtc { get; set; }
-        public string? ProjectRoot { get; set; }
-        public string? Source { get; set; }
     }
 
     public sealed record ScopeLatch(string? Primary, string? Scope, string? SetUtc);
