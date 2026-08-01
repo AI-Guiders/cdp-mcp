@@ -55,6 +55,7 @@ public class IdeIgniteChannelTests
     {
         var charge = IdeIgniteChannel.ComposeRemountInitializedCharge();
         Assert.StartsWith(IdeIgniteChannel.RemountInitializedLead, charge, StringComparison.Ordinal);
+        Assert.Contains("reason=remount", charge, StringComparison.Ordinal);
         Assert.Contains("Habitat=CDP", charge, StringComparison.Ordinal);
     }
 

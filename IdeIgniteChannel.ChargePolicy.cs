@@ -31,9 +31,9 @@ internal static partial class IdeIgniteChannel
     internal static string ComposeArmFireCharge() =>
         SanitizeComposerCharge(CanonicalComposerCharge + ChargeAmnesiaPostfix);
 
-    /// <summary>Lead line for hard-remount boot wake — agent hears "initialized", not just silent DeskWarm.</summary>
+    /// <summary>Lead line for hard-remount boot wake — agent hears remount provenance, not silent DeskWarm.</summary>
     internal const string RemountInitializedLead =
-        "MCP remounted / initialized.";
+        "reason=remount — MCP remounted / initialized. Habitat=CDP. Run cdp_pressure op=recall then resume.";
 
     /// <summary>Lead line after Cursor guest-host OOM / window terminate recovery.</summary>
     internal const string OomWakeLead =
@@ -114,7 +114,8 @@ internal static partial class IdeIgniteChannel
 
         if (t.Contains(CanonicalComposerCharge, StringComparison.Ordinal))
             return true;
-        if (t.StartsWith(RemountInitializedLead, StringComparison.Ordinal))
+        if (t.StartsWith(RemountInitializedLead, StringComparison.Ordinal)
+            || t.StartsWith("reason=remount", StringComparison.OrdinalIgnoreCase))
             return true;
         if (t.StartsWith(OomWakeLead, StringComparison.Ordinal)
             || t.StartsWith("reason=oom", StringComparison.OrdinalIgnoreCase)
