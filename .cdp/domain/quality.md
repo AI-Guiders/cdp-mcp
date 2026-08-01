@@ -28,6 +28,7 @@
 
 ## last_ship
 
+- ADX-HX-001 live + NativeDialogs.Win32 @ 0.5.426 · 2026-08-01
 - ADX assertions + Z3 kernel proofs (scope=assert) @ 0.5.425 · 2026-08-01
 - QualityGates.Eval + .Policy peel under soft-warn @ 0.5.417 · 2026-08-01
 - EvaluateDisk + soft-organ scope=disk @ 0.5.409 · 2026-08-01
