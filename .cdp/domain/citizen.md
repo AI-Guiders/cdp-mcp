@@ -31,8 +31,9 @@
 
 ## last_ship
 
+- 2026-08-01 night: **live tea OK** — invite=ready, Cloud.ru FM `GigaChat3-10B-A1.8B`, op=turn returns text (smoke «Привет, я здесь»).
+- **Full wire still blocked by model compliance**: even forced «ответь только `@intent go=plan`» → prose, `wire_intents=[]`. Parser/tests OK (mock). Need stronger FM / persona+format hard-gate before citizen-way accept.
 - 0.5.360: Cloud.ru FM OpenAI-compat path + AiKeys helpers
 - 0.5.361: `InviteReady` as serializable record
 - 0.5.362: meta docs OAI/Cloud.ru on `cdp_citizen`
-- 2026-08-01: dogfood — `open_ai_api_key` set in CascadeIDE ai-keys.toml; invite_ready=true; live turn `http_402` Not enough money (key auth OK, FM billing/bonus not covering inference yet)
-- 2026-08-01: dry_run model label follows ResolveProvider (no more false claude DefaultModel when FM keys present)
+- 2026-08-01 earlier: dogfood had `http_402` Not enough money — billing later cleared for smoke
