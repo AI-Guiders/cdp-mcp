@@ -63,7 +63,7 @@ public static class CabinGlassProjectionCatalog
             "webcam" or "webcam_desk" or "camera" or "sense"
                 => new Projection(null, "agent · M: webcam"),
             "toolchain" or "toolchain_desk"
-                => new Projection(null, "agent · M: toolchain"),
+                => new Projection("Build", "agent · M: toolchain"),
             "alert" or "eicas" or "sa"
                 => new Projection(null, "agent · M: alert"),
             "plugins" or "plugin" or "vsix"

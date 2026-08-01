@@ -31,6 +31,7 @@ public class CabinGlassProjectionCatalogTests
     [InlineData("find_desk", "RelatedFiles", "agent · M: find")]
     [InlineData("md_author", "MarkdownPreview", "agent · M: md_author")]
     [InlineData("report", "MarkdownPreview", "agent · M: report")]
+    [InlineData("toolchain_desk", "Build", "agent · M: toolchain")]
     [InlineData("project_switch", "SolutionExplorer", "agent · M: project_switch")]
     [InlineData("domain", "MarkdownPreview", "agent · M: domain")]
     [InlineData("ownership", "MarkdownPreview", "agent · M: domain")]

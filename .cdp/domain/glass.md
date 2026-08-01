@@ -37,3 +37,4 @@
 - 0.5.369: `onboard` → MFD `MarkdownPreview` (+ chrome hint) — onboard docs are md
 - 0.5.370: `review` → MFD `Problems` (+ chrome hint) — same family as quality/gates
 - 0.5.371: `report`/`evidence`/`pfd` → MFD `MarkdownPreview` (+ chrome hint)
+- 0.5.372: `toolchain` → MFD `Build` (+ chrome hint)
