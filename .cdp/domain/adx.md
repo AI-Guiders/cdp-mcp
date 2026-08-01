@@ -31,6 +31,7 @@
 
 ## last_ship
 
+- IdeChkChannel Builtins peel (façade ≤ADX soft-warn) @ 0.5.421 · 2026-08-01
 - ScriptScene Check+Run peels (façade ≤ADX soft-warn) @ 0.5.420 · 2026-08-01
 - Ps1Scene.Run → .Pwsh + .Helpers peel @ 0.5.419 · 2026-08-01
 - WorkspaceDbHost peel — Program TLS EnsureWorkspaceDb @ 0.5.418 · 2026-08-01

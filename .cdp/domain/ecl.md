@@ -6,7 +6,7 @@
 
 ## Invariants
 
-- Soft-warn FileLinesWarn=400; Builtins+Handle+Board/cards stay in main; Eval partial owns Evaluate→DoLink (probe/catalog merge/add); Mutate owns DoEnable→OverlayItem (enable/ack/persist).
+- Soft-warn FileLinesWarn=400 (ADX soft-warn 350); Handle+Build+Board/cards stay in main; Builtins catalog → `IdeChkChannel.Builtins.cs`; Eval owns Evaluate→DoLink; Mutate owns DoEnable→OverlayItem.
 - Overlay: `ecl.overlay` (legacy `chk.overlay`); acks: `ecl.acks`.
 
 ## Entry
@@ -15,8 +15,9 @@
 
 ## Antipatterns
 
-- Re-merging Eval+Mutate into main past soft-warn — keep peels.
+- Re-merging Eval+Mutate+Builtins into main past soft-warn — keep peels.
 
 ## last_ship
 
-- soft-warn: `IdeChkChannel` → `IdeChkChannel.Eval.cs` + `IdeChkChannel.Mutate.cs` @ 0.5.389; main~376 / Eval~253 / Mutate~278
+- soft-warn: Builtins peel → `IdeChkChannel.Builtins.cs`; main 376→275 @ 0.5.421 · 2026-08-01
+- soft-warn: `IdeChkChannel` → `IdeChkChannel.Eval.cs` + `IdeChkChannel.Mutate.cs` @ 0.5.389; Eval~253 / Mutate~278
