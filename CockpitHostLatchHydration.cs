@@ -39,7 +39,8 @@ internal static class CockpitHostLatchHydration
         "review-LATEST.json",
         "learn-LATEST.json",
         "domain-LATEST.json",
-        "sa-desk-LATEST.json"
+        "sa-desk-LATEST.json",
+        "test_desk-LATEST.json"
     ];
 
     /// <summary>Test hook: redirect flat latch root (same as glass latches).</summary>
