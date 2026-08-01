@@ -1,0 +1,7 @@
+@intent seats_detail=full
+
+@frame desk v0
+board | P:plan · fixtures | F:editor · 0 buf | M:shell
+sa    | clear · explore/code
+peer  | ok · gen=1 · mcp=live · compact=no
+cost  | A
