@@ -99,6 +99,22 @@ public class CitizenCompletionsTests : IDisposable
         Assert.True(outDoc.RootElement.GetProperty("dry_run").GetBoolean());
         Assert.True(outDoc.RootElement.GetProperty("injected").GetBoolean());
     }
+
+    [Fact]
+    public void Channel_scene_exposes_invite_ready_gate()
+    {
+        var json = IdeCitizenChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("scene")
+        });
+        using var doc = JsonDocument.Parse(json);
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.True(doc.RootElement.TryGetProperty("invite_ready", out var invite));
+        Assert.True(invite.TryGetProperty("Status", out _) || invite.TryGetProperty("status", out _)
+                    || invite.ValueKind == JsonValueKind.Object);
+        Assert.Contains("invite=", doc.RootElement.GetProperty("pulse").GetString(), StringComparison.Ordinal);
+    }
+
 }
 
 sealed class StubHandler(HttpStatusCode code, string body) : HttpMessageHandler
