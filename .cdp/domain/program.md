@@ -27,6 +27,7 @@
 
 ## last_ship
 
+- MetaDispatch.Core→Health peel (cdp_health) @ 0.5.435 · 2026-08-01
 - WorkspaceDbHost peel (EnsureWorkspaceDb cluster) — Program.cs 396→341 @ 0.5.418 · 2026-08-01
 - soft-warn peel: MetaToolCatalog Ide164 / Ide.Pkg162 (pkg→sln) @ 0.5.415
 - soft-warn peel: MetaToolCatalog Soft210 / Soft.Ops144 (files→cockpit_host) @ 0.5.414
