@@ -30,6 +30,7 @@ public class CabinGlassProjectionCatalogTests
     [InlineData("webcam_desk", null, "agent · M: webcam")]
     [InlineData("find_desk", "RelatedFiles", "agent · M: find")]
     [InlineData("md_author", "MarkdownPreview", "agent · M: md_author")]
+    [InlineData("report", "MarkdownPreview", "agent · M: report")]
     [InlineData("project_switch", "SolutionExplorer", "agent · M: project_switch")]
     [InlineData("domain", "MarkdownPreview", "agent · M: domain")]
     [InlineData("ownership", "MarkdownPreview", "agent · M: domain")]

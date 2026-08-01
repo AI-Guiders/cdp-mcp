@@ -55,7 +55,7 @@ public static class CabinGlassProjectionCatalog
                 => new Projection(null, "agent · P: plan"),
             "ps1" or "ps1_desk" or "ise" => new Projection("Terminal", "agent · M: ps1"),
             "report" or "evidence" or "pfd"
-                => new Projection(null, "agent · M: report"),
+                => new Projection("MarkdownPreview", "agent · M: report"),
             "sa_desk" or "code_sa" or "pre_sa" or "sa_code" or "cdp_sa"
                 => new Projection(null, "agent · M: sa"),
             "crm" or "callout" or "crm_panel"
