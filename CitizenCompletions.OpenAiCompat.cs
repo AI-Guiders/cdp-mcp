@@ -83,6 +83,7 @@ internal static partial class CitizenCompletions
         {
             ["model"] = resolved.Model,
             ["max_tokens"] = Math.Clamp(maxTokens, 64, 8192),
+            ["temperature"] = 0,
             ["stream"] = false,
             ["messages"] = oaiMessages
         };
