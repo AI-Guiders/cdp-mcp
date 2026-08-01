@@ -13,6 +13,7 @@
 - Dual-seat: `cdp_health` / `ops_pulse` show `self=` / `sib=` / `lag` — do not shell FileVersionInfo.
 - Pressure wake: `op=recall` → ready when SSOT (body+plan/ignite); do not force 4-op ceremony.
 - TM: `done`/`shipped` accept **feature title** (closes incomplete leaves); `shipped` without `start` starts wall implicitly.
+- TM: `FindIntentIdByTitle` strips `@phase`/`#Product` + unique prefix (≥8) — same chrome rules as stage title match.
 
 ## Entry
 
@@ -30,6 +31,7 @@
 
 ## last_ship
 
+- FindIntentIdByTitle StripBoardChrome + prefix; Find.Title peel @ 0.5.416 · 2026-08-01
 - MetaToolCatalog Ide→Ide.Pkg peel (pkg→sln) @ 0.5.415 · 2026-08-01
 - MetaToolCatalog Soft→Soft.Ops peel (files→cockpit_host) @ 0.5.414 · 2026-08-01
 - MetaToolCatalog soft-warn peel Core→Core.Ops (recent→sa) @ 0.5.413 · 2026-08-01
