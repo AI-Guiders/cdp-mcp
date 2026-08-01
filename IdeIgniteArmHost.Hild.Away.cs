@@ -43,7 +43,7 @@ internal static partial class IdeIgniteArmHost
         Console.Error.WriteLine(
             $"[ide_ignite] hild human_away edge #{HildEdgeCount} — status away; escalate@{AwayEscalateAfter.TotalSeconds:0}s");
 
-        Notify("human_away", ok: true, pulse: "hild", detail: "composer_idle_5s");
+        
 
         if (HasAwaitingOperatorLatch())
         {

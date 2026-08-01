@@ -5,7 +5,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// HILD — Human-in-the-loop detector via CDT Composer.
-/// Voice/empty + no Composer text for 5s → <c>human_away</c> once → AutoIgnition wake.
+
 /// First away = partner status; still away after <see cref="AwayEscalateAfter"/> → autonomy.
 /// </summary>
 internal static partial class IdeIgniteArmHost
@@ -141,9 +141,7 @@ internal static partial class IdeIgniteArmHost
                 away_escalate_due_utc = AwayEscalateDueUtc,
                 away_escalate_after_s = AwayEscalateAfter.TotalSeconds,
                 why,
-                hint =
-                    "Voice/empty 5s → partner=away (status) + wake. Still away after AwayEscalateAfter → autonomous on. " +
-                    "Human Composer text → partner=here. AutoI charge ignored as return."
+                
             };
         }
     }

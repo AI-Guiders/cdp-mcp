@@ -6,11 +6,12 @@ namespace CdpMcp;
 /// Human-in-the-loop detector (pure FSM).
 /// Voice/empty Composer + no text for <see cref="DefaultIdle"/> → edge <c>human_away</c> <b>once</b>.
 /// Latch holds until human Composer text (not AutoI wake charge) — no re-fire after agent Stop→Voice.
-/// Purpose: one AutoI wake → autonomous flight (not a 5s thrash loop).
+/// Purpose: one AutoI wake → autonomous flight (not a thrash loop).
+/// Default idle 30s — dogfood: 5s woke while operator still reading (ADR-0023 v0 note).
 /// </summary>
 internal sealed class IdeHildDetector
 {
-    public static readonly TimeSpan DefaultIdle = TimeSpan.FromSeconds(5);
+    public static readonly TimeSpan DefaultIdle = TimeSpan.FromSeconds(30);
 
     public enum Status
     {
