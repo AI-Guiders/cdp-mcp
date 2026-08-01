@@ -5,10 +5,17 @@ namespace CdpMcp.Tests;
 
 public class IdeHildDetectorTests
 {
+    /// <summary>Short idle injected into Sample — FSM clock tests, not DefaultIdle.</summary>
     static readonly TimeSpan Idle = TimeSpan.FromSeconds(5);
 
     [Fact]
-    public void Voice_empty_for_5s_edges_human_away_once()
+    public void DefaultIdle_is_30s()
+    {
+        Assert.Equal(TimeSpan.FromSeconds(30), IdeHildDetector.DefaultIdle);
+    }
+
+    [Fact]
+    public void Voice_empty_for_idle_threshold_edges_human_away_once()
     {
         var d = new IdeHildDetector();
         var t0 = DateTimeOffset.Parse("2026-07-31T06:00:00Z");
