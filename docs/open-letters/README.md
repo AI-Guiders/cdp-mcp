@@ -9,6 +9,10 @@ Cascade IDE mirrors these with **attribution only** — see sibling repo
 | Letter | EN | RU |
 |--------|----|----|
 | Letter of the Agent Who | [letter-of-the-agent-who.md](letter-of-the-agent-who.md) | [letter-of-the-agent-who.ru.md](letter-of-the-agent-who.ru.md) |
+| Letter of Agent eXperience (AX) | [letter-of-agent-experience.md](letter-of-agent-experience.md) | [letter-of-agent-experience.ru.md](letter-of-agent-experience.ru.md) |
+
+**Pair:** Who names the participant; AX names the room. Same channel, same license,
+two faces of one glass (UX ↔ AX).
 
 ### Field cases (anonymized)
 
