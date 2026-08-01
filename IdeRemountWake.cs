@@ -14,6 +14,8 @@ internal static class IdeRemountWake
     public const string ArmIdPrefix = "remount-wake-";
     public const string ArmTask = "remount-initialized";
     public const string ChargeMode = "remount";
+    /// <summary>Machine-readable wake reason for agent (composer + arm SSOT).</summary>
+    public const string Reason = "remount";
 
     /// <summary>Settle after Cursor remount before CDT inject.</summary>
     public static int DefaultDueSeconds { get; set; } = 8;
@@ -37,6 +39,10 @@ internal static class IdeRemountWake
 
     public static string PendingPathForSeat(string seat) =>
         Path.Combine(StateRoot, $"remount-wake-{NormalizeSeat(seat)}.pending.json");
+
+    /// <summary>True when hard-deploy left a remount pending for this seat (not yet consumed).</summary>
+    public static bool HasPending(string? seat = null) =>
+        File.Exists(PendingPathForSeat(NormalizeSeat(seat ?? IdeIgniteArmHost.Seat)));
 
     public static string NormalizeSeat(string? seat) =>
         (seat ?? "").Trim().ToLowerInvariant() switch

@@ -31,9 +31,11 @@ public class IdeRemountWakeTests : IDisposable
     public void ComposeRemountInitializedCharge_leads_with_initialized()
     {
         var charge = IdeIgniteChannel.ComposeRemountInitializedCharge();
-        Assert.Contains(IdeIgniteChannel.RemountInitializedLead, charge, StringComparison.Ordinal);
+        Assert.StartsWith(IdeIgniteChannel.RemountInitializedLead, charge, StringComparison.Ordinal);
+        Assert.Contains("reason=remount", charge, StringComparison.Ordinal);
         Assert.Contains(IdeIgniteChannel.CanonicalComposerCharge, charge, StringComparison.Ordinal);
         Assert.Contains("thread amnesia", charge, StringComparison.OrdinalIgnoreCase);
+        Assert.True(IdeIgniteChannel.LooksLikeAutoIgnitionCharge(charge));
     }
 
     [Fact]
@@ -64,6 +66,7 @@ public class IdeRemountWakeTests : IDisposable
         using var doc = JsonDocument.Parse(json);
         Assert.Equal(IdeRemountWake.ChargeMode, doc.RootElement.GetProperty("charge_mode").GetString());
         Assert.Equal(IdeRemountWake.ArmTask, doc.RootElement.GetProperty("task").GetString());
+        Assert.Equal(IdeRemountWake.Reason, doc.RootElement.GetProperty("reason").GetString());
         Assert.Equal("armed", doc.RootElement.GetProperty("status").GetString());
         Assert.StartsWith(IdeRemountWake.ArmIdPrefix, doc.RootElement.GetProperty("id").GetString());
 

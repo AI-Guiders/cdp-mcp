@@ -50,6 +50,11 @@ internal static partial class IdeIgniteArmHost
                 a.Id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
                 && a.Status is "armed" or "firing");
 
+            // Remount wake: drop HILD steal only. Real OOM may follow hard deploy — do not cancel oom-wake.
+            Arms.RemoveAll(a =>
+                a.Id.StartsWith(HildArmIdPrefix, StringComparison.OrdinalIgnoreCase)
+                && a.Status is "armed" or "firing");
+
             arm = new IgniteArm
             {
                 Id = id,
@@ -57,6 +62,7 @@ internal static partial class IdeIgniteArmHost
                 Message = IdeIgniteChannel.ComposeRemountInitializedCharge(),
                 ChargeMode = IdeRemountWake.ChargeMode,
                 Task = IdeRemountWake.ArmTask,
+                Reason = IdeRemountWake.Reason,
                 Once = true,
                 LastOnce = false,
                 OkOnly = true,
