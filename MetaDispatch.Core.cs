@@ -119,6 +119,7 @@ internal static partial class MetaDispatch
                 build_utc = buildUtc?.ToString("o"),
                 pending_update = pendingUpdate
             },
+            seats = IdeOpsPulse.SeatsWire(),
             continuity = IdeIgniteArmHost.ContinuitySlice(),
             continuity_pulse = IdeIgniteArmHost.ContinuityPulseLine(),
             isolation = CdpClientWorkspace.StatusCard(),
