@@ -425,10 +425,29 @@ public class IdeIgniteArmHostTests
     [InlineData("tool-wake-abc", true)]
     [InlineData("remount-wake-20260730-xx", true)]
     [InlineData("oom-wake-20260731-xx", true)]
+    [InlineData("hild-escalate-20260801-xx", true)]
     [InlineData("arm-20260729-xx", false)]
     [InlineData(null, false)]
     public void IsSystemWakeArmId_prefix(string? id, bool expect) =>
         Assert.Equal(expect, IdeIgniteArmHost.IsSystemWakeArmId(id));
+
+    [Fact]
+    public void TryScheduleHildEscalateWake_arms_escalate_charge()
+    {
+        var scheduled = IdeIgniteArmHost.TryScheduleHildEscalateWake();
+        Assert.NotNull(scheduled);
+        var json = JsonSerializer.Serialize(scheduled);
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal(IdeIgniteArmHost.HildEscalateChargeMode, doc.RootElement.GetProperty("charge_mode").GetString());
+        Assert.Equal(IdeIgniteArmHost.HildEscalateReason, doc.RootElement.GetProperty("reason").GetString());
+        var id = doc.RootElement.GetProperty("id").GetString();
+        Assert.StartsWith(IdeIgniteArmHost.HildEscalateArmIdPrefix, id, StringComparison.OrdinalIgnoreCase);
+        IdeIgniteArmHost.Disarm(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["id"] = JsonSerializer.SerializeToElement(id!)
+        });
+    }
+
 
     [Theory]
     [InlineData("build_finished", true)]

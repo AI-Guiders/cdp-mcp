@@ -106,6 +106,8 @@ internal static partial class IdeIgniteArmHost
             return true;
         if (a.Id.StartsWith(HildArmIdPrefix, StringComparison.OrdinalIgnoreCase))
             return true;
+        if (a.Id.StartsWith(HildEscalateArmIdPrefix, StringComparison.OrdinalIgnoreCase))
+            return true;
         if (a.Id.StartsWith("remount-wake-", StringComparison.OrdinalIgnoreCase))
             return true;
         if (a.Id.StartsWith("tool-wake-", StringComparison.OrdinalIgnoreCase))

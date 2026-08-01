@@ -12,6 +12,11 @@ namespace CdpMcp;
 internal static partial class IdeIgniteArmHost
 {
     public const string HildArmIdPrefix = "hild-away-";
+    /// <summary>Escalate wake — must fire even if the first away turn already ended.</summary>
+    public const string HildEscalateArmIdPrefix = "hild-escalate-";
+    public const string HildEscalateChargeMode = "escalate";
+    public const string HildEscalateReason = "escalate";
+    public const string HildEscalateArmTask = "hild-away-escalate";
     public const string HildStoreSchema = "hild/v0";
 
     static readonly TimeSpan HildPollInterval = TimeSpan.FromSeconds(1);
@@ -286,7 +291,8 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>
-    /// Still away after <see cref="AwayEscalateAfter"/> → partner likely gone long → autonomy.
+    /// Still away after <see cref="AwayEscalateAfter"/> → autonomy + escalate wake (reason=escalate).
+    /// Autonomy latch alone is not enough — agent must receive a Composer charge if the first away turn ended.
     /// </summary>
     static void TryEscalateAwayToAutonomy()
     {
@@ -308,10 +314,57 @@ internal static partial class IdeIgniteArmHost
         lock (HildGate)
             AwayEscalateDone = true;
 
-        IdeTeethTape.Record("partner_away_escalate", detail: "still_away→autonomy");
+        IdeTeethTape.Record("partner_away_escalate", detail: "still_away→autonomy+wake");
         SetAutonomous(true, "hild_away_escalate");
+        var scheduled = TryScheduleHildEscalateWake();
+        if (TryArmId(scheduled) is { } aid)
+            IdeTeethTape.Record("wake_schedule", armId: aid, reason: HildEscalateReason, detail: "away_escalate");
         Console.Error.WriteLine(
-            $"[ide_ignite] hild away escalate — still away after {AwayEscalateAfter.TotalSeconds:0}s → autonomous on");
+            $"[ide_ignite] hild away escalate — still away after {AwayEscalateAfter.TotalSeconds:0}s → autonomous on + escalate wake");
+    }
+
+    /// <summary>One-shot timer charge_mode=escalate (system wake — not superseded).</summary>
+    internal static object? TryScheduleHildEscalateWake()
+    {
+        EnsureLoaded();
+        EnsureStarted();
+        var dueSec = 2;
+        var now = DateTimeOffset.UtcNow;
+        var id = HildEscalateArmIdPrefix
+                 + now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)
+                 + "-" + Guid.NewGuid().ToString("N")[..6];
+
+        IgniteArm arm;
+        lock (Gate)
+        {
+            Arms.RemoveAll(a =>
+                a.Id.StartsWith(HildEscalateArmIdPrefix, StringComparison.OrdinalIgnoreCase)
+                && a.Status is "armed" or "firing");
+
+            arm = new IgniteArm
+            {
+                Id = id,
+                Event = "timer",
+                Message = IdeIgniteChannel.ComposeEscalateWakeCharge(),
+                ChargeMode = HildEscalateChargeMode,
+                Task = HildEscalateArmTask,
+                Reason = HildEscalateReason,
+                Once = true,
+                LastOnce = false,
+                OkOnly = true,
+                SettleSeconds = 1,
+                WaitSeconds = 90,
+                DueUtc = now + TimeSpan.FromSeconds(dueSec),
+                InRaw = $"{dueSec}s",
+                Status = "armed",
+                CreatedUtc = now,
+                LastError = "hild_away_escalate"
+            };
+            Arms.Add(arm);
+            PersistUnlocked();
+        }
+
+        return Slim(arm);
     }
 
     static bool HasArmedOomWake()

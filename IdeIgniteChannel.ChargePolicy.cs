@@ -57,6 +57,20 @@ internal static partial class IdeIgniteChannel
         return SanitizeComposerCharge(core + "\n\n---\n" + domain);
     }
 
+    /// <summary>Lead line when HILD away escalates to autonomy — agent must wake even if first away turn ended.</summary>
+    internal const string EscalateWakeLead =
+        "reason=escalate — partner still away after HILD window → autonomous on. Habitat=CDP. Run cdp_pressure op=recall then resume.";
+
+    internal static string ComposeEscalateWakeCharge(string? projectRoot = null, string? focusHint = null)
+    {
+        var core = EscalateWakeLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix;
+        var domain = IdeDomainPulse.RemountDomainAppendix(projectRoot, focusHint);
+        if (domain.Length == 0)
+            return SanitizeComposerCharge(core);
+        return SanitizeComposerCharge(core + "\n\n---\n" + domain);
+    }
+
+
     /// <summary>Cheap CDT liveness — /json/version without Composer attach.</summary>
     internal static async Task<bool> TryPingCdtAsync(int port, CancellationToken ct)
     {
@@ -120,6 +134,9 @@ internal static partial class IdeIgniteChannel
         if (t.StartsWith(OomWakeLead, StringComparison.Ordinal)
             || t.StartsWith("reason=oom", StringComparison.OrdinalIgnoreCase)
             || t.Contains("Cursor host OOM", StringComparison.Ordinal))
+            return true;
+        if (t.StartsWith(EscalateWakeLead, StringComparison.Ordinal)
+            || t.StartsWith("reason=escalate", StringComparison.OrdinalIgnoreCase))
             return true;
         if (t.StartsWith("Tool call still running past wake threshold:", StringComparison.Ordinal))
             return true;
