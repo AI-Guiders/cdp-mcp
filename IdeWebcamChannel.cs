@@ -61,6 +61,8 @@ internal static partial class IdeWebcamChannel
                 "burst" or "webcam_burst" or "capture_burst" => Burst(session, args),
                 "av" or "av_burst" or "capture_av" or "capture_av_burst" => Av(session, args),
                 "screen" or "screen_burst" or "capture_screen_burst" => Screen(session, args),
+                "window" or "window_snap" or "capture_window" or "window_list" or "windows"
+                    or "list_windows" => Window(session, args),
                 "audio" or "record_audio" or "capture_audio" => Audio(session, args),
                 "transcribe" or "transcribe_audio" or "transcribe_audio_whisper" or "whisper" =>
                     Transcribe(session, args),
@@ -162,14 +164,18 @@ internal static partial class IdeWebcamChannel
             op = "scene",
             go = GoName,
             tool = ToolName,
-            pulse = "webcam · in-proc · frame|burst|av|screen|audio|transcribe|ocr|analyze",
+            pulse = "webcam · in-proc · frame|burst|av|screen|window|audio|transcribe|ocr|analyze",
             workspace = root,
             core = "AIGuiders.WebcamMcp.Shared 0.1.0",
-            ops = new[] { "scene", "frame", "burst", "av", "screen", "audio", "transcribe", "ocr", "analyze" },
+            ops = new[]
+            {
+                "scene", "frame", "burst", "av", "screen", "window", "window_list",
+                "audio", "transcribe", "ocr", "analyze"
+            },
             planned = Array.Empty<string>(),
             audio = AudioDeviceScene(),
             whisper_model = Environment.GetEnvironmentVariable(EnvWhisperModelPath),
-            hint = "op=av → frames+audio(+video); op=transcribe audio_path= — capture/analysis parity"
+            hint = "op=window process=|title=|hwnd= — HWND PNG (PrintWindow); op=window_list to discover"
         };
     }
 

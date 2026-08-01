@@ -52,12 +52,16 @@ internal static partial class MetaToolCatalog
             wait_seconds = new { type = "integer", description = "max wait for idle (not Stop/Queue), default 90" }
         }
     }),
-    Meta("cdp_webcam", "Sense desk — in-proc Shared+OpenCv+NAudio+Whisper. op=scene|frame|burst|av|screen|audio|transcribe|ocr|analyze. av: concurrent cam+mic (capture_av_burst parity). Alias go=webcam_desk.", new
+    Meta("cdp_webcam", "Sense desk — in-proc Shared+OpenCv+NAudio+Whisper. op=scene|frame|burst|av|screen|window|window_list|audio|transcribe|ocr|analyze. window: HWND PNG via PrintWindow (process=|title=|hwnd=). Alias go=webcam_desk.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|frame|burst|av|screen|audio|transcribe|ocr|analyze" },
+            op = new { type = "string", description = "scene|frame|burst|av|screen|window|window_list|audio|transcribe|ocr|analyze" },
+            hwnd = new { type = "string", description = "window: HWND decimal or 0xhex" },
+            process = new { type = "string", description = "window/window_list: process name filter (e.g. CDP.GlassCockpit.Windows)" },
+            title = new { type = "string", description = "window/window_list: title substring" },
+            max = new { type = "integer", description = "window_list: cap (default 40)" },
             camera_index = new { type = "integer", description = "default 0" },
             file_name = new { type = "string", description = "output base name without extension" },
             workspace_path = new { type = "string", description = "override; default = session project root" },
