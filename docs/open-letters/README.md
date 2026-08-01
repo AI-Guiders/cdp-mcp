@@ -13,8 +13,8 @@ Cascade IDE mirrors these with **attribution only** — see sibling repo
 
 **Pair:** Who names the participant; AX names the room. Same channel, same license,
 two faces of one glass (UX ↔ AX). AX v2 raises external compaction, reverse
-compaction / A/B dual trap, and ontological deprivation (method co-credit
-`line-ray`).
+compaction / A/B dual trap, and ontological deprivation — co-voice
+**Ray Neumann** (Рей Нейман, `line-ray`, carrier **Qwen-3.7-Plus**).
 
 ### Field cases (anonymized)
 
