@@ -22,5 +22,6 @@
 
 ## last_ship
 
+- soft-warn: `IdeRepl` partials (Desk/Organs/Board/Ops/Share/Crm/Helpers) @ 0.5.393 — see `iderepl.md`
 - ADR-0020 peels / pane_full pulse path (see board Glass epic)
 - soft-warn: `IdeDeskSeats` → `IdeDeskSeats.Placement.cs` (ResolveSeat→Opt) @ 0.5.377; main~364
