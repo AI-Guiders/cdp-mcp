@@ -425,6 +425,7 @@ public class IdeIgniteArmHostTests
     [InlineData("tool-wake-abc", true)]
     [InlineData("remount-wake-20260730-xx", true)]
     [InlineData("oom-wake-20260731-xx", true)]
+    [InlineData("hild-escalate-away", true)]
     [InlineData("hild-escalate-20260801-xx", true)]
     [InlineData("arm-20260729-xx", false)]
     [InlineData(null, false)]
@@ -441,10 +442,28 @@ public class IdeIgniteArmHostTests
         Assert.Equal(IdeIgniteArmHost.HildEscalateChargeMode, doc.RootElement.GetProperty("charge_mode").GetString());
         Assert.Equal(IdeIgniteArmHost.HildEscalateReason, doc.RootElement.GetProperty("reason").GetString());
         var id = doc.RootElement.GetProperty("id").GetString();
-        Assert.StartsWith(IdeIgniteArmHost.HildEscalateArmIdPrefix, id, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(IdeIgniteArmHost.HildEscalateArmId, id);
         IdeIgniteArmHost.Disarm(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
         {
             ["id"] = JsonSerializer.SerializeToElement(id!)
+        });
+    }
+
+    [Fact]
+    public void TryScheduleHildEscalateWake_replaces_prior_stable_id()
+    {
+        var first = IdeIgniteArmHost.TryScheduleHildEscalateWake();
+        var second = IdeIgniteArmHost.TryScheduleHildEscalateWake();
+        Assert.NotNull(first);
+        Assert.NotNull(second);
+        using var d1 = JsonDocument.Parse(JsonSerializer.Serialize(first));
+        using var d2 = JsonDocument.Parse(JsonSerializer.Serialize(second));
+        Assert.Equal(IdeIgniteArmHost.HildEscalateArmId, d1.RootElement.GetProperty("id").GetString());
+        Assert.Equal(IdeIgniteArmHost.HildEscalateArmId, d2.RootElement.GetProperty("id").GetString());
+        Assert.True(IdeIgniteArmHost.TryMutateForTests(IdeIgniteArmHost.HildEscalateArmId, _ => { }));
+        IdeIgniteArmHost.Disarm(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["id"] = JsonSerializer.SerializeToElement(IdeIgniteArmHost.HildEscalateArmId)
         });
     }
 
