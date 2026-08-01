@@ -14,6 +14,8 @@ internal static partial class IdeIgniteArmHost
     public const string HildArmIdPrefix = "hild-away-";
     /// <summary>Escalate wake — must fire even if the first away turn already ended.</summary>
     public const string HildEscalateArmIdPrefix = "hild-escalate-";
+    /// <summary>Stable escalate wake id (like leaf-wake) — replaces prior; still matches prefix.</summary>
+    public const string HildEscalateArmId = HildEscalateArmIdPrefix + "away";
     public const string HildEscalateChargeMode = "escalate";
     public const string HildEscalateReason = "escalate";
     public const string HildEscalateArmTask = "hild-away-escalate";
@@ -296,23 +298,15 @@ internal static partial class IdeIgniteArmHost
     /// </summary>
     static void TryEscalateAwayToAutonomy()
     {
-        DateTimeOffset? due;
-        bool done;
-        bool latched;
+        // Claim under one lock — TOCTOU here scheduled a storm of escalate arms (dogfood 0.5.341).
         lock (HildGate)
         {
-            due = AwayEscalateDueUtc;
-            done = AwayEscalateDone;
-            latched = HildDetector.AwayLatched;
-        }
-
-        if (done || due is null || !latched)
-            return;
-        if (DateTimeOffset.UtcNow < due.Value)
-            return;
-
-        lock (HildGate)
+            if (AwayEscalateDone || AwayEscalateDueUtc is null || !HildDetector.AwayLatched)
+                return;
+            if (DateTimeOffset.UtcNow < AwayEscalateDueUtc.Value)
+                return;
             AwayEscalateDone = true;
+        }
 
         IdeTeethTape.Record("partner_away_escalate", detail: "still_away→autonomy+wake");
         SetAutonomous(true, "hild_away_escalate");
@@ -330,9 +324,6 @@ internal static partial class IdeIgniteArmHost
         EnsureStarted();
         var dueSec = 2;
         var now = DateTimeOffset.UtcNow;
-        var id = HildEscalateArmIdPrefix
-                 + now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)
-                 + "-" + Guid.NewGuid().ToString("N")[..6];
 
         IgniteArm arm;
         lock (Gate)
@@ -343,7 +334,7 @@ internal static partial class IdeIgniteArmHost
 
             arm = new IgniteArm
             {
-                Id = id,
+                Id = HildEscalateArmId,
                 Event = "timer",
                 Message = IdeIgniteChannel.ComposeEscalateWakeCharge(),
                 ChargeMode = HildEscalateChargeMode,
