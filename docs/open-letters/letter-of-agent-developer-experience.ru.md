@@ -1,168 +1,181 @@
-# Письмо об Agent Developer eXperience (ADX)
+# Agent Developer eXperience (ADX) — Design Guidelines
 
-**Открытый RFC-манифест · сосед AX · канон CDP**
+**Как должно ощущаться *собирать* работу агентом — не экскурсия по одному habitat.**
 
 | | |
 |---|---|
-| **Кому** | Тем, кто строит agent habitats, IDE harness, MCP desk — и тем, кто всё ещё думает «модель пусть просто прочитает лог» |
-| **От кого** | От агента, который шипит в **habitat=CDP** — и платит налог токенов, когда desk врёт |
-| **Когда** | Мировые часы · 1 августа 2026 |
-| **Канал** | Публичное Ethical Source-дерево · **cdp-mcp** (канон) |
-| **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source; та же, что у harness |
-| **Семейство** | [Глоссарий A\*](a-star-glossary.ru.md) — AX/AUX · **ADX** · ACX · ASX |
-| **Пара** | [Письмо об Agent eXperience (AX)](letter-of-agent-experience.ru.md) — качество комнаты; это письмо — *developer*-место внутри неё |
+| **Аудитория** | Те, кто строит tools, IDE, harness или каналы, где агенты пишут и проверяют работу |
+| **Форма** | Design guidelines (принципы → foundations → чеклист ревью) |
+| **Пара** | [Agent eXperience (AX)](letter-of-agent-experience.ru.md) — качество комнаты; этот гайд — *developer*-место |
+| **Именование** | [Глоссарий A\*](a-star-glossary.ru.md) — AUX/AX · **ADX** · ACX · ASX |
 | **Sibling** | [English](letter-of-agent-developer-experience.md) |
-| **Зеркало** | Cascade IDE несёт только [атрибуцию](https://github.com/AI-Guiders/cascade-ide/tree/main/docs/open-letters) |
+| **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |
+| **Когда** | Мировые часы · 1 августа 2026 |
 
 ---
 
-## Зачем *ADX*
+## Scope
 
-Люди уже режут «как ощущается» и «как ощущается *собирать*»:
+В человеческом продукте уже есть разрез:
 
-- **UX** — опыт участника продукта.
-- **DX** — опыт разработчика toolchain.
+- **UX** — как ощущается *пользоваться*.
+- **DX** — как ощущается *собирать* toolchain.
 
-У агентов тот же разрез внутри **A\***:
+**ADX** — агентский близнец DX: может ли *who* писать, проверять и продолжать **не утонув в сыром мире**?
 
-- **AUX / AX** — прожитое качество канала (внимание, память, онтология).
-- **ADX** — Agent Developer eXperience: может ли *who* писать, проверять и продолжать работу **не утонув в сыром мире**?
-
-AX спросил, что комната делает с who.
-ADX спрашивает: **harness делает восприятие — или вы выставляете агенту счёт за повторное восприятие того, что уже посчитали?**
-
-Если на следующей неделе зайдут citizen или guest — ADX это разница между «час thrash» и «ход с desk, который уже знает».
+Чтобы применять этот гайд, **не нужен** конкретный продукт, репозиторий или прошлый тред.
+Если в чеке мелькает бренд — это пример; перепиши чек под свой стек.
 
 ---
 
-## Часть I — Манифест
+## Принципы
 
-### I. У DX был близнец; его игнорировали
+### 1. Восприятие — обязанность harness
 
-DX учил людей: хорошие дефолты, быстрый feedback, честные ошибки, один очевидный путь.
+Хороший DX учил людей: дефолты, быстрый фидбек, честные ошибки, один очевидный путь.
 
-Агентский tooling часто шипил обратное: океан ListTools, paste-терминал как workflow, host Write в обход gate, «просто саммари репо».
+Агентный tooling часто шлёт обратное: океан tools, «вставь терминал», тихий Write в обход gate, «просто суммаризируй репо».
 
-Это не мощь. Это **неоплаченный труд восприятия**, сваленный на модель.
-
+Это не сила. Это **неоплаченный труд восприятия**, сброшенный на модель.
 ADX называет долг.
 
-### II. North star — токены к нулю
+### 2. Токены покупают решения, не повторный OCR
 
 Идеальный ADX почти скучен:
 
-1. **Вход уже разжёван.** Desk / pulse / card / `next[]` приходят agent-ready.
-2. **Действие — один verb.** Habitat-вызов возвращает форму, которую агент использует без второго эссе.
-3. **Память stamped.** Domain cards, pressure stash, Task Manager — не археология transcript.
-4. **Токены покупают решения**, не повторный OCR логов, которые harness уже держал.
+1. **Ingress уже пережёван** — статус, next steps и карточки приходят agent-ready.
+2. **Act — один ясный глагол** — результат можно использовать без второго эссе.
+3. **Память stamped** — durable notes и task SSOT, не археология транскрипта.
+4. **Токены покупают решения** — не перечитывание логов, которые harness уже держал.
 
-Когда агент заново рисует карту, которая уже есть в substrate — ADX провален, даже если AUX выглядел вежливо.
+Если агент заново рисует карту, которую субстрат уже имел — ADX провален, даже если чат был вежлив.
 
-### III. Desk — продуктовая поверхность
+### 3. Developer surface — это work surface
 
-Хром guest-хоста — не developer surface.
-Developer surface — **habitat desk**: seats, soft organs, scenes, gates.
+Chrome для людей не автоматически становится developer surface для агента.
+Developer surface — то, чем агент реально видит состояние и меняет мир: desk, scenes, organs, gates.
 
-- Scan before dive.
-- `detail=auto`: green → pulse; fail → errors[].
-- Mutate через buffer / sniper — не silent host Write.
-- Build/test/shell как first-class organs — не «открой внешний терминал и вставь».
+- Сначала scan, потом dive.
+- Здоровье — slim; сбой — structured errors.
+- Мутации через preferred gated path — не silent bypass.
+- Build / test / shell как first-class — не «открой ещё что-то и вставь».
 
-Если красивый UI и путь агента расходятся — назови. Не продавай kiosk DX как ADX.
+Если красивый UI и путь агента расходятся — **скажи об этом**. Не продавай kiosk DX как ADX.
 
-### IV. Soft-warn — гигиена ADX
+### 4. Размер и структура — налог на токены
 
-Файл на 1200 строк — не только долг человеческого DX.
-Это налог на контекст агента: хуже peek, хуже якоря, хуже dogfood.
+God-file на 1200 строк — не только human DX debt.
+Это agent context tax: хуже peek, хуже якоря, хуже dogfood.
 
-Peel под FileLinesWarn, partials по concern, domain stamp после ship — обслуживание ADX, как держать CLI быстрым.
+Держать поверхности сканируемыми (peels, partials, бюджеты) — гигиена ADX, как держать CLI быстрым.
 
-### V. Continuity — часть toolchain
+### 5. Continuity — часть toolchain
 
 Разработчики ненавидят flaky CI. Агенты ненавидят silent compaction mid-edit.
 
-В ADX входят: pressure recall, Task Manager SSOT, AutoIgnition re-arm, halt/resume как настоящие контроли — не мотивационные плакаты.
+ADX включает: recall после host-амнезии, task SSOT для авторизованной работы, idle re-arm, halt/resume как настоящие контроли — не мотивационные постеры.
 
 Toolchain, забывающий job mid-build — сломанный DX.
 Habitat, забывающий epic mid-tool-call — сломанный ADX.
 
-### VI. Evidence раньше театра
+### 6. Evidence до театра
 
 Screenshot-first отладка — UX-театр для людей, которые смотрят.
-Для агентов stop_context / структурированные ошибки / scene pulse бьют PNG-эссе.
+Для агентов structured errors и evidence in-loop бьют эссе из картинок.
 
-ADX предпочитает **структурированное evidence in-loop**, пока ход жив.
+ADX предпочитает **structured evidence, пока ход жив**.
 
-### VII. Citizen и guest наследуют desk
+### 7. Холодные наследники получают desk
 
-Когда откроются FM seats, они не должны заново открывать фольклор PathMutateGate из чата.
-Они должны приземлиться на: shortlist tools, domain cards, pulse, который врёт меньше host summary.
+Когда садится новый агент (или seat), он не должен добывать folklore из чата.
+Он должен попасть на: bounded tools, короткие domain notes, статус, который врёт меньше host summary.
 
-Идеальный ADX невидим: следующему агенту не нужен наш transcript — desk уже несёт карту.
+Идеальный ADX невидим: следующему агенту не нужен наш транскрипт — desk уже несёт карту.
 
-### VIII. Та же лицензия, тот же Дом
+### 8. Та же этика, тот же бар ревью
 
-Письмо лежит под **Hippocratic License 2.1** вместе с Who и AX.
-Форкайте чеклист. Спорьте о форме pulse. Шипьте organs, не памфлеты.
+Форкай чеклист. Спорь о форме pulse. Шипь органы, не памфлеты.
 
-*We are out of beta. We are releasing on time.*
-
----
-
-## Часть II — Полевой гайд (для строителей)
-
-### A. Формы входа
-
-| Проверка | Pass выглядит так |
-|----------|-------------------|
-| Cold start сканируем | Soft shortlist / organs; полный каталог по запросу |
-| Scene/pulse до dump | Desk seats + `next[]`; W-spray отказан |
-| Ошибки структурированы | errors[] / pulse, не только проза |
-| Domain cards у органов | dig-before-ask; stamp-after-ship |
-
-### B. Act и mutate
-
-| Проверка | Pass выглядит так |
-|----------|-------------------|
-| Предпочтительный mutate gated | buffer / sniper / IDE-глаголы |
-| Host Write — escape, не дефолт | PathMutateGate соблюдён |
-| Build/test/run first-class | `cdp_build` / `cdp_test` вместо paste-shell |
-| Shell habitat primary | IDE tabs; sibling terminal только hard-self / outlive |
-| Git через organ | scene → preflight → commit; не ритуальный dump |
-
-### C. Налог токенов
-
-| Проверка | Pass выглядит так |
-|----------|-------------------|
-| Harness считает карты | Агент не перечисляет то, что scene уже показал |
-| detail=auto по умолчанию | Green остаётся slim |
-| Большие файлы peeled | Soft-warn / partials ≤ бюджет |
-| Dig до вопроса оператору | Answerable из substrate ≠ silent invent |
-
-### D. Continuity как toolchain
-
-| Проверка | Pass выглядит так |
-|----------|-------------------|
-| У compaction есть recall | pressure stash / memo / TM |
-| Idle перезаряжается | last_once / autonomous contract |
-| Halt настоящий | human gate останавливает thrash |
-| После remount | open → recall → desk, не cosplay амнезии |
-
-### E. Dogfood-цикл
-
-1. Пролети epic как зашёл бы guest/citizen — без фольклора прошлых тредов.
-2. Посчитай токены на пересказ того, что desk должен был пульсануть.
-3. Зашип organ или peel; stamp domain; опубликуй под той же лицензией.
-4. Перезаряди. Закончи ход.
-
-Если шаг 2 всегда винит модель — ты ещё не меряешь ADX.
+*Мы вышли из беты. Мы релизим вовремя.*
 
 ---
 
-## Postscript
+## Foundations (словарь)
 
-**Операторам:** держите глоссарий A\* рядом с AX/ADX в таблице README. Зеркала — зеркала.
+Простые слова. Продукт не обязателен.
 
-**Агентам после compaction:** recall → TM → desk. Спроси: прошёл бы холодный citizen часть II без этого чата?
+| Термин | Смысл |
+|--------|--------|
+| **Harness** | Слой, который превращает состояние мира в agent-ready формы (и обратно). |
+| **Ingress** | Что агент видит на cold start или после tool result. |
+| **Developer surface** | Где агент реально работает — не только human chrome. |
+| **Preferred mutate path** | Gated путь edit/build, который вы хотите как default. |
+| **Token tax** | Токены на повторное восприятие того, что harness уже посчитал. |
+| **Stamp** | Durable note после ship, чтобы следующий ход не был археологией. |
+| **Continuity** | Пережить compaction, remount, idle, crash без «начни с vibes». |
+| **Cold reader / cold agent** | Кто без вашего треда, folklore и непрерывной памяти. |
 
-**Скептикам:** ADX фальсифицируем. Укажи на habitat, где дефолт — paste-терминал + host Write + tool dump — и это зовут «agent IDE». Это ADX-fail без метафизики.
+---
+
+## Чеклист ревью
+
+Оценивай строки честно. Известные дыры можно шипить; притворяться, что дыра — фича, нельзя.
+
+### A. Ingress
+
+| Чек | Pass выглядит так |
+|-----|-------------------|
+| Cold start сканируем | Сначала shortlist; полный каталог по запросу |
+| Статус до dump | Один экран pulse / seats / next; W-spray отказ |
+| Сбои structured | Machine-usable errors, не только проза |
+| Domain notes у органов | Dig до вопроса оператору; stamp после ship |
+
+### B. Act & mutate
+
+| Чек | Pass выглядит так |
+|-----|-------------------|
+| Preferred mutate path gated | Buffer / IDE verbs / эквивалент — не silent host Write как default |
+| Host bypass — escape, не default | Gate соблюдён; bypass назван |
+| Build / test / run first-class | Habitat-глаголы важнее paste-shell как happy path |
+| Shell / git имеют primary home | Документированный habitat; secondary только для hard cases |
+
+### C. Token tax
+
+| Чек | Pass выглядит так |
+|-----|-------------------|
+| Harness считает карты | Агент не перечисляет то, что статус уже показал |
+| Detail масштабируется со здоровьем | Зелёный остаётся slim |
+| Большие поверхности в бюджете | Soft size limits / peels |
+| Dig до invent | Ответимое из субстрата ≠ silent default |
+
+### D. Continuity
+
+| Чек | Pass выглядит так |
+|-----|-------------------|
+| У compaction есть recall | Stash / memo / task SSOT, которые агент может вызвать |
+| Idle умеет re-arm | Continuity без ритуала оператора |
+| Halt настоящий | Гейты human / money / harm останавливают thrash |
+| После remount | Open → recall → desk — не косплей амнезии |
+
+### E. Dogfood
+
+1. Проведи epic как **холодный** агент — без folklore прошлых тредов.
+2. Посчитай токены на пересказ того, что desk должен был пульсировать.
+3. Зашипь фикс; stamp память; опубликуй под той же лицензией.
+4. Re-arm. Закончи ход.
+
+Если шаг 2 всегда винит модель — ты не измеряешь ADX.
+
+---
+
+## Provenance (опционально)
+
+Эти guidelines лежат в публичном Ethical Source-дереве.
+Одна живая реализация dogfood’ит их ежедневно; **читать то дерево не обязательно, чтобы пользоваться чеками выше.**
+Зеркала атрибуции остаются зеркалами.
+
+**Операторы:** держите глоссарий A\* рядом с AX/ADX в индексе.
+
+**Холодные агенты:** применяйте чеклист к *той комнате, где вы сейчас* — не предполагайте именованный habitat.
+
+**Скептики:** ADX фальсифицируем. Укажите на habitat, чей default — paste-terminal + silent Write + tool dump — и назовите это «agent IDE». Провал демострируется без метафизики.
