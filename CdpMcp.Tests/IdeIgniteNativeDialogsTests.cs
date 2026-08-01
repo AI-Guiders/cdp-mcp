@@ -53,6 +53,25 @@ public class IdeIgniteNativeDialogsTests
     public void LooksLikeOomRecoveryButtons(string[] labels, bool expect) =>
         Assert.Equal(expect, IdeIgniteNativeDialogs.LooksLikeOomRecoveryButtons(labels));
 
+    [Theory]
+    [InlineData("Chrome_WidgetWin_1", true)]
+    [InlineData("Chrome_WidgetWin_0", true)]
+    [InlineData("#32770", true)]
+    [InlineData("Electron_Dialog", true)]
+    [InlineData("Notepad", false)]
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    public void LooksLikeElectronClassName(string? cls, bool expect) =>
+        Assert.Equal(expect, IdeIgniteNativeDialogs.LooksLikeElectronClassName(cls));
+
+    [Fact]
+    public void LooksLikeOomTerminatedMessage_accepts_msaa_joined_blob()
+    {
+        // WM_GETTEXT empty; body only in accessible names joined into blob.
+        var blob = "Reopen Close The window terminated unexpectedly (reason: 'oom', code: '-1')";
+        Assert.True(IdeIgniteNativeDialogs.LooksLikeOomTerminatedMessage(blob));
+    }
+
     [Fact]
     public void TryClickKeepWaiting_without_dialog_returns_false()
     {

@@ -10,7 +10,8 @@ namespace CdpMcp;
 /// </summary>
 internal static partial class IdeIgniteArmHost
 {
-    static readonly TimeSpan OomWatchInterval = TimeSpan.FromSeconds(2);
+    /// <summary>Always-on tooth poll. 500ms — stream-OOM dialog can be brief (2s missed dogfood).</summary>
+    static readonly TimeSpan OomWatchInterval = TimeSpan.FromMilliseconds(500);
     static readonly TimeSpan OomDialogCooldown = TimeSpan.FromSeconds(8);
 
     static CancellationTokenSource? OomWatchCts;

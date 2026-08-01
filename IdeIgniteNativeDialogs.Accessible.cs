@@ -1,5 +1,6 @@
 #nullable enable
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace CdpMcp;
 
@@ -15,6 +16,29 @@ internal static partial class IdeIgniteNativeDialogs
             if (!TryGetAccessibleDynamic(hWnd, out var acc) || acc is null)
                 return;
             WalkAccessibleNames(acc, childId: 0, labels, depth: 0);
+        }
+        catch
+        {
+            /* MSAA optional */
+        }
+    }
+
+    /// <summary>Feed MSAA names into text blob for OOM body match (WM_GETTEXT often empty).</summary>
+    static void CollectAccessibleNamesInto(nint hWnd, StringBuilder blob)
+    {
+        if (blob.Length >= 4000)
+            return;
+        try
+        {
+            var names = new List<string>(24);
+            CollectAccessibleNames(hWnd, names);
+            foreach (var n in names)
+            {
+                if (blob.Length >= 4000)
+                    break;
+                if (!string.IsNullOrWhiteSpace(n))
+                    blob.Append(n).Append(' ');
+            }
         }
         catch
         {
