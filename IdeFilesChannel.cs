@@ -355,6 +355,13 @@ internal static partial class IdeFilesChannel
     static object ClearCwd()
     {
         IdeSettingsStore.Unset(CwdKey);
+        CideFilesDeskLatch.Publish(
+            active: false,
+            pulse: "files_desk · idle · cwd cleared",
+            op: "clear",
+            where: null,
+            cwd: null,
+            entryCount: 0);
         return new
         {
             ok = true,
@@ -376,6 +383,14 @@ internal static partial class IdeFilesChannel
         bool truncated,
         string? hint)
     {
+        var pulse = $"files · {where} · {ShortPath(cwd)} · {total}";
+        CideFilesDeskLatch.Publish(
+            active: true,
+            pulse: pulse,
+            op: op,
+            where: where,
+            cwd: cwd,
+            entryCount: total);
         return new
         {
             ok = true,
@@ -387,7 +402,7 @@ internal static partial class IdeFilesChannel
             where,
             cwd,
             shape,
-            pulse = $"files · {where} · {ShortPath(cwd)} · {total}",
+            pulse,
             total,
             truncated,
             entries,

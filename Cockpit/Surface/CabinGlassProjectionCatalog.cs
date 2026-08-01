@@ -31,7 +31,7 @@ public static class CabinGlassProjectionCatalog
             "test" or "test_desk" => new Projection("Tests", null),
             "debug" or "debug_desk" => new Projection("DebugStack", null),
             "git" or "git_scene" => new Projection("Git", null),
-            "files" or "files_desk" or "explorer" or "fm" => new Projection("SolutionExplorer", null),
+            "files" or "files_desk" or "explorer" or "fm" => new Projection("SolutionExplorer", "agent · M: files"),
             "correspondence" or "crs" => new Projection("Correspondence", null),
             "hybrid_index" or "hci" or "codebase_index" => new Projection("HybridIndex", null),
             "related" or "related_files" => new Projection("RelatedFiles", null),

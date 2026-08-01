@@ -35,6 +35,7 @@ public class CabinGlassProjectionCatalogTests
     [InlineData("refactor", "RelatedFiles", "agent · M: refactor")]
     [InlineData("debt", "RelatedFiles", "agent · M: refactor")]
     [InlineData("project_switch", "SolutionExplorer", "agent · M: project_switch")]
+    [InlineData("files_desk", "SolutionExplorer", "agent · M: files")]
     [InlineData("domain", "MarkdownPreview", "agent · M: domain")]
     [InlineData("ownership", "MarkdownPreview", "agent · M: domain")]
     public void TryResolve_maps_gap_organs(string pin, string? mfd, string? chrome)
