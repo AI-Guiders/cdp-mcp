@@ -13,7 +13,7 @@
 - REPL: bare `feature X` = upsert/dedupe (+ leaf-arm on dedupe); `feature focus X` → `feature_focus` (0.5.311+).
 - `done` / `shipped` with **feature title** (or bare when feature focused, no task) → close incomplete leaves + clear focus (0.5.412).
 - `shipped` without prior `start` → implicit wall start (ADX ceremony tax).
-- Soft-warn FileLinesWarn=400; `IntentWorkspaceStore` is `partial` by concern (Core/Intent/Stage/Scene/Persist/Find + Leaf/StageCriteria/StageEvents/StageProduct).
+- Soft-warn FileLinesWarn=400; `IntentWorkspaceStore` is `partial` by concern (Core/Intent/Stage/Scene/Persist/Find + Leaf/StageCriteria(+Norm)/StageEvents/StageProduct).
 
 ## Entry
 
@@ -29,9 +29,10 @@
 
 ## last_ship
 
+- StageCriteria.Norm peel (≤ADX soft-warn; CRUD206 + Norm170) @ 0.5.430 · 2026-08-01
 - 0.5.416 `FindIntentIdByTitle` StripBoardChrome + unique prefix (parity with FindStageMatching); peel Find.Title
 - 0.5.412 done/shipped feature-title fallback + shipped without start
-- soft-warn peel: Core126 Intent140 Stage264 Scene221 Persist318 Find373 @ 0.5.401 (existing Leaf148 StageCriteria366 StageEvents200 StageProduct60)
+- soft-warn peel: Core126 Intent140 Stage264 Scene221 Persist318 Find373 @ 0.5.401 (Leaf148 StageCriteria206+Norm170 StageEvents200 StageProduct60)
 - 0.5.309 leaf AutoI — `6a97f48` (2026-07-30)
 - 0.5.310 Domain axis + remount domain pulse (pressure checklist + charge appendix)
 - 0.5.311 FeatureAdd dedupe leaf-arm + REPL `feature focus X`

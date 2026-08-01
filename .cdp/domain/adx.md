@@ -33,6 +33,7 @@
 
 ## last_ship
 
+- StageCriteria.Norm peel (≤ADX soft-warn) @ 0.5.430 · 2026-08-01
 - IdeDeskSeats.Presets peel (≤ADX soft-warn) @ 0.5.429 · 2026-08-01
 - IdeIgniteArmHost.Fire.Charge peel (≤ADX soft-warn) @ 0.5.428 · 2026-08-01
 - CdpPluginQuarantine.Groups.Infer peel (≤ADX soft-warn) @ 0.5.427 · 2026-08-01
