@@ -534,7 +534,34 @@ public class IdeIgniteWakeLatchTests : IDisposable
         Assert.Contains("resume without mirror", voice!.Body, StringComparison.Ordinal);
     }
 
-    [Fact]
+[Theory]
+    [InlineData("arm-work", "timer", true, "stop", true, false, false)]
+    [InlineData("arm-work", "timer", true, "queue", true, false, false)]
+    [InlineData("arm-work", "timer", true, "stop", false, false, true)]
+    [InlineData("arm-work", "timer", true, "stop", true, true, true)]
+    [InlineData("arm-work", "timer", true, "down", true, false, true)]
+    [InlineData("arm-work", "timer", true, "voice", true, false, false)]
+    [InlineData("remount-wake-x", "timer", true, "stop", true, false, true)]
+    [InlineData("hild-escalate-x", "timer", true, "stop", true, false, true)]
+    public void ShouldHabitatSkipWhenComposerUnavailable_guest_autoi_busy_falls_through(
+        string id, string ev, bool sampleOk, string kind, bool autonomous, bool duplex, bool expect)
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = id,
+            Event = ev,
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 5
+        };
+        Assert.Equal(
+            expect,
+            IdeIgniteArmHost.ShouldHabitatSkipWhenComposerUnavailable(
+                arm, sampleOk, kind, autonomous, duplex));
+    }
+
+        [Fact]
     public async Task TryDeliverHabitatWhenComposerUnavailable_skips_build_finished()
     {
         var arm = new IdeIgniteArmHost.IgniteArm
