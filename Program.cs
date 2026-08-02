@@ -11,6 +11,8 @@ using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using Tool = ModelContextProtocol.Protocol.Tool;
 
+IdeSeatProcessReclaim.Ensure();
+
 var configPath = args.SkipWhile(a => a != "--config").Skip(1).FirstOrDefault()
     ?? Environment.GetEnvironmentVariable("CDP_MCP_CONFIG")
     ?? Path.Combine(AppContext.BaseDirectory, "config", "cdp-mcp.toml");
