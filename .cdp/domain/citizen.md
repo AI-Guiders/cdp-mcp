@@ -20,7 +20,9 @@
 - After turn, host executes `@intent` routes by default on live (`CitizenRouteHost`); dry_run skips unless `execute=true` (then parses user `@intent` lines).
 - Live provider turns execute `result.Routes` from assistant wire (default `execute=true`); verified GigaChat3 + mock OAI (`go=` / `drill` / `open path=` / `pane_full=` / multi-intent).
 - Multiple `@intent` lines in one reply → `RouteAll` + host executes each (not first-only).
-- Host execute is sync seat place + buffer open — not full cockpit BuildAsync (no W-spray).
+- Host execute is sync seat place + buffer open + plan REPL (`cmd=`) — not full cockpit BuildAsync (no W-spray).
+- `@intent cmd=<CCL>` host-executes TM board verbs only (feature|task|done|note|…); non-plan heads refused (`refuse_non_plan_repl`).
+- `go=plan` only places the plan organ — it does not seed/done/ship TM.
 - After host execute, turn returns peer + peer_event (ADR-0028 intent_ack / intent_dropped); latch feeds next turn peer= when omitted.
 - `open path=` resolves under ProjectRoot via `IdeLanguageTools.TryOpenDocument`; places `editor_scene`.
 - `drill <organ>` and `detail=… scene=` place via `PlaceGo` (canonical pin, e.g. editor→editor_scene).
@@ -46,6 +48,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.487**: `@intent cmd=` host-execute for TM/plan REPL (`CitizenRouteHost.RunPlanCmd` → IdeRepl → IdeTaskManager). Whitelist plan CCL heads; refuse shell/etc. Persona rule 5. Tests CitizenPlanReplHostTests (4). Dig: `go=plan` places only — gap was mutate path.
 - 2026-08-02 → **0.5.485**: peer intent_ack after host execute (CitizenPeerAck) — turn surfaces peer/peer_event; latch for next inject. Dig: executed[] only, no duplex. Tests CitizenPeerAckHostTests; live FM omit board= → peer ack=2/2.
 - 2026-08-02 → **0.5.484**: verify unforced multi-intent + live_desk host-execute — Execute_multi + mock OAI multi-intent channel; live FM dogfood (omit board=, no ONLY) → 2/2 `@intent go=plan` + `go=health` executed. Dig: RouteAll/live_desk already in; gap was regression+unforced proof.
 - 2026-08-02 → **0.5.483**: verify `pane_full=` host-execute — Execute_pane_full + mock OAI channel; live FM dogfood. Dig: NotePaneFull already in 0.5.479; gap was regression+proof.
