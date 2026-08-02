@@ -52,6 +52,7 @@
 
 ## last_ship
 
+- 0.5.534: IdeIgniteChannel XML summary tip parity with Meta habitat prefer (residual Composer-only doc after 0.5.533) · 2026-08-02
 - 0.5.533: Meta `cdp_ignite` tip parity — duplex prefer skip-CDT · autonomous stamp + Guest CDT fallthrough · wake latch SSOT (residual after 0.5.532) · VL #38 · 2026-08-02
 - 0.5.532: prefer_autonomous stamps habitat SSOT but Guest Autoi CDT fallthrough (`IsHabitatLatchForArm` keeps latch) — fix ACC silent after 0.5.531 · VL #37 · 2026-08-02
 - 0.5.531: habitat prefer under autonomous on plain timers even when PF idle (`ShouldPreferHabitatDelivery` · `prefer_autonomous`) — overnight skip CDT residual · VL #36 · 2026-08-02

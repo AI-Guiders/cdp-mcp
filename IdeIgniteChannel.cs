@@ -6,8 +6,9 @@ using System.Text.Json.Serialization;
 namespace CdpMcp;
 
 /// <summary>
-/// Soft organ <c>go=ignite_desk</c> / Meta <c>cdp_ignite</c> — AutoIgnition via Chrome DevTools (CDT)
-/// into Cursor Composer (TipTap). Not Cognitive CDP; not UIA. Dogfood 2026-07-26.
+/// Soft organ <c>go=ignite_desk</c> / Meta <c>cdp_ignite</c> — Guest Autoi CDT→Composer adapter
+/// (TipTap) plus habitat wake latch SSOT (prefer duplex skip-CDT; autonomous stamp+Guest CDT).
+/// Not Cognitive CDP; not UIA. Dogfood 2026-07-26 · tip parity 0.5.534.
 /// Button states: Voice (empty) → Send (has text) → Stop (streaming) / Queue.
 /// Partials: Api (handle/probe/send), Js (CDT scripts), Models (DTO), Cdt (session), Fire (CDT inject).
 /// </summary>
