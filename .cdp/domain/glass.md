@@ -33,6 +33,7 @@
 - SoftOrganMfdGlance remapping RelatedFiles ← find_desk (stays ←refactor; FindDesk DoD = CabinGlass pin+chrome, not glance displace).
 - Inventing SoftOrganKind for crs/Correspondence latch+chrome (CabinGlass MFD pin only; Crm chrome ≠ CRS; SoftOrganMfdGlance stays unbound).
 - Soft deploy ≠ remounted habitat; Glass WPF rebuild is separate from cdp-mcp seat.
+- Treat Glass Ctrl+Q `c:` as GlassChord-only aliases — SSOT is `IntentMelody/intent-catalog.toml` via `GlassIntentMelodyCatalog`; chords stay on Ctrl+K.
 - Mapping `mcp` SoftOrgan → MFD `Chat` (Chat = Intercom/citizen; MCP settings = AiChatSettings).
 - Festive per-zone accents (cyan P / gold F / purple M) — Dark Cockpit violation; geography by label, color only on deviation (ON GND / select / EICAS).
 - MFD text-wall dig notes for humans — prefer concise+graphic presence cards (`□ Glass peel` / `■ Avalonia`).
@@ -159,7 +160,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 **Lived Glass UX epic: CLOSED** for 15.08 one-cockpit survival DoD. **Citizen full chain: CLOSED** (live latch dogfood + StatusText pending→running→done/error).
 
 ## last_ship
-- 2026-08-03: Glass Ctrl+Q **`c:` Command Melody** discoverability — `TryGetMelodyTail` + chord aliases with Help in palette; hint/no-match rows; tests 11/11 (≠ full Avalonia intent-catalog MelodyInterpreter)
+- 2026-08-03: Glass Ctrl+Q **`c:` → intent-catalog.toml** — `GlassIntentMelodyCatalog` thin Tomlyn peel (melody_slug + Help); discoverability rows `melody:{command_id}` non-exec; GlassChord stays Ctrl+K; tests 12/12 (≠ Ide execute in Glass)
+- 2026-08-03: Glass Ctrl+Q **`c:` Command Melody** discoverability — `TryGetMelodyTail` + chord aliases with Help in palette; hint/no-match rows; tests 11/11 (superseded by intent-catalog peel above)
 - 2026-08-02: Glass Autoi wake consumer — `IgniteWakeLatchFileName` · `LatchHub.IgniteWakeChanged` · `LatchPaint.PaintIgniteWake` · SoftOrgan tip + FDS WAKE · hydration · dogfood `dogfood-glass-wake-0.5.516` · VL #22 · seat 0.5.516
 - 2026-08-02: **0.5.506** citizen replace/open → `land-LATEST` open (Glass feels invent; disk peel alone was skip-when-not-open)
 - 2026-08-02: Citizen full chain close — Glass `LatchHub.CitizenDialogRequestChanged` + `CitizenDialogRequestStatus` StatusText; live latch E2E `pending→done` + Intercom `kind=citizen`; tests 2/2
