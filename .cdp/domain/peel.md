@@ -23,6 +23,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.470**: wave14 — IdeDeskSeats.Ops · IdeCockpit.Build.PlanPulse.Surface · IdeIgniteArmHost.ContinuityOps.Helpers.
 - 2026-08-02 → **0.5.469**: wave13 — IdeToolchainChannel.Recipes.Helpers · IdeCideIntercomChannel.Helpers · IdeFilesChannel.Fs.Helpers (skip IdeSa FileLines — method_lines debt / Decide already peeled).
 - 2026-08-02 → **0.5.468**: wave12 — IdeWebcamChannel.Screen.Analyze · IdeArchBoardChannel.AsBuilt.Build · IdeOnboardChannel.Scan.Helpers.
 - 2026-08-02 → **0.5.467**: wave11 — EditSniper.Aim · EditorComfort.ClipEdit.Ops · IdeChkChannel.Handle.

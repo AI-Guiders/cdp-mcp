@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.469</Version>
+    <Version>0.5.470</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -373,4 +373,19 @@
       <DependentUpon>IdeCideIntercomChannel.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="IdeFilesChannel.Fs.Helpers.cs"><DependentUpon>IdeFilesChannel.Fs.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="IdeFilesChannel.Fs.Helpers.cs">
+      <DependentUpon>IdeFilesChannel.Fs.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeDeskSeats.Ops.cs">
+      <DependentUpon>IdeDeskSeats.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeIgniteArmHost.ContinuityOps.Helpers.cs">
+      <DependentUpon>IdeIgniteArmHost.ContinuityOps.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="IdeCockpit.Build.PlanPulse.Surface.cs"><DependentUpon>IdeCockpit.Build.PlanPulse.cs</DependentUpon></Compile></ItemGroup></Project>
