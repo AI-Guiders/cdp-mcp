@@ -33,20 +33,25 @@ public sealed class IdeLocalClockTests
         }
     }
 
-    [Fact]
-    public void Deadlines_citizen_chain_days_left()
+        [Fact]
+    public void Deadlines_sick_leave_and_citizen_chain_days_left()
     {
         IdeLocalClock.NowOverride = () => At(2026, 8, 1, 12);
         try
         {
             dynamic card = IdeLocalClock.PulseCard();
             var deadlines = (object[])card.deadlines;
-            Assert.Single(deadlines);
-            dynamic d0 = deadlines[0];
-            Assert.Equal("citizen_chain", (string)d0.id);
-            Assert.Equal("2026-08-15", (string)d0.due);
-            Assert.Equal(14, (int)d0.days_left);
-            Assert.False((bool)d0.overdue);
+            Assert.Equal(2, deadlines.Length);
+            dynamic dSick = deadlines[0];
+            Assert.Equal("sick_leave_dense", (string)dSick.id);
+            Assert.Equal("2026-08-05", (string)dSick.due);
+            Assert.Equal(4, (int)dSick.days_left);
+            Assert.False((bool)dSick.overdue);
+            dynamic dCitizen = deadlines[1];
+            Assert.Equal("citizen_chain", (string)dCitizen.id);
+            Assert.Equal("2026-08-15", (string)dCitizen.due);
+            Assert.Equal(14, (int)dCitizen.days_left);
+            Assert.False((bool)dCitizen.overdue);
         }
         finally
         {
