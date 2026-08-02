@@ -9,6 +9,7 @@
 - Seat: `cdp` = `D:\cdp-mcp`, `cdp-debug` = `D:\cdp-mcp-debug`.
 - `ops_pulse` / `cdp_health.seats`: self_version · sibling_version · lag (ProductVersion short).
 - Hard deploy defaults to sibling — survivor seat stays old until remount/soft-self.
+- TM WitDB is seat-local (`StateRoot/{seat}/intent-workspace.witdb`) — sibling does not open primary's file.
 
 ## Entry
 
@@ -22,4 +23,5 @@
 
 ## last_ship
 
+- per-seat WitDB isolation dogfood: `cdp_open` store under `…/cdp/intent-workspace.witdb`; kill same-seat zombie pile before diagnose @ 0.5.448 · 2026-08-02
 - dual-seat version pulse @ 0.5.410 · 2026-08-01

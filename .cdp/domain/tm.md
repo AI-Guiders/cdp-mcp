@@ -14,6 +14,7 @@
 - `done` / `shipped` with **feature title** (or bare when feature focused, no task) → close incomplete leaves + clear focus (0.5.412).
 - `shipped` without prior `start` → implicit wall start (ADX ceremony tax).
 - Soft-warn FileLinesWarn=400; `IntentWorkspaceStore` is `partial` by concern (Core/Intent/Stage/Scene/Persist/Find + Leaf/StageCriteria(+Norm)/StageEvents/StageProduct).
+- WitDB path = `StateRoot/{seat}/intent-workspace.witdb` (per-seat; dual seats never share FileShare.None). Primary `cdp` once Moves legacy flat file.
 
 ## Entry
 
@@ -29,6 +30,7 @@
 
 ## last_ship
 
+- 2026-08-02: per-seat WitDB (`WorkspaceDbPaths` + bootstrap FileGate + skip EnsureCreated when seat file exists) @ 0.5.448 — dogfood `cdp_open` → `recent_store=…/cdp/intent-workspace.witdb`. Migrated 442MB DB was torn (FreePage≥TotalPageCount) from prior dual-seat FileShare fights; quarantined `*.torn-dualseat-*.bak`, fresh seat DB.
 - StageCriteria.Norm peel (≤ADX soft-warn; CRUD206 + Norm170) @ 0.5.430 · 2026-08-01
 - 0.5.416 `FindIntentIdByTitle` StripBoardChrome + unique prefix (parity with FindStageMatching); peel Find.Title
 - 0.5.412 done/shipped feature-title fallback + shipped without start
