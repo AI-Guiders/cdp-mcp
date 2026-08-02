@@ -75,7 +75,35 @@ public class CideIntercomVoiceLatchTests : IDisposable
     }
 
     [Fact]
-    public void Channel_send_from_pm_defaults_origin_human()
+    public void Publish_defaults_guest_name_kir()
+    {
+        var doc = CideIntercomVoiceLatch.Publish(
+            CideIntercomVoiceLatch.SeatPf,
+            CideIntercomVoiceLatch.SeatPm,
+            "hello glass",
+            CideIntercomVoiceLatch.OriginAgent);
+
+        Assert.NotNull(doc);
+        Assert.Equal(CideIntercomVoiceLatch.DefaultNameGuest, doc!.Name);
+        Assert.Equal(CideIntercomVoiceLatch.KindGuest, doc.Kind);
+        Assert.Equal(
+            "Кир · guest @PF → @PM",
+            CideIntercomVoiceLatch.FormatRoleLabel(doc.FromSeat, doc.ToSeat, doc.Name!, doc.Kind!));
+    }
+
+    [Fact]
+    public void Publish_citizen_kind_explicit()
+    {
+        var doc = CideIntercomVoiceLatch.Publish(
+            "pf", "pm", "citizen peer", CideIntercomVoiceLatch.OriginAgent,
+            name: "Neumann", kind: "citizen");
+        Assert.NotNull(doc);
+        Assert.Equal("Neumann", doc!.Name);
+        Assert.Equal(CideIntercomVoiceLatch.KindCitizen, doc.Kind);
+    }
+
+    [Fact]
+    public void Channel_send_from_pm_defaults_operator_who()
     {
         var sendJson = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
         {
@@ -88,6 +116,9 @@ public class CideIntercomVoiceLatchTests : IDisposable
         Assert.True(send.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal("pm", send.RootElement.GetProperty("message").GetProperty("from").GetString());
         Assert.Equal("human", send.RootElement.GetProperty("message").GetProperty("origin").GetString());
+        Assert.Equal("Who", send.RootElement.GetProperty("message").GetProperty("name").GetString());
+        Assert.Equal("operator", send.RootElement.GetProperty("message").GetProperty("kind").GetString());
+        Assert.Contains("Who · operator", send.RootElement.GetProperty("message").GetProperty("role_label").GetString());
         Assert.NotNull(CideIntercomVoiceLatch.TryUnreadForPf());
     }
 

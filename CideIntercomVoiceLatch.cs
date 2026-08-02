@@ -47,7 +47,9 @@ internal static partial class CideIntercomVoiceLatch
         string toSeat,
         string body,
         string origin,
-        string? id = null)
+        string? id = null,
+        string? name = null,
+        string? kind = null)
     {
         var from = NormalizeSeat(fromSeat);
         var to = NormalizeSeat(toSeat);
@@ -58,6 +60,9 @@ internal static partial class CideIntercomVoiceLatch
             && !string.Equals(origin, OriginHuman, StringComparison.OrdinalIgnoreCase))
             return null;
 
+        var originNorm = origin.ToLowerInvariant();
+        var (resolvedName, resolvedKind) = ResolveIdentity(from, originNorm, name, kind);
+
         var doc = new IntercomVoiceDoc
         {
             Schema = Schema,
@@ -65,7 +70,9 @@ internal static partial class CideIntercomVoiceLatch
             FromSeat = from,
             ToSeat = to,
             Body = trimmed,
-            Origin = origin.ToLowerInvariant(),
+            Origin = originNorm,
+            Name = resolvedName,
+            Kind = resolvedKind,
             StampedUtc = DateTimeOffset.UtcNow,
             Acked = false
         };
@@ -153,7 +160,8 @@ internal static partial class CideIntercomVoiceLatch
         var body = unread.Body;
         if (body.Length > 80)
             body = body[..77] + "…";
-        return $"Message for you, sir! @PM: {body}";
+        var who = string.IsNullOrWhiteSpace(unread.Name) ? DefaultNameOperator : unread.Name;
+        return $"Message for you, sir! {who}: {body}";
     }
 
     public static string? NormalizeSeat(string? raw)
@@ -177,6 +185,10 @@ internal static partial class CideIntercomVoiceLatch
         public string ToSeat { get; set; } = SeatPm;
         public string Body { get; set; } = "";
         public string Origin { get; set; } = OriginAgent;
+        /// <summary>Personal display name (Кир / Who / …) — not model id.</summary>
+        public string? Name { get; set; }
+        /// <summary>guest | citizen | operator</summary>
+        public string? Kind { get; set; }
         public DateTimeOffset StampedUtc { get; set; }
         public bool Acked { get; set; }
     }

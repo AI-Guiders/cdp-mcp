@@ -43,7 +43,12 @@ internal static partial class IdeCideIntercomChannel
             ok = true,
             op = "scene",
             role = "cide_intercom",
-            seats = new { pf = "agent (v0)", pm = "operator (v0)" },
+            seats = new
+            {
+                pf = "Кир · guest (v0 Cursor PF)",
+                pm = "Who · operator (v0)",
+                kinds = new[] { "guest", "citizen", "operator" }
+            },
             latch_path = CideIntercomVoiceLatch.LatchPath,
             journal_path = CideIntercomVoiceLatch.JournalPath,
             journal_count = journalCount,
@@ -54,8 +59,8 @@ internal static partial class IdeCideIntercomChannel
             unread = unread is null ? null : Card(unread),
             latest = latch is null ? null : Card(latch),
             hint =
-                "send to=pm body=… → @PM on Glass Intercom (origin=agent). " +
-                "from=pm|operator body=… → Who-as-Operator (origin=human). " +
+                "send to=pm body=… [name=Кир] [kind=guest|citizen] → @PM on Glass Intercom. " +
+                "from=pm|operator body=… [name=Who] → operator voice (origin=human). " +
                 "presence seat=pf|pm state=idle|composing|busy — partner observability (no thinking dump). " +
                 "history limit= — Virtual History on demand (not auto into flight). " +
                 "ack id= after you read.",
@@ -91,11 +96,18 @@ internal static partial class IdeCideIntercomChannel
         if (origin is null)
             return Fail("origin_invalid", "origin=agent|human (default: pf→agent, pm→human)");
 
+        var name = Arg(args, "name") ?? Arg(args, "display_name") ?? Arg(args, "as");
+        var kind = Arg(args, "kind") ?? Arg(args, "role");
+        if (kind is not null && CideIntercomVoiceLatch.NormalizeKind(kind) is null)
+            return Fail("kind_invalid", "kind=guest|citizen|operator");
+
         var published = CideIntercomVoiceLatch.Publish(
             from,
             to,
             body!,
-            origin);
+            origin,
+            name: name,
+            kind: kind);
         if (published is null)
             return Fail("publish_failed", "could not write intercom latch");
 
@@ -107,8 +119,8 @@ internal static partial class IdeCideIntercomChannel
             message = Card(published),
             latch_path = CideIntercomVoiceLatch.LatchPath,
             journal_path = CideIntercomVoiceLatch.JournalPath,
-            chat = $"@{to.ToUpperInvariant()}: {TrimChat(published.Body)}",
-            hint = "Latch + journal published — Glass Virtual History survives restart."
+            chat = $"{published.Name ?? "@" + to.ToUpperInvariant()}: {TrimChat(published.Body)}",
+            hint = "Latch + journal published — Glass shows name · kind (not model id)."
         });
     }
 
