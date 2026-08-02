@@ -27,6 +27,7 @@
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
 - HILD (default ARMED): Composer text idle **30s** on Voice → `human_away` **once** (latch until Composer text); wake → autonomous; on edge/escalate **pull-forward** armed last_once work timers ≤3s (`PullForwardLongWorkTimersOnHildAway`); arm under `away_latched` clamps ≤3s; after wake continuity **1–3s** not 45m; suppress under `await_partner` / halt. DefaultIdle=30s since 0.5.359 (meta tip 0.5.363).
 - **last_once arm clamp under autonomous:** ≤3m by default; **≤3s** when HILD `away_latched` **or** TM `ContinuityFlight.Fly` (`3s(hild_away)` / `3s(leaf_started)` · `force=true` escape).
+- **Already-armed last_once:** HILD away edge/escalate pull-forward ≤3s; under autonomous + leaf Fly, TimerLoop also pull-forwards (`3s(leaf_pull)`).
 - After successful fire: watch Cursor for "Connection Problems" / Try again|Retry overlay until next fire; auto-click (not Idle-only).
 - After successful fire: also Win32-click Electron stall dialog "The window is not responding" → **Keep Waiting** (not OS hung dialog; not CDT).
 
@@ -60,9 +61,11 @@
 - HILD ARMED but long `last_once` still parks after away edge (pre-0.5.542) — HILD watched partner, not agent park; pull-forward ≤3s + arm clamp when `away_latched`.
 - Autonomous + TM leaf Fly + long `last_once` while partner **here** (pre-0.5.543) — ≤3m still allowed agent-park; clamp to `3s(leaf_started)` when `ProbeFlight()==Fly`.
 - Leaving Meta `cdp_ignite` tip at ≤3m-only after leaf Fly / HILD ≤3s ships (pre-0.5.544) — invent-ban hygiene residual.
+- Arm clamp alone while a long last_once was already armed before leaf Fly (pre-0.5.545) — TimerLoop pull-forward `3s(leaf_pull)` under autonomous+Fly.
 
 ## last_ship
 
+- 0.5.545: leaf Fly TimerLoop pull-forward armed last_once → ≤3s (`PullForwardLongWorkTimersOnLeafFly` · `3s(leaf_pull)`) · VL #48 · 2026-08-02
 - 0.5.544: Meta `cdp_ignite` tip parity — leaf Fly / HILD ≤3s clamp (residual after 0.5.543) · 2026-08-02
 - 0.5.543: leaf Fly arm clamp last_once → ≤3s (`leafFlying` · `3s(leaf_started)`) · VL #47 · 2026-08-02
 - 0.5.542: HILD away pull-forward long last_once → ≤3s + arm clamp under away_latched (`PullForwardLongWorkTimersOnHildAway` · `HildAwayContinuityMax`) · VL #46 · 2026-08-02
