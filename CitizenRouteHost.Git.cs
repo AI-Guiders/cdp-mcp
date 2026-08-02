@@ -206,7 +206,8 @@ internal static partial class CitizenRouteHost
     static bool TryReadGitOk(string json)
     {
         var trimmed = json.TrimStart();
-        if (trimmed.StartsWith('{') || trimmed.StartsWith('['))
+        // git CLI stdout often starts with "[branch hash] msg" — not JSON arrays.
+        if (trimmed.StartsWith('{'))
             return TryReadLifecycleOk(json);
         return trimmed.Length > 0;
     }
