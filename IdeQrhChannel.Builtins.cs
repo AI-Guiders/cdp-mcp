@@ -107,7 +107,8 @@ internal static partial class IdeQrhChannel
             [
                 new("cdp_health — version_full vs expected", "health", "cdp_health"),
                 new("If no Autoi initialized wake: check remount-wake-*.pending.json", Action: "cdp_ignite"),
-                new("If stale: human Reload MCP or wait nudge", Action: "cdp_health"),
+                new("Not connected + exe still up: terminal_* Recover-CdpSeatRemount.ps1 -Seat cdp|cdp-debug (kill+nudge)", Action: "cdp_health"),
+                new("If still stale after nudge: human Reload MCP", Action: "cdp_health"),
                 new("cdp_session / cockpit — warm desk", "cockpit")
             ],
             ["deploy-sibling"],

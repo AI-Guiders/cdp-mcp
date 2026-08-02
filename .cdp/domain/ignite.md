@@ -36,10 +36,11 @@
 - Writing another playbook for Connection Problems / stall dialog — fix is harness organ (`ConnectionWatch` + `NativeDialogs`).
 - Confusing VS Code stall (Reopen/Close/Keep Waiting) with Windows "End task" hung dialog.
 - Stamping FiredUtc / dropping once arms on mid-wait-idle remount (pre-0.5.497) — silent continuity suicide.
-- Stamping FiredUtc / dropping once arms on mid-wait-idle remount (pre-0.5.497) — silent continuity suicide.
+- Digging CDT-down from health `cdt=?` (pre-0.5.498 PulseLine never live-sampled).
 
 ## last_ship
 
+- 0.5.498: teeth CDT auto-refresh on health pulse + Recover-CdpSeatRemount.ps1 (Not-connected zombie) · 2026-08-02
 - 0.5.497: AutoI mid-fire zombie reclaim — FiredUtc only on fire outcome; MarkSendInvoked immediately before CDT FireAsync; once+stuck firing requeues unless SendOk=true (SweepNoise drop aligned); stuck-firing LastError wins over overdue · 2026-08-02
 - IdeIgniteArmHost.Fire.Charge peel (≤ADX soft-warn): Fire 366→327 + Charge47 @ 0.5.428 · 2026-08-01
 - IdeIgniteNativeDialogs.Win32 peel (≤ADX soft-warn) @ 0.5.426 · 2026-08-01
