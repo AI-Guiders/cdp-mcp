@@ -146,7 +146,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 Calendar: soft ~2→9 · hard 10.08→15.08 · D-day **15.08**.
 
 ## last_ship
-- 2026-08-02: Glass message↔code thin chips P2 — `Resolved` disk chrome · `StripBracketsForDisplay` · AvalonEdit line-range select on chip click; tests 6/6 · cascade-ide (pending hash)
+- 2026-08-02: Glass message↔code thin chips P2 — `Resolved` disk chrome · `StripBracketsForDisplay` · AvalonEdit line-range select on chip click; tests 6/6 · cascade-ide `aa61d774`
 - 2026-08-02: Glass EICAS band clearer P1 — `EicasBandAggregator.BandChips` + WPF `MfdHealthBand` per-severity chips (warn/caut/adv) like Avalonia `EicasAlertsBar`; CLEAR when empty; tests 2/2 · cascade-ide `dfe4ace9`
 - 2026-08-02: Glass topics cluster deepen — follow-newest after 30m gap on stickEnd (`GlassIntercomTopicFollow`); cluster LoadTail 240; `/topics N` select; journal cap 500
 - 2026-08-02: Glass Intercom `/citizen` dialog peel — `GlassCitizenDialogRequest` → `citizen-dialog-request-LATEST.json` (journal-only, no human→PF Publish); habitat bridge 0.5.496 replies as `Citizen · citizen @PF → @PM`
