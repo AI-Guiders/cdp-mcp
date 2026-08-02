@@ -423,4 +423,69 @@ public class IdeIgniteWakeLatchTests : IDisposable
         Assert.NotNull(voice);
         Assert.Contains("HILD human_away", voice!.Body, StringComparison.Ordinal);
     }
+
+    [Theory]
+    [InlineData("arm-work", "timer", true)]
+    [InlineData("remount-wake-x", "timer", true)]
+    [InlineData("tool-wake-x", "timer", true)]
+    [InlineData("hild-away", "human_away", true)]
+    [InlineData("arm-build", "build_finished", false)]
+    [InlineData("arm-test", "test_finished", false)]
+    [InlineData("arm-shell", "shell_finished", false)]
+    public void MayDeliverHabitatWhenComposerUnavailable_gates(string id, string ev, bool expected)
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = id,
+            Event = ev,
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 5
+        };
+        Assert.Equal(expected, IdeIgniteArmHost.MayDeliverHabitatWhenComposerUnavailable(arm));
+    }
+
+    [Fact]
+    public async Task TryDeliverHabitatWhenComposerUnavailable_delivers_when_sample_down_without_mirror()
+    {
+        // No CDT → TrySampleComposerAsync returns (false, down) → ShouldSkip → habitat.
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-no-mirror",
+            Event = "timer",
+            Status = "firing",
+            Reason = "timer",
+            Task = "leaf",
+            Once = true,
+            Port = 1,
+            WaitSeconds = 1
+        };
+
+        var result = await IdeIgniteArmHost.TryDeliverHabitatWhenComposerUnavailableAsync(
+            arm, "resume without mirror", CancellationToken.None);
+        Assert.NotNull(result);
+        var latch = IdeIgniteWakeLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.Equal(IdeIgniteWakeLatch.ChannelHabitat, latch!.Channel);
+        Assert.Equal("resume without mirror", latch.Charge);
+        Assert.Equal("idle_pf_composer_gone", result!.GetType().GetProperty("detail")!.GetValue(result));
+    }
+
+    [Fact]
+    public async Task TryDeliverHabitatWhenComposerUnavailable_skips_build_finished()
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-build",
+            Event = "build_finished",
+            Status = "firing",
+            Once = true,
+            Port = 1,
+            WaitSeconds = 1
+        };
+        Assert.Null(await IdeIgniteArmHost.TryDeliverHabitatWhenComposerUnavailableAsync(
+            arm, "build wake", CancellationToken.None));
+        Assert.Null(IdeIgniteWakeLatch.TryRead());
+    }
 }

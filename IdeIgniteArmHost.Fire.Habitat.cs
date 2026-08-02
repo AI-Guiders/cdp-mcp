@@ -155,7 +155,7 @@ internal static partial class IdeIgniteArmHost
         || string.Equals(kind, "queue", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// After Intercom mirror: skip CDT when Composer Stop/Queue **or** surface gone (no_composer/down).
+    /// Skip CDT when Composer Stop/Queue **or** surface gone (no_composer/down).
     /// Voice/send/idle: false → CDT fallthrough. Sample fail (!ok) uses kind no_composer|down.
     /// </summary>
     internal static bool ShouldSkipCdtAfterIntercomMirror(bool sampleOk, string kind) =>
@@ -165,14 +165,37 @@ internal static partial class IdeIgniteArmHost
         || string.Equals(kind, "down", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// After Intercom mirror + Composer Stop/Queue/gone: habitat deliver, skip CDT.
-    /// Avoids busy_timeout → requeue / no_agent_composer silent thrash while Glass already has charge.
-    /// Voice/idle Composer: null → CDT fallthrough (overnight / idle wakes still reach Composer).
+    /// Continuity wakes that may habitat-skip CDT when Composer unavailable.
+    /// build/test/shell: intentional no mirror / no habitat (noise).
     /// </summary>
-    internal static async Task<object?> TryDeliverMirroredWhenComposerBusyAsync(
-        IgniteArm arm, string charge, bool intercomMirrored, CancellationToken ct)
+    internal static bool MayDeliverHabitatWhenComposerUnavailable(IgniteArm arm)
     {
-        if (!intercomMirrored)
+        var e = NormalizeEvent(arm.Event);
+        if (e is "build_finished" or "test_finished" or "shell_finished")
+            return false;
+        return MayPreferHabitatOverComposer(arm) || IsSystemWakeArmId(arm.Id);
+    }
+
+    static string HabitatComposerSkipDetail(IgniteArm arm, string kind)
+    {
+        var suffix = IsComposerBusyKind(kind) ? "composer_busy" : "composer_gone";
+        return IsRemountWakeArm(arm) ? $"remount_{suffix}"
+            : IsHildEscalateWakeArm(arm) ? $"escalate_{suffix}"
+            : IsHildAwayWakeArm(arm) ? $"hild_{suffix}"
+            : IsOomWakeArm(arm) ? $"oom_{suffix}"
+            : IsToolWakeArmId(arm.Id) ? $"tool_{suffix}"
+            : $"idle_pf_{suffix}";
+    }
+
+    /// <summary>
+    /// Composer Stop/Queue/gone: habitat deliver, skip CDT — no Intercom mirror required.
+    /// Covers Voice Publish miss / mirror false → residual no_agent_composer thrash (0.5.527).
+    /// Voice/idle Composer: null → CDT fallthrough.
+    /// </summary>
+    internal static async Task<object?> TryDeliverHabitatWhenComposerUnavailableAsync(
+        IgniteArm arm, string charge, CancellationToken ct)
+    {
+        if (!MayDeliverHabitatWhenComposerUnavailable(arm))
             return null;
 
         var (ok, kind, _) = await IdeIgniteChannel.TrySampleComposerAsync(arm.Port, ct)
@@ -189,13 +212,7 @@ internal static partial class IdeIgniteArmHost
         if (latch is null)
             return null;
 
-        var suffix = IsComposerBusyKind(kind) ? "composer_busy" : "composer_gone";
-        var detail = IsRemountWakeArm(arm) ? $"remount_{suffix}"
-            : IsHildEscalateWakeArm(arm) ? $"escalate_{suffix}"
-            : IsHildAwayWakeArm(arm) ? $"hild_{suffix}"
-            : IsOomWakeArm(arm) ? $"oom_{suffix}"
-            : IsToolWakeArmId(arm.Id) ? $"tool_{suffix}"
-            : $"idle_pf_{suffix}";
+        var detail = HabitatComposerSkipDetail(arm, kind);
         IdeFlightDataRecorder.RecordWake(
             "wake_habitat", arm.Id, ToolFromWakeArm(arm), detail);
 
@@ -210,6 +227,17 @@ internal static partial class IdeIgniteArmHost
             arm_id = arm.Id,
             detail
         };
+    }
+
+    /// <summary>
+    /// After Intercom mirror + Composer unavailable: thin wrapper → shared habitat skip.
+    /// </summary>
+    internal static Task<object?> TryDeliverMirroredWhenComposerBusyAsync(
+        IgniteArm arm, string charge, bool intercomMirrored, CancellationToken ct)
+    {
+        if (!intercomMirrored)
+            return Task.FromResult<object?>(null);
+        return TryDeliverHabitatWhenComposerUnavailableAsync(arm, charge, ct);
     }
 
     static string TruncateHabitatCharge(string charge)
