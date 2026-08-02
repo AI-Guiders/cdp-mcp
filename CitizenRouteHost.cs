@@ -4,8 +4,8 @@ using System.Text.Json;
 namespace CdpMcp;
 
 /// <summary>
-/// Host execute for <see cref="CitizenIntentRouter.Route"/> — seat place + buffer open/replace + plan REPL.
-/// Sync only; no full cockpit BuildAsync (avoids W-spray / hang on turn).
+/// Host execute for <see cref="CitizenIntentRouter.Route"/> — seat place + buffer open/replace + plan REPL + build.
+/// Sync host path; <c>@intent build</c> waits <see cref="IdeSessionLifecycle.BuildAsync"/> (bounded) — not cockpit W-spray.
 /// </summary>
 internal static partial class CitizenRouteHost
 {
@@ -55,6 +55,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.PaneFull => NotePaneFull(route),
             CitizenIntentRouter.Verb.Open => OpenPath(route),
             CitizenIntentRouter.Verb.Replace => ReplaceInPath(route),
+            CitizenIntentRouter.Verb.Build => RunBuild(route),
             CitizenIntentRouter.Verb.Cmd => RunPlanCmd(route),
             CitizenIntentRouter.Verb.Refuse => new Applied(
                 route.Raw,

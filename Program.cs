@@ -72,6 +72,8 @@ if (settings.Dev.CodebaseIndex.Enabled) modules.Add(new CodebaseIndexBackend(set
 if (settings.Dev.Anui.Enabled) modules.Add(new AnuiBackend(settings));
 
 var byDomain = modules.Where(m => m.IsEnabled).ToDictionary(m => m.Domain, StringComparer.Ordinal);
+CitizenRouteHost.SessionResolver = () => session;
+CitizenRouteHost.BuildModuleResolver = () => byDomain.GetValueOrDefault("build");
 IdeReportJobRunner? jobRunner = null;
 IdeReportJobRunner RequireJobRunner()
 {

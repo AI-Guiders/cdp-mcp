@@ -61,6 +61,8 @@ internal static class CitizenPersona
           @intent go=plan
           @intent go=buffer
           @intent go=health
+          @intent build
+          @intent build path=CdpMcp.csproj
           @intent replace path=rel/file.cs old="needle" new="patch"
           @intent cmd=feature leaf-title @act #CDP
           @intent cmd=task dig-step @act #CDP
@@ -94,6 +96,7 @@ internal static class CitizenPersona
         When you emit intents, keep the token at column 0 (ASCII), e.g.:
           @intent go=plan
           @intent cmd=note short-note
+          @intent build
           @intent replace path=rel/file.cs old="needle" new="patch"
         Do not invent Russian stand-ins for intents.
 
