@@ -58,7 +58,7 @@ internal static partial class MetaToolCatalog
             flush = new { type = "boolean", description = "edit/close/undo/redo/paste default true (Instant Save). false = keep dirty in memory (batch)." },
             discard = new { type = "boolean", description = "close only: with flush=false, required to drop dirty buffer without writing." },
             refresh = new { type = "boolean", description = "open: reload from disk; diagnostics: soft prefer-cache when false" },
-            force = new { type = "boolean", description = "diagnostics: recompute even if version unchanged" },
+            force = new { type = "boolean", description = "diagnostics: recompute even if version unchanged; edit flush: overwrite when material disk drift (else refuse → reload|keep_disk|force)" },
             scope = new { type = "string", description = "diagnostics: syntax|project|solution; find: buffer|project|files|external (default buffer)" },
             overwrite = new { type = "boolean", description = "create: allow replace existing file" },
             allow_shrink = new { type = "boolean", description = "edit set_text: required when new body is shorter than on-disk file" },

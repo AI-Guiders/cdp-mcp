@@ -98,16 +98,23 @@ internal sealed partial class DocumentBufferStore
         buf.Dirty = true;
     }
 
-    public void Flush(DocBuffer buf, bool allowShrink = false) =>
-        _gate.Run(buf.Path, () => FlushUnlocked(buf, allowShrink));
+    public void Flush(DocBuffer buf, bool allowShrink = false, bool force = false) =>
+        _gate.Run(buf.Path, () => FlushUnlocked(buf, allowShrink, force));
 
     /// <summary>
     /// Flush without taking the gate — caller must already hold <see cref="MutateAsync"/> for this path.
-    /// Policy (no magic size thresholds): shrinking an existing file on disk requires explicit
-    /// <paramref name="allowShrink"/> — full rewrites that get shorter are intent, not heuristics.
+    /// Policy (no magic size thresholds): material disk drift refuses unless <paramref name="force"/>;
+    /// shrinking an existing file on disk requires explicit <paramref name="allowShrink"/>.
     /// </summary>
-    internal void FlushUnlocked(DocBuffer buf, bool allowShrink = false)
+    internal void FlushUnlocked(DocBuffer buf, bool allowShrink = false, bool force = false)
     {
+        if (!force && buf.ProbeMaterialDiskChanged(out _, out var driftReason))
+        {
+            throw new InvalidOperationException(
+                $"Refusing flush of '{buf.Path}' — material disk drift ({driftReason ?? "unknown"}). " +
+                "Use reload (take disk), keep_disk (ack keep memory), or force=true to overwrite disk.");
+        }
+
         if (File.Exists(buf.Path) && !allowShrink)
         {
             var diskLen = new FileInfo(buf.Path).Length;
