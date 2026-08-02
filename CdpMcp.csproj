@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.459</Version>
+    <Version>0.5.460</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -208,4 +208,24 @@
       <DependentUpon>IdeFdrThresholdPolicy.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="IdeWebcamChannel.Audio.Transcribe.cs"><DependentUpon>IdeWebcamChannel.Audio.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="IdeWebcamChannel.Audio.Transcribe.cs">
+      <DependentUpon>IdeWebcamChannel.Audio.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeTeethChannel.Ops.cs">
+      <DependentUpon>IdeTeethChannel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeTeethChannel.Helpers.cs">
+      <DependentUpon>IdeTeethChannel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeCockpitHostChannel.Lifecycle.cs">
+      <DependentUpon>IdeCockpitHostChannel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="IdeRefactorPlanChannel.Ops.cs"><DependentUpon>IdeRefactorPlanChannel.cs</DependentUpon></Compile></ItemGroup></Project>

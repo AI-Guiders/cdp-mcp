@@ -23,6 +23,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.460**: wave4 — IdeTeethChannel.Ops+Helpers · IdeCockpitHostChannel.Lifecycle · IdeRefactorPlanChannel.Ops.
 - 2026-08-02 → **0.5.459**: wave3 — EditSniper.PeekResolve.Wire · IdeFdrThresholdPolicy.Apply · IdeWebcamChannel.Audio.Transcribe (skip MetaDispatch.Core single-method).
 - 2026-08-02 → **0.5.458**: wave2 — DeskGoMapCatalog.BuiltIns · EditorPlane.Apply.Validate · IdeOnboardChannel.Persist.
 - 2026-08-02 → **0.5.457**: batch FileLines near-miss — CitizenCompletions.Anthropic+Finish · IdeToolCallWatch.Helpers · IdeToolchainChannel.Ops.
