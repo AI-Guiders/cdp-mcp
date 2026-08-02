@@ -17,6 +17,7 @@
 - Guest Autoi remains CDT→Composer adapter (ADR-0025); habitat prefer is opt-in when PF duplex presence is busy|composing on plain timer arms only.
 - Idle PF on plain timer work arms: Intercom mirror (`MirrorTimerWakeToIntercom`) so Glass sees charge — Composer fallthrough stays (do not skip CDT on idle).
 - Remount wakes (`remount-wake-*`): always Intercom mirror (`detail=remount_intercom`) even when PF busy|composing; prefer habitat stays off (CDT→Composer fallthrough intact). OOM/HILD/event: no mirror.
+- Remount + Composer Stop/Queue after Intercom mirror: habitat deliver + skip CDT (`detail=remount_composer_busy`) — no busy_timeout→requeue mid-flight paste. Voice/idle Composer: CDT fallthrough.
 - Wake charge SSOT: `%LocalAppData%/cdp-mcp/ignite-wake-LATEST.json` (`composer`|`habitat`) — Composer is not the only spine for charge body.
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
 - HILD (default ARMED): Composer text idle **30s** on Voice → `human_away` **once** (latch until Composer text); wake → autonomous; after wake continuity **1–2s** not 45m; suppress under `await_partner` / halt. DefaultIdle=30s since 0.5.359 (meta tip 0.5.363).
@@ -46,6 +47,7 @@
 
 ## last_ship
 
+- 0.5.519: remount + Composer Stop/Queue → habitat deliver + skip CDT (`TryDeliverRemountWhenComposerBusyAsync` · `remount_composer_busy`); Voice/idle still CDT fallthrough · VL #25 · 2026-08-02
 - 0.5.518: remount Intercom mirror always (`IsRemountWakeArm` · `remount_intercom`) even when PF busy; prefer habitat still off · VL #24 · 2026-08-02
 - 0.5.516: Glass Autoi wake consumer companion — hydrate `ignite-wake-LATEST` on cockpit_host start · VL #22 · 2026-08-02
 - 0.5.515: idle-PF Intercom mirror on plain timer work arms (Composer fallthrough; remount/OOM/HILD/event excluded) · VL #21 · 2026-08-02
