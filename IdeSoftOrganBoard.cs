@@ -73,6 +73,10 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
             IdeDomainChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeDomainChannel.PulseLine(_bag.Session),
             IdeDomainChannel.SchemaVersion),
+        SoftOrganKind.Calendar => Hit(
+            IdeCalendarChannel.Handle(_bag.Session, _bag.TileArgs),
+            IdeCalendarChannel.PulseLine(_bag.Session),
+            IdeCalendarChannel.SchemaVersion),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
     };
 

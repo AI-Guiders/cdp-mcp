@@ -39,6 +39,7 @@ internal static partial class IdeCockpitSoftDispatch
         if (TryDispatchLearn(ref goVerb, ref goResult, session, args)) return;
         if (TryDispatchProjectSwitch(ref goVerb, ref goResult, session, args)) return;
         if (TryDispatchDomain(ref goVerb, ref goResult, session, args)) return;
+        if (TryDispatchCalendar(ref goVerb, ref goResult, session, args)) return;
         if (TryDispatchIgnite(ref goVerb, ref goResult, session, args)) return;
         if (TryDispatchWebcam(ref goVerb, ref goResult, session, args)) return;
         if (TryDispatchPs1(ref goVerb, ref goResult, session, args)) return;

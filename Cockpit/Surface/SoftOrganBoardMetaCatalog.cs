@@ -62,6 +62,9 @@ public sealed class SoftOrganBoardMetaCatalog : ICockpitComputeUnit
         SoftOrganKind.Domain => new(
             "domain", "cdp_domain", SoftOrganPresentMode.PulseLine,
             "pane_full= / go_detail=full · op=pulse|list|card id="),
+        SoftOrganKind.Calendar => new(
+            "calendar", "cdp_calendar", SoftOrganPresentMode.PulseLine,
+            "pane_full= / go_detail=full · op=pulse|month"),
         _ => null
     };
 }

@@ -139,6 +139,15 @@ internal static partial class MetaToolCatalog
                 card = new { type = "string", description = "alias of id=" }
             }
         }),
+    Meta("cdp_calendar", "Machine-local calendar/clock soft organ. op=scene|pulse|month — daypart + TZ + month grid + epic deadlines. Alias go=calendar|clock. Cockpit slim always exposes clock= pulse.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|pulse|month" }
+            }
+        }),
     Meta("cdp_icm", "ICM discovery for on-demand GUI CDP client (ADR-0019). op=scene|aliases|resolve|invoke. Melody command_id → CDP tool via IdeCommandAliasMap; invoke uses ExecuteAliasedAsync. Alias go=icm|icm_desk. Does not mutate IntentMelody.", new
     {
         type = "object",

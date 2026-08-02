@@ -32,5 +32,6 @@ public enum SoftOrganKind
     MdAuthor,
     Learn,
     ProjectSwitch,
-    Domain
+    Domain,
+    Calendar
 }

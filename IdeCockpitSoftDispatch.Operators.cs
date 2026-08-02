@@ -198,6 +198,20 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
+    static bool TryDispatchCalendar(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsSoft(goVerb, SoftOrganKind.Calendar))
+            return false;
+
+        goResult = SoftBoard(SoftOrganKind.Calendar, session, null, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftOrganKind.Calendar);
+        return true;
+    }
+
     static bool TryDispatchPs1(
         ref string? goVerb,
         ref object? goResult,
