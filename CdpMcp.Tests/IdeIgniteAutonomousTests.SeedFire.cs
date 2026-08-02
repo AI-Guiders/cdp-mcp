@@ -99,6 +99,27 @@ public partial class IdeIgniteAutonomousTests
     }
 
     [Fact]
+    public void PressureTips_under_autonomous_forbid_end_turn_park()
+    {
+        var check = IdePressureChannel.AutoIgnitionChecklistLine(autonomous: true);
+        Assert.Contains("keep flying", check, StringComparison.Ordinal);
+        Assert.Contains("insurance", check, StringComparison.Ordinal);
+        Assert.DoesNotContain("end turn", check, StringComparison.OrdinalIgnoreCase);
+
+        var scene = IdePressureChannel.SceneArmedHint(autonomous: true);
+        Assert.Contains("not a nap", scene, StringComparison.Ordinal);
+        Assert.DoesNotContain("before end turn", scene, StringComparison.OrdinalIgnoreCase);
+
+        var stash = IdePressureChannel.StashHint(autonomous: true);
+        Assert.Contains("do not park", stash, StringComparison.Ordinal);
+        Assert.DoesNotContain("ending turn", stash, StringComparison.OrdinalIgnoreCase);
+
+        Assert.Contains("before end turn", IdePressureChannel.AutoIgnitionChecklistLine(autonomous: false), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("before end turn", IdePressureChannel.SceneArmedHint(autonomous: false), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ending turn", IdePressureChannel.StashHint(autonomous: false), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void CanonicalComposerCharge_does_not_teach_rearm_when_idle()
     {
         Assert.Contains("timer ≠ idle license", IdeIgniteChannel.CanonicalComposerCharge, StringComparison.Ordinal);
