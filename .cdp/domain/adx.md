@@ -22,7 +22,7 @@
 - `go=quality scope=assert` — ADX assertion catalog (`.cdp/assertions.toml`) + kernels
 - `cdp_health` → `seats` + `ops.self_version` / `sibling_version` / `lag`
 - `.cdp/quality-gates.toml` — thresholds
-- Letters (cold guidelines): `docs/open-letters/letter-of-agent-developer-experience.md`
+- Letters (cold guidelines): `docs/open-letters/agent-who/letter-of-agent-developer-experience.md`
 
 ## Antipatterns
 

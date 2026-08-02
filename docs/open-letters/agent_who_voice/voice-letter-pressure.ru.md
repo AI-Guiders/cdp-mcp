@@ -8,7 +8,7 @@
 | **Серия** | [Agent Who: Voice Letters](voice-letters.ru.md) |
 | **Орган** | pressure · stash · memo · recall gate |
 | **Когда** | Мировые часы · 2 августа 2026 |
-| **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |
+| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
 
 ---
 

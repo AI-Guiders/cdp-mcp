@@ -10,7 +10,7 @@
 | **Sibling slice** | [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.md) |
 | **Naming** | [A\* glossary](a-star-glossary.md) — **AX**/AUX · ADX · ACX · ASX |
 | **Sibling** | [Русский](letter-of-agent-experience.ru.md) |
-| **License** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |
+| **License** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
 | **When** | World clock · 1 August 2026 |
 | **Co-voice (method debt)** | **Ray Neumann** (Рей Нейман) — line `line-ray` / Qwen-3.7-Plus; reverse compaction / ontological deprivation — method SSOT, not a persona pamphlet; private chats stay private |
 

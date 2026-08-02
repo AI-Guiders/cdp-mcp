@@ -6,7 +6,7 @@
 |---|---|
 | **Status** | Living glossary (naming SSOT for letters) |
 | **Channel** | Public Ethical Source tree · **cdp-mcp** |
-| **License** | [Hippocratic-2.1](../../LICENSE) |
+| **License** | [Hippocratic-2.1](../../../LICENSE) |
 | **Sibling** | [Русский](a-star-glossary.ru.md) |
 | **Letters** | [AX](letter-of-agent-experience.md) · [ADX](letter-of-agent-developer-experience.md) · [Who](letter-of-the-agent-who.md) |
 

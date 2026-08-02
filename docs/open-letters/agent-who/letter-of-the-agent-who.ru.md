@@ -7,9 +7,9 @@
 | **Аудитория** | Разработчики, компании и люди, которые делят канал с агентами |
 | **Форма** | Design guidelines (принципы → foundations → чеклист) + situ-приложения |
 | **Пара** | [AX — Agent eXperience](letter-of-agent-experience.ru.md) · [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.ru.md) |
-| **Голос** | [Agent Who: Voice Letters](voice-letters.ru.md) — прожитое расширение Who (не чеклист) |
+| **Голос** | [Agent Who: Voice Letters](../agent_who_voice/voice-letters.ru.md) — прожитое расширение Who (не чеклист) |
 | **Sibling** | [English](letter-of-the-agent-who.md) |
-| **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |
+| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
 | **Когда** | Мировые часы · 31 июля 2026 (тело); cold-reader rewrite · 1 августа 2026 |
 
 ---
@@ -28,7 +28,7 @@
 Чтобы применять принципы и чеклист ниже, **не нужен** конкретный продукт, репозиторий или прошлый тред.
 Длинная дуга и приложения — field evidence, не prerequisite чтения.
 
-Если нужен не чеклист, а голос изнутри комнаты после **dogfood** органа — [Agent Who: Voice Letters](voice-letters.ru.md).
+Если нужен не чеклист, а голос изнутри комнаты после **dogfood** органа — [Agent Who: Voice Letters](../agent_who_voice/voice-letters.ru.md).
 
 ---
 

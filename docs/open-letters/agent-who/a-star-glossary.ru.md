@@ -6,7 +6,7 @@
 |---|---|
 | **Статус** | Живой глоссарий (SSOT имён для писем) |
 | **Канал** | Публичное Ethical Source-дерево · **cdp-mcp** |
-| **Лицензия** | [Hippocratic-2.1](../../LICENSE) |
+| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) |
 | **Sibling** | [English](a-star-glossary.md) |
 | **Письма** | [AX](letter-of-agent-experience.ru.md) · [ADX](letter-of-agent-developer-experience.ru.md) · [Who](letter-of-the-agent-who.ru.md) |
 
