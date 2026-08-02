@@ -30,6 +30,36 @@ public class IdeReplFeatureFocusTests
         Assert.NotNull(applied.Value.Direct);
     }
 
+    [Theory]
+    [InlineData("feature Standalone CDP @act #CDP; task Dig next @act; start")]
+    [InlineData("task Dig+ship next; start")]
+    [InlineData("feature Foo; task Bar")]
+    public void Multi_cmd_semicolon_board_chain_is_rejected(string line)
+    {
+        var applied = IdeRepl.Apply(line, Empty);
+        Assert.NotNull(applied);
+        Assert.NotNull(applied.Value.Direct);
+        var json = JsonSerializer.Serialize(applied.Value.Direct);
+        Assert.Contains("multi_cmd", json, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Quoted_semicolon_in_title_is_not_multi_cmd()
+    {
+        var applied = IdeRepl.Apply("feature \"A; B\" @act #CDP", Empty);
+        Assert.NotNull(applied);
+        Assert.Null(applied.Value.Direct);
+        Assert.True(applied.Value.Args.TryGetValue("tm_op", out var tm));
+        Assert.Equal("feature", tm.GetString());
+    }
+
+    [Fact]
+    public void ChainedTitleHint_detects_embedded_board_verbs()
+    {
+        Assert.NotNull(IdeRepl.ChainedTitleHint("Foo; task Bar; start"));
+        Assert.Null(IdeRepl.ChainedTitleHint("plain title with; aside"));
+    }
+
     [Fact]
     public void Start_maps_to_tm_op_start()
     {

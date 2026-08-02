@@ -46,6 +46,8 @@ internal static partial class IdeRepl
 
             if (ReservedTitleHint(title, kind: "feature") is { } featureHint)
                 return (merged, Err($"'{title}' is a REPL verb — not a feature title", featureHint));
+            if (ChainedTitleHint(title) is { } featureChain)
+                return (merged, Err(featureChain, "feature My Feature @act #CDP"));
 
             merged["go"] = JsonSerializer.SerializeToElement("plan");
             merged["go_args"] = JsonSerializer.SerializeToElement(new { title, op = "feature" });
@@ -65,7 +67,8 @@ internal static partial class IdeRepl
                 if (childTitle.Length == 0)
                     return (merged, Err("task under needs child title", "task under omit-tiles ship-omit @act #CDP"));
                 if (IsBoardListAlias(childTitle)
-                    || ReservedTitleHint(childTitle, kind: "task") is not null)
+                    || ReservedTitleHint(childTitle, kind: "task") is not null
+                    || ChainedTitleHint(childTitle) is not null)
                     return (merged, Err($"'{childTitle}' is a REPL verb — not a task title", "task ship-omit @act #CDP"));
                 merged["go"] = JsonSerializer.SerializeToElement("plan");
                 merged["go_args"] = JsonSerializer.SerializeToElement(new
@@ -116,6 +119,8 @@ internal static partial class IdeRepl
 
             if (ReservedTitleHint(taskTitle, kind: "task") is { } taskHint)
                 return (merged, Err($"'{taskTitle}' is a REPL verb — not a task title", taskHint));
+            if (ChainedTitleHint(taskTitle) is { } taskChain)
+                return (merged, Err(taskChain, "task omit-tiles @act #CDP"));
 
             merged["go"] = JsonSerializer.SerializeToElement("plan");
             merged["go_args"] = JsonSerializer.SerializeToElement(new
