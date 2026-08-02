@@ -31,6 +31,7 @@ public partial class IdeIgniteArmHostTests
     [InlineData("timer", "busy_timeout", true)]
     [InlineData("timer", "no_agent_composer", true)]
     [InlineData("timer", "wrong_surface", true)]
+    [InlineData("timer", "click_failed", true)]
     [InlineData("timer", "fire_failed", false)]
     [InlineData("build_finished", "busy_timeout", false)]
     [InlineData("build_finished", "no_agent_composer", false)]
