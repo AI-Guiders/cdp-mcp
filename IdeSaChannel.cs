@@ -38,21 +38,39 @@ internal static partial class IdeSaChannel
         var gates = RunGates(store, session, locus, scope);
         var dirty = IdeReviewChannel.ListDirtyFiles(session.ProjectRoot);
         var dirtyHit = FindDirtyForLocus(dirty, locus.Path, session.ProjectRoot);
-
-        ClonesSnap? clones = null;
-        if (depth == "full")
-            clones = TryClones(store, session, locus, scope, depth);
-
+        ClonesSnap? clones = depth == "full" ? TryClones(store, session, locus, scope, depth) : null;
         var (verdict, why) = Decide(gates, dirtyHit, clones);
-        var topFindings = TakeFindings(gates, depth == "full" ? 12 : 5);
-        var pulse = $"sa_desk · {verdict} · {gates.Warn}w/{gates.Fail}f" +
-                    (dirtyHit is not null ? $" · dirty:{dirtyHit.Risk}" : "") +
-                    (clones is { Groups: > 0 } ? $" · clones:{clones.Groups}" : "");
-
+        var pulse = FormatPulse(verdict, gates, dirtyHit, clones);
         PublishGlass(pulse, verdict, gates);
+        return BuildDeskPayload(
+            depth, locus, scope, pulse, verdict, why, gates,
+            TakeFindings(gates, depth == "full" ? 12 : 5),
+            dirtyHit, dirty.Count, clones, BuildNext(locus, scope, verdict));
+    }
 
-        var next = BuildNext(locus, scope, verdict);
+    static string FormatPulse(
+        string verdict,
+        GatesSnap gates,
+        IdeReviewChannel.FileCard? dirtyHit,
+        ClonesSnap? clones) =>
+        $"sa_desk · {verdict} · {gates.Warn}w/{gates.Fail}f" +
+        (dirtyHit is not null ? $" · dirty:{dirtyHit.Risk}" : "") +
+        (clones is { Groups: > 0 } ? $" · clones:{clones.Groups}" : "");
 
+    static object BuildDeskPayload(
+        string depth,
+        Locus locus,
+        string scope,
+        string pulse,
+        string verdict,
+        string why,
+        GatesSnap gates,
+        object topFindings,
+        IdeReviewChannel.FileCard? dirtyHit,
+        int dirtyCount,
+        ClonesSnap? clones,
+        object next)
+    {
         if (depth == "full")
         {
             return new
@@ -71,14 +89,13 @@ internal static partial class IdeSaChannel
                 why,
                 quality = new { gates.Ok, gates.Enabled, gates.Warn, gates.Fail, gates.Pulse, findings = topFindings },
                 dirty = dirtyHit is null ? null : FileCardDto(dirtyHit),
-                dirty_count = dirty.Count,
+                dirty_count = dirtyCount,
                 clones,
                 next,
                 hint = "Pre-refactor SA. Verdict is heuristic — confirm blast via find_usages at locus."
             };
         }
 
-        // slim
         return new
         {
             ok = true,
