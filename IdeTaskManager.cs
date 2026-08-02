@@ -18,7 +18,7 @@ internal static partial class IdeTaskManager
         IntentWorkspaceState state,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        var op = (Opt(args, "tm_op") ?? OptGoArg(args, "op") ?? Opt(args, "op") ?? "board")
+        var op = (Opt(args, "tm_op") ?? OptGoArg(args, "tm_op") ?? OptGoArg(args, "op") ?? Opt(args, "op") ?? "board")
             .Trim().ToLowerInvariant();
 
         object? mutation;
