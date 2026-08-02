@@ -199,14 +199,15 @@ internal static partial class IdeIgniteArmHost
         return max;
     }
 
-    /// <summary>Pure: pull long armed last_once work timer forward under HILD away (not means arms).</summary>
-    internal static bool TryComputeHildAwayPullForwardDue(
+    /// <summary>Pure: pull long armed last_once work timer forward to habit ≤3s (not means arms).</summary>
+    internal static bool TryComputeHabitPullForwardDue(
         DateTimeOffset? dueUtc,
         bool lastOnce,
         bool isAutonomyMeans,
         string status,
         string? eventKind,
         DateTimeOffset now,
+        string pullNote,
         out DateTimeOffset newDue,
         out string? note)
     {
@@ -222,9 +223,37 @@ internal static partial class IdeIgniteArmHost
         if (remaining <= HildAwayContinuityMax)
             return false;
         newDue = now + HildAwayContinuityMax;
-        note = "3s(hild_pull)";
+        note = pullNote;
         return true;
     }
+
+    /// <summary>Pure: HILD away pull — note 3s(hild_pull).</summary>
+    internal static bool TryComputeHildAwayPullForwardDue(
+        DateTimeOffset? dueUtc,
+        bool lastOnce,
+        bool isAutonomyMeans,
+        string status,
+        string? eventKind,
+        DateTimeOffset now,
+        out DateTimeOffset newDue,
+        out string? note) =>
+        TryComputeHabitPullForwardDue(
+            dueUtc, lastOnce, isAutonomyMeans, status, eventKind, now,
+            "3s(hild_pull)", out newDue, out note);
+
+    /// <summary>Pure: TM leaf Fly pull — note 3s(leaf_pull).</summary>
+    internal static bool TryComputeLeafFlyPullForwardDue(
+        DateTimeOffset? dueUtc,
+        bool lastOnce,
+        bool isAutonomyMeans,
+        string status,
+        string? eventKind,
+        DateTimeOffset now,
+        out DateTimeOffset newDue,
+        out string? note) =>
+        TryComputeHabitPullForwardDue(
+            dueUtc, lastOnce, isAutonomyMeans, status, eventKind, now,
+            "3s(leaf_pull)", out newDue, out note);
 
     internal static bool TryClampAutonomousLastOnceDue(
         DateTimeOffset dueUtc,
