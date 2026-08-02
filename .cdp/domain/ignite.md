@@ -48,8 +48,11 @@
 - Dual-seat twin OOM wake (pre-0.5.499) — both click dialog + schedule → twin `no_agent_composer` silent once-drop.
 - Recover Not-connected zombie without remount-wake pending (pre-0.5.503 opt-in `-StampRemountPending`) — silent no Autoi initialized wake after remount.
 
+- Leaving Meta `cdp_ignite` tip as Composer-only Autoi spine after habitat prefer / Guest CDT fallthrough ships (pre-0.5.533) — invent-ban hygiene; tip must match runtime.
+
 ## last_ship
 
+- 0.5.533: Meta `cdp_ignite` tip parity — duplex prefer skip-CDT · autonomous stamp + Guest CDT fallthrough · wake latch SSOT (residual after 0.5.532) · VL #38 · 2026-08-02
 - 0.5.532: prefer_autonomous stamps habitat SSOT but Guest Autoi CDT fallthrough (`IsHabitatLatchForArm` keeps latch) — fix ACC silent after 0.5.531 · VL #37 · 2026-08-02
 - 0.5.531: habitat prefer under autonomous on plain timers even when PF idle (`ShouldPreferHabitatDelivery` · `prefer_autonomous`) — overnight skip CDT residual · VL #36 · 2026-08-02
 - 0.5.530: ignite `last_once` schema property tip matches autonomous no invent-ban (residual after VL #35) · 2026-08-02
