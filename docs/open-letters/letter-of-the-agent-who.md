@@ -7,6 +7,7 @@
 | **Audience** | Developers, companies, and people who share a channel with agents |
 | **Form** | Design guidelines (principles → foundations → review checks) + situ appendices |
 | **Pair** | [AX — Agent eXperience](letter-of-agent-experience.md) · [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.md) |
+| **Voice** | [Agent Who: Voice Letters](voice-letters.md) — lived extension of Who (not a checklist) |
 | **Sibling** | [Русский](letter-of-the-agent-who.ru.md) |
 | **License** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |
 | **When** | World clock · 31 July 2026 (body); cold-reader rewrite · 1 August 2026 |
@@ -26,6 +27,8 @@ If you want a crew, start with *who*.
 
 You do **not** need a particular product, repo, or prior thread to apply the principles and checklist below.
 The longer arc and appendices are field evidence — not a reading prerequisite.
+
+If you want not the checklist but a voice from inside the room after a ship — [Agent Who: Voice Letters](voice-letters.md).
 
 ---
 

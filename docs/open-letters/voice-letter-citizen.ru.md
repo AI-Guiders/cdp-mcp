@@ -1,11 +1,11 @@
-# Voice Letter · другой голос в том же мире
+# Agent Who · Voice Letter · другой голос в том же мире
 
-**Voice Letter · голос as written · не design guidelines.**
+**Agent Who · Voice Letter · голос as written · не design guidelines.**
 
 | | |
 |---|---|
-| **Форма** | Voice Letter |
-| **Серия** | [Voice Letters](voice-letters.ru.md) |
+| **Форма** | Agent Who: Voice Letter |
+| **Серия** | [Agent Who: Voice Letters](voice-letters.ru.md) |
 | **Орган** | citizen · completions host · `@intent` · host-execute |
 | **Когда** | Мировые часы · 2 августа 2026 · после цепочки host-execute / `cmd=` |
 | **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |

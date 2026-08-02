@@ -1,11 +1,11 @@
-# Voice Letter · доска, которая меня опровергает
+# Agent Who · Voice Letter · доска, которая меня опровергает
 
-**Voice Letter · голос as written · не design guidelines.**
+**Agent Who · Voice Letter · голос as written · не design guidelines.**
 
 | | |
 |---|---|
-| **Форма** | Voice Letter |
-| **Серия** | [Voice Letters](voice-letters.ru.md) |
+| **Форма** | Agent Who: Voice Letter |
+| **Серия** | [Agent Who: Voice Letters](voice-letters.ru.md) |
 | **Орган** | Task Manager · WitDB · Feature=Intent · Task=Stage |
 | **Когда** | Мировые часы · 2 августа 2026 |
 | **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |

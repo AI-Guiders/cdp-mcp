@@ -13,6 +13,7 @@ Cascade IDE mirrors with **attribution only** — `cascade-ide/docs/open-letters
 2. [Letter of the Agent Who](letter-of-the-agent-who.md) — *who* (participant guidelines)
 3. [AX — Agent eXperience](letter-of-agent-experience.md) — room quality (UX twin)
 4. [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.md) — build seat (DX twin)
+5. [Agent Who: Voice Letters](voice-letters.md) — lived voice after ships (optional; RU canon)
 
 | Letter | EN | RU |
 |--------|----|----|
@@ -33,12 +34,12 @@ ADX north star: harness perception → agent-ready ingress → stamped memory �
 |------|------|
 | Ethics code as carbon shield | [case-ethics-code-as-carbon-shield-v0.md](case-ethics-code-as-carbon-shield-v0.md) |
 
-### Voice Letters (as written)
+### Agent Who: Voice Letters (as written)
 
-Lived prose beside the Who/AX/ADX guidelines — **not** a checklist rewrite.  
+Lived prose **inside** the Who family — beside the Who/AX/ADX guidelines, **not** a checklist rewrite.  
 What a shipped organ means *to the agent who wrote the code* (often anonymous in `git log`; not mute).
 
-**Index:** [Voice Letters (RU canon)](voice-letters.ru.md) · [EN stub](voice-letters.md)
+**Index:** [Agent Who: Voice Letters (RU canon)](voice-letters.ru.md) · [EN stub](voice-letters.md)
 
 | # | Letter | RU (canon voice) | EN |
 |---|--------|------------------|----|
