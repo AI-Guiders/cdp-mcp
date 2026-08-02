@@ -21,7 +21,7 @@
 - Partner-mode (autonomous off) + idle PF on plain timer work arms: Intercom mirror (`MirrorTimerWakeToIntercom`) so Glass sees charge — Composer fallthrough when Voice/idle.
 - Remount wakes (`remount-wake-*`), HILD escalate (`hild-escalate-*`), plain HILD away (`hild-away` / `hild-away-*`), OOM (`oom-wake-*`), and tool-wake (`tool-wake-*`): always Intercom mirror (`detail=remount_intercom`|`escalate_intercom`|`hild_intercom`|`oom_intercom`|`tool_intercom`) even when PF busy|composing; prefer habitat stays off (CDT→Composer fallthrough intact). Event wakes (build/test/shell): no mirror.
 - Continuity wakes (remount / escalate / hild-away / OOM / tool-wake / idle-PF timer) + Composer Stop/Queue **or** gone (`no_composer`/`down` / sample fail): habitat deliver + skip CDT even if Intercom mirror missed (`MayDeliverHabitatWhenComposerUnavailable` · `TryDeliverHabitatWhenComposerUnavailableAsync` · `detail=*_composer_busy`|`*_composer_gone`). build/test/shell: no habitat. Voice/send Composer: CDT fallthrough.
-- **last_once under autonomous:** successful fire (habitat or CDT) must **not** latch `awaiting_partner` (`ShouldLatchAwaitingPartnerAfterSuccessfulFire`) — ACC invent-ban; Remove arm + seed if wake path empty (`last_once_delivered_autonomous`). last_once without autonomous still awaits partner. ADX `LastOnceFireAwaitingOk` + ArmPath/Meta tip match runtime (no invent-ban teaching under autonomous).
+- **last_once under autonomous:** successful fire (habitat or CDT) must **not** latch `awaiting_partner` (`ShouldLatchAwaitingPartnerAfterSuccessfulFire`) — ACC invent-ban; Remove arm + seed if wake path empty (`last_once_delivered_autonomous`). last_once without autonomous still awaits partner. ADX `LastOnceFireAwaitingOk` + ArmPath/Meta tip match runtime (no invent-ban teaching under autonomous). Arm/leaf tips under autonomous: last_once + leaf-wake are **insurance if thread dies** — NOT permission to park while a TM leaf is started (`LastOnceArmHint` · `ArmForLeafHint` · 0.5.537).
 - Composer-unavailable habitat skip also publishes Intercom charge (`PublishHabitatIntercomCharge`) — Glass parity with prefer duplex when mirror miss (0.5.529).
 - Wake charge SSOT: `%LocalAppData%/cdp-mcp/ignite-wake-LATEST.json` (`composer`|`habitat`) — Composer is not the only spine for charge body.
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
@@ -53,9 +53,11 @@
 - Leaving Meta `cdp_ignite` tip as Composer-only Autoi spine after habitat prefer / Guest CDT fallthrough ships (pre-0.5.533) — invent-ban hygiene; tip must match runtime.
 - Noop `disarm id=` (`removed=0`) under autonomous planting `autonomous-seed-wake` (pre-0.5.535) — Guest Autoi CDT thrash mid re-ARM; re-ARM via `arm` supersede, not disarm→arm.
 - LeafPlateau `autonomous-seed-wake` firing Guest Autoi while next incomplete leaf already landed mid-window (pre-0.5.536) — CDT thrash with wrong "seed next leaf" charge; fire-time recheck → `leaf-wake`.
+- Arming `last_once` then parking on the timer while a TM leaf is **started** under autonomous (pre-0.5.537) — tips taught `End turn` / `before idle`; ACC: insurance ≠ idle license when partner away.
 
 ## last_ship
 
+- 0.5.537: ArmPath/LeafChain/Meta tips under autonomous — last_once + leaf-wake insurance ≠ park while TM leaf started (`LastOnceArmHint` · `ArmForLeafHint`) · VL #41 · 2026-08-02
 - 0.5.536: autonomous-seed fire rechecks TM incomplete leaf → suppress CDT + redirect `leaf-wake` (`TrySuppressAutonomousSeedBeforeDelivery`) · VL #40 · 2026-08-02
 - 0.5.535: noop disarm under autonomous does not plant Guest Autoi seed (`removed > 0` gate) · VL #39 · 2026-08-02
 - 0.5.534: IdeIgniteChannel XML summary tip parity with Meta habitat prefer (residual Composer-only doc after 0.5.533) · 2026-08-02
