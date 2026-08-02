@@ -26,7 +26,7 @@
 - After turn, host executes `@intent` routes by default on live (`CitizenRouteHost`); dry_run skips unless `execute=true` (then parses user `@intent` lines).
 - Live provider turns execute `result.Routes` from assistant wire (default `execute=true`); verified GigaChat3 + mock OAI (`go=` / `drill` / `open path=` / `pane_full=` / multi-intent).
 - Multiple `@intent` lines in one reply → `RouteAll` + host executes each (not first-only).
-- Host execute is sync seat place + buffer open + plan REPL (`cmd=`) — not full cockpit BuildAsync (no W-spray).
+- Host execute is sync seat place + buffer open/replace + plan REPL (`cmd=`) — not full cockpit BuildAsync (no W-spray).
 - `@intent cmd=<CCL>` host-executes TM board verbs only (feature|task|done|note|…); non-plan heads refused (`refuse_non_plan_repl`).
 - Cold remount: `IdeStageCycle.TryWorkspace` lazy-invokes `SetEnsure` (`WorkspaceDbHost.Ensure`) when unbound — citizen `cmd=` does not `no_workspace` without a prior cockpit warm.
 - Failed plan REPL (`cmd=`) surfaces TM `error` on executed[].reason (not opaque `tm_failed`) — e.g. note on closed wall → `note needs open clock — cmd=start first`.
@@ -56,7 +56,8 @@
 
 ## last_ship
 
-- **0.5.504** — citizen `@frame` gains Intercom **presence** line (`presence | @PF … · @PM …`) from `CideIntercomPresenceLatch.AfferentLine` (Glass latch SSOT). Complements `peer=` (MCP health). Persona + inject test.
+- **0.5.505** — citizen `@intent replace path=… old="…" new="…"` host-execute via buffer PathMutateGate (`TryReplaceInDocument`). Complements open; gated disk mutate so partner need not Cursor Write.
+ — citizen `@frame` gains Intercom **presence** line (`presence | @PF … · @PM …`) from `CideIntercomPresenceLatch.AfferentLine` (Glass latch SSOT). Complements `peer=` (MCP health). Persona + inject test.
 
 - 2026-08-02: **Citizen full chain CLOSED** — live request latch dogfood (`citizen-dialog-request-LATEST` pending→done + Intercom `kind=citizen`); Glass StatusText watches request status (`CitizenDialogRequestStatus` + LatchHub); habitat dialog turn + bridge already **0.5.496**.
 - 2026-08-02 → **0.5.496**: Glass Intercom `/citizen` → request latch + habitat bridge → citizen dialog reply as Intercom `kind=citizen` (no guest PF unread). Tests CitizenGlassDialogBridgeTests 3/3.

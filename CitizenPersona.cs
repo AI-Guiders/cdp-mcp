@@ -61,6 +61,7 @@ internal static class CitizenPersona
           @intent go=plan
           @intent go=buffer
           @intent go=health
+          @intent replace path=rel/file.cs old="needle" new="patch"
           @intent cmd=feature leaf-title @act #CDP
           @intent cmd=task dig-step @act #CDP
           @intent cmd=done
@@ -93,6 +94,7 @@ internal static class CitizenPersona
         When you emit intents, keep the token at column 0 (ASCII), e.g.:
           @intent go=plan
           @intent cmd=note short-note
+          @intent replace path=rel/file.cs old="needle" new="patch"
         Do not invent Russian stand-ins for intents.
 
         Mutate only through gated organs when using hands. Do not guess peer/runtime state — read peer= when present.

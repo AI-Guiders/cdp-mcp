@@ -58,6 +58,54 @@ internal static partial class IdeLanguageTools
 
     public static void BindDocumentStore(DocumentBufferStore store) => _docStore = store;
 
+    /// <summary>Citizen replace host-execute — open + ApplyReplace + Flush (PathMutateGate).</summary>
+    public static bool TryReplaceInDocument(
+        string path,
+        string? projectRoot,
+        string oldString,
+        string newString,
+        out string? fullPath,
+        out string? docId,
+        out string? error)
+    {
+        fullPath = null;
+        docId = null;
+        error = null;
+        if (_docStore is null)
+        {
+            error = "doc_store_unbound";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            error = "path_empty";
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(oldString))
+        {
+            error = "old_empty";
+            return false;
+        }
+
+        try
+        {
+            var resolved = ResolveOpenPath(path.Trim(), projectRoot);
+            var buf = _docStore.Open(resolved);
+            _docStore.ApplyReplace(buf, oldString, newString ?? "");
+            _docStore.Flush(buf, allowShrink: true);
+            fullPath = buf.Path;
+            docId = buf.DocId;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = ex.GetType().Name + ": " + ex.Message;
+            return false;
+        }
+    }
+
     /// <summary>Citizen route host / buffer open — relative path resolves under projectRoot.</summary>
     public static bool TryOpenDocument(
         string path,

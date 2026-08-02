@@ -14,6 +14,7 @@ internal static class CitizenIntentRouter
         Drill,
         PaneFull,
         Open,
+        Replace,
         Detail,
         Cmd,
         Refuse,
@@ -30,6 +31,8 @@ internal static class CitizenIntentRouter
         string? Detail = null,
         string? Scene = null,
         string? Cmd = null,
+        string? OldString = null,
+        string? NewString = null,
         string? Reason = null);
 
     public static IReadOnlyList<Route> RouteAll(IEnumerable<CitizenWireParser.Message>? messages)
@@ -118,6 +121,21 @@ internal static class CitizenIntentRouter
                 : new Route(Verb.Open, raw, Ok: true, Path: path, Go: "buffer");
         }
 
+        if (raw.StartsWith("replace ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("replace path=", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!TryParseReplace(raw, out var path, out var oldString, out var newString, out var reason))
+                return new Route(Verb.Unknown, raw, Ok: false, Reason: reason);
+            return new Route(
+                Verb.Replace,
+                raw,
+                Ok: true,
+                Path: path,
+                OldString: oldString,
+                NewString: newString,
+                Go: "buffer");
+        }
+
         if (TryKv(raw, out var detail, out var scene)
             && (!string.IsNullOrEmpty(detail) || !string.IsNullOrEmpty(scene)))
         {
@@ -191,6 +209,65 @@ internal static class CitizenIntentRouter
             return raw["open ".Length..].Trim().Trim('"');
 
         return null;
+    }
+
+    /// <summary>
+    /// <c>replace path=… old="…" new="…"</c> — quoted old/new (spaces ok); path unquoted token.
+    /// </summary>
+    static bool TryParseReplace(
+        string raw,
+        out string? path,
+        out string? oldString,
+        out string? newString,
+        out string? reason)
+    {
+        path = null;
+        oldString = null;
+        newString = null;
+        reason = null;
+
+        path = ExtractKeyedValue(raw, "path");
+        oldString = ExtractKeyedValue(raw, "old") ?? ExtractKeyedValue(raw, "old_string");
+        newString = ExtractKeyedValue(raw, "new") ?? ExtractKeyedValue(raw, "new_string");
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            reason = "replace_path_empty";
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(oldString))
+        {
+            reason = "replace_old_empty";
+            return false;
+        }
+
+        newString ??= "";
+        return true;
+    }
+
+    static string? ExtractKeyedValue(string raw, string key)
+    {
+        var needle = key + "=";
+        var idx = raw.IndexOf(needle, StringComparison.OrdinalIgnoreCase);
+        if (idx < 0)
+            return null;
+
+        var i = idx + needle.Length;
+        if (i >= raw.Length)
+            return "";
+
+        if (raw[i] == '"')
+        {
+            var end = raw.IndexOf('"', i + 1);
+            if (end < 0)
+                return raw[(i + 1)..];
+            return raw[(i + 1)..end];
+        }
+
+        var rest = raw[i..];
+        var sp = rest.IndexOf(' ');
+        return sp < 0 ? rest : rest[..sp];
     }
 
     static bool TryKv(string raw, out string? detail, out string? scene)
