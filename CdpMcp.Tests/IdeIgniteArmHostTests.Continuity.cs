@@ -34,7 +34,7 @@ public partial class IdeIgniteArmHostTests
     }
 
     [Fact]
-    public void ReclaimOverdue_drops_once_stuck_firing_with_FiredUtc()
+    public void ReclaimOverdue_requeues_once_stuck_firing_when_send_not_ok()
     {
         var id = "test-once-zombie-" + Guid.NewGuid().ToString("N")[..8];
         IdeIgniteChannel.Handle(new Dictionary<string, JsonElement> { ["op"] = JsonSerializer.SerializeToElement("arm"), ["when"] = JsonSerializer.SerializeToElement("timer"), ["in"] = JsonSerializer.SerializeToElement("1h"), ["id"] = JsonSerializer.SerializeToElement(id), ["task"] = JsonSerializer.SerializeToElement("once zombie"), ["settle_seconds"] = JsonSerializer.SerializeToElement(0) });
@@ -44,6 +44,34 @@ public partial class IdeIgniteArmHostTests
             {
                 a.Once = true;
                 a.Status = "firing";
+                a.SendOk = null; // remount mid wait-idle
+                a.FiredUtc = null;
+                a.DueUtc = DateTimeOffset.UtcNow.AddMinutes(-2);
+            }));
+            var reclaimed = IdeIgniteArmHost.ReclaimOverdue(TimeSpan.FromSeconds(1));
+            Assert.Contains(id, reclaimed);
+            var snap = IdeIgniteArmHost.Snapshot().First(a => a.Id == id);
+            Assert.Equal("armed", snap.Status);
+            Assert.Contains("reclaimed_stuck_firing", snap.LastError ?? "", StringComparison.Ordinal);
+        }
+        finally
+        {
+            IdeIgniteChannel.Handle(new Dictionary<string, JsonElement> { ["op"] = JsonSerializer.SerializeToElement("disarm"), ["id"] = JsonSerializer.SerializeToElement(id) });
+        }
+    }
+
+    [Fact]
+    public void ReclaimOverdue_drops_once_stuck_firing_when_send_ok()
+    {
+        var id = "test-once-sent-" + Guid.NewGuid().ToString("N")[..8];
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement> { ["op"] = JsonSerializer.SerializeToElement("arm"), ["when"] = JsonSerializer.SerializeToElement("timer"), ["in"] = JsonSerializer.SerializeToElement("1h"), ["id"] = JsonSerializer.SerializeToElement(id), ["task"] = JsonSerializer.SerializeToElement("once sent"), ["settle_seconds"] = JsonSerializer.SerializeToElement(0) });
+        try
+        {
+            Assert.True(IdeIgniteArmHost.TryMutateForTests(id, a =>
+            {
+                a.Once = true;
+                a.Status = "firing";
+                a.SendOk = true;
                 a.FiredUtc = DateTimeOffset.UtcNow.AddSeconds(-30);
                 a.DueUtc = DateTimeOffset.UtcNow.AddMinutes(-2);
             }));

@@ -36,8 +36,8 @@ internal static partial class IdeIgniteArmHost
             if (a is null) return;
             a.Status = status;
             a.LastError = error;
+            // FiredUtc = delivery attempt completed (ApplyFireOutcome), not "entered wait-idle".
             if (fired is { } f) a.FiredUtc = f;
-            if (status == "firing") a.FiredUtc = DateTimeOffset.UtcNow;
             PersistUnlocked();
         }
     }

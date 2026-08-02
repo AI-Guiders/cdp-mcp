@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Text.Json;
 
 namespace CdpMcp;
@@ -87,13 +87,13 @@ internal static partial class IdeIgniteArmHost
         next_step = explain.NextStep,
         why = explain.WhyLine
     };
-    /// <summary>Drop error arms + once stuck-firing with FiredUtc. Returns removed ids.</summary>
+    /// <summary>Drop error arms + once stuck-firing with SendOk=true. Returns removed ids.</summary>
     static List<string> SweepNoiseUnlocked(bool persist)
     {
         List<string> removed;
         lock (Gate)
         {
-            removed = Arms.Where(a => a.Status == "error" || (a.Once && a.Status == "firing" && a.FiredUtc is not null)).Select(a => a.Id).ToList();
+            removed = Arms.Where(a => a.Status == "error" || (a.Once && a.Status == "firing" && a.SendOk == true)).Select(a => a.Id).ToList();
             if (removed.Count == 0)
                 return removed;
             var set = new HashSet<string>(removed, StringComparer.OrdinalIgnoreCase);
