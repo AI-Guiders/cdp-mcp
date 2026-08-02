@@ -158,6 +158,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 **Lived Glass UX epic: CLOSED** for 15.08 one-cockpit survival DoD. **Citizen full chain: CLOSED** (live latch dogfood + StatusText pending→running→done/error).
 
 ## last_ship
+- 2026-08-02: **0.5.506** citizen replace/open → `land-LATEST` open (Glass feels invent; disk peel alone was skip-when-not-open)
 - 2026-08-02: Citizen full chain close — Glass `LatchHub.CitizenDialogRequestChanged` + `CitizenDialogRequestStatus` StatusText; live latch E2E `pending→done` + Intercom `kind=citizen`; tests 2/2
 - 2026-08-02: Glass full peeled-MFD chord/palette batch — `sx/hi/wh/er/ev/hy/ic` + matching palette ids; tests 8/8 · cascade-ide `65688504`
 - 2026-08-02: Glass P3 survival keyboard reach — Ctrl+K `mg`/`cz` + palette `mfd_git`/`slash_citizen`; tests 8/8 · cascade-ide `55afb805`
