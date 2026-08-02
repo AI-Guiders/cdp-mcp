@@ -20,7 +20,7 @@ internal static partial class IdePressureChannel
             memoCount > 0
                 ? $"* memo line · {memoCount} — op=line (anti-compaction)"
                 : "! memo line empty — stash or op=memo body=",
-            "1 AutoIgnition — re-ARM timer before end turn (go=ignite_desk)",
+            AutoIgnitionChecklistLine(IdeIgniteArmHost.IsAutonomousArmed()),
             "2 Task Manager — feature/task focus in WitDB (go=plan)",
             "3 Habitat = CDP — buffer/cockpit/shell; not Cursor host Write",
             domainOk
@@ -31,6 +31,12 @@ internal static partial class IdePressureChannel
             $"· session {session.Phase}/{session.Object} · root={(session.ProjectRoot is { Length: > 0 } ? Path.GetFileName(session.ProjectRoot) : "—")}"
         ];
     }
+
+    /// <summary>Checklist axis 1 — under ACC do not teach end-turn park on timer.</summary>
+    internal static string AutoIgnitionChecklistLine(bool autonomous) =>
+        autonomous
+            ? "1 AutoIgnition — re-ARM timer as insurance; keep flying started TM leaf (go=ignite_desk)"
+            : "1 AutoIgnition — re-ARM timer before end turn (go=ignite_desk)";
 
     static string GateChecklistLine(PressureDoc? doc)
     {

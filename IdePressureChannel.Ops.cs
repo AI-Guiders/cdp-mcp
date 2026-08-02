@@ -31,10 +31,22 @@ internal static partial class IdePressureChannel
             view = new { schema = SchemaVersion, lines },
             next = SceneNext(armed, doc, memoCount),
             hint = armed
-                ? "L1 armed — fill stash (body=) then keep flying in CDP; re-ARM ignite before end turn. Do not offer export ritual."
+                ? SceneArmedHint(IdeIgniteArmHost.IsAutonomousArmed())
                 : "On L1 pressure notify: op=arm → checklist → op=stash body= (also appends memo line). Habitat=CDP, not Cursor Write."
         };
     }
+
+    /// <summary>Scene hint when L1 armed — ACC: re-ARM ≠ end-turn nap.</summary>
+    internal static string SceneArmedHint(bool autonomous) =>
+        autonomous
+            ? "L1 armed — fill stash (body=) then keep flying in CDP; re-ARM ignite as insurance (not a nap). Do not offer export ritual."
+            : "L1 armed — fill stash (body=) then keep flying in CDP; re-ARM ignite before end turn. Do not offer export ritual.";
+
+    /// <summary>Stash hint — ACC: insurance re-ARM, do not park on timer.</summary>
+    internal static string StashHint(bool autonomous) =>
+        autonomous
+            ? "Stashed durable + appended memo line. Keep work in CDP; re-ARM AutoIgnition as insurance — do not park on timer."
+            : "Stashed durable + appended memo line. Keep work in CDP; re-ARM AutoIgnition before ending turn.";
 
     static object Arm(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
@@ -128,7 +140,7 @@ internal static partial class IdePressureChannel
                 new { go = "plan", label = "Task Manager", why = "confirm focus survived" },
                 new { go = GoName, label = "Clear when compact done", why = "op=clear" }
             },
-            hint = "Stashed durable + appended memo line. Keep work in CDP; re-ARM AutoIgnition before ending turn."
+            hint = StashHint(IdeIgniteArmHost.IsAutonomousArmed())
         };
     }
 
