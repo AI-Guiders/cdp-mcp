@@ -173,7 +173,7 @@ internal static class CitizenRouteHost
                 Go: "plan",
                 Cmd: cmd,
                 Pulse: pulse,
-                Reason: ok ? null : (pulse ?? "tm_failed"));
+                Reason: ok ? null : (TryReadError(result) ?? pulse ?? "tm_failed"));
         }
         catch (Exception ex)
         {
@@ -217,6 +217,24 @@ internal static class CitizenRouteHost
             using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
             if (doc.RootElement.TryGetProperty("pulse", out var p) && p.ValueKind == JsonValueKind.String)
                 return p.GetString();
+        }
+        catch
+        {
+            /* best-effort */
+        }
+
+        return null;
+    }
+
+    static string? TryReadError(object result)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            if (doc.RootElement.TryGetProperty("error", out var e)
+                && e.ValueKind == JsonValueKind.String
+                && e.GetString() is { Length: > 0 } err)
+                return err.Trim();
         }
         catch
         {

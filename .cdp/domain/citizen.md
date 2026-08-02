@@ -23,6 +23,7 @@
 - Host execute is sync seat place + buffer open + plan REPL (`cmd=`) — not full cockpit BuildAsync (no W-spray).
 - `@intent cmd=<CCL>` host-executes TM board verbs only (feature|task|done|note|…); non-plan heads refused (`refuse_non_plan_repl`).
 - Cold remount: `IdeStageCycle.TryWorkspace` lazy-invokes `SetEnsure` (`WorkspaceDbHost.Ensure`) when unbound — citizen `cmd=` does not `no_workspace` without a prior cockpit warm.
+- Failed plan REPL (`cmd=`) surfaces TM `error` on executed[].reason (not opaque `tm_failed`) — e.g. note on closed wall → `note needs open clock — cmd=start first`.
 - `go=plan` only places the plan organ — it does not seed/done/ship TM.
 - After host execute, turn returns peer + peer_event (ADR-0028 intent_ack / intent_dropped); latch feeds next turn peer= when omitted.
 - `open path=` resolves under ProjectRoot via `IdeLanguageTools.TryOpenDocument`; places `editor_scene`.
@@ -49,6 +50,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.489**: citizen `cmd=` failure reason reads TM `error` (was pulse-only → opaque `tm_failed`). Closed-wall note → `note needs open clock — cmd=start first`. Test Execute_cmd_note_closed_clock_surfaces_open_clock_reason.
 - 2026-08-02 → **0.5.488**: lazy WitDB bind on `IdeStageCycle.TryWorkspace` (`SetEnsure` ← `workspace.Ensure`) — cold citizen `cmd=` no longer `no_workspace`. Dig: RunPlanCmd needed IdeStageCycle bind; bind only happened in Ensure (cockpit/etc.). Test TryWorkspace_lazy_ensure_binds_before_cmd.
 - 2026-08-02 → **0.5.487**: `@intent cmd=` host-execute for TM/plan REPL (`CitizenRouteHost.RunPlanCmd` → IdeRepl → IdeTaskManager). Whitelist plan CCL heads; refuse shell/etc. Persona rule 5. Tests CitizenPlanReplHostTests (4). Dig: `go=plan` places only — gap was mutate path.
 - 2026-08-02 → **0.5.485**: peer intent_ack after host execute (CitizenPeerAck) — turn surfaces peer/peer_event; latch for next inject. Dig: executed[] only, no duplex. Tests CitizenPeerAckHostTests; live FM omit board= → peer ack=2/2.

@@ -85,7 +85,7 @@ internal sealed partial class IntentWorkspaceStore
             var stage = db.Stages.FirstOrDefault(x => x.Id == stageId && x.IntentId == intentId)
                         ?? throw new ArgumentException($"stage_id not found: {stageId}");
             if (stage.StartedUtc is null || stage.CompletedUtc is not null)
-                throw new ArgumentException("note needs open clock — cmd=start first (not yet shipped)");
+                throw new ArgumentException("note needs open clock — cmd=start first");
             var now = DateTimeOffset.UtcNow;
             var id = Guid.NewGuid();
             db.StageEvents.Add(new StageEventEntity

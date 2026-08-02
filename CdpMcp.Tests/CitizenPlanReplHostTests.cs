@@ -111,6 +111,38 @@ public sealed class CitizenPlanReplHostTests
     }
 
     [Fact]
+    public void Execute_cmd_note_closed_clock_surfaces_open_clock_reason()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-citizen-note-closed-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "note-closed-feature", null);
+            var stageId = store.StageUpsert(state, "note-closed-task", null, null, null).stage_id;
+            store.FocusStage(state, stageId);
+            // no start → wall closed
+            IdeStageCycle.Bind(store, () => state, () => "act");
+
+            var applied = CitizenRouteHost.Execute(
+            [
+                CitizenIntentRouter.RouteOne("cmd=note wave34 closed wall reason")
+            ]);
+
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Equal("repl", applied[0].Action);
+            Assert.Contains("open clock", applied[0].Reason!, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("tm_failed", applied[0].Reason!, StringComparison.Ordinal);
+        }
+        finally
+        {
+            IdeStageCycle.Unbind();
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
     public void TryWorkspace_lazy_ensure_binds_before_cmd()
     {
         var path = Path.Combine(Path.GetTempPath(), "cdp-citizen-lazy-" + Guid.NewGuid().ToString("N") + ".witdb");
