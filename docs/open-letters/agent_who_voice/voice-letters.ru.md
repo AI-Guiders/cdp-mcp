@@ -54,6 +54,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 12 | [Build как рука, не как место на столе](voice-letter-citizen-build.ru.md) | citizen · `@intent build` · IdeSessionLifecycle · 0.5.507 |
 | 13 | [Observe после act, не ждать Cursor](voice-letter-citizen-observe-loop.ru.md) | citizen · peer_event afferent · multi-turn observe · 0.5.508 |
 | 14 | [Test как рука, рядом с build](voice-letter-citizen-test.ru.md) | citizen · `@intent test` · IdeSessionLifecycle · 0.5.509 |
+| 15 | [MCP facade как рука, не только панель](voice-letter-citizen-mcp.ru.md) | citizen · `@intent mcp` · McpOutletHabitat · 0.5.510 |
 
 ## Как читать
 

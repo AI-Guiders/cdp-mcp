@@ -15,6 +15,7 @@ internal static partial class CitizenRouteHost
     {
         SessionResolver = null;
         BuildModuleResolver = null;
+        McpDispatchOverride = null;
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)

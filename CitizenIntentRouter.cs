@@ -6,7 +6,7 @@ namespace CdpMcp;
 /// Efferent peel #10: map parsed <c>@intent</c> lines to organ routes (go=/drill/open/cmd).
 /// Does not CallTool — host executes <see cref="Route"/>. Refuse W-spray as thrash string.
 /// </summary>
-internal static class CitizenIntentRouter
+internal static partial class CitizenIntentRouter
 {
     public enum Verb
     {
@@ -17,6 +17,7 @@ internal static class CitizenIntentRouter
         Replace,
         Build,
         Test,
+        Mcp,
         Detail,
         Cmd,
         Refuse,
@@ -35,6 +36,10 @@ internal static class CitizenIntentRouter
         string? Cmd = null,
         string? OldString = null,
         string? NewString = null,
+        string? Op = null,
+        string? Server = null,
+        string? Tool = null,
+        string? Preset = null,
         string? Reason = null);
 
     public static IReadOnlyList<Route> RouteAll(IEnumerable<CitizenWireParser.Message>? messages)
@@ -98,23 +103,31 @@ internal static class CitizenIntentRouter
                 : new Route(Verb.Go, raw, Ok: true, Go: go);
         }
 
-        if (raw.StartsWith("drill ", StringComparison.OrdinalIgnoreCase))
+        if (raw.StartsWith("drill ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("drill", StringComparison.OrdinalIgnoreCase))
         {
-            var organ = raw["drill ".Length..].Trim();
-            return organ.Length == 0
-                ? new Route(Verb.Unknown, raw, Ok: false, Reason: "drill_empty")
-                : new Route(Verb.Drill, raw, Ok: true, Organ: organ, Go: MapDrillGo(organ));
+            var organ = raw.Equals("drill", StringComparison.OrdinalIgnoreCase)
+                ? ""
+                : raw["drill ".Length..].Trim();
+            if (organ.Length == 0)
+                return new Route(Verb.Unknown, raw, Ok: false, Reason: "drill_organ_empty");
+            var go = MapDrillGo(organ);
+            return new Route(Verb.Drill, raw, Ok: true, Organ: organ, Go: go);
         }
 
-        if (raw.StartsWith("pane_full=", StringComparison.OrdinalIgnoreCase))
+        if (raw.StartsWith("pane_full=", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("pane_full ", StringComparison.OrdinalIgnoreCase))
         {
-            var seat = raw["pane_full=".Length..].Trim();
+            var seat = raw.StartsWith("pane_full=", StringComparison.OrdinalIgnoreCase)
+                ? raw["pane_full=".Length..].Trim()
+                : raw["pane_full ".Length..].Trim();
             return seat.Length == 0
                 ? new Route(Verb.Unknown, raw, Ok: false, Reason: "pane_full_empty")
                 : new Route(Verb.PaneFull, raw, Ok: true, Organ: seat, Go: "cockpit");
         }
 
-        if (raw.StartsWith("open ", StringComparison.OrdinalIgnoreCase)
+        if (raw.Equals("open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("open ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("open path=", StringComparison.OrdinalIgnoreCase))
         {
             var path = ExtractPath(raw);
@@ -152,6 +165,12 @@ internal static class CitizenIntentRouter
         {
             var path = ExtractLifecyclePath(raw, "test");
             return new Route(Verb.Test, raw, Ok: true, Path: path, Go: "test");
+        }
+
+        if (raw.Equals("mcp", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("mcp ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteMcp(raw);
         }
 
         if (TryKv(raw, out var detail, out var scene)
@@ -228,6 +247,62 @@ internal static class CitizenIntentRouter
 
         return null;
     }
+
+static Route RouteMcp(string raw)
+    {
+        var op = ExtractKeyedValue(raw, "op");
+        if (string.IsNullOrWhiteSpace(op) && raw.StartsWith("mcp ", StringComparison.OrdinalIgnoreCase))
+        {
+            var rest = raw["mcp ".Length..].Trim();
+            var sp = rest.IndexOf(' ');
+            var head = sp < 0 ? rest : rest[..sp];
+            if (IsMcpOp(head))
+                op = head;
+        }
+
+        op = string.IsNullOrWhiteSpace(op) ? "scene" : op.Trim().ToLowerInvariant();
+        if (op is "status" or "list")
+            op = "scene";
+        else if (op is "invoke")
+            op = "call";
+        else if (op is "list_tools")
+            op = "tools";
+        else if (op is "connect" or "add")
+            op = "mount";
+        else if (op is "catalog")
+            op = "presets";
+
+        if (!IsMcpOp(op))
+            return new Route(Verb.Unknown, raw, Ok: false, Reason: "mcp_op_unknown");
+
+        var server = ExtractKeyedValue(raw, "server") ?? ExtractKeyedValue(raw, "id");
+        var tool = ExtractKeyedValue(raw, "tool") ?? ExtractKeyedValue(raw, "name");
+        var preset = ExtractKeyedValue(raw, "preset");
+
+        if (op is "call" && string.IsNullOrWhiteSpace(tool))
+            return new Route(Verb.Mcp, raw, Ok: false, Op: op, Server: server, Tool: tool, Preset: preset, Go: "mcp", Reason: "mcp_tool_required");
+        if ((op is "call" or "tools" or "unmount") && string.IsNullOrWhiteSpace(server))
+            return new Route(Verb.Mcp, raw, Ok: false, Op: op, Server: server, Tool: tool, Preset: preset, Go: "mcp", Reason: "mcp_server_required");
+        if (op is "mount" && string.IsNullOrWhiteSpace(preset) && string.IsNullOrWhiteSpace(ExtractKeyedValue(raw, "command")))
+            return new Route(Verb.Mcp, raw, Ok: false, Op: op, Server: server, Tool: tool, Preset: preset, Go: "mcp", Reason: "mcp_preset_or_command_required");
+
+        return new Route(
+            Verb.Mcp,
+            raw,
+            Ok: true,
+            Op: op,
+            Server: server,
+            Tool: tool,
+            Preset: preset,
+            Go: "mcp");
+    }
+
+    static bool IsMcpOp(string? op) =>
+        op is "scene" or "status" or "list" or "presets" or "catalog"
+            or "mount" or "connect" or "add"
+            or "tools" or "list_tools"
+            or "call" or "invoke"
+            or "unmount";
 
     static string? ExtractLifecyclePath(string raw, string verb)
     {
