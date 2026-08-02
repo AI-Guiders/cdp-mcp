@@ -19,10 +19,42 @@ internal static class IdeCitizenChannel
         {
             "scene" or "get" => Scene(),
             "keys" or "keyring" => Keys(),
+            "history" or "log" => History(),
+            "clear" or "reset" => ClearHistory(),
             "turn" or "chat" or "complete" => Turn(args),
-            _ => Fail("unknown_op", "op=scene|keys|turn  message= board= dry_run=")
+            _ => Fail("unknown_op", "op=scene|keys|turn|history|clear  message= mode=dialog|wire dry_run=")
         };
     }
+
+    static string History()
+    {
+        var msgs = CitizenDialogHistory.Load();
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "history",
+            dialog = CitizenDialogHistory.Pulse(),
+            messages = msgs.Select(m => new { role = m.Role, content = Trunc(m.Content, 400) }).ToArray(),
+            hint = "dialog history under StateRoot/{seat}/citizen-dialog.jsonl — used when mode=dialog"
+        });
+    }
+
+    static string ClearHistory()
+    {
+        CitizenDialogHistory.Clear();
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "clear",
+            dialog = CitizenDialogHistory.Pulse(),
+            hint = "dialog history cleared"
+        });
+    }
+
+    static string Trunc(string s, int max) =>
+        s.Length <= max ? s : s[..(max - 1)] + "…";
 
     static string Scene()
     {
@@ -41,6 +73,7 @@ internal static class IdeCitizenChannel
             dialog_persona_chars = CitizenPersona.DialogSystemPrompt.Length,
             modes = new[] { "wire", "dialog" },
             mode_default = "wire",
+            dialog = CitizenDialogHistory.Pulse(),
             inject_default = true,
             model_default = keys.HasOpenAi
                 ? keys.ResolvedOpenAiModel
@@ -124,6 +157,10 @@ internal static class IdeCitizenChannel
         var inject = !args.ContainsKey("inject") || Bool(args, "inject", defaultTrue: true);
         var execute = WantExecute(args, dryRun);
         var mode = ParseMode(args);
+        var useHistory = mode == CitizenTurnMode.Dialog
+            && (!args.ContainsKey("history") || Bool(args, "history", defaultTrue: true));
+        if (Bool(args, "reset") || Bool(args, "clear_history"))
+            CitizenDialogHistory.Clear();
         var (board, tm, liveBound) = ResolveBoardAndTm(args, inject);
         var peerIn = Arg(args, "peer") ?? CitizenPeerAck.LastPeer;
 
@@ -137,7 +174,8 @@ internal static class IdeCitizenChannel
             model: Arg(args, "model"),
             dryRun: dryRun,
             inject: inject,
-            mode: mode);
+            mode: mode,
+            history: useHistory);
 
         IReadOnlyList<CitizenRouteHost.Applied>? executed = null;
         CitizenPeerAck.Result? peerAck = null;
@@ -226,6 +264,7 @@ internal static class IdeCitizenChannel
             mode = mode == CitizenTurnMode.Dialog ? "dialog" : "wire",
             dry_run = result.DryRun,
             execute,
+            dialog = mode == CitizenTurnMode.Dialog ? CitizenDialogHistory.Pulse() : null,
             error = result.Error,
             hint,
             provider = result.Provider,

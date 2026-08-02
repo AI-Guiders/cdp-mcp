@@ -96,12 +96,20 @@ internal static partial class CitizenCompletions
         string? next = null,
         string? tm = null,
         bool inject = true,
-        CitizenTurnMode mode = CitizenTurnMode.Wire)
+        CitizenTurnMode mode = CitizenTurnMode.Wire,
+        bool history = true)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userText);
         string? afferent = null;
         var injected = false;
         var msgs = new List<ChatMessage>();
+
+        // Dialog multi-turn: prior user/assistant pairs before this turn's afferent+user.
+        if (mode == CitizenTurnMode.Dialog && history)
+        {
+            foreach (var prior in CitizenDialogHistory.Load())
+                msgs.Add(prior);
+        }
 
         if (inject)
         {
@@ -115,10 +123,14 @@ internal static partial class CitizenCompletions
                     peer: peer ?? "ok · gen=1 · mcp=live · compact=no",
                     next: next,
                     tm: tm);
-                var bodies = CitizenWire.PrependAfferent([userText.Trim()], afferent);
-                foreach (var b in bodies)
-                    msgs.Add(new ChatMessage("user", b));
-                injected = bodies.Count > 1;
+                // Afferent as its own user message, then bare user text (keeps history clean).
+                if (!string.IsNullOrWhiteSpace(afferent))
+                {
+                    msgs.Add(new ChatMessage("user", afferent));
+                    injected = true;
+                }
+
+                msgs.Add(new ChatMessage("user", userText.Trim()));
             }
             finally
             {
@@ -144,18 +156,21 @@ internal static partial class CitizenCompletions
         bool dryRun = false,
         bool inject = true,
         CitizenTurnMode mode = CitizenTurnMode.Wire,
+        bool history = true,
         int maxTokens = 1024,
         CancellationToken cancellationToken = default)
     {
-        var built = Build(userText, boardLines, sa, peer, next, tm, inject, mode);
+        var built = Build(userText, boardLines, sa, peer, next, tm, inject, mode, history);
         if (dryRun)
         {
             var dryModel = ResolveDryRunModel(model);
             var modeHint = mode == CitizenTurnMode.Dialog ? "dialog prose" : "wire hands";
+            var histN = mode == CitizenTurnMode.Dialog && history ? CitizenDialogHistory.Load().Count : 0;
             return new TurnResult(
                 Ok: true,
                 Error: null,
-                Hint: "dry_run — no provider call; messages built with persona + wire inject · mode=" + modeHint,
+                Hint: "dry_run — no provider call; messages built with persona + wire inject · mode=" + modeHint
+                    + (histN > 0 ? " · history=" + histN : ""),
                 Text: null,
                 Model: dryModel,
                 Provider: "dry_run",
@@ -184,9 +199,12 @@ internal static partial class CitizenCompletions
 
         try
         {
-            return resolved.Provider == ProviderOpenAiCompat
+            var result = resolved.Provider == ProviderOpenAiCompat
                 ? TurnOpenAiCompat(built, resolved, maxTokens, cancellationToken)
                 : TurnAnthropic(built, resolved, maxTokens, cancellationToken);
+            if (result.Ok && mode == CitizenTurnMode.Dialog && history && !string.IsNullOrWhiteSpace(result.Text))
+                CitizenDialogHistory.Append(userText, result.Text!);
+            return result;
         }
         catch (OperationCanceledException)
         {
