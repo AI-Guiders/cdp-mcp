@@ -25,7 +25,7 @@
 - Composer-unavailable habitat skip also publishes Intercom charge (`PublishHabitatIntercomCharge`) — Glass parity with prefer duplex when mirror miss (0.5.529).
 - Wake charge SSOT: `%LocalAppData%/cdp-mcp/ignite-wake-LATEST.json` (`composer`|`habitat`) — Composer is not the only spine for charge body.
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
-- HILD (default ARMED): Composer text idle **30s** on Voice → `human_away` **once** (latch until Composer text); wake → autonomous; after wake continuity **1–2s** not 45m; suppress under `await_partner` / halt. DefaultIdle=30s since 0.5.359 (meta tip 0.5.363).
+- HILD (default ARMED): Composer text idle **30s** on Voice → `human_away` **once** (latch until Composer text); wake → autonomous; on edge/escalate **pull-forward** armed last_once work timers ≤3s (`PullForwardLongWorkTimersOnHildAway`); arm under `away_latched` clamps ≤3s; after wake continuity **1–3s** not 45m; suppress under `await_partner` / halt. DefaultIdle=30s since 0.5.359 (meta tip 0.5.363).
 - After successful fire: watch Cursor for "Connection Problems" / Try again|Retry overlay until next fire; auto-click (not Idle-only).
 - After successful fire: also Win32-click Electron stall dialog "The window is not responding" → **Keep Waiting** (not OS hung dialog; not CDT).
 
@@ -56,9 +56,11 @@
 - Arming `last_once` then parking on the timer while a TM leaf is **started** under autonomous (pre-0.5.537) — tips taught `End turn` / `before idle`; ACC: insurance ≠ idle license when partner away.
 - Continuity scene `next_step=wait for event` + canonical charge `re-arm when idle` under autonomous (pre-0.5.538) — same park teaching via arms.explain / Composer wake body.
 - Arming `last_once in=45m` under autonomous (pre-0.5.539) — accidental end-turn looks like "working" for half an hour; clamp ≤3m (`ClampAutonomousLastOnceInsurance`; `force=true` escape).
+- HILD ARMED but long `last_once` still parks after away edge (pre-0.5.542) — HILD watched partner, not agent park; pull-forward ≤3s + arm clamp when `away_latched`.
 
 ## last_ship
 
+- 0.5.542: HILD away pull-forward long last_once → ≤3s + arm clamp under away_latched (`PullForwardLongWorkTimersOnHildAway` · `HildAwayContinuityMax`) · VL #46 · 2026-08-02
 - 0.5.541: ArmPath event + QRH tips under ACC — keep flying / in=3s habit (not end-turn park)
 - 0.5.539: autonomous last_once timer clamp ≤3m (`ClampAutonomousLastOnceInsurance`) · VL #43 · 2026-08-02
 - 0.5.538: ContinuityExplain + CanonicalComposerCharge under ACC — timer/insurance ≠ park (`ContinuityArmedNextStep` · charge rewrite) · VL #42 · 2026-08-02
