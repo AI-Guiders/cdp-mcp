@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.465</Version>
+    <Version>0.5.466</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -313,4 +313,19 @@
       <DependentUpon>DocBuffer.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="IdeChkChannel.Mutate.Io.cs"><DependentUpon>IdeChkChannel.Mutate.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="IdeChkChannel.Mutate.Io.cs">
+      <DependentUpon>IdeChkChannel.Mutate.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeProblemsChannel.Handle.cs">
+      <DependentUpon>IdeProblemsChannel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeFilesChannel.Browse.cs">
+      <DependentUpon>IdeFilesChannel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="OpenVsxClient.Ops.cs"><DependentUpon>OpenVsxClient.cs</DependentUpon></Compile></ItemGroup></Project>
