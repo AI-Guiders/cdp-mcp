@@ -369,4 +369,46 @@ public class IdeIgniteWakeLatchTests : IDisposable
         Assert.NotNull(voice);
         Assert.Contains("tool still running", voice!.Body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_hild_away_publishes_when_pf_busy()
+    {
+        CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = IdeIgniteArmHost.HildAwayArmId,
+            Event = "human_away",
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.True(IdeIgniteArmHost.IsHildAwayWakeArm(arm));
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "HILD human_away"));
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "HILD human_away busy PF"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("HILD human_away busy PF", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_hild_away_publishes_when_pf_idle()
+    {
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = IdeIgniteArmHost.HildAwayArmId,
+            Event = "human_away",
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "HILD human_away"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("HILD human_away", voice!.Body, StringComparison.Ordinal);
+    }
 }
