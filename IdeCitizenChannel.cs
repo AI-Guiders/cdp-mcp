@@ -111,14 +111,15 @@ internal static class IdeCitizenChannel
         });
     }
 
-            static string Turn(IReadOnlyDictionary<string, JsonElement> args)
+    static string Turn(IReadOnlyDictionary<string, JsonElement> args)
     {
         var message = Arg(args, "message") ?? Arg(args, "body") ?? Arg(args, "text") ?? Arg(args, "msg");
         if (string.IsNullOrWhiteSpace(message))
-            return Fail("message_required", "turn message=… [board=] [dry_run=true]");
+            return Fail("message_required", "turn message=… [board=] [dry_run=true] [execute=]");
 
         var dryRun = Bool(args, "dry_run") || Bool(args, "dry");
         var inject = !args.ContainsKey("inject") || Bool(args, "inject", defaultTrue: true);
+        var execute = WantExecute(args, dryRun);
         var (board, tm, liveBound) = ResolveBoardAndTm(args, inject);
 
         var result = CitizenCompletions.Turn(
@@ -132,7 +133,26 @@ internal static class IdeCitizenChannel
             dryRun: dryRun,
             inject: inject);
 
-        return SerializeTurn(result, liveBound);
+        IReadOnlyList<CitizenRouteHost.Applied>? executed = null;
+        IReadOnlyList<CitizenIntentRouter.Route>? routes = result.Routes;
+        if (execute && result.Ok)
+        {
+            // dry_run has no provider text — allow host dogfood from user @intent lines.
+            if ((routes is null || routes.Count == 0) && dryRun)
+                routes = CitizenIntentRouter.RouteAll(CitizenWireParser.Parse(message!));
+            if (routes is { Count: > 0 })
+                executed = CitizenRouteHost.Execute(routes);
+        }
+
+        return SerializeTurn(result, liveBound, execute, executed, routes);
+    }
+
+    /// <summary>Live turns execute routes by default; dry_run skips unless execute=true.</summary>
+    static bool WantExecute(IReadOnlyDictionary<string, JsonElement> args, bool dryRun)
+    {
+        if (args.ContainsKey("execute"))
+            return Bool(args, "execute");
+        return !dryRun;
     }
 
     static (IEnumerable<string>? Board, string? Tm, bool LiveBound) ResolveBoardAndTm(
@@ -157,18 +177,27 @@ internal static class IdeCitizenChannel
         return (live.BoardLines, tm ?? live.TmPulse, live.FromLive);
     }
 
-    static string SerializeTurn(CitizenCompletions.TurnResult result, bool liveBound)
+    static string SerializeTurn(
+        CitizenCompletions.TurnResult result,
+        bool liveBound,
+        bool execute,
+        IReadOnlyList<CitizenRouteHost.Applied>? executed,
+        IReadOnlyList<CitizenIntentRouter.Route>? routesOverride)
     {
         var hint = result.Hint;
         if (liveBound && result.Ok)
             hint = (hint is { Length: > 0 } ? hint + " · " : "") + "live desk bound (board/tm)";
+        if (execute && executed is { Count: > 0 })
+            hint = (hint is { Length: > 0 } ? hint + " · " : "") + "host executed " + executed.Count + " route(s)";
 
+        var routes = routesOverride ?? result.Routes;
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
             ok = result.Ok,
             op = "turn",
             dry_run = result.DryRun,
+            execute,
             error = result.Error,
             hint,
             provider = result.Provider,
@@ -186,7 +215,7 @@ internal static class IdeCitizenChannel
                 intent = m.IntentText,
                 fields = m.Fields
             }).ToArray(),
-            routes = result.Routes?.Select(r => new
+            routes = routes?.Select(r => new
             {
                 verb = r.Verb.ToString(),
                 raw = r.Raw,
@@ -197,6 +226,18 @@ internal static class IdeCitizenChannel
                 detail = r.Detail,
                 scene = r.Scene,
                 reason = r.Reason
+            }).ToArray(),
+            executed = executed?.Select(a => new
+            {
+                verb = a.Verb,
+                raw = a.Raw,
+                ok = a.Ok,
+                action = a.Action,
+                seat = a.Seat,
+                go = a.Go,
+                path = a.Path,
+                doc_id = a.DocId,
+                reason = a.Reason
             }).ToArray()
         });
     }

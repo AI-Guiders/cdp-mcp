@@ -115,6 +115,7 @@ internal static partial class MetaToolCatalog
             tm = new { type = "string", description = "turn: optional tm field" },
             model = new { type = "string", description = "turn: model id (default: Cloud.ru FM or Anthropic sonnet by provider)" },
             dry_run = new { type = "boolean", description = "turn: build messages only, no provider call" },
+            execute = new { type = "boolean", description = "turn: host-execute @intent routes (default: live=true, dry_run=false); place go/drill + open path" },
             inject = new { type = "boolean", description = "turn: prepend wire afferent (default true)" }
         }
     }),
