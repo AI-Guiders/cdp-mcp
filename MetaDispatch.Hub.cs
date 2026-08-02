@@ -35,6 +35,7 @@ internal static partial class MetaDispatch
         var NotifyListChanged = d.NotifyListChanged;
         var EnsureOpenRecentWired = d.EnsureOpenRecentWired;
         var EnsureWorkspaceDb = d.EnsureWorkspaceDb;
+        var RequireWorkspace = d.RequireWorkspace;
         var DispatchAsync = d.DispatchToolAsync;
         var DispatchCdpWork = d.DispatchCdpWork;
 
@@ -79,6 +80,8 @@ internal static partial class MetaDispatch
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureWorkspaceDb(); // desk_seats + script_last_run (WitDB)
+        // deps.WorkspaceStore is snapshotted at process start (null) — refresh after Ensure.
+        workspaceStore = RequireWorkspace();
 
         return await IdeCockpit.BuildAsync(
                 session,

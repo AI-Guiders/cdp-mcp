@@ -34,6 +34,7 @@ internal sealed class MetaDispatchDeps
     public required Action NotifyListChanged { get; init; }
     public required Action EnsureOpenRecentWired { get; init; }
     public required Action EnsureWorkspaceDb { get; init; }
+    public required Func<IntentWorkspaceStore> RequireWorkspace { get; init; }
     public required Func<List<Tool>> BuildVisibleTools { get; init; }
     public required Func<List<Tool>> BuildMetaTools { get; init; }
     public required Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> DispatchToolAsync { get; init; }

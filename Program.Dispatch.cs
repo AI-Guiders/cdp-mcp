@@ -62,6 +62,7 @@ internal static partial class ProgramHost
                 NotifyListChanged = () => deps.NotifyListChanged(),
                 EnsureOpenRecentWired = deps.EnsureOpenRecentWired,
                 EnsureWorkspaceDb = deps.EnsureWorkspaceDb,
+                RequireWorkspace = deps.RequireWorkspace,
                 BuildVisibleTools = deps.BuildVisibleTools,
                 BuildMetaTools = deps.BuildMetaTools,
                 DispatchToolAsync = (n, a, ct) => DispatchAsync(deps, n, a, ct),
