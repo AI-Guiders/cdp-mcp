@@ -56,6 +56,7 @@ internal static partial class IdeIgniteArmHost
             }
 
             var partnerAway = HildDetector.AwayLatched;
+            var leafFlying = ProbeFlight() == ContinuityFlight.Fly;
             if (due is { } due0
                 && TryClampAutonomousLastOnceDue(
                     due0,
@@ -64,7 +65,8 @@ internal static partial class IdeIgniteArmHost
                     force,
                     out var clampedDue,
                     out clampNote,
-                    partnerAway))
+                    partnerAway,
+                    leafFlying))
             {
                 due = clampedDue;
                 inRaw = string.IsNullOrWhiteSpace(inRaw) ? clampNote : $"{inRaw}→{clampNote}";
@@ -73,7 +75,8 @@ internal static partial class IdeIgniteArmHost
         else if (!string.IsNullOrWhiteSpace(inRaw) && TryParseDuration(inRaw!, out var d))
         {
             d = ClampAutonomousLastOnceInsurance(
-                d, lastOnce, IsAutonomousArmed(), force, out clampNote, HildDetector.AwayLatched);
+                d, lastOnce, IsAutonomousArmed(), force, out clampNote,
+                HildDetector.AwayLatched, ProbeFlight() == ContinuityFlight.Fly);
             due = DateTimeOffset.UtcNow + d;
             if (clampNote is not null)
                 inRaw = $"{inRaw}→{clampNote}";
@@ -158,22 +161,41 @@ internal static partial class IdeIgniteArmHost
     /// <summary>While HILD away_latched / on human_away edge — last_once work timers ≤3s (habit), not ≤3m.</summary>
     internal static readonly TimeSpan HildAwayContinuityMax = TimeSpan.FromSeconds(3);
 
-    /// <summary>Clamp long last_once timers under autonomous unless force=true. Partner-away tightens to 3s.</summary>
+    /// <summary>Clamp long last_once timers under autonomous unless force=true.
+    /// Partner-away or TM leaf Fly tightens to 3s (habit); else ≤3m.</summary>
     internal static TimeSpan ClampAutonomousLastOnceInsurance(
         TimeSpan requested,
         bool lastOnce,
         bool autonomous,
         bool force,
         out string? clampNote,
-        bool partnerAway = false)
+        bool partnerAway = false,
+        bool leafFlying = false)
     {
         clampNote = null;
         if (!lastOnce || !autonomous || force)
             return requested;
-        var max = partnerAway ? HildAwayContinuityMax : AutonomousLastOnceInsuranceMax;
+        TimeSpan max;
+        string note;
+        if (partnerAway)
+        {
+            max = HildAwayContinuityMax;
+            note = "3s(hild_away)";
+        }
+        else if (leafFlying)
+        {
+            max = HildAwayContinuityMax;
+            note = "3s(leaf_started)";
+        }
+        else
+        {
+            max = AutonomousLastOnceInsuranceMax;
+            note = "3m(clamped)";
+        }
+
         if (requested <= max)
             return requested;
-        clampNote = partnerAway ? "3s(hild_away)" : "3m(clamped)";
+        clampNote = note;
         return max;
     }
 
@@ -211,7 +233,8 @@ internal static partial class IdeIgniteArmHost
         bool force,
         out DateTimeOffset clampedDue,
         out string? clampNote,
-        bool partnerAway = false)
+        bool partnerAway = false,
+        bool leafFlying = false)
     {
         clampNote = null;
         clampedDue = dueUtc;
@@ -219,7 +242,7 @@ internal static partial class IdeIgniteArmHost
         if (remaining <= TimeSpan.Zero)
             return false;
         var clamped = ClampAutonomousLastOnceInsurance(
-            remaining, lastOnce, autonomous, force, out clampNote, partnerAway);
+            remaining, lastOnce, autonomous, force, out clampNote, partnerAway, leafFlying);
         if (clampNote is null)
             return false;
         clampedDue = DateTimeOffset.UtcNow + clamped;

@@ -173,6 +173,29 @@ public partial class IdeIgniteAutonomousTests
             partnerAway: true);
         Assert.Equal(TimeSpan.FromSeconds(3), away);
         Assert.Equal("3s(hild_away)", awayNote);
+
+        var leaf = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(
+            TimeSpan.FromMinutes(45),
+            lastOnce: true,
+            autonomous: true,
+            force: false,
+            out var leafNote,
+            partnerAway: false,
+            leafFlying: true);
+        Assert.Equal(TimeSpan.FromSeconds(3), leaf);
+        Assert.Equal("3s(leaf_started)", leafNote);
+
+        // Partner-away wins over leaf-fly for the note tag.
+        var awayWins = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(
+            TimeSpan.FromMinutes(45),
+            lastOnce: true,
+            autonomous: true,
+            force: false,
+            out var awayWinsNote,
+            partnerAway: true,
+            leafFlying: true);
+        Assert.Equal(TimeSpan.FromSeconds(3), awayWins);
+        Assert.Equal("3s(hild_away)", awayWinsNote);
     }
 
     [Fact]
