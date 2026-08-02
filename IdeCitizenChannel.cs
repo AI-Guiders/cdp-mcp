@@ -111,7 +111,7 @@ internal static class IdeCitizenChannel
         });
     }
 
-    static string Turn(IReadOnlyDictionary<string, JsonElement> args)
+            static string Turn(IReadOnlyDictionary<string, JsonElement> args)
     {
         var message = Arg(args, "message") ?? Arg(args, "body") ?? Arg(args, "text") ?? Arg(args, "msg");
         if (string.IsNullOrWhiteSpace(message))
@@ -119,11 +119,7 @@ internal static class IdeCitizenChannel
 
         var dryRun = Bool(args, "dry_run") || Bool(args, "dry");
         var inject = !args.ContainsKey("inject") || Bool(args, "inject", defaultTrue: true);
-        var model = Arg(args, "model");
-        var boardRaw = Arg(args, "board");
-        IEnumerable<string>? board = null;
-        if (!string.IsNullOrWhiteSpace(boardRaw))
-            board = boardRaw.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var (board, tm, liveBound) = ResolveBoardAndTm(args, inject);
 
         var result = CitizenCompletions.Turn(
             message!,
@@ -131,10 +127,41 @@ internal static class IdeCitizenChannel
             sa: Arg(args, "sa"),
             peer: Arg(args, "peer"),
             next: Arg(args, "next"),
-            tm: Arg(args, "tm"),
-            model: model,
+            tm: tm,
+            model: Arg(args, "model"),
             dryRun: dryRun,
             inject: inject);
+
+        return SerializeTurn(result, liveBound);
+    }
+
+    static (IEnumerable<string>? Board, string? Tm, bool LiveBound) ResolveBoardAndTm(
+        IReadOnlyDictionary<string, JsonElement> args,
+        bool inject)
+    {
+        var boardRaw = Arg(args, "board");
+        string? tm = Arg(args, "tm");
+        if (!string.IsNullOrWhiteSpace(boardRaw))
+        {
+            var board = boardRaw.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return (board, tm, false);
+        }
+
+        if (!inject)
+            return (null, tm, false);
+
+        var live = CitizenLiveDesk.TryCaptureLive();
+        if (live.BoardLines.Length == 0)
+            return (null, tm, false);
+
+        return (live.BoardLines, tm ?? live.TmPulse, live.FromLive);
+    }
+
+    static string SerializeTurn(CitizenCompletions.TurnResult result, bool liveBound)
+    {
+        var hint = result.Hint;
+        if (liveBound && result.Ok)
+            hint = (hint is { Length: > 0 } ? hint + " · " : "") + "live desk bound (board/tm)";
 
         return JsonSerializer.Serialize(new
         {
@@ -143,11 +170,12 @@ internal static class IdeCitizenChannel
             op = "turn",
             dry_run = result.DryRun,
             error = result.Error,
-            hint = result.Hint,
+            hint,
             provider = result.Provider,
             model = result.Model,
             text = result.Text,
             injected = result.Built?.Injected,
+            live_desk = liveBound,
             afferent = result.Built?.AfferentPulse,
             message_count = result.Built?.Messages.Count,
             system_chars = result.Built?.System.Length,

@@ -17,7 +17,7 @@ internal static partial class IdeDeskView
         return "| " + string.Join(" | ", parts) + " |";
     }
 
-    static string FormatBoardLine(Slot s)
+        public static string FormatBoardLine(Slot s)
     {
         var g = SeatGlyph(s.Seat).PadRight(1);
         var organ = (s.Empty ? "—" : ShortOrgan(s.Organ)).PadRight(10);

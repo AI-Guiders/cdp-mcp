@@ -24,6 +24,32 @@ internal static class IdeStageCycle
         _phasePeek = phasePeek;
     }
 
+    /// <summary>Bound WitDB peek for organs that need live TM pulse without full cockpit compose.</summary>
+    public static bool TryWorkspace(
+        out IntentWorkspaceStore store,
+        out IntentWorkspaceState state,
+        out string? phase)
+    {
+        store = null!;
+        state = null!;
+        phase = null;
+        try
+        {
+            var s = _store;
+            var st = _statePeek?.Invoke();
+            if (s is null || st is null)
+                return false;
+            store = s;
+            state = st;
+            phase = _phasePeek?.Invoke();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     /// <summary>Append to open-clock active stage. No-op if clock closed / no focus.</summary>
     public static void TryAppend(string kind, string source, string summary, string? refId = null) =>
         _ = TryAppendCore(kind, source, summary, refId);
