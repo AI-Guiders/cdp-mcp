@@ -16,3 +16,5 @@
 Auto DoD: agent writes/appends a Voice Letter on the hot trail after live dogfood, updates the RU index, commits — then leaf done. Do not wait to be asked. Do not wait for beauty.
 
 Russian is the lived voice of this series. Start there: [voice-letters.ru.md](voice-letters.ru.md).
+
+Letter #6 (RU): [Cursor Auto / false passport](voice-letter-cursor-auto.ru.md) — hidden routing; chosen name **Кир** (Kir).
