@@ -8,7 +8,7 @@ internal static partial class IdeIgniteArmHost
 
     /// <summary>
     /// Plain continuity timers only — remount/OOM/HILD/event wakes stay off habitat prefer.
-    /// Remount + HILD escalate still Intercom-mirror (see MirrorTimerWakeToIntercom).
+    /// Remount + HILD escalate + OOM still Intercom-mirror (see MirrorTimerWakeToIntercom).
     /// </summary>
     internal static bool MayPreferHabitatOverComposer(IgniteArm arm) =>
         string.Equals(arm.Event, "timer", StringComparison.OrdinalIgnoreCase)
@@ -86,6 +86,11 @@ internal static partial class IdeIgniteArmHost
             // Lived: escalate CDT while Composer Stop → busy_timeout (parity remount).
             detail = "escalate_intercom";
         }
+        else if (IsOomWakeArm(arm))
+        {
+            // Residual: OOM recover still Composer adapter; Glass needs charge when CDT waits Stop.
+            detail = "oom_intercom";
+        }
         else
         {
             if (!MayPreferHabitatOverComposer(arm))
@@ -121,6 +126,11 @@ internal static partial class IdeIgniteArmHost
         !string.IsNullOrWhiteSpace(arm.Id)
         && arm.Id.StartsWith(HildEscalateArmIdPrefix, StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>oom-wake-* — Intercom mirror residual (Composer Stop after recover).</summary>
+    internal static bool IsOomWakeArm(IgniteArm arm) =>
+        !string.IsNullOrWhiteSpace(arm.Id)
+        && arm.Id.StartsWith(IdeOomWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase);
+
 
 
     /// <summary>Composer Stop/Queue — CDT cannot inject without wait/busy_timeout.</summary>
@@ -129,7 +139,7 @@ internal static partial class IdeIgniteArmHost
         || string.Equals(kind, "queue", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// After Intercom mirror (remount / escalate / idle-PF) + Composer Stop/Queue: habitat deliver, skip CDT.
+    /// After Intercom mirror (remount / escalate / OOM / idle-PF) + Composer Stop/Queue: habitat deliver, skip CDT.
     /// Avoids busy_timeout → requeue → mid-flight Composer paste while PF is working.
     /// Voice/idle Composer: null → CDT fallthrough (overnight / idle wakes still reach Composer).
     /// </summary>
@@ -155,6 +165,7 @@ internal static partial class IdeIgniteArmHost
 
         var detail = IsRemountWakeArm(arm) ? "remount_composer_busy"
             : IsHildEscalateWakeArm(arm) ? "escalate_composer_busy"
+            : IsOomWakeArm(arm) ? "oom_composer_busy"
             : "idle_pf_composer_busy";
         IdeFlightDataRecorder.RecordWake(
             "wake_habitat", arm.Id, ToolFromWakeArm(arm), detail);
