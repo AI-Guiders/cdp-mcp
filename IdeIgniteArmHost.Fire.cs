@@ -121,6 +121,19 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
+            // Habitat duplex prefer — skip Composer when PF partner live (timer work arms only).
+            var habitat = TryDeliverHabitatWake(arm, msg);
+            if (habitat is not null)
+            {
+                MarkSendInvoked(arm.Id);
+                ApplyFireOutcome(arm, habitat);
+                return;
+            }
+
+            // Composer adapter path — still publish wake latch so habitat is not sole-Composer SSOT.
+            _ = IdeIgniteWakeLatch.Publish(
+                arm.Id, msg, IdeIgniteWakeLatch.ChannelComposer, arm.Reason, arm.Task);
+
             // Mark send only when CDT inject starts — not during wait-idle (Stop).
             MarkSendInvoked(arm.Id);
             var result = await IdeIgniteChannel.FireAsync(
@@ -203,7 +216,9 @@ internal static partial class IdeIgniteArmHost
             submitKind: submit ?? (softStop ? "stop" : null));
         if (firedOk)
         {
-            StartConnectionWatch(arm.Port);
+            // Habitat duplex delivery never touched Composer — no CDT Connection Problems watch.
+            if (!string.Equals(submit, "habitat", StringComparison.OrdinalIgnoreCase))
+                StartConnectionWatch(arm.Port);
             if (arm.LastOnce)
                 SetStatus(arm.Id, "awaiting", null, fired: DateTimeOffset.UtcNow);
             else if (arm.Once)
