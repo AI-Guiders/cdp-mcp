@@ -243,7 +243,18 @@ internal static partial class IdeIgniteArmHost
             if (!string.Equals(submit, "habitat", StringComparison.OrdinalIgnoreCase))
                 StartConnectionWatch(arm.Port);
             if (arm.LastOnce)
-                SetStatus(arm.Id, "awaiting", null, fired: DateTimeOffset.UtcNow);
+            {
+                // ACC: under autonomous, last_once insurance delivered ≠ invent-ban awaiting_partner
+                // (habitat skip or CDT). Agent continues; re-ARM is end-of-turn. Seed if path empty.
+                if (ShouldLatchAwaitingPartnerAfterSuccessfulFire(arm.LastOnce, IsAutonomousArmed()))
+                    SetStatus(arm.Id, "awaiting", null, fired: DateTimeOffset.UtcNow);
+                else
+                {
+                    Remove(arm.Id);
+                    if (!HasLiveWakePathUnlocked())
+                        _ = AutonomousContinue("last_once_delivered_autonomous");
+                }
+            }
             else if (arm.Once)
                 Remove(arm.Id);
             else

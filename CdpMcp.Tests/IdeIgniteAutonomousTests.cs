@@ -233,4 +233,13 @@ public class IdeIgniteAutonomousTests : IDisposable
             IdeIgniteArmHost.BindHild(null);
         }
     }
+    [Theory]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(false, true, false)]
+    [InlineData(false, false, false)]
+    public void ShouldLatchAwaitingPartnerAfterSuccessfulFire_gate(bool lastOnce, bool autonomous, bool expect) =>
+        Assert.Equal(expect, IdeIgniteArmHost.ShouldLatchAwaitingPartnerAfterSuccessfulFire(lastOnce, autonomous));
+
+
 }
