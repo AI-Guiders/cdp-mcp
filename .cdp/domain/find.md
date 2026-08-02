@@ -22,5 +22,6 @@
 
 ## last_ship
 
+- extract method_lines FindInFiles.Dispatch → Dispatch.cs helpers @ **0.5.475** · 2026-08-02
 - soft-warn near-miss: IdeFindChannel.Shape.Last156 · Shape243 @ 0.5.405 (was Shape389)
 - prior: `FindInFiles` → `FindInFiles.Search.cs` @ 0.5.379
