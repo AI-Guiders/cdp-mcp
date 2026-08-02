@@ -31,7 +31,7 @@ Both will coexist for a long time. Guest Autoi/HILD/remount/wake can already thr
 
 1. **One loop owner per seat.** `peer` / generation / remount events are seat-scoped. Guest wake must not reset citizen peer gen.
 2. **Guest Autoi is adapter-only** (CDT into Cursor). Citizen continuity uses habitat organs (pressure/ignite seat store), never Cursor Composer inject as spine.
-3. **Shared SSOT (desk, latches, TM WitDB) is projectable by both** — mutate only via gated organs. Guest host Write / PathMutateGate bypass remains a integrity violation for both.
+3. **Shared SSOT (desk latches) is projectable by both** — mutate only via gated organs. **TM WitDB is seat-scoped** (`StateRoot/{seat}/intent-workspace.witdb`) so dual installs never contend on OutWit `FileShare.None`. Guest host Write / PathMutateGate bypass remains a integrity violation for both.
 4. **HILD / human_away** on guest Composer must not fire citizen wake. Separate latch stores / seat ids (`ignite-arms-cdp.json` vs guest chat id).
 5. **Recall gate** (ADR-0024) applies to whichever agent is acting; citizen and guest may have separate pressure docs under workspace isolation (ADR 0199 roots).
 6. Until citizen host exists: document guest as **temporary approximation**; do not grow guest Autoi into permanent spine.
@@ -44,7 +44,7 @@ Citizen frames carry required `peer=` (see citizen-agent-wire-v0). Guest may omi
 
 ## Consequences
 
-- Product checklist before citizen ship: dual-seat ignite (**ready**), dual pressure state roots (**ready** — `StateRoot/{seat}/` stash+memo; TM WitDB stays workspace-shared), Glass remains projector-only.
+- Product checklist before citizen ship: dual-seat ignite (**ready**), dual pressure state roots (**ready** — `StateRoot/{seat}/` stash+memo), TM WitDB **seat-scoped** (`StateRoot/{seat}/intent-workspace.witdb` — OutWit `FileShare.None` cannot be shared across seats; primary once migrates legacy flat file), Glass remains projector-only.
 - Operator “Window terminated” / Cursor OOM are **guest-host** failures — do not blame Glass/citizen without evidence.
 
 ## Non-goals
