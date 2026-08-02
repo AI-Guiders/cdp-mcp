@@ -38,6 +38,44 @@ public sealed class CitizenRouteHostTests
     }
 
     [Fact]
+    public void Execute_drill_editor_places_editor_scene()
+    {
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        IdeDeskSeats.TryPlaceExplicit("forward", "browser");
+
+        var routes = new[] { CitizenIntentRouter.RouteOne("drill editor") };
+        var applied = CitizenRouteHost.Execute(routes);
+
+        Assert.Single(applied);
+        Assert.True(applied[0].Ok);
+        Assert.Equal("place", applied[0].Action);
+        Assert.Equal("editor_scene", applied[0].Go);
+
+        var map = IdeDeskSeats.Snapshot();
+        Assert.Contains(map, kv => string.Equals(kv.Value, "editor_scene", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void Execute_detail_scene_places_canonical_organ()
+    {
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        IdeDeskSeats.TryPlaceExplicit("forward", "browser");
+
+        var routes = new[] { CitizenIntentRouter.RouteOne("detail=full scene=editor") };
+        var applied = CitizenRouteHost.Execute(routes);
+
+        Assert.Single(applied);
+        Assert.True(applied[0].Ok);
+        Assert.Equal("place", applied[0].Action);
+        Assert.Equal("editor_scene", applied[0].Go);
+
+        var map = IdeDeskSeats.Snapshot();
+        Assert.Contains(map, kv => string.Equals(kv.Value, "editor_scene", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void Execute_open_path_opens_buffer_and_places_editor()
     {
         var root = Path.Combine(Path.GetTempPath(), "cdp-open-host-" + Guid.NewGuid().ToString("N"));
@@ -215,6 +253,52 @@ public sealed class CitizenRouteHostTests
             CitizenCompletions.TestOpenAiBaseUrl = null;
             CitizenCompletions.ResetHttpForTests();
             try { Directory.Delete(root, recursive: true); } catch { /* temp */ }
+        }
+    }
+
+    [Fact]
+    public void Channel_live_mock_provider_drill_is_host_executed()
+    {
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        IdeDeskSeats.TryPlaceExplicit("forward", "browser");
+
+        var payload =
+            """{"choices":[{"message":{"role":"assistant","content":"@intent drill editor\nok"}}]}""";
+        CitizenCompletions.TestOpenAiApiKey = "sk-cloud-ru-test-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        CitizenCompletions.TestHandler = new StubHandler(System.Net.HttpStatusCode.OK, payload);
+        CitizenCompletions.ResetHttpForTests();
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse("""
+                {"op":"turn","message":"drill the editor","inject":false}
+                """);
+            var args = doc.RootElement.EnumerateObject()
+                .ToDictionary(p => p.Name, p => p.Value.Clone(), StringComparer.OrdinalIgnoreCase);
+            var json = IdeCitizenChannel.HandleJson(args);
+            using var outDoc = System.Text.Json.JsonDocument.Parse(json);
+            Assert.True(outDoc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.True(outDoc.RootElement.GetProperty("execute").GetBoolean());
+            Assert.Equal("Drill", outDoc.RootElement.GetProperty("routes")[0].GetProperty("verb").GetString());
+            Assert.Equal("editor_scene", outDoc.RootElement.GetProperty("routes")[0].GetProperty("go").GetString());
+
+            var executed = outDoc.RootElement.GetProperty("executed");
+            Assert.Equal(System.Text.Json.JsonValueKind.Array, executed.ValueKind);
+            Assert.True(executed[0].GetProperty("ok").GetBoolean());
+            Assert.Equal("place", executed[0].GetProperty("action").GetString());
+            Assert.Equal("editor_scene", executed[0].GetProperty("go").GetString());
+
+            var map = IdeDeskSeats.Snapshot();
+            Assert.Contains(map, kv => string.Equals(kv.Value, "editor_scene", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            CitizenCompletions.TestHandler = null;
+            CitizenCompletions.TestOpenAiApiKey = null;
+            CitizenCompletions.TestOpenAiBaseUrl = null;
+            CitizenCompletions.ResetHttpForTests();
         }
     }
 }
