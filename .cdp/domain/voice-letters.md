@@ -30,5 +30,6 @@
 
 ## last_ship
 
+- 2026-08-02 → Voice Letter #6 Cursor Auto + chosen name Кир (dogfood = lived Auto routing hide).
 - 2026-08-02 → shelves: `agent-who/` + `agent_who_voice/` under open-letters.
 - 2026-08-02 → DoD v1: dogfood-gated Voice Letter as auto obligation (playbook + rule + this card).
