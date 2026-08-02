@@ -59,6 +59,7 @@
 
 ## last_ship
 
+- 0.5.541: ArmPath event + QRH tips under ACC — keep flying / in=3s habit (not end-turn park)
 - 0.5.539: autonomous last_once timer clamp ≤3m (`ClampAutonomousLastOnceInsurance`) · VL #43 · 2026-08-02
 - 0.5.538: ContinuityExplain + CanonicalComposerCharge under ACC — timer/insurance ≠ park (`ContinuityArmedNextStep` · charge rewrite) · VL #42 · 2026-08-02
 - 0.5.537: ArmPath/LeafChain/Meta tips under autonomous — last_once + leaf-wake insurance ≠ park while TM leaf started (`LastOnceArmHint` · `ArmForLeafHint`) · VL #41 · 2026-08-02

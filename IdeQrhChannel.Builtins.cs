@@ -236,10 +236,10 @@ internal static partial class IdeQrhChannel
             "Need overnight Composer turn without operator",
             "AutoIgnition: inject user message into open Cursor chat via Chrome DevTools (CDT port 9222). Prefer ARM in harness — op=arm when=build_finished|timer — not shell loops / UIA. Never click Voice/Stop.",
             ["ignite", "autoignite", "cdt", "composer", "overnight", "inject", "cdp_ignite", "arm", "build_finished"],
-            ["cdp_ignite op=arm when=… message=/task=", "Kick cdp_build then end turn — harness fires", "No Cursor Shell watchers for wake"],
+            ["cdp_ignite op=arm when=… message=/task=", "Kick cdp_build — under ACC keep flying (partner-mode may end turn); harness fires", "No Cursor Shell watchers for wake"],
             [
                 new("cdp_ignite op=arm when=build_finished task=", "ignite_desk", "cdp_ignite"),
-                new("cdp_ignite op=arm when=timer in=5m message=", Action: "cdp_ignite"),
+                new("cdp_ignite op=arm when=timer in=3s last_once=true task=", Action: "cdp_ignite"),
                 new("cdp_ignite op=list|disarm — inspect/cancel", Action: "cdp_ignite"),
                 new("tools/Start-Cursor-WithCdt.ps1 — CDT :9222")
             ],

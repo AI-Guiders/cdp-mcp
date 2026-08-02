@@ -113,7 +113,7 @@ internal static partial class IdeIgniteArmHost
                 ? (IsAutonomousArmed()
                     ? LastOnceArmNextStep(autonomous: true)
                     : LastOnceArmNextStep(autonomous: false))
-                : "wait for event")),
+                : ContinuityArmedNextStep(IsAutonomousArmed()))),
         hint = arm.LastOnce
             ? LastOnceArmHint(IsAutonomousArmed())
               + (arm.InRaw is { } ir && ir.Contains("clamped", StringComparison.OrdinalIgnoreCase)
@@ -123,7 +123,9 @@ internal static partial class IdeIgniteArmHost
                 ? (IsAutonomousArmed()
                     ? "Harness fires when due — keep flying started TM leaf; timer is insurance, not a nap."
                     : "Harness fires when due — end your turn; no terminal poll loop.")
-                : $"Harness fires on {arm.Event} (ok_only={arm.OkOnly}). Kick cdp_build/cdp_test then end turn."
+                : (IsAutonomousArmed()
+                    ? $"Harness fires on {arm.Event} (ok_only={arm.OkOnly}). Kick cdp_build/cdp_test — keep flying; wake is insurance."
+                    : $"Harness fires on {arm.Event} (ok_only={arm.OkOnly}). Kick cdp_build/cdp_test then end turn."),
     };
 
     /// <summary>Explain next_step after last_once arm — autonomous must not teach park-on-timer.</summary>
