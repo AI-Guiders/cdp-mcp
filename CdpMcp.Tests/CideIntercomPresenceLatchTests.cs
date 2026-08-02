@@ -98,4 +98,30 @@ public class CideIntercomPresenceLatchTests : IDisposable
         var idle = CideIntercomPresenceLatch.PublishSeat("pf", "idle");
         Assert.Null(CideIntercomPresenceLatch.PartnerLine("pm", idle));
     }
+
+    [Fact]
+    public void AfferentLine_formats_both_seats_including_idle()
+    {
+        Assert.NotNull(CideIntercomPresenceLatch.PublishSeat("pf", "busy"));
+        Assert.NotNull(CideIntercomPresenceLatch.PublishSeat("pm", "idle"));
+        Assert.Equal(
+            "presence | @PF busy · @PM idle",
+            CideIntercomPresenceLatch.AfferentLine());
+    }
+
+    [Fact]
+    public void Build_inject_adds_intercom_presence_line()
+    {
+        Assert.NotNull(CideIntercomPresenceLatch.PublishSeat("pf", "busy"));
+        Assert.NotNull(CideIntercomPresenceLatch.PublishSeat("pm", "idle"));
+
+        var built = CitizenCompletions.Build(
+            "ping",
+            boardLines: ["P  plan · x"],
+            inject: true,
+            mode: CitizenTurnMode.Dialog,
+            history: false);
+        Assert.NotNull(built.AfferentPulse);
+        Assert.Contains("presence | @PF busy · @PM idle", built.AfferentPulse!, StringComparison.Ordinal);
+    }
 }

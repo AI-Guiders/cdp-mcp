@@ -158,6 +158,23 @@ internal static class CideIntercomPresenceLatch
             doc.Pf = slot;
     }
 
+    /// <summary>
+    /// Citizen @frame line — both seats, coarse states (incl. idle). Null when latch missing.
+    /// </summary>
+    public static string? AfferentLine(DateTimeOffset? nowUtc = null)
+    {
+        var doc = TryReadEffective(nowUtc);
+        if (doc is null)
+            return null;
+
+        static string Label(PresenceSeat? seat) =>
+            seat is null || string.IsNullOrWhiteSpace(seat.State)
+                ? StateIdle
+                : seat.State.Trim().ToLowerInvariant();
+
+        return "presence | @PF " + Label(doc.Pf) + " · @PM " + Label(doc.Pm);
+    }
+
     /// <summary>Glass (PM) watches partner PF; agent desk watches partner PM.</summary>
     public static string? PartnerLine(string viewerSeat, PresenceDoc? doc = null)
     {
