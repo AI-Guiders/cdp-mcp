@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -39,4 +39,19 @@
       <DependentUpon>IdePluginsChannelTests.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="IdeTaskManagerTitlePrecedenceTests.Feature.cs"><DependentUpon>IdeTaskManagerTitlePrecedenceTests.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="IdeTaskManagerTitlePrecedenceTests.Feature.cs">
+      <DependentUpon>IdeTaskManagerTitlePrecedenceTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="DeskWireParityTests.Ccu.Catalog.cs">
+      <DependentUpon>DeskWireParityTests.Ccu.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeArchBoardChannelTests.AsBuilt.Desk.cs">
+      <DependentUpon>IdeArchBoardChannelTests.AsBuilt.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>

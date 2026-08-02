@@ -23,6 +23,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.473**: wave17 — near-miss clear: DeskWireParityTests.Ccu.Catalog · IdeArchBoardChannelTests.AsBuilt.Desk → disk ok (WARN=0 near=0).
 - 2026-08-02 → **0.5.472**: wave16 — Tests WARN peels: IdeIgniteArmHostTests.Continuity · IdeArchBoardChannelTests.AsBuilt · IdePluginsChannelTests.OpenVsx · IdeTaskManagerTitlePrecedenceTests.Feature (product Adx/MdInclude/DocEditPlane below floor300 — pivot). disk WARN→0; near left DeskWireParity.Ccu + AsBuilt.
 - 2026-08-02 → **0.5.471**: wave15 — IdeProblemsChannel.Parse.Helpers · IdeMdAuthorChannel.Helpers · EditorPlane.Scene.Detail (skip Plugins.Boards — warn=400 / already concern-partial).
 - 2026-08-02 → **0.5.470**: wave14 — IdeDeskSeats.Ops · IdeCockpit.Build.PlanPulse.Surface · IdeIgniteArmHost.ContinuityOps.Helpers.
