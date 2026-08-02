@@ -56,6 +56,8 @@
 
 ## last_ship
 
+- **0.5.504** — citizen `@frame` gains Intercom **presence** line (`presence | @PF … · @PM …`) from `CideIntercomPresenceLatch.AfferentLine` (Glass latch SSOT). Complements `peer=` (MCP health). Persona + inject test.
+
 - 2026-08-02: **Citizen full chain CLOSED** — live request latch dogfood (`citizen-dialog-request-LATEST` pending→done + Intercom `kind=citizen`); Glass StatusText watches request status (`CitizenDialogRequestStatus` + LatchHub); habitat dialog turn + bridge already **0.5.496**.
 - 2026-08-02 → **0.5.496**: Glass Intercom `/citizen` → request latch + habitat bridge → citizen dialog reply as Intercom `kind=citizen` (no guest PF unread). Tests CitizenGlassDialogBridgeTests 3/3.
 - 2026-08-02 → **0.5.495**: dialog memory deepen — afferent `dialog|` + sticky facts (`CitizenStickyFacts`, op=sticky); window 40 msgs; persona Memory clause. Baseline dogfood: МАЯК + агентка + Света recall.

@@ -123,6 +123,10 @@ internal static partial class CitizenCompletions
                     peer: peer ?? "ok · gen=1 · mcp=live · compact=no",
                     next: next,
                     tm: tm);
+                var presence = CideIntercomPresenceLatch.AfferentLine();
+                if (presence is not null)
+                    afferent = AppendAfferentLine(afferent, presence);
+
                 if (mode == CitizenTurnMode.Dialog && history)
                 {
                     afferent = AppendAfferentLine(afferent, CitizenDialogHistory.AfferentLine());
