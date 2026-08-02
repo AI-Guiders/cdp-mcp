@@ -4,8 +4,8 @@ using System.Text.Json;
 namespace CdpMcp;
 
 /// <summary>
-/// Host execute for <see cref="CitizenIntentRouter.Route"/> — seat place + buffer open/replace + plan REPL + build + test + mcp + shell + debug + git.
-/// Sync host path; <c>@intent build|test|mcp|shell|debug|git|kb</c> wait lifecycle/outlet/habitat/plane (bounded) — not cockpit W-spray.
+/// Host execute for <see cref="CitizenIntentRouter.Route"/> — seat place + buffer open/replace + plan REPL + build + test + mcp + shell + debug + git + find.
+/// Sync host path; <c>@intent build|test|mcp|shell|debug|git|kb|find</c> wait lifecycle/outlet/habitat/plane (bounded) — not cockpit W-spray.
 /// </summary>
 internal static partial class CitizenRouteHost
 {
@@ -64,6 +64,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.Shell => RunShell(route),
             CitizenIntentRouter.Verb.Debug => RunDebug(route),
             CitizenIntentRouter.Verb.Git => RunGit(route),
+            CitizenIntentRouter.Verb.Find => RunFind(route),
             CitizenIntentRouter.Verb.Cmd => RunPlanCmd(route),
             CitizenIntentRouter.Verb.Refuse => new Applied(
                 route.Raw,

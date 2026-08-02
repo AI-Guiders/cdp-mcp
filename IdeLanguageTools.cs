@@ -56,7 +56,10 @@ internal static partial class IdeLanguageTools
 
     public static IReadOnlyList<LspLaunchPreset> CurrentLspPresets => LspPool.Presets;
 
-    public static void BindDocumentStore(DocumentBufferStore store) => _docStore = store;
+    public static void BindDocumentStore(DocumentBufferStore? store) => _docStore = store;
+
+    /// <summary>Citizen find host-execute — IdeFindChannel needs live buffer store.</summary>
+    public static DocumentBufferStore? TryGetDocumentStore() => _docStore;
 
     /// <summary>Citizen replace host-execute — open + ApplyReplace + Flush (PathMutateGate).</summary>
     public static bool TryReplaceInDocument(

@@ -85,6 +85,10 @@ internal static class CitizenPersona
           @intent git commit message="feat: peer scm without Cursor"
           @intent git commit message="feat: scoped" paths=["CitizenRouteHost.Git.cs"]
           @intent git push
+          @intent find query="IdeFindChannel" where=project shape=list
+          @intent find IdeFindChannel where=project
+          @intent search query=CitizenRouteHost
+          @intent find last
           @intent shell echo citizen-shell-ok
           @intent shell command="dotnet --version"
           @intent debug
