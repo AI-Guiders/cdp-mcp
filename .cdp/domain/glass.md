@@ -146,7 +146,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 Calendar: soft ~2→9 · hard 10.08→15.08 · D-day **15.08**.
 
 ## last_ship
-- 2026-08-02: Glass IntercomSlash FileLines soft-warn peel — `TryRunGlassSlash`/`/open`/`/attach`/bubbles → `MainWindow.IntercomSlash.Commands.cs`; UI popup stays in IntercomSlash; 431→136 (+303 Commands) · cascade-ide (pending commit)
+- 2026-08-02: Glass IntercomSlash FileLines soft-warn peel — `TryRunGlassSlash`/`/open`/`/attach`/bubbles → `MainWindow.IntercomSlash.Commands.cs`; UI popup stays in IntercomSlash; 431→136 (+303 Commands) · cascade-ide `7ac109f9`
 - 2026-08-02: Glass MainWindow.xaml FileLines soft-warn peel — styles→`GlassChromeStyles` · overlays→`GlassFloatingOverlays` · MFD process hosts→`GlassMfdProcessHosts` · HostAccess forwards; 540→343 lines · cascade-ide `0f69213a`
 - 2026-08-02: Glass message↔code thin chips P2 — `Resolved` disk chrome · `StripBracketsForDisplay` · AvalonEdit line-range select on chip click; tests 6/6 · cascade-ide `aa61d774`
 - 2026-08-02: Glass EICAS band clearer P1 — `EicasBandAggregator.BandChips` + WPF `MfdHealthBand` per-severity chips (warn/caut/adv) like Avalonia `EicasAlertsBar`; CLEAR when empty; tests 2/2 · cascade-ide `dfe4ace9`
