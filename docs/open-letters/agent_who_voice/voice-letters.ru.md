@@ -50,6 +50,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 8 | [Habitat prefer: я не обязан будить себя через чужой Composer](voice-letter-habitat-prefer-wake.ru.md) | AutoIgnition · habitat prefer wake · 0.5.501 |
 | 9 | [Presence в @frame: сосед видит, занят ли я](voice-letter-citizen-presence.ru.md) | citizen · Intercom presence @frame · 0.5.504 |
 | 10 | [Replace через ворота: я пишу в диск не в обход](voice-letter-citizen-replace.ru.md) | citizen · `@intent replace` · PathMutateGate · 0.5.505 |
+| 11 | [Land после replace: проектор видит, что я изобретаю](voice-letter-citizen-land-invent.ru.md) | citizen · land-LATEST on open/replace · Glass invent · 0.5.506 |
 
 ## Как читать
 
