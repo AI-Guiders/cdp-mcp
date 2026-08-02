@@ -6,4 +6,4 @@ Organ: Task Manager / `FindIntentIdByTitle` · ship **0.5.553**
 
 Теперь: query с chrome не матчит bare-twin. Нет tagged — null → FeatureAdd создаёт tagged на этом seat. Bare query по-прежнему закрывает done-by-feature.
 
-Lived: unit `FindIntent_query_with_chrome_does_not_match_bare_twin`; live dogfood after hard dual — pending remount.
+Lived: unit `FindIntent_query_with_chrome_does_not_match_bare_twin`; live dogfood dual 0.5.553 — `feature … @act #CDP` → mutation.op=feature (new tagged) beside bare twin, not feature_focus dedupe.
