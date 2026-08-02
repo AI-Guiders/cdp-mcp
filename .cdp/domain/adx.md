@@ -15,6 +15,7 @@
 - Pressure wake: `op=recall` → ready when SSOT (body+plan/ignite); do not force 4-op ceremony.
 - TM: `done`/`shipped` accept **feature title** (closes incomplete leaves); `shipped` without `start` starts wall implicitly.
 - TM: `FindIntentIdByTitle` strips `@phase`/`#Product` + unique prefix (≥8) — same chrome rules as stage title match.
+- **host_write**: material disk drift (`content`/`missing_on_disk`/`probe_failed`) stamps `AdxMutateTrace.OpHostWrite`; mtime-only + identical text does not; ack/`keep_disk` clears mark.
 
 ## Entry
 
@@ -33,6 +34,7 @@
 
 ## last_ship
 
+- AdxMutateTrace host_write on material outside-IDE drift (`RecordOutsideIde` · DocBuffer.Disk · assert pulse) @ 0.5.517 · 2026-08-02
 - FileLines batch peel×12 (ArchBoard.Ops.Candidate, EditorPlane.Parse.Yaml, Program.Instructions+Dispatch, Find.Build, PlanPulse.Finish, Settings.Keys.Specs, Qrh.Overlay.Persist, Runners.Process, EditSniper.Ops.Target, MetaDispatch.Ide.Packages, Ignite.Fire.Timer, Scope.Persist) @ 0.5.441 · 2026-08-02
 - EditorComfort.FindNav.Nav peel (≤ADX soft-warn) @ 0.5.439 · 2026-08-01
 - TakeShip.Helpers peel (≤ADX soft-warn) @ 0.5.438 · 2026-08-01
