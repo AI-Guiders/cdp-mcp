@@ -52,6 +52,17 @@ internal static class IdeTeethTape
         get { lock (Gate) return s_lastCdtNoteUtc; }
     }
 
+    /// <summary>Test hook — clear in-memory guest CDT/submit latch.</summary>
+    internal static void ResetGuestForTests()
+    {
+        lock (Gate)
+        {
+            s_lastSubmitKind = null;
+            s_lastCdtUp = null;
+            s_lastCdtNoteUtc = null;
+        }
+    }
+
     public static void NoteGuest(string? submitKind, bool? cdtUp)
     {
         lock (Gate)

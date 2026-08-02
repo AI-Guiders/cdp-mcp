@@ -47,12 +47,28 @@ internal static partial class IdeTeethChannel
     {
         try
         {
-            return BuildPulse(BuildNow(cdtLive: false));
+            // Health/ops embed this pulse — never leave cdt=? when CDT is reachable.
+            // Full live sample only when unknown or stale (OOM watch / fire already refresh often).
+            return BuildPulse(BuildNow(cdtLive: ShouldRefreshCdtSample()));
         }
         catch
         {
             return "teeth · ? · go=teeth";
         }
+    }
+
+    /// <summary>Refresh CDT sample when unknown or older than <see cref="CdtSampleTtl"/>.</summary>
+    internal static readonly TimeSpan CdtSampleTtl = TimeSpan.FromSeconds(15);
+
+    internal static bool ShouldRefreshCdtSample(DateTimeOffset? nowUtc = null)
+    {
+        if (IdeTeethTape.LastCdtUp is null)
+            return true;
+        var now = nowUtc ?? DateTimeOffset.UtcNow;
+        var noted = IdeTeethTape.LastCdtNoteUtc;
+        if (noted is null)
+            return true;
+        return now - noted.Value >= CdtSampleTtl;
     }
 
 
