@@ -206,7 +206,7 @@ public class IdeIgniteWakeLatchTests : IDisposable
         Assert.Equal(expected, IdeIgniteArmHost.IsComposerBusyKind(kind));
 
     [Fact]
-    public async Task TryDeliverRemountWhenComposerBusy_skips_when_not_mirrored()
+    public async Task TryDeliverMirroredWhenComposerBusy_skips_when_not_mirrored()
     {
         var arm = new IdeIgniteArmHost.IgniteArm
         {
@@ -218,12 +218,12 @@ public class IdeIgniteWakeLatchTests : IDisposable
             Port = 9222,
             WaitSeconds = 5
         };
-        Assert.Null(await IdeIgniteArmHost.TryDeliverRemountWhenComposerBusyAsync(
+        Assert.Null(await IdeIgniteArmHost.TryDeliverMirroredWhenComposerBusyAsync(
             arm, "reason=remount", intercomMirrored: false, CancellationToken.None));
     }
 
     [Fact]
-    public async Task TryDeliverRemountWhenComposerBusy_skips_non_remount()
+    public async Task TryDeliverMirroredWhenComposerBusy_skips_when_not_mirrored_work_arm()
     {
         var arm = new IdeIgniteArmHost.IgniteArm
         {
@@ -234,8 +234,8 @@ public class IdeIgniteWakeLatchTests : IDisposable
             Port = 9222,
             WaitSeconds = 5
         };
-        Assert.Null(await IdeIgniteArmHost.TryDeliverRemountWhenComposerBusyAsync(
-            arm, "resume", intercomMirrored: true, CancellationToken.None));
+        Assert.Null(await IdeIgniteArmHost.TryDeliverMirroredWhenComposerBusyAsync(
+            arm, "resume", intercomMirrored: false, CancellationToken.None));
     }
 
     [Fact]

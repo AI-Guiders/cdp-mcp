@@ -118,14 +118,14 @@ internal static partial class IdeIgniteArmHost
         || string.Equals(kind, "queue", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Remount already mirrored to Intercom + Composer Stop/Queue: habitat deliver, skip CDT.
-    /// Avoids busy_timeout → requeue → mid-flight Composer remount paste while PF is working.
-    /// Voice/idle Composer: null → CDT fallthrough (overnight remount still wakes Composer).
+    /// After Intercom mirror (remount or idle-PF) + Composer Stop/Queue: habitat deliver, skip CDT.
+    /// Avoids busy_timeout → requeue → mid-flight Composer paste while PF is working.
+    /// Voice/idle Composer: null → CDT fallthrough (overnight / idle wakes still reach Composer).
     /// </summary>
-    internal static async Task<object?> TryDeliverRemountWhenComposerBusyAsync(
+    internal static async Task<object?> TryDeliverMirroredWhenComposerBusyAsync(
         IgniteArm arm, string charge, bool intercomMirrored, CancellationToken ct)
     {
-        if (!IsRemountWakeArm(arm) || !intercomMirrored)
+        if (!intercomMirrored)
             return null;
 
         var (ok, kind, _) = await IdeIgniteChannel.TrySampleComposerAsync(arm.Port, ct)
@@ -142,8 +142,9 @@ internal static partial class IdeIgniteArmHost
         if (latch is null)
             return null;
 
+        var detail = IsRemountWakeArm(arm) ? "remount_composer_busy" : "idle_pf_composer_busy";
         IdeFlightDataRecorder.RecordWake(
-            "wake_habitat", arm.Id, ToolFromWakeArm(arm), "remount_composer_busy");
+            "wake_habitat", arm.Id, ToolFromWakeArm(arm), detail);
 
         return new
         {
@@ -154,7 +155,7 @@ internal static partial class IdeIgniteArmHost
             submit_kind_after = "habitat",
             channel = IdeIgniteWakeLatch.ChannelHabitat,
             arm_id = arm.Id,
-            detail = "remount_composer_busy"
+            detail
         };
     }
 
