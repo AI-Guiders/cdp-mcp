@@ -121,7 +121,7 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
-            // Habitat prefer — skip Composer when PF duplex live or autonomous (plain timers).
+            // Habitat prefer — duplex skip CDT; autonomous stamps habitat SSOT then may fall through.
             var habitat = TryDeliverHabitatWake(arm, msg);
             if (habitat is not null)
             {
