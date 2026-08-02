@@ -14,8 +14,8 @@ internal static class IdeOomWake
     /// <summary>Machine-readable wake reason for agent (composer + arm SSOT).</summary>
     public const string Reason = "oom";
 
-    /// <summary>Settle after CDT returns before Composer inject.</summary>
-    public static int DefaultDueSeconds { get; set; } = 8;
+    /// <summary>Settle after dialog/CDT recover before Composer inject (New Window mounts TipTap late).</summary>
+    public static int DefaultDueSeconds { get; set; } = 20;
 
     /// <summary>CDT must stay down at least this long before Up edge counts as OOM recovery.</summary>
     public static TimeSpan MinDownDuration { get; set; } = TimeSpan.FromSeconds(3);

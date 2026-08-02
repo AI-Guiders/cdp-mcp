@@ -181,6 +181,10 @@ internal static partial class IdeIgniteArmHost
     /// <summary>Arm one-shot timer charge_mode=oom (system wake — not superseded).</summary>
     internal static object? TryScheduleOomWake()
     {
+        // Dual-seat: only one process schedules within WakeCooldown.
+        if (!IdeOomCrossProcessClaim.TryClaimSchedule(IdeOomWake.WakeCooldown))
+            return null;
+
         EnsureLoaded();
         var dueSec = Math.Clamp(IdeOomWake.DefaultDueSeconds, 1, 60);
         var now = DateTimeOffset.UtcNow;
