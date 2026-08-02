@@ -67,7 +67,8 @@ internal static partial class IdeIgniteArmHost
 
         object? seed = null;
         // Autonomous latch on + no live wake path → plant seed (cannot suicide while autonomous).
-        if (IsAutonomousArmed() && !HasLiveWakePathUnlocked())
+        // Noop disarm (removed=0, missing id) must not invent a Guest Autoi CDT seed — mid re-ARM thrash.
+        if (removed > 0 && IsAutonomousArmed() && !HasLiveWakePathUnlocked())
             seed = AutonomousContinue(exceptAutonomy || force
                 ? "disarm_all_under_autonomous"
                 : "disarm_emptied_wake_path");

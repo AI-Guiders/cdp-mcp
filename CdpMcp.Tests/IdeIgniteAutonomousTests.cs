@@ -233,6 +233,44 @@ public class IdeIgniteAutonomousTests : IDisposable
             IdeIgniteArmHost.BindHild(null);
         }
     }
+    [Fact]
+    public void Disarm_missing_id_under_autonomous_does_not_plant_seed()
+    {
+        IdeIgniteArmHost.BindAutonomous(true);
+
+        // Clear any prior arms without triggering seed (force off autonomous briefly).
+        IdeIgniteArmHost.BindAutonomous(false);
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["all"] = JsonSerializer.SerializeToElement(true),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+        IdeIgniteArmHost.BindAutonomous(true);
+
+        var disarm = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["id"] = JsonSerializer.SerializeToElement("arm-already-gone")
+        });
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(disarm));
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal(0, doc.RootElement.GetProperty("removed").GetInt32());
+        Assert.True(
+            doc.RootElement.TryGetProperty("seed", out var seed) && seed.ValueKind == JsonValueKind.Null,
+            "noop disarm must not plant autonomous-seed-wake (Guest Autoi CDT thrash)");
+
+        var list = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("list")
+        });
+        using var listDoc = JsonDocument.Parse(JsonSerializer.Serialize(list));
+        var arms = listDoc.RootElement.GetProperty("arms").EnumerateArray()
+            .Select(a => a.GetProperty("id").GetString())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain(IdeIgniteArmHost.AutonomousSeedArmId, arms);
+    }
+
     [Theory]
     [InlineData(true, false, true)]
     [InlineData(true, true, false)]
