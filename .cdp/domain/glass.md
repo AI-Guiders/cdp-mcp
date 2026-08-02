@@ -128,7 +128,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 | Area | State | Verdict |
 |------|-------|---------|
 | Ctrl+K / Ctrl+Q | Local catalog + lived aliases `fd/at/op/mb/ms` · FDS/attach/open/build/tests | **P2 deepen** |
-| EICAS | Assembled stack alert+qrh+ecl on MfdHealth (severity only) · CLEAR when idle | **P1 act** clearer band |
+| EICAS | Assembled stack + per-severity chips (`MfdHealthBand` / `BandChips`) · CLEAR when idle | **P1 shipped** (`dfe4ace9`) |
 | Topic cards | XAML/`GlassIntercomTopics` + empty hint; **30m** quiet-gap cluster · follow-newest on stickEnd · `/topics N` · cluster tail 240 | **P0b shipped** |
 | Message↔code | `/open` + journal chips `[path:line]` + `/attach` → OpenCodeFile; Avalonia Skia still fuller | **P2 thin chips** |
 | FDS (Flight Data Storage) | MFD shelf peels plan/shared/report/pressure · `/fds` | **P1 shipped** |
@@ -139,13 +139,14 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 - **P0** Intercom `name` + `kind` (guest|citizen|operator) on latch + Glass RoleLabel (`Кир · guest @PF → @PM`)
 - **P0b** Topics visible + attach↔code gap close on Glass
-- **P1** Clearer EICAS band · FDS M-page skeleton
-- **P2** Chord depth vs Avalonia
+- **P1** Clearer EICAS band · FDS M-page skeleton — **shipped**
+- **P2** Chord depth vs Avalonia · message↔code thin chips
 - **P3** Lived polish / one-workspace survival
 
 Calendar: soft ~2→9 · hard 10.08→15.08 · D-day **15.08**.
 
 ## last_ship
+- 2026-08-02: Glass EICAS band clearer P1 — `EicasBandAggregator.BandChips` + WPF `MfdHealthBand` per-severity chips (warn/caut/adv) like Avalonia `EicasAlertsBar`; CLEAR when empty; tests 2/2 · cascade-ide `dfe4ace9`
 - 2026-08-02: Glass topics cluster deepen — follow-newest after 30m gap on stickEnd (`GlassIntercomTopicFollow`); cluster LoadTail 240; `/topics N` select; journal cap 500
 - 2026-08-02: Glass Intercom `/citizen` dialog peel — `GlassCitizenDialogRequest` → `citizen-dialog-request-LATEST.json` (journal-only, no human→PF Publish); habitat bridge 0.5.496 replies as `Citizen · citizen @PF → @PM`
 - 2026-08-02: Intercom operator default **Света** (not Who); `kind=who`/`origin=who` no longer map to operator/human — Who = Agent Who series. Glass LatchPaint parity. cdp-mcp **0.5.494**
