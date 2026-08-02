@@ -6,9 +6,9 @@
 
 ## Invariants
 
-- Soft-warn: project FileLinesWarn=350 / MethodLinesWarn=70. File already peeled (`IdeSaChannel.Decide.cs`); debt is method_lines on `Handle`, not FileLines.
+- Soft-warn: project FileLinesWarn=350 / MethodLinesWarn=70. Main `IdeSaChannel.cs`=269 (&lt;350); Decide/Helpers already peeled.
 - Axes: locus / scope / depth. Not EICAS `go=sa`.
-- Payload builders: `FormatPulse` + `BuildDeskPayload` keep `Handle` under method warn.
+- Payload builders: `FormatPulse` + `BuildDeskPayload` keep `Handle` under method warn (~26 lines).
 
 ## Entry
 
@@ -20,4 +20,5 @@
 
 ## last_ship
 
+- wave18 DIG REJECT FileLines peel — main under warn; buffers gates ok; method_lines already cleared @ 0.5.451 · 2026-08-02
 - method_lines: extract `FormatPulse` + `BuildDeskPayload` from `Handle` (75→~26) @ 0.5.451 · 2026-08-02
