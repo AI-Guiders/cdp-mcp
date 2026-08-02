@@ -23,6 +23,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.477**: wave24 — refactor_plan Recommend: `DetectShape` skips non-`.cs` → `non_csharp` leave; top-level under size gates → leave (not introduce_program). Tests: Program leave + csproj non_csharp. Next: citizen chain or BuildRecommend method_lines soft.
 - 2026-08-02 → wave23 DIG REJECT — CdpMcp.csproj FileLines=411 open-buffer only (XML; disk scan is `*.cs` → disk ok WARN=0 near=0). refactor_plan `introduce_program_class` is design/cheap=false + mis-shape on .csproj; Program already has Dispatch|Instructions peels (debt=0). Pivot → fix false recommend / citizen chain.
 - 2026-08-02 → **0.5.476**: wave22 — extract method_lines HealthJson (75→under warn70) → MetaDispatch.HealthJson.cs helpers (TryExplainTool/TryGetExeBuildUtc/TryReadPendingUpdate). Next: refactor_plan hotspot (CdpMcp.csproj FileLines=411 / design) or next method_lines.
 - 2026-08-02 → **0.5.475**: wave21 — extract method_lines FindInFiles.Dispatch (197→thin) → FindInFiles.Dispatch.cs helpers (Fail*/TryBindRoots/BuildRgArgv/OkHits). Search/Rg already peeled. Next: HealthJson=75 soft or next refactor_plan hotspot.
