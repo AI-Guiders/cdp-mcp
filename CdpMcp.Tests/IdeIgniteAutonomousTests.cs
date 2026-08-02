@@ -4,7 +4,7 @@ using Xunit;
 namespace CdpMcp.Tests;
 
 [Collection("IgniteSerial")]
-public class IdeIgniteAutonomousTests : IDisposable
+public partial class IdeIgniteAutonomousTests : IDisposable
 {
     public IdeIgniteAutonomousTests()
     {
@@ -14,12 +14,18 @@ public class IdeIgniteAutonomousTests : IDisposable
 
     public void Dispose()
     {
+        IdeIgniteArmHost.BindIncompleteLeafTitleProbe(null);
         IdeIgniteArmHost.BindAutonomous(null);
         IdeIgniteArmHost.BindFlightProbe(() => ContinuityFlight.Fly);
         IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
         {
             ["op"] = JsonSerializer.SerializeToElement("disarm"),
             ["id"] = JsonSerializer.SerializeToElement(IdeIgniteArmHost.AutonomousSeedArmId)
+        });
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["id"] = JsonSerializer.SerializeToElement(IdeIgniteArmHost.LeafWakeArmId)
         });
         IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
         {

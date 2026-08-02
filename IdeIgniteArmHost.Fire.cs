@@ -111,6 +111,10 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
+            // LeafPlateau seed: board may already have next leaf mid-window — skip Guest Autoi thrash.
+            if (TrySuppressAutonomousSeedBeforeDelivery(arm))
+                return;
+
             var msg = ComposeFireCharge(arm, ok, pulse, detail);
 
             // Last gate: Disarm may have raced after IsArmLive check.
