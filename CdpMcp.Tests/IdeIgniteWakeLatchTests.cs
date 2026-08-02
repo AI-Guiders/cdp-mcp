@@ -327,4 +327,46 @@ public class IdeIgniteWakeLatchTests : IDisposable
         Assert.NotNull(voice);
         Assert.Contains("reason=oom", voice!.Body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_tool_wake_publishes_when_pf_busy()
+    {
+        CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "tool-wake-abc",
+            Event = "timer",
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.True(IdeIgniteArmHost.IsToolWakeArmId(arm.Id));
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "tool still running"));
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "tool still running busy PF"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("tool still running busy PF", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_tool_wake_publishes_when_pf_idle()
+    {
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "tool-wake-xyz",
+            Event = "timer",
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "tool still running"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("tool still running", voice!.Body, StringComparison.Ordinal);
+    }
 }
