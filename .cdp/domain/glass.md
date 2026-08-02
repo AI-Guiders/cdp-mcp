@@ -127,25 +127,34 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 | Area | State | Verdict |
 |------|-------|---------|
-| Ctrl+K / Ctrl+Q | Local catalog + lived aliases `fd/at/op/mb/ms` · FDS/attach/open/build/tests | **P2 deepen** |
+| Ctrl+K / Ctrl+Q | Local catalog + lived aliases `fd/at/op/mb/ms/mg/cz` · FDS/attach/open/build/tests/**git**/citizen | **P2/P3 deepen** |
 | EICAS | Assembled stack + per-severity chips (`MfdHealthBand` / `BandChips`) · CLEAR when idle | **P1 shipped** (`dfe4ace9`) |
 | Topic cards | XAML/`GlassIntercomTopics` + empty hint; **30m** quiet-gap cluster · follow-newest on stickEnd · `/topics N` · cluster tail 240 | **P0b shipped** |
 | Message↔code | `/open` + journal chips · disk resolve chrome · strip brackets · range select; Avalonia Skia still fuller | **P2 shipped** |
 | FDS (Flight Data Storage) | MFD shelf peels plan/shared/report/pressure · `/fds` | **P1 shipped** |
 | Intercom identity | `Кир · guest` / `Света · operator` / `Citizen · citizen` RoleLabel · Who ≠ operator | **P0 shipped** |
-| Intercom → citizen dialog | Glass `/citizen` → request latch → habitat bridge → Intercom citizen reply | **P0 shipped (0.5.496)** |
+| Intercom → citizen dialog | Glass `/citizen` → request latch → habitat bridge → Intercom citizen reply · chord `cz` / palette | **P0 shipped (0.5.496)** |
 
 ### P0→P3
 
 - **P0** Intercom `name` + `kind` (guest|citizen|operator) on latch + Glass RoleLabel (`Кир · guest @PF → @PM`)
 - **P0b** Topics visible + attach↔code gap close on Glass
 - **P1** Clearer EICAS band · FDS M-page skeleton — **shipped**
-- **P2** Chord depth vs Avalonia · message↔code thin chips — **message↔code shipped**
-- **P3** Lived polish / one-workspace survival · soft-warn FileLines
+- **P2** Chord depth vs Avalonia · message↔code thin chips — **message↔code shipped**; chord still ≠ full Avalonia
+- **P3** Lived polish / one-workspace survival · soft-warn FileLines **shipped** (MainWindow*) · keyboard reach Git+citizen **shipped** (`mg`/`cz`)
 
-Calendar: soft ~2→9 · hard 10.08→15.08 · D-day **15.08**.
+### P3 dig 2026-08-02 — one-workspace survival
+
+| Gap | Verdict |
+|-----|---------|
+| MainWindow* FileLines ≥400 | **CLOSED** (xaml + IntercomSlash peels) |
+| Process MFDs keyboard: Build/Tests/Terminal/FDS | was OK · **Git missing** → `mfd_git` + `mg` |
+| Dialog peer `/citizen` keyboard | was slash-only → palette + `cz` |
+| Full Avalonia CascadeChord | **HOLD** (local catalog enough for survival loop) |
+| Agent surface Aim/Drive dogfood | separate debt (`agent-surface-parity-contract-v0`) — not this peel |
 
 ## last_ship
+- 2026-08-02: Glass P3 survival keyboard reach — Ctrl+K `mg`/`cz` + palette `mfd_git`/`slash_citizen` (Git MFD + `/citizen`); tests 8/8 · cascade-ide (pending)
 - 2026-08-02: Glass IntercomSlash FileLines soft-warn peel — `TryRunGlassSlash`/`/open`/`/attach`/bubbles → `MainWindow.IntercomSlash.Commands.cs`; UI popup stays in IntercomSlash; 431→136 (+303 Commands) · cascade-ide `7ac109f9`
 - 2026-08-02: Glass MainWindow.xaml FileLines soft-warn peel — styles→`GlassChromeStyles` · overlays→`GlassFloatingOverlays` · MFD process hosts→`GlassMfdProcessHosts` · HostAccess forwards; 540→343 lines · cascade-ide `0f69213a`
 - 2026-08-02: Glass message↔code thin chips P2 — `Resolved` disk chrome · `StripBracketsForDisplay` · AvalonEdit line-range select on chip click; tests 6/6 · cascade-ide `aa61d774`
