@@ -21,6 +21,7 @@
 - Live provider turns execute `result.Routes` from assistant wire (default `execute=true`); verified GigaChat3 + mock OAI (`go=` / `drill` / `open path=` / `pane_full=` / multi-intent).
 - Multiple `@intent` lines in one reply → `RouteAll` + host executes each (not first-only).
 - Host execute is sync seat place + buffer open — not full cockpit BuildAsync (no W-spray).
+- After host execute, turn returns peer + peer_event (ADR-0028 intent_ack / intent_dropped); latch feeds next turn peer= when omitted.
 - `open path=` resolves under ProjectRoot via `IdeLanguageTools.TryOpenDocument`; places `editor_scene`.
 - `drill <organ>` and `detail=… scene=` place via `PlaceGo` (canonical pin, e.g. editor→editor_scene).
 - `pane_full=<seat>` notes seat + places `cockpit` pointer (C-depth without W-spray).
@@ -45,6 +46,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.485**: peer intent_ack after host execute (CitizenPeerAck) — turn surfaces peer/peer_event; latch for next inject. Dig: executed[] only, no duplex. Tests CitizenPeerAckHostTests; live FM omit board= → peer ack=2/2.
 - 2026-08-02 → **0.5.484**: verify unforced multi-intent + live_desk host-execute — Execute_multi + mock OAI multi-intent channel; live FM dogfood (omit board=, no ONLY) → 2/2 `@intent go=plan` + `go=health` executed. Dig: RouteAll/live_desk already in; gap was regression+unforced proof.
 - 2026-08-02 → **0.5.483**: verify `pane_full=` host-execute — Execute_pane_full + mock OAI channel; live FM dogfood. Dig: NotePaneFull already in 0.5.479; gap was regression+proof.
 - 2026-08-02 → **0.5.482**: verify `drill` / `detail= scene=` host-execute — Execute_drill/detail + mock OAI drill channel; live FM dogfood. Dig: PlaceGo already in 0.5.479; gap was regression+proof.
