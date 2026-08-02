@@ -21,9 +21,46 @@ internal static class IdeCitizenChannel
             "keys" or "keyring" => Keys(),
             "history" or "log" => History(),
             "clear" or "reset" => ClearHistory(),
+            "sticky" or "pin" or "remember" => Sticky(args),
             "turn" or "chat" or "complete" => Turn(args),
-            _ => Fail("unknown_op", "op=scene|keys|turn|history|clear  message= mode=dialog|wire dry_run=")
+            _ => Fail("unknown_op", "op=scene|keys|turn|history|clear|sticky  message= mode=dialog|wire dry_run=")
         };
+    }
+
+    static string Sticky(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var action = (Arg(args, "action") ?? Arg(args, "do") ?? "get").Trim().ToLowerInvariant();
+        var key = Arg(args, "key") ?? Arg(args, "k");
+        var value = Arg(args, "value") ?? Arg(args, "v") ?? Arg(args, "body");
+        switch (action)
+        {
+            case "set" or "put" or "add":
+                if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
+                    return Fail("sticky_set_needs_key_value", "op=sticky action=set key= value=");
+                CitizenStickyFacts.Set(key!, value!);
+                break;
+            case "clear" or "del" or "delete" or "rm":
+                CitizenStickyFacts.Clear(key);
+                break;
+            case "get" or "list" or "scene":
+                break;
+            default:
+                return Fail("sticky_action", "action=get|set|clear");
+        }
+
+        var map = CitizenStickyFacts.Load();
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "sticky",
+            action,
+            sticky = CitizenStickyFacts.Pulse(),
+            facts = map.OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(kv => new { key = kv.Key, value = Trunc(kv.Value, 200) })
+                .ToArray(),
+            hint = "sticky facts inject as sticky | k=v on dialog turns; survive remount"
+        });
     }
 
     static string History()
@@ -35,8 +72,9 @@ internal static class IdeCitizenChannel
             ok = true,
             op = "history",
             dialog = CitizenDialogHistory.Pulse(),
+            sticky = CitizenStickyFacts.Pulse(),
             messages = msgs.Select(m => new { role = m.Role, content = Trunc(m.Content, 400) }).ToArray(),
-            hint = "dialog history under StateRoot/{seat}/citizen-dialog.jsonl — used when mode=dialog"
+            hint = "dialog history + sticky facts under StateRoot/{seat}/ — used when mode=dialog"
         });
     }
 
@@ -74,6 +112,7 @@ internal static class IdeCitizenChannel
             modes = new[] { "wire", "dialog" },
             mode_default = "wire",
             dialog = CitizenDialogHistory.Pulse(),
+            sticky = CitizenStickyFacts.Pulse(),
             inject_default = true,
             model_default = keys.HasOpenAi
                 ? keys.ResolvedOpenAiModel
@@ -161,6 +200,11 @@ internal static class IdeCitizenChannel
             && (!args.ContainsKey("history") || Bool(args, "history", defaultTrue: true));
         if (Bool(args, "reset") || Bool(args, "clear_history"))
             CitizenDialogHistory.Clear();
+        // Optional pin on same turn: sticky_key= + sticky_value=
+        var stickyKey = Arg(args, "sticky_key") ?? Arg(args, "pin_key");
+        var stickyVal = Arg(args, "sticky_value") ?? Arg(args, "pin_value");
+        if (!string.IsNullOrWhiteSpace(stickyKey) && !string.IsNullOrWhiteSpace(stickyVal))
+            CitizenStickyFacts.Set(stickyKey!, stickyVal!);
         var (board, tm, liveBound) = ResolveBoardAndTm(args, inject);
         var peerIn = Arg(args, "peer") ?? CitizenPeerAck.LastPeer;
 
@@ -265,6 +309,7 @@ internal static class IdeCitizenChannel
             dry_run = result.DryRun,
             execute,
             dialog = mode == CitizenTurnMode.Dialog ? CitizenDialogHistory.Pulse() : null,
+            sticky = mode == CitizenTurnMode.Dialog ? CitizenStickyFacts.Pulse() : null,
             error = result.Error,
             hint,
             provider = result.Provider,

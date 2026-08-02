@@ -91,6 +91,40 @@ public class CitizenCompletionsTests : IDisposable
         Assert.Contains("Prose is primary", built.System, StringComparison.Ordinal);
         Assert.Contains("Equal standing", built.System, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Света", built.System, StringComparison.Ordinal);
+        Assert.Contains("Memory:", built.System, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Build_dialog_inject_adds_dialog_and_sticky_lines()
+    {
+        CitizenDialogHistory.ResetForTests();
+        CitizenStickyFacts.ResetForTests();
+        CitizenDialogHistory.SetTestMemory(
+        [
+            new CitizenCompletions.ChatMessage("user", "привет"),
+            new CitizenCompletions.ChatMessage("assistant", "здесь"),
+        ]);
+        CitizenStickyFacts.SetTestMemory(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["call_me"] = "агентка"
+        });
+        try
+        {
+            var built = CitizenCompletions.Build(
+                "как меня звать?",
+                boardLines: ["P  plan · x"],
+                inject: true,
+                mode: CitizenTurnMode.Dialog,
+                history: true);
+            Assert.NotNull(built.AfferentPulse);
+            Assert.Contains("dialog | pairs=1", built.AfferentPulse!, StringComparison.Ordinal);
+            Assert.Contains("sticky | call_me=агентка", built.AfferentPulse!, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenDialogHistory.ResetForTests();
+            CitizenStickyFacts.ResetForTests();
+        }
     }
 
     [Fact]

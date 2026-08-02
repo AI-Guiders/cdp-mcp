@@ -100,7 +100,7 @@ internal static partial class MetaToolCatalog
             ttl_s = new { type = "integer", description = "presence: optional TTL seconds (composing/busy stale after)" }
         }
     }),
-    Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn|history|clear. turn message= [mode=wire|dialog] [history=true] [reset=true] [board=] [dry_run=true] [model=] — dialog=prose peer + multi-turn memory; wire=hands @intent. Alias go=citizen.", new
+    Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn|history|clear|sticky. turn message= [mode=wire|dialog] [history=true] [reset=true] [sticky_key=] [sticky_value=] [board=] [dry_run=true] [model=] — dialog=prose peer + multi-turn memory + sticky pins; wire=hands @intent. Alias go=citizen.", new
     {
         type = "object",
         properties = new

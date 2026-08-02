@@ -123,6 +123,13 @@ internal static partial class CitizenCompletions
                     peer: peer ?? "ok · gen=1 · mcp=live · compact=no",
                     next: next,
                     tm: tm);
+                if (mode == CitizenTurnMode.Dialog && history)
+                {
+                    afferent = AppendAfferentLine(afferent, CitizenDialogHistory.AfferentLine());
+                    var sticky = CitizenStickyFacts.AfferentLine();
+                    if (sticky is not null)
+                        afferent = AppendAfferentLine(afferent, sticky);
+                }
                 // Afferent as its own user message, then bare user text (keeps history clean).
                 if (!string.IsNullOrWhiteSpace(afferent))
                 {
@@ -143,6 +150,14 @@ internal static partial class CitizenCompletions
         }
 
         return new BuiltTurn(CitizenPersona.ForMode(mode), msgs, afferent, injected, mode);
+    }
+
+    static string AppendAfferentLine(string? afferent, string line)
+    {
+        if (string.IsNullOrWhiteSpace(afferent))
+            return line.TrimEnd() + "\n";
+        var body = afferent.TrimEnd();
+        return body + "\n" + line.TrimEnd() + "\n";
     }
 
     public static TurnResult Turn(
