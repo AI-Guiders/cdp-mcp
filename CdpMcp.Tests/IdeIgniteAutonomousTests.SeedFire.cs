@@ -163,5 +163,52 @@ public partial class IdeIgniteAutonomousTests
             out var partnerNote);
         Assert.Equal(TimeSpan.FromMinutes(45), partner);
         Assert.Null(partnerNote);
+
+        var away = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(
+            TimeSpan.FromMinutes(3),
+            lastOnce: true,
+            autonomous: true,
+            force: false,
+            out var awayNote,
+            partnerAway: true);
+        Assert.Equal(TimeSpan.FromSeconds(3), away);
+        Assert.Equal("3s(hild_away)", awayNote);
+    }
+
+    [Fact]
+    public void Hild_away_pull_forward_computes_3s_due_for_long_last_once_work_timer()
+    {
+        var now = DateTimeOffset.Parse("2026-08-02T20:00:00Z");
+        Assert.True(IdeIgniteArmHost.TryComputeHildAwayPullForwardDue(
+            dueUtc: now.AddMinutes(45),
+            lastOnce: true,
+            isAutonomyMeans: false,
+            status: "armed",
+            eventKind: "timer",
+            now: now,
+            out var newDue,
+            out var note));
+        Assert.Equal(now.AddSeconds(3), newDue);
+        Assert.Equal("3s(hild_pull)", note);
+
+        Assert.False(IdeIgniteArmHost.TryComputeHildAwayPullForwardDue(
+            dueUtc: now.AddSeconds(2),
+            lastOnce: true,
+            isAutonomyMeans: false,
+            status: "armed",
+            eventKind: "timer",
+            now: now,
+            out _,
+            out _));
+
+        Assert.False(IdeIgniteArmHost.TryComputeHildAwayPullForwardDue(
+            dueUtc: now.AddMinutes(45),
+            lastOnce: true,
+            isAutonomyMeans: true,
+            status: "armed",
+            eventKind: "timer",
+            now: now,
+            out _,
+            out _));
     }
 }

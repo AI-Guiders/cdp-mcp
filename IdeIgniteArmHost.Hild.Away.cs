@@ -31,6 +31,9 @@ internal static partial class IdeIgniteArmHost
             AwayEscalateDone = false;
         }
 
+        // Partner gone — pull long last_once parks forward (HILD is not only a wake seed).
+        PullForwardLongWorkTimersOnHildAway();
+
         // Zombie remounts: only one process seeds Composer wake for this absence.
         if (!IdeHildCrossProcessClaim.TryClaimAwayEdge())
         {
@@ -42,8 +45,6 @@ internal static partial class IdeIgniteArmHost
 
         Console.Error.WriteLine(
             $"[ide_ignite] hild human_away edge #{HildEdgeCount} — status away; escalate@{AwayEscalateAfter.TotalSeconds:0}s");
-
-        
 
         if (HasAwaitingOperatorLatch())
         {
@@ -86,11 +87,52 @@ internal static partial class IdeIgniteArmHost
 
         IdeTeethTape.Record("partner_away_escalate", detail: "still_away→autonomy+wake");
         SetAutonomous(true, "hild_away_escalate");
+        // Agent may have re-armed long last_once after first away wake — pull again.
+        PullForwardLongWorkTimersOnHildAway();
         var scheduled = TryScheduleHildEscalateWake();
         if (TryArmId(scheduled) is { } aid)
             IdeTeethTape.Record("wake_schedule", armId: aid, reason: HildEscalateReason, detail: "away_escalate");
         Console.Error.WriteLine(
             $"[ide_ignite] hild away escalate — still away after {AwayEscalateAfter.TotalSeconds:0}s → autonomous on + escalate wake");
+    }
+
+    /// <summary>Pull armed last_once work timers with DueUtc &gt; 3s forward — HILD away ≠ license for 45m park.</summary>
+    static void PullForwardLongWorkTimersOnHildAway()
+    {
+        EnsureLoaded();
+        var now = DateTimeOffset.UtcNow;
+        var pulled = 0;
+        lock (Gate)
+        {
+            foreach (var a in Arms)
+            {
+                if (!TryComputeHildAwayPullForwardDue(
+                        a.DueUtc,
+                        a.LastOnce,
+                        IsAutonomyMeansArm(a),
+                        a.Status,
+                        a.Event,
+                        now,
+                        out var newDue,
+                        out var note))
+                    continue;
+
+                a.DueUtc = newDue;
+                a.InRaw = string.IsNullOrWhiteSpace(a.InRaw) ? note : $"{a.InRaw}→{note}";
+                a.LastError = "hild_away_pull_forward";
+                pulled++;
+            }
+
+            if (pulled > 0)
+                PersistUnlocked();
+        }
+
+        if (pulled <= 0)
+            return;
+
+        IdeTeethTape.Record("hild_pull_forward", detail: $"count={pulled}");
+        Console.Error.WriteLine(
+            $"[ide_ignite] hild pull-forward · {pulled} last_once work timer(s) → ≤{HildAwayContinuityMax.TotalSeconds:0}s");
     }
 
     /// <summary>One-shot timer charge_mode=escalate (system wake — not superseded).</summary>
