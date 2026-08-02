@@ -44,7 +44,7 @@ internal static partial class MetaToolCatalog
             id = new { type = "string", description = "disarm id= / arm custom id" },
             all = new { type = "boolean", description = "disarm all=true (under autonomous: except autonomy means unless force)" },
             force = new { type = "boolean", description = "disarm: clear autonomy means too; arm: override epic-closed / last_once gates" },
-            last_once = new { type = "boolean", description = "arm: fire once → awaiting_partner latch" },
+            last_once = new { type = "boolean", description = "arm: fire once → awaiting latch when autonomous off; under autonomous no invent-ban" },
             armed = new { type = "boolean", description = "autonomous|hild: true|false latch (default ARMED)" },
             ok_only = new { type = "boolean", description = "arm: fire only on green build/test (default true)" },
             settle_seconds = new { type = "integer", description = "arm: delay before CDT send after event (default 8)" },

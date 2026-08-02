@@ -49,6 +49,7 @@
 
 ## last_ship
 
+- 0.5.530: ignite `last_once` schema property tip matches autonomous no invent-ban (residual after VL #35) · 2026-08-02
 - 0.5.529: ADX last_once autonomous parity + ArmPath/Meta tip + unavailable Intercom duplex (`LastOnceFireAwaitingOk` · `PublishHabitatIntercomCharge`) · VL #35 · 2026-08-02
 - 0.5.528: last_once under autonomous ≠ awaiting invent-ban (`ShouldLatchAwaitingPartnerAfterSuccessfulFire` · seed `last_once_delivered_autonomous`) · VL #34 · 2026-08-02
 - 0.5.527: Composer unavailable habitat skip **without** Intercom mirror required (`MayDeliverHabitatWhenComposerUnavailable` · Voice Publish miss residual) · VL #33 · 2026-08-02
