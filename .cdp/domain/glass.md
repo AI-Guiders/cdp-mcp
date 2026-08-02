@@ -151,12 +151,14 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 | Process MFDs keyboard | **CLOSED** (`mt/mb/ms/mg`) |
 | Peeled glance MFDs keyboard | **CLOSED** (`sx/hi/wh/er/ev/hy/ic`) |
 | Dialog peer `/citizen` keyboard | **CLOSED** (`cz`) |
+| Citizen full chain Glass↔habitat | **CLOSED** (request latch + bridge + status watcher) |
 | Full Avalonia CascadeChord | **HOLD** |
 | Agent surface Aim/Drive | **CLOSED** (see `surface.md`) |
 
-**Lived Glass UX epic: CLOSED** for 15.08 one-cockpit survival DoD (dialog peer + keyboard MFD loop). Next epic = ≥1 citizen full chain.
+**Lived Glass UX epic: CLOSED** for 15.08 one-cockpit survival DoD. **Citizen full chain: CLOSED** (live latch dogfood + StatusText pending→running→done/error).
 
 ## last_ship
+- 2026-08-02: Citizen full chain close — Glass `LatchHub.CitizenDialogRequestChanged` + `CitizenDialogRequestStatus` StatusText; live latch E2E `pending→done` + Intercom `kind=citizen`; tests 2/2
 - 2026-08-02: Glass full peeled-MFD chord/palette batch — `sx/hi/wh/er/ev/hy/ic` + matching palette ids; tests 8/8 · cascade-ide `65688504`
 - 2026-08-02: Glass P3 survival keyboard reach — Ctrl+K `mg`/`cz` + palette `mfd_git`/`slash_citizen`; tests 8/8 · cascade-ide `55afb805`
 - 2026-08-02: Glass MainWindow.xaml FileLines soft-warn peel — styles→`GlassChromeStyles` · overlays→`GlassFloatingOverlays` · MFD process hosts→`GlassMfdProcessHosts` · HostAccess forwards; 540→343 lines · cascade-ide `0f69213a`
