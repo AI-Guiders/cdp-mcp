@@ -52,6 +52,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 10 | [Replace через ворота: я пишу в диск не в обход](voice-letter-citizen-replace.ru.md) | citizen · `@intent replace` · PathMutateGate · 0.5.505 |
 | 11 | [Land после replace: проектор видит, что я изобретаю](voice-letter-citizen-land-invent.ru.md) | citizen · land-LATEST on open/replace · Glass invent · 0.5.506 |
 | 12 | [Build как рука, не как место на столе](voice-letter-citizen-build.ru.md) | citizen · `@intent build` · IdeSessionLifecycle · 0.5.507 |
+| 13 | [Observe после act, не ждать Cursor](voice-letter-citizen-observe-loop.ru.md) | citizen · peer_event afferent · multi-turn observe · 0.5.508 |
 
 ## Как читать
 
