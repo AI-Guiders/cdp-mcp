@@ -91,7 +91,7 @@ internal static class AdxAssertions
                     severity = trOk ? "ok" : "warn",
                     status = trOk ? "pass" : "warn",
                     topic = "habitat.mutate.trace",
-                    statement = "Recent harness mutates — set_text on existing = warn",
+                    statement = "Recent mutates — set_text on existing / host_write = warn",
                     detail = trObj,
                     pulse = tr.GetProperty("pulse").GetString()
                 });
