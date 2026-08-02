@@ -17,12 +17,15 @@
 - Dry-run **model** label mirrors live `ResolveProvider` (FM-first / `DefaultOpenAiModel`), not raw `DefaultModel` (claude).
 - Soft deploy ≠ live code; hard-self for this seat needs **terminal_*** + KillRunning (not in-proc `cdp_shell_*`).
 - Omit `board=` on turn → host auto-binds live desk seats + TM pulse (`CitizenLiveDesk`).
+- After turn, host executes `@intent` routes by default on live (`CitizenRouteHost`); dry_run skips unless `execute=true` (then parses user `@intent` lines).
+- Host execute is sync seat place + buffer open — not full cockpit BuildAsync (no W-spray).
 
 ## Entry
 
 - `cdp_citizen` op=`scene|keys|turn`
 - Keys: `CitizenAiKeys` · Completions: `CitizenCompletions` (+`.OpenAiCompat` · `.Anthropic` · `.Finish`)
 - Live desk: `CitizenLiveDesk` / `IdeStageCycle.TryWorkspace`
+- Route host: `CitizenRouteHost` / `CitizenIntentRouter`
 - Example: `docs/design/ai-keys.example.toml`
 
 ## Antipatterns
@@ -31,10 +34,12 @@
 - Expecting live turn with empty `ai-keys.toml` (file may exist and still block).
 - Treating soft-staged `.next` as remounted live seat.
 - Hand-pasting `board=` for every dogfood turn when live bind exists.
+- Expecting host execute from dry_run without `execute=true`.
 - Committing real API keys.
 
 ## last_ship
 
+- 2026-08-02 → **0.5.479**: host execute `@intent` routes after turn (`CitizenRouteHost` — place go/drill + open path). Dig gap: router returned routes only.
 - 2026-08-02 → **0.5.478**: live desk auto-bind — omit `board=` → seats + TM pulse. Dig gap was empty afferent on invite-ready turns.
 - 2026-08-02 → **0.5.457**: FileLines peel — `CitizenCompletions.Anthropic` + `.Finish` (main ~214L; OpenAiCompat prior).
 - 2026-08-01 → **0.5.442 live**: persona HARD WIRE OUTPUT CONTRACT + OpenAI-compat `temperature=0`. Forced ONLY `@intent go=plan` → exact wire line, `wire_intents`+routes ok on GigaChat3-10B.
