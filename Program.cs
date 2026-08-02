@@ -103,6 +103,7 @@ IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
 CitizenRouteHost.ShellHabitatResolver = () => shellHabitat;
 CitizenRouteHost.ShellDefaultsResolver = () => ProgramHost.ShellDefaults(session);
+CitizenRouteHost.ByDomainResolver = () => byDomain;
 shellHabitat.Finished += info =>
 {
     IdeIgniteArmHost.Notify(

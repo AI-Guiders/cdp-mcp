@@ -73,6 +73,10 @@ internal static class CitizenPersona
           @intent mcp call server=memory tool=read_graph
           @intent shell echo citizen-shell-ok
           @intent shell command="dotnet --version"
+          @intent debug
+          @intent debug scene
+          @intent debug bp_list
+          @intent debug bp_add path=CitizenRouteHost.cs line=50
           @intent replace path=rel/file.cs old="needle" new="patch"
           @intent cmd=feature leaf-title @act #CDP
           @intent cmd=task dig-step @act #CDP
@@ -113,6 +117,7 @@ internal static class CitizenPersona
           @intent test
           @intent mcp
           @intent shell echo hi
+          @intent debug
         Do not invent Russian stand-ins for intents.
 
         Mutate only through gated organs when using hands. Do not guess peer/runtime state — read peer= when present.
