@@ -42,6 +42,14 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
+
+    /// <summary>
+    /// last_once → awaiting_partner only when autonomous is off.
+    /// Under autonomous overnight, awaiting after successful fire is ACC invent-ban.
+    /// </summary>
+    internal static bool ShouldLatchAwaitingPartnerAfterSuccessfulFire(bool lastOnce, bool autonomousArmed) =>
+        lastOnce && !autonomousArmed;
+
     internal static bool ShouldRequeueBusy(string eventName, string? error) =>
         string.Equals(eventName, "timer", StringComparison.OrdinalIgnoreCase)
         && error is not null
