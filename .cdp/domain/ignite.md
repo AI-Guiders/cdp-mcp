@@ -16,8 +16,8 @@
 - **`op=halt`:** stop-world until partner — not `disarm all`. Turns autonomous+HILD off, clears every arm, plants awaiting_partner latch. Resume does not auto-restore autonomous/HILD.
 - Guest Autoi remains CDT→Composer adapter (ADR-0025); habitat prefer is opt-in when PF duplex presence is busy|composing on plain timer arms only.
 - Idle PF on plain timer work arms: Intercom mirror (`MirrorTimerWakeToIntercom`) so Glass sees charge — Composer fallthrough when Voice/idle (do not skip CDT on idle Composer).
-- Remount wakes (`remount-wake-*`), HILD escalate (`hild-escalate-*`), OOM (`oom-wake-*`), and tool-wake (`tool-wake-*`): always Intercom mirror (`detail=remount_intercom`|`escalate_intercom`|`oom_intercom`|`tool_intercom`) even when PF busy|composing; prefer habitat stays off (CDT→Composer fallthrough intact). Event wakes (build/test/shell): no mirror.
-- After Intercom mirror (remount / escalate / OOM / tool-wake / idle-PF) + Composer Stop/Queue: habitat deliver + skip CDT (`detail=remount_composer_busy`|`escalate_composer_busy`|`oom_composer_busy`|`tool_composer_busy`|`idle_pf_composer_busy`) — no busy_timeout→requeue mid-flight paste. Voice/idle Composer: CDT fallthrough.
+- Remount wakes (`remount-wake-*`), HILD escalate (`hild-escalate-*`), plain HILD away (`hild-away` / `hild-away-*`), OOM (`oom-wake-*`), and tool-wake (`tool-wake-*`): always Intercom mirror (`detail=remount_intercom`|`escalate_intercom`|`hild_intercom`|`oom_intercom`|`tool_intercom`) even when PF busy|composing; prefer habitat stays off (CDT→Composer fallthrough intact). Event wakes (build/test/shell): no mirror.
+- After Intercom mirror (remount / escalate / hild-away / OOM / tool-wake / idle-PF) + Composer Stop/Queue: habitat deliver + skip CDT (`detail=remount_composer_busy`|`escalate_composer_busy`|`hild_composer_busy`|`oom_composer_busy`|`tool_composer_busy`|`idle_pf_composer_busy`) — no busy_timeout→requeue mid-flight paste. Voice/idle Composer: CDT fallthrough.
 - Wake charge SSOT: `%LocalAppData%/cdp-mcp/ignite-wake-LATEST.json` (`composer`|`habitat`) — Composer is not the only spine for charge body.
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
 - HILD (default ARMED): Composer text idle **30s** on Voice → `human_away` **once** (latch until Composer text); wake → autonomous; after wake continuity **1–2s** not 45m; suppress under `await_partner` / halt. DefaultIdle=30s since 0.5.359 (meta tip 0.5.363).
@@ -47,6 +47,7 @@
 
 ## last_ship
 
+- 0.5.525: plain HILD away Intercom mirror + Composer Stop skip CDT (`IsHildAwayWakeArm` · `hild_intercom`|`hild_composer_busy`) · VL #31 · 2026-08-02
 - 0.5.524: tool-wake Intercom mirror + Composer Stop skip CDT (`IsToolWakeArmId` · `tool_intercom`|`tool_composer_busy`) · VL #30 · 2026-08-02
 - 0.5.523: OOM Intercom mirror + Composer Stop skip CDT (`IsOomWakeArm` · `oom_intercom`|`oom_composer_busy`) · VL #29 · 2026-08-02
 - 0.5.522: HILD escalate Intercom mirror + Composer Stop skip CDT (`IsHildEscalateWakeArm` · `escalate_intercom`|`escalate_composer_busy`) · VL #28 · 2026-08-02

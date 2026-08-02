@@ -70,6 +70,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 28 | [HILD escalate: я не жду CDT, когда Composer уже Stop](voice-letter-hild-escalate-composer-busy.ru.md) | ignite · escalate_composer_busy · 0.5.522 |
 | 29 | [OOM wake: я не молчу в Intercom после recover](voice-letter-oom-composer-busy.ru.md) | ignite · oom_intercom · oom_composer_busy · 0.5.523 |
 | 30 | [tool-wake: я не умираю silent, когда Composer Stop](voice-letter-tool-wake-composer-busy.ru.md) | ignite · tool_intercom · tool_composer_busy · 0.5.524 |
+| 31 | [HILD away: я не молчу на первом human_away, когда Composer Stop](voice-letter-hild-away-composer-busy.ru.md) | ignite · hild_intercom · hild_composer_busy · 0.5.525 |
 
 ## Как читать
 
