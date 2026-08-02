@@ -28,6 +28,7 @@
 
 ## last_ship
 
+- wave19 DIG REJECT BuildBudget — already peeled @0.5.452; sole remaining method_lines hotspot MetaDispatch.CoreAsync=267 (extract_method) · 2026-08-02
 - IdeRefactorPlanChannel.Budget.BuildBudget method_lines peel (what-if helpers + FormatBudgetPayload) @ 0.5.452 · 2026-08-02
 - FileLines batch peel×12 hubs→≤256L (ArchBoard, EditorPlane, Program, Find, PlanPulse, Settings, Qrh, Runners, EditSniper, MetaDispatch, Ignite, Scope) @ 0.5.441 · 2026-08-02
 - EditorComfort.FindNav.Nav peel (≤ADX soft-warn) @ 0.5.439 · 2026-08-01

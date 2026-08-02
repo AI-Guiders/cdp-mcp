@@ -23,6 +23,7 @@
 
 ## last_ship
 
+- 2026-08-02 → wave19 DIG REJECT — BuildBudget method_lines already peeled @0.5.452 (Budget.cs=110; BuildBudget~30). Next hotspot: MetaDispatch.CoreAsync=267 (extract_method, not FileLines peel).
 - 2026-08-02 → wave18 DIG REJECT — IdeSaChannel FileLines (main=269&lt;350; Handle method_lines cleared @0.5.451; disk ok). Pivot next → method_lines soft-warn.
 - 2026-08-02 → **0.5.473**: wave17 — near-miss clear: DeskWireParityTests.Ccu.Catalog · IdeArchBoardChannelTests.AsBuilt.Desk → disk ok (WARN=0 near=0).
 - 2026-08-02 → **0.5.472**: wave16 — Tests WARN peels: IdeIgniteArmHostTests.Continuity · IdeArchBoardChannelTests.AsBuilt · IdePluginsChannelTests.OpenVsx · IdeTaskManagerTitlePrecedenceTests.Feature (product Adx/MdInclude/DocEditPlane below floor300 — pivot). disk WARN→0; near left DeskWireParity.Ccu + AsBuilt.
