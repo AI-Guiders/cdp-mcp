@@ -122,6 +122,7 @@ Hydration already lists all three (`CockpitHostLatchHydration`). SoftOrganLatchC
 **Glass 0-sync entity presence epic: CLOSED** for catalog completeness (stub OK). Next board = soft-warn peel / other epic — not orphan Glass entity.
 
 ## last_ship
+- 2026-08-02: agent surface parity v0 Sense layout — `cdp_glass`/`surface_desk` + surface-cmd/reply latches + WPF `GlassUiLayoutSnapshot`/`GlassSurfaceCommandHub`; dogfood windows=3 (main,pfd_host,mfd_host) named controls; contract `agent-surface-parity-contract-v0.md`; full debt Aim/Drive next
 - 2026-08-01: invent dig Glass 0-sync after residual latch triad — GAP none; dual-cockpit projector↔LatchHub matrix green; epic presence DoD CLOSED
 
 - 2026-08-01: act Glass `disk-LATEST` peel — `CdpHabitatPaths.DiskLatchFileName` · `LatchHub.DiskChanged` · `LatchPaint.PaintDisk` · `MainWindow.DiskSurface` → AvalonEdit reload + human Save publish; UIA ` · disk`
