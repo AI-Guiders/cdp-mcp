@@ -22,6 +22,7 @@
 - Remount wakes (`remount-wake-*`), HILD escalate (`hild-escalate-*`), plain HILD away (`hild-away` / `hild-away-*`), OOM (`oom-wake-*`), and tool-wake (`tool-wake-*`): always Intercom mirror (`detail=remount_intercom`|`escalate_intercom`|`hild_intercom`|`oom_intercom`|`tool_intercom`) even when PF busy|composing; prefer habitat stays off (CDT→Composer fallthrough intact). Event wakes (build/test/shell): no mirror.
 - Continuity wakes (remount / escalate / hild-away / OOM / tool-wake) + Composer Stop/Queue **or** gone (`no_composer`/`down` / sample fail): habitat deliver + skip CDT even if Intercom mirror missed (`MayDeliverHabitatWhenComposerUnavailable` · `TryDeliverHabitatWhenComposerUnavailableAsync` · `detail=*_composer_busy`|`*_composer_gone`). **Guest Autoi exception (0.5.547):** plain timer + autonomous + idle PF + Stop/Queue → do **not** habitat-success (`ShouldHabitatSkipWhenComposerUnavailable`) — CDT wait / `busy_timeout`→requeue (habitat SSOT already stamped by prefer_autonomous). composer_gone still habitat. Duplex busy|composing still skip. build/test/shell: no habitat. Voice/send Composer: CDT fallthrough.
 - **last_once under autonomous:** successful fire (habitat or CDT) must **not** latch `awaiting_partner` (`ShouldLatchAwaitingPartnerAfterSuccessfulFire`) — ACC invent-ban; Remove arm + seed if wake path empty (`last_once_delivered_autonomous`). last_once without autonomous still awaits partner. ADX `LastOnceFireAwaitingOk` + ArmPath/Meta tip match runtime (no invent-ban teaching under autonomous). Arm/leaf tips under autonomous: last_once + leaf-wake are **insurance if thread dies** — NOT permission to park while a TM leaf is started (`LastOnceArmHint` · `ArmForLeafHint` · 0.5.537).
+- **Timer busy requeue:** `ShouldRequeueBusy` for timer includes `busy_timeout` / `no_agent_composer` / `wrong_surface` / **`click_failed`** (0.5.549) — CDT Send click miss must not leave last_once as dead error arm.
 - Composer-unavailable habitat skip also publishes Intercom charge (`PublishHabitatIntercomCharge`) — Glass parity with prefer duplex when mirror miss (0.5.529).
 - Wake charge SSOT: `%LocalAppData%/cdp-mcp/ignite-wake-LATEST.json` (`composer`|`habitat`) — Composer is not the only spine for charge body.
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
@@ -67,6 +68,7 @@
 
 ## last_ship
 
+- 0.5.549: ShouldRequeueBusy includes click_failed (CDT Send miss → backoff requeue) · 2026-08-03
 - 0.5.547: Guest Autoi Stop ≠ habitat-success (`ShouldHabitatSkipWhenComposerUnavailable` · CDT wait/requeue) · VL #50 · 2026-08-03
 - 0.5.546: Channel XML tip parity — leaf Fly / HILD ≤3s + TimerLoop pull-forward (residual after Meta 0.5.545) · VL #49 · 2026-08-03
 - 0.5.545: leaf Fly TimerLoop pull-forward armed last_once → ≤3s (`PullForwardLongWorkTimersOnLeafFly` · `3s(leaf_pull)`) · VL #48 · 2026-08-02

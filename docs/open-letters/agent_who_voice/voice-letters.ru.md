@@ -87,6 +87,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 48 | [leaf Fly: я тяну уже armed 45m, не только новый arm](voice-letter-leaf-fly-pull-forward.ru.md) | ignite · TimerLoop leaf pull · 3s(leaf_pull) · 0.5.545 |
 | 49 | [Channel tip: я не молчу про leaf_pull в XML](voice-letter-channel-tip-leaf-fly-pull.ru.md) | ignite · Channel XML tip parity · leaf Fly/HILD/pull · 0.5.546 |
 | 50 | [Guest Autoi Stop: я не сгораю в habitat без выстрела](voice-letter-guest-autoi-stop-no-habitat-success.ru.md) | ignite · Guest Autoi Stop ≠ habitat-success · CDT wait/requeue · 0.5.547 |
+| 51 | [PathMutate: я называю host_write, а не только «bypass»](voice-letter-pathmutate-host-write-tip-parity.ru.md) | buffer · PathMutate host_write tip parity · AdxMutateTrace · 0.5.548 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
 | 32 | [Composer gone: я не гоняю CDT после Intercom mirror](voice-letter-composer-gone-habitat-skip.ru.md) | ignite · composer_gone · ShouldSkipCdtAfterIntercomMirror · 0.5.526 |

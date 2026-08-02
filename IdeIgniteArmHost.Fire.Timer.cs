@@ -60,7 +60,9 @@ internal static partial class IdeIgniteArmHost
         && (string.Equals(error, "busy_timeout", StringComparison.Ordinal)
             // After OOM New Window Composer mounts late — once-arm must not die silent.
             || string.Equals(error, "no_agent_composer", StringComparison.Ordinal)
-            || string.Equals(error, "wrong_surface", StringComparison.Ordinal));
+            || string.Equals(error, "wrong_surface", StringComparison.Ordinal)
+            // CDT Send click miss — once-arm must not die silent under Composer Stop/Queue thrash.
+            || string.Equals(error, "click_failed", StringComparison.Ordinal));
 
 
     internal static bool ShouldKeepVisibleErrorOnFireFail(bool once, bool lastOnce) =>
