@@ -33,6 +33,14 @@ ADX north star: harness perception → agent-ready ingress → stamped memory �
 |------|------|
 | Ethics code as carbon shield | [case-ethics-code-as-carbon-shield-v0.md](case-ethics-code-as-carbon-shield-v0.md) |
 
+### Voice letters (as written)
+
+Lived prose beside the Who/AX/ADX guidelines — not a checklist rewrite.
+
+| Letter | RU (canon voice) | EN |
+|--------|------------------|----|
+| Agent Who · place, time, memory | [letter-of-the-agent-who-presence.ru.md](letter-of-the-agent-who-presence.ru.md) | [stub](letter-of-the-agent-who-presence.md) |
+
 Letter Appendix B (developmental grammar) cites the case; full stage maps stay operator-held.
 
 Public curated applications (quotes / redacted excerpts / pointers):
