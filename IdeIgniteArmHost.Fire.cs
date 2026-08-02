@@ -121,7 +121,7 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
-            // Habitat duplex prefer — skip Composer when PF partner live (timer work arms only).
+            // Habitat prefer — skip Composer when PF duplex live or autonomous (plain timers).
             var habitat = TryDeliverHabitatWake(arm, msg);
             if (habitat is not null)
             {
