@@ -11,6 +11,7 @@ public class MetaToolCatalogIgniteTipTests
         Assert.Contains("prefer habitat", tip, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Guest CDT fallthrough", tip, StringComparison.Ordinal);
         Assert.Contains("ignite-wake-LATEST", tip, StringComparison.Ordinal);
+        Assert.Contains("insurance ≠ park", tip, StringComparison.Ordinal);
         Assert.DoesNotContain("AutoIgnition via Chrome DevTools (CDT) into Cursor Composer", tip, StringComparison.Ordinal);
     }
 }

@@ -37,7 +37,13 @@ internal static partial class IdeIgniteArmHost
             reason,
             task = taskTitle.Trim(),
             arm = result,
-            hint = "Leaf continuity armed (2s). End turn — AutoI fires wake for this leaf."
+            hint = ArmForLeafHint(IsAutonomousArmed())
         };
     }
+
+    /// <summary>ArmForLeaf tip — under autonomous do not teach End-turn park.</summary>
+    internal static string ArmForLeafHint(bool autonomous) =>
+        autonomous
+            ? "Leaf continuity armed (2s). Keep flying the leaf — AutoI is insurance if the thread dies, not a license to park."
+            : "Leaf continuity armed (2s). End turn — AutoI fires wake for this leaf.";
 }

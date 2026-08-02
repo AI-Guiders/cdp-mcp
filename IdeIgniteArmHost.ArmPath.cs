@@ -111,15 +111,25 @@ internal static partial class IdeIgniteArmHost
                 : $"continuity arm is active for event '{arm.Event}'",
             arm.LastOnce
                 ? (IsAutonomousArmed()
-                    ? "continue work; re-arm last_once before idle"
-                    : "end turn")
+                    ? LastOnceArmNextStep(autonomous: true)
+                    : LastOnceArmNextStep(autonomous: false))
                 : "wait for event")),
         hint = arm.LastOnce
-            ? (IsAutonomousArmed()
-                ? "last_once under autonomous: fires once → no awaiting invent-ban; re-ARM last_once insurance after work."
-                : "last_once: fires once → awaiting latch; harness blocks repeat idle re-arms until force/disarm/work arm.")
+            ? LastOnceArmHint(IsAutonomousArmed())
             : arm.Event == "timer"
                 ? "Harness fires when due — end your turn; no terminal poll loop."
                 : $"Harness fires on {arm.Event} (ok_only={arm.OkOnly}). Kick cdp_build/cdp_test then end turn."
     };
+
+    /// <summary>Explain next_step after last_once arm — autonomous must not teach park-on-timer.</summary>
+    internal static string LastOnceArmNextStep(bool autonomous) =>
+        autonomous
+            ? "keep flying started TM leaf; last_once is insurance only — do not park on the timer"
+            : "end turn";
+
+    /// <summary>Arm hint after last_once — ACC: insurance ≠ idle license while leaf started.</summary>
+    internal static string LastOnceArmHint(bool autonomous) =>
+        autonomous
+            ? "last_once under autonomous: insurance if thread dies — NOT permission to idle while a TM leaf is started. Keep act; re-ARM after work."
+            : "last_once: fires once → awaiting latch; harness blocks repeat idle re-arms until force/disarm/work arm.";
 }
