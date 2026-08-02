@@ -58,7 +58,7 @@ public class IdeRefactorPlanChannelTests
     }
 
     [Fact]
-    public void Recommend_Program_is_top_level_design()
+    public void Recommend_Program_under_warn_is_leave_not_introduce()
     {
         var path = Path.Combine(RepoRoot, "Program.cs");
         Assert.True(File.Exists(path), path);
@@ -77,9 +77,34 @@ public class IdeRefactorPlanChannelTests
         using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
         Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
         var rec = doc.RootElement.GetProperty("recommend");
-        Assert.Equal("design", rec.GetProperty("verdict").GetString());
+        Assert.Equal("leave", rec.GetProperty("verdict").GetString());
         Assert.Equal("top_level_statements", rec.GetProperty("shape").GetProperty("kind").GetString());
-        Assert.Equal("introduce_program_class", rec.GetProperty("cut").GetProperty("kind").GetString());
+        Assert.Equal("none", rec.GetProperty("cut").GetProperty("kind").GetString());
+    }
+
+    [Fact]
+    public void Recommend_Csproj_is_leave_non_csharp()
+    {
+        var path = Path.Combine(RepoRoot, "CdpMcp.csproj");
+        Assert.True(File.Exists(path), path);
+
+        var store = new DocumentBufferStore();
+        store.Open(path);
+        var session = new SessionContext { ProjectRoot = RepoRoot };
+
+        var result = IdeRefactorPlanChannel.Handle(store, session, new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("recommend"),
+            ["path"] = JsonSerializer.SerializeToElement(path),
+            ["scope"] = JsonSerializer.SerializeToElement("file")
+        });
+
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        var rec = doc.RootElement.GetProperty("recommend");
+        Assert.Equal("leave", rec.GetProperty("verdict").GetString());
+        Assert.Equal("non_csharp", rec.GetProperty("shape").GetProperty("kind").GetString());
+        Assert.Equal("none", rec.GetProperty("cut").GetProperty("kind").GetString());
     }
 
     [Fact]

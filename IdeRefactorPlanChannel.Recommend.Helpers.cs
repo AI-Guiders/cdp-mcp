@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Text.RegularExpressions;
 using System.Text.Json;
 using Cdp.Core;
@@ -22,6 +22,10 @@ internal static partial class IdeRefactorPlanChannel
 
     static (string Kind, string? TypeStem) DetectShape(string path)
     {
+        // Only C# sources get class/top-level shape — .csproj/.xml/.md are not peel targets.
+        if (!path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+            return ("non_csharp", Path.GetFileNameWithoutExtension(path));
+
         try
         {
             var text = File.ReadAllText(path);
@@ -64,5 +68,37 @@ internal static partial class IdeRefactorPlanChannel
         var name = Path.GetFileNameWithoutExtension(path);
         var parts = name.Split('.', StringSplitOptions.RemoveEmptyEntries);
         return parts.Length >= 2 ? parts[^1] : null;
+    }
+
+    static object LeaveRecommend(
+        string rel,
+        (string Kind, string? TypeStem) shape,
+        string why,
+        string pulse)
+    {
+        var primaryGo = new { go = "sa_desk", label = "SA pulse", why = $"path={rel}" };
+        return new
+        {
+            ok = true,
+            pulse,
+            verdict = "leave",
+            why,
+            shape = new { kind = shape.Kind, type_stem = shape.TypeStem, path = rel },
+            cut = new
+            {
+                kind = "none",
+                cheap = true,
+                path = rel,
+                steps = new[] { "Optional: go=sa_desk for dirty/clones; skip structural cut." },
+                primary_go = primaryGo
+            },
+            next = new object[]
+            {
+                primaryGo,
+                new { go = "scope", label = "Sniper corridor", why = "aim before extract" },
+                new { go = "sa_desk", label = "SA leave|touch|split", why = "confirm verdict" }
+            },
+            hint = "One package — act on cut.primary_go; skip hand-running debt→budget→partials unless you need detail."
+        };
     }
 }
