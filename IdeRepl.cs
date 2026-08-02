@@ -35,6 +35,10 @@ internal static partial class IdeRepl
         merged.Remove("ccl");
         merged.Remove("ccc");
 
+        // feature X; task Y; start — refuse before Tokenize (junk titles).
+        if (RefuseChainedBoardCmd(raw) is { } multi)
+            return (merged, multi);
+
         var tokens = Tokenize(raw);
         if (tokens.Count == 0)
             return (merged, Help("empty"));
