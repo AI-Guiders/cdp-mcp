@@ -97,7 +97,36 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Pull armed last_once work timers with DueUtc &gt; 3s forward — HILD away ≠ license for 45m park.</summary>
-    static void PullForwardLongWorkTimersOnHildAway()
+    static void PullForwardLongWorkTimersOnHildAway() =>
+        PullForwardLongWorkTimers(
+            compute: TryComputeHildAwayPullForwardDue,
+            lastError: "hild_away_pull_forward",
+            tape: "hild_pull_forward",
+            log: "hild");
+
+    /// <summary>Pull long last_once while TM ContinuityFlight.Fly under autonomous — agent-park police.</summary>
+    static void PullForwardLongWorkTimersOnLeafFly() =>
+        PullForwardLongWorkTimers(
+            compute: TryComputeLeafFlyPullForwardDue,
+            lastError: "leaf_fly_pull_forward",
+            tape: "leaf_pull_forward",
+            log: "leaf Fly");
+
+    delegate bool HabitPullForwardCompute(
+        DateTimeOffset? dueUtc,
+        bool lastOnce,
+        bool isAutonomyMeans,
+        string status,
+        string? eventKind,
+        DateTimeOffset now,
+        out DateTimeOffset newDue,
+        out string? note);
+
+    static void PullForwardLongWorkTimers(
+        HabitPullForwardCompute compute,
+        string lastError,
+        string tape,
+        string log)
     {
         EnsureLoaded();
         var now = DateTimeOffset.UtcNow;
@@ -106,7 +135,7 @@ internal static partial class IdeIgniteArmHost
         {
             foreach (var a in Arms)
             {
-                if (!TryComputeHildAwayPullForwardDue(
+                if (!compute(
                         a.DueUtc,
                         a.LastOnce,
                         IsAutonomyMeansArm(a),
@@ -119,7 +148,7 @@ internal static partial class IdeIgniteArmHost
 
                 a.DueUtc = newDue;
                 a.InRaw = string.IsNullOrWhiteSpace(a.InRaw) ? note : $"{a.InRaw}→{note}";
-                a.LastError = "hild_away_pull_forward";
+                a.LastError = lastError;
                 pulled++;
             }
 
@@ -130,9 +159,9 @@ internal static partial class IdeIgniteArmHost
         if (pulled <= 0)
             return;
 
-        IdeTeethTape.Record("hild_pull_forward", detail: $"count={pulled}");
+        IdeTeethTape.Record(tape, detail: $"count={pulled}");
         Console.Error.WriteLine(
-            $"[ide_ignite] hild pull-forward · {pulled} last_once work timer(s) → ≤{HildAwayContinuityMax.TotalSeconds:0}s");
+            $"[ide_ignite] {log} pull-forward · {pulled} last_once work timer(s) → ≤{HildAwayContinuityMax.TotalSeconds:0}s");
     }
 
     /// <summary>One-shot timer charge_mode=escalate (system wake — not superseded).</summary>

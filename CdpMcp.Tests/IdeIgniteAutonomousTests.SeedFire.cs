@@ -234,4 +234,21 @@ public partial class IdeIgniteAutonomousTests
             out _,
             out _));
     }
+
+    [Fact]
+    public void Leaf_fly_pull_forward_computes_3s_due_with_leaf_pull_note()
+    {
+        var now = DateTimeOffset.Parse("2026-08-02T20:00:00Z");
+        Assert.True(IdeIgniteArmHost.TryComputeLeafFlyPullForwardDue(
+            dueUtc: now.AddMinutes(45),
+            lastOnce: true,
+            isAutonomyMeans: false,
+            status: "armed",
+            eventKind: "timer",
+            now: now,
+            out var newDue,
+            out var note));
+        Assert.Equal(now.AddSeconds(3), newDue);
+        Assert.Equal("3s(leaf_pull)", note);
+    }
 }
