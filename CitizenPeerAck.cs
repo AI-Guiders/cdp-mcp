@@ -55,7 +55,7 @@ internal static class CitizenPeerAck
         lock (Gate)
         {
             gen = ++Generation;
-            peer = FormatPeer(gen, applied, executed.Count);
+            peer = FormatPeer(gen, applied, executed.Count, executed);
             ev = FormatEvent(gen, executed);
             LastPeerLine = peer;
             LastEventBlock = ev;
@@ -64,8 +64,12 @@ internal static class CitizenPeerAck
         return new Result(peer, ev, applied, dropped, gen);
     }
 
-    static string FormatPeer(int gen, int applied, int total) =>
-        $"ok · gen={gen} · mcp=live · compact=no · ack={applied}/{total}";
+    static string FormatPeer(int gen, int applied, int total, IReadOnlyList<CitizenRouteHost.Applied> executed)
+    {
+        var peer = $"ok · gen={gen} · mcp=live · compact=no · ack={applied}/{total}";
+        var tip = FirstPulseTip(executed);
+        return tip is null ? peer : peer + " · " + tip;
+    }
 
     static string FormatEvent(int gen, IReadOnlyList<CitizenRouteHost.Applied> executed)
     {
@@ -94,11 +98,38 @@ internal static class CitizenPeerAck
             sb.Append("kind  | ").Append(kind).Append('\n');
             sb.Append("id    | turn-").Append(gen).Append('-').Append(i + 1).Append('\n');
             sb.Append("ack   | ").Append(label).Append(" → ").Append(status);
-            if (!a.Ok && !string.IsNullOrWhiteSpace(a.Reason))
-                sb.Append(" (").Append(a.Reason).Append(')');
+            if (!string.IsNullOrWhiteSpace(a.Pulse))
+                sb.Append('\n').Append("pulse | ").Append(OneLine(a.Pulse, 160));
+            else if (!string.IsNullOrWhiteSpace(a.Reason))
+                sb.Append(" (").Append(OneLine(a.Reason, 120)).Append(')');
         }
 
         return sb.ToString();
+    }
+
+    static string? FirstPulseTip(IReadOnlyList<CitizenRouteHost.Applied> executed)
+    {
+        foreach (var a in executed)
+        {
+            if (!string.IsNullOrWhiteSpace(a.Pulse))
+                return OneLine(a.Pulse, 48);
+            if (!a.Ok && !string.IsNullOrWhiteSpace(a.Reason))
+                return OneLine(a.Reason, 48);
+        }
+
+        return null;
+    }
+
+    static string OneLine(string? s, int max)
+    {
+        if (string.IsNullOrWhiteSpace(s))
+            return "";
+        var t = s.Replace('\r', ' ').Replace('\n', ' ').Trim();
+        while (t.Contains("  ", StringComparison.Ordinal))
+            t = t.Replace("  ", " ", StringComparison.Ordinal);
+        if (t.Length > max)
+            t = t[..(max - 1)] + "…";
+        return t;
     }
 
     static string ShortIntent(CitizenRouteHost.Applied a)

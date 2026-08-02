@@ -161,6 +161,41 @@ public class CitizenCompletionsTests : IDisposable
     }
 
     [Fact]
+    public void Build_wire_injects_latched_peer_event_with_pulse()
+    {
+        CitizenPeerAck.ResetForTests();
+        CitizenPeerAck.FromExecuted(
+        [
+            new CitizenRouteHost.Applied(
+                Raw: "@intent build",
+                Verb: "Build",
+                Ok: true,
+                Action: "build",
+                Pulse: "build ok E×0 W×12")
+        ]);
+
+        try
+        {
+            var built = CitizenCompletions.Build(
+                "verify build",
+                boardLines: ["P  plan · x"],
+                peer: CitizenPeerAck.LastPeer,
+                inject: true,
+                mode: CitizenTurnMode.Wire);
+
+            Assert.NotNull(built.AfferentPulse);
+            Assert.Contains("@event peer v0", built.AfferentPulse!, StringComparison.Ordinal);
+            Assert.Contains("pulse | build ok E×0 W×12", built.AfferentPulse!, StringComparison.Ordinal);
+            Assert.Contains("WIRE OUTPUT CONTRACT", built.System, StringComparison.Ordinal);
+            Assert.Contains("@event peer", built.System, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenPeerAck.ResetForTests();
+        }
+    }
+
+    [Fact]
     public void Build_without_inject_is_single_user()
     {
         var built = CitizenCompletions.Build("ping", inject: false);

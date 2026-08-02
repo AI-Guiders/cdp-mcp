@@ -127,6 +127,11 @@ internal static partial class CitizenCompletions
                 if (presence is not null)
                     afferent = AppendAfferentLine(afferent, presence);
 
+                // Prior host-execute observe feed (ADR-0028 intent_ack + pulse) — wire and dialog.
+                var peerEvent = CitizenPeerAck.LastEvent;
+                if (peerEvent is not null)
+                    afferent = AppendAfferentLine(afferent, peerEvent);
+
                 if (mode == CitizenTurnMode.Dialog && history)
                 {
                     afferent = AppendAfferentLine(afferent, CitizenDialogHistory.AfferentLine());

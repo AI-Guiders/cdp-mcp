@@ -32,6 +32,27 @@ public sealed class CitizenPeerAckHostTests
     }
 
     [Fact]
+    public void FromExecuted_surfaces_pulse_on_ack_and_peer_tip()
+    {
+        CitizenPeerAck.ResetForTests();
+
+        var ack = CitizenPeerAck.FromExecuted(
+        [
+            new CitizenRouteHost.Applied(
+                Raw: "@intent build",
+                Verb: "Build",
+                Ok: true,
+                Action: "build",
+                Pulse: "build ok E×0 W×180")
+        ]);
+
+        Assert.Equal(1, ack.Applied);
+        Assert.Contains("pulse | build ok E×0 W×180", ack.Event, StringComparison.Ordinal);
+        Assert.Contains("build ok E×0 W×180", ack.Peer, StringComparison.Ordinal);
+        Assert.Equal(ack.Event, CitizenPeerAck.LastEvent);
+    }
+
+    [Fact]
     public void Channel_live_mock_turn_surfaces_peer_ack()
     {
         CitizenPeerAck.ResetForTests();
