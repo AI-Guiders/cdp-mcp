@@ -155,8 +155,18 @@ internal static partial class IdeIgniteArmHost
         || string.Equals(kind, "queue", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// After Intercom mirror (remount / escalate / hild-away / OOM / tool-wake / idle-PF) + Composer Stop/Queue: habitat deliver, skip CDT.
-    /// Avoids busy_timeout → requeue → mid-flight Composer paste while PF is working.
+    /// After Intercom mirror: skip CDT when Composer Stop/Queue **or** surface gone (no_composer/down).
+    /// Voice/send/idle: false → CDT fallthrough. Sample fail (!ok) uses kind no_composer|down.
+    /// </summary>
+    internal static bool ShouldSkipCdtAfterIntercomMirror(bool sampleOk, string kind) =>
+        !sampleOk
+        || IsComposerBusyKind(kind)
+        || string.Equals(kind, "no_composer", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(kind, "down", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// After Intercom mirror + Composer Stop/Queue/gone: habitat deliver, skip CDT.
+    /// Avoids busy_timeout → requeue / no_agent_composer silent thrash while Glass already has charge.
     /// Voice/idle Composer: null → CDT fallthrough (overnight / idle wakes still reach Composer).
     /// </summary>
     internal static async Task<object?> TryDeliverMirroredWhenComposerBusyAsync(
@@ -167,7 +177,7 @@ internal static partial class IdeIgniteArmHost
 
         var (ok, kind, _) = await IdeIgniteChannel.TrySampleComposerAsync(arm.Port, ct)
             .ConfigureAwait(false);
-        if (!ok || !IsComposerBusyKind(kind))
+        if (!ShouldSkipCdtAfterIntercomMirror(ok, kind))
             return null;
 
         var latch = IdeIgniteWakeLatch.Publish(
@@ -179,12 +189,13 @@ internal static partial class IdeIgniteArmHost
         if (latch is null)
             return null;
 
-        var detail = IsRemountWakeArm(arm) ? "remount_composer_busy"
-            : IsHildEscalateWakeArm(arm) ? "escalate_composer_busy"
-            : IsHildAwayWakeArm(arm) ? "hild_composer_busy"
-            : IsOomWakeArm(arm) ? "oom_composer_busy"
-            : IsToolWakeArmId(arm.Id) ? "tool_composer_busy"
-            : "idle_pf_composer_busy";
+        var suffix = IsComposerBusyKind(kind) ? "composer_busy" : "composer_gone";
+        var detail = IsRemountWakeArm(arm) ? $"remount_{suffix}"
+            : IsHildEscalateWakeArm(arm) ? $"escalate_{suffix}"
+            : IsHildAwayWakeArm(arm) ? $"hild_{suffix}"
+            : IsOomWakeArm(arm) ? $"oom_{suffix}"
+            : IsToolWakeArmId(arm.Id) ? $"tool_{suffix}"
+            : $"idle_pf_{suffix}";
         IdeFlightDataRecorder.RecordWake(
             "wake_habitat", arm.Id, ToolFromWakeArm(arm), detail);
 
