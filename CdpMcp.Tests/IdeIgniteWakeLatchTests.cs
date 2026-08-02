@@ -81,7 +81,7 @@ public class IdeIgniteWakeLatchTests : IDisposable
     }
 
     [Fact]
-    public void TryDeliverHabitatWake_prefers_when_autonomous_idle_pf()
+    public void TryDeliverHabitatWake_stamps_habitat_ssot_when_autonomous_idle_pf_but_falls_through()
     {
         IdeIgniteArmHost.BindAutonomous(true);
         Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
@@ -97,15 +97,18 @@ public class IdeIgniteWakeLatchTests : IDisposable
             WaitSeconds = 30
         };
 
-        var result = IdeIgniteArmHost.TryDeliverHabitatWake(arm, "Resume autonomous habitat.");
-        Assert.NotNull(result);
-        Assert.Equal("prefer_autonomous", result!.GetType().GetProperty("detail")!.GetValue(result));
+        // Guest Autoi residual: stamp habitat SSOT, return null so CDT still injects.
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "Resume autonomous habitat."));
 
         var latch = IdeIgniteWakeLatch.TryRead();
         Assert.NotNull(latch);
         Assert.Equal(IdeIgniteWakeLatch.ChannelHabitat, latch!.Channel);
         Assert.Equal("arm-habitat-auto", latch.ArmId);
+        Assert.True(IdeIgniteWakeLatch.IsHabitatLatchForArm(arm.Id));
 
+        // Intercom deferred to MirrorTimerWakeToIntercom on CDT fallthrough.
+        Assert.Null(CideIntercomVoiceLatch.TryRead());
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "Resume autonomous habitat."));
         var voice = CideIntercomVoiceLatch.TryRead();
         Assert.NotNull(voice);
         Assert.Contains("Resume autonomous habitat.", voice!.Body, StringComparison.Ordinal);
@@ -129,6 +132,7 @@ public class IdeIgniteWakeLatchTests : IDisposable
         };
 
         Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "should fall through to Composer"));
+        Assert.Null(IdeIgniteWakeLatch.TryRead());
     }
 
     [Fact]

@@ -39,6 +39,18 @@ internal static class IdeIgniteWakeLatch
 
     public static string LatchPath => Path.Combine(StateRoot, "ignite-wake-LATEST.json");
 
+    /// <summary>True when LATEST latch is habitat channel for this arm (prefer stamp before CDT).</summary>
+    public static bool IsHabitatLatchForArm(string? armId)
+    {
+        var id = armId?.Trim() ?? "";
+        if (id.Length == 0)
+            return false;
+        var doc = TryRead();
+        return doc is not null
+            && string.Equals(doc.ArmId, id, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(doc.Channel, ChannelHabitat, StringComparison.OrdinalIgnoreCase);
+    }
+
     public static WakeDoc? Publish(
         string armId,
         string charge,
