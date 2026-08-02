@@ -110,4 +110,62 @@ public class IdeIgniteWakeLatchTests : IDisposable
         };
         Assert.False(IdeIgniteArmHost.MayPreferHabitatOverComposer(arm));
     }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_when_pf_idle_publishes_voice()
+    {
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-mirror-1",
+            Event = "timer",
+            Status = "firing",
+            Message = "wake",
+            ChargeMode = "minimal",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "Resume idle-PF mirror."));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("Resume idle-PF mirror.", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_skips_when_pf_busy()
+    {
+        CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-mirror-busy",
+            Event = "timer",
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.False(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "should not mirror"));
+        Assert.Null(CideIntercomVoiceLatch.TryRead());
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_skips_system_wake()
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "remount-wake-xyz",
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = "remount",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.False(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=remount"));
+        Assert.Null(CideIntercomVoiceLatch.TryRead());
+    }
 }

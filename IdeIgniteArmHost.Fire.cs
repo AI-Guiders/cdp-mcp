@@ -130,6 +130,9 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
+            // Idle PF: still mirror charge to Intercom (Glass sees wake); Composer fallthrough below.
+            _ = MirrorTimerWakeToIntercom(arm, msg);
+
             // Composer adapter path — still publish wake latch so habitat is not sole-Composer SSOT.
             _ = IdeIgniteWakeLatch.Publish(
                 arm.Id, msg, IdeIgniteWakeLatch.ChannelComposer, arm.Reason, arm.Task);
