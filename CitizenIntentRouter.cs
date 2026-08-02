@@ -15,6 +15,7 @@ internal static partial class CitizenIntentRouter
         PaneFull,
         Open,
         Replace,
+        Create,
         Build,
         Test,
         Mcp,
@@ -151,6 +152,23 @@ internal static partial class CitizenIntentRouter
                 Path: path,
                 OldString: oldString,
                 NewString: newString,
+                Go: "buffer");
+        }
+
+        if (raw.StartsWith("create ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("create path=", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("write ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("write path=", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!TryParseCreate(raw, out var path, out var body, out var overwrite, out var reason))
+                return new Route(Verb.Unknown, raw, Ok: false, Reason: reason);
+            return new Route(
+                Verb.Create,
+                raw,
+                Ok: true,
+                Path: path,
+                NewString: body,
+                Op: overwrite ? "overwrite" : null,
                 Go: "buffer");
         }
 

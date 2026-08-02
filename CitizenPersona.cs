@@ -78,6 +78,8 @@ internal static class CitizenPersona
           @intent debug bp_list
           @intent debug bp_add path=CitizenRouteHost.cs line=50
           @intent replace path=rel/file.cs old="needle" new="patch"
+          @intent create path=rel/new.cs body="class New { }"
+          @intent write path=rel/new.cs text="class New { }"
           @intent cmd=feature leaf-title @act #CDP
           @intent cmd=task dig-step @act #CDP
           @intent cmd=done
@@ -114,6 +116,7 @@ internal static class CitizenPersona
           @intent cmd=note short-note
           @intent build
           @intent replace path=rel/file.cs old="needle" new="patch"
+          @intent create path=rel/new.cs body="class New { }"
           @intent test
           @intent mcp
           @intent shell echo hi
