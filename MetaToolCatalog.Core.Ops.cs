@@ -108,7 +108,7 @@ internal static partial class MetaToolCatalog
             op = new { type = "string", description = "scene|keys|turn (default scene)" },
             message = new { type = "string", description = "turn: user text" },
             body = new { type = "string", description = "turn: alias of message" },
-            board = new { type = "string", description = "turn: optional desk board lines (newline-separated seat rows)" },
+            board = new { type = "string", description = "turn: optional desk board lines (newline seat rows); omit -> auto-bind live desk seats + TM pulse" },
             sa = new { type = "string", description = "turn: optional sa field" },
             peer = new { type = "string", description = "turn: optional peer field" },
             next = new { type = "string", description = "turn: optional next field" },
