@@ -24,6 +24,7 @@ internal static partial class CitizenRouteHost
         KbCallOverride = null;
         GitCallOverride = null;
         FindCallOverride = null;
+        IdeCallOverride = null;
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)

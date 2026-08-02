@@ -89,6 +89,10 @@ internal static class CitizenPersona
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost
           @intent find last
+          @intent goto path=CitizenRouteHost.cs line=50 column=1
+          @intent usages path=CitizenRouteHost.cs line=50
+          @intent diagnostics path=CitizenRouteHost.cs
+          @intent ide goto path=CitizenIntentRouter.cs line=11
           @intent shell echo citizen-shell-ok
           @intent shell command="dotnet --version"
           @intent debug
