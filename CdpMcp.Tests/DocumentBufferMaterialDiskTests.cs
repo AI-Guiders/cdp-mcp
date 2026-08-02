@@ -58,6 +58,88 @@ public sealed class DocumentBufferMaterialDiskTests
         }
     }
 
+    [Fact]
+    public void Flush_refuses_material_disk_drift_without_force()
+    {
+        var dir = NewTempDir("flush-drift-refuse");
+        try
+        {
+            var path = Path.Combine(dir, "Drift.cs");
+            File.WriteAllText(path, "class Drift {}");
+
+            var store = new DocumentBufferStore();
+            var buf = store.Open(path);
+            buf.Text = "class Drift { int y; }";
+            buf.Dirty = true;
+
+            File.WriteAllText(path, "class Drift { int x; }");
+            File.SetLastWriteTimeUtc(path, File.GetLastWriteTimeUtc(path).AddSeconds(5));
+
+            var ex = Assert.Throws<InvalidOperationException>(() => store.Flush(buf, allowShrink: true));
+            Assert.Contains("material disk drift", ex.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("force", ex.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.True(buf.Dirty);
+            Assert.Equal("class Drift { int x; }", File.ReadAllText(path));
+        }
+        finally
+        {
+            TryDelete(dir);
+        }
+    }
+
+    [Fact]
+    public void Flush_force_overwrites_material_disk_drift()
+    {
+        var dir = NewTempDir("flush-drift-force");
+        try
+        {
+            var path = Path.Combine(dir, "Force.cs");
+            File.WriteAllText(path, "class Force {}");
+
+            var store = new DocumentBufferStore();
+            var buf = store.Open(path);
+            buf.Text = "class Force { int y; }";
+            buf.Dirty = true;
+
+            File.WriteAllText(path, "class Force { int x; }");
+            File.SetLastWriteTimeUtc(path, File.GetLastWriteTimeUtc(path).AddSeconds(5));
+
+            store.Flush(buf, allowShrink: true, force: true);
+
+            Assert.False(buf.Dirty);
+            Assert.Equal("class Force { int y; }", File.ReadAllText(path));
+        }
+        finally
+        {
+            TryDelete(dir);
+        }
+    }
+
+    [Fact]
+    public void Flush_dirty_without_external_mtime_does_not_need_force()
+    {
+        var dir = NewTempDir("flush-dirty-ok");
+        try
+        {
+            var path = Path.Combine(dir, "Ok.cs");
+            File.WriteAllText(path, "class Ok {}");
+
+            var store = new DocumentBufferStore();
+            var buf = store.Open(path);
+            buf.Text = "class Ok { int z; }";
+            buf.Dirty = true;
+
+            store.Flush(buf, allowShrink: true);
+
+            Assert.False(buf.Dirty);
+            Assert.Equal("class Ok { int z; }", File.ReadAllText(path));
+        }
+        finally
+        {
+            TryDelete(dir);
+        }
+    }
+
     static string NewTempDir(string prefix)
     {
         var dir = Path.Combine(Path.GetTempPath(), "cdp-mcp-tests", prefix + "-" + Guid.NewGuid().ToString("N"));

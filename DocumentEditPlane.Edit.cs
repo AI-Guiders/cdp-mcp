@@ -59,9 +59,10 @@ internal static partial class DocumentEditPlane
                 var flush = BoolOr(args, "flush", defaultValue: true);
                 var allowShrink = op is "replace" or "replace_range" or "anchor"
                     || BoolOr(args, "allow_shrink", defaultValue: false);
+                var force = BoolOr(args, "force", defaultValue: false);
                 if (flush)
                 {
-                    store.FlushUnlocked(buf, allowShrink);
+                    store.FlushUnlocked(buf, allowShrink, force);
                     if (string.Equals(buf.Language, "csharp", StringComparison.OrdinalIgnoreCase))
                     {
                         RoslynMcp.ServiceLayer.DiagnosticsResultCache.InvalidatePath(buf.Path);
@@ -72,7 +73,7 @@ internal static partial class DocumentEditPlane
                     buf.LastDiagnosedVersion = null;
                 }
 
-                return new EditApplied(buf, op, flush, allowShrink, anchorResolved, snapshotText);
+                return new EditApplied(buf, op, flush, allowShrink, force, anchorResolved, snapshotText);
             }
             catch
             {
@@ -111,6 +112,7 @@ internal static partial class DocumentEditPlane
             op = applied.Op,
             flushed = applied.Flushed,
             allow_shrink = applied.AllowShrink,
+            force = applied.Force,
             anchor = applied.Anchor,
             meta = applied.Buf.ToMeta(),
             diagnostics,
@@ -164,6 +166,7 @@ internal static partial class DocumentEditPlane
         string Op,
         bool Flushed,
         bool AllowShrink,
+        bool Force,
         object? Anchor,
         string BeforeText);
 
