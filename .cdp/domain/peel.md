@@ -23,6 +23,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.471**: wave15 — IdeProblemsChannel.Parse.Helpers · IdeMdAuthorChannel.Helpers · EditorPlane.Scene.Detail (skip Plugins.Boards — warn=400 / already concern-partial).
 - 2026-08-02 → **0.5.470**: wave14 — IdeDeskSeats.Ops · IdeCockpit.Build.PlanPulse.Surface · IdeIgniteArmHost.ContinuityOps.Helpers.
 - 2026-08-02 → **0.5.469**: wave13 — IdeToolchainChannel.Recipes.Helpers · IdeCideIntercomChannel.Helpers · IdeFilesChannel.Fs.Helpers (skip IdeSa FileLines — method_lines debt / Decide already peeled).
 - 2026-08-02 → **0.5.468**: wave12 — IdeWebcamChannel.Screen.Analyze · IdeArchBoardChannel.AsBuilt.Build · IdeOnboardChannel.Scan.Helpers.
