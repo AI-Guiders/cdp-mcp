@@ -17,7 +17,7 @@ internal static class CitizenAiKeys
     public const string DefaultOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
 
     /// <summary>Default Cloud.ru FM chat model when <c>open_ai_model</c> omitted.</summary>
-    public const string DefaultOpenAiModel = "ai-sage/GigaChat3-10B-A1.8B";
+    public const string DefaultOpenAiModel = "Qwen/Qwen3-Coder-Next";
 
     public sealed record Snapshot(
         string? AnthropicApiKey,
