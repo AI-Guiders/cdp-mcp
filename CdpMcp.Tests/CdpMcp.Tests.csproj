@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -23,4 +23,20 @@
       <AdditionalProperties>SelfContained=false</AdditionalProperties>
     </ProjectReference>
   </ItemGroup>
-</Project>
+  <ItemGroup>
+    <Compile Update="IdeIgniteArmHostTests.Continuity.cs">
+      <DependentUpon>IdeIgniteArmHostTests.cs</DependentUpon>
+    </Compile>
+    
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeArchBoardChannelTests.AsBuilt.cs">
+      <DependentUpon>IdeArchBoardChannelTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdePluginsChannelTests.OpenVsx.cs">
+      <DependentUpon>IdePluginsChannelTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="IdeTaskManagerTitlePrecedenceTests.Feature.cs"><DependentUpon>IdeTaskManagerTitlePrecedenceTests.cs</DependentUpon></Compile></ItemGroup></Project>
