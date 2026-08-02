@@ -205,6 +205,18 @@ public class IdeIgniteWakeLatchTests : IDisposable
     public void IsComposerBusyKind_stop_or_queue(string kind, bool expected) =>
         Assert.Equal(expected, IdeIgniteArmHost.IsComposerBusyKind(kind));
 
+    [Theory]
+    [InlineData(true, "stop", true)]
+    [InlineData(true, "queue", true)]
+    [InlineData(true, "voice", false)]
+    [InlineData(true, "send", false)]
+    [InlineData(false, "no_composer", true)]
+    [InlineData(false, "down", true)]
+    [InlineData(true, "no_composer", true)]
+    [InlineData(true, "down", true)]
+    public void ShouldSkipCdtAfterIntercomMirror_busy_or_gone(bool sampleOk, string kind, bool expected) =>
+        Assert.Equal(expected, IdeIgniteArmHost.ShouldSkipCdtAfterIntercomMirror(sampleOk, kind));
+
     [Fact]
     public async Task TryDeliverMirroredWhenComposerBusy_skips_when_not_mirrored()
     {
