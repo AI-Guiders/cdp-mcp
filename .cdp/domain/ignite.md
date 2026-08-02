@@ -15,6 +15,7 @@
 - **`disarm all` under autonomous:** clears work arms only (keeps `autonomous-seed-wake`, `leaf-wake`, `hild-away-*`, `remount-wake-*`, `tool-wake-*`, mid-flight event wakes). If wake path empty → auto seed. `force=true` clears store too but still re-seeds while autonomous latch is on. HILD is a separate latch (`op=hild`) — not cleared by disarm.
 - **`op=halt`:** stop-world until partner — not `disarm all`. Turns autonomous+HILD off, clears every arm, plants awaiting_partner latch. Resume does not auto-restore autonomous/HILD.
 - Guest Autoi remains CDT→Composer adapter (ADR-0025); habitat prefer is opt-in when PF duplex presence is busy|composing on plain timer arms only.
+- Idle PF on plain timer work arms: Intercom mirror (`MirrorTimerWakeToIntercom`) so Glass sees charge — Composer fallthrough stays (do not skip CDT on idle).
 - Wake charge SSOT: `%LocalAppData%/cdp-mcp/ignite-wake-LATEST.json` (`composer`|`habitat`) — Composer is not the only spine for charge body.
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
 - HILD (default ARMED): Composer text idle **30s** on Voice → `human_away` **once** (latch until Composer text); wake → autonomous; after wake continuity **1–2s** not 45m; suppress under `await_partner` / halt. DefaultIdle=30s since 0.5.359 (meta tip 0.5.363).
@@ -44,6 +45,7 @@
 
 ## last_ship
 
+- 0.5.515: idle-PF Intercom mirror on plain timer work arms (Composer fallthrough; remount/OOM/HILD/event excluded) · VL #21 · 2026-08-02
 - 0.5.503: Recover-CdpSeatRemount stamps remount-wake pending by default (parity with hard deploy; `-NoStampRemountPending` opt-out) · 2026-08-02
 - 0.5.501: Composer/CDT host-surface tooth — `ignite-wake-LATEST` SSOT + prefer habitat (intercom) over CDT when PF presence busy|composing on plain timer arms (remount/OOM/HILD/event stay Composer adapter) · 2026-08-02
 - 0.5.499: OOM tooth crooked fix — IdeOomCrossProcessClaim (dual-seat twin wake); ShouldRequeueBusy includes no_agent_composer/wrong_surface; DefaultDueSeconds=20 · 2026-08-02
