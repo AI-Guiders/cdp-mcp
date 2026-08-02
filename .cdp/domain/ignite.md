@@ -15,6 +15,7 @@
 - **`disarm all` under autonomous:** clears work arms only (keeps `autonomous-seed-wake`, `leaf-wake`, `hild-away-*`, `remount-wake-*`, `tool-wake-*`, mid-flight event wakes). If wake path empty → auto seed. `force=true` clears store too but still re-seeds while autonomous latch is on. HILD is a separate latch (`op=hild`) — not cleared by disarm.
 - **`op=halt`:** stop-world until partner — not `disarm all`. Turns autonomous+HILD off, clears every arm, plants awaiting_partner latch. Resume does not auto-restore autonomous/HILD.
 - **`disarm` under autonomous:** work-arm remove that empties wake path → seed (`removed > 0`); noop missing-id (`removed=0`) does **not** plant Guest Autoi CDT seed (0.5.535). Re-ARM `last_once` via `arm` supersede — do not disarm→arm ritual.
+- **`autonomous-seed-wake` fire:** if TM already has an incomplete leaf mid-window, suppress Guest Autoi CDT and redirect to `leaf-wake` (`TrySuppressAutonomousSeedBeforeDelivery` · `board_has_incomplete_leaf` · 0.5.536) — LeafPlateau race after `done` before next leaf lands.
 - Guest Autoi remains CDT→Composer adapter (ADR-0025) for system wakes **and** for autonomous plain timers when PF is not duplex-live: `prefer_autonomous` stamps habitat SSOT then CDT fallthrough (0.5.532 — 0.5.531 skip-CDT was ACC silent for guest Cursor).
 - **Habitat prefer skip-CDT** on plain timer work arms only when PF duplex busy|composing (`ShouldPreferHabitatDelivery` duplex · `detail=prefer_duplex`).
 - Partner-mode (autonomous off) + idle PF on plain timer work arms: Intercom mirror (`MirrorTimerWakeToIntercom`) so Glass sees charge — Composer fallthrough when Voice/idle.
@@ -51,9 +52,11 @@
 
 - Leaving Meta `cdp_ignite` tip as Composer-only Autoi spine after habitat prefer / Guest CDT fallthrough ships (pre-0.5.533) — invent-ban hygiene; tip must match runtime.
 - Noop `disarm id=` (`removed=0`) under autonomous planting `autonomous-seed-wake` (pre-0.5.535) — Guest Autoi CDT thrash mid re-ARM; re-ARM via `arm` supersede, not disarm→arm.
+- LeafPlateau `autonomous-seed-wake` firing Guest Autoi while next incomplete leaf already landed mid-window (pre-0.5.536) — CDT thrash with wrong "seed next leaf" charge; fire-time recheck → `leaf-wake`.
 
 ## last_ship
 
+- 0.5.536: autonomous-seed fire rechecks TM incomplete leaf → suppress CDT + redirect `leaf-wake` (`TrySuppressAutonomousSeedBeforeDelivery`) · VL #40 · 2026-08-02
 - 0.5.535: noop disarm under autonomous does not plant Guest Autoi seed (`removed > 0` gate) · VL #39 · 2026-08-02
 - 0.5.534: IdeIgniteChannel XML summary tip parity with Meta habitat prefer (residual Composer-only doc after 0.5.533) · 2026-08-02
 - 0.5.533: Meta `cdp_ignite` tip parity — duplex prefer skip-CDT · autonomous stamp + Guest CDT fallthrough · wake latch SSOT (residual after 0.5.532) · VL #38 · 2026-08-02
