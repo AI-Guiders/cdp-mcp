@@ -46,6 +46,7 @@ internal static partial class IdeIgniteArmHost
         }
 
         DateTimeOffset? due = null;
+        string? clampNote = null;
         if (when == "timer")
         {
             if (!TryParseDue(inRaw, Opt(args, "at"), out due, out var perr))
@@ -53,10 +54,26 @@ internal static partial class IdeIgniteArmHost
                 err = Err("arm", "bad_timer", perr);
                 return false;
             }
+
+            if (due is { } due0
+                && TryClampAutonomousLastOnceDue(
+                    due0,
+                    lastOnce,
+                    IsAutonomousArmed(),
+                    force,
+                    out var clampedDue,
+                    out clampNote))
+            {
+                due = clampedDue;
+                inRaw = string.IsNullOrWhiteSpace(inRaw) ? clampNote : $"{inRaw}→{clampNote}";
+            }
         }
         else if (!string.IsNullOrWhiteSpace(inRaw) && TryParseDuration(inRaw!, out var d))
         {
+            d = ClampAutonomousLastOnceInsurance(d, lastOnce, IsAutonomousArmed(), force, out clampNote);
             due = DateTimeOffset.UtcNow + d;
+            if (clampNote is not null)
+                inRaw = $"{inRaw}→{clampNote}";
         }
 
         if (string.IsNullOrWhiteSpace(message))
@@ -130,6 +147,44 @@ internal static partial class IdeIgniteArmHost
             _ => TimeSpan.Zero
         };
         return span > TimeSpan.Zero || n == 0;
+    }
+
+    /// <summary>Under autonomous, last_once insurance must be short — 45m park looks like "working".</summary>
+    internal static readonly TimeSpan AutonomousLastOnceInsuranceMax = TimeSpan.FromMinutes(3);
+
+    /// <summary>Clamp long last_once timers under autonomous unless force=true.</summary>
+    internal static TimeSpan ClampAutonomousLastOnceInsurance(
+        TimeSpan requested,
+        bool lastOnce,
+        bool autonomous,
+        bool force,
+        out string? clampNote)
+    {
+        clampNote = null;
+        if (!lastOnce || !autonomous || force || requested <= AutonomousLastOnceInsuranceMax)
+            return requested;
+        clampNote = "3m(clamped)";
+        return AutonomousLastOnceInsuranceMax;
+    }
+
+    internal static bool TryClampAutonomousLastOnceDue(
+        DateTimeOffset dueUtc,
+        bool lastOnce,
+        bool autonomous,
+        bool force,
+        out DateTimeOffset clampedDue,
+        out string? clampNote)
+    {
+        clampNote = null;
+        clampedDue = dueUtc;
+        var remaining = dueUtc - DateTimeOffset.UtcNow;
+        if (remaining <= TimeSpan.Zero)
+            return false;
+        var clamped = ClampAutonomousLastOnceInsurance(remaining, lastOnce, autonomous, force, out clampNote);
+        if (clampNote is null)
+            return false;
+        clampedDue = DateTimeOffset.UtcNow + clamped;
+        return true;
     }
 
     static bool TryParseDue(string? inRaw, string? atRaw, out DateTimeOffset? due, out string error)

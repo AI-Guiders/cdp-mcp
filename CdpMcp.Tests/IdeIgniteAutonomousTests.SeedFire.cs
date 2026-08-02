@@ -104,4 +104,35 @@ public partial class IdeIgniteAutonomousTests
         Assert.Contains("timer ≠ idle license", IdeIgniteChannel.CanonicalComposerCharge, StringComparison.Ordinal);
         Assert.DoesNotContain("re-arm when idle", IdeIgniteChannel.CanonicalComposerCharge, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Autonomous_last_once_insurance_clamps_long_timer_to_3m()
+    {
+        var clamped = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(
+            TimeSpan.FromMinutes(45),
+            lastOnce: true,
+            autonomous: true,
+            force: false,
+            out var note);
+        Assert.Equal(TimeSpan.FromMinutes(3), clamped);
+        Assert.Equal("3m(clamped)", note);
+
+        var kept = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(
+            TimeSpan.FromMinutes(45),
+            lastOnce: true,
+            autonomous: true,
+            force: true,
+            out var forceNote);
+        Assert.Equal(TimeSpan.FromMinutes(45), kept);
+        Assert.Null(forceNote);
+
+        var partner = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(
+            TimeSpan.FromMinutes(45),
+            lastOnce: true,
+            autonomous: false,
+            force: false,
+            out var partnerNote);
+        Assert.Equal(TimeSpan.FromMinutes(45), partner);
+        Assert.Null(partnerNote);
+    }
 }

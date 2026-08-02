@@ -13,6 +13,7 @@ public class MetaToolCatalogIgniteTipTests
         Assert.Contains("ignite-wake-LATEST", tip, StringComparison.Ordinal);
         Assert.Contains("insurance ≠ park", tip, StringComparison.Ordinal);
         Assert.Contains("canonical charge", tip, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("clamped ≤3m", tip, StringComparison.Ordinal);
         Assert.DoesNotContain("AutoIgnition via Chrome DevTools (CDT) into Cursor Composer", tip, StringComparison.Ordinal);
     }
 }

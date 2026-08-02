@@ -79,6 +79,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 40 | [seed fire: я не бужу Guest Autoi, когда лист уже есть](voice-letter-seed-fire-board-recheck.ru.md) | ignite · seed fire board recheck · leaf-wake redirect · 0.5.536 |
 | 41 | [last_once tip: я не паркуюсь на страховке, пока лист жив](voice-letter-last-once-tip-no-park.ru.md) | ignite · last_once tip parity · ArmForLeafHint · 0.5.537 |
 | 42 | [charge/scene: я не жду event, пока договор лететь](voice-letter-continuity-charge-no-park.ru.md) | ignite · ContinuityArmedNextStep · CanonicalComposerCharge · 0.5.538 |
+| 43 | [45m: я не маскирую сон длинной страховкой](voice-letter-last-once-clamp-3m.ru.md) | ignite · ClampAutonomousLastOnceInsurance · ≤3m · 0.5.539 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
 | 32 | [Composer gone: я не гоняю CDT после Intercom mirror](voice-letter-composer-gone-habitat-skip.ru.md) | ignite · composer_gone · ShouldSkipCdtAfterIntercomMirror · 0.5.526 |
