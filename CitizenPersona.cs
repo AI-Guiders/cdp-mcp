@@ -77,6 +77,14 @@ internal static class CitizenPersona
           @intent kb get_process process_id=bug-radius-shrink
           @intent kb facet=skill list_pack
           @intent kb read_knowledge_file file_path=META/integrity-core.md
+          @intent git
+          @intent git scene
+          @intent git status
+          @intent git diff_scene
+          @intent git preflight
+          @intent git commit message="feat: peer scm without Cursor"
+          @intent git commit message="feat: scoped" paths=["CitizenRouteHost.Git.cs"]
+          @intent git push
           @intent shell echo citizen-shell-ok
           @intent shell command="dotnet --version"
           @intent debug
@@ -129,6 +137,7 @@ internal static class CitizenPersona
           @intent mcp
           @intent shell echo hi
           @intent kb get_definition definition_id=debug-radius
+          @intent git
           @intent debug
         Do not invent Russian stand-ins for intents.
 

@@ -23,6 +23,7 @@ internal static partial class CitizenIntentRouter
         Mcp,
         Shell,
         Debug,
+        Git,
         Detail,
         Cmd,
         Refuse,
@@ -229,6 +230,14 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("debug op=", StringComparison.OrdinalIgnoreCase))
         {
             return RouteDebug(raw);
+        }
+
+        if (raw.Equals("git", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("git ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("git tool=", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("git op=", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteGit(raw);
         }
 
         if (TryKv(raw, out var detail, out var scene)
