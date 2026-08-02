@@ -129,7 +129,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 |------|-------|---------|
 | Ctrl+K / Ctrl+Q | Local catalog + lived aliases `fd/at/op/mb/ms` · FDS/attach/open/build/tests | **P2 deepen** |
 | EICAS | Assembled stack alert+qrh+ecl on MfdHealth (severity only) · CLEAR when idle | **P1 act** clearer band |
-| Topic cards | XAML/`GlassIntercomTopics` + empty hint; cluster 30m | P0b partial |
+| Topic cards | XAML/`GlassIntercomTopics` + empty hint; **30m** quiet-gap cluster · follow-newest on stickEnd · `/topics N` · cluster tail 240 | **P0b shipped** |
 | Message↔code | `/open` + journal chips `[path:line]` + `/attach` → OpenCodeFile; Avalonia Skia still fuller | **P2 thin chips** |
 | FDS (Flight Data Storage) | MFD shelf peels plan/shared/report/pressure · `/fds` | **P1 shipped** |
 | Intercom identity | `Кир · guest` / `Света · operator` / `Citizen · citizen` RoleLabel · Who ≠ operator | **P0 shipped** |
@@ -146,6 +146,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 Calendar: soft ~2→9 · hard 10.08→15.08 · D-day **15.08**.
 
 ## last_ship
+- 2026-08-02: Glass topics cluster deepen — follow-newest after 30m gap on stickEnd (`GlassIntercomTopicFollow`); cluster LoadTail 240; `/topics N` select; journal cap 500
 - 2026-08-02: Glass Intercom `/citizen` dialog peel — `GlassCitizenDialogRequest` → `citizen-dialog-request-LATEST.json` (journal-only, no human→PF Publish); habitat bridge 0.5.496 replies as `Citizen · citizen @PF → @PM`
 - 2026-08-02: Intercom operator default **Света** (not Who); `kind=who`/`origin=who` no longer map to operator/human — Who = Agent Who series. Glass LatchPaint parity. cdp-mcp **0.5.494**
 - 2026-08-02: Glass chord deepen — Ctrl+K `fd/at/op/mb/ms` + Ctrl+Q FDS/attach/open/build/tests palette entries (still ≠ full Avalonia CascadeChord)
