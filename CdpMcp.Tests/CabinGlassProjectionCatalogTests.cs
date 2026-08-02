@@ -38,6 +38,9 @@ public class CabinGlassProjectionCatalogTests
     [InlineData("files_desk", "SolutionExplorer", "agent · M: files")]
     [InlineData("domain", "MarkdownPreview", "agent · M: domain")]
     [InlineData("ownership", "MarkdownPreview", "agent · M: domain")]
+    [InlineData("calendar", null, "agent · M: calendar")]
+    [InlineData("clock", null, "agent · M: calendar")]
+    [InlineData("cdp_calendar", null, "agent · M: calendar")]
     public void TryResolve_maps_gap_organs(string pin, string? mfd, string? chrome)
     {
         var proj = CabinGlassProjectionCatalog.TryResolve(pin);

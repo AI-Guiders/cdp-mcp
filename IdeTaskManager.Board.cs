@@ -70,6 +70,9 @@ internal static partial class IdeTaskManager
             lines.Add("(empty — cmd=\"feature <name>\")");
 
         var phaseWire = sessionPhase is { Length: > 0 } ? sessionPhase : "—";
+        var localNow = IdeLocalClock.Now;
+        var localLine = IdeLocalClock.PulseLine(localNow);
+        var daypart = IdeLocalClock.DayPart(localNow);
         var wall = FormatWallClockSuffix(snap.ActiveStageStartedUtc, snap.ActiveStageCompletedUtc, DateTimeOffset.UtcNow);
         var events = "";
         if (snap.ActiveStageId is { } eventStageId && snap.ActiveStageStartedUtc is not null)
@@ -87,13 +90,13 @@ internal static partial class IdeTaskManager
 
         var pulse = snap.ActiveFeatureTitle is { Length: > 0 } f
             ? snap.ActiveStageTitle is { Length: > 0 } t
-                ? $"{f} › {t} · {phaseWire}{wall}{events}"
-                : $"{f} › (pick task) · {phaseWire}"
-            : $"no plan — feature <name> · {phaseWire}";
+                ? $"{localLine} · {f} › {t} · {phaseWire}{wall}{events}"
+                : $"{localLine} · {f} › (pick task) · {phaseWire}"
+            : $"{localLine} · no plan — feature <name> · {phaseWire}";
 
         var banner = snap.ActiveFeatureTitle is { Length: > 0 }
-            ? $"| plan:{Trim(snap.ActiveFeatureTitle, 18)} | task:{Trim(snap.ActiveStageTitle ?? "—", 18)} | phase:{phaseWire} |{WallBanner(wall + events)}"
-            : $"| plan:— | task:— | phase:{phaseWire} |";
+            ? $"| local:{Trim($"{localNow:MM-dd HH:mm} {daypart}", 18)} | plan:{Trim(snap.ActiveFeatureTitle, 18)} | task:{Trim(snap.ActiveStageTitle ?? "—", 18)} | phase:{phaseWire} |{WallBanner(wall + events)}"
+            : $"| local:{Trim($"{localNow:MM-dd HH:mm} {daypart}", 18)} | plan:— | task:— | phase:{phaseWire} |";
 
         if (snap.ActiveStagePhaseAffinity is { Length: > 0 } aff
             && sessionPhase is { Length: > 0 }
@@ -110,7 +113,8 @@ internal static partial class IdeTaskManager
                 banner,
                 board = lines.ToArray(),
                 ascii = string.Join('\n', lines),
-                hint = "Scan board. * = active feature; [>] active task; [x] done; [-] parked; [~] deferred; [ ] pending; @phase = affinity. wall= calendar Start→Completed (not agent-active score)."
+                local = localLine,
+                hint = "Scan board. * = active feature; [>] active task; [x] done; [-] parked; [~] deferred; [ ] pending; @phase = affinity. wall= stage Start→Completed; local= host machine clock (go=calendar)."
             },
             Focus: new
             {
@@ -125,7 +129,9 @@ internal static partial class IdeTaskManager
                 elapsed = wall.Length > 0 || events.Length > 0
                     ? (wall + events).TrimStart(' ', '·').Trim()
                     : null,
-                clock_kind = "wall"
+                clock_kind = "wall+local",
+                local = IdeLocalClock.PulseCard(localNow),
+                deadlines = IdeLocalClock.Deadlines(localNow)
             });
     }
 }

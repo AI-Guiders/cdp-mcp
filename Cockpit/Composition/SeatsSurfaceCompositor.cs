@@ -58,12 +58,13 @@ public sealed class SeatsSurfaceCompositor
             ["alert"] = scene.Alert,
             ["instrument"] = scene.Instrument,
             ["pressure"] = scene.Pressure,
+            ["clock"] = global::CdpMcp.IdeLocalClock.PulseCard(),
             ["thrash"] = scene.ThrashNote,
             ["hint"] = decision.WantNav
                 ? "Read view.banner / view.ascii first. Steer: cmd=\"go sa\" | layout=agent. " +
                   "C: pane_full= one dump; W: seats_detail=full spray."
-                : "Slim desk (cockpit/v1.20): view + seats + next + alert(sa) + pressure?. " +
-                  "go=sys|chk|pressure soft organs; desk_detail=nav for loci[]; cmd=sa|alert|pressure|probe|report|plan (CCL). " +
+                : "Slim desk (cockpit/v1.20): view + seats + next + alert(sa) + pressure? + clock=. " +
+                  "go=sys|chk|pressure|calendar soft organs; desk_detail=nav for loci[]; cmd=sa|alert|pressure|probe|report|plan (CCL). " +
                   "Context W/C/A: A=pulse; C=go_detail=full|pane_full=; W=seats_detail=full."
         };
         if (decision.WantNav)
