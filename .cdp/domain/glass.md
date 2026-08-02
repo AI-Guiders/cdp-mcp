@@ -154,7 +154,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 | Agent surface Aim/Drive dogfood | separate debt (`agent-surface-parity-contract-v0`) — not this peel |
 
 ## last_ship
-- 2026-08-02: Glass P3 survival keyboard reach — Ctrl+K `mg`/`cz` + palette `mfd_git`/`slash_citizen` (Git MFD + `/citizen`); tests 8/8 · cascade-ide (pending)
+- 2026-08-02: Glass P3 survival keyboard reach — Ctrl+K `mg`/`cz` + palette `mfd_git`/`slash_citizen` (Git MFD + `/citizen`); tests 8/8 · cascade-ide `55afb805`
 - 2026-08-02: Glass IntercomSlash FileLines soft-warn peel — `TryRunGlassSlash`/`/open`/`/attach`/bubbles → `MainWindow.IntercomSlash.Commands.cs`; UI popup stays in IntercomSlash; 431→136 (+303 Commands) · cascade-ide `7ac109f9`
 - 2026-08-02: Glass MainWindow.xaml FileLines soft-warn peel — styles→`GlassChromeStyles` · overlays→`GlassFloatingOverlays` · MFD process hosts→`GlassMfdProcessHosts` · HostAccess forwards; 540→343 lines · cascade-ide `0f69213a`
 - 2026-08-02: Glass message↔code thin chips P2 — `Resolved` disk chrome · `StripBracketsForDisplay` · AvalonEdit line-range select on chip click; tests 6/6 · cascade-ide `aa61d774`
