@@ -27,4 +27,5 @@
 
 ## last_ship
 
+- 2026-08-02: Aim+Drive — `highlight|focus|click|set_text|send_keys|appearance|colors` @ 0.5.446; dogfood SendBtn highlight + ComposerBox focus
 - 2026-08-02: v0 Sense `layout` live — Meta + IPC + WPF walker; dogfood 3 TopLevels
