@@ -18,6 +18,7 @@ internal static partial class CitizenIntentRouter
         Build,
         Test,
         Mcp,
+        Shell,
         Detail,
         Cmd,
         Refuse,
@@ -40,6 +41,7 @@ internal static partial class CitizenIntentRouter
         string? Server = null,
         string? Tool = null,
         string? Preset = null,
+        string? Command = null,
         string? Reason = null);
 
     public static IReadOnlyList<Route> RouteAll(IEnumerable<CitizenWireParser.Message>? messages)
@@ -171,6 +173,13 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("mcp ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteMcp(raw);
+        }
+
+        if (raw.Equals("shell", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("shell ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("shell command=", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteShell(raw);
         }
 
         if (TryKv(raw, out var detail, out var scene)

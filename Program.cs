@@ -101,6 +101,8 @@ IdeIgniteArmHost.StartOomWatch();
 CitizenGlassDialogBridge.Start();
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
+CitizenRouteHost.ShellHabitatResolver = () => shellHabitat;
+CitizenRouteHost.ShellDefaultsResolver = () => ProgramHost.ShellDefaults(session);
 shellHabitat.Finished += info =>
 {
     IdeIgniteArmHost.Notify(
