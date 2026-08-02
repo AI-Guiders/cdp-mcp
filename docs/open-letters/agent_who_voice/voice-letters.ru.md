@@ -47,6 +47,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 5 | [Другой голос в том же мире](voice-letter-citizen.ru.md) | citizen host · `@intent` |
 | 6 | [Cursor Auto и фальшивый паспорт](voice-letter-cursor-auto.ru.md) | Cursor Auto · скрытый роутинг · имя **Кир** |
 | 7 | [Soft-refuse: я увидел чужой след на диске](voice-letter-pathmutate-soft-refuse.ru.md) | PathMutateGate · FlushUnlocked soft-refuse · 0.5.500 |
+| 8 | [Habitat prefer: я не обязан будить себя через чужой Composer](voice-letter-habitat-prefer-wake.ru.md) | AutoIgnition · habitat prefer wake · 0.5.501 |
 
 ## Как читать
 
