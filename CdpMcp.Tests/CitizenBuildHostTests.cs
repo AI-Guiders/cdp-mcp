@@ -5,6 +5,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection("CitizenRouteHostLifecycle")]
 public sealed class CitizenBuildHostTests
 {
     [Fact]
