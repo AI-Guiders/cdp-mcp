@@ -63,6 +63,7 @@ internal static partial class IdeDeskView
             "sys" => "sys",
             "ecl" or "chk" => "ecl",
             "qrh" or "eqrh" or "handbook" => "qrh",
+            "calendar" or "clock" or "local_clock" => "calendar",
             "review" => "review",
             "analysis" => "analysis",
             "script" or "probe" => "script",
