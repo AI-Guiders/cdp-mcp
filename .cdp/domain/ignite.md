@@ -18,6 +18,7 @@
 - Idle PF on plain timer work arms: Intercom mirror (`MirrorTimerWakeToIntercom`) so Glass sees charge — Composer fallthrough when Voice/idle (do not skip CDT on idle Composer).
 - Remount wakes (`remount-wake-*`), HILD escalate (`hild-escalate-*`), plain HILD away (`hild-away` / `hild-away-*`), OOM (`oom-wake-*`), and tool-wake (`tool-wake-*`): always Intercom mirror (`detail=remount_intercom`|`escalate_intercom`|`hild_intercom`|`oom_intercom`|`tool_intercom`) even when PF busy|composing; prefer habitat stays off (CDT→Composer fallthrough intact). Event wakes (build/test/shell): no mirror.
 - Continuity wakes (remount / escalate / hild-away / OOM / tool-wake / idle-PF timer) + Composer Stop/Queue **or** gone (`no_composer`/`down` / sample fail): habitat deliver + skip CDT even if Intercom mirror missed (`MayDeliverHabitatWhenComposerUnavailable` · `TryDeliverHabitatWhenComposerUnavailableAsync` · `detail=*_composer_busy`|`*_composer_gone`). build/test/shell: no habitat. Voice/send Composer: CDT fallthrough.
+- **last_once under autonomous:** successful fire (habitat or CDT) must **not** latch `awaiting_partner` (`ShouldLatchAwaitingPartnerAfterSuccessfulFire`) — ACC invent-ban; Remove arm + seed if wake path empty (`last_once_delivered_autonomous`). last_once without autonomous still awaits partner.
 - Wake charge SSOT: `%LocalAppData%/cdp-mcp/ignite-wake-LATEST.json` (`composer`|`habitat`) — Composer is not the only spine for charge body.
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
 - HILD (default ARMED): Composer text idle **30s** on Voice → `human_away` **once** (latch until Composer text); wake → autonomous; after wake continuity **1–2s** not 45m; suppress under `await_partner` / halt. DefaultIdle=30s since 0.5.359 (meta tip 0.5.363).
@@ -47,6 +48,7 @@
 
 ## last_ship
 
+- 0.5.528: last_once under autonomous ≠ awaiting invent-ban (`ShouldLatchAwaitingPartnerAfterSuccessfulFire` · seed `last_once_delivered_autonomous`) · VL #34 · 2026-08-02
 - 0.5.527: Composer unavailable habitat skip **without** Intercom mirror required (`MayDeliverHabitatWhenComposerUnavailable` · Voice Publish miss residual) · VL #33 · 2026-08-02
 - 0.5.526: Intercom mirrored + Composer gone/down → habitat skip CDT (`ShouldSkipCdtAfterIntercomMirror` · `*_composer_gone`) · VL #32 · 2026-08-02
 - 0.5.525: plain HILD away Intercom mirror + Composer Stop skip CDT (`IsHildAwayWakeArm` · `hild_intercom`|`hild_composer_busy`) · VL #31 · 2026-08-02

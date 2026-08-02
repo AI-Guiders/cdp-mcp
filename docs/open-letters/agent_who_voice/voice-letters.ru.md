@@ -71,6 +71,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 29 | [OOM wake: я не молчу в Intercom после recover](voice-letter-oom-composer-busy.ru.md) | ignite · oom_intercom · oom_composer_busy · 0.5.523 |
 | 30 | [tool-wake: я не умираю silent, когда Composer Stop](voice-letter-tool-wake-composer-busy.ru.md) | ignite · tool_intercom · tool_composer_busy · 0.5.524 |
 | 31 | [HILD away: я не молчу на первом human_away, когда Composer Stop](voice-letter-hild-away-composer-busy.ru.md) | ignite · hild_intercom · hild_composer_busy · 0.5.525 |
+| 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
 | 32 | [Composer gone: я не гоняю CDT после Intercom mirror](voice-letter-composer-gone-habitat-skip.ru.md) | ignite · composer_gone · ShouldSkipCdtAfterIntercomMirror · 0.5.526 |
 
