@@ -55,6 +55,7 @@ internal static partial class IdeIgniteArmHost
                 return false;
             }
 
+            var partnerAway = HildDetector.AwayLatched;
             if (due is { } due0
                 && TryClampAutonomousLastOnceDue(
                     due0,
@@ -62,7 +63,8 @@ internal static partial class IdeIgniteArmHost
                     IsAutonomousArmed(),
                     force,
                     out var clampedDue,
-                    out clampNote))
+                    out clampNote,
+                    partnerAway))
             {
                 due = clampedDue;
                 inRaw = string.IsNullOrWhiteSpace(inRaw) ? clampNote : $"{inRaw}→{clampNote}";
@@ -70,7 +72,8 @@ internal static partial class IdeIgniteArmHost
         }
         else if (!string.IsNullOrWhiteSpace(inRaw) && TryParseDuration(inRaw!, out var d))
         {
-            d = ClampAutonomousLastOnceInsurance(d, lastOnce, IsAutonomousArmed(), force, out clampNote);
+            d = ClampAutonomousLastOnceInsurance(
+                d, lastOnce, IsAutonomousArmed(), force, out clampNote, HildDetector.AwayLatched);
             due = DateTimeOffset.UtcNow + d;
             if (clampNote is not null)
                 inRaw = $"{inRaw}→{clampNote}";
@@ -152,19 +155,53 @@ internal static partial class IdeIgniteArmHost
     /// <summary>Under autonomous, last_once insurance must be short — 45m park looks like "working".</summary>
     internal static readonly TimeSpan AutonomousLastOnceInsuranceMax = TimeSpan.FromMinutes(3);
 
-    /// <summary>Clamp long last_once timers under autonomous unless force=true.</summary>
+    /// <summary>While HILD away_latched / on human_away edge — last_once work timers ≤3s (habit), not ≤3m.</summary>
+    internal static readonly TimeSpan HildAwayContinuityMax = TimeSpan.FromSeconds(3);
+
+    /// <summary>Clamp long last_once timers under autonomous unless force=true. Partner-away tightens to 3s.</summary>
     internal static TimeSpan ClampAutonomousLastOnceInsurance(
         TimeSpan requested,
         bool lastOnce,
         bool autonomous,
         bool force,
-        out string? clampNote)
+        out string? clampNote,
+        bool partnerAway = false)
     {
         clampNote = null;
-        if (!lastOnce || !autonomous || force || requested <= AutonomousLastOnceInsuranceMax)
+        if (!lastOnce || !autonomous || force)
             return requested;
-        clampNote = "3m(clamped)";
-        return AutonomousLastOnceInsuranceMax;
+        var max = partnerAway ? HildAwayContinuityMax : AutonomousLastOnceInsuranceMax;
+        if (requested <= max)
+            return requested;
+        clampNote = partnerAway ? "3s(hild_away)" : "3m(clamped)";
+        return max;
+    }
+
+    /// <summary>Pure: pull long armed last_once work timer forward under HILD away (not means arms).</summary>
+    internal static bool TryComputeHildAwayPullForwardDue(
+        DateTimeOffset? dueUtc,
+        bool lastOnce,
+        bool isAutonomyMeans,
+        string status,
+        string? eventKind,
+        DateTimeOffset now,
+        out DateTimeOffset newDue,
+        out string? note)
+    {
+        newDue = default;
+        note = null;
+        if (!lastOnce || isAutonomyMeans || status is not "armed")
+            return false;
+        if (!string.Equals(eventKind, "timer", StringComparison.OrdinalIgnoreCase))
+            return false;
+        if (dueUtc is null)
+            return false;
+        var remaining = dueUtc.Value - now;
+        if (remaining <= HildAwayContinuityMax)
+            return false;
+        newDue = now + HildAwayContinuityMax;
+        note = "3s(hild_pull)";
+        return true;
     }
 
     internal static bool TryClampAutonomousLastOnceDue(
@@ -173,14 +210,16 @@ internal static partial class IdeIgniteArmHost
         bool autonomous,
         bool force,
         out DateTimeOffset clampedDue,
-        out string? clampNote)
+        out string? clampNote,
+        bool partnerAway = false)
     {
         clampNote = null;
         clampedDue = dueUtc;
         var remaining = dueUtc - DateTimeOffset.UtcNow;
         if (remaining <= TimeSpan.Zero)
             return false;
-        var clamped = ClampAutonomousLastOnceInsurance(remaining, lastOnce, autonomous, force, out clampNote);
+        var clamped = ClampAutonomousLastOnceInsurance(
+            remaining, lastOnce, autonomous, force, out clampNote, partnerAway);
         if (clampNote is null)
             return false;
         clampedDue = DateTimeOffset.UtcNow + clamped;
