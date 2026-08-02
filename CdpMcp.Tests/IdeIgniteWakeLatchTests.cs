@@ -117,8 +117,9 @@ public class IdeIgniteWakeLatchTests : IDisposable
     }
 
     [Fact]
-    public void TryDeliverHabitatWake_citizen_consumes_when_invite_ready_idle_pf()
+    public void TryDeliverHabitatWake_invite_ready_idle_pf_falls_through_to_composer()
     {
+        // Cursor host: Composer is the gun — do not prefer_citizen steal here.
         IdeIgniteArmHost.BindAutonomous(true);
         IdeCitizenChannel.InviteReadyOverrideForTests = () => true;
         IdeCitizenChannel.AutoiWakeTurnOverrideForTests = charge =>
@@ -126,7 +127,7 @@ public class IdeIgniteWakeLatchTests : IDisposable
                 Ok: true,
                 Error: null,
                 Hint: null,
-                Text: "citizen ate: " + charge,
+                Text: "should not eat: " + charge,
                 Model: "test",
                 Provider: "mock",
                 Built: null,
@@ -146,14 +147,48 @@ public class IdeIgniteWakeLatchTests : IDisposable
             WaitSeconds = 30
         };
 
-        var result = IdeIgniteArmHost.TryDeliverHabitatWake(arm, "Resume from Task Manager.");
-        Assert.NotNull(result);
-        Assert.Equal("prefer_citizen", result!.GetType().GetProperty("detail")!.GetValue(result));
-        Assert.Equal("citizen", result.GetType().GetProperty("submit_kind")!.GetValue(result));
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "Resume from Task Manager."));
 
         var latch = IdeIgniteWakeLatch.TryRead();
         Assert.NotNull(latch);
         Assert.Equal(IdeIgniteWakeLatch.ChannelHabitat, latch!.Channel);
+        Assert.Null(CideIntercomVoiceLatch.TryRead());
+    }
+
+    [Fact]
+    public async Task TryDeliverHabitatWhenComposerUnavailable_citizen_consumes_when_invite_ready()
+    {
+        IdeIgniteArmHost.BindAutonomous(true);
+        IdeCitizenChannel.InviteReadyOverrideForTests = () => true;
+        IdeCitizenChannel.AutoiWakeTurnOverrideForTests = charge =>
+            new CitizenCompletions.TurnResult(
+                Ok: true,
+                Error: null,
+                Hint: null,
+                Text: "citizen ate: " + charge,
+                Model: "test",
+                Provider: "mock",
+                Built: null,
+                WireIntents: null,
+                Routes: null,
+                DryRun: false);
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-citizen-gone",
+            Event = "timer",
+            Status = "firing",
+            Reason = "timer",
+            Task = "leaf",
+            Once = true,
+            Port = 1,
+            WaitSeconds = 1
+        };
+
+        var result = await IdeIgniteArmHost.TryDeliverHabitatWhenComposerUnavailableAsync(
+            arm, "Resume from Task Manager.", CancellationToken.None);
+        Assert.NotNull(result);
+        Assert.Equal("prefer_citizen", result!.GetType().GetProperty("detail")!.GetValue(result));
+        Assert.Equal("citizen", result.GetType().GetProperty("submit_kind")!.GetValue(result));
 
         var voice = CideIntercomVoiceLatch.TryRead();
         Assert.NotNull(voice);
@@ -556,6 +591,8 @@ public class IdeIgniteWakeLatchTests : IDisposable
     public async Task TryDeliverHabitatWhenComposerUnavailable_delivers_when_sample_down_without_mirror()
     {
         // No CDT → TrySampleComposerAsync returns (false, down) → ShouldSkip → habitat.
+        // Invite blocked so we exercise habitat Intercom path (not prefer_citizen).
+        IdeCitizenChannel.InviteReadyOverrideForTests = () => false;
         var arm = new IdeIgniteArmHost.IgniteArm
         {
             Id = "arm-no-mirror",
