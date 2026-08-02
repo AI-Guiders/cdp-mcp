@@ -18,6 +18,7 @@ public class IdeIgniteWakeLatchTests : IDisposable
     public void Dispose()
     {
         IdeIgniteArmHost.BindAutonomous(null);
+        IdeCitizenChannel.ResetAutoiWakeHooksForTests();
         IdeIgniteWakeLatch.RootOverrideForTests = null;
         CideIntercomPresenceLatch.RootOverrideForTests = null;
         CideIntercomVoiceLatch.RootOverrideForTests = null;
@@ -84,6 +85,7 @@ public class IdeIgniteWakeLatchTests : IDisposable
     public void TryDeliverHabitatWake_stamps_habitat_ssot_when_autonomous_idle_pf_but_falls_through()
     {
         IdeIgniteArmHost.BindAutonomous(true);
+        IdeCitizenChannel.InviteReadyOverrideForTests = () => false;
         Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
         var arm = new IdeIgniteArmHost.IgniteArm
         {
@@ -112,6 +114,51 @@ public class IdeIgniteWakeLatchTests : IDisposable
         var voice = CideIntercomVoiceLatch.TryRead();
         Assert.NotNull(voice);
         Assert.Contains("Resume autonomous habitat.", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TryDeliverHabitatWake_citizen_consumes_when_invite_ready_idle_pf()
+    {
+        IdeIgniteArmHost.BindAutonomous(true);
+        IdeCitizenChannel.InviteReadyOverrideForTests = () => true;
+        IdeCitizenChannel.AutoiWakeTurnOverrideForTests = charge =>
+            new CitizenCompletions.TurnResult(
+                Ok: true,
+                Error: null,
+                Hint: null,
+                Text: "citizen ate: " + charge,
+                Model: "test",
+                Provider: "mock",
+                Built: null,
+                WireIntents: null,
+                Routes: null,
+                DryRun: false);
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-habitat-citizen",
+            Event = "timer",
+            Status = "firing",
+            Message = "wake",
+            ChargeMode = "minimal",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        var result = IdeIgniteArmHost.TryDeliverHabitatWake(arm, "Resume from Task Manager.");
+        Assert.NotNull(result);
+        Assert.Equal("prefer_citizen", result!.GetType().GetProperty("detail")!.GetValue(result));
+        Assert.Equal("citizen", result.GetType().GetProperty("submit_kind")!.GetValue(result));
+
+        var latch = IdeIgniteWakeLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.Equal(IdeIgniteWakeLatch.ChannelHabitat, latch!.Channel);
+
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Equal(CideIntercomVoiceLatch.KindCitizen, voice!.Kind);
+        Assert.Contains("citizen ate:", voice.Body, StringComparison.Ordinal);
     }
 
     [Fact]
