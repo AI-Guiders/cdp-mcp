@@ -30,15 +30,16 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>
-    /// Prefer habitat skip CDT: PF duplex live, or autonomous overnight spine (plain timers).
+    /// Prefer habitat when PF duplex live, or autonomous overnight (plain timers).
     /// Partner-mode (autonomous off) + idle PF → Composer fallthrough + Intercom mirror.
     /// </summary>
     internal static bool ShouldPreferHabitatDelivery(DateTimeOffset? nowUtc = null) =>
         IsHabitatPartnerLive(nowUtc) || IsAutonomousArmed();
 
     /// <summary>
-    /// When duplex partner live or autonomous: publish wake latch + intercom, skip CDT inject.
-    /// Returns fire-shaped ok result, or null to fall through to Composer.
+    /// Duplex PF live: publish habitat wake + Intercom, skip CDT.
+    /// Autonomous + idle PF: stamp habitat SSOT only, return null → Guest Autoi CDT fallthrough
+    /// (Intercom via MirrorTimerWakeToIntercom). Skipping CDT overnight was ACC silent for guest Cursor.
     /// </summary>
     internal static object? TryDeliverHabitatWake(IgniteArm arm, string charge)
     {
@@ -46,6 +47,9 @@ internal static partial class IdeIgniteArmHost
             return null;
         if (!ShouldPreferHabitatDelivery())
             return null;
+
+        var duplex = IsHabitatPartnerLive();
+        var detail = duplex ? "prefer_duplex" : "prefer_autonomous";
 
         var latch = IdeIgniteWakeLatch.Publish(
             arm.Id,
@@ -56,11 +60,14 @@ internal static partial class IdeIgniteArmHost
         if (latch is null)
             return null;
 
-        PublishHabitatIntercomCharge(charge);
-
-        var detail = IsHabitatPartnerLive() ? "prefer_duplex" : "prefer_autonomous";
         IdeFlightDataRecorder.RecordWake(
             "wake_habitat", arm.Id, ToolFromWakeArm(arm), detail);
+
+        // Guest Autoi spine: habitat SSOT without killing CDT inject when no duplex consumer.
+        if (!duplex)
+            return null;
+
+        PublishHabitatIntercomCharge(charge);
 
         return new
         {

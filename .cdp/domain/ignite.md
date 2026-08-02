@@ -14,8 +14,9 @@
 - Auto-`LeafPlateau` latch under overnight/autonomous armed is a **bug relative to contract** — clear with `op=resume`, seed, re-ARM; do not celebrate wait.
 - **`disarm all` under autonomous:** clears work arms only (keeps `autonomous-seed-wake`, `leaf-wake`, `hild-away-*`, `remount-wake-*`, `tool-wake-*`, mid-flight event wakes). If wake path empty → auto seed. `force=true` clears store too but still re-seeds while autonomous latch is on. HILD is a separate latch (`op=hild`) — not cleared by disarm.
 - **`op=halt`:** stop-world until partner — not `disarm all`. Turns autonomous+HILD off, clears every arm, plants awaiting_partner latch. Resume does not auto-restore autonomous/HILD.
-- Guest Autoi remains CDT→Composer adapter (ADR-0025) for system wakes; **habitat prefer** on plain timer work arms when PF duplex busy|composing **or** autonomous armed (`ShouldPreferHabitatDelivery` · `detail=prefer_duplex|prefer_autonomous`) — skip CDT overnight spine.
-- Partner-mode (autonomous off) + idle PF on plain timer work arms: Intercom mirror (`MirrorTimerWakeToIntercom`) so Glass sees charge — Composer fallthrough when Voice/idle (do not skip CDT on idle Composer).
+- Guest Autoi remains CDT→Composer adapter (ADR-0025) for system wakes **and** for autonomous plain timers when PF is not duplex-live: `prefer_autonomous` stamps habitat SSOT then CDT fallthrough (0.5.532 — 0.5.531 skip-CDT was ACC silent for guest Cursor).
+- **Habitat prefer skip-CDT** on plain timer work arms only when PF duplex busy|composing (`ShouldPreferHabitatDelivery` duplex · `detail=prefer_duplex`).
+- Partner-mode (autonomous off) + idle PF on plain timer work arms: Intercom mirror (`MirrorTimerWakeToIntercom`) so Glass sees charge — Composer fallthrough when Voice/idle.
 - Remount wakes (`remount-wake-*`), HILD escalate (`hild-escalate-*`), plain HILD away (`hild-away` / `hild-away-*`), OOM (`oom-wake-*`), and tool-wake (`tool-wake-*`): always Intercom mirror (`detail=remount_intercom`|`escalate_intercom`|`hild_intercom`|`oom_intercom`|`tool_intercom`) even when PF busy|composing; prefer habitat stays off (CDT→Composer fallthrough intact). Event wakes (build/test/shell): no mirror.
 - Continuity wakes (remount / escalate / hild-away / OOM / tool-wake / idle-PF timer) + Composer Stop/Queue **or** gone (`no_composer`/`down` / sample fail): habitat deliver + skip CDT even if Intercom mirror missed (`MayDeliverHabitatWhenComposerUnavailable` · `TryDeliverHabitatWhenComposerUnavailableAsync` · `detail=*_composer_busy`|`*_composer_gone`). build/test/shell: no habitat. Voice/send Composer: CDT fallthrough.
 - **last_once under autonomous:** successful fire (habitat or CDT) must **not** latch `awaiting_partner` (`ShouldLatchAwaitingPartnerAfterSuccessfulFire`) — ACC invent-ban; Remove arm + seed if wake path empty (`last_once_delivered_autonomous`). last_once without autonomous still awaits partner. ADX `LastOnceFireAwaitingOk` + ArmPath/Meta tip match runtime (no invent-ban teaching under autonomous).
@@ -49,6 +50,7 @@
 
 ## last_ship
 
+- 0.5.532: prefer_autonomous stamps habitat SSOT but Guest Autoi CDT fallthrough (`IsHabitatLatchForArm` keeps latch) — fix ACC silent after 0.5.531 · VL #37 · 2026-08-02
 - 0.5.531: habitat prefer under autonomous on plain timers even when PF idle (`ShouldPreferHabitatDelivery` · `prefer_autonomous`) — overnight skip CDT residual · VL #36 · 2026-08-02
 - 0.5.530: ignite `last_once` schema property tip matches autonomous no invent-ban (residual after VL #35) · 2026-08-02
 - 0.5.529: ADX last_once autonomous parity + ArmPath/Meta tip + unavailable Intercom duplex (`LastOnceFireAwaitingOk` · `PublishHabitatIntercomCharge`) · VL #35 · 2026-08-02

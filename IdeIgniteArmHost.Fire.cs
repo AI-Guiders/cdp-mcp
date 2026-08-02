@@ -153,9 +153,12 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
-            // Composer adapter path — still publish wake latch so habitat is not sole-Composer SSOT.
-            _ = IdeIgniteWakeLatch.Publish(
-                arm.Id, msg, IdeIgniteWakeLatch.ChannelComposer, arm.Reason, arm.Task);
+            // Composer adapter path — keep habitat SSOT if autonomous stamp already wrote it.
+            if (!IdeIgniteWakeLatch.IsHabitatLatchForArm(arm.Id))
+            {
+                _ = IdeIgniteWakeLatch.Publish(
+                    arm.Id, msg, IdeIgniteWakeLatch.ChannelComposer, arm.Reason, arm.Task);
+            }
 
             // Mark send only when CDT inject starts — not during wait-idle (Stop).
             MarkSendInvoked(arm.Id);
