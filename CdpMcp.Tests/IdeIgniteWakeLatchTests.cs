@@ -196,6 +196,48 @@ public class IdeIgniteWakeLatchTests : IDisposable
         Assert.Contains("reason=remount busy PF", voice!.Body, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("stop", true)]
+    [InlineData("queue", true)]
+    [InlineData("STOP", true)]
+    [InlineData("voice", false)]
+    [InlineData("send", false)]
+    public void IsComposerBusyKind_stop_or_queue(string kind, bool expected) =>
+        Assert.Equal(expected, IdeIgniteArmHost.IsComposerBusyKind(kind));
+
+    [Fact]
+    public async Task TryDeliverRemountWhenComposerBusy_skips_when_not_mirrored()
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "remount-wake-not-mirrored",
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = "remount",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 5
+        };
+        Assert.Null(await IdeIgniteArmHost.TryDeliverRemountWhenComposerBusyAsync(
+            arm, "reason=remount", intercomMirrored: false, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task TryDeliverRemountWhenComposerBusy_skips_non_remount()
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-work",
+            Event = "timer",
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 5
+        };
+        Assert.Null(await IdeIgniteArmHost.TryDeliverRemountWhenComposerBusyAsync(
+            arm, "resume", intercomMirrored: true, CancellationToken.None));
+    }
+
     [Fact]
     public void MirrorTimerWakeToIntercom_skips_oom_wake()
     {

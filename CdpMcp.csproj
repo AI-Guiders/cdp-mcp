@@ -9,7 +9,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.518</Version>
+    <Version>0.5.519</Version>
+
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>

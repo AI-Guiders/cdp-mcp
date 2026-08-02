@@ -131,7 +131,17 @@ internal static partial class IdeIgniteArmHost
             }
 
             // Idle PF / remount: mirror charge to Intercom (Glass sees wake); Composer fallthrough below.
-            _ = MirrorTimerWakeToIntercom(arm, msg);
+            var mirrored = MirrorTimerWakeToIntercom(arm, msg);
+
+            // Remount + Composer Stop/Queue: habitat already has charge — skip CDT busy wait/requeue spam.
+            var remountBusy = await TryDeliverRemountWhenComposerBusyAsync(arm, msg, mirrored, ct)
+                .ConfigureAwait(false);
+            if (remountBusy is not null)
+            {
+                MarkSendInvoked(arm.Id);
+                ApplyFireOutcome(arm, remountBusy);
+                return;
+            }
 
             // Composer adapter path — still publish wake latch so habitat is not sole-Composer SSOT.
             _ = IdeIgniteWakeLatch.Publish(
