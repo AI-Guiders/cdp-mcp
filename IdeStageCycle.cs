@@ -24,6 +24,14 @@ internal static class IdeStageCycle
         _phasePeek = phasePeek;
     }
 
+    /// <summary>Tests / remount isolation — drop live WitDB peek.</summary>
+    public static void Unbind()
+    {
+        _store = null;
+        _statePeek = null;
+        _phasePeek = null;
+    }
+
     /// <summary>Bound WitDB peek for organs that need live TM pulse without full cockpit compose.</summary>
     public static bool TryWorkspace(
         out IntentWorkspaceStore store,

@@ -41,10 +41,15 @@ internal static class CitizenPersona
           @intent go=plan
           @intent go=buffer
           @intent go=health
+          @intent cmd=feature leaf-title @act #CDP
+          @intent cmd=task dig-step @act #CDP
+          @intent cmd=done
+          @intent cmd=shipped
         Rules:
         1) The characters @intent must appear at column 0 of a line — never translate, never paraphrase.
         2) If the user asks for ONLY an @intent line — reply with that single line and nothing else.
         3) Prose for the human may follow AFTER wire lines; never replace wire with prose.
         4) Do not invent Russian stand-ins for intents (no «отправлю view intent», no «активация в Диспетчере»).
+        5) To mutate Task Manager use cmd=… (CCL board verbs). go=plan only places the plan organ — it does not seed/done/ship.
         """.Replace("\r\n", "\n", StringComparison.Ordinal).Trim();
 }
