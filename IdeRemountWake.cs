@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace CdpMcp;
 
 /// <summary>
-/// Hard-deploy remount continuity: durable pending under %LocalAppData%/cdp-mcp,
+/// Hard-deploy / seat-recover remount continuity: durable pending under %LocalAppData%/cdp-mcp,
 /// consumed once on MCP process boot → AutoIgnition "initialized" wake (no poll).
 /// </summary>
 internal static class IdeRemountWake

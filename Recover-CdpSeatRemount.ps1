@@ -1,6 +1,6 @@
 # Recover Cursor MCP seat when tools say "Not connected" but CdpMcp.exe still runs.
 # Escape hatch: run from terminal_* / external shell — never from in-proc cdp_shell_* while targeting self.
-# Pattern: KillRunning seat exe + CDP_RELOAD_NUDGE (kj-1349). Human Reload is last fallback.
+# Pattern: KillRunning seat exe + CDP_RELOAD_NUDGE (kj-1349) + remount-wake pending (default; -NoStampRemountPending to skip). Human Reload is last fallback.
 #
 # Examples:
 #   pwsh -File Recover-CdpSeatRemount.ps1 -Seat cdp
@@ -17,7 +17,7 @@ param(
 
     [switch] $NoKill,
 
-    [switch] $StampRemountPending
+    [switch] $NoStampRemountPending
 )
 
 $ErrorActionPreference = 'Stop'
@@ -95,7 +95,7 @@ if (-not $NoKill) {
     }
 }
 
-if ($StampRemountPending) {
+if (-not $NoStampRemountPending) {
     $pending = Write-CdpRemountWakePending $Target
     if ($pending.Ok) {
         Write-Host "Remount pending: $($pending.Path) seat=$($pending.Seat)"

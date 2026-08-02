@@ -40,9 +40,11 @@
 - Stamping FiredUtc / dropping once arms on mid-wait-idle remount (pre-0.5.497) — silent continuity suicide.
 - Digging CDT-down from health `cdt=?` (pre-0.5.498 PulseLine never live-sampled).
 - Dual-seat twin OOM wake (pre-0.5.499) — both click dialog + schedule → twin `no_agent_composer` silent once-drop.
+- Recover Not-connected zombie without remount-wake pending (pre-0.5.503 opt-in `-StampRemountPending`) — silent no Autoi initialized wake after remount.
 
 ## last_ship
 
+- 0.5.503: Recover-CdpSeatRemount stamps remount-wake pending by default (parity with hard deploy; `-NoStampRemountPending` opt-out) · 2026-08-02
 - 0.5.501: Composer/CDT host-surface tooth — `ignite-wake-LATEST` SSOT + prefer habitat (intercom) over CDT when PF presence busy|composing on plain timer arms (remount/OOM/HILD/event stay Composer adapter) · 2026-08-02
 - 0.5.499: OOM tooth crooked fix — IdeOomCrossProcessClaim (dual-seat twin wake); ShouldRequeueBusy includes no_agent_composer/wrong_surface; DefaultDueSeconds=20 · 2026-08-02
 - 0.5.498: teeth CDT auto-refresh on health pulse + Recover-CdpSeatRemount.ps1 (Not-connected zombie) · 2026-08-02
