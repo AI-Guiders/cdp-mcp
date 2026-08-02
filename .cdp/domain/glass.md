@@ -127,7 +127,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 | Area | State | Verdict |
 |------|-------|---------|
-| Ctrl+K / Ctrl+Q | Local Glass catalog (`MainWindow.CascadeChord`) — not full Avalonia CascadeChord | P1 parity deepen |
+| Ctrl+K / Ctrl+Q | Local catalog + lived aliases `fd/at/op/mb/ms` · FDS/attach/open/build/tests | **P2 deepen** |
 | EICAS | Assembled stack alert+qrh+ecl on MfdHealth (severity only) · CLEAR when idle | **P1 act** clearer band |
 | Topic cards | XAML/`GlassIntercomTopics` + empty hint; cluster 30m | P0b partial |
 | Message↔code | `/open` + journal chips `[path:line]` + `/attach` → OpenCodeFile; Avalonia Skia still fuller | **P2 thin chips** |
@@ -145,6 +145,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 Calendar: soft ~2→9 · hard 10.08→15.08 · D-day **15.08**.
 
 ## last_ship
+- 2026-08-02: Glass chord deepen — Ctrl+K `fd/at/op/mb/ms` + Ctrl+Q FDS/attach/open/build/tests palette entries (still ≠ full Avalonia CascadeChord)
 - 2026-08-02: ADR0128 Glass thin attach chips — `GlassAttachChipPeel` body/`attachments` · feed chip buttons · `/attach` composer bracket; tests 4/4 (≠ full Avalonia Skia)
 - 2026-08-02: FDS shelf flesh — plan/shared/report/pressure pulses on `GlassFdsGlance` · `/fds` · CabinGlass `fds` → FlightDataStorage; cdp-mcp **0.5.491**
 - 2026-08-02: P1 EICAS assembled stack (alert+qrh+ecl) + severity color · FDS M-page skeleton `FlightDataStorage` (`GlassFdsGlance` ≠ FDR)
