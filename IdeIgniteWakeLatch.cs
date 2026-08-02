@@ -7,7 +7,7 @@ namespace CdpMcp;
 /// <summary>
 /// Last AutoI wake charge → habitat SSOT (not Composer-only spine).
 /// Latch: %LocalAppData%/cdp-mcp/ignite-wake-LATEST.json
-/// Channel: composer (CDT adapter) | habitat (prefer when duplex partner live).
+/// Channel: composer (CDT adapter) | habitat (duplex prefer skip-CDT, or autonomous stamp before Guest CDT).
 /// </summary>
 internal static class IdeIgniteWakeLatch
 {
