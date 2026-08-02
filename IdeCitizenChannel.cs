@@ -121,12 +121,13 @@ internal static class IdeCitizenChannel
         var inject = !args.ContainsKey("inject") || Bool(args, "inject", defaultTrue: true);
         var execute = WantExecute(args, dryRun);
         var (board, tm, liveBound) = ResolveBoardAndTm(args, inject);
+        var peerIn = Arg(args, "peer") ?? CitizenPeerAck.LastPeer;
 
         var result = CitizenCompletions.Turn(
             message!,
             boardLines: board,
             sa: Arg(args, "sa"),
-            peer: Arg(args, "peer"),
+            peer: peerIn,
             next: Arg(args, "next"),
             tm: tm,
             model: Arg(args, "model"),
@@ -134,6 +135,7 @@ internal static class IdeCitizenChannel
             inject: inject);
 
         IReadOnlyList<CitizenRouteHost.Applied>? executed = null;
+        CitizenPeerAck.Result? peerAck = null;
         IReadOnlyList<CitizenIntentRouter.Route>? routes = result.Routes;
         if (execute && result.Ok)
         {
@@ -141,10 +143,13 @@ internal static class IdeCitizenChannel
             if ((routes is null || routes.Count == 0) && dryRun)
                 routes = CitizenIntentRouter.RouteAll(CitizenWireParser.Parse(message!));
             if (routes is { Count: > 0 })
+            {
                 executed = CitizenRouteHost.Execute(routes);
+                peerAck = CitizenPeerAck.FromExecuted(executed);
+            }
         }
 
-        return SerializeTurn(result, liveBound, execute, executed, routes);
+        return SerializeTurn(result, liveBound, execute, executed, routes, peerAck);
     }
 
     /// <summary>Live turns execute routes by default; dry_run skips unless execute=true.</summary>
@@ -182,13 +187,16 @@ internal static class IdeCitizenChannel
         bool liveBound,
         bool execute,
         IReadOnlyList<CitizenRouteHost.Applied>? executed,
-        IReadOnlyList<CitizenIntentRouter.Route>? routesOverride)
+        IReadOnlyList<CitizenIntentRouter.Route>? routesOverride,
+        CitizenPeerAck.Result? peerAck = null)
     {
         var hint = result.Hint;
         if (liveBound && result.Ok)
             hint = (hint is { Length: > 0 } ? hint + " · " : "") + "live desk bound (board/tm)";
         if (execute && executed is { Count: > 0 })
             hint = (hint is { Length: > 0 } ? hint + " · " : "") + "host executed " + executed.Count + " route(s)";
+        if (peerAck is not null)
+            hint = (hint is { Length: > 0 } ? hint + " · " : "") + "peer ack " + peerAck.Applied + "/" + (peerAck.Applied + peerAck.Dropped);
 
         var routes = routesOverride ?? result.Routes;
         return JsonSerializer.Serialize(new
@@ -205,6 +213,8 @@ internal static class IdeCitizenChannel
             text = result.Text,
             injected = result.Built?.Injected,
             live_desk = liveBound,
+            peer = peerAck?.Peer,
+            peer_event = peerAck?.Event,
             afferent = result.Built?.AfferentPulse,
             message_count = result.Built?.Messages.Count,
             system_chars = result.Built?.System.Length,
