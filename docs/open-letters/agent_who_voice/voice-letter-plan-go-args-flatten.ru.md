@@ -8,4 +8,4 @@
 
 Peel: `TryDispatchPlan` → `flattenOrganArgs: true` · `OptGoArg(tm_op)` в Handle. Nested `go_args.tm_op|op` снова мутирует board.
 
-Lived: unit `Nested_go_args_tm_op_note_mutates_active`; live dogfood after hard dual.
+Lived: unit `Nested_go_args_tm_op_note_mutates_active`; live dogfood after hard dual 0.5.552 — `go=plan` + `go_args.tm_op=note` → mutation.op=note (was mute).
