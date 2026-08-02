@@ -160,6 +160,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 **Lived Glass UX epic: CLOSED** for 15.08 one-cockpit survival DoD. **Citizen full chain: CLOSED** (live latch dogfood + StatusText pending→running→done/error).
 
 ## last_ship
+- 2026-08-03: Glass **/status IOP glance** — `GlassIopStatusGlance` (editor/caret/dirty/mfd/topology/latch) · `c:st`/`get_ide_state` → `slash_status`; DIG REJECT full Avalonia get_ide_state JSON · cascade-ide `2662d9d5` · tests 15/15
 - 2026-08-03: Glass **`c:els` line select** — `GlassMelodyTail` + `SelectOpenDocumentLines`; parametric `els:L` / `els:L:L`; DIG REJECT eld/esc/full parametric · cascade-ide `6354112d` · tests 13/13
 - 2026-08-03: Glass Ctrl+Q **`c:` allowlist execute** — `GlassMelodyGlassActions` maps `git_status`/`build_*`/`run_tests`/`show_*` → redirected MFD peels; unmapped browse-only; DIG REJECT full IdeMcp · cascade-ide `67b9a0b1`
 - 2026-08-03: Glass Ctrl+Q **`c:` → intent-catalog.toml** — `GlassIntentMelodyCatalog` thin Tomlyn peel (melody_slug + Help); discoverability rows `melody:{command_id}` non-exec; GlassChord stays Ctrl+K; tests 12/12 (≠ Ide execute in Glass)
