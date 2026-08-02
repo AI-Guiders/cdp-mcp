@@ -25,11 +25,13 @@
 
 - Asking operator how focus/done works without reading Leaf + Mutations.
 - Seeding task titles that contain REPL verbs (`|focus|start`).
+- Chaining board verbs with `;` in one `cmd=` (`feature X; task Y; start`) — junk titles; refuse `multi_cmd` @ 0.5.521.
 - Re-inlining Intent/Stage/Scene/Persist/Find into one mega-file past soft-warn.
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
 
+- 0.5.521: CCL refuse `;` + board-verb chain (`RefuseChainedBoardCmd` / `ChainedTitleHint`) — no junk feature/task titles · VL #27 · 2026-08-02
 - Persist FileLines near-miss peel: OpenRecent + StageClock out of Persist.cs (300→105) @ 0.5.454 · 2026-08-02
 - Find FileLines near-miss peel: WorkFocus + ScriptLastRun out of Find.cs (335→188) @ 0.5.453 · 2026-08-02
 - 2026-08-02: cockpit `go=plan` after Ensure must `RequireWorkspace()` — deps.WorkspaceStore is null snapshot @ process start @ 0.5.449
