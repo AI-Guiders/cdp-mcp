@@ -9,41 +9,15 @@ internal static partial class MetaDispatch
     static string HealthJson(MetaDispatchDeps d, IReadOnlyDictionary<string, JsonElement> callArgs)
     {
         var session = d.Session;
-        var byDomain = d.ByDomain;
         var modules = d.Modules;
-        var allAffordances = d.AllAffordances;
         var mcpVersion = d.McpVersion;
         var Pretty = d.Pretty;
 
-        object? explain = null;
-        if (callArgs.TryGetValue("explain_tool", out var eht) && eht.GetString() is { Length: > 0 } en)
-            explain = SessionPlane.ExplainTool(en, session, byDomain, allAffordances);
-
+        var explain = TryExplainTool(d, callArgs);
         var asm = typeof(Program).Assembly;
         var exePath = Environment.ProcessPath ?? asm.Location;
-        DateTimeOffset? buildUtc = null;
-        try
-        {
-            if (!string.IsNullOrEmpty(exePath) && File.Exists(exePath))
-                buildUtc = File.GetLastWriteTimeUtc(exePath);
-        }
-        catch { /* ignore */ }
-
-        object? pendingUpdate = null;
-        try
-        {
-            var dir = Path.GetDirectoryName(exePath);
-            if (dir is { Length: > 0 })
-            {
-                var pendingPath = Path.Combine(dir, "cdp-pending-update.json");
-                if (File.Exists(pendingPath))
-                    pendingUpdate = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(pendingPath));
-            }
-        }
-        catch
-        {
-            pendingUpdate = new { ok = false, error = "pending_update_unreadable" };
-        }
+        var buildUtc = TryGetExeBuildUtc(exePath);
+        var pendingUpdate = TryReadPendingUpdate(exePath);
 
         return JsonSerializer.Serialize(new
         {
