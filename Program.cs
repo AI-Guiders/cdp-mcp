@@ -96,6 +96,7 @@ using var diskSyncWatch = DocumentDiskSyncWatcher.Start(docStore);
 using var intercomCannon = IntercomVoiceCannonWatcher.Start();
 IdeIgniteArmHost.StartHildWatch();
 IdeIgniteArmHost.StartOomWatch();
+CitizenGlassDialogBridge.Start();
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
 shellHabitat.Finished += info =>
