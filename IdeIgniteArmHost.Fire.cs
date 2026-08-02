@@ -130,7 +130,7 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
-            // Idle PF / remount: mirror charge to Intercom (Glass sees wake); Composer fallthrough below.
+            // Idle PF / remount / HILD escalate: mirror charge to Intercom; Composer fallthrough below.
             var mirrored = MirrorTimerWakeToIntercom(arm, msg);
 
             // Intercom mirrored + Composer Stop/Queue: habitat already has charge — skip CDT busy wait/requeue.

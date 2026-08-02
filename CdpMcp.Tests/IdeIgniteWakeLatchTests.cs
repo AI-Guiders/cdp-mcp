@@ -239,6 +239,51 @@ public class IdeIgniteWakeLatchTests : IDisposable
     }
 
     [Fact]
+    public void MirrorTimerWakeToIntercom_escalate_publishes_when_pf_busy()
+    {
+        CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = IdeIgniteArmHost.HildEscalateArmId,
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = IdeIgniteArmHost.HildEscalateChargeMode,
+            Reason = IdeIgniteArmHost.HildEscalateReason,
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.True(IdeIgniteArmHost.IsHildEscalateWakeArm(arm));
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "reason=escalate"));
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=escalate busy PF"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("reason=escalate busy PF", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_escalate_publishes_when_pf_idle()
+    {
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = IdeIgniteArmHost.HildEscalateArmId,
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = IdeIgniteArmHost.HildEscalateChargeMode,
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=escalate"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("reason=escalate", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MirrorTimerWakeToIntercom_skips_oom_wake()
     {
         var arm = new IdeIgniteArmHost.IgniteArm
