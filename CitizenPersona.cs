@@ -65,6 +65,8 @@ internal static class CitizenPersona
           @intent go=health
           @intent build
           @intent build path=CdpMcp.csproj
+          @intent test
+          @intent test path=CdpMcp.Tests.csproj
           @intent replace path=rel/file.cs old="needle" new="patch"
           @intent cmd=feature leaf-title @act #CDP
           @intent cmd=task dig-step @act #CDP
@@ -102,6 +104,7 @@ internal static class CitizenPersona
           @intent cmd=note short-note
           @intent build
           @intent replace path=rel/file.cs old="needle" new="patch"
+          @intent test
         Do not invent Russian stand-ins for intents.
 
         Mutate only through gated organs when using hands. Do not guess peer/runtime state — read peer= when present.

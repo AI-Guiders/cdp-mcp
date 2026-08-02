@@ -16,6 +16,7 @@ internal static class CitizenIntentRouter
         Open,
         Replace,
         Build,
+        Test,
         Detail,
         Cmd,
         Refuse,
@@ -141,8 +142,16 @@ internal static class CitizenIntentRouter
             || raw.StartsWith("build ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("build path=", StringComparison.OrdinalIgnoreCase))
         {
-            var path = ExtractBuildPath(raw);
+            var path = ExtractLifecyclePath(raw, "build");
             return new Route(Verb.Build, raw, Ok: true, Path: path, Go: "build");
+        }
+
+        if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("test ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("test path=", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = ExtractLifecyclePath(raw, "test");
+            return new Route(Verb.Test, raw, Ok: true, Path: path, Go: "test");
         }
 
         if (TryKv(raw, out var detail, out var scene)
@@ -220,20 +229,32 @@ internal static class CitizenIntentRouter
         return null;
     }
 
-    static string? ExtractBuildPath(string raw)
+    static string? ExtractLifecyclePath(string raw, string verb)
     {
-        if (raw.Equals("build", StringComparison.OrdinalIgnoreCase))
+        if (raw.Equals(verb, StringComparison.OrdinalIgnoreCase))
             return null;
 
-        const string pathEq = "path=";
-        var idx = raw.IndexOf(pathEq, StringComparison.OrdinalIgnoreCase);
-        if (idx >= 0)
-            return raw[(idx + pathEq.Length)..].Trim().Trim('"');
+        // Prefer keyed path= (supports quotes / spaces); stop before filter= via ExtractKeyedValue.
+        if (ExtractKeyedValue(raw, "path") is { Length: > 0 } keyed)
+            return keyed.Trim();
 
-        if (raw.StartsWith("build ", StringComparison.OrdinalIgnoreCase))
+        var prefix = verb + " ";
+        if (raw.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
         {
-            var rest = raw["build ".Length..].Trim().Trim('"');
-            return rest.Length == 0 ? null : rest;
+            var rest = raw[prefix.Length..].Trim();
+            if (rest.StartsWith("filter=", StringComparison.OrdinalIgnoreCase))
+                return null;
+            if (rest.StartsWith('"'))
+            {
+                var end = rest.IndexOf('"', 1);
+                if (end > 0)
+                    return rest[1..end];
+            }
+
+            var space = rest.IndexOf(' ');
+            if (space > 0)
+                rest = rest[..space];
+            return rest.Length == 0 ? null : rest.Trim().Trim('"');
         }
 
         return null;
