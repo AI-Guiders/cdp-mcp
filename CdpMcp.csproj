@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.455</Version>
+    <Version>0.5.456</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -150,6 +150,17 @@
   <ItemGroup>
     <Compile Update="McpOutletHabitat.Ops.Helpers.cs">
       <DependentUpon>McpOutletHabitat.Ops.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeRepl.Board.Seed.cs">
+      <DependentUpon>IdeRepl.Board.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IdeRepl.Board.Clock.cs">
+      <DependentUpon>IdeRepl.Board.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IdeRepl.Board.Criteria.cs">
+      <DependentUpon>IdeRepl.Board.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>
