@@ -7,13 +7,13 @@
   "targets": {
     ".NETCoreApp,Version=v10.0": {},
     ".NETCoreApp,Version=v10.0/win-x64": {
-      "CdpMcp/0.5.303": {
+      "CdpMcp/0.5.453": {
         "dependencies": {
           "AIGuiders.AgentFailures.Core": "0.2.0",
           "AIGuiders.AgentFindings.Core": "0.2.0",
           "AIGuiders.AgentNotes.Core": "2.2.2",
           "AIGuiders.AgentTaskKnowledge.Core": "0.3.1",
-          "AIGuiders.Cdp.Core": "0.4.19",
+          "AIGuiders.Cdp.Core": "0.4.20",
           "AIGuiders.Cdp.Evidence": "0.1.1",
           "AIGuiders.Cdp.ScriptableIde": "0.1.58",
           "AIGuiders.DotNetBuildTest.Core": "0.1.3",
@@ -44,7 +44,7 @@
           "AgentFindings.Core": "0.2.0.0",
           "AgentNotes.Core": "2.2.2.0",
           "AgentTaskKnowledge.Core": "0.3.1.0",
-          "Cdp.Core": "0.4.19.0",
+          "Cdp.Core": "0.4.20.0",
           "Cdp.Evidence": "0.1.1.0",
           "Cdp.ScriptableIde": "0.1.58.0",
           "DotNetBuildTest.Core": "0.1.3.0",
@@ -2336,11 +2336,11 @@
           }
         }
       },
-      "AIGuiders.Cdp.Core/0.4.19": {
+      "AIGuiders.Cdp.Core/0.4.20": {
         "runtime": {
           "Cdp.Core.dll": {
-            "assemblyVersion": "0.4.19.0",
-            "fileVersion": "0.4.19.0"
+            "assemblyVersion": "0.4.20.0",
+            "fileVersion": "0.4.20.0"
           }
         }
       },
@@ -2585,11 +2585,11 @@
           }
         }
       },
-      "Cdp.Core/0.4.19.0": {
+      "Cdp.Core/0.4.20.0": {
         "runtime": {
           "Cdp.Core.dll": {
-            "assemblyVersion": "0.4.19.0",
-            "fileVersion": "0.4.19.0"
+            "assemblyVersion": "0.4.20.0",
+            "fileVersion": "0.4.20.0"
           }
         }
       },
@@ -2652,7 +2652,7 @@
     }
   },
   "libraries": {
-    "CdpMcp/0.5.303": {
+    "CdpMcp/0.5.453": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -3380,7 +3380,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "AIGuiders.Cdp.Core/0.4.19": {
+    "AIGuiders.Cdp.Core/0.4.20": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -3500,7 +3500,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "Cdp.Core/0.4.19.0": {
+    "Cdp.Core/0.4.20.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

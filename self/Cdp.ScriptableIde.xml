@@ -103,6 +103,9 @@
             Code/xml → short aliases (compat) unless <paramref name="preferCanonical"/>.
             </summary>
         </member>
+        <member name="M:Cdp.ScriptableIde.BracketLocate.SanitizeTextNeedle(System.String)">
+            <summary>Strip axis separators from content needle so wire stays parseable.</summary>
+        </member>
         <member name="T:Cdp.ScriptableIde.BracketSyntaxResolve">
             <summary>Resolve S(+K) to line/column range via local C# parse (no MSBuild).</summary>
         </member>
