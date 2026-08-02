@@ -174,6 +174,28 @@ internal static partial class IdeIgniteArmHost
         || string.Equals(kind, "down", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
+    /// Habitat-skip CDT when Composer unavailable — except Guest Autoi overnight + idle PF
+    /// + Stop/Queue: that path stamped SSOT then consumed last_once without Composer inject
+    /// (lived: leaf-wake habitat latch, arms=[], operator "выстрела нет"). Fall through to
+    /// CDT wait / busy_timeout→requeue. Duplex / system wakes / composer_gone stay skip.
+    /// </summary>
+    internal static bool ShouldHabitatSkipWhenComposerUnavailable(
+        IgniteArm arm, bool sampleOk, string kind, bool autonomousArmed, bool duplexLive)
+    {
+        if (!MayDeliverHabitatWhenComposerUnavailable(arm))
+            return false;
+        if (!ShouldSkipCdtAfterIntercomMirror(sampleOk, kind))
+            return false;
+        if (MayPreferHabitatOverComposer(arm)
+            && autonomousArmed
+            && !duplexLive
+            && IsComposerBusyKind(kind))
+            return false;
+        return true;
+    }
+
+
+    /// <summary>
     /// Continuity wakes that may habitat-skip CDT when Composer unavailable.
     /// build/test/shell: intentional no mirror / no habitat (noise).
     /// </summary>
@@ -209,7 +231,8 @@ internal static partial class IdeIgniteArmHost
 
         var (ok, kind, _) = await IdeIgniteChannel.TrySampleComposerAsync(arm.Port, ct)
             .ConfigureAwait(false);
-        if (!ShouldSkipCdtAfterIntercomMirror(ok, kind))
+        if (!ShouldHabitatSkipWhenComposerUnavailable(
+                arm, ok, kind, IsAutonomousArmed(), IsHabitatPartnerLive()))
             return null;
 
         var latch = IdeIgniteWakeLatch.Publish(
