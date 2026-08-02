@@ -57,6 +57,7 @@
 
 ## last_ship
 
+- **0.5.512 + full-chain dogfood** — live FM observe→act→verify (health place → shell echo) with organ width; VL #18. Debug organ host-execute same version.
 - **0.5.512** — citizen `@intent debug` host-execute → `DebugPlane.DispatchAsync` (scene/bp_*/launch/…; path=+line= for bp_add). Dig: go=debug place-only. VL #17.
 - **0.5.507** — citizen `@intent build` / `build path=` host-execute → `IdeSessionLifecycle.BuildAsync` (sync wait, 3m bound) + place `build` organ. Dig: `go=build` placed only; PF organ parity needs real compile. Persona wire examples + Session/Build binders in Program.
 - **0.5.506** — citizen `open`/`replace` publish `land-LATEST` (`NavigationLandLatch`) so Glass LatchHub opens the path (disk peel alone skips when file not open). Projector feels partner invent.
@@ -68,6 +69,7 @@
 - 2026-08-02 → **0.5.495**: dialog memory deepen — afferent `dialog|` + sticky facts (`CitizenStickyFacts`, op=sticky); window 40 msgs; persona Memory clause. Baseline dogfood: МАЯК + агентка + Света recall.
 - 2026-08-02 → **0.5.494**: persona equal standing + Света/Who identity split (dialog+wire); Intercom operator default Света.
 - 2026-08-02 → **0.5.493**: dialog multi-turn memory (`CitizenDialogHistory` seat jsonl) — mode=dialog prepends prior pairs; op=history|clear; reset=/history= on turn.
+- 2026-08-02 → **full-chain live dogfood (0.5.512 organs)**: soft wire ask → Qwen `@intent go=health` → host place; next soft observe → `@intent shell echo full-chain-ok` → `shell ok exit=0` + peer pulse. Unforced live provider + observe-act-verify with organ width (no dry_run paste).
 - 2026-08-02 → **0.5.512**: `@intent debug` host-execute waits `DebugPlane.DispatchAsync` (scene/bp_list/bp_add/…). Dig: go=debug place-only.
 - 2026-08-02 → **0.5.511**: `@intent shell` host-execute waits `ShellHabitat.Run` (command= or rest; optional tab=/cwd=). Dig: go=shell place-only; cmd= still refuses non-plan. Debug organ still separate peel.
 - 2026-08-02 → **0.5.510**: `@intent mcp` host-execute waits `McpOutletHabitat.DispatchAsync` (scene/call/mount/tools/unmount/presets). Dig: go=mcp place-only; outlet Instance + test override.
