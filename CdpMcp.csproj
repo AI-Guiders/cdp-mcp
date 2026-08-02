@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.462</Version>
+    <Version>0.5.463</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -268,4 +268,19 @@
       <DependentUpon>IdeRefactorPlanChannel.Recommend.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="CdpSettings.Build.cs"><DependentUpon>CdpSettings.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="CdpSettings.Build.cs">
+      <DependentUpon>CdpSettings.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeDomainPulse.Score.cs">
+      <DependentUpon>IdeDomainPulse.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeWebcamChannel.Window.Native.cs">
+      <DependentUpon>IdeWebcamChannel.Window.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="CdpPluginQuarantine.Groups.Io.cs"><DependentUpon>CdpPluginQuarantine.Groups.cs</DependentUpon></Compile></ItemGroup></Project>
