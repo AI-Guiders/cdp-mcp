@@ -50,6 +50,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.489 live dogfood (unforced multi-intent)**: soft coaching (no ONLY paste) → same-turn `@intent cmd=note …` + `@intent go=plan` → host 2/2 · peer ack 2/2. Wave33 shipped.
 - 2026-08-02 → **0.5.489 live dogfood (unforced)**: soft ask (no ONLY exact wire) → GigaChat3 `@intent cmd=note wall=unforced live note wave37` → host execute ok · peer ack 1/1.
 - 2026-08-02 → **0.5.489 live dogfood**: wall `start` + GigaChat3 FM turn → exact `@intent cmd=note …` → host execute ok · peer ack 1/1 (forced ONLY wire).
 - 2026-08-02 → **0.5.489**: citizen `cmd=` failure reason reads TM `error` (was pulse-only → opaque `tm_failed`). Closed-wall note → `note needs open clock — cmd=start first`. Test Execute_cmd_note_closed_clock_surfaces_open_clock_reason.
