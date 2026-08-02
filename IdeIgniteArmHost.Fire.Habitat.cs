@@ -7,7 +7,8 @@ internal static partial class IdeIgniteArmHost
     const int HabitatIntercomChargeCap = 2000;
 
     /// <summary>
-    /// Plain continuity timers only — remount/OOM/HILD/event wakes stay on CDT adapter.
+    /// Plain continuity timers only — remount/OOM/HILD/event wakes stay off habitat prefer.
+    /// Remount + HILD escalate still Intercom-mirror (see MirrorTimerWakeToIntercom).
     /// </summary>
     internal static bool MayPreferHabitatOverComposer(IgniteArm arm) =>
         string.Equals(arm.Event, "timer", StringComparison.OrdinalIgnoreCase)
@@ -80,6 +81,11 @@ internal static partial class IdeIgniteArmHost
         {
             detail = "remount_intercom";
         }
+        else if (IsHildEscalateWakeArm(arm))
+        {
+            // Lived: escalate CDT while Composer Stop → busy_timeout (parity remount).
+            detail = "escalate_intercom";
+        }
         else
         {
             if (!MayPreferHabitatOverComposer(arm))
@@ -105,10 +111,15 @@ internal static partial class IdeIgniteArmHost
         return true;
     }
 
-    /// <summary>remount-wake-* only — Intercom mirror residual; not habitat prefer.</summary>
+    /// <summary>remount-wake-* — Intercom mirror residual; not habitat prefer.</summary>
     internal static bool IsRemountWakeArm(IgniteArm arm) =>
         !string.IsNullOrWhiteSpace(arm.Id)
         && arm.Id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>hild-escalate-* — Intercom mirror residual (Composer Stop busy_timeout tooth).</summary>
+    internal static bool IsHildEscalateWakeArm(IgniteArm arm) =>
+        !string.IsNullOrWhiteSpace(arm.Id)
+        && arm.Id.StartsWith(HildEscalateArmIdPrefix, StringComparison.OrdinalIgnoreCase);
 
 
 
@@ -118,7 +129,7 @@ internal static partial class IdeIgniteArmHost
         || string.Equals(kind, "queue", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// After Intercom mirror (remount or idle-PF) + Composer Stop/Queue: habitat deliver, skip CDT.
+    /// After Intercom mirror (remount / escalate / idle-PF) + Composer Stop/Queue: habitat deliver, skip CDT.
     /// Avoids busy_timeout → requeue → mid-flight Composer paste while PF is working.
     /// Voice/idle Composer: null → CDT fallthrough (overnight / idle wakes still reach Composer).
     /// </summary>
@@ -142,7 +153,9 @@ internal static partial class IdeIgniteArmHost
         if (latch is null)
             return null;
 
-        var detail = IsRemountWakeArm(arm) ? "remount_composer_busy" : "idle_pf_composer_busy";
+        var detail = IsRemountWakeArm(arm) ? "remount_composer_busy"
+            : IsHildEscalateWakeArm(arm) ? "escalate_composer_busy"
+            : "idle_pf_composer_busy";
         IdeFlightDataRecorder.RecordWake(
             "wake_habitat", arm.Id, ToolFromWakeArm(arm), detail);
 
