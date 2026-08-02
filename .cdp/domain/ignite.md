@@ -45,6 +45,7 @@
 
 ## last_ship
 
+- 0.5.516: Glass Autoi wake consumer companion — hydrate `ignite-wake-LATEST` on cockpit_host start · VL #22 · 2026-08-02
 - 0.5.515: idle-PF Intercom mirror on plain timer work arms (Composer fallthrough; remount/OOM/HILD/event excluded) · VL #21 · 2026-08-02
 - 0.5.503: Recover-CdpSeatRemount stamps remount-wake pending by default (parity with hard deploy; `-NoStampRemountPending` opt-out) · 2026-08-02
 - 0.5.501: Composer/CDT host-surface tooth — `ignite-wake-LATEST` SSOT + prefer habitat (intercom) over CDT when PF presence busy|composing on plain timer arms (remount/OOM/HILD/event stay Composer adapter) · 2026-08-02

@@ -20,7 +20,7 @@
 
 ## Entry
 
-- WPF: `LatchHub` · `EicasBandAggregator` · `LatchPaint` (seats+land+shared+disk) · `MainWindow.SeatsSurface` · `MainWindow.LandSurface` · `MainWindow.SharedSurface` · `MainWindow.DiskSurface`
+- WPF: `LatchHub` · `EicasBandAggregator` · `LatchPaint` (seats+land+shared+disk+ignite-wake) · `MainWindow.SeatsSurface` · `MainWindow.LandSurface` · `MainWindow.SharedSurface` · `MainWindow.DiskSurface` · `MainWindow.IgniteWakeSurface`
 - Avalonia: `CdpEclProjector` · alert/qrh projectors
 - CDP: `Cide*Latch` · `CabinGlassProjectionCatalog` · `CockpitHostLatchHydration`
 
@@ -105,6 +105,7 @@ After MFD presence + SoftOrgan chrome closed: Avalonia still has non-catalog lat
 | `land-LATEST` | `navigation_land_latch/v1` agent `cdp_land` open\|goto | `CdpLandProjector` → OpenFile/GoToPosition | SoftOrganBand N/A · `LatchHub.LandChanged` → AvalonEdit | DONE land peel |
 | `shared-LATEST` | `shared_file_latch/v1` co-presence (human focus ∩ agent buffers) | `CdpSharedFileProjector` → tab ` · shared` | `LatchHub.SharedChanged` → EditorPathLabel | DONE shared peel |
 | `disk-LATEST` | `document_disk_sync_latch/v1` Instant Save → reload | `CdpDiskSyncProjector` → Monaco reload | `LatchHub.DiskChanged` → AvalonEdit Load | DONE disk peel |
+| `ignite-wake-LATEST` | `ignite_wake_latch/v0` AutoI wake charge | (Composer/CDT adapter; Intercom mirror) | SoftOrgan `ignite` tip · StatusText · FDS WAKE | DONE Autoi wake consumer |
 
 Hydration already lists all three (`CockpitHostLatchHydration`). SoftOrganLatchCatalog does **not** include `shared`/`land`/`disk` — correct (not SoftOrgan).
 
@@ -158,6 +159,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 **Lived Glass UX epic: CLOSED** for 15.08 one-cockpit survival DoD. **Citizen full chain: CLOSED** (live latch dogfood + StatusText pending→running→done/error).
 
 ## last_ship
+- 2026-08-02: Glass Autoi wake consumer — `IgniteWakeLatchFileName` · `LatchHub.IgniteWakeChanged` · `LatchPaint.PaintIgniteWake` · SoftOrgan tip + FDS WAKE · hydration · dogfood `dogfood-glass-wake-0.5.516` · VL #22 · seat 0.5.516
 - 2026-08-02: **0.5.506** citizen replace/open → `land-LATEST` open (Glass feels invent; disk peel alone was skip-when-not-open)
 - 2026-08-02: Citizen full chain close — Glass `LatchHub.CitizenDialogRequestChanged` + `CitizenDialogRequestStatus` StatusText; live latch E2E `pending→done` + Intercom `kind=citizen`; tests 2/2
 - 2026-08-02: Glass full peeled-MFD chord/palette batch — `sx/hi/wh/er/ev/hy/ic` + matching palette ids; tests 8/8 · cascade-ide `65688504`
