@@ -145,6 +145,7 @@ cost  | A
 kind  | remounted | compacted | generation_bump | intent_ack | intent_dropped
 id    | …
 ack   | intent-… → applied|dropped|superseded
+pulse | optional one-line host result (e.g. build ok E×0 W×180)
 ```
 
 ---

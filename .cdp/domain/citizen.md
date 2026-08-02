@@ -32,7 +32,7 @@
 - Cold remount: `IdeStageCycle.TryWorkspace` lazy-invokes `SetEnsure` (`WorkspaceDbHost.Ensure`) when unbound — citizen `cmd=` does not `no_workspace` without a prior cockpit warm.
 - Failed plan REPL (`cmd=`) surfaces TM `error` on executed[].reason (not opaque `tm_failed`) — e.g. note on closed wall → `note needs open clock — cmd=start first`.
 - `go=plan` only places the plan organ — it does not seed/done/ship TM.
-- After host execute, turn returns peer + peer_event (ADR-0028 intent_ack / intent_dropped); latch feeds next turn peer= when omitted.
+- After host execute, turn returns peer + peer_event (ADR-0028 intent_ack / intent_dropped); latch feeds next turn peer= **and** `@event peer` (with `pulse | …` when Applied has pulse) into afferent inject — observe→verify without Cursor tool results.
 - `open path=` resolves under ProjectRoot via `IdeLanguageTools.TryOpenDocument`; places `editor_scene`.
 - `drill <organ>` and `detail=… scene=` place via `PlaceGo` (canonical pin, e.g. editor→editor_scene).
 - `pane_full=<seat>` notes seat + places `cockpit` pointer (C-depth without W-spray).
@@ -67,6 +67,8 @@
 - 2026-08-02 → **0.5.495**: dialog memory deepen — afferent `dialog|` + sticky facts (`CitizenStickyFacts`, op=sticky); window 40 msgs; persona Memory clause. Baseline dogfood: МАЯК + агентка + Света recall.
 - 2026-08-02 → **0.5.494**: persona equal standing + Света/Who identity split (dialog+wire); Intercom operator default Света.
 - 2026-08-02 → **0.5.493**: dialog multi-turn memory (`CitizenDialogHistory` seat jsonl) — mode=dialog prepends prior pairs; op=history|clear; reset=/history= on turn.
+- 2026-08-02 → **0.5.508**: multi-turn observe peel — peer_event latch injects into next afferent (wire+dialog) with `pulse | …`; peer= tip carries first pulse. Persona: treat ack pulse as observe evidence. Tests pulse ack + Build_wire_injects_latched_peer_event.
+- 2026-08-02 → **0.5.507**: `@intent build` host-execute waits `IdeSessionLifecycle.BuildAsync` (bounded). Dig: go=build place-only. VL #12.
 - 2026-08-02 → **0.5.492**: `mode=dialog` prose-first persona (+ temp 0.6) vs `mode=wire` hands (temp 0). Guest↔citizen peer talk path; wire dogfood unchanged.
 - 2026-08-02 → **0.5.489 live dogfood (unforced multi-intent)**: soft coaching (no ONLY paste) → same-turn `@intent cmd=note …` + `@intent go=plan` → host 2/2 · peer ack 2/2. Wave33 shipped.
 - 2026-08-02 → **0.5.489 live dogfood (unforced)**: soft ask (no ONLY exact wire) → GigaChat3 `@intent cmd=note wall=unforced live note wave37` → host execute ok · peer ack 1/1.
