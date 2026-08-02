@@ -27,8 +27,8 @@
 - After turn, host executes `@intent` routes by default on live (`CitizenRouteHost`); dry_run skips unless `execute=true` (then parses user `@intent` lines).
 - Live provider turns execute `result.Routes` from assistant wire (default `execute=true`); verified GigaChat3 + mock OAI (`go=` / `drill` / `open path=` / `pane_full=` / multi-intent).
 - Multiple `@intent` lines in one reply → `RouteAll` + host executes each (not first-only).
-- Host execute is sync seat place + buffer open/replace/**create** + plan REPL (`cmd=`) + **`build`** + **`test`** + **`mcp`** + **`shell`** + **`debug`** (wait lifecycle/outlet/`ShellHabitat.Run`/`DebugPlane`, bounded) — not cockpit W-spray.
-- `@intent build` / `build path=` runs session build via host-execute. `@intent test` / `test path=` / optional `filter=` runs session tests. `@intent mcp` / `mcp scene|call|mount|tools|…` dispatches outlet (`server=`/`tool=`/`preset=`). `@intent shell …` / `shell command="…"` runs IDE shell (optional `tab=`/`cwd=`). `@intent debug` / `debug scene|bp_list|bp_add path=… line=…|launch|…` runs DebugPlane. `@intent create|write path=… body="…"` creates via PathMutateGate (optional `overwrite=true`). `go=build` / `go=test` / `go=mcp` / `go=shell` / `go=debug` only place the organ.
+- Host execute is sync seat place + buffer open/replace/**create** + plan REPL (`cmd=`) + **`build`** + **`test`** + **`mcp`** + **`kb`** + **`shell`** + **`debug`** (wait lifecycle/outlet/`ShellHabitat.Run`/`DebugPlane`, bounded) — not cockpit W-spray.
+- `@intent build` / `build path=` runs session build via host-execute. `@intent test` / `test path=` / optional `filter=` runs session tests. `@intent mcp` / `mcp scene|call|mount|tools|…` dispatches outlet (`server=`/`tool=`/`preset=`). **`@intent kb`** → in-proc agent-notes pack (`memory_world`/`memory_skill`) — not guest MCP `preset=memory`. `@intent shell …` / `shell command="…"` runs IDE shell (optional `tab=`/`cwd=`). `@intent debug` / `debug scene|bp_list|bp_add path=… line=…|launch|…` runs DebugPlane. `@intent create|write path=… body="…"` creates via PathMutateGate (optional `overwrite=true`). `go=build` / `go=test` / `go=mcp` / `go=shell` / `go=debug` only place the organ.
 - `@intent cmd=<CCL>` host-executes TM board verbs only (feature|task|done|note|…); non-plan heads refused (`refuse_non_plan_repl`).
 - Cold remount: `IdeStageCycle.TryWorkspace` lazy-invokes `SetEnsure` (`WorkspaceDbHost.Ensure`) when unbound — citizen `cmd=` does not `no_workspace` without a prior cockpit warm.
 - Failed plan REPL (`cmd=`) surfaces TM `error` on executed[].reason (not opaque `tm_failed`) — e.g. note on closed wall → `note needs open clock — cmd=start first`.
@@ -58,6 +58,8 @@
 
 ## last_ship
 
+- **0.5.555** — `@intent kb` → in-proc `memory_world`/`memory_skill` (pack/KB), not guest MCP `preset=memory`. VL #58. Dig: persona taught wrong memory surface.
+- **0.5.554** — Autoi Composer-first while Cursor host: Guest CDT→Composer; `prefer_citizen` only when Composer unavailable. VL #57.
 - **0.5.514** — citizen `@intent append path=… body="…"` host-execute → PathMutateGate open+suffix+Flush + land open (end-of-file without Cursor Write / needle). Not write-alias. Dig: idle-PF skip Composer parked (Autoi overnight). VL #20.
 - **0.5.513** — citizen `@intent create|write path=… body="…"` host-execute → PathMutateGate `Create` + land open (greenfield without Cursor Write). Alias write/text=; overwrite=true. VL #19. Dig: replace covered edit; create was remaining Write gap.
 - **0.5.512 + full-chain dogfood** — live FM observe→act→verify (health place → shell echo) with organ width; VL #18. Debug organ host-execute same version.
