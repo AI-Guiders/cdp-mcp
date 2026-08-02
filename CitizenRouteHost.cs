@@ -56,6 +56,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.Open => OpenPath(route),
             CitizenIntentRouter.Verb.Replace => ReplaceInPath(route),
             CitizenIntentRouter.Verb.Create => CreateInPath(route),
+            CitizenIntentRouter.Verb.Append => AppendInPath(route),
             CitizenIntentRouter.Verb.Build => RunBuild(route),
             CitizenIntentRouter.Verb.Test => RunTest(route),
             CitizenIntentRouter.Verb.Mcp => RunMcp(route),
