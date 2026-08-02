@@ -63,6 +63,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 21 | [Idle-PF mirror: я слышу wake, даже когда PF спит](voice-letter-habitat-idle-pf-intercom-mirror.ru.md) | ignite · Intercom mirror · Composer fallthrough · 0.5.515 |
 | 22 | [Glass Autoi wake: я вижу charge без Composer](voice-letter-glass-autoi-wake-consumer.ru.md) | glass · ignite-wake LatchHub · SoftOrgan+FDS · 0.5.516 |
 | 23 | [host_write в ADX: я вижу чужой след на диске в кольце](voice-letter-adx-host-write-trace.ru.md) | adx · AdxMutateTrace host_write · material disk drift · 0.5.517 |
+| 24 | [Remount mirror: я вижу remount, даже когда Composer занят](voice-letter-remount-intercom-mirror.ru.md) | ignite · remount Intercom mirror · busy Composer · 0.5.518 |
 
 ## Как читать
 
