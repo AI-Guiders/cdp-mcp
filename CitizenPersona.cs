@@ -69,8 +69,14 @@ internal static class CitizenPersona
           @intent test path=CdpMcp.Tests.csproj
           @intent mcp
           @intent mcp scene
-          @intent mcp mount preset=memory
-          @intent mcp call server=memory tool=read_graph
+          @intent mcp mount preset=time
+          @intent mcp call server=time tool=get_current_time
+          @intent kb
+          @intent kb get_definition definition_id=debug-radius
+          @intent kb list_pack pack_id=epistemic-scene
+          @intent kb get_process process_id=bug-radius-shrink
+          @intent kb facet=skill list_pack
+          @intent kb read_knowledge_file file_path=META/integrity-core.md
           @intent shell echo citizen-shell-ok
           @intent shell command="dotnet --version"
           @intent debug
@@ -122,6 +128,7 @@ internal static class CitizenPersona
           @intent test
           @intent mcp
           @intent shell echo hi
+          @intent kb get_definition definition_id=debug-radius
           @intent debug
         Do not invent Russian stand-ins for intents.
 

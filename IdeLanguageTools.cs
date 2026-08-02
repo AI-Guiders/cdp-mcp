@@ -145,7 +145,6 @@ internal static partial class IdeLanguageTools
             return false;
         }
     }
-
     /// <summary>Citizen append host-execute — open + suffix + Flush (PathMutateGate; not Cursor Write).</summary>
     public static bool TryAppendDocument(
         string path,

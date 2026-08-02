@@ -17,6 +17,7 @@ internal static partial class CitizenIntentRouter
         Replace,
         Create,
         Append,
+        Kb,
         Build,
         Test,
         Mcp,
@@ -207,6 +208,13 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("mcp ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteMcp(raw);
+        }
+
+        if (raw.Equals("kb", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("kb ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("kb tool=", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteKb(raw);
         }
 
         if (raw.Equals("shell", StringComparison.OrdinalIgnoreCase)
