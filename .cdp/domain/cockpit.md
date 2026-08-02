@@ -22,9 +22,11 @@
 - W-spray for “understanding the desk”.
 - Treating slim pulse absence of mutation fields as “op failed” without `go_detail=full`.
 - Guessing daypart/date from chat — read `clock=` / `go=calendar` / plan `local=`.
+- `go=plan` + nested `go_args.tm_op` without SoftBoard flatten (pre-0.5.552) — mutation=null; use top-level `cmd=` or flatten (shipped).
 
 ## last_ship
 
+- 0.5.552: Plan SoftBoard `flattenOrganArgs` + `OptGoArg(tm_op)` — TM mute via go_args fixed · 2026-08-03
 - local clock + calendar soft organ + plan pulse local expand @ 0.5.486 · 2026-08-02
 - IdeDeskSeats.Presets peel (≤ADX soft-warn): main 365→267 + Presets104 @ 0.5.429 · 2026-08-01
 - soft-warn: `IdeRepl` partials (Desk/Organs/Board/Ops/Share/Crm/Helpers) @ 0.5.393 — see `iderepl.md`
