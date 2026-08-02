@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.468</Version>
+    <Version>0.5.469</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -358,4 +358,19 @@
       <DependentUpon>IdeArchBoardChannel.AsBuilt.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="IdeOnboardChannel.Scan.Helpers.cs"><DependentUpon>IdeOnboardChannel.Scan.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="IdeOnboardChannel.Scan.Helpers.cs">
+      <DependentUpon>IdeOnboardChannel.Scan.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeToolchainChannel.Recipes.Helpers.cs">
+      <DependentUpon>IdeToolchainChannel.Recipes.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeCideIntercomChannel.Helpers.cs">
+      <DependentUpon>IdeCideIntercomChannel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="IdeFilesChannel.Fs.Helpers.cs"><DependentUpon>IdeFilesChannel.Fs.cs</DependentUpon></Compile></ItemGroup></Project>
