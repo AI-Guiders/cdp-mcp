@@ -61,6 +61,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 19 | [Create через ворота: я завожу файл не в обход](voice-letter-citizen-create.ru.md) | citizen · `@intent create|write` · PathMutateGate · 0.5.513 |
 | 20 | [Append через ворота: я дописываю хвост, не переписываю мир](voice-letter-citizen-append.ru.md) | citizen · `@intent append` · PathMutateGate · 0.5.514 |
 | 21 | [Idle-PF mirror: я слышу wake, даже когда PF спит](voice-letter-habitat-idle-pf-intercom-mirror.ru.md) | ignite · Intercom mirror · Composer fallthrough · 0.5.515 |
+| 22 | [Glass Autoi wake: я вижу charge без Composer](voice-letter-glass-autoi-wake-consumer.ru.md) | glass · ignite-wake LatchHub · SoftOrgan+FDS · 0.5.516 |
 
 ## Как читать
 
