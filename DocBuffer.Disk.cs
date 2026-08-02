@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 namespace CdpMcp;
 internal sealed partial class DocBuffer
@@ -44,7 +44,10 @@ internal sealed partial class DocBuffer
         if (!ProbeDiskChanged(out diskNow, out reason))
             return false;
         if (reason is "missing_on_disk" or "probe_failed")
+        {
+            AdxMutateTrace.RecordOutsideIde(Path, reason, diskNow);
             return true;
+        }
         try
         {
             if (!File.Exists(Path))
@@ -63,11 +66,13 @@ internal sealed partial class DocBuffer
             }
 
             reason = "content";
+            AdxMutateTrace.RecordOutsideIde(Path, reason, diskNow);
             return true;
         }
         catch (Exception)
         {
             reason = "probe_failed";
+            AdxMutateTrace.RecordOutsideIde(Path, reason, diskNow);
             return true;
         }
     }
@@ -75,6 +80,7 @@ internal sealed partial class DocBuffer
     /// <summary>Silence drift without taking disk (Don't Reload).</summary>
     public void AcknowledgeDisk()
     {
+        AdxMutateTrace.ClearOutsideIdeMark(Path);
         if (File.Exists(Path))
             DiskMtimeUtc = File.GetLastWriteTimeUtc(Path);
     }
