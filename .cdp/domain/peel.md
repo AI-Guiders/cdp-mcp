@@ -23,5 +23,6 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.458**: wave2 — DeskGoMapCatalog.BuiltIns · EditorPlane.Apply.Validate · IdeOnboardChannel.Persist.
 - 2026-08-02 → **0.5.457**: batch FileLines near-miss — CitizenCompletions.Anthropic+Finish · IdeToolCallWatch.Helpers · IdeToolchainChannel.Ops.
 - 2026-08-01 → **0.5.443**: thin Meta shipped; live preview dogfood OK (`HandleAsync` → `IdePeelChannel.Dispatch.cs`).

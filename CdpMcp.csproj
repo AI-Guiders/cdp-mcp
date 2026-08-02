@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.457</Version>
+    <Version>0.5.458</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -178,4 +178,24 @@
       <DependentUpon>IdeToolCallWatch.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="IdeToolchainChannel.Ops.cs"><DependentUpon>IdeToolchainChannel.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="IdeToolchainChannel.Ops.cs">
+      <DependentUpon>IdeToolchainChannel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeOnboardChannel.Persist.cs">
+      <DependentUpon>IdeOnboardChannel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Cockpit\Cds\DeskGoMapCatalog.BuiltIns.cs">
+      <DependentUpon>DeskGoMapCatalog.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="EditorPlane.Apply.Validate.cs">
+      <DependentUpon>EditorPlane.Apply.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>
