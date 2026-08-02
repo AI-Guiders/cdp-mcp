@@ -34,6 +34,7 @@
 
 ## last_ship
 
+- ADX-IG-001 last_once under autonomous ≠ awaiting invent-ban (`LastOnceFireAwaitingOk` · Z3) @ 0.5.529 · 2026-08-02
 - AdxMutateTrace host_write on material outside-IDE drift (`RecordOutsideIde` · DocBuffer.Disk · assert pulse) @ 0.5.517 · 2026-08-02
 - FileLines batch peel×12 (ArchBoard.Ops.Candidate, EditorPlane.Parse.Yaml, Program.Instructions+Dispatch, Find.Build, PlanPulse.Finish, Settings.Keys.Specs, Qrh.Overlay.Persist, Runners.Process, EditSniper.Ops.Target, MetaDispatch.Ide.Packages, Ignite.Fire.Timer, Scope.Persist) @ 0.5.441 · 2026-08-02
 - EditorComfort.FindNav.Nav peel (≤ADX soft-warn) @ 0.5.439 · 2026-08-01
