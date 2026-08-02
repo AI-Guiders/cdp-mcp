@@ -86,6 +86,8 @@ internal static partial class MetaDispatch
         return await IdeIgniteChannel.HandleJsonAsync(callArgs, cancellationToken);
     case "cdp_webcam":
         return IdeWebcamChannel.HandleJson(session, callArgs);
+    case "cdp_glass":
+        return IdeGlassSurfaceChannel.HandleJson(session, callArgs);
     case "cdp_pressure":
         return IdePressureChannel.HandleJson(session, callArgs);
     case "cdp_domain":
