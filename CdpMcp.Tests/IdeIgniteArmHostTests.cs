@@ -29,8 +29,11 @@ public partial class IdeIgniteArmHostTests
 
     [Theory]
     [InlineData("timer", "busy_timeout", true)]
+    [InlineData("timer", "no_agent_composer", true)]
+    [InlineData("timer", "wrong_surface", true)]
     [InlineData("timer", "fire_failed", false)]
     [InlineData("build_finished", "busy_timeout", false)]
+    [InlineData("build_finished", "no_agent_composer", false)]
     [InlineData("TIMER", "busy_timeout", true)]
     public void ShouldRequeueBusy_policy(string ev, string err, bool expect) =>
         Assert.Equal(expect, IdeIgniteArmHost.ShouldRequeueBusy(ev, err));

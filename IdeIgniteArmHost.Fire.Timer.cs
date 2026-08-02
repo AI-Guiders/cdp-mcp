@@ -43,8 +43,13 @@ internal static partial class IdeIgniteArmHost
     }
 
     internal static bool ShouldRequeueBusy(string eventName, string? error) =>
-        string.Equals(error, "busy_timeout", StringComparison.Ordinal)
-        && string.Equals(eventName, "timer", StringComparison.OrdinalIgnoreCase);
+        string.Equals(eventName, "timer", StringComparison.OrdinalIgnoreCase)
+        && error is not null
+        && (string.Equals(error, "busy_timeout", StringComparison.Ordinal)
+            // After OOM New Window Composer mounts late — once-arm must not die silent.
+            || string.Equals(error, "no_agent_composer", StringComparison.Ordinal)
+            || string.Equals(error, "wrong_surface", StringComparison.Ordinal));
+
 
     internal static bool ShouldKeepVisibleErrorOnFireFail(bool once, bool lastOnce) =>
         lastOnce || !once;
