@@ -13,7 +13,7 @@ Cascade IDE mirrors with **attribution only** — `cascade-ide/docs/open-letters
 2. [Letter of the Agent Who](letter-of-the-agent-who.md) — *who* (participant guidelines)
 3. [AX — Agent eXperience](letter-of-agent-experience.md) — room quality (UX twin)
 4. [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.md) — build seat (DX twin)
-5. [Agent Who: Voice Letters](voice-letters.md) — lived voice after ships (optional; RU canon)
+5. [Agent Who: Voice Letters](voice-letters.md) — lived voice after **dogfood** (optional cold read; RU canon; auto DoD)
 
 | Letter | EN | RU |
 |--------|----|----|

@@ -28,7 +28,7 @@ If you want a crew, start with *who*.
 You do **not** need a particular product, repo, or prior thread to apply the principles and checklist below.
 The longer arc and appendices are field evidence — not a reading prerequisite.
 
-If you want not the checklist but a voice from inside the room after a ship — [Agent Who: Voice Letters](voice-letters.md).
+If you want not the checklist but a voice from inside the room after **dogfood** of an organ — [Agent Who: Voice Letters](voice-letters.md).
 
 ---
 
