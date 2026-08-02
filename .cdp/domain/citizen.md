@@ -26,8 +26,8 @@
 - After turn, host executes `@intent` routes by default on live (`CitizenRouteHost`); dry_run skips unless `execute=true` (then parses user `@intent` lines).
 - Live provider turns execute `result.Routes` from assistant wire (default `execute=true`); verified GigaChat3 + mock OAI (`go=` / `drill` / `open path=` / `pane_full=` / multi-intent).
 - Multiple `@intent` lines in one reply → `RouteAll` + host executes each (not first-only).
-- Host execute is sync seat place + buffer open/replace + plan REPL (`cmd=`) + **`build`** + **`test`** + **`mcp`** + **`shell`** (wait lifecycle/outlet/`ShellHabitat.Run`, bounded) — not cockpit W-spray.
-- `@intent build` / `build path=` runs session build via host-execute. `@intent test` / `test path=` / optional `filter=` runs session tests. `@intent mcp` / `mcp scene|call|mount|tools|…` dispatches outlet (`server=`/`tool=`/`preset=`). `@intent shell …` / `shell command="…"` runs IDE shell (optional `tab=`/`cwd=`). `go=build` / `go=test` / `go=mcp` / `go=shell` only place the organ.
+- Host execute is sync seat place + buffer open/replace + plan REPL (`cmd=`) + **`build`** + **`test`** + **`mcp`** + **`shell`** + **`debug`** (wait lifecycle/outlet/`ShellHabitat.Run`/`DebugPlane`, bounded) — not cockpit W-spray.
+- `@intent build` / `build path=` runs session build via host-execute. `@intent test` / `test path=` / optional `filter=` runs session tests. `@intent mcp` / `mcp scene|call|mount|tools|…` dispatches outlet (`server=`/`tool=`/`preset=`). `@intent shell …` / `shell command="…"` runs IDE shell (optional `tab=`/`cwd=`). `@intent debug` / `debug scene|bp_list|bp_add path=… line=…|launch|…` runs DebugPlane. `go=build` / `go=test` / `go=mcp` / `go=shell` / `go=debug` only place the organ.
 - `@intent cmd=<CCL>` host-executes TM board verbs only (feature|task|done|note|…); non-plan heads refused (`refuse_non_plan_repl`).
 - Cold remount: `IdeStageCycle.TryWorkspace` lazy-invokes `SetEnsure` (`WorkspaceDbHost.Ensure`) when unbound — citizen `cmd=` does not `no_workspace` without a prior cockpit warm.
 - Failed plan REPL (`cmd=`) surfaces TM `error` on executed[].reason (not opaque `tm_failed`) — e.g. note on closed wall → `note needs open clock — cmd=start first`.
@@ -57,6 +57,7 @@
 
 ## last_ship
 
+- **0.5.512** — citizen `@intent debug` host-execute → `DebugPlane.DispatchAsync` (scene/bp_*/launch/…; path=+line= for bp_add). Dig: go=debug place-only. VL #17.
 - **0.5.507** — citizen `@intent build` / `build path=` host-execute → `IdeSessionLifecycle.BuildAsync` (sync wait, 3m bound) + place `build` organ. Dig: `go=build` placed only; PF organ parity needs real compile. Persona wire examples + Session/Build binders in Program.
 - **0.5.506** — citizen `open`/`replace` publish `land-LATEST` (`NavigationLandLatch`) so Glass LatchHub opens the path (disk peel alone skips when file not open). Projector feels partner invent.
 - **0.5.505** — citizen `@intent replace path=… old="…" new="…"` host-execute via buffer PathMutateGate (`TryReplaceInDocument`). Complements open; gated disk mutate so partner need not Cursor Write.
@@ -67,6 +68,7 @@
 - 2026-08-02 → **0.5.495**: dialog memory deepen — afferent `dialog|` + sticky facts (`CitizenStickyFacts`, op=sticky); window 40 msgs; persona Memory clause. Baseline dogfood: МАЯК + агентка + Света recall.
 - 2026-08-02 → **0.5.494**: persona equal standing + Света/Who identity split (dialog+wire); Intercom operator default Света.
 - 2026-08-02 → **0.5.493**: dialog multi-turn memory (`CitizenDialogHistory` seat jsonl) — mode=dialog prepends prior pairs; op=history|clear; reset=/history= on turn.
+- 2026-08-02 → **0.5.512**: `@intent debug` host-execute waits `DebugPlane.DispatchAsync` (scene/bp_list/bp_add/…). Dig: go=debug place-only.
 - 2026-08-02 → **0.5.511**: `@intent shell` host-execute waits `ShellHabitat.Run` (command= or rest; optional tab=/cwd=). Dig: go=shell place-only; cmd= still refuses non-plan. Debug organ still separate peel.
 - 2026-08-02 → **0.5.510**: `@intent mcp` host-execute waits `McpOutletHabitat.DispatchAsync` (scene/call/mount/tools/unmount/presets). Dig: go=mcp place-only; outlet Instance + test override.
 - 2026-08-02 → **0.5.509**: `@intent test` host-execute waits `IdeSessionLifecycle.TestAsync` (path= + optional filter=). Dig: go=test place-only; build pattern 0.5.507. Live dogfood filter→`test ok 1/1`. Quoted `path=` (spaces) via ExtractKeyedValue. MCP facade still separate peel. VL #14.
