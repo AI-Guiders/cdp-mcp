@@ -32,12 +32,13 @@ internal static partial class IdeRefactorPlanChannel
         if (afterFile is null && extractLines is int ex && ex > 0)
             afterFile = Math.Max(0, beforeFile - ex);
 
-        var fileWarn = policy.FileLinesWarn;
-        var fileFail = policy.FileLinesFail;
-        var methodWarn = policy.MethodLinesWarn;
-        var methodFail = policy.MethodLinesFail;
+        var fileWhatIf = BuildFileWhatIf(afterFile, beforeFile, policy.FileLinesWarn, policy.FileLinesFail);
+        var methodWhatIf = BuildMethodWhatIf(afterMethod, methodHit, policy.MethodLinesWarn, policy.MethodLinesFail);
+        return FormatBudgetPayload(session, policy, full, beforeFile, methodHit, afterFile, fileWhatIf, methodWhatIf);
+    }
 
-        object? fileWhatIf = afterFile is int af
+    static object? BuildFileWhatIf(int? afterFile, int beforeFile, int fileWarn, int fileFail) =>
+        afterFile is int af
             ? new
             {
                 after = af,
@@ -50,7 +51,8 @@ internal static partial class IdeRefactorPlanChannel
             }
             : null;
 
-        object? methodWhatIf = afterMethod is int am && methodHit is not null
+    static object? BuildMethodWhatIf(int? afterMethod, Hotspot? methodHit, int methodWarn, int methodFail) =>
+        afterMethod is int am && methodHit is not null
             ? new
             {
                 symbol = methodHit.Symbol,
@@ -65,6 +67,16 @@ internal static partial class IdeRefactorPlanChannel
             }
             : null;
 
+    static object FormatBudgetPayload(
+        SessionContext session,
+        QualityGates.QualityPolicy policy,
+        string full,
+        int beforeFile,
+        Hotspot? methodHit,
+        int? afterFile,
+        object? fileWhatIf,
+        object? methodWhatIf)
+    {
         var pulse = fileWhatIf is null && methodWhatIf is null
             ? $"refactor_plan · budget · before file={beforeFile} · pass after_lines="
             : $"refactor_plan · budget · file {beforeFile}→{afterFile?.ToString() ?? "?"}";
@@ -77,10 +89,10 @@ internal static partial class IdeRefactorPlanChannel
             rel = Rel(session.ProjectRoot, full),
             policy = new
             {
-                file_lines_warn = fileWarn,
-                file_lines_fail = fileFail,
-                method_lines_warn = methodWarn,
-                method_lines_fail = methodFail,
+                file_lines_warn = policy.FileLinesWarn,
+                file_lines_fail = policy.FileLinesFail,
+                method_lines_warn = policy.MethodLinesWarn,
+                method_lines_fail = policy.MethodLinesFail,
                 source = policy.Source
             },
             before = new
