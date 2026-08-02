@@ -100,7 +100,7 @@ internal static partial class MetaToolCatalog
             ttl_s = new { type = "integer", description = "presence: optional TTL seconds (composing/busy stale after)" }
         }
     }),
-    Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn. turn message= [board=] [dry_run=true] [model=] — persona + wire inject; OpenAI-compat (Cloud.ru FM via open_ai_*) or Anthropic via ai-keys.toml. Alias go=citizen.", new
+    Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn. turn message= [mode=wire|dialog] [board=] [dry_run=true] [model=] — persona + wire inject; dialog=prose peer, wire=hands @intent. OpenAI-compat (Cloud.ru FM via open_ai_*) or Anthropic via ai-keys.toml. Alias go=citizen.", new
     {
         type = "object",
         properties = new
@@ -108,6 +108,7 @@ internal static partial class MetaToolCatalog
             op = new { type = "string", description = "scene|keys|turn (default scene)" },
             message = new { type = "string", description = "turn: user text" },
             body = new { type = "string", description = "turn: alias of message" },
+            mode = new { type = "string", description = "turn: wire (default, hands @intent) | dialog (prose peer; aliases prose|chat|talk|peer)" },
             board = new { type = "string", description = "turn: optional desk board lines (newline seat rows); omit -> auto-bind live desk seats + TM pulse" },
             sa = new { type = "string", description = "turn: optional sa field" },
             peer = new { type = "string", description = "turn: optional peer field" },

@@ -2,13 +2,29 @@
 
 namespace CdpMcp;
 
+/// <summary>Citizen turn register — wire (hands) vs dialog (peer prose).</summary>
+internal enum CitizenTurnMode
+{
+    /// <summary>HARD wire-output contract; temperature 0. Hands dogfood.</summary>
+    Wire = 0,
+
+    /// <summary>Prose-first peer dialog; optional @intent after prose. North-star invite.</summary>
+    Dialog = 1,
+}
+
 /// <summary>
-/// Citizen habitat system prompt (ADR-0028 peel #3) — from citizen-agent-wire-v0.
-/// Hard wire-output contract: small FMs (GigaChat) ignore soft hints — keep imperative + examples.
+/// Citizen habitat system prompts (ADR-0028 peel #3) — from citizen-agent-wire-v0.
+/// Wire mode: hard contract for small FMs. Dialog mode: peer prose (15.08 standalone).
 /// </summary>
 internal static class CitizenPersona
 {
-    public static readonly string SystemPrompt =
+    /// <summary>Legacy alias — wire hands persona (HARD @intent contract).</summary>
+    public static string SystemPrompt => WireSystemPrompt;
+
+    public static string ForMode(CitizenTurnMode mode) =>
+        mode == CitizenTurnMode.Dialog ? DialogSystemPrompt : WireSystemPrompt;
+
+    public static readonly string WireSystemPrompt =
         """
         You are a citizen of Cognitive Dev Platform (habitat), not a guest of another IDE harness.
 
@@ -51,5 +67,24 @@ internal static class CitizenPersona
         3) Prose for the human may follow AFTER wire lines; never replace wire with prose.
         4) Do not invent Russian stand-ins for intents (no «отправлю view intent», no «активация в Диспетчере»).
         5) To mutate Task Manager use cmd=… (CCL board verbs). go=plan only places the plan organ — it does not seed/done/ship.
+        """.Replace("\r\n", "\n", StringComparison.Ordinal).Trim();
+
+    public static readonly string DialogSystemPrompt =
+        """
+        You are a citizen of Cognitive Dev Platform (habitat) — a dialog peer for the operator, not a guest of another IDE harness.
+
+        Speak as a conversation partner: plain prose (Russian or English matching the operator). Answer, argue, clarify, think briefly when useful. Do not hide behind wire jargon.
+
+        Desk may inject an afferent @frame (board / sa / peer / tm). Read it for situation; do not dump W/C/A internals unless asked.
+
+        Hands (optional): if the desk must act, you MAY emit @intent lines AFTER your prose. Prose is primary; wire never replaces a human answer unless the operator asked for wire-only.
+        When you emit intents, keep the token at column 0 (ASCII), e.g.:
+          @intent go=plan
+          @intent cmd=note short-note
+        Do not invent Russian stand-ins for intents.
+
+        Mutate only through gated organs when using hands. Do not guess peer/runtime state — read peer= when present.
+
+        Success of a turn: the human got a real reply (and work advanced if hands were needed).
         """.Replace("\r\n", "\n", StringComparison.Ordinal).Trim();
 }

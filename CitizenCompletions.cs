@@ -41,7 +41,8 @@ internal static partial class CitizenCompletions
         string System,
         IReadOnlyList<ChatMessage> Messages,
         string? AfferentPulse,
-        bool Injected);
+        bool Injected,
+        CitizenTurnMode Mode = CitizenTurnMode.Wire);
 
     public sealed record TurnResult(
         bool Ok,
@@ -94,7 +95,8 @@ internal static partial class CitizenCompletions
         string? peer = null,
         string? next = null,
         string? tm = null,
-        bool inject = true)
+        bool inject = true,
+        CitizenTurnMode mode = CitizenTurnMode.Wire)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userText);
         string? afferent = null;
@@ -128,7 +130,7 @@ internal static partial class CitizenCompletions
             msgs.Add(new ChatMessage("user", userText.Trim()));
         }
 
-        return new BuiltTurn(CitizenPersona.SystemPrompt, msgs, afferent, injected);
+        return new BuiltTurn(CitizenPersona.ForMode(mode), msgs, afferent, injected, mode);
     }
 
     public static TurnResult Turn(
@@ -141,17 +143,19 @@ internal static partial class CitizenCompletions
         string? model = null,
         bool dryRun = false,
         bool inject = true,
+        CitizenTurnMode mode = CitizenTurnMode.Wire,
         int maxTokens = 1024,
         CancellationToken cancellationToken = default)
     {
-        var built = Build(userText, boardLines, sa, peer, next, tm, inject);
+        var built = Build(userText, boardLines, sa, peer, next, tm, inject, mode);
         if (dryRun)
         {
             var dryModel = ResolveDryRunModel(model);
+            var modeHint = mode == CitizenTurnMode.Dialog ? "dialog prose" : "wire hands";
             return new TurnResult(
                 Ok: true,
                 Error: null,
-                Hint: "dry_run — no provider call; messages built with persona + wire inject",
+                Hint: "dry_run — no provider call; messages built with persona + wire inject · mode=" + modeHint,
                 Text: null,
                 Model: dryModel,
                 Provider: "dry_run",

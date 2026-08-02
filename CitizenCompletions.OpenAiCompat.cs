@@ -79,11 +79,13 @@ internal static partial class CitizenCompletions
         foreach (var m in built.Messages)
             oaiMessages.Add(new { role = m.Role, content = m.Content });
 
+        // Wire dogfood needs temp=0 for @intent fidelity; dialog peer needs room to reason.
+        var temperature = built.Mode == CitizenTurnMode.Dialog ? 0.6 : 0.0;
         var payload = new Dictionary<string, object?>
         {
             ["model"] = resolved.Model,
             ["max_tokens"] = Math.Clamp(maxTokens, 64, 8192),
-            ["temperature"] = 0,
+            ["temperature"] = temperature,
             ["stream"] = false,
             ["messages"] = oaiMessages
         };

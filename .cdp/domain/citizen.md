@@ -10,8 +10,9 @@
 - Live invite needs `open_ai_api_key` **or** `anthropic_api_key` in `%LocalAppData%/CascadeIDE/ai-keys.toml`.
 - Prefer **OpenAI-compat** when `open_ai` key set (Cloud.ru FM); else Anthropic.
 - Defaults when keys omit URL/model: `https://foundation-models.api.cloud.ru/v1` · `ai-sage/GigaChat3-10B-A1.8B`.
+- Turn `mode=wire` (default) = HARD @intent contract + OAI `temperature=0`. `mode=dialog` = prose peer persona + `temperature=0.6`; optional @intent after prose. Aliases: prose|chat|talk|peer.
 - Wire: Bearer + `{base}/v1/chat/completions` (non-stream for citizen turns); system-as-message on OAI path.
-- OpenAI-compat sampling: hardcoded **`temperature=0`** (wire fidelity). Full param map: agent-notes `knowledge/domains/agent-operations/note-llm-sampling-params-openai-compat-v1.md`.
+- OpenAI-compat sampling: wire **`temperature=0`**; dialog **`0.6`**. Full param map: agent-notes `knowledge/domains/agent-operations/note-llm-sampling-params-openai-compat-v1.md`.
 - `invite_ready` is a **record** (not ValueTuple) — JSON must expose Ready/Status/Checklist/Blocker.
 - `dry_run=true` builds persona+wire messages without provider; works with empty keys.
 - Dry-run **model** label mirrors live `ResolveProvider` (FM-first / `DefaultOpenAiModel`), not raw `DefaultModel` (claude).
@@ -50,6 +51,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.492**: `mode=dialog` prose-first persona (+ temp 0.6) vs `mode=wire` hands (temp 0). Guest↔citizen peer talk path; wire dogfood unchanged.
 - 2026-08-02 → **0.5.489 live dogfood (unforced multi-intent)**: soft coaching (no ONLY paste) → same-turn `@intent cmd=note …` + `@intent go=plan` → host 2/2 · peer ack 2/2. Wave33 shipped.
 - 2026-08-02 → **0.5.489 live dogfood (unforced)**: soft ask (no ONLY exact wire) → GigaChat3 `@intent cmd=note wall=unforced live note wave37` → host execute ok · peer ack 1/1.
 - 2026-08-02 → **0.5.489 live dogfood**: wall `start` + GigaChat3 FM turn → exact `@intent cmd=note …` → host execute ok · peer ack 1/1 (forced ONLY wire).
