@@ -31,6 +31,7 @@ internal static class VisibleToolCatalog
         "cdp_postmortem",
         "cdp_scope",
         "cdp_webcam",
+        "cdp_glass",
         "cdp_ps1_scene"
     };
 
