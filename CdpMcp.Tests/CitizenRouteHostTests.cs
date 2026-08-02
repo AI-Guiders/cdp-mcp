@@ -38,6 +38,38 @@ public sealed class CitizenRouteHostTests
     }
 
     [Fact]
+    public void Execute_pane_full_notes_seat_and_places_cockpit()
+    {
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        IdeDeskSeats.TryPlaceExplicit("m", "browser");
+
+        var routes = new[] { CitizenIntentRouter.RouteOne("pane_full=m") };
+        var applied = CitizenRouteHost.Execute(routes);
+
+        Assert.Single(applied);
+        Assert.True(applied[0].Ok);
+        Assert.Equal("pane_full", applied[0].Action);
+        Assert.Equal("m", applied[0].Seat);
+        Assert.Equal("cockpit", applied[0].Go);
+        Assert.Contains("seat_noted", applied[0].Reason!);
+
+        var map = IdeDeskSeats.Snapshot();
+        Assert.Contains(map, kv => string.Equals(kv.Value, "cockpit", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void Execute_pane_full_invalid_seat_fails()
+    {
+        var routes = new[] { CitizenIntentRouter.RouteOne("pane_full=zzz") };
+        var applied = CitizenRouteHost.Execute(routes);
+        Assert.Single(applied);
+        Assert.False(applied[0].Ok);
+        Assert.Equal("pane_full", applied[0].Action);
+        Assert.Equal("pane_full_seat_invalid", applied[0].Reason);
+    }
+
+    [Fact]
     public void Execute_drill_editor_places_editor_scene()
     {
         IdeDeskSeats.EnsureDefaultsFromSettings();
@@ -292,6 +324,52 @@ public sealed class CitizenRouteHostTests
 
             var map = IdeDeskSeats.Snapshot();
             Assert.Contains(map, kv => string.Equals(kv.Value, "editor_scene", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            CitizenCompletions.TestHandler = null;
+            CitizenCompletions.TestOpenAiApiKey = null;
+            CitizenCompletions.TestOpenAiBaseUrl = null;
+            CitizenCompletions.ResetHttpForTests();
+        }
+    }
+
+    [Fact]
+    public void Channel_live_mock_provider_pane_full_is_host_executed()
+    {
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        IdeDeskSeats.TryPlaceExplicit("m", "browser");
+
+        var payload =
+            """{"choices":[{"message":{"role":"assistant","content":"@intent pane_full=m\nok"}}]}""";
+        CitizenCompletions.TestOpenAiApiKey = "sk-cloud-ru-test-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        CitizenCompletions.TestHandler = new StubHandler(System.Net.HttpStatusCode.OK, payload);
+        CitizenCompletions.ResetHttpForTests();
+
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse("""
+                {"op":"turn","message":"need one seat dump","inject":false}
+                """);
+            var args = doc.RootElement.EnumerateObject()
+                .ToDictionary(p => p.Name, p => p.Value.Clone(), StringComparer.OrdinalIgnoreCase);
+            var json = IdeCitizenChannel.HandleJson(args);
+            using var outDoc = System.Text.Json.JsonDocument.Parse(json);
+            Assert.True(outDoc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.True(outDoc.RootElement.GetProperty("execute").GetBoolean());
+            Assert.Equal("PaneFull", outDoc.RootElement.GetProperty("routes")[0].GetProperty("verb").GetString());
+
+            var executed = outDoc.RootElement.GetProperty("executed");
+            Assert.Equal(System.Text.Json.JsonValueKind.Array, executed.ValueKind);
+            Assert.True(executed[0].GetProperty("ok").GetBoolean());
+            Assert.Equal("pane_full", executed[0].GetProperty("action").GetString());
+            Assert.Equal("m", executed[0].GetProperty("seat").GetString());
+            Assert.Equal("cockpit", executed[0].GetProperty("go").GetString());
+
+            var map = IdeDeskSeats.Snapshot();
+            Assert.Contains(map, kv => string.Equals(kv.Value, "cockpit", StringComparison.OrdinalIgnoreCase));
         }
         finally
         {
