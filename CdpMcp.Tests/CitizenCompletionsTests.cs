@@ -29,6 +29,33 @@ public class CitizenCompletionsTests : IDisposable
     }
 
     [Fact]
+    public void Build_dialog_uses_prose_persona()
+    {
+        var built = CitizenCompletions.Build("привет", inject: false, mode: CitizenTurnMode.Dialog);
+        Assert.Equal(CitizenTurnMode.Dialog, built.Mode);
+        Assert.Contains("dialog peer", built.System, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("WIRE OUTPUT CONTRACT", built.System, StringComparison.Ordinal);
+        Assert.Contains("Prose is primary", built.System, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Build_wire_keeps_hard_contract()
+    {
+        var built = CitizenCompletions.Build("ping", inject: false, mode: CitizenTurnMode.Wire);
+        Assert.Equal(CitizenTurnMode.Wire, built.Mode);
+        Assert.Contains("WIRE OUTPUT CONTRACT", built.System, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Turn_dry_run_dialog_hint()
+    {
+        var r = CitizenCompletions.Turn("hi", dryRun: true, mode: CitizenTurnMode.Dialog);
+        Assert.True(r.Ok);
+        Assert.Contains("dialog prose", r.Hint!, StringComparison.Ordinal);
+        Assert.Equal(CitizenTurnMode.Dialog, r.Built!.Mode);
+    }
+
+    [Fact]
     public void Build_injects_afferent_before_user()
     {
         var built = CitizenCompletions.Build(

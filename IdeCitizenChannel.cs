@@ -37,7 +37,10 @@ internal static class IdeCitizenChannel
             ok = true,
             op = "scene",
             pulse,
-            persona_chars = CitizenPersona.SystemPrompt.Length,
+            persona_chars = CitizenPersona.WireSystemPrompt.Length,
+            dialog_persona_chars = CitizenPersona.DialogSystemPrompt.Length,
+            modes = new[] { "wire", "dialog" },
+            mode_default = "wire",
             inject_default = true,
             model_default = keys.HasOpenAi
                 ? keys.ResolvedOpenAiModel
@@ -48,13 +51,13 @@ internal static class IdeCitizenChannel
             keys = keys.ToPublicPulse(),
             invite_ready = invite,
             hint = invite.Ready
-                ? "invite ready — op=turn message=… pours tea (OpenAI-compat Cloud.ru FM or Anthropic). dry_run= still free."
+                ? "invite ready — op=turn mode=dialog message=… for peer prose; mode=wire for hands. dry_run= still free."
                 : "not invite-ready — copy docs/design/ai-keys.example.toml → CascadeIDE ai-keys.toml; fill open_ai_api_key (Cloud.ru) or anthropic_api_key. dry_run= explains without keys.",
             next = invite.Ready
                 ? new object[]
                 {
-                    new { go = "citizen", label = "Pour tea", why = "op=turn message=hello" },
-                    new { go = "citizen", label = "Dry turn", why = "op=turn dry_run=true message=hello" },
+                    new { go = "citizen", label = "Dialog tea", why = "op=turn mode=dialog message=привет" },
+                    new { go = "citizen", label = "Wire hands", why = "op=turn mode=wire message=…" },
                     new { go = "citizen", label = "Keys", why = "op=keys" }
                 }
                 : new object[]
@@ -120,6 +123,7 @@ internal static class IdeCitizenChannel
         var dryRun = Bool(args, "dry_run") || Bool(args, "dry");
         var inject = !args.ContainsKey("inject") || Bool(args, "inject", defaultTrue: true);
         var execute = WantExecute(args, dryRun);
+        var mode = ParseMode(args);
         var (board, tm, liveBound) = ResolveBoardAndTm(args, inject);
         var peerIn = Arg(args, "peer") ?? CitizenPeerAck.LastPeer;
 
@@ -132,7 +136,8 @@ internal static class IdeCitizenChannel
             tm: tm,
             model: Arg(args, "model"),
             dryRun: dryRun,
-            inject: inject);
+            inject: inject,
+            mode: mode);
 
         IReadOnlyList<CitizenRouteHost.Applied>? executed = null;
         CitizenPeerAck.Result? peerAck = null;
@@ -149,7 +154,20 @@ internal static class IdeCitizenChannel
             }
         }
 
-        return SerializeTurn(result, liveBound, execute, executed, routes, peerAck);
+        return SerializeTurn(result, mode, liveBound, execute, executed, routes, peerAck);
+    }
+
+    static CitizenTurnMode ParseMode(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var raw = Arg(args, "mode") ?? Arg(args, "register");
+        if (string.IsNullOrWhiteSpace(raw))
+            return CitizenTurnMode.Wire;
+        return raw.Trim().ToLowerInvariant() switch
+        {
+            "dialog" or "prose" or "chat" or "talk" or "peer" => CitizenTurnMode.Dialog,
+            "wire" or "hands" or "intent" => CitizenTurnMode.Wire,
+            _ => CitizenTurnMode.Wire
+        };
     }
 
     /// <summary>Live turns execute routes by default; dry_run skips unless execute=true.</summary>
@@ -184,6 +202,7 @@ internal static class IdeCitizenChannel
 
     static string SerializeTurn(
         CitizenCompletions.TurnResult result,
+        CitizenTurnMode mode,
         bool liveBound,
         bool execute,
         IReadOnlyList<CitizenRouteHost.Applied>? executed,
@@ -204,6 +223,7 @@ internal static class IdeCitizenChannel
             schema = Schema,
             ok = result.Ok,
             op = "turn",
+            mode = mode == CitizenTurnMode.Dialog ? "dialog" : "wire",
             dry_run = result.DryRun,
             execute,
             error = result.Error,
