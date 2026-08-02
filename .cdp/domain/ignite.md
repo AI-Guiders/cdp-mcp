@@ -59,9 +59,11 @@
 - Arming `last_once in=45m` under autonomous (pre-0.5.539) — accidental end-turn looks like "working" for half an hour; clamp ≤3m (`ClampAutonomousLastOnceInsurance`; `force=true` escape).
 - HILD ARMED but long `last_once` still parks after away edge (pre-0.5.542) — HILD watched partner, not agent park; pull-forward ≤3s + arm clamp when `away_latched`.
 - Autonomous + TM leaf Fly + long `last_once` while partner **here** (pre-0.5.543) — ≤3m still allowed agent-park; clamp to `3s(leaf_started)` when `ProbeFlight()==Fly`.
+- Leaving Meta `cdp_ignite` tip at ≤3m-only after leaf Fly / HILD ≤3s ships (pre-0.5.544) — invent-ban hygiene residual.
 
 ## last_ship
 
+- 0.5.544: Meta `cdp_ignite` tip parity — leaf Fly / HILD ≤3s clamp (residual after 0.5.543) · 2026-08-02
 - 0.5.543: leaf Fly arm clamp last_once → ≤3s (`leafFlying` · `3s(leaf_started)`) · VL #47 · 2026-08-02
 - 0.5.542: HILD away pull-forward long last_once → ≤3s + arm clamp under away_latched (`PullForwardLongWorkTimersOnHildAway` · `HildAwayContinuityMax`) · VL #46 · 2026-08-02
 - 0.5.541: ArmPath event + QRH tips under ACC — keep flying / in=3s habit (not end-turn park)
