@@ -160,6 +160,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 **Lived Glass UX epic: CLOSED** for 15.08 one-cockpit survival DoD. **Citizen full chain: CLOSED** (live latch dogfood + StatusText pending→running→done/error).
 
 ## last_ship
+- 2026-08-03: Glass **surface `palette`** + SendInput chords + HostAccess null-safe boot — live cabin dogfood `c:st`→`/status` IOP feed; cascade-ide 366fb28f+2d020f9f · VL #59
 - 2026-08-03: Glass **/status IOP glance** — `GlassIopStatusGlance` (editor/caret/dirty/mfd/topology/latch) · `c:st`/`get_ide_state` → `slash_status`; DIG REJECT full Avalonia get_ide_state JSON · cascade-ide `2662d9d5` · tests 15/15
 - 2026-08-03: Glass **`c:els` line select** — `GlassMelodyTail` + `SelectOpenDocumentLines`; parametric `els:L` / `els:L:L`; DIG REJECT eld/esc/full parametric · cascade-ide `6354112d` · tests 13/13
 - 2026-08-03: Glass Ctrl+Q **`c:` allowlist execute** — `GlassMelodyGlassActions` maps `git_status`/`build_*`/`run_tests`/`show_*` → redirected MFD peels; unmapped browse-only; DIG REJECT full IdeMcp · cascade-ide `67b9a0b1`
