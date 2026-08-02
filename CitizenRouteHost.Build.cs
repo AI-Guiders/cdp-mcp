@@ -22,6 +22,7 @@ internal static partial class CitizenRouteHost
         ByDomainResolver = null;
         DebugDispatchOverride = null;
         KbCallOverride = null;
+        GitCallOverride = null;
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)
