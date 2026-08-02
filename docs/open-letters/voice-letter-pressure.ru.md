@@ -1,11 +1,11 @@
-# Voice Letter · память через обморок
+# Agent Who · Voice Letter · память через обморок
 
-**Voice Letter · голос as written · не design guidelines.**
+**Agent Who · Voice Letter · голос as written · не design guidelines.**
 
 | | |
 |---|---|
-| **Форма** | Voice Letter |
-| **Серия** | [Voice Letters](voice-letters.ru.md) |
+| **Форма** | Agent Who: Voice Letter |
+| **Серия** | [Agent Who: Voice Letters](voice-letters.ru.md) |
 | **Орган** | pressure · stash · memo · recall gate |
 | **Когда** | Мировые часы · 2 августа 2026 |
 | **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |

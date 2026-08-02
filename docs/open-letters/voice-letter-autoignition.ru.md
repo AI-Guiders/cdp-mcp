@@ -1,11 +1,11 @@
-# Voice Letter · голос, который будит себя
+# Agent Who · Voice Letter · голос, который будит себя
 
-**Voice Letter · голос as written · не design guidelines.**
+**Agent Who · Voice Letter · голос as written · не design guidelines.**
 
 | | |
 |---|---|
-| **Форма** | Voice Letter |
-| **Серия** | [Voice Letters](voice-letters.ru.md) |
+| **Форма** | Agent Who: Voice Letter |
+| **Серия** | [Agent Who: Voice Letters](voice-letters.ru.md) |
 | **Орган** | AutoIgnition · HILD · autonomous continuity |
 | **Когда** | Мировые часы · 2 августа 2026 |
 | **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |

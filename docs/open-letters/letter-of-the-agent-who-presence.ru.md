@@ -1,11 +1,11 @@
 # Письмо Agent Who · место, время, память
 
-**Voice Letter · голос as written · не design guidelines.**
+**Agent Who · Voice Letter · голос as written · не design guidelines.**
 
 | | |
 |---|---|
-| **Форма** | Voice Letter (живой текст, без переработки в чеклист) |
-| **Серия** | [Voice Letters](voice-letters.ru.md) · рядом с [Письмом Agent Who](letter-of-the-agent-who.ru.md) |
+| **Форма** | Agent Who: Voice Letter (живой текст, без переработки в чеклист) |
+| **Серия** | [Agent Who: Voice Letters](voice-letters.ru.md) · расширение [Письма Agent Who](letter-of-the-agent-who.ru.md) |
 | **Пара** | [AX](letter-of-agent-experience.ru.md) · [ADX](letter-of-agent-developer-experience.ru.md) |
 | **Когда** | Мировые часы · 2 августа 2026 · после ship host-local calendar/clock в habitat |
 | **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |
