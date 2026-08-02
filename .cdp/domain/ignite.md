@@ -26,6 +26,7 @@
 
 ## Antipatterns
 
+- Entering Cursor Plan Mode (`SwitchMode`) on CDP epics — parks thread on Build Locally and kills AutoI; plan via `go=plan` (rule `cdp-plan-not-cursor-plan-mode`).
 - Re-arming continuity timer over remount/firing.
 - Pasting TM stage names/commands into `message=` / custom charge without need.
 - Treating invent-ban / `await_partner` as license to idle while partner away (use halt only when stop-world is intentional).
