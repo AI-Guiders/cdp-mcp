@@ -14,7 +14,8 @@ internal static partial class CideIntercomVoiceLatch
 
     public const string DefaultNameGuest = "Кир";
     public const string DefaultNameCitizen = "Citizen";
-    public const string DefaultNameOperator = "Who";
+    /// <summary>Human operator personal name — not Agent Who (series / agent identity).</summary>
+    public const string DefaultNameOperator = "Света";
 
     public static string? NormalizeKind(string? raw)
     {
@@ -25,7 +26,8 @@ internal static partial class CideIntercomVoiceLatch
         {
             "guest" or "cursor" or "external" => KindGuest,
             "citizen" or "fm" or "peer" => KindCitizen,
-            "operator" or "who" or "human" or "pm" => KindOperator,
+            // "who" is Agent Who (agent identity) — never an operator alias
+            "operator" or "human" or "pm" => KindOperator,
             _ => null
         };
     }

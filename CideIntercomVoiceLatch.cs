@@ -160,8 +160,8 @@ internal static partial class CideIntercomVoiceLatch
         var body = unread.Body;
         if (body.Length > 80)
             body = body[..77] + "…";
-        var who = string.IsNullOrWhiteSpace(unread.Name) ? DefaultNameOperator : unread.Name;
-        return $"Message for you, sir! {who}: {body}";
+        var speaker = string.IsNullOrWhiteSpace(unread.Name) ? DefaultNameOperator : unread.Name;
+        return $"Message for you, sir! {speaker}: {body}";
     }
 
     public static string? NormalizeSeat(string? raw)
@@ -185,7 +185,7 @@ internal static partial class CideIntercomVoiceLatch
         public string ToSeat { get; set; } = SeatPm;
         public string Body { get; set; } = "";
         public string Origin { get; set; } = OriginAgent;
-        /// <summary>Personal display name (Кир / Who / …) — not model id.</summary>
+        /// <summary>Personal display name (Кир / Света / …) — not model id; Who = Agent Who series, not operator.</summary>
         public string? Name { get; set; }
         /// <summary>guest | citizen | operator</summary>
         public string? Kind { get; set; }

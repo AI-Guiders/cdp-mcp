@@ -132,7 +132,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 | Topic cards | XAML/`GlassIntercomTopics` + empty hint; cluster 30m | P0b partial |
 | Message↔code | `/open` + journal chips `[path:line]` + `/attach` → OpenCodeFile; Avalonia Skia still fuller | **P2 thin chips** |
 | FDS (Flight Data Storage) | MFD shelf peels plan/shared/report/pressure · `/fds` | **P1 shipped** |
-| Intercom identity | `Кир · guest` / `Who · operator` RoleLabel | **P0 shipped** |
+| Intercom identity | `Кир · guest` / `Света · operator` RoleLabel · Who ≠ operator | **P0 shipped** |
 
 ### P0→P3
 
@@ -145,6 +145,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 Calendar: soft ~2→9 · hard 10.08→15.08 · D-day **15.08**.
 
 ## last_ship
+- 2026-08-02: Intercom operator default **Света** (not Who); `kind=who`/`origin=who` no longer map to operator/human — Who = Agent Who series. Glass LatchPaint parity. cdp-mcp **0.5.494**
 - 2026-08-02: Glass chord deepen — Ctrl+K `fd/at/op/mb/ms` + Ctrl+Q FDS/attach/open/build/tests palette entries (still ≠ full Avalonia CascadeChord)
 - 2026-08-02: ADR0128 Glass thin attach chips — `GlassAttachChipPeel` body/`attachments` · feed chip buttons · `/attach` composer bracket; tests 4/4 (≠ full Avalonia Skia)
 - 2026-08-02: FDS shelf flesh — plan/shared/report/pressure pulses on `GlassFdsGlance` · `/fds` · CabinGlass `fds` → FlightDataStorage; cdp-mcp **0.5.491**

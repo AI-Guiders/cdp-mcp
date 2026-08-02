@@ -103,22 +103,22 @@ public class CideIntercomVoiceLatchTests : IDisposable
     }
 
     [Fact]
-    public void Channel_send_from_pm_defaults_operator_who()
+    public void Channel_send_from_pm_defaults_operator_sveta()
     {
         var sendJson = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
         {
             ["op"] = JsonSerializer.SerializeToElement("send"),
             ["from"] = JsonSerializer.SerializeToElement("pm"),
             ["to"] = JsonSerializer.SerializeToElement("pf"),
-            ["body"] = JsonSerializer.SerializeToElement("who as operator")
+            ["body"] = JsonSerializer.SerializeToElement("sveta as operator")
         });
         using var send = JsonDocument.Parse(sendJson);
         Assert.True(send.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal("pm", send.RootElement.GetProperty("message").GetProperty("from").GetString());
         Assert.Equal("human", send.RootElement.GetProperty("message").GetProperty("origin").GetString());
-        Assert.Equal("Who", send.RootElement.GetProperty("message").GetProperty("name").GetString());
+        Assert.Equal("Света", send.RootElement.GetProperty("message").GetProperty("name").GetString());
         Assert.Equal("operator", send.RootElement.GetProperty("message").GetProperty("kind").GetString());
-        Assert.Contains("Who · operator", send.RootElement.GetProperty("message").GetProperty("role_label").GetString());
+        Assert.Contains("Света · operator", send.RootElement.GetProperty("message").GetProperty("role_label").GetString());
         Assert.NotNull(CideIntercomVoiceLatch.TryUnreadForPf());
     }
 
