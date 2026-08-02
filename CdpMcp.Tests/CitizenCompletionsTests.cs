@@ -89,6 +89,8 @@ public class CitizenCompletionsTests : IDisposable
         Assert.Contains("dialog peer", built.System, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("WIRE OUTPUT CONTRACT", built.System, StringComparison.Ordinal);
         Assert.Contains("Prose is primary", built.System, StringComparison.Ordinal);
+        Assert.Contains("Equal standing", built.System, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Света", built.System, StringComparison.Ordinal);
     }
 
     [Fact]
