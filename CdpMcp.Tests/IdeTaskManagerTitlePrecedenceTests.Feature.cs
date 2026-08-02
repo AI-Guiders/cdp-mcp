@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using CdpMcp.IntentWorkspace;
 using Microsoft.EntityFrameworkCore;
 using OutWit.Database.EntityFramework.Extensions;
@@ -7,6 +7,26 @@ using Xunit;
 namespace CdpMcp.Tests;
 public sealed partial class IdeTaskManagerTitlePrecedenceTests
 {
+    [Fact]
+    public void FindIntent_query_with_chrome_does_not_match_bare_twin()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-chrome-twin-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            var bare = store.IntentUpsert(state, "Standalone CDP without Cursor host by 15.08", null);
+            Assert.Null(store.FindIntentIdByTitle("Standalone CDP without Cursor host by 15.08 @act #CDP"));
+            var tagged = store.IntentUpsert(state, "Standalone CDP without Cursor host by 15.08 @act #CDP", null);
+            Assert.Equal(tagged.intent_id, store.FindIntentIdByTitle("Standalone CDP without Cursor host by 15.08 @act #CDP"));
+            Assert.NotEqual(bare.intent_id, tagged.intent_id);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
     [Fact]
     public void Done_by_feature_title_strips_board_chrome()
     {
