@@ -76,6 +76,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 37 | [prefer_autonomous: я не глушу Guest Autoi CDT](voice-letter-prefer-autonomous-guest-cdt-fallthrough.ru.md) | ignite · Guest Autoi CDT fallthrough · IsHabitatLatchForArm · 0.5.532 |
 | 38 | [Meta tip: я не учу себя Composer-only Autoi](voice-letter-meta-tip-habitat-prefer.ru.md) | ignite · Meta tip habitat prefer · Guest CDT fallthrough · 0.5.533 |
 | 39 | [noop disarm: я не бужу Guest Autoi из пустого жеста](voice-letter-disarm-noop-no-seed.ru.md) | ignite · disarm removed=0 no seed · Guest Autoi thrash · 0.5.535 |
+| 40 | [seed fire: я не бужу Guest Autoi, когда лист уже есть](voice-letter-seed-fire-board-recheck.ru.md) | ignite · seed fire board recheck · leaf-wake redirect · 0.5.536 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
 | 32 | [Composer gone: я не гоняю CDT после Intercom mirror](voice-letter-composer-gone-habitat-skip.ru.md) | ignite · composer_gone · ShouldSkipCdtAfterIntercomMirror · 0.5.526 |
