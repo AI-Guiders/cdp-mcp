@@ -67,7 +67,7 @@
 
 ## last_ship
 
-- 0.5.547: Guest Autoi Stop ≠ habitat-success (`ShouldHabitatSkipWhenComposerUnavailable` · CDT wait/requeue) · 2026-08-03
+- 0.5.547: Guest Autoi Stop ≠ habitat-success (`ShouldHabitatSkipWhenComposerUnavailable` · CDT wait/requeue) · VL #50 · 2026-08-03
 - 0.5.546: Channel XML tip parity — leaf Fly / HILD ≤3s + TimerLoop pull-forward (residual after Meta 0.5.545) · VL #49 · 2026-08-03
 - 0.5.545: leaf Fly TimerLoop pull-forward armed last_once → ≤3s (`PullForwardLongWorkTimersOnLeafFly` · `3s(leaf_pull)`) · VL #48 · 2026-08-02
 - 0.5.544: Meta `cdp_ignite` tip parity — leaf Fly / HILD ≤3s clamp (residual after 0.5.543) · 2026-08-02
