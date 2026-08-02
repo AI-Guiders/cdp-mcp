@@ -14,6 +14,8 @@ public class MetaToolCatalogIgniteTipTests
         Assert.Contains("insurance ≠ park", tip, StringComparison.Ordinal);
         Assert.Contains("canonical charge", tip, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("clamped ≤3m", tip, StringComparison.Ordinal);
+        Assert.Contains("ContinuityFlight.Fly", tip, StringComparison.Ordinal);
+        Assert.Contains("TimerLoop leaf Fly pull-forward", tip, StringComparison.Ordinal);
         Assert.DoesNotContain("AutoIgnition via Chrome DevTools (CDT) into Cursor Composer", tip, StringComparison.Ordinal);
     }
 }
