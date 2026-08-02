@@ -24,6 +24,7 @@ internal static class CockpitHostLatchHydration
         "ecl-LATEST.json",
         "pressure-LATEST.json",
         "ignite-LATEST.json",
+        "ignite-wake-LATEST.json",
         "scope-LATEST.json",
         "sys-LATEST.json",
         "onboard-LATEST.json",

@@ -46,6 +46,23 @@ public class CockpitHostLatchHydrationTests : IDisposable
     }
 
     [Fact]
+    public void Touch_bumps_ignite_wake_latch()
+    {
+        var path = Path.Combine(_root, "ignite-wake-LATEST.json");
+        File.WriteAllText(path, """
+            {"schema":"ignite_wake_latch/v0","arm_id":"arm-1","channel":"habitat","charge":"Resume.","stamped_utc":"2020-01-01T00:00:00.0000000+00:00"}
+            """.Trim());
+
+        Assert.Equal(1, CockpitHostLatchHydration.TouchAgentLatchesForHostStart());
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(path));
+        var stamp = doc.RootElement.GetProperty("stamped_utc").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(stamp));
+        Assert.NotEqual("2020-01-01T00:00:00.0000000+00:00", stamp);
+        Assert.Equal("habitat", doc.RootElement.GetProperty("channel").GetString());
+    }
+
+    [Fact]
     public void Touch_skips_missing_files()
     {
         Assert.Equal(0, CockpitHostLatchHydration.TouchAgentLatchesForHostStart());
