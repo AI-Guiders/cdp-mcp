@@ -128,10 +128,10 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 | Area | State | Verdict |
 |------|-------|---------|
 | Ctrl+K / Ctrl+Q | Local Glass catalog (`MainWindow.CascadeChord`) — not full Avalonia CascadeChord | P1 parity deepen |
-| EICAS | Latch peels → thin `MfdHealth` TextBlock (`LatchPaint.Eicas`) — not assembled instruments | P1 clearer band |
-| Topic cards | XAML/`GlassIntercomTopics` exist; often empty journal / thin vs Avalonia Skia | P0b visible+useful |
-| Message↔code | Avalonia ADR 0128; **not** peeled to WPF Glass | P0b/P1 |
-| FDS (Flight Data Storage) | **Does not exist** (≠ FDR `go=flight_data`) | P1 M-page skeleton |
+| EICAS | Assembled stack alert+qrh+ecl on MfdHealth (severity only) · CLEAR when idle | **P1 act** clearer band |
+| Topic cards | XAML/`GlassIntercomTopics` + empty hint; cluster 30m | P0b partial |
+| Message↔code | `/open path:line` thin; full ADR 0128 Avalonia-only | P0b thin · P2 chips |
+| FDS (Flight Data Storage) | MFD `FlightDataStorage` skeleton glance ≠ FDR | **P1 act** skeleton |
 | Intercom identity | was `@PF→@PM · agent\|human` | **P0 act** name+kind |
 
 ### P0→P3
@@ -145,6 +145,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 Calendar: soft ~2→9 · hard 10.08→15.08 · D-day **15.08**.
 
 ## last_ship
+- 2026-08-02: P1 EICAS assembled stack (alert+qrh+ecl) + severity color · FDS M-page skeleton `FlightDataStorage` (`GlassFdsGlance` ≠ FDR)
 - 2026-08-02: Glass P0b — Topics empty hint + `/open path[:line]` thin attach↔code peel (not full ADR 0128)
 - 2026-08-02: Intercom identity name+kind (guest/citizen/operator) — latch+journal+Glass RoleLabel; defaults Кир/guest · Who/operator; cdp-mcp **0.5.490**
 - 2026-08-02: dig lived Glass UX gaps for standalone 15.08 — matrix above; north star ≠ wire-citizen alone
