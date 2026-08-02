@@ -102,6 +102,13 @@ internal static partial class IdeIgniteArmHost
         {
             foreach (var a in Arms)
             {
+                // Pre-0.5.549 tombstones: click_failed (etc.) sat as visible error forever.
+                if (TryReviveRequeueableErrorUnlocked(a, now, backoff, "reclaimed_error_"))
+                {
+                    ids.Add(a.Id);
+                    continue;
+                }
+
                 var stuckFiring = a.Status == "firing";
                 // last_once already entered fire — latch awaiting (do not revive / multi-inject)
                 if (stuckFiring && a.LastOnce && a.FiredUtc is not null)
@@ -155,6 +162,25 @@ internal static partial class IdeIgniteArmHost
             IdeTeethTape.Record("wake_drop", armId: id, detail: "reclaim_once_fired");
 
         return ids;
+    }
+
+    /// <summary>Caller holds Gate. Revive status=error when ShouldRequeueBusy would have kept the arm alive.</summary>
+    static bool TryReviveRequeueableErrorUnlocked(IgniteArm a, DateTimeOffset now, TimeSpan backoff, string lastErrorPrefix)
+    {
+        if (a.Status != "error")
+            return false;
+        if (!ShouldRequeueBusy(a.Event, a.LastError ?? a.SendError) || IsToolWakeArmId(a.Id))
+            return false;
+        var err = a.LastError ?? a.SendError ?? "error";
+        a.Status = "armed";
+        a.LastError = lastErrorPrefix + err;
+        a.DueUtc = now + backoff;
+        a.FiredUtc = null;
+        a.SendInvokedUtc = null;
+        a.SendOk = null;
+        a.SendError = null;
+        Firing.TryRemove(a.Id, out _);
+        return true;
     }
 
     /// <summary>Test hook: mutate in-memory arm under Gate.</summary>
