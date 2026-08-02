@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.460</Version>
+    <Version>0.5.461</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -228,4 +228,29 @@
       <DependentUpon>IdeCockpitHostChannel.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="IdeRefactorPlanChannel.Ops.cs"><DependentUpon>IdeRefactorPlanChannel.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="IdeRefactorPlanChannel.Ops.cs">
+      <DependentUpon>IdeRefactorPlanChannel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeLearnChannel.Stash.cs">
+      <DependentUpon>IdeLearnChannel.Ops.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeLearnChannel.Query.cs">
+      <DependentUpon>IdeLearnChannel.Ops.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeLearnChannel.Promote.cs">
+      <DependentUpon>IdeLearnChannel.Ops.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeFlightDataRecorder.Tape.cs">
+      <DependentUpon>IdeFlightDataRecorder.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="IdeScopeChannel.Ops.cs"><DependentUpon>IdeScopeChannel.cs</DependentUpon></Compile></ItemGroup></Project>
