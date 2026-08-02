@@ -7,7 +7,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Soft organ <c>go=surface_desk</c> / Meta <c>cdp_glass</c> — agent surface parity RPC to Glass WPF
-/// via surface-cmd / surface-reply latches (request/reply). Full debt DoD; v0 ships Sense layout.
+/// via surface-cmd / surface-reply latches (request/reply).
 /// Contract: cascade-ide docs/design/agent-surface-parity-contract-v0.md
 /// </summary>
 internal static class IdeGlassSurfaceChannel
@@ -20,14 +20,14 @@ internal static class IdeGlassSurfaceChannel
 
     static readonly HashSet<string> Implemented = new(StringComparer.OrdinalIgnoreCase)
     {
-        "scene", "status", "caps", "layout"
+        "scene", "status", "caps", "layout",
+        "highlight", "focus", "click", "set_text", "send_keys",
+        "appearance", "colors", "colors_under_cursor"
     };
 
     static readonly string[] PlannedOps =
     [
-        "appearance", "colors", "highlight",
-        "focus", "click", "set_text", "send_keys", "set_control_layout", "set_panel_size",
-        "request_confirmation"
+        "set_control_layout", "set_panel_size", "request_confirmation"
     ];
 
     public static string HandleJson(
@@ -47,10 +47,10 @@ internal static class IdeGlassSurfaceChannel
             return op switch
             {
                 "scene" or "status" or "caps" => Scene(),
-                "layout" => Layout(args),
-                "appearance" or "colors" or "colors_under_cursor" or "highlight"
-                    or "focus" or "click" or "set_text" or "send_keys"
-                    or "set_control_layout" or "set_panel_size" or "request_confirmation"
+                "layout" or "highlight" or "focus" or "click" or "set_text" or "send_keys"
+                    or "appearance" or "colors" or "colors_under_cursor"
+                    => Rpc(op, args),
+                "set_control_layout" or "set_panel_size" or "request_confirmation"
                     => NotImplemented(op),
                 _ => Scene()
             };
@@ -77,7 +77,7 @@ internal static class IdeGlassSurfaceChannel
         go = GoName,
         tool = ToolName,
         op = "scene",
-        pulse = "surface · glass RPC · layout live · drive planned",
+        pulse = "surface · glass RPC · layout+aim+drive live · layout/panel/confirm planned",
         ipc = new
         {
             cmd = GlassSurfaceIpc.CmdPath,
@@ -86,32 +86,25 @@ internal static class IdeGlassSurfaceChannel
         },
         implemented = Implemented.OrderBy(x => x).ToArray(),
         planned = PlannedOps,
-        hint = "op=layout — full Glass visual tree (all top-levels). Host must be running (cdp_cockpit_host)."
+        hint = "op=layout|highlight|focus|click|set_text|send_keys|appearance|colors. Glass host required."
     };
 
-    static object Layout(IReadOnlyDictionary<string, JsonElement> args)
+    static object Rpc(string op, IReadOnlyDictionary<string, JsonElement> args)
     {
         var timeoutMs = 8000;
         if (args.TryGetValue("timeout_ms", out var t) && t.TryGetInt32(out var ti) && ti > 0)
             timeoutMs = Math.Clamp(ti, 500, 60_000);
 
-        var (ok, reply, error) = GlassSurfaceIpc.Call("layout", args: null, timeoutMs);
-        if (!ok)
+        var rpcArgs = new JsonObject();
+        foreach (var key in new[] { "name", "text", "keys", "layout", "panel", "width", "height", "message" })
         {
-            return new
-            {
-                schema = Schema,
-                ok = false,
-                go = GoName,
-                tool = ToolName,
-                op = "layout",
-                error = error ?? "surface_rpc_failed",
-                detail = "Glass host down or timeout — start via cdp_cockpit_host / ensure GlassSurfaceCommandHub.",
-                ipc = new { cmd = GlassSurfaceIpc.CmdPath, reply = GlassSurfaceIpc.ReplyPath }
-            };
+            var v = Opt(args, key);
+            if (v is not null)
+                rpcArgs[key] = v;
         }
 
-        if (reply is null)
+        var (ok, reply, error) = GlassSurfaceIpc.Call(op, rpcArgs.Count > 0 ? rpcArgs : null, timeoutMs);
+        if (!ok || reply is null)
         {
             return new
             {
@@ -119,15 +112,24 @@ internal static class IdeGlassSurfaceChannel
                 ok = false,
                 go = GoName,
                 tool = ToolName,
-                op = "layout",
-                error = error ?? "surface_rpc_failed"
+                op,
+                error = error ?? "surface_rpc_failed",
+                detail = "Glass host down or timeout — start via cdp_cockpit_host.",
+                ipc = new { cmd = GlassSurfaceIpc.CmdPath, reply = GlassSurfaceIpc.ReplyPath }
             };
         }
 
         var root = reply.Value;
         object? result = null;
         if (root.TryGetProperty("result", out var resultEl))
-            result = JsonNode.Parse(resultEl.GetRawText());
+        {
+            result = resultEl.ValueKind switch
+            {
+                JsonValueKind.String => resultEl.GetString(),
+                JsonValueKind.Null => null,
+                _ => JsonNode.Parse(resultEl.GetRawText())
+            };
+        }
 
         return new
         {
@@ -135,7 +137,7 @@ internal static class IdeGlassSurfaceChannel
             ok = root.TryGetProperty("ok", out var okEl) && okEl.GetBoolean(),
             go = GoName,
             tool = ToolName,
-            op = "layout",
+            op,
             id = root.TryGetProperty("id", out var idEl) ? idEl.GetString() : null,
             result,
             error = root.TryGetProperty("error", out var errEl) ? errEl.GetString() : null,
@@ -151,7 +153,7 @@ internal static class IdeGlassSurfaceChannel
         tool = ToolName,
         op,
         error = "not_implemented",
-        detail = "Full surface debt planned; v0 ships Sense layout only. See agent-surface-parity-contract-v0.md.",
+        detail = "Remaining surface debt: set_control_layout|set_panel_size|request_confirmation.",
         next = PlannedOps
     };
 
