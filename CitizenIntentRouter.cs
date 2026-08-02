@@ -24,6 +24,7 @@ internal static partial class CitizenIntentRouter
         Shell,
         Debug,
         Git,
+        Find,
         Detail,
         Cmd,
         Refuse,
@@ -240,6 +241,16 @@ internal static partial class CitizenIntentRouter
             return RouteGit(raw);
         }
 
+        if (raw.Equals("find", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("find ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("find query=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("search", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("search ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("search query=", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteFind(raw);
+        }
+
         if (TryKv(raw, out var detail, out var scene)
             && (!string.IsNullOrEmpty(detail) || !string.IsNullOrEmpty(scene)))
         {
@@ -298,6 +309,7 @@ internal static partial class CitizenIntentRouter
             "shell" or "m" => "shell_scene",
             "alert" or "sa" => "alert",
             "pressure" => "pressure",
+            "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
     }
