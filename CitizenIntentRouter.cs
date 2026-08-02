@@ -16,6 +16,7 @@ internal static partial class CitizenIntentRouter
         Open,
         Replace,
         Create,
+        Append,
         Build,
         Test,
         Mcp,
@@ -169,6 +170,20 @@ internal static partial class CitizenIntentRouter
                 Path: path,
                 NewString: body,
                 Op: overwrite ? "overwrite" : null,
+                Go: "buffer");
+        }
+
+        if (raw.StartsWith("append ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("append path=", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!TryParseAppend(raw, out var path, out var body, out var reason))
+                return new Route(Verb.Unknown, raw, Ok: false, Reason: reason);
+            return new Route(
+                Verb.Append,
+                raw,
+                Ok: true,
+                Path: path,
+                NewString: body,
                 Go: "buffer");
         }
 
