@@ -116,8 +116,13 @@ internal static partial class IdeIgniteArmHost
                 : "wait for event")),
         hint = arm.LastOnce
             ? LastOnceArmHint(IsAutonomousArmed())
+              + (arm.InRaw is { } ir && ir.Contains("clamped", StringComparison.OrdinalIgnoreCase)
+                  ? " Duration clamped to 3m under autonomous — 45m looks like sleep; force=true to override."
+                  : "")
             : arm.Event == "timer"
-                ? "Harness fires when due — end your turn; no terminal poll loop."
+                ? (IsAutonomousArmed()
+                    ? "Harness fires when due — keep flying started TM leaf; timer is insurance, not a nap."
+                    : "Harness fires when due — end your turn; no terminal poll loop.")
                 : $"Harness fires on {arm.Event} (ok_only={arm.OkOnly}). Kick cdp_build/cdp_test then end turn."
     };
 

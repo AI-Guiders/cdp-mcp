@@ -55,9 +55,11 @@
 - LeafPlateau `autonomous-seed-wake` firing Guest Autoi while next incomplete leaf already landed mid-window (pre-0.5.536) — CDT thrash with wrong "seed next leaf" charge; fire-time recheck → `leaf-wake`.
 - Arming `last_once` then parking on the timer while a TM leaf is **started** under autonomous (pre-0.5.537) — tips taught `End turn` / `before idle`; ACC: insurance ≠ idle license when partner away.
 - Continuity scene `next_step=wait for event` + canonical charge `re-arm when idle` under autonomous (pre-0.5.538) — same park teaching via arms.explain / Composer wake body.
+- Arming `last_once in=45m` under autonomous (pre-0.5.539) — accidental end-turn looks like "working" for half an hour; clamp ≤3m (`ClampAutonomousLastOnceInsurance`; `force=true` escape).
 
 ## last_ship
 
+- 0.5.539: autonomous last_once timer clamp ≤3m (`ClampAutonomousLastOnceInsurance`) · VL #43 · 2026-08-02
 - 0.5.538: ContinuityExplain + CanonicalComposerCharge under ACC — timer/insurance ≠ park (`ContinuityArmedNextStep` · charge rewrite) · VL #42 · 2026-08-02
 - 0.5.537: ArmPath/LeafChain/Meta tips under autonomous — last_once + leaf-wake insurance ≠ park while TM leaf started (`LastOnceArmHint` · `ArmForLeafHint`) · VL #41 · 2026-08-02
 - 0.5.536: autonomous-seed fire rechecks TM incomplete leaf → suppress CDT + redirect `leaf-wake` (`TrySuppressAutonomousSeedBeforeDelivery`) · VL #40 · 2026-08-02
