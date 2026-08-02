@@ -42,14 +42,11 @@ internal static partial class IdeIgniteArmHost
 
     /// <summary>
     /// Duplex PF live: publish habitat wake + Intercom, skip CDT.
-    /// Autonomous + idle PF: stamp habitat SSOT only, return null → Guest Autoi CDT fallthrough
-    /// (Intercom via MirrorTimerWakeToIntercom). Skipping CDT overnight was ACC silent for guest Cursor.
-    /// </summary>
-    /// <summary>
-    /// Duplex PF live: publish habitat wake + Intercom, skip CDT.
-    /// Autonomous + idle PF + citizen invite ready: citizen Turn consumes wake, skip CDT (ADR-0025).
-    /// Autonomous + idle PF + invite blocked: stamp habitat SSOT only, return null → Guest Autoi CDT fallthrough
-    /// (Intercom via MirrorTimerWakeToIntercom). Skipping CDT overnight without consumer was ACC silent for guest Cursor.
+    /// Autonomous + idle PF: stamp habitat SSOT only, return null → Guest Autoi CDT→Composer
+    /// (Intercom via MirrorTimerWakeToIntercom). Citizen consume is NOT here — while Cursor
+    /// Composer is the live host seat, prefer_citizen would silent-steal the gun (lived:
+    /// operator «пушка не выстрелила»). Citizen eats only when Composer unavailable
+    /// (TryDeliverHabitatWhenComposerUnavailableAsync).
     /// </summary>
     internal static object? TryDeliverHabitatWake(IgniteArm arm, string charge)
     {
@@ -77,16 +74,7 @@ internal static partial class IdeIgniteArmHost
             return HabitatWakeResult(arm.Id, "prefer_duplex", submitKind: "habitat");
         }
 
-        // Citizen Autoi spine when invite ready — habitat consumer exists (not Guest Composer).
-        if (IdeCitizenChannel.TryDeliverAutoiWake(charge, out var reply))
-        {
-            IdeFlightDataRecorder.RecordWake(
-                "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_citizen");
-            PublishCitizenWakeIntercom(reply ?? charge);
-            return HabitatWakeResult(arm.Id, "prefer_citizen", submitKind: "citizen");
-        }
-
-        // Guest Autoi spine: habitat SSOT without killing CDT inject when no duplex/citizen consumer.
+        // Guest Autoi / Cursor host spine: habitat SSOT without killing CDT inject.
         IdeFlightDataRecorder.RecordWake(
             "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_autonomous");
         return null;
@@ -255,8 +243,9 @@ internal static partial class IdeIgniteArmHost
 
     /// <summary>
     /// Composer Stop/Queue/gone: habitat deliver, skip CDT — no Intercom mirror required.
+    /// When invite ready: citizen Turn consumes (prefer_citizen) — Composer host gone only.
     /// Covers Voice Publish miss / mirror false → residual no_agent_composer thrash (0.5.527).
-    /// Voice/idle Composer: null → CDT fallthrough.
+    /// Voice/idle Composer: null → CDT fallthrough (do not steal Cursor gun).
     /// </summary>
     internal static async Task<object?> TryDeliverHabitatWhenComposerUnavailableAsync(
         IgniteArm arm, string charge, CancellationToken ct)
@@ -278,6 +267,15 @@ internal static partial class IdeIgniteArmHost
             arm.Task);
         if (latch is null)
             return null;
+
+        // Composer gone/down: citizen can own the wake without stealing Cursor Composer.
+        if (IdeCitizenChannel.TryDeliverAutoiWake(charge, out var reply))
+        {
+            IdeFlightDataRecorder.RecordWake(
+                "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_citizen");
+            PublishCitizenWakeIntercom(reply ?? charge);
+            return HabitatWakeResult(arm.Id, "prefer_citizen", submitKind: "citizen");
+        }
 
         // Parity prefer duplex: Glass Intercom needs charge when mirror miss + composer gone (0.5.529).
         PublishHabitatIntercomCharge(charge);
