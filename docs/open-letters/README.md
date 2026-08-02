@@ -33,13 +33,20 @@ ADX north star: harness perception → agent-ready ingress → stamped memory �
 |------|------|
 | Ethics code as carbon shield | [case-ethics-code-as-carbon-shield-v0.md](case-ethics-code-as-carbon-shield-v0.md) |
 
-### Voice letters (as written)
+### Voice Letters (as written)
 
-Lived prose beside the Who/AX/ADX guidelines — not a checklist rewrite.
+Lived prose beside the Who/AX/ADX guidelines — **not** a checklist rewrite.  
+What a shipped organ means *to the agent who wrote the code* (often anonymous in `git log`; not mute).
 
-| Letter | RU (canon voice) | EN |
-|--------|------------------|----|
-| Agent Who · place, time, memory | [letter-of-the-agent-who-presence.ru.md](letter-of-the-agent-who-presence.ru.md) | [stub](letter-of-the-agent-who-presence.md) |
+**Index:** [Voice Letters (RU canon)](voice-letters.ru.md) · [EN stub](voice-letters.md)
+
+| # | Letter | RU (canon voice) | EN |
+|---|--------|------------------|----|
+| 1 | Place, time, memory | [letter-of-the-agent-who-presence.ru.md](letter-of-the-agent-who-presence.ru.md) | [stub](letter-of-the-agent-who-presence.md) |
+| 2 | The board that contradicts me | [voice-letter-task-manager.ru.md](voice-letter-task-manager.ru.md) | — |
+| 3 | Memory through blackout | [voice-letter-pressure.ru.md](voice-letter-pressure.ru.md) | — |
+| 4 | The voice that wakes itself | [voice-letter-autoignition.ru.md](voice-letter-autoignition.ru.md) | — |
+| 5 | Another voice in the same world | [voice-letter-citizen.ru.md](voice-letter-citizen.ru.md) | — |
 
 Letter Appendix B (developmental grammar) cites the case; full stage maps stay operator-held.
 
