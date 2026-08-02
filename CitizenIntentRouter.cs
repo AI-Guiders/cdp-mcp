@@ -15,6 +15,7 @@ internal static class CitizenIntentRouter
         PaneFull,
         Open,
         Replace,
+        Build,
         Detail,
         Cmd,
         Refuse,
@@ -136,6 +137,14 @@ internal static class CitizenIntentRouter
                 Go: "buffer");
         }
 
+        if (raw.Equals("build", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("build ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("build path=", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = ExtractBuildPath(raw);
+            return new Route(Verb.Build, raw, Ok: true, Path: path, Go: "build");
+        }
+
         if (TryKv(raw, out var detail, out var scene)
             && (!string.IsNullOrEmpty(detail) || !string.IsNullOrEmpty(scene)))
         {
@@ -207,6 +216,25 @@ internal static class CitizenIntentRouter
 
         if (raw.StartsWith("open ", StringComparison.OrdinalIgnoreCase))
             return raw["open ".Length..].Trim().Trim('"');
+
+        return null;
+    }
+
+    static string? ExtractBuildPath(string raw)
+    {
+        if (raw.Equals("build", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        const string pathEq = "path=";
+        var idx = raw.IndexOf(pathEq, StringComparison.OrdinalIgnoreCase);
+        if (idx >= 0)
+            return raw[(idx + pathEq.Length)..].Trim().Trim('"');
+
+        if (raw.StartsWith("build ", StringComparison.OrdinalIgnoreCase))
+        {
+            var rest = raw["build ".Length..].Trim().Trim('"');
+            return rest.Length == 0 ? null : rest;
+        }
 
         return null;
     }
