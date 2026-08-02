@@ -9,8 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.452</Version>
-    
+    <Version>0.5.453</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -132,5 +131,12 @@
       <DependentUpon>IdeLanguageTools.cs</DependentUpon>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IntentWorkspace\IntentWorkspaceStore.ScriptLastRun.cs">
+      <DependentUpon>IntentWorkspaceStore.Find.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IntentWorkspace\IntentWorkspaceStore.WorkFocus.cs">
+      <DependentUpon>IntentWorkspaceStore.Find.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>
-
