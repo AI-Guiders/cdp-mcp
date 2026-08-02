@@ -26,6 +26,59 @@ public class CitizenCompletionsTests : IDisposable
         CitizenCompletions.TestOpenAiApiKey = null;
         CitizenCompletions.TestOpenAiBaseUrl = null;
         CitizenCompletions.ResetHttpForTests();
+        CitizenDialogHistory.ResetForTests();
+    }
+
+    [Fact]
+    public void Dialog_history_prepends_prior_turns()
+    {
+        CitizenDialogHistory.ResetForTests();
+        CitizenDialogHistory.SetTestMemory(
+        [
+            new CitizenCompletions.ChatMessage("user", "раз"),
+            new CitizenCompletions.ChatMessage("assistant", "два"),
+        ]);
+        try
+        {
+            var built = CitizenCompletions.Build(
+                "три",
+                inject: false,
+                mode: CitizenTurnMode.Dialog,
+                history: true);
+            Assert.Equal(3, built.Messages.Count);
+            Assert.Equal("раз", built.Messages[0].Content);
+            Assert.Equal("два", built.Messages[1].Content);
+            Assert.Equal("три", built.Messages[2].Content);
+        }
+        finally
+        {
+            CitizenDialogHistory.ResetForTests();
+        }
+    }
+
+    [Fact]
+    public void Dialog_history_false_skips_priors()
+    {
+        CitizenDialogHistory.ResetForTests();
+        CitizenDialogHistory.SetTestMemory(
+        [
+            new CitizenCompletions.ChatMessage("user", "old"),
+            new CitizenCompletions.ChatMessage("assistant", "reply"),
+        ]);
+        try
+        {
+            var built = CitizenCompletions.Build(
+                "new",
+                inject: false,
+                mode: CitizenTurnMode.Dialog,
+                history: false);
+            Assert.Single(built.Messages);
+            Assert.Equal("new", built.Messages[0].Content);
+        }
+        finally
+        {
+            CitizenDialogHistory.ResetForTests();
+        }
     }
 
     [Fact]

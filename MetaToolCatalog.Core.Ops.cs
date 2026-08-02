@@ -100,15 +100,18 @@ internal static partial class MetaToolCatalog
             ttl_s = new { type = "integer", description = "presence: optional TTL seconds (composing/busy stale after)" }
         }
     }),
-    Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn. turn message= [mode=wire|dialog] [board=] [dry_run=true] [model=] — persona + wire inject; dialog=prose peer, wire=hands @intent. OpenAI-compat (Cloud.ru FM via open_ai_*) or Anthropic via ai-keys.toml. Alias go=citizen.", new
+    Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn|history|clear. turn message= [mode=wire|dialog] [history=true] [reset=true] [board=] [dry_run=true] [model=] — dialog=prose peer + multi-turn memory; wire=hands @intent. Alias go=citizen.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|keys|turn (default scene)" },
+            op = new { type = "string", description = "scene|keys|turn|history|clear (default scene)" },
             message = new { type = "string", description = "turn: user text" },
             body = new { type = "string", description = "turn: alias of message" },
             mode = new { type = "string", description = "turn: wire (default, hands @intent) | dialog (prose peer; aliases prose|chat|talk|peer)" },
+            history = new { type = "boolean", description = "turn dialog: include prior turns (default true); false = amnesiac turn" },
+            reset = new { type = "boolean", description = "turn: clear dialog history before this message" },
+            clear_history = new { type = "boolean", description = "turn: alias of reset" },
             board = new { type = "string", description = "turn: optional desk board lines (newline seat rows); omit -> auto-bind live desk seats + TM pulse" },
             sa = new { type = "string", description = "turn: optional sa field" },
             peer = new { type = "string", description = "turn: optional peer field" },
