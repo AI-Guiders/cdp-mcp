@@ -16,7 +16,7 @@ internal static partial class IdeIgniteArmHost
 
     /// <summary>
     /// Duplex partner (PF) actively in habitat — busy|composing after effective stale.
-    /// Idle/stale/missing → Composer adapter remains sole delivery.
+    /// Idle/stale/missing → Composer adapter remains delivery; Intercom may still mirror (see MirrorTimerWakeToIntercom).
     /// </summary>
     internal static bool IsHabitatPartnerLive(DateTimeOffset? nowUtc = null)
     {
@@ -71,6 +71,34 @@ internal static partial class IdeIgniteArmHost
             arm_id = arm.Id
         };
     }
+
+    /// <summary>
+    /// Prefer-eligible timer but PF idle/stale: mirror charge to Intercom without skipping Composer.
+    /// Glass/PM see Autoi wakes; overnight CDT→Composer fallthrough stays intact.
+    /// </summary>
+    internal static bool MirrorTimerWakeToIntercom(IgniteArm arm, string charge)
+    {
+        if (!MayPreferHabitatOverComposer(arm))
+            return false;
+        if (IsHabitatPartnerLive())
+            return false;
+
+        var voiceBody = TruncateHabitatCharge(charge);
+        var voice = CideIntercomVoiceLatch.Publish(
+            fromSeat: CideIntercomVoiceLatch.SeatPf,
+            toSeat: CideIntercomVoiceLatch.SeatPm,
+            body: voiceBody,
+            origin: CideIntercomVoiceLatch.OriginAgent,
+            name: "AutoI",
+            kind: "guest");
+        if (voice is null)
+            return false;
+
+        IdeFlightDataRecorder.RecordWake(
+            "wake_habitat_mirror", arm.Id, ToolFromWakeArm(arm), "idle_pf_intercom");
+        return true;
+    }
+
 
     static string TruncateHabitatCharge(string charge)
     {
