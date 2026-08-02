@@ -25,6 +25,7 @@ internal static partial class CitizenIntentRouter
         Debug,
         Git,
         Find,
+        Ide,
         Detail,
         Cmd,
         Refuse,
@@ -249,6 +250,20 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("search query=", StringComparison.OrdinalIgnoreCase))
         {
             return RouteFind(raw);
+        }
+
+        if (raw.Equals("ide", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ide ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("goto", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("goto ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("usages", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("usages ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("diagnostics", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("diagnostics ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("definition", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("definition ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteIde(raw);
         }
 
         if (TryKv(raw, out var detail, out var scene)

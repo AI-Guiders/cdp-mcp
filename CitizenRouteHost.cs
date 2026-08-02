@@ -65,6 +65,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.Debug => RunDebug(route),
             CitizenIntentRouter.Verb.Git => RunGit(route),
             CitizenIntentRouter.Verb.Find => RunFind(route),
+            CitizenIntentRouter.Verb.Ide => RunIde(route),
             CitizenIntentRouter.Verb.Cmd => RunPlanCmd(route),
             CitizenIntentRouter.Verb.Refuse => new Applied(
                 route.Raw,

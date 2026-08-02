@@ -7,4 +7,4 @@
 
 До этого dig без Cursor Grep у peer не было рук: `@intent git` уже есть, а искать по репо — только через чужой harness. Теперь `@intent find query=… where=project` бьёт в IdeFindChannel, pulse возвращается в peer, как у git/kb.
 
-Lived: unit 7/7; live dogfood pending remount.
+Lived: unit 7/7; live dry_run execute on 0.5.557 — `@intent find query="Verb.Find" where=project shape=list` → peer `find · project · 9 hit(s)` · intent_ack.
