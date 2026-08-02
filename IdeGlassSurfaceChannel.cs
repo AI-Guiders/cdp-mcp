@@ -22,13 +22,9 @@ internal static class IdeGlassSurfaceChannel
     {
         "scene", "status", "caps", "layout",
         "highlight", "focus", "click", "set_text", "send_keys",
-        "appearance", "colors", "colors_under_cursor"
-    };
-
-    static readonly string[] PlannedOps =
-    [
+        "appearance", "colors", "colors_under_cursor",
         "set_control_layout", "set_panel_size", "request_confirmation"
-    ];
+    };
 
     public static string HandleJson(
         SessionContext session,
@@ -49,9 +45,8 @@ internal static class IdeGlassSurfaceChannel
                 "scene" or "status" or "caps" => Scene(),
                 "layout" or "highlight" or "focus" or "click" or "set_text" or "send_keys"
                     or "appearance" or "colors" or "colors_under_cursor"
+                    or "set_control_layout" or "set_panel_size" or "request_confirmation"
                     => Rpc(op, args),
-                "set_control_layout" or "set_panel_size" or "request_confirmation"
-                    => NotImplemented(op),
                 _ => Scene()
             };
         }
@@ -77,7 +72,7 @@ internal static class IdeGlassSurfaceChannel
         go = GoName,
         tool = ToolName,
         op = "scene",
-        pulse = "surface · glass RPC · layout+aim+drive live · layout/panel/confirm planned",
+        pulse = "surface · glass RPC · full debt live (sense+aim+drive+confirm)",
         ipc = new
         {
             cmd = GlassSurfaceIpc.CmdPath,
@@ -85,15 +80,19 @@ internal static class IdeGlassSurfaceChannel
             habitat = GlassSurfaceIpc.StateRoot
         },
         implemented = Implemented.OrderBy(x => x).ToArray(),
-        planned = PlannedOps,
-        hint = "op=layout|highlight|focus|click|set_text|send_keys|appearance|colors. Glass host required."
+        planned = Array.Empty<string>(),
+        hint =
+            "op=layout|highlight|focus|click|set_text|send_keys|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required."
     };
 
     static object Rpc(string op, IReadOnlyDictionary<string, JsonElement> args)
     {
-        var timeoutMs = 8000;
+        // Human modal can wait; other ops stay snappy.
+        var timeoutMs = string.Equals(op, "request_confirmation", StringComparison.OrdinalIgnoreCase)
+            ? 120_000
+            : 8000;
         if (args.TryGetValue("timeout_ms", out var t) && t.TryGetInt32(out var ti) && ti > 0)
-            timeoutMs = Math.Clamp(ti, 500, 60_000);
+            timeoutMs = Math.Clamp(ti, 500, 300_000);
 
         var rpcArgs = new JsonObject();
         foreach (var key in new[] { "name", "text", "keys", "layout", "panel", "width", "height", "message" })
@@ -144,18 +143,6 @@ internal static class IdeGlassSurfaceChannel
             detail = root.TryGetProperty("detail", out var detEl) ? detEl.GetString() : null
         };
     }
-
-    static object NotImplemented(string op) => new
-    {
-        schema = Schema,
-        ok = false,
-        go = GoName,
-        tool = ToolName,
-        op,
-        error = "not_implemented",
-        detail = "Remaining surface debt: set_control_layout|set_panel_size|request_confirmation.",
-        next = PlannedOps
-    };
 
     static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)
     {
