@@ -23,4 +23,5 @@
 
 ## last_ship
 
+- 0.5.551: sick_leave_dense deadline 05.08 beside citizen_chain 15.08 · 2026-08-03
 - first ship + plan expand @ 0.5.486 · 2026-08-02

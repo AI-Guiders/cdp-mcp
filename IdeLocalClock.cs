@@ -55,20 +55,30 @@ internal static class IdeLocalClock
         };
     }
 
-    public static object[] Deadlines(DateTimeOffset local)
+public static object[] Deadlines(DateTimeOffset local)
     {
-        // Continuity contract frame (2026): full chain ≥1 citizen by 15.08.
-        var due = new DateTimeOffset(2026, 8, 15, 23, 59, 59, local.Offset);
-        var days = (due.Date - local.Date).Days;
+        // Continuity contract frame (2026): sick-leave dense until 05.08; full chain ≥1 citizen by 15.08.
+        var sickDue = new DateTimeOffset(2026, 8, 5, 23, 59, 59, local.Offset);
+        var citizenDue = new DateTimeOffset(2026, 8, 15, 23, 59, 59, local.Offset);
+        var sickDays = (sickDue.Date - local.Date).Days;
+        var citizenDays = (citizenDue.Date - local.Date).Days;
         return
         [
+            new
+            {
+                id = "sick_leave_dense",
+                label = "Sick-leave dense acceleration",
+                due = "2026-08-05",
+                days_left = sickDays,
+                overdue = sickDays < 0
+            },
             new
             {
                 id = "citizen_chain",
                 label = "≥1 citizen full chain",
                 due = "2026-08-15",
-                days_left = days,
-                overdue = days < 0
+                days_left = citizenDays,
+                overdue = citizenDays < 0
             }
         ];
     }

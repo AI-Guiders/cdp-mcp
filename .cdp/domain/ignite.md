@@ -16,8 +16,9 @@
 - **`op=halt`:** stop-world until partner — not `disarm all`. Turns autonomous+HILD off, clears every arm, plants awaiting_partner latch. Resume does not auto-restore autonomous/HILD.
 - **`disarm` under autonomous:** work-arm remove that empties wake path → seed (`removed > 0`); noop missing-id (`removed=0`) does **not** plant Guest Autoi CDT seed (0.5.535). Re-ARM `last_once` via `arm` supersede — do not disarm→arm ritual.
 - **`autonomous-seed-wake` fire:** if TM already has an incomplete leaf mid-window, suppress Guest Autoi CDT and redirect to `leaf-wake` (`TrySuppressAutonomousSeedBeforeDelivery` · `board_has_incomplete_leaf` · 0.5.536) — LeafPlateau race after `done` before next leaf lands.
-- Guest Autoi remains CDT→Composer adapter (ADR-0025) for system wakes **and** for autonomous plain timers when PF is not duplex-live: `prefer_autonomous` stamps habitat SSOT then CDT fallthrough (0.5.532 — 0.5.531 skip-CDT was ACC silent for guest Cursor).
-- **Habitat prefer skip-CDT** on plain timer work arms only when PF duplex busy|composing (`ShouldPreferHabitatDelivery` duplex · `detail=prefer_duplex`).
+- Guest Autoi remains CDT→Composer adapter (ADR-0025) for system wakes **and** for autonomous plain timers when PF is not duplex-live **and** citizen invite is blocked: `prefer_autonomous` stamps habitat SSOT then CDT fallthrough (0.5.532).
+- **Citizen Autoi consume (0.5.551):** autonomous + idle PF + `invite_ready` → `IdeCitizenChannel.TryDeliverAutoiWake` (dialog Turn + host-execute) · `detail=prefer_citizen` · Intercom `kind=citizen` · skip CDT. Invite blocked → Guest fallthrough unchanged.
+- **Habitat prefer skip-CDT** on plain timer work arms when PF duplex busy|composing (`ShouldPreferHabitatDelivery` duplex · `detail=prefer_duplex`).
 - Partner-mode (autonomous off) + idle PF on plain timer work arms: Intercom mirror (`MirrorTimerWakeToIntercom`) so Glass sees charge — Composer fallthrough when Voice/idle.
 - Remount wakes (`remount-wake-*`), HILD escalate (`hild-escalate-*`), plain HILD away (`hild-away` / `hild-away-*`), OOM (`oom-wake-*`), and tool-wake (`tool-wake-*`): always Intercom mirror (`detail=remount_intercom`|`escalate_intercom`|`hild_intercom`|`oom_intercom`|`tool_intercom`) even when PF busy|composing; prefer habitat stays off (CDT→Composer fallthrough intact). Event wakes (build/test/shell): no mirror.
 - Continuity wakes (remount / escalate / hild-away / OOM / tool-wake) + Composer Stop/Queue **or** gone (`no_composer`/`down` / sample fail): habitat deliver + skip CDT even if Intercom mirror missed (`MayDeliverHabitatWhenComposerUnavailable` · `TryDeliverHabitatWhenComposerUnavailableAsync` · `detail=*_composer_busy`|`*_composer_gone`). **Guest Autoi exception (0.5.547):** plain timer + autonomous + idle PF + Stop/Queue → do **not** habitat-success (`ShouldHabitatSkipWhenComposerUnavailable`) — CDT wait / `busy_timeout`→requeue (habitat SSOT already stamped by prefer_autonomous). composer_gone still habitat. Duplex busy|composing still skip. build/test/shell: no habitat. Voice/send Composer: CDT fallthrough.
@@ -69,6 +70,7 @@
 
 ## last_ship
 
+- 0.5.551: Citizen Autoi consume habitat wake (`prefer_citizen` · TryDeliverAutoiWake) + sick_leave_dense deadline to 05.08 · 2026-08-03
 - 0.5.550: Reclaim/hygiene revive status=error when ShouldRequeueBusy (click_failed tombstones) · 2026-08-03
 - 0.5.549: ShouldRequeueBusy includes click_failed (CDT Send miss → backoff requeue) · 2026-08-03
 - 0.5.547: Guest Autoi Stop ≠ habitat-success (`ShouldHabitatSkipWhenComposerUnavailable` · CDT wait/requeue) · VL #50 · 2026-08-03
