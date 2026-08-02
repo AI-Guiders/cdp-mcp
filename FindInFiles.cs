@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Text;
 using System.Text.Json;
 using Cdp.Core;
 using Cdp.ScriptableIde;
@@ -74,58 +72,17 @@ internal static partial class FindInFiles
 
         var query = Opt(args, "query") ?? Opt(args, "text") ?? Opt(args, "pattern");
         if (string.IsNullOrEmpty(query))
-        {
-            return JsonSerializer.Serialize(new
-            {
-                schema = EditorComfort.Schema,
-                ok = false,
-                op = all ? "find_all" : "find",
-                scope = scopeWire,
-                error = "query_required",
-                hint = "query= + scope=project|external. regex=true = Use Regular Expressions."
-            }, Pretty);
-        }
+            return FailJson(all, scopeWire, "query_required",
+                "query= + scope=project|external. regex=true = Use Regular Expressions.");
 
         var multiPaths = OptPaths(args);
-        string searchRoot;
-        string cwd;
-        if (multiPaths is { Count: > 0 })
-        {
-            searchRoot = multiPaths[0];
-            cwd = Directory.Exists(searchRoot)
-                ? searchRoot
-                : (Path.GetDirectoryName(searchRoot)
-                   ?? session.ProjectRoot
-                   ?? Environment.CurrentDirectory);
-            if (!external && session.ProjectRoot is { Length: > 0 } && Directory.Exists(session.ProjectRoot))
-                cwd = session.ProjectRoot!;
-        }
-        else if (!TryResolveSearchRoot(session, args, external, out searchRoot, out cwd, out var rootError, out var rootHint))
-        {
-            return JsonSerializer.Serialize(new
-            {
-                schema = EditorComfort.Schema,
-                ok = false,
-                op = all ? "find_all" : "find",
-                scope = scopeWire,
-                error = rootError,
-                hint = rootHint
-            }, Pretty);
-        }
+        if (!TryBindRoots(session, args, external, multiPaths, out var searchRoot, out var cwd, out var rootError, out var rootHint))
+            return FailJson(all, scopeWire, rootError!, rootHint!);
 
         var rg = ResolveRg();
         if (rg is null)
-        {
-            return JsonSerializer.Serialize(new
-            {
-                schema = EditorComfort.Schema,
-                ok = false,
-                op = all ? "find_all" : "find",
-                scope = scopeWire,
-                error = "rg_not_found",
-                hint = "Install ripgrep on PATH, or set env CDP_RG to rg.exe"
-            }, Pretty);
-        }
+            return FailJson(all, scopeWire, "rg_not_found",
+                "Install ripgrep on PATH, or set env CDP_RG to rg.exe");
 
         var regex = BoolOr(args, "regex", false);
         var ignoreCase = BoolOr(args, "ignore_case", true);
@@ -137,78 +94,19 @@ internal static partial class FindInFiles
         var glob = Opt(args, "glob") ?? Opt(args, "g");
         var volumeProbe = multiPaths is { Count: > 0 } ? multiPaths[0] : searchRoot;
         if (external && IsVolumeRoot(volumeProbe) && glob is not { Length: > 0 } && multiPaths is not { Count: > 1 })
-        {
-            return JsonSerializer.Serialize(new
-            {
-                schema = EditorComfort.Schema,
-                ok = false,
-                op = all ? "find_all" : "find",
-                scope = scopeWire,
-                error = "glob_required_for_volume_root",
-                path = volumeProbe,
-                hint = "Volume root search needs glob= (e.g. *.cs) or a narrower path=."
-            }, Pretty);
-        }
+            return FailPathJson(all, scopeWire, "glob_required_for_volume_root", volumeProbe,
+                "Volume root search needs glob= (e.g. *.cs) or a narrower path=.");
 
-        var argv = new List<string>
-        {
-            "--json",
-            "--color", "never",
-            // Per-file cap (rg); global cap applied while parsing.
-            "--max-count", "5"
-        };
-        if (ignoreCase)
-            argv.Add("-i");
-        if (!regex)
-            argv.Add("-F");
-
-        foreach (var g in SkipGlobs)
-            argv.AddRange(["--glob", g]);
-
-        if (glob is { Length: > 0 })
-            argv.AddRange(["--glob", glob]);
-
-        var type = Opt(args, "type") ?? Opt(args, "filetype");
-        if (type is { Length: > 0 })
-            argv.AddRange(["--type", type]);
-
-        argv.Add("--");
-        argv.Add(query!);
-        if (multiPaths is { Count: > 0 })
-            argv.AddRange(multiPaths);
-        else
-            argv.Add(searchRoot);
-
+        var argv = BuildRgArgv(query!, regex, ignoreCase, glob, Opt(args, "type") ?? Opt(args, "filetype"),
+            searchRoot, multiPaths);
         var timeout = external ? ExternalTimeoutMs : TimeoutMs;
         if (!TryRunRg(rg, argv, cwd, timeout, out var stdout, out var stderr, out var exit, out var runError))
-        {
-            return JsonSerializer.Serialize(new
-            {
-                schema = EditorComfort.Schema,
-                ok = false,
-                op = all ? "find_all" : "find",
-                scope = scopeWire,
-                error = "rg_failed",
-                detail = runError,
-                hint = "Check CDP_RG / PATH and query (regex syntax)."
-            }, Pretty);
-        }
+            return FailDetailJson(all, scopeWire, "rg_failed", runError,
+                "Check CDP_RG / PATH and query (regex syntax).");
 
-        // rg: 0 = matches, 1 = no matches, 2 = error
         if (exit >= 2)
-        {
-            return JsonSerializer.Serialize(new
-            {
-                schema = EditorComfort.Schema,
-                ok = false,
-                op = all ? "find_all" : "find",
-                scope = scopeWire,
-                error = "rg_exit",
-                exit_code = exit,
-                stderr = Trim(stderr, 800),
-                hint = "Bad regex or path? Try regex=false or narrower glob="
-            }, Pretty);
-        }
+            return FailExitJson(all, scopeWire, exit, Trim(stderr, 800),
+                "Bad regex or path? Try regex=false or narrower glob=");
 
         var hits = ParseJsonHits(session, stdout, max);
         if (!all && hits.Count > 1)
@@ -222,46 +120,6 @@ internal static partial class FindInFiles
                 land = TryLand(store, session, hits[0]);
         }
 
-        return JsonSerializer.Serialize(new
-        {
-            schema = EditorComfort.Schema,
-            ok = true,
-            op = all ? "find_all" : "find",
-            scope = scopeWire,
-            path = searchRoot,
-            query,
-            regex,
-            ignore_case = ignoreCase,
-            engine = "rg",
-            rg_path = rg,
-            count = hits.Count,
-            truncated = hits.Count >= max,
-            hits = hits.Select(h => new
-            {
-                anchor = h.Anchor,
-                path = h.AbsolutePath,
-                line = h.Line,
-                column = h.Column,
-                preview = h.Preview
-            }),
-            land,
-            next = hits.Count > 0
-                ? (object[])
-                [
-                    new { go = "complete", label = "Completions at hit", why = "line/column from hits[0]" },
-                    new { go = "signature_help", label = "Signature help", why = "near hit" },
-                    new { go = "scope", label = "Sniper from land", why = $"from={hits[0].Anchor}" },
-                    new { go = "edit_draft", label = "Edit here", why = "land open+peeked" },
-                    new { go = "find_all", label = "More hits", why = $"same query + scope={scopeWire}" }
-                ]
-                : (object[])
-                [
-                    new { go = "find", label = "Retry", why = $"regex= / glob= / scope={scopeWire} / path=" }
-                ],
-            hint =
-                "VS Find in Files. scope=project|files|external → rg → anchors. " +
-                "external requires path= (any disk tree; no cdp_open). " +
-                "regex=true = Use Regular Expressions. find = first; find_all = capped list."
-        }, Pretty);
+        return OkHitsJson(all, scopeWire, searchRoot, query!, regex, ignoreCase, rg, max, hits, land);
     }
 }
