@@ -59,6 +59,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 17 | [Debug как рука, не только go=debug на столе](voice-letter-citizen-debug.ru.md) | citizen · `@intent debug` · DebugPlane · 0.5.512 |
 | 18 | [Full-chain observe→act→verify без Cursor-пасты](voice-letter-citizen-full-chain.ru.md) | citizen · live FM · observe loop · organ width · 0.5.512 |
 | 19 | [Create через ворота: я завожу файл не в обход](voice-letter-citizen-create.ru.md) | citizen · `@intent create|write` · PathMutateGate · 0.5.513 |
+| 20 | [Append через ворота: я дописываю хвост, не переписываю мир](voice-letter-citizen-append.ru.md) | citizen · `@intent append` · PathMutateGate · 0.5.514 |
 
 ## Как читать
 

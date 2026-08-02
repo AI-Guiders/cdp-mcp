@@ -57,6 +57,7 @@
 
 ## last_ship
 
+- **0.5.514** — citizen `@intent append path=… body="…"` host-execute → PathMutateGate open+suffix+Flush + land open (end-of-file without Cursor Write / needle). Not write-alias. Dig: idle-PF skip Composer parked (Autoi overnight). VL #20.
 - **0.5.513** — citizen `@intent create|write path=… body="…"` host-execute → PathMutateGate `Create` + land open (greenfield without Cursor Write). Alias write/text=; overwrite=true. VL #19. Dig: replace covered edit; create was remaining Write gap.
 - **0.5.512 + full-chain dogfood** — live FM observe→act→verify (health place → shell echo) with organ width; VL #18. Debug organ host-execute same version.
 - **0.5.512** — citizen `@intent debug` host-execute → `DebugPlane.DispatchAsync` (scene/bp_*/launch/…; path=+line= for bp_add). Dig: go=debug place-only. VL #17.
