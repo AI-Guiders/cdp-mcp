@@ -262,6 +262,8 @@ var hostDeps = new ProgramHostDeps
     RequireJobRunner = RequireJobRunner
 };
 
+IdeStageCycle.SetEnsure(workspace.Ensure);
+
 Task<string> DispatchAsync(
     string name,
     IReadOnlyDictionary<string, JsonElement> callArgs,

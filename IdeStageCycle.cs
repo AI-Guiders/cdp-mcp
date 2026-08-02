@@ -13,6 +13,10 @@ internal static class IdeStageCycle
     static IntentWorkspaceStore? _store;
     static Func<IntentWorkspaceState>? _statePeek;
     static Func<string?>? _phasePeek;
+    static Action? _ensure;
+
+    /// <summary>Process wire: lazy WitDB open when peek finds no bind (citizen cmd= cold path).</summary>
+    public static void SetEnsure(Action? ensure) => _ensure = ensure;
 
     public static void Bind(
         IntentWorkspaceStore store,
@@ -43,6 +47,9 @@ internal static class IdeStageCycle
         phase = null;
         try
         {
+            if (_store is null)
+                _ensure?.Invoke();
+
             var s = _store;
             var st = _statePeek?.Invoke();
             if (s is null || st is null)

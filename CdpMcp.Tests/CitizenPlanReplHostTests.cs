@@ -110,6 +110,46 @@ public sealed class CitizenPlanReplHostTests
         }
     }
 
+    [Fact]
+    public void TryWorkspace_lazy_ensure_binds_before_cmd()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-citizen-lazy-" + Guid.NewGuid().ToString("N") + ".witdb");
+        var ensured = false;
+        IdeStageCycle.Unbind();
+        IdeStageCycle.SetEnsure(() =>
+        {
+            ensured = true;
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            IdeStageCycle.Bind(store, () => state, () => "explore");
+        });
+
+        try
+        {
+            IdeDeskSeats.EnsureDefaultsFromSettings();
+            IdeDeskSeats.Clear();
+            IdeDeskSeats.TryPlaceExplicit("p", "alert");
+            IdeDeskSeats.TryPlaceExplicit("forward", "editor_scene");
+            IdeDeskSeats.TryPlaceExplicit("m", "browser");
+
+            var applied = CitizenRouteHost.Execute(
+            [
+                CitizenIntentRouter.RouteOne("cmd=feature citizen-lazy-ensure @act #CDP")
+            ]);
+
+            Assert.True(ensured);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.DoesNotContain("no_workspace", applied[0].Reason ?? "", StringComparison.Ordinal);
+        }
+        finally
+        {
+            IdeStageCycle.SetEnsure(null);
+            IdeStageCycle.Unbind();
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
     static Dictionary<string, JsonElement> Args(object anon)
     {
         using var doc = JsonDocument.Parse(JsonSerializer.Serialize(anon));
