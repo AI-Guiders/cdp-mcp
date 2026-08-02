@@ -23,6 +23,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.463**: wave7 — DomainPulse.Score · Webcam.Window.Native · Quarantine.Groups.Io.
 - 2026-08-02 → **0.5.462**: wave6 — EditPlanFix.Parse · Recommend.Helpers · CdpSettings.Build (partial).
 - 2026-08-02 → **0.5.461**: wave5 — Learn Stash/Query/Promote · FDR.Tape · Scope.Ops (skip IdeRepl.Crm single TryCrm).
 - 2026-08-02 → **0.5.460**: wave4 — IdeTeethChannel.Ops+Helpers · IdeCockpitHostChannel.Lifecycle · IdeRefactorPlanChannel.Ops.
