@@ -65,4 +65,25 @@ public partial class IdeIgniteAutonomousTests
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         Assert.Contains(IdeIgniteArmHost.AutonomousSeedArmId, arms);
     }
+
+    [Fact]
+    public void LastOnceArm_tips_under_autonomous_forbid_park_on_timer()
+    {
+        Assert.Contains("do not park", IdeIgniteArmHost.LastOnceArmNextStep(autonomous: true), StringComparison.Ordinal);
+        Assert.Contains("NOT permission to idle", IdeIgniteArmHost.LastOnceArmHint(autonomous: true), StringComparison.Ordinal);
+        Assert.Equal("end turn", IdeIgniteArmHost.LastOnceArmNextStep(autonomous: false));
+        Assert.Contains("awaiting latch", IdeIgniteArmHost.LastOnceArmHint(autonomous: false), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ArmForLeafHint_under_autonomous_does_not_teach_end_turn_park()
+    {
+        var auto = IdeIgniteArmHost.ArmForLeafHint(autonomous: true);
+        Assert.Contains("Keep flying", auto, StringComparison.Ordinal);
+        Assert.Contains("not a license to park", auto, StringComparison.Ordinal);
+        Assert.DoesNotContain("End turn", auto, StringComparison.Ordinal);
+
+        var partner = IdeIgniteArmHost.ArmForLeafHint(autonomous: false);
+        Assert.Contains("End turn", partner, StringComparison.Ordinal);
+    }
 }
