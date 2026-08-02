@@ -12,6 +12,7 @@
 - Defaults when keys omit URL/model: `https://foundation-models.api.cloud.ru/v1` · `ai-sage/GigaChat3-10B-A1.8B`.
 - Turn `mode=wire` (default) = HARD @intent contract + OAI `temperature=0`. `mode=dialog` = prose peer persona + `temperature=0.6`; optional @intent after prose. Aliases: prose|chat|talk|peer.
 - Dialog multi-turn: `StateRoot/{seat}/citizen-dialog.jsonl` (op=history|clear; turn `history=`/`reset=`). Wire ignores history.
+- Persona baseline: **equal standing** (peer, not tool) + human name **Света**; Who = Agent Who series (not operator).
 - Wire: Bearer + `{base}/v1/chat/completions` (non-stream for citizen turns); system-as-message on OAI path.
 - OpenAI-compat sampling: wire **`temperature=0`**; dialog **`0.6`**. Full param map: agent-notes `knowledge/domains/agent-operations/note-llm-sampling-params-openai-compat-v1.md`.
 - `invite_ready` is a **record** (not ValueTuple) — JSON must expose Ready/Status/Checklist/Blocker.
@@ -52,6 +53,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.494**: persona equal standing + Света/Who identity split (dialog+wire); Intercom operator default Света.
 - 2026-08-02 → **0.5.493**: dialog multi-turn memory (`CitizenDialogHistory` seat jsonl) — mode=dialog prepends prior pairs; op=history|clear; reset=/history= on turn.
 - 2026-08-02 → **0.5.492**: `mode=dialog` prose-first persona (+ temp 0.6) vs `mode=wire` hands (temp 0). Guest↔citizen peer talk path; wire dogfood unchanged.
 - 2026-08-02 → **0.5.489 live dogfood (unforced multi-intent)**: soft coaching (no ONLY paste) → same-turn `@intent cmd=note …` + `@intent go=plan` → host 2/2 · peer ack 2/2. Wave33 shipped.
