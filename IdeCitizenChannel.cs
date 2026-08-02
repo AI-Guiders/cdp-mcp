@@ -235,6 +235,7 @@ internal static class IdeCitizenChannel
                 path = r.Path,
                 detail = r.Detail,
                 scene = r.Scene,
+                cmd = r.Cmd,
                 reason = r.Reason
             }).ToArray(),
             executed = executed?.Select(a => new
@@ -247,6 +248,8 @@ internal static class IdeCitizenChannel
                 go = a.Go,
                 path = a.Path,
                 doc_id = a.DocId,
+                cmd = a.Cmd,
+                pulse = a.Pulse,
                 reason = a.Reason
             }).ToArray()
         });

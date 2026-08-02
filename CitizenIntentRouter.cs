@@ -3,7 +3,7 @@
 namespace CdpMcp;
 
 /// <summary>
-/// Efferent peel #10: map parsed <c>@intent</c> lines to organ routes (go=/drill/open).
+/// Efferent peel #10: map parsed <c>@intent</c> lines to organ routes (go=/drill/open/cmd).
 /// Does not CallTool — host executes <see cref="Route"/>. Refuse W-spray as thrash string.
 /// </summary>
 internal static class CitizenIntentRouter
@@ -15,6 +15,7 @@ internal static class CitizenIntentRouter
         PaneFull,
         Open,
         Detail,
+        Cmd,
         Refuse,
         Unknown
     }
@@ -28,6 +29,7 @@ internal static class CitizenIntentRouter
         string? Path = null,
         string? Detail = null,
         string? Scene = null,
+        string? Cmd = null,
         string? Reason = null);
 
     public static IReadOnlyList<Route> RouteAll(IEnumerable<CitizenWireParser.Message>? messages)
@@ -59,6 +61,28 @@ internal static class CitizenIntentRouter
                 raw,
                 Ok: false,
                 Reason: "refuse_w_spray — seats_detail=full / catalog dump is thrash");
+        }
+
+        if (raw.StartsWith("cmd=", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cmd ", StringComparison.OrdinalIgnoreCase))
+        {
+            var cmd = raw.StartsWith("cmd=", StringComparison.OrdinalIgnoreCase)
+                ? raw["cmd=".Length..].Trim()
+                : raw["cmd ".Length..].Trim();
+            cmd = cmd.Trim().Trim('"');
+            if (cmd.Length == 0)
+                return new Route(Verb.Unknown, raw, Ok: false, Reason: "cmd_empty");
+            if (!IsPlanReplCmd(cmd))
+            {
+                return new Route(
+                    Verb.Refuse,
+                    raw,
+                    Ok: false,
+                    Cmd: cmd,
+                    Reason: "refuse_non_plan_repl — host cmd= is TM/CCL board only (feature|task|done|…)");
+            }
+
+            return new Route(Verb.Cmd, raw, Ok: true, Cmd: cmd, Go: "plan");
         }
 
         if (raw.StartsWith("go=", StringComparison.OrdinalIgnoreCase))
@@ -107,6 +131,29 @@ internal static class CitizenIntentRouter
         }
 
         return new Route(Verb.Unknown, raw, Ok: false, Reason: "unrecognized_intent");
+    }
+
+    /// <summary>TM/plan CCL heads only — not shell/run/build (citizen host-execute gate).</summary>
+    internal static bool IsPlanReplCmd(string cmd)
+    {
+        var head = cmd.Trim();
+        if (head.Length == 0)
+            return false;
+        var sp = head.IndexOf(' ');
+        if (sp > 0)
+            head = head[..sp];
+        return head.ToLowerInvariant() switch
+        {
+            "feature" or "intent" or "task" or "add"
+                or "done" or "start" or "shipped" or "focus"
+                or "park" or "defer" or "drop" or "note" or "events"
+                or "product" or "phase" or "start_phase" or "complete_phase"
+                or "criteria" or "criterion" or "leftover"
+                or "share" or "promote" or "confirm" or "reject"
+                or "await_operator" or "board" or "plan"
+                => true,
+            _ => false
+        };
     }
 
     static bool LooksLikeWSpray(string raw)
