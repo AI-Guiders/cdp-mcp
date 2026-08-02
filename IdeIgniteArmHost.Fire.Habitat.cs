@@ -72,16 +72,22 @@ internal static partial class IdeIgniteArmHost
         };
     }
 
-    /// <summary>
-    /// Prefer-eligible timer but PF idle/stale: mirror charge to Intercom without skipping Composer.
-    /// Glass/PM see Autoi wakes; overnight CDT→Composer fallthrough stays intact.
-    /// </summary>
+
     internal static bool MirrorTimerWakeToIntercom(IgniteArm arm, string charge)
     {
-        if (!MayPreferHabitatOverComposer(arm))
-            return false;
-        if (IsHabitatPartnerLive())
-            return false;
+        string detail;
+        if (IsRemountWakeArm(arm))
+        {
+            detail = "remount_intercom";
+        }
+        else
+        {
+            if (!MayPreferHabitatOverComposer(arm))
+                return false;
+            if (IsHabitatPartnerLive())
+                return false;
+            detail = "idle_pf_intercom";
+        }
 
         var voiceBody = TruncateHabitatCharge(charge);
         var voice = CideIntercomVoiceLatch.Publish(
@@ -95,9 +101,15 @@ internal static partial class IdeIgniteArmHost
             return false;
 
         IdeFlightDataRecorder.RecordWake(
-            "wake_habitat_mirror", arm.Id, ToolFromWakeArm(arm), "idle_pf_intercom");
+            "wake_habitat_mirror", arm.Id, ToolFromWakeArm(arm), detail);
         return true;
     }
+
+    /// <summary>remount-wake-* only — Intercom mirror residual; not habitat prefer.</summary>
+    internal static bool IsRemountWakeArm(IgniteArm arm) =>
+        !string.IsNullOrWhiteSpace(arm.Id)
+        && arm.Id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase);
+
 
 
     static string TruncateHabitatCharge(string charge)

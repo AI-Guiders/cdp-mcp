@@ -152,8 +152,9 @@ public class IdeIgniteWakeLatchTests : IDisposable
     }
 
     [Fact]
-    public void MirrorTimerWakeToIntercom_skips_system_wake()
+    public void MirrorTimerWakeToIntercom_remount_publishes_when_pf_idle()
     {
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
         var arm = new IdeIgniteArmHost.IgniteArm
         {
             Id = "remount-wake-xyz",
@@ -165,7 +166,51 @@ public class IdeIgniteWakeLatchTests : IDisposable
             WaitSeconds = 30
         };
 
-        Assert.False(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=remount"));
+        Assert.True(IdeIgniteArmHost.IsRemountWakeArm(arm));
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=remount"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("reason=remount", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_remount_publishes_when_pf_busy()
+    {
+        CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "remount-wake-busy",
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = "remount",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        // Prefer still skipped for remount; mirror is the residual.
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "reason=remount"));
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=remount busy PF"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("reason=remount busy PF", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_skips_oom_wake()
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "oom-wake-xyz",
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = "oom",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.False(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=oom"));
         Assert.Null(CideIntercomVoiceLatch.TryRead());
     }
 }
