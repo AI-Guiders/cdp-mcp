@@ -148,6 +148,48 @@ public sealed class CitizenRouteHostTests
     }
 
     [Fact]
+    public void Execute_replace_mutates_disk_via_buffer_gate()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "cdp-replace-host-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var rel = "probe.txt";
+        var full = Path.Combine(root, rel);
+        File.WriteAllText(full, "wave-before\n");
+
+        var store = new DocumentBufferStore();
+        IdeLanguageTools.BindDocumentStore(store);
+        var prevRoot = IdeCockpitHostChannel.ProjectRootResolver;
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        IdeDeskSeats.TryPlaceExplicit("forward", "browser");
+
+        try
+        {
+            IdeCockpitHostChannel.ProjectRootResolver = () => root;
+            var intent = "replace path=" + rel + " old=\"wave-before\" new=\"wave-after\"";
+            var routes = new[] { CitizenIntentRouter.RouteOne(intent) };
+            Assert.Equal(CitizenIntentRouter.Verb.Replace, routes[0].Verb);
+            Assert.True(routes[0].Ok);
+
+            var applied = CitizenRouteHost.Execute(routes);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.Equal("replace", applied[0].Action);
+            Assert.Equal("editor_scene", applied[0].Go);
+            Assert.Equal(Path.GetFullPath(full), applied[0].Path);
+
+            Assert.Contains("wave-after", File.ReadAllText(full), StringComparison.Ordinal);
+            var map = IdeDeskSeats.Snapshot();
+            Assert.Contains(map, kv => string.Equals(kv.Value, "editor_scene", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            IdeCockpitHostChannel.ProjectRootResolver = prevRoot;
+            try { Directory.Delete(root, recursive: true); } catch { /* temp */ }
+        }
+    }
+
+    [Fact]
     public void Channel_dry_run_execute_true_runs_host()
     {
         IdeDeskSeats.EnsureDefaultsFromSettings();

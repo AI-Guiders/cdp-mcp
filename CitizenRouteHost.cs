@@ -4,10 +4,10 @@ using System.Text.Json;
 namespace CdpMcp;
 
 /// <summary>
-/// Host execute for <see cref="CitizenIntentRouter.Route"/> — seat place + buffer open + plan REPL.
+/// Host execute for <see cref="CitizenIntentRouter.Route"/> — seat place + buffer open/replace + plan REPL.
 /// Sync only; no full cockpit BuildAsync (avoids W-spray / hang on turn).
 /// </summary>
-internal static class CitizenRouteHost
+internal static partial class CitizenRouteHost
 {
     public sealed record Applied(
         string Raw,
@@ -54,6 +54,7 @@ internal static class CitizenRouteHost
                 => PlaceGo(route),
             CitizenIntentRouter.Verb.PaneFull => NotePaneFull(route),
             CitizenIntentRouter.Verb.Open => OpenPath(route),
+            CitizenIntentRouter.Verb.Replace => ReplaceInPath(route),
             CitizenIntentRouter.Verb.Cmd => RunPlanCmd(route),
             CitizenIntentRouter.Verb.Refuse => new Applied(
                 route.Raw,
