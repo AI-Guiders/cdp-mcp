@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.463</Version>
+    <Version>0.5.464</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -283,4 +283,19 @@
       <DependentUpon>IdeWebcamChannel.Window.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="CdpPluginQuarantine.Groups.Io.cs"><DependentUpon>CdpPluginQuarantine.Groups.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="CdpPluginQuarantine.Groups.Io.cs">
+      <DependentUpon>CdpPluginQuarantine.Groups.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="McpOutletHabitat.Mount.cs">
+      <DependentUpon>McpOutletHabitat.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="SemanticMap.Hits.cs">
+      <DependentUpon>SemanticMap.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="IdeSaChannel.Decide.Helpers.cs"><DependentUpon>IdeSaChannel.Decide.cs</DependentUpon></Compile></ItemGroup></Project>
