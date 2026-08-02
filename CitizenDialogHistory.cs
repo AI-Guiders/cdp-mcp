@@ -10,7 +10,7 @@ namespace CdpMcp;
 internal static class CitizenDialogHistory
 {
     public const string FileName = "citizen-dialog.jsonl";
-    public const int DefaultMaxMessages = 20; // 10 user/assistant pairs
+    public const int DefaultMaxMessages = 40; // 20 user/assistant pairs
 
     static readonly object Gate = new();
     static string? PathOverrideForTests;
@@ -145,12 +145,39 @@ internal static class CitizenDialogHistory
     public static object Pulse()
     {
         var msgs = Load();
+        string? lastUser = null;
+        string? lastAssistant = null;
+        for (var i = msgs.Count - 1; i >= 0; i--)
+        {
+            if (lastAssistant is null && msgs[i].Role == "assistant")
+                lastAssistant = Trunc(msgs[i].Content, 120);
+            if (lastUser is null && msgs[i].Role == "user")
+                lastUser = Trunc(msgs[i].Content, 120);
+            if (lastUser is not null && lastAssistant is not null)
+                break;
+        }
+
         return new
         {
             path = FilePath,
             count = msgs.Count,
             pairs = msgs.Count / 2,
-            last_role = msgs.Count > 0 ? msgs[^1].Role : null
+            last_role = msgs.Count > 0 ? msgs[^1].Role : null,
+            last_user = lastUser,
+            last_assistant = lastAssistant
         };
     }
+
+    /// <summary>Afferent line for dialog turns — reminds FM that priors are in context.</summary>
+    public static string AfferentLine()
+    {
+        var msgs = Load();
+        var pairs = msgs.Count / 2;
+        return pairs > 0
+            ? $"dialog | pairs={pairs} · msgs={msgs.Count} · prior turns in messages — use them; do not claim amnesia"
+            : "dialog | pairs=0 · fresh thread (still durable after remount)";
+    }
+
+    static string Trunc(string s, int max) =>
+        s.Length <= max ? s : s[..(max - 1)] + "…";
 }
