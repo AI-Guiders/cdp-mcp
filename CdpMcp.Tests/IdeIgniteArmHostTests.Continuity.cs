@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace CdpMcp.Tests;
@@ -86,6 +86,32 @@ public partial class IdeIgniteArmHostTests
     }
 
     [Fact]
+    public void ReclaimOverdue_requeues_error_when_click_failed()
+    {
+        var id = "test-error-click-" + Guid.NewGuid().ToString("N")[..8];
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement> { ["op"] = JsonSerializer.SerializeToElement("arm"), ["when"] = JsonSerializer.SerializeToElement("timer"), ["in"] = JsonSerializer.SerializeToElement("1h"), ["id"] = JsonSerializer.SerializeToElement(id), ["task"] = JsonSerializer.SerializeToElement("stale click"), ["settle_seconds"] = JsonSerializer.SerializeToElement(0) });
+        try
+        {
+            Assert.True(IdeIgniteArmHost.TryMutateForTests(id, a =>
+            {
+                a.Status = "error";
+                a.LastError = "click_failed";
+                a.SendOk = false;
+                a.SendError = "click_failed";
+            }));
+            var reclaimed = IdeIgniteArmHost.ReclaimOverdue(TimeSpan.FromSeconds(1));
+            Assert.Contains(id, reclaimed);
+            var arm = Assert.Single(IdeIgniteArmHost.Snapshot(), a => a.Id == id);
+            Assert.Equal("armed", arm.Status);
+            Assert.StartsWith("reclaimed_error_click_failed", arm.LastError);
+        }
+        finally
+        {
+            IdeIgniteChannel.Handle(new Dictionary<string, JsonElement> { ["op"] = JsonSerializer.SerializeToElement("disarm"), ["id"] = JsonSerializer.SerializeToElement(id) });
+        }
+    }
+
+    [Fact]
     public void Hygiene_removes_error_keeps_armed()
     {
         var keep = "test-hygiene-keep-" + Guid.NewGuid().ToString("N")[..8];
@@ -112,6 +138,31 @@ public partial class IdeIgniteArmHostTests
         {
             IdeIgniteChannel.Handle(new Dictionary<string, JsonElement> { ["op"] = JsonSerializer.SerializeToElement("disarm"), ["id"] = JsonSerializer.SerializeToElement(keep) });
             IdeIgniteChannel.Handle(new Dictionary<string, JsonElement> { ["op"] = JsonSerializer.SerializeToElement("disarm"), ["id"] = JsonSerializer.SerializeToElement(drop) });
+        }
+    }
+
+    [Fact]
+    public void Hygiene_requeues_click_failed_error_keeps_arm()
+    {
+        var keep = "test-hygiene-click-" + Guid.NewGuid().ToString("N")[..8];
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement> { ["op"] = JsonSerializer.SerializeToElement("arm"), ["when"] = JsonSerializer.SerializeToElement("timer"), ["in"] = JsonSerializer.SerializeToElement("1h"), ["id"] = JsonSerializer.SerializeToElement(keep), ["task"] = JsonSerializer.SerializeToElement("click tombstone"), ["settle_seconds"] = JsonSerializer.SerializeToElement(0) });
+        try
+        {
+            Assert.True(IdeIgniteArmHost.TryMutateForTests(keep, a =>
+            {
+                a.Status = "error";
+                a.LastError = "click_failed";
+            }));
+            var hygiene = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement> { ["op"] = JsonSerializer.SerializeToElement("hygiene") });
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(hygiene));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            var arm = Assert.Single(IdeIgniteArmHost.Snapshot(), a => a.Id == keep);
+            Assert.Equal("armed", arm.Status);
+            Assert.StartsWith("hygiene_requeue_click_failed", arm.LastError);
+        }
+        finally
+        {
+            IdeIgniteChannel.Handle(new Dictionary<string, JsonElement> { ["op"] = JsonSerializer.SerializeToElement("disarm"), ["id"] = JsonSerializer.SerializeToElement(keep) });
         }
     }
 

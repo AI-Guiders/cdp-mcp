@@ -94,20 +94,29 @@ internal static partial class IdeIgniteArmHost
         next_step = explain.NextStep,
         why = explain.WhyLine
     };
-    /// <summary>Drop error arms + once stuck-firing with SendOk=true. Returns removed ids.</summary>
+    /// <summary>Drop non-requeueable error arms + once stuck-firing with SendOk=true. Requeueable errors (busy_timeout/click_failed/…) revive → armed. Returns removed ids.</summary>
     static List<string> SweepNoiseUnlocked(bool persist)
     {
         List<string> removed;
         lock (Gate)
         {
+            var now = DateTimeOffset.UtcNow;
+            var requeued = 0;
+            foreach (var a in Arms.Where(x => x.Status == "error").ToList())
+            {
+                if (!TryReviveRequeueableErrorUnlocked(a, now, BusyBackoff(a.WaitSeconds), "hygiene_requeue_"))
+                    continue;
+                requeued++;
+            }
+
             removed = Arms.Where(a => a.Status == "error" || (a.Once && a.Status == "firing" && a.SendOk == true)).Select(a => a.Id).ToList();
-            if (removed.Count == 0)
+            if (removed.Count == 0 && requeued == 0)
                 return removed;
             var set = new HashSet<string>(removed, StringComparer.OrdinalIgnoreCase);
             Arms.RemoveAll(a => set.Contains(a.Id));
             foreach (var id in removed)
                 CancelInFlightFire(id);
-            if (persist)
+            if (persist && (removed.Count > 0 || requeued > 0))
                 PersistUnlocked();
         }
 
