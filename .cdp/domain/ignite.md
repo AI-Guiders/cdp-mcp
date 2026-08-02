@@ -62,9 +62,11 @@
 - Autonomous + TM leaf Fly + long `last_once` while partner **here** (pre-0.5.543) — ≤3m still allowed agent-park; clamp to `3s(leaf_started)` when `ProbeFlight()==Fly`.
 - Leaving Meta `cdp_ignite` tip at ≤3m-only after leaf Fly / HILD ≤3s ships (pre-0.5.544) — invent-ban hygiene residual.
 - Arm clamp alone while a long last_once was already armed before leaf Fly (pre-0.5.545) — TimerLoop pull-forward `3s(leaf_pull)` under autonomous+Fly.
+- Leaving Channel XML tip at tip parity 0.5.537 after leaf Fly clamp/pull ships (pre-0.5.546) — invent-ban hygiene; Channel summary must match Meta (≤3s leaf Fly / HILD; TimerLoop pull-forward).
 
 ## last_ship
 
+- 0.5.546: Channel XML tip parity — leaf Fly / HILD ≤3s + TimerLoop pull-forward (residual after Meta 0.5.545) · VL #49 · 2026-08-03
 - 0.5.545: leaf Fly TimerLoop pull-forward armed last_once → ≤3s (`PullForwardLongWorkTimersOnLeafFly` · `3s(leaf_pull)`) · VL #48 · 2026-08-02
 - 0.5.544: Meta `cdp_ignite` tip parity — leaf Fly / HILD ≤3s clamp (residual after 0.5.543) · 2026-08-02
 - 0.5.543: leaf Fly arm clamp last_once → ≤3s (`leafFlying` · `3s(leaf_started)`) · VL #47 · 2026-08-02
