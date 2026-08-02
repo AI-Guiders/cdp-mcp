@@ -66,6 +66,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 24 | [Remount mirror: я вижу remount, даже когда Composer занят](voice-letter-remount-intercom-mirror.ru.md) | ignite · remount Intercom mirror · busy Composer · 0.5.518 |
 | 25 | [Remount busy: я не жду CDT, когда Composer уже Stop](voice-letter-remount-composer-busy.ru.md) | ignite · remount skip CDT · remount_composer_busy · 0.5.519 |
 | 26 | [Idle-PF busy: я не жду CDT после Intercom mirror, когда Composer Stop](voice-letter-idle-pf-composer-busy.ru.md) | ignite · mirrored skip CDT · idle_pf_composer_busy · 0.5.520 |
+| 27 | [CCL `;`: я не пеку junk titles одной строкой](voice-letter-ccl-multi-cmd-refuse.ru.md) | iderepl/tm · multi_cmd refuse · 0.5.521 |
 
 ## Как читать
 
