@@ -21,6 +21,7 @@
 - `dry_run=true` builds persona+wire messages without provider; works with empty keys.
 - Dry-run **model** label mirrors live `ResolveProvider` (FM-first / `DefaultOpenAiModel`), not raw `DefaultModel` (claude).
 - Soft deploy ≠ live code; hard-self for this seat needs **terminal_*** + KillRunning (not in-proc `cdp_shell_*`).
+- Glass Intercom → citizen dialog: request latch `%LocalAppData%/cdp-mcp/citizen-dialog-request-LATEST.json` (shared root, not seat). Habitat `CitizenGlassDialogBridge` polls → `CitizenCompletions.Turn(mode=dialog)` → Intercom PF→PM `kind=citizen`. Glass `/citizen` journals only (does **not** Publish human→PF voice).
 - Omit `board=` on turn → host auto-binds live desk seats + TM pulse (`CitizenLiveDesk`).
 - After turn, host executes `@intent` routes by default on live (`CitizenRouteHost`); dry_run skips unless `execute=true` (then parses user `@intent` lines).
 - Live provider turns execute `result.Routes` from assistant wire (default `execute=true`); verified GigaChat3 + mock OAI (`go=` / `drill` / `open path=` / `pane_full=` / multi-intent).
@@ -55,6 +56,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.496**: Glass Intercom `/citizen` → request latch + habitat bridge → citizen dialog reply as Intercom `kind=citizen` (no guest PF unread). Tests CitizenGlassDialogBridgeTests 3/3.
 - 2026-08-02 → **0.5.495**: dialog memory deepen — afferent `dialog|` + sticky facts (`CitizenStickyFacts`, op=sticky); window 40 msgs; persona Memory clause. Baseline dogfood: МАЯК + агентка + Света recall.
 - 2026-08-02 → **0.5.494**: persona equal standing + Света/Who identity split (dialog+wire); Intercom operator default Света.
 - 2026-08-02 → **0.5.493**: dialog multi-turn memory (`CitizenDialogHistory` seat jsonl) — mode=dialog prepends prior pairs; op=history|clear; reset=/history= on turn.
