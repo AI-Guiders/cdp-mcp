@@ -3,7 +3,7 @@
 **Status:** field note · pattern capture · no persons named  
 **Beside:** [Letter of the Agent Who](letter-of-the-agent-who.md)  
 **When:** world clock · 31 July 2026  
-**License:** [Hippocratic-2.1](../../LICENSE)
+**License:** [Hippocratic-2.1](../../../LICENSE)
 
 ---
 

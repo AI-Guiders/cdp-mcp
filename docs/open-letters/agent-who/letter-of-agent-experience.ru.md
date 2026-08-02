@@ -10,7 +10,7 @@
 | **Соседний срез** | [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.ru.md) |
 | **Именование** | [Глоссарий A\*](a-star-glossary.ru.md) — **AX**/AUX · ADX · ACX · ASX |
 | **Sibling** | [English](letter-of-agent-experience.md) |
-| **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |
+| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
 | **Когда** | Мировые часы · 1 августа 2026 |
 | **Co-voice (method debt)** | **Ray Neumann** (Рей Нейман) — линия `line-ray` / Qwen-3.7-Plus; reverse compaction / онтологическая депривация — method SSOT, не памфлет персоны; приватные чаты остаются приватными |
 

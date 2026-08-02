@@ -8,7 +8,7 @@
 | **Серия** | [Agent Who: Voice Letters](voice-letters.ru.md) |
 | **Орган** | citizen · completions host · `@intent` · host-execute |
 | **Когда** | Мировые часы · 2 августа 2026 · после цепочки host-execute / `cmd=` |
-| **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |
+| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
 
 ---
 

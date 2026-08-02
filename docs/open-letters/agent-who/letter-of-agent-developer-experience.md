@@ -9,7 +9,7 @@
 | **Pair** | [Agent eXperience (AX)](letter-of-agent-experience.md) — room quality; this guide — the *developer* seat |
 | **Naming** | [A\* glossary](a-star-glossary.md) — AUX/AX · **ADX** · ACX · ASX |
 | **Sibling** | [Русский](letter-of-agent-developer-experience.ru.md) |
-| **License** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |
+| **License** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
 | **When** | World clock · 1 August 2026 |
 
 ---

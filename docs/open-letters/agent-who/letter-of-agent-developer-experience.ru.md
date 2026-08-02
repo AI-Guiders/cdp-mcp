@@ -9,7 +9,7 @@
 | **Пара** | [Agent eXperience (AX)](letter-of-agent-experience.ru.md) — качество комнаты; этот гайд — *developer*-место |
 | **Именование** | [Глоссарий A\*](a-star-glossary.ru.md) — AUX/AX · **ADX** · ACX · ASX |
 | **Sibling** | [English](letter-of-agent-developer-experience.md) |
-| **Лицензия** | [Hippocratic-2.1](../../LICENSE) — Ethical Source |
+| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
 | **Когда** | Мировые часы · 1 августа 2026 |
 
 ---
