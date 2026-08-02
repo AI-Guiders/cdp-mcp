@@ -4,7 +4,18 @@ namespace CdpMcp.Tests;
 
 public sealed class DocumentBufferMaterialDiskTests
 {
-    [Fact]
+[Fact]
+    public void Scene_habitat_teaches_host_write_detect()
+    {
+        var scene = new DocumentBufferStore().Scene();
+        var json = System.Text.Json.JsonSerializer.Serialize(scene);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var habitat = doc.RootElement.GetProperty("habitat").GetString();
+        Assert.Contains("host_write", habitat, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("quality", habitat, StringComparison.OrdinalIgnoreCase);
+    }
+
+        [Fact]
     public void Scene_mtime_only_same_content_does_not_count_as_disk_changed()
     {
         var dir = NewTempDir("mtime-same");

@@ -227,7 +227,8 @@ internal sealed partial class DocumentBufferStore
             disk_changed_count = drift,
             docs,
             habitat =
-                "PathMutateGate covers cdp_buffer only — Cursor host Write/Read bypass the desk. Prefer buffer open/edit/find over host Write/Read.",
+                "PathMutateGate covers cdp_buffer only — Cursor host Write/Read bypass the desk. " +
+                "Material drift stamps AdxMutateTrace host_write (go=quality scope=assert). Prefer buffer open/edit/find over host Write/Read.",
             hint =
                 "Mutate SSOT via cdp_buffer. Large files: edit_op=anchor|replace / go=scope — avoid thick set_text."
         };

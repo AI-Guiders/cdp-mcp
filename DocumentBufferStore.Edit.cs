@@ -112,7 +112,9 @@ internal sealed partial class DocumentBufferStore
         {
             throw new InvalidOperationException(
                 $"Refusing flush of '{buf.Path}' — material disk drift ({driftReason ?? "unknown"}). " +
-                "Use reload (take disk), keep_disk (ack keep memory), or force=true to overwrite disk.");
+                "Likely Cursor host Write / outside-IDE (AdxMutateTrace host_write). " +
+                "Use reload (take disk), keep_disk (ack keep memory), or force=true to overwrite disk. " +
+                "go=quality scope=assert for host_write pulse.");
         }
 
         if (File.Exists(buf.Path) && !allowShrink)
