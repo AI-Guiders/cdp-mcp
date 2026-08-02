@@ -18,10 +18,11 @@
 - Soft deploy ≠ live code; hard-self for this seat needs **terminal_*** + KillRunning (not in-proc `cdp_shell_*`).
 - Omit `board=` on turn → host auto-binds live desk seats + TM pulse (`CitizenLiveDesk`).
 - After turn, host executes `@intent` routes by default on live (`CitizenRouteHost`); dry_run skips unless `execute=true` (then parses user `@intent` lines).
-- Live provider turns execute `result.Routes` from assistant wire (default `execute=true`); verified GigaChat3 + mock OAI (`go=` / `drill` / `open path=` place+open).
+- Live provider turns execute `result.Routes` from assistant wire (default `execute=true`); verified GigaChat3 + mock OAI (`go=` / `drill` / `open path=` / `pane_full=`).
 - Host execute is sync seat place + buffer open — not full cockpit BuildAsync (no W-spray).
 - `open path=` resolves under ProjectRoot via `IdeLanguageTools.TryOpenDocument`; places `editor_scene`.
 - `drill <organ>` and `detail=… scene=` place via `PlaceGo` (canonical pin, e.g. editor→editor_scene).
+- `pane_full=<seat>` notes seat + places `cockpit` pointer (C-depth without W-spray).
 
 ## Entry
 
@@ -42,6 +43,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.483**: verify `pane_full=` host-execute — Execute_pane_full + mock OAI channel; live FM dogfood. Dig: NotePaneFull already in 0.5.479; gap was regression+proof.
 - 2026-08-02 → **0.5.482**: verify `drill` / `detail= scene=` host-execute — Execute_drill/detail + mock OAI drill channel; live FM dogfood. Dig: PlaceGo already in 0.5.479; gap was regression+proof.
 - 2026-08-02 → **0.5.481**: verify `open path=` host-execute — Execute_open + mock OAI channel tests; live dogfood when FM emits open intent. Dig: OpenPath already in 0.5.479; gap was regression+proof.
 - 2026-08-02 → **0.5.480**: verify live provider default-execute — mock OAI channel test + FM dogfood `@intent go=alert` → executed place. Dig: path already in 0.5.479; gap was regression+live proof.
