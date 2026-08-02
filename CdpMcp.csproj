@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.461</Version>
+    <Version>0.5.462</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -253,4 +253,19 @@
       <DependentUpon>IdeFlightDataRecorder.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="IdeScopeChannel.Ops.cs"><DependentUpon>IdeScopeChannel.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="IdeScopeChannel.Ops.cs">
+      <DependentUpon>IdeScopeChannel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="EditPlanFix.Parse.cs">
+      <DependentUpon>EditPlanFix.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeRefactorPlanChannel.Recommend.Helpers.cs">
+      <DependentUpon>IdeRefactorPlanChannel.Recommend.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="CdpSettings.Build.cs"><DependentUpon>CdpSettings.cs</DependentUpon></Compile></ItemGroup></Project>
