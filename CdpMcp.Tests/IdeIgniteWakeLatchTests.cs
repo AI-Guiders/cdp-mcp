@@ -284,20 +284,47 @@ public class IdeIgniteWakeLatchTests : IDisposable
     }
 
     [Fact]
-    public void MirrorTimerWakeToIntercom_skips_oom_wake()
+    public void MirrorTimerWakeToIntercom_oom_publishes_when_pf_busy()
     {
+        CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
         var arm = new IdeIgniteArmHost.IgniteArm
         {
             Id = "oom-wake-xyz",
             Event = "timer",
             Status = "firing",
-            ChargeMode = "oom",
+            ChargeMode = IdeOomWake.ChargeMode,
+            Reason = IdeOomWake.Reason,
             Once = true,
             Port = 9222,
             WaitSeconds = 30
         };
 
-        Assert.False(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=oom"));
-        Assert.Null(CideIntercomVoiceLatch.TryRead());
+        Assert.True(IdeIgniteArmHost.IsOomWakeArm(arm));
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "reason=oom"));
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=oom busy PF"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("reason=oom busy PF", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_oom_publishes_when_pf_idle()
+    {
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "oom-wake-xyz",
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = IdeOomWake.ChargeMode,
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=oom"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("reason=oom", voice!.Body, StringComparison.Ordinal);
     }
 }
