@@ -170,7 +170,13 @@ internal static class AdxAssertions
         if (!AdxIgniteLatchKernel.LastOnceFireAwaitingOk(lastOnce: true, fired: true, awaiting: true))
             return new CheckResult(false, null, "last_once awaiting happy path failed");
         if (AdxIgniteLatchKernel.LastOnceFireAwaitingOk(lastOnce: true, fired: true, awaiting: false))
-            return new CheckResult(false, null, "last_once fire without awaiting must fail");
+            return new CheckResult(false, null, "last_once fire without awaiting must fail (autonomous off)");
+        if (!AdxIgniteLatchKernel.LastOnceFireAwaitingOk(
+                lastOnce: true, fired: true, awaiting: false, autonomous: true))
+            return new CheckResult(false, null, "last_once under autonomous may continue without awaiting");
+        if (AdxIgniteLatchKernel.LastOnceFireAwaitingOk(
+                lastOnce: true, fired: true, awaiting: true, autonomous: true))
+            return new CheckResult(false, null, "last_once under autonomous must not invent-ban awaiting");
         if (!AdxIgniteLatchKernel.NotArmedWhileAwaiting(hasArmedTimer: false, awaitPartner: true))
             return new CheckResult(false, null, "await-only must be ok");
         if (AdxIgniteLatchKernel.NotArmedWhileAwaiting(hasArmedTimer: true, awaitPartner: true))

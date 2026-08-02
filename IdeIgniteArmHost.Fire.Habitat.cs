@@ -49,14 +49,7 @@ internal static partial class IdeIgniteArmHost
         if (latch is null)
             return null;
 
-        var voiceBody = TruncateHabitatCharge(charge);
-        _ = CideIntercomVoiceLatch.Publish(
-            fromSeat: CideIntercomVoiceLatch.SeatPf,
-            toSeat: CideIntercomVoiceLatch.SeatPm,
-            body: voiceBody,
-            origin: CideIntercomVoiceLatch.OriginAgent,
-            name: "AutoI",
-            kind: "guest");
+        PublishHabitatIntercomCharge(charge);
 
         IdeFlightDataRecorder.RecordWake(
             "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_duplex");
@@ -212,6 +205,9 @@ internal static partial class IdeIgniteArmHost
         if (latch is null)
             return null;
 
+        // Parity prefer duplex: Glass Intercom needs charge when mirror miss + composer gone (0.5.529).
+        PublishHabitatIntercomCharge(charge);
+
         var detail = HabitatComposerSkipDetail(arm, kind);
         IdeFlightDataRecorder.RecordWake(
             "wake_habitat", arm.Id, ToolFromWakeArm(arm), detail);
@@ -238,6 +234,19 @@ internal static partial class IdeIgniteArmHost
         if (!intercomMirrored)
             return Task.FromResult<object?>(null);
         return TryDeliverHabitatWhenComposerUnavailableAsync(arm, charge, ct);
+    }
+
+    /// <summary>Best-effort Intercom voice for habitat wakes (prefer + composer-unavailable).</summary>
+    static void PublishHabitatIntercomCharge(string charge)
+    {
+        var voiceBody = TruncateHabitatCharge(charge);
+        _ = CideIntercomVoiceLatch.Publish(
+            fromSeat: CideIntercomVoiceLatch.SeatPf,
+            toSeat: CideIntercomVoiceLatch.SeatPm,
+            body: voiceBody,
+            origin: CideIntercomVoiceLatch.OriginAgent,
+            name: "AutoI",
+            kind: "guest");
     }
 
     static string TruncateHabitatCharge(string charge)

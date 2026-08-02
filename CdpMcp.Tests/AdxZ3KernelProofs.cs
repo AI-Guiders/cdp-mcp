@@ -110,25 +110,40 @@ public sealed class AdxZ3KernelProofs
     }
 
     [Fact]
-    public void IgniteLatch_LastOnceFired_Implies_Awaiting_UnsatOtherwise()
+    public void IgniteLatch_LastOnceFired_Implies_Awaiting_WhenAutonomousOff_UnsatOtherwise()
     {
         using var ctx = new Context();
         var lastOnce = ctx.MkBoolConst("last_once");
         var fired = ctx.MkBoolConst("fired");
         var awaiting = ctx.MkBoolConst("awaiting");
+        var autonomous = ctx.MkBoolConst("autonomous");
 
-        // OK := ¬(lastOnce ∧ fired) ∨ awaiting
-        var ok = ctx.MkOr(ctx.MkNot(ctx.MkAnd(lastOnce, fired)), awaiting);
+        // OK := ¬(lastOnce ∧ fired) ∨ (autonomous ∧ ¬awaiting) ∨ (¬autonomous ∧ awaiting)
+        var ok = ctx.MkOr(
+            ctx.MkNot(ctx.MkAnd(lastOnce, fired)),
+            ctx.MkAnd(autonomous, ctx.MkNot(awaiting)),
+            ctx.MkAnd(ctx.MkNot(autonomous), awaiting));
 
-        var s = ctx.MkSolver();
-        s.Add(ok);
-        s.Add(lastOnce);
-        s.Add(fired);
-        s.Add(ctx.MkNot(awaiting));
-        Assert.Equal(Status.UNSATISFIABLE, s.Check());
+        var sOff = ctx.MkSolver();
+        sOff.Add(ok);
+        sOff.Add(lastOnce);
+        sOff.Add(fired);
+        sOff.Add(ctx.MkNot(autonomous));
+        sOff.Add(ctx.MkNot(awaiting));
+        Assert.Equal(Status.UNSATISFIABLE, sOff.Check());
+
+        var sAuto = ctx.MkSolver();
+        sAuto.Add(ok);
+        sAuto.Add(lastOnce);
+        sAuto.Add(fired);
+        sAuto.Add(autonomous);
+        sAuto.Add(awaiting);
+        Assert.Equal(Status.UNSATISFIABLE, sAuto.Check());
 
         Assert.False(AdxIgniteLatchKernel.LastOnceFireAwaitingOk(true, true, false));
         Assert.True(AdxIgniteLatchKernel.LastOnceFireAwaitingOk(true, true, true));
+        Assert.True(AdxIgniteLatchKernel.LastOnceFireAwaitingOk(true, true, false, autonomous: true));
+        Assert.False(AdxIgniteLatchKernel.LastOnceFireAwaitingOk(true, true, true, autonomous: true));
     }
 
     [Fact]
