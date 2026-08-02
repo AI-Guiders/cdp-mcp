@@ -47,18 +47,20 @@ internal static partial class IdeQrhChannel
             "path-mutate-gate",
             "abnormal",
             "Host Read/Write bypassed desk",
-            "Cursor Write skips PathMutateGate; Cursor Read dumps file bodies into chat context (~1%/read). Thick set_text on large files = thrash — prefer edit_op=anchor / go=scope sniper.",
-            ["buffer", "write", "read", "mutate", "path_mutate", "context", "set_text", "thrash"],
+            "Cursor Write skips PathMutateGate; Cursor Read dumps file bodies into chat context (~1%/read). Material disk drift on open buffers stamps AdxMutateTrace host_write (go=quality scope=assert) — detect, not gate. Thick set_text on large files = thrash — prefer edit_op=anchor / go=scope sniper.",
+            ["buffer", "write", "read", "mutate", "path_mutate", "context", "set_text", "thrash", "host_write"],
             [
                 "Prefer cdp_buffer over Cursor Write on project paths",
                 "Prefer cdp_buffer open/find/read over Cursor Read (context tax)",
-                "Large file: anchor/sniper — not whole-file set_text"
+                "Large file: anchor/sniper — not whole-file set_text",
+                "Material drift: reload|keep_disk|force; host_write via go=quality scope=assert"
             ],
             [
                 new("cdp_buffer op=open|edit (anchor) — mutate SSOT", "buffer", "cdp_buffer"),
                 new("cdp_buffer find/read — peek without host Read dump", "buffer", "cdp_buffer"),
                 new("If large file: go=scope → sniper before thick edit", "scope", "cdp_edit_sniper"),
-                new("disk_peek / reload if outside change", "disk_peek", "cdp_buffer")
+                new("disk_peek / reload if outside change", "disk_peek", "cdp_buffer"),
+                new("go=quality scope=assert — host_write pulse", "quality", "cdp_cockpit")
             ],
             ["intake-brief", "ship-dirty", "test-via-desk", "scm-via-desk", "find-via-desk"],
             ["procedure:mutate-plan-then-act", "definition:blast-radius"],

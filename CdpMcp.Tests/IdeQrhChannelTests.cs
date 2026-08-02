@@ -79,6 +79,30 @@ public sealed class IdeQrhChannelTests
     }
 
     [Fact]
+    public void Open_path_mutate_page_teaches_host_write_detect()
+    {
+        var board = IdeQrhChannel.Handle(
+            Ctx(),
+            new Dictionary<string, System.Text.Json.JsonElement>
+            {
+                ["op"] = System.Text.Json.JsonSerializer.SerializeToElement("open"),
+                ["id"] = System.Text.Json.JsonSerializer.SerializeToElement("path-mutate-gate")
+            });
+        var json = System.Text.Json.JsonSerializer.Serialize(board);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var page = doc.RootElement.GetProperty("page");
+        Assert.Equal("path-mutate-gate", page.GetProperty("id").GetString());
+        var body = page.GetProperty("condition").GetString() ?? "";
+        foreach (var m in page.GetProperty("memory_items").EnumerateArray())
+            body += m.GetString();
+        foreach (var s in page.GetProperty("steps").EnumerateArray())
+            body += s.GetProperty("text").GetString();
+        Assert.Contains("host_write", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("quality", body, StringComparison.OrdinalIgnoreCase);
+    }
+
+
+    [Fact]
     public void Suggest_review_ecl_related_includes_scm_via_desk()
     {
         var ecl = IdeChkChannel.Build(Ctx(phase: "review"));
