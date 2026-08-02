@@ -16,6 +16,7 @@ public class IdeTeethOrganTests : IDisposable
         Directory.CreateDirectory(_remountRoot);
         IdeTeethTape.PathOverrideForTests = _tape;
         IdeTeethTape.SuppressWriteForTests = false;
+        IdeTeethTape.ResetGuestForTests();
         IdeRemountWake.RootOverrideForTests = _remountRoot;
         IdeRemountWake.DefaultDueSeconds = 5;
     }
@@ -40,6 +41,28 @@ public class IdeTeethOrganTests : IDisposable
         Assert.Equal("wake_schedule", tail[^1].Kind);
         Assert.Equal("oom", tail[^1].Reason);
         Assert.Equal("oom-wake-test", tail[^1].ArmId);
+    }
+
+    [Fact]
+    public void ShouldRefreshCdtSample_true_when_unknown()
+    {
+        // Fresh test ctor leaves LastCdtUp unset unless NoteGuest ran.
+        Assert.True(IdeTeethChannel.ShouldRefreshCdtSample());
+    }
+
+    [Fact]
+    public void ShouldRefreshCdtSample_false_when_fresh_note()
+    {
+        IdeTeethTape.NoteGuest("idle", cdtUp: true);
+        Assert.False(IdeTeethChannel.ShouldRefreshCdtSample());
+    }
+
+    [Fact]
+    public void ShouldRefreshCdtSample_true_when_stale()
+    {
+        IdeTeethTape.NoteGuest("idle", cdtUp: true);
+        var stale = DateTimeOffset.UtcNow + IdeTeethChannel.CdtSampleTtl + TimeSpan.FromSeconds(1);
+        Assert.True(IdeTeethChannel.ShouldRefreshCdtSample(stale));
     }
 
     [Fact]
