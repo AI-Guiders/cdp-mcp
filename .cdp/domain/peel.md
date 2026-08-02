@@ -23,6 +23,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.476**: wave22 — extract method_lines HealthJson (75→under warn70) → MetaDispatch.HealthJson.cs helpers (TryExplainTool/TryGetExeBuildUtc/TryReadPendingUpdate). Next: refactor_plan hotspot (CdpMcp.csproj FileLines=411 / design) or next method_lines.
 - 2026-08-02 → **0.5.475**: wave21 — extract method_lines FindInFiles.Dispatch (197→thin) → FindInFiles.Dispatch.cs helpers (Fail*/TryBindRoots/BuildRgArgv/OkHits). Search/Rg already peeled. Next: HealthJson=75 soft or next refactor_plan hotspot.
 - 2026-08-02 → **0.5.474**: wave20 — extract method_lines MetaDispatch.CoreAsync (267→thin switch) → Core.Man|Capabilities|Context|Open|Restore (+existing Health). Open needs `using Cdp.ScriptableIde` for OpenRecentStore. CoreAsync cleared from refactor_plan debt. Next: FindInFiles.Dispatch=197 · HealthJson=75 soft.
 - 2026-08-02 → wave19 DIG REJECT — BuildBudget method_lines already peeled @0.5.452 (Budget.cs=110; BuildBudget~30). Next hotspot: MetaDispatch.CoreAsync=267 (extract_method, not FileLines peel).

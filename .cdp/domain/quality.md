@@ -28,6 +28,7 @@
 
 ## last_ship
 
+- wave22 HealthJson method extract @ **0.5.476** — HealthJson cleared; remaining soft open-buffer: CdpMcp.csproj FileLines=411 (design, not method peel) · 2026-08-02
 - wave21 FindInFiles.Dispatch method extract @ **0.5.475** — Dispatch cleared; remaining soft: HealthJson=75 · 2026-08-02
 - wave20 MetaDispatch.CoreAsync method extract @ **0.5.474** — CoreAsync off hotspot list; remaining method_lines: FindInFiles.Dispatch=197 · HealthJson=75 · 2026-08-02
 - wave19 DIG REJECT BuildBudget — already peeled @0.5.452; sole remaining method_lines hotspot MetaDispatch.CoreAsync=267 (extract_method) · 2026-08-02
