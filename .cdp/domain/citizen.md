@@ -22,7 +22,7 @@
 - Dry-run **model** label mirrors live `ResolveProvider` (FM-first / `DefaultOpenAiModel`), not raw `DefaultModel` (claude).
 - Soft deploy ≠ live code; hard-self for this seat needs **terminal_*** + KillRunning (not in-proc `cdp_shell_*`).
 - Glass Intercom → citizen dialog: request latch `%LocalAppData%/cdp-mcp/citizen-dialog-request-LATEST.json` (shared root, not seat). Habitat `CitizenGlassDialogBridge` polls → `CitizenCompletions.Turn(mode=dialog)` → Intercom PF→PM `kind=citizen`. Glass `/citizen` journals only (does **not** Publish human→PF voice).
-- **Autoi wake consume (0.5.551):** when invite ready + autonomous + idle PF, `IdeIgniteArmHost.TryDeliverHabitatWake` calls `IdeCitizenChannel.TryDeliverAutoiWake` (dialog Turn + host-execute routes) → Intercom `kind=citizen` · skip Guest CDT (`prefer_citizen`).
+- **Autoi wake consume (0.5.551→0.5.554):** when Composer unavailable + invite ready, `TryDeliverHabitatWhenComposerUnavailableAsync` calls `TryDeliverAutoiWake` → Intercom `kind=citizen` · skip CDT (`prefer_citizen`). While Cursor Composer is present, Guest Autoi CDT→Composer even if invite ready (0.5.554 — do not silent-steal).
 - Omit `board=` on turn → host auto-binds live desk seats + TM pulse (`CitizenLiveDesk`).
 - After turn, host executes `@intent` routes by default on live (`CitizenRouteHost`); dry_run skips unless `execute=true` (then parses user `@intent` lines).
 - Live provider turns execute `result.Routes` from assistant wire (default `execute=true`); verified GigaChat3 + mock OAI (`go=` / `drill` / `open path=` / `pane_full=` / multi-intent).
