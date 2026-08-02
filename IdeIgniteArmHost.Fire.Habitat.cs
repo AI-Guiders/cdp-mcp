@@ -29,6 +29,10 @@ internal static partial class IdeIgniteArmHost
             or CideIntercomPresenceLatch.StateComposing;
     }
 
+    internal static bool IsHabitatSubmitKind(string? submit) =>
+        string.Equals(submit, "habitat", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(submit, "citizen", StringComparison.OrdinalIgnoreCase);
+
     /// <summary>
     /// Prefer habitat when PF duplex live, or autonomous overnight (plain timers).
     /// Partner-mode (autonomous off) + idle PF → Composer fallthrough + Intercom mirror.
@@ -41,6 +45,12 @@ internal static partial class IdeIgniteArmHost
     /// Autonomous + idle PF: stamp habitat SSOT only, return null → Guest Autoi CDT fallthrough
     /// (Intercom via MirrorTimerWakeToIntercom). Skipping CDT overnight was ACC silent for guest Cursor.
     /// </summary>
+    /// <summary>
+    /// Duplex PF live: publish habitat wake + Intercom, skip CDT.
+    /// Autonomous + idle PF + citizen invite ready: citizen Turn consumes wake, skip CDT (ADR-0025).
+    /// Autonomous + idle PF + invite blocked: stamp habitat SSOT only, return null → Guest Autoi CDT fallthrough
+    /// (Intercom via MirrorTimerWakeToIntercom). Skipping CDT overnight without consumer was ACC silent for guest Cursor.
+    /// </summary>
     internal static object? TryDeliverHabitatWake(IgniteArm arm, string charge)
     {
         if (!MayPreferHabitatOverComposer(arm))
@@ -49,7 +59,6 @@ internal static partial class IdeIgniteArmHost
             return null;
 
         var duplex = IsHabitatPartnerLive();
-        var detail = duplex ? "prefer_duplex" : "prefer_autonomous";
 
         var latch = IdeIgniteWakeLatch.Publish(
             arm.Id,
@@ -60,26 +69,52 @@ internal static partial class IdeIgniteArmHost
         if (latch is null)
             return null;
 
+        if (duplex)
+        {
+            IdeFlightDataRecorder.RecordWake(
+                "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_duplex");
+            PublishHabitatIntercomCharge(charge);
+            return HabitatWakeResult(arm.Id, "prefer_duplex", submitKind: "habitat");
+        }
+
+        // Citizen Autoi spine when invite ready — habitat consumer exists (not Guest Composer).
+        if (IdeCitizenChannel.TryDeliverAutoiWake(charge, out var reply))
+        {
+            IdeFlightDataRecorder.RecordWake(
+                "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_citizen");
+            PublishCitizenWakeIntercom(reply ?? charge);
+            return HabitatWakeResult(arm.Id, "prefer_citizen", submitKind: "citizen");
+        }
+
+        // Guest Autoi spine: habitat SSOT without killing CDT inject when no duplex/citizen consumer.
         IdeFlightDataRecorder.RecordWake(
-            "wake_habitat", arm.Id, ToolFromWakeArm(arm), detail);
+            "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_autonomous");
+        return null;
+    }
 
-        // Guest Autoi spine: habitat SSOT without killing CDT inject when no duplex consumer.
-        if (!duplex)
-            return null;
-
-        PublishHabitatIntercomCharge(charge);
-
-        return new
+    static object HabitatWakeResult(string armId, string detail, string submitKind) =>
+        new
         {
             schema = "ignite/v0",
             ok = true,
             op = "send",
-            submit_kind = "habitat",
-            submit_kind_after = "habitat",
+            submit_kind = submitKind,
+            submit_kind_after = submitKind,
             channel = IdeIgniteWakeLatch.ChannelHabitat,
-            arm_id = arm.Id,
+            arm_id = armId,
             detail
         };
+
+    static void PublishCitizenWakeIntercom(string body)
+    {
+        var voiceBody = TruncateHabitatCharge(body);
+        _ = CideIntercomVoiceLatch.Publish(
+            fromSeat: CideIntercomVoiceLatch.SeatPf,
+            toSeat: CideIntercomVoiceLatch.SeatPm,
+            body: voiceBody,
+            origin: CideIntercomVoiceLatch.OriginAgent,
+            name: CideIntercomVoiceLatch.DefaultNameCitizen,
+            kind: CideIntercomVoiceLatch.KindCitizen);
     }
 
 

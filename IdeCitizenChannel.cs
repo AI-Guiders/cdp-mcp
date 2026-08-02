@@ -144,6 +144,62 @@ internal static class IdeCitizenChannel
     /// <summary>Hospitality gate: persona+wire always; live invite needs OpenAI-compat or Anthropic key.</summary>
     sealed record InviteGate(bool Ready, string Status, string[] Checklist, string? Blocker);
 
+/// <summary>Test hook — force invite gate without touching ai-keys.toml.</summary>
+    internal static Func<bool>? InviteReadyOverrideForTests;
+
+    /// <summary>Test hook — skip live provider on Autoi wake consume.</summary>
+    internal static Func<string, CitizenCompletions.TurnResult>? AutoiWakeTurnOverrideForTests;
+
+    internal static void ResetAutoiWakeHooksForTests()
+    {
+        InviteReadyOverrideForTests = null;
+        AutoiWakeTurnOverrideForTests = null;
+    }
+
+    /// <summary>Live invite gate (OpenAI-compat or Anthropic key).</summary>
+    internal static bool IsInviteReady() =>
+        InviteReadyOverrideForTests?.Invoke() ?? InviteReady(CitizenAiKeys.Load()).Ready;
+
+    /// <summary>
+    /// Autoi wake → citizen Turn (+ host-execute routes). False → Guest CDT fallthrough.
+    /// Dialog + live desk inject — peer continuity owns the leaf, not Composer.
+    /// </summary>
+    internal static bool TryDeliverAutoiWake(string charge, out string? replyText)
+    {
+        replyText = null;
+        if (!IsInviteReady())
+            return false;
+
+        var body = charge?.Trim() ?? "";
+        if (body.Length == 0)
+            return false;
+
+        CitizenCompletions.TurnResult turn;
+        if (AutoiWakeTurnOverrideForTests is { } ov)
+        {
+            turn = ov(body);
+        }
+        else
+        {
+            var live = CitizenLiveDesk.TryCaptureLive();
+            turn = CitizenCompletions.Turn(
+                body,
+                boardLines: live.BoardLines.Length > 0 ? live.BoardLines : null,
+                tm: live.TmPulse,
+                inject: true,
+                mode: CitizenTurnMode.Dialog,
+                history: true);
+        }
+
+        if (!turn.Ok || string.IsNullOrWhiteSpace(turn.Text))
+            return false;
+
+        replyText = turn.Text;
+        if (turn.Routes is { Count: > 0 })
+            _ = CitizenRouteHost.Execute(turn.Routes);
+        return true;
+    }
+
     static InviteGate InviteReady(CitizenAiKeys.Snapshot keys)
     {
         var checklist = new List<string>

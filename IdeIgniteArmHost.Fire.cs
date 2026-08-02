@@ -246,8 +246,8 @@ internal static partial class IdeIgniteArmHost
             submitKind: submit ?? (softStop ? "stop" : null));
         if (firedOk)
         {
-            // Habitat duplex delivery never touched Composer — no CDT Connection Problems watch.
-            if (!string.Equals(submit, "habitat", StringComparison.OrdinalIgnoreCase))
+            // Habitat duplex / citizen delivery never touched Composer — no CDT Connection Problems watch.
+            if (!IsHabitatSubmitKind(submit))
                 StartConnectionWatch(arm.Port);
             if (arm.LastOnce)
             {
