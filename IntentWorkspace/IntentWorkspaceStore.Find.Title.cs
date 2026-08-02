@@ -11,6 +11,7 @@ internal sealed partial class IntentWorkspaceStore
             return null;
         var t = title.Trim();
         var bare = StripBoardChrome(t);
+        var queryHasChrome = bare.Length > 0 && !string.Equals(bare, t, StringComparison.Ordinal);
         return WithDb(db =>
         {
             // Materialize — parity with FindStageMatching (chrome + unique prefix).
@@ -22,9 +23,27 @@ internal sealed partial class IntentWorkspaceStore
                     .Select(x => (Guid?)x.Id)
                     .FirstOrDefault();
 
+            // Exact title (with chrome as typed).
             var hit = Pick(x => x.Title == t)
-                ?? Pick(x => string.Equals(x.Title, t, StringComparison.OrdinalIgnoreCase))
-                ?? (bare.Length > 0 && bare != t
+                ?? Pick(x => string.Equals(x.Title, t, StringComparison.OrdinalIgnoreCase));
+            if (hit is not null)
+                return hit;
+
+            if (queryHasChrome)
+            {
+                // Query carried @phase/#Product — never silently land on a bare-title twin
+                // (survivor seat thin board after hard-self). Prefer chrome-bearing matches;
+                // null → FeatureAdd creates the tagged feature on this seat.
+                hit = Pick(x =>
+                        !string.Equals(x.Title, bare, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(StripBoardChrome(x.Title), bare, StringComparison.OrdinalIgnoreCase));
+                if (hit is not null)
+                    return hit;
+                return null;
+            }
+
+            // Bare query: allow chrome strip + unique prefix (done-by-feature-title path).
+            hit = (bare.Length > 0 && bare != t
                     ? Pick(x => x.Title == bare)
                         ?? Pick(x => string.Equals(x.Title, bare, StringComparison.OrdinalIgnoreCase))
                     : null)
