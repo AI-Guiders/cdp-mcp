@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.467</Version>
+    <Version>0.5.468</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -343,4 +343,19 @@
       <DependentUpon>EditorComfort.ClipEdit.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="IdeChkChannel.Handle.cs"><DependentUpon>IdeChkChannel.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="IdeChkChannel.Handle.cs">
+      <DependentUpon>IdeChkChannel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeWebcamChannel.Screen.Analyze.cs">
+      <DependentUpon>IdeWebcamChannel.Screen.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeArchBoardChannel.AsBuilt.Build.cs">
+      <DependentUpon>IdeArchBoardChannel.AsBuilt.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="IdeOnboardChannel.Scan.Helpers.cs"><DependentUpon>IdeOnboardChannel.Scan.cs</DependentUpon></Compile></ItemGroup></Project>

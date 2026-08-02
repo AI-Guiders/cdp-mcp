@@ -23,6 +23,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.468**: wave12 — IdeWebcamChannel.Screen.Analyze · IdeArchBoardChannel.AsBuilt.Build · IdeOnboardChannel.Scan.Helpers.
 - 2026-08-02 → **0.5.467**: wave11 — EditSniper.Aim · EditorComfort.ClipEdit.Ops · IdeChkChannel.Handle.
 - 2026-08-02 → **0.5.466**: wave10 — IdeProblemsChannel.Handle · IdeFilesChannel.Browse · OpenVsxClient.Ops.
 - 2026-08-02 → **0.5.465**: wave9 — LspOptionsToolkit.Ops · DocBuffer.Disk · IdeChkChannel.Mutate.Io (skip QrhBuiltins single-method).
