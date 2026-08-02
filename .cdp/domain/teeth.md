@@ -10,6 +10,7 @@
 - Auto-sample CDT when `LastCdtUp` unknown or note older than ~15s (`ShouldRefreshCdtSample`); `cdt=true` forces live sample.
 - `submit_kind=stop|queue` during wake fire = wait-idle busy (normal), not CDT-down.
 - Remount Not-connected while exe alive → `Recover-CdpSeatRemount.ps1` via `terminal_*` (kill+nudge); human Reload last.
+- OOM tooth (dogfood 2026-08-02): dual-seat must not twin-schedule; `IdeOomCrossProcessClaim` gates `TryScheduleOomWake`; `no_agent_composer`/`wrong_surface` requeue for timer wakes (not silent once-drop).
 
 ## Entry
 
@@ -24,4 +25,5 @@
 
 ## last_ship
 
+- 0.5.499: OOM tooth — cross-process schedule claim + requeue no_agent_composer/wrong_surface; DefaultDueSeconds 8→20 · 2026-08-02
 - 0.5.498: teeth PulseLine/scene/explain auto-refresh CDT when unknown/stale (~15s); Recover-CdpSeatRemount.ps1 + QRH/health recovery_note · 2026-08-02
