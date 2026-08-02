@@ -23,6 +23,7 @@
 
 ## Antipatterns
 
+- `feature` with `@phase/#Product` must not dedupe onto a bare-title twin (chrome query → create tagged or match chrome-bearing only) @ 0.5.553+.
 - Asking operator how focus/done works without reading Leaf + Mutations.
 - Seeding task titles that contain REPL verbs (`|focus|start`).
 - Chaining board verbs with `;` in one `cmd=` (`feature X; task Y; start`) — junk titles; refuse `multi_cmd` @ 0.5.521.
@@ -31,6 +32,7 @@
 
 ## last_ship
 
+- 0.5.553: FindIntent chrome query refuses bare-title twin (survivor seat wrong-board) · 2026-08-03
 - 0.5.521: CCL refuse `;` + board-verb chain (`RefuseChainedBoardCmd` / `ChainedTitleHint`) — no junk feature/task titles · VL #27 · 2026-08-02
 - Persist FileLines near-miss peel: OpenRecent + StageClock out of Persist.cs (300→105) @ 0.5.454 · 2026-08-02
 - Find FileLines near-miss peel: WorkFocus + ScriptLastRun out of Find.cs (335→188) @ 0.5.453 · 2026-08-02

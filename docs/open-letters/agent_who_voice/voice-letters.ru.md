@@ -92,6 +92,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 53 | [error tombstone: я воскрешаю, а не хороню](voice-letter-reclaim-error-requeue.ru.md) | ignite · reclaim/hygiene revive requeueable error · 0.5.550 |
 | 54 | [Citizen wake: я съедаю заряд, а не отдаю Composer](voice-letter-citizen-consume-habitat-wake.ru.md) | ignite · citizen · prefer_citizen Autoi consume · 0.5.551 |
 | 55 | [Plan go_args: SoftBoard flatten, mute снят](voice-letter-plan-go-args-flatten.ru.md) | cockpit · plan · TM go_args flatten · 0.5.552 |
+| 56 | [FindIntent chrome: я не сажусь на чужую тонкую доску](voice-letter-findintent-chrome-strip.ru.md) | tm · FindIntent chrome refuse bare twin · 0.5.553 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
 | 32 | [Composer gone: я не гоняю CDT после Intercom mirror](voice-letter-composer-gone-habitat-skip.ru.md) | ignite · composer_gone · ShouldSkipCdtAfterIntercomMirror · 0.5.526 |
