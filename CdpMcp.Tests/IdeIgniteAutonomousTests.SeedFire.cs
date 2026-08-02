@@ -86,4 +86,22 @@ public partial class IdeIgniteAutonomousTests
         var partner = IdeIgniteArmHost.ArmForLeafHint(autonomous: false);
         Assert.Contains("End turn", partner, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void ContinuityArmedNextStep_under_autonomous_forbids_wait_for_event_park()
+    {
+        var auto = IdeIgniteArmHost.ContinuityArmedNextStep(autonomous: true);
+        Assert.Contains("keep flying", auto, StringComparison.Ordinal);
+        Assert.Contains("do not park", auto, StringComparison.Ordinal);
+        Assert.DoesNotContain("wait for event", auto, StringComparison.Ordinal);
+
+        Assert.Equal("wait for event", IdeIgniteArmHost.ContinuityArmedNextStep(autonomous: false));
+    }
+
+    [Fact]
+    public void CanonicalComposerCharge_does_not_teach_rearm_when_idle()
+    {
+        Assert.Contains("timer ≠ idle license", IdeIgniteChannel.CanonicalComposerCharge, StringComparison.Ordinal);
+        Assert.DoesNotContain("re-arm when idle", IdeIgniteChannel.CanonicalComposerCharge, StringComparison.Ordinal);
+    }
 }

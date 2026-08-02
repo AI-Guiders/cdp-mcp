@@ -73,11 +73,18 @@ internal static partial class IdeIgniteArmHost
             var next = armed[0];
             var reason = next.Event == "timer" ? "timer_wait" : $"{next.Event}_wait";
             var authority = next.DueUtc is { } due ? $"continuity is armed and next due is {due:HH:mm:ss}Z" : "continuity is armed and waiting for its event";
-            return IdeExplainability.New("ignite.continuity", reason, authority, "wait for event");
+            var nextStep = ContinuityArmedNextStep(IsAutonomousArmed());
+            return IdeExplainability.New("ignite.continuity", reason, authority, nextStep);
         }
 
         return IdeExplainability.New("ignite.continuity", "idle", "no armed or latched continuity remains", "arm if continuity is needed");
     }
+
+    /// <summary>Scene continuity tip — under autonomous do not teach wait-for-event park.</summary>
+    internal static string ContinuityArmedNextStep(bool autonomous) =>
+        autonomous
+            ? "keep flying started TM leaf; timer is insurance — do not park"
+            : "wait for event";
 
     static object? ExplainCardObject(IdeExplainability.ExplainCard? explain) => explain is null ? null : new
     {

@@ -10,7 +10,7 @@ internal static partial class IdeIgniteChannel
     /// Composer wake charge — no TM stage body, shell, toolchain, or commands (cockpit holds SSOT).
     /// </summary>
     internal const string CanonicalComposerCharge =
-        "Resume the current authorized local development task from Task Manager. Habitat=CDP. Verify the result and re-arm when idle.";
+        "Resume the current authorized local development task from Task Manager. Habitat=CDP. Keep flying the started TM leaf; re-arm continuity as insurance after work — timer ≠ idle license.";
 
     /// <summary>
     /// Honest compaction hint — host may summarize without warning; pairs with cdp_pressure stash + memo line.
