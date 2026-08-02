@@ -46,7 +46,7 @@ internal static partial class IdeCideIntercomChannel
             seats = new
             {
                 pf = "Кир · guest (v0 Cursor PF)",
-                pm = "Who · operator (v0)",
+                pm = "Света · operator (v0)",
                 kinds = new[] { "guest", "citizen", "operator" }
             },
             latch_path = CideIntercomVoiceLatch.LatchPath,
@@ -60,7 +60,8 @@ internal static partial class IdeCideIntercomChannel
             latest = latch is null ? null : Card(latch),
             hint =
                 "send to=pm body=… [name=Кир] [kind=guest|citizen] → @PM on Glass Intercom. " +
-                "from=pm|operator body=… [name=Who] → operator voice (origin=human). " +
+                "from=pm|operator body=… [name=Света] → operator voice (origin=human). " +
+                "Who = Agent Who series (agent identity), not the human. " +
                 "presence seat=pf|pm state=idle|composing|busy — partner observability (no thinking dump). " +
                 "history limit= — Virtual History on demand (not auto into flight). " +
                 "ack id= after you read.",

@@ -52,7 +52,7 @@ internal static partial class IdeCideIntercomChannel
         acked = d.Acked,
         stamped_utc = d.StampedUtc
     };
-    /// <summary>PF defaults to agent; PM (operator/Who) defaults to human. Explicit origin= wins.</summary>
+    /// <summary>PF defaults to agent; PM (operator/Света) defaults to human. Explicit origin= wins. Who ≠ human.</summary>
     static string? ResolveOrigin(string fromSeat, string? originRaw)
     {
         if (!string.IsNullOrWhiteSpace(originRaw))
@@ -60,7 +60,7 @@ internal static partial class IdeCideIntercomChannel
             var o = originRaw.Trim().ToLowerInvariant();
             if (o is "agent" or "pf" or "pilot")
                 return CideIntercomVoiceLatch.OriginAgent;
-            if (o is "human" or "operator" or "pm" or "who")
+            if (o is "human" or "operator" or "pm")
                 return CideIntercomVoiceLatch.OriginHuman;
             return null;
         }
