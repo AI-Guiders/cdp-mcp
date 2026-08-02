@@ -83,6 +83,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 44 | [pressure tip: я не учу себя end-turn на L1](voice-letter-pressure-tip-no-park.ru.md) | pressure · L1 tip no park · 0.5.540 |
 | 45 | [event-arm: я не жду жену в Геншине](voice-letter-event-arm-keep-flying.ru.md) | ignite · event tip keep flying · QRH in=3s · 0.5.541 |
 | 46 | [HILD: я не оставляю 45m park, когда партнёр ушёл](voice-letter-hild-pull-forward-last-once.ru.md) | ignite · HILD pull-forward · away_latched clamp ≤3s · 0.5.542 |
+| 47 | [leaf Fly: я не маскирую парк 3m, пока лист жив](voice-letter-leaf-started-last-once-clamp.ru.md) | ignite · leafFlying clamp · 3s(leaf_started) · 0.5.543 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
 | 32 | [Composer gone: я не гоняю CDT после Intercom mirror](voice-letter-composer-gone-habitat-skip.ru.md) | ignite · composer_gone · ShouldSkipCdtAfterIntercomMirror · 0.5.526 |
