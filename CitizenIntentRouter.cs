@@ -19,6 +19,7 @@ internal static partial class CitizenIntentRouter
         Test,
         Mcp,
         Shell,
+        Debug,
         Detail,
         Cmd,
         Refuse,
@@ -180,6 +181,13 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("shell command=", StringComparison.OrdinalIgnoreCase))
         {
             return RouteShell(raw);
+        }
+
+        if (raw.Equals("debug", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("debug ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("debug op=", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteDebug(raw);
         }
 
         if (TryKv(raw, out var detail, out var scene)
