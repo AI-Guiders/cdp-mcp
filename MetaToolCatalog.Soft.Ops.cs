@@ -52,20 +52,21 @@ internal static partial class MetaToolCatalog
             wait_seconds = new { type = "integer", description = "max wait for idle (not Stop/Queue), default 90" }
         }
     }),
-    Meta("cdp_glass", "Agent surface parity desk — Glass WPF co-presence RPC (cmd/reply latches). Full debt: layout|appearance|colors|highlight|focus|click|set_text|send_keys|set_control_layout|set_panel_size. v0: scene|layout. Alias go=surface_desk. Not webcam/PrintWindow.", new
+    Meta("cdp_glass", "Agent surface parity desk — Glass WPF co-presence RPC (cmd/reply latches). Full debt live: layout|appearance|colors|highlight|focus|click|set_text|send_keys|set_control_layout|set_panel_size|request_confirmation. Alias go=surface_desk. Not webcam/PrintWindow.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|layout|appearance|colors|highlight|focus|click|set_text|send_keys|set_control_layout|set_panel_size" },
+            op = new { type = "string", description = "scene|layout|appearance|colors|highlight|focus|click|set_text|send_keys|set_control_layout|set_panel_size|request_confirmation" },
             name = new { type = "string", description = "control name from layout (drive/aim ops)" },
             text = new { type = "string", description = "set_text" },
             keys = new { type = "string", description = "send_keys e.g. Ctrl+Enter" },
             layout = new { type = "string", description = "set_control_layout JSON" },
-            panel = new { type = "string", description = "set_panel_size panel id" },
+            panel = new { type = "string", description = "set_panel_size: pfd_region|mfd_region|intercom" },
             width = new { type = "integer" },
             height = new { type = "integer" },
-            timeout_ms = new { type = "integer", description = "layout RPC wait (default 8000)" }
+            message = new { type = "string", description = "request_confirmation prompt" },
+            timeout_ms = new { type = "integer", description = "RPC wait (default 8000; confirm 120000)" }
         }
     }),
     Meta("cdp_webcam", "Sense desk — in-proc Shared+OpenCv+NAudio+Whisper. op=scene|frame|burst|av|screen|window|window_list|audio|transcribe|ocr|analyze. window: HWND PNG via PrintWindow (process=|title=|hwnd=). Alias go=webcam_desk.", new
