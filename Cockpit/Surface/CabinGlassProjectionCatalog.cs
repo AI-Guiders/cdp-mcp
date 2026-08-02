@@ -79,6 +79,8 @@ public static class CabinGlassProjectionCatalog
                 => new Projection("MarkdownPreview", "agent · M: domain"),
             "calendar" or "calendar_desk" or "clock" or "local_clock" or "cdp_calendar"
                 => new Projection(null, "agent · M: calendar"),
+            "fds" or "flight_data_storage" or "flight_data_store" or "shared_desk"
+                => new Projection("FlightDataStorage", "agent · M: fds"),
             "project_switch" or "ps" or "scope_desk"
                 => new Projection("SolutionExplorer", "agent · M: project_switch"),
             _ => null

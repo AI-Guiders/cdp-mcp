@@ -145,6 +145,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 Calendar: soft ~2→9 · hard 10.08→15.08 · D-day **15.08**.
 
 ## last_ship
+- 2026-08-02: FDS shelf flesh — plan/shared/report/pressure pulses on `GlassFdsGlance` · `/fds` · CabinGlass `fds` → FlightDataStorage; cdp-mcp **0.5.491**
 - 2026-08-02: P1 EICAS assembled stack (alert+qrh+ecl) + severity color · FDS M-page skeleton `FlightDataStorage` (`GlassFdsGlance` ≠ FDR)
 - 2026-08-02: Glass P0b — Topics empty hint + `/open path[:line]` thin attach↔code peel (not full ADR 0128)
 - 2026-08-02: Intercom identity name+kind (guest/citizen/operator) — latch+journal+Glass RoleLabel; defaults Кир/guest · Who/operator; cdp-mcp **0.5.490**
