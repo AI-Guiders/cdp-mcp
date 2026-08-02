@@ -17,7 +17,7 @@ internal static partial class IdeIgniteArmHost
 
     /// <summary>
     /// Duplex partner (PF) actively in habitat — busy|composing after effective stale.
-    /// Idle/stale/missing → Composer adapter remains delivery; Intercom may still mirror (see MirrorTimerWakeToIntercom).
+    /// Idle/stale/missing → not duplex-live (see ShouldPreferHabitatDelivery for autonomous spine).
     /// </summary>
     internal static bool IsHabitatPartnerLive(DateTimeOffset? nowUtc = null)
     {
@@ -30,14 +30,21 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>
-    /// When duplex partner live: publish wake latch + intercom, skip CDT inject.
+    /// Prefer habitat skip CDT: PF duplex live, or autonomous overnight spine (plain timers).
+    /// Partner-mode (autonomous off) + idle PF → Composer fallthrough + Intercom mirror.
+    /// </summary>
+    internal static bool ShouldPreferHabitatDelivery(DateTimeOffset? nowUtc = null) =>
+        IsHabitatPartnerLive(nowUtc) || IsAutonomousArmed();
+
+    /// <summary>
+    /// When duplex partner live or autonomous: publish wake latch + intercom, skip CDT inject.
     /// Returns fire-shaped ok result, or null to fall through to Composer.
     /// </summary>
     internal static object? TryDeliverHabitatWake(IgniteArm arm, string charge)
     {
         if (!MayPreferHabitatOverComposer(arm))
             return null;
-        if (!IsHabitatPartnerLive())
+        if (!ShouldPreferHabitatDelivery())
             return null;
 
         var latch = IdeIgniteWakeLatch.Publish(
@@ -51,8 +58,9 @@ internal static partial class IdeIgniteArmHost
 
         PublishHabitatIntercomCharge(charge);
 
+        var detail = IsHabitatPartnerLive() ? "prefer_duplex" : "prefer_autonomous";
         IdeFlightDataRecorder.RecordWake(
-            "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_duplex");
+            "wake_habitat", arm.Id, ToolFromWakeArm(arm), detail);
 
         return new
         {
@@ -62,7 +70,8 @@ internal static partial class IdeIgniteArmHost
             submit_kind = "habitat",
             submit_kind_after = "habitat",
             channel = IdeIgniteWakeLatch.ChannelHabitat,
-            arm_id = arm.Id
+            arm_id = arm.Id,
+            detail
         };
     }
 

@@ -17,6 +17,7 @@ public class IdeIgniteWakeLatchTests : IDisposable
 
     public void Dispose()
     {
+        IdeIgniteArmHost.BindAutonomous(null);
         IdeIgniteWakeLatch.RootOverrideForTests = null;
         CideIntercomPresenceLatch.RootOverrideForTests = null;
         CideIntercomVoiceLatch.RootOverrideForTests = null;
@@ -51,6 +52,7 @@ public class IdeIgniteWakeLatchTests : IDisposable
     [Fact]
     public void TryDeliverHabitatWake_prefers_when_pf_busy_timer()
     {
+        IdeIgniteArmHost.BindAutonomous(false);
         CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
         var arm = new IdeIgniteArmHost.IgniteArm
         {
@@ -66,6 +68,7 @@ public class IdeIgniteWakeLatchTests : IDisposable
 
         var result = IdeIgniteArmHost.TryDeliverHabitatWake(arm, "Resume from Task Manager.");
         Assert.NotNull(result);
+        Assert.Equal("prefer_duplex", result!.GetType().GetProperty("detail")!.GetValue(result));
 
         var latch = IdeIgniteWakeLatch.TryRead();
         Assert.NotNull(latch);
@@ -78,8 +81,60 @@ public class IdeIgniteWakeLatchTests : IDisposable
     }
 
     [Fact]
+    public void TryDeliverHabitatWake_prefers_when_autonomous_idle_pf()
+    {
+        IdeIgniteArmHost.BindAutonomous(true);
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-habitat-auto",
+            Event = "timer",
+            Status = "firing",
+            Message = "wake",
+            ChargeMode = "minimal",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        var result = IdeIgniteArmHost.TryDeliverHabitatWake(arm, "Resume autonomous habitat.");
+        Assert.NotNull(result);
+        Assert.Equal("prefer_autonomous", result!.GetType().GetProperty("detail")!.GetValue(result));
+
+        var latch = IdeIgniteWakeLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.Equal(IdeIgniteWakeLatch.ChannelHabitat, latch!.Channel);
+        Assert.Equal("arm-habitat-auto", latch.ArmId);
+
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("Resume autonomous habitat.", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TryDeliverHabitatWake_null_when_partner_mode_idle_pf()
+    {
+        IdeIgniteArmHost.BindAutonomous(false);
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-habitat-partner-idle",
+            Event = "timer",
+            Status = "firing",
+            Message = "wake",
+            ChargeMode = "minimal",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "should fall through to Composer"));
+    }
+
+    [Fact]
     public void TryDeliverHabitatWake_skips_system_wake()
     {
+        IdeIgniteArmHost.BindAutonomous(true);
         CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
         var arm = new IdeIgniteArmHost.IgniteArm
         {
