@@ -121,8 +121,32 @@ Hydration already lists all three (`CockpitHostLatchHydration`). SoftOrganLatchC
 
 **Glass 0-sync entity presence epic: CLOSED** for catalog completeness (stub OK). Next board = soft-warn peel / other epic — not orphan Glass entity.
 
+## DoD matrix — lived Glass UX for standalone 15.08 (2026-08-02 dig)
+
+North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (wire-citizen = hands only).
+
+| Area | State | Verdict |
+|------|-------|---------|
+| Ctrl+K / Ctrl+Q | Local Glass catalog (`MainWindow.CascadeChord`) — not full Avalonia CascadeChord | P1 parity deepen |
+| EICAS | Latch peels → thin `MfdHealth` TextBlock (`LatchPaint.Eicas`) — not assembled instruments | P1 clearer band |
+| Topic cards | XAML/`GlassIntercomTopics` exist; often empty journal / thin vs Avalonia Skia | P0b visible+useful |
+| Message↔code | Avalonia ADR 0128; **not** peeled to WPF Glass | P0b/P1 |
+| FDS (Flight Data Storage) | **Does not exist** (≠ FDR `go=flight_data`) | P1 M-page skeleton |
+| Intercom identity | was `@PF→@PM · agent\|human` | **P0 act** name+kind |
+
+### P0→P3
+
+- **P0** Intercom `name` + `kind` (guest|citizen|operator) on latch + Glass RoleLabel (`Кир · guest @PF → @PM`)
+- **P0b** Topics visible + attach↔code gap close on Glass
+- **P1** Clearer EICAS band · FDS M-page skeleton
+- **P2** Chord depth vs Avalonia
+- **P3** Lived polish / one-workspace survival
+
+Calendar: soft ~2→9 · hard 10.08→15.08 · D-day **15.08**.
+
 ## last_ship
-- 2026-08-02: agent surface full debt — Drive layout/panel + Confirm MessageBox; Glass `GlassSurfaceActions.Layout` + hub; CDP `cdp_glass` @ 0.5.447; dogfood set_control_layout+set_panel_size
+- 2026-08-02: Intercom identity name+kind (guest/citizen/operator) — latch+journal+Glass RoleLabel; defaults Кир/guest · Who/operator; cdp-mcp **0.5.490**
+- 2026-08-02: dig lived Glass UX gaps for standalone 15.08 — matrix above; north star ≠ wire-citizen alone
 - 2026-08-02: agent surface parity v0 Sense layout — `cdp_glass`/`surface_desk` + surface-cmd/reply latches + WPF `GlassUiLayoutSnapshot`/`GlassSurfaceCommandHub`; dogfood windows=3 (main,pfd_host,mfd_host) named controls; contract `agent-surface-parity-contract-v0.md`
 - 2026-08-01: invent dig Glass 0-sync after residual latch triad — GAP none; dual-cockpit projector↔LatchHub matrix green; epic presence DoD CLOSED
 
