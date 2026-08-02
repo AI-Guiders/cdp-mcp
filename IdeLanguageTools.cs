@@ -58,6 +58,55 @@ internal static partial class IdeLanguageTools
 
     public static void BindDocumentStore(DocumentBufferStore store) => _docStore = store;
 
+    /// <summary>Citizen route host / buffer open — relative path resolves under projectRoot.</summary>
+    public static bool TryOpenDocument(
+        string path,
+        string? projectRoot,
+        out string? fullPath,
+        out string? docId,
+        out string? error)
+    {
+        fullPath = null;
+        docId = null;
+        error = null;
+        if (_docStore is null)
+        {
+            error = "doc_store_unbound";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            error = "path_empty";
+            return false;
+        }
+
+        try
+        {
+            var resolved = ResolveOpenPath(path.Trim(), projectRoot);
+            var buf = _docStore.Open(resolved);
+            fullPath = buf.Path;
+            docId = buf.DocId;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = ex.GetType().Name + ": " + ex.Message;
+            return false;
+        }
+    }
+
+    static string ResolveOpenPath(string path, string? projectRoot)
+    {
+        if (Path.IsPathRooted(path))
+            return Path.GetFullPath(path);
+        var root = string.IsNullOrWhiteSpace(projectRoot)
+            ? Environment.CurrentDirectory
+            : projectRoot.Trim();
+        return Path.GetFullPath(Path.Combine(root, path));
+    }
+
+
     public static LanguageRegistry Languages => _langs;
 
     public static bool IsBareVerb(string name) => BareVerbs.Contains(name);
