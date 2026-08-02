@@ -20,8 +20,10 @@
 
 - Shell FileVersionInfo on both installs as first dig.
 - Hard-deploy self from inside `cdp_shell_*`.
+- Manual `Stop-Process` of same-seat pile while live MCP is among them (prefer remount after `IdeSeatProcessReclaim`; skip via `CDP_SKIP_SEAT_RECLAIM=1` only for intentional multi).
 
 ## last_ship
 
+- same-seat remount reclaim: `IdeSeatProcessReclaim.Ensure` kills older same-exe `CdpMcp` on startup (sibling path untouched) @ 0.5.450 · 2026-08-02
 - per-seat WitDB isolation dogfood: `cdp_open` store under `…/cdp/intent-workspace.witdb`; kill same-seat zombie pile before diagnose @ 0.5.448 · 2026-08-02
 - dual-seat version pulse @ 0.5.410 · 2026-08-01
