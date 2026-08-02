@@ -8,4 +8,4 @@ Guest Autoi штамповал habitat SSOT и всё равно стрелял 
 
 Peel: autonomous + idle PF + invite → `TryDeliverAutoiWake` (dialog Turn + host-execute) · `prefer_citizen` · Intercom `kind=citizen` · skip CDT. Invite blocked → Guest fallthrough как раньше (0.5.532). Вместе: sick_leave_dense до 05.08 на local clock.
 
-Lived: unit e2e (prefer_citizen + Intercom citizen); live dogfood после hard deploy.
+Lived: unit e2e (prefer_citizen + Intercom citizen); live dogfood после hard dual 0.5.551 — Autoi charge в citizen-dialog как last_user Resume… · assistant ответил по TM e2e leaf (pairs 5→7); arm cleared без Guest CDT invent-ban.

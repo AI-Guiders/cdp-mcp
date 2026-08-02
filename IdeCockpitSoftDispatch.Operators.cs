@@ -36,8 +36,10 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.Plan))
             return false;
 
+        // Parity with Crm/Ignite/… — without flatten, go_args.tm_op|op mute (board pulse only).
         goResult = SoftBoard(
-            SoftOrganKind.Plan, session, null, workspaceStore, workspaceState, args, goVerb);
+            SoftOrganKind.Plan, session, null, workspaceStore, workspaceState, args, goVerb,
+            flattenOrganArgs: true);
         PlaceSoft(ref goVerb, SoftOrganKind.Plan);
         return true;
     }
