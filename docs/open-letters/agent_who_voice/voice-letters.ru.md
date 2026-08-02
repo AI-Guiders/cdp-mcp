@@ -57,6 +57,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 15 | [MCP facade как рука, не только панель](voice-letter-citizen-mcp.ru.md) | citizen · `@intent mcp` · McpOutletHabitat · 0.5.510 |
 | 16 | [Shell как рука, не чужой Cursor Terminal](voice-letter-citizen-shell.ru.md) | citizen · `@intent shell` · ShellHabitat · 0.5.511 |
 | 17 | [Debug как рука, не только go=debug на столе](voice-letter-citizen-debug.ru.md) | citizen · `@intent debug` · DebugPlane · 0.5.512 |
+| 18 | [Full-chain observe→act→verify без Cursor-пасты](voice-letter-citizen-full-chain.ru.md) | citizen · live FM · observe loop · organ width · 0.5.512 |
 
 ## Как читать
 
