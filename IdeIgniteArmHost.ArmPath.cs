@@ -109,9 +109,15 @@ internal static partial class IdeIgniteArmHost
             !string.IsNullOrWhiteSpace(arm.Task)
                 ? $"authorized task '{arm.Task}' is active for continuity"
                 : $"continuity arm is active for event '{arm.Event}'",
-            arm.LastOnce ? "end turn" : "wait for event")),
+            arm.LastOnce
+                ? (IsAutonomousArmed()
+                    ? "continue work; re-arm last_once before idle"
+                    : "end turn")
+                : "wait for event")),
         hint = arm.LastOnce
-            ? "last_once: fires once → awaiting latch; harness blocks repeat idle re-arms until force/disarm/work arm."
+            ? (IsAutonomousArmed()
+                ? "last_once under autonomous: fires once → no awaiting invent-ban; re-ARM last_once insurance after work."
+                : "last_once: fires once → awaiting latch; harness blocks repeat idle re-arms until force/disarm/work arm.")
             : arm.Event == "timer"
                 ? "Harness fires when due — end your turn; no terminal poll loop."
                 : $"Harness fires on {arm.Event} (ok_only={arm.OkOnly}). Kick cdp_build/cdp_test then end turn."

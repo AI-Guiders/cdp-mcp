@@ -470,6 +470,9 @@ public class IdeIgniteWakeLatchTests : IDisposable
         Assert.Equal(IdeIgniteWakeLatch.ChannelHabitat, latch!.Channel);
         Assert.Equal("resume without mirror", latch.Charge);
         Assert.Equal("idle_pf_composer_gone", result!.GetType().GetProperty("detail")!.GetValue(result));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("resume without mirror", voice!.Body, StringComparison.Ordinal);
     }
 
     [Fact]
