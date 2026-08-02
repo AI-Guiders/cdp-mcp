@@ -159,6 +159,9 @@ public sealed class CitizenRouteHostTests
         var store = new DocumentBufferStore();
         IdeLanguageTools.BindDocumentStore(store);
         var prevRoot = IdeCockpitHostChannel.ProjectRootResolver;
+        var landRoot = Path.Combine(Path.GetTempPath(), "cdp-replace-land-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(landRoot);
+        NavigationLandLatch.RootOverrideForTests = landRoot;
         IdeDeskSeats.EnsureDefaultsFromSettings();
         IdeDeskSeats.Clear();
         IdeDeskSeats.TryPlaceExplicit("forward", "browser");
@@ -181,11 +184,18 @@ public sealed class CitizenRouteHostTests
             Assert.Contains("wave-after", File.ReadAllText(full), StringComparison.Ordinal);
             var map = IdeDeskSeats.Snapshot();
             Assert.Contains(map, kv => string.Equals(kv.Value, "editor_scene", StringComparison.OrdinalIgnoreCase));
+
+            Assert.True(File.Exists(NavigationLandLatch.LatchPath));
+            using var land = System.Text.Json.JsonDocument.Parse(File.ReadAllText(NavigationLandLatch.LatchPath));
+            Assert.Equal("open", land.RootElement.GetProperty("command").GetString());
+            Assert.Equal(Path.GetFullPath(full), land.RootElement.GetProperty("path").GetString());
         }
         finally
         {
             IdeCockpitHostChannel.ProjectRootResolver = prevRoot;
+            NavigationLandLatch.RootOverrideForTests = null;
             try { Directory.Delete(root, recursive: true); } catch { /* temp */ }
+            try { Directory.Delete(landRoot, recursive: true); } catch { /* temp */ }
         }
     }
 

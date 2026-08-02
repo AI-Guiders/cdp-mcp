@@ -56,6 +56,7 @@
 
 ## last_ship
 
+- **0.5.506** — citizen `open`/`replace` publish `land-LATEST` (`NavigationLandLatch`) so Glass LatchHub opens the path (disk peel alone skips when file not open). Projector feels partner invent.
 - **0.5.505** — citizen `@intent replace path=… old="…" new="…"` host-execute via buffer PathMutateGate (`TryReplaceInDocument`). Complements open; gated disk mutate so partner need not Cursor Write.
  — citizen `@frame` gains Intercom **presence** line (`presence | @PF … · @PM …`) from `CideIntercomPresenceLatch.AfferentLine` (Glass latch SSOT). Complements `peer=` (MCP health). Persona + inject test.
 

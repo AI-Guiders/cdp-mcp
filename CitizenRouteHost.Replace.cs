@@ -50,6 +50,7 @@ internal static partial class CitizenRouteHost
         }
 
         var seat = IdeDeskSeats.PlaceOrgan("editor_scene");
+        PublishGlassLandOpen(full);
         return new Applied(
             route.Raw,
             route.Verb.ToString(),
@@ -59,5 +60,13 @@ internal static partial class CitizenRouteHost
             Go: "editor_scene",
             Path: full,
             DocId: docId);
+    }
+
+    /// <summary>Glass LatchHub land peel — open path so projector feels partner invent (disk alone skips when not open).</summary>
+    static void PublishGlassLandOpen(string? fullPath)
+    {
+        if (string.IsNullOrWhiteSpace(fullPath))
+            return;
+        NavigationLandLatch.Publish("open", fullPath, line: null, member: null, wire: null);
     }
 }

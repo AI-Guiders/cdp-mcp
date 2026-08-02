@@ -361,6 +361,7 @@ internal static partial class CitizenRouteHost
         }
 
         var seat = IdeDeskSeats.PlaceOrgan("editor_scene");
+        PublishGlassLandOpen(full);
         return new Applied(
             route.Raw,
             route.Verb.ToString(),
