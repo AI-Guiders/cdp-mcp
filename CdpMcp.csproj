@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.466</Version>
+    <Version>0.5.467</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -328,4 +328,19 @@
       <DependentUpon>IdeFilesChannel.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="OpenVsxClient.Ops.cs"><DependentUpon>OpenVsxClient.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="OpenVsxClient.Ops.cs">
+      <DependentUpon>OpenVsxClient.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="EditSniper.Aim.cs">
+      <DependentUpon>EditSniper.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="EditorComfort.ClipEdit.Ops.cs">
+      <DependentUpon>EditorComfort.ClipEdit.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="IdeChkChannel.Handle.cs"><DependentUpon>IdeChkChannel.cs</DependentUpon></Compile></ItemGroup></Project>
