@@ -49,6 +49,13 @@ internal static partial class IdeRefactorPlanChannel
         var fileLines = QuietLineCount(full);
         var rel = Rel(session.ProjectRoot, full);
 
+        if (shape.Kind == "non_csharp")
+        {
+            return LeaveRecommend(rel, shape,
+                "Non-C# path — FileLines/method peel does not apply (open-buffer size on .csproj/.xml is noise).",
+                "refactor_plan · recommend · leave · non_csharp");
+        }
+
         var methodHits = debt.Items
             .Where(h => h.Path.Equals(full, StringComparison.OrdinalIgnoreCase) && h.Metric == "method_lines")
             .OrderByDescending(h => h.Value)
@@ -82,8 +89,19 @@ internal static partial class IdeRefactorPlanChannel
         object cut;
         object primaryGo;
 
+        // Top-level entry: only push introduce_program when size/method debt exists.
+        // Under-warn Program.cs with peels elsewhere → leave (SDK synthesizes Program).
         if (shape.Kind == "top_level_statements")
         {
+            var methodDebt = methodHits.FirstOrDefault(h => h.Severity is "fail" or "warn");
+            var fileDebt = fileHit is not null && fileHit.Severity is "fail" or "warn";
+            if (methodDebt is null && !fileDebt)
+            {
+                return LeaveRecommend(rel, shape,
+                    "Top-level entry under size gates — introduce_program_class is optional design, not a peel hotspot.",
+                    "refactor_plan · recommend · leave · top_level_ok");
+            }
+
             verdict = "design";
             why = "Top-level statements — no cheap TypeName.Topic.cs until partial class Program exists.";
             pulse = "refactor_plan · recommend · design · top_level_statements";
@@ -195,18 +213,9 @@ internal static partial class IdeRefactorPlanChannel
         }
         else
         {
-            verdict = "leave";
-            why = "No strong size/method signal for this path.";
-            pulse = "refactor_plan · recommend · leave";
-            primaryGo = new { go = "sa_desk", label = "SA pulse", why = $"path={rel}" };
-            cut = new
-            {
-                kind = "none",
-                cheap = true,
-                path = rel,
-                steps = new[] { "Optional: go=sa_desk for dirty/clones; skip structural cut." },
-                primary_go = primaryGo
-            };
+            return LeaveRecommend(rel, shape,
+                "No strong size/method signal for this path.",
+                "refactor_plan · recommend · leave");
         }
 
         return new
