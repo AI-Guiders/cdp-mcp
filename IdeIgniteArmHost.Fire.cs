@@ -112,7 +112,6 @@ internal static partial class IdeIgniteArmHost
             }
 
             var msg = ComposeFireCharge(arm, ok, pulse, detail);
-            MarkSendInvoked(arm.Id);
 
             // Last gate: Disarm may have raced after IsArmLive check.
             if (!IsArmLive(arm.Id))
@@ -122,6 +121,8 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
+            // Mark send only when CDT inject starts — not during wait-idle (Stop).
+            MarkSendInvoked(arm.Id);
             var result = await IdeIgniteChannel.FireAsync(
                 arm.Port, msg, arm.Chat, arm.WaitSeconds, ct).ConfigureAwait(false);
             ApplyFireOutcome(arm, result);

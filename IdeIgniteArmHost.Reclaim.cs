@@ -113,8 +113,9 @@ internal static partial class IdeIgniteArmHost
                     continue;
                 }
 
-                // once already entered fire (FiredUtc stamped) — do not revive mid-CDT kill (multi-inject)
-                if (stuckFiring && a.Once && a.FiredUtc is not null)
+                // once + SendOk=true: inject already landed — drop (anti multi-inject after mid-kill).
+                // once + SendOk!=true: wait-idle / remount zombie — requeue, do not silent-drop continuity.
+                if (stuckFiring && a.Once && a.SendOk == true)
                 {
                     drop.Add(a.Id);
                     Firing.TryRemove(a.Id, out _);
@@ -128,8 +129,15 @@ internal static partial class IdeIgniteArmHost
                 if (!overdue && !stuckFiring) continue;
 
                 a.Status = "armed";
-                a.LastError = stuckFiring && !overdue ? "reclaimed_stuck_firing" : "reclaimed_overdue";
+                // Prefer stuck-firing taxonomy when mid-CDT zombie (even if DueUtc also overdue).
+                a.LastError = stuckFiring
+                    ? (a.SendOk is null ? "reclaimed_stuck_firing_pre_send" : "reclaimed_stuck_firing")
+                    : "reclaimed_overdue";
                 a.DueUtc = now + backoff;
+                a.FiredUtc = null;
+                a.SendInvokedUtc = null;
+                a.SendOk = null;
+                a.SendError = null;
                 Firing.TryRemove(a.Id, out _);
                 ids.Add(a.Id);
             }
