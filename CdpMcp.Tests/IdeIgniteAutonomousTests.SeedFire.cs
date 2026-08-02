@@ -120,6 +120,14 @@ public partial class IdeIgniteAutonomousTests
     }
 
     [Fact]
+    public void ContinuityArmedNextStep_used_for_non_last_once_explain_under_autonomous()
+    {
+        // ArmPath event arms: autonomous must not teach wait-for-event / end-turn park.
+        Assert.DoesNotContain("wait for event", IdeIgniteArmHost.ContinuityArmedNextStep(autonomous: true), StringComparison.Ordinal);
+        Assert.Contains("keep flying", IdeIgniteArmHost.ContinuityArmedNextStep(autonomous: true), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CanonicalComposerCharge_does_not_teach_rearm_when_idle()
     {
         Assert.Contains("timer ≠ idle license", IdeIgniteChannel.CanonicalComposerCharge, StringComparison.Ordinal);
