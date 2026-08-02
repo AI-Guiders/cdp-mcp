@@ -20,7 +20,7 @@
 ## Entry
 
 - `cdp_citizen` op=`scene|keys|turn`
-- Keys: `CitizenAiKeys` · Completions: `CitizenCompletions*`
+- Keys: `CitizenAiKeys` · Completions: `CitizenCompletions` (+`.OpenAiCompat` · `.Anthropic` · `.Finish`)
 - Example: `docs/design/ai-keys.example.toml`
 
 ## Antipatterns
@@ -32,6 +32,7 @@
 
 ## last_ship
 
+- 2026-08-02 → **0.5.457**: FileLines peel — `CitizenCompletions.Anthropic` + `.Finish` (main ~214L; OpenAiCompat prior).
 - 2026-08-01 → **0.5.442 live**: persona HARD WIRE OUTPUT CONTRACT + OpenAI-compat `temperature=0`. Forced ONLY `@intent go=plan` → exact wire line, `wire_intents`+routes ok on GigaChat3-10B.
 - Prior soft persona failed wire (prose / empty intents) — fixed by hard contract + temp=0.
 - 0.5.360: Cloud.ru FM OpenAI-compat path + AiKeys helpers

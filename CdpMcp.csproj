@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.456</Version>
+    <Version>0.5.457</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -163,4 +163,19 @@
       <DependentUpon>IdeRepl.Board.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-</Project>
+  <ItemGroup>
+    <Compile Update="CitizenCompletions.Anthropic.cs">
+      <DependentUpon>CitizenCompletions.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="CitizenCompletions.Finish.cs">
+      <DependentUpon>CitizenCompletions.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeToolCallWatch.Helpers.cs">
+      <DependentUpon>IdeToolCallWatch.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="IdeToolchainChannel.Ops.cs"><DependentUpon>IdeToolchainChannel.cs</DependentUpon></Compile></ItemGroup></Project>
