@@ -30,6 +30,7 @@
 
 ## last_ship
 
+- Persist FileLines near-miss peel: OpenRecent + StageClock out of Persist.cs (300→105) @ 0.5.454 · 2026-08-02
 - Find FileLines near-miss peel: WorkFocus + ScriptLastRun out of Find.cs (335→188) @ 0.5.453 · 2026-08-02
 - 2026-08-02: cockpit `go=plan` after Ensure must `RequireWorkspace()` — deps.WorkspaceStore is null snapshot @ process start @ 0.5.449
 - 2026-08-02: per-seat WitDB (`WorkspaceDbPaths` + bootstrap FileGate + skip EnsureCreated when seat file exists) @ 0.5.448 — dogfood `cdp_open` → `recent_store=…/cdp/intent-workspace.witdb`. Migrated 442MB DB was torn (FreePage≥TotalPageCount) from prior dual-seat FileShare fights; quarantined `*.torn-dualseat-*.bak`, fresh seat DB.
