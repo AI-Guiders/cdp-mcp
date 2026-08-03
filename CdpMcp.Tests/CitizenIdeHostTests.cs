@@ -252,7 +252,6 @@ public sealed class CitizenIdeHostTests
         Assert.NotEqual(CitizenIntentRouter.Verb.Ide, r.Verb);
     }
 
-    [Fact]
     public void Execute_related_passes_mode_via_override()
     {
         CitizenRouteHost.UnbindLifecycle();
@@ -269,6 +268,38 @@ public sealed class CitizenIdeHostTests
             Assert.Single(applied);
             Assert.True(applied[0].Ok);
             Assert.Contains("related", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+
+    [Fact]
+    public void Route_project_root_ok_without_path()
+    {
+        var r = CitizenIntentRouter.RouteOne("project_root");
+        Assert.True(r.Ok);
+        Assert.Equal("resolve_project_root", r.Op);
+    }
+
+    [Fact]
+    public void Execute_project_root_via_override()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.IdeCallOverride = (op, args) =>
+        {
+            Assert.Equal("resolve_project_root", op);
+            return Task.FromResult("{\"session_project_root\":\"D:/proj\"}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("project_root")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.Contains("project_root", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
         {

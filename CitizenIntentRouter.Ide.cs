@@ -18,7 +18,7 @@ internal static partial class CitizenIntentRouter
         var path = ExtractKeyedValue(raw, "path")
             ?? ExtractKeyedValue(raw, "file_path")
             ?? ExtractKeyedValue(raw, "file");
-        if (string.IsNullOrWhiteSpace(path))
+        if (string.IsNullOrWhiteSpace(path) && op is not "resolve_project_root")
         {
             return new Route(
                 Verb.Ide,
@@ -238,6 +238,16 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("subgraph ", StringComparison.OrdinalIgnoreCase))
             return "related";
 
+        if (raw.Equals("project_root", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("project_root ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("resolve_root", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("resolve_root ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("resolve_project_root", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("resolve_project_root ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("workspace_root", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("workspace_root ", StringComparison.OrdinalIgnoreCase))
+            return "project_root";
+
         return null;
     }
 
@@ -256,6 +266,7 @@ internal static partial class CitizenIntentRouter
             "apply_action" or "apply_code_action" or "apply" => "apply_code_action",
             "related" or "map" or "semantic_map" or "nav_context" or "workspace_nav" or "subgraph"
                 or "get_workspace_navigation_context" => "get_workspace_navigation_context",
+            "project_root" or "resolve_root" or "resolve_project_root" or "workspace_root" => "resolve_project_root",
             _ => op
         };
 
@@ -263,5 +274,5 @@ internal static partial class CitizenIntentRouter
         op is "go_to_definition" or "find_usages" or "get_diagnostics"
             or "get_completions" or "get_signature_help" or "get_document_symbols"
             or "get_symbol_at_position" or "rename_symbol" or "code_actions" or "apply_code_action"
-            or "get_workspace_navigation_context";
+            or "get_workspace_navigation_context" or "resolve_project_root";
 }

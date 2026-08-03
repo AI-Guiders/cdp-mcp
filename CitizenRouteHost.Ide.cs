@@ -90,6 +90,9 @@ internal static partial class CitizenRouteHost
             else if (Path.IsPathRooted(path))
                 path = Path.GetFullPath(path);
             args["file_path"] = JsonSerializer.SerializeToElement(path);
+            // resolve_project_root DispatchBare reads path= (not file_path)
+            if (route.Op is "resolve_project_root")
+                args["path"] = JsonSerializer.SerializeToElement(path);
         }
 
         if (TryParseIdeInt(route.Raw, "line", "l", out var line))
@@ -210,6 +213,12 @@ internal static partial class CitizenRouteHost
 
             if (root.TryGetProperty("error_count", out var ec) && ec.TryGetInt32(out var n))
                 return TruncPulse($"ide · diags · errors={n}");
+
+            if (root.TryGetProperty("session_project_root", out var spr) && spr.ValueKind == JsonValueKind.String)
+                return TruncPulse($"ide · {ShortIdeOp(op)} · {spr.GetString()}");
+
+            if (root.TryGetProperty("root", out var rroot) && rroot.ValueKind == JsonValueKind.String)
+                return TruncPulse($"ide · {ShortIdeOp(op)} · {rroot.GetString()}");
         }
         catch
         {
@@ -233,6 +242,7 @@ internal static partial class CitizenRouteHost
             "code_actions" => "actions",
             "apply_code_action" => "apply",
             "get_workspace_navigation_context" => "related",
+            "resolve_project_root" => "project_root",
             _ => op
         };
 }
