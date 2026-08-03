@@ -193,6 +193,15 @@ internal static class CitizenPersona
           @intent session_context
           @intent context get=true
           @intent cdp_context phase=act object=code intent=change
+          @intent quality
+          @intent gates
+          @intent quality_desk
+          @intent quality_gates
+          @intent cdp_quality
+          @intent quality scope=disk
+          @intent quality_disk limit=20
+          @intent quality_assert
+          @intent go=quality
           @intent calendar
           @intent calendar pulse
           @intent clock
