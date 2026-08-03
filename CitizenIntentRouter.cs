@@ -51,6 +51,7 @@ internal static partial class CitizenIntentRouter
         Files,
         Onboard,
         Peel,
+        EditPlan,
         Edit,
         Deploy,
         Undo,
@@ -657,6 +658,32 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("cdp_peel_apply ", StringComparison.OrdinalIgnoreCase))
         {
             return RoutePeel(raw);
+        }
+
+        if (raw.Equals("edit_plan", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("edit_plan ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("edit_plan_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("edit_plan_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_edit_plan", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_edit_plan ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("edit_plan_draft", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("edit_plan_draft ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("edit_plan_validate", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("edit_plan_validate ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("edit_plan_preview", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("edit_plan_preview ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("edit_plan_apply", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("edit_plan_apply ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_edit_plan_draft", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_edit_plan_draft ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_edit_plan_validate", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_edit_plan_validate ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_edit_plan_preview", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_edit_plan_preview ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_edit_plan_apply", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_edit_plan_apply ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteEditPlan(raw);
         }
 
         if (raw.Equals("pressure", StringComparison.OrdinalIgnoreCase)
@@ -1277,6 +1304,7 @@ internal static partial class CitizenIntentRouter
             "files" or "files_desk" or "cdp_files" or "file_manager" or "fm" or "files_list" or "files_tree" or "files_open" => "files_desk",
             "onboard" or "onboard_desk" or "explore_desk" or "explore" or "cdp_onboard" or "onboard_scan" or "onboard_clear" => "onboard_desk",
             "peel" or "peel_desk" or "cdp_peel" or "peel_preview" or "peel_apply" => "peel",
+            "edit_plan" or "edit_plan_desk" or "cdp_edit_plan" or "edit_plan_draft" or "edit_plan_validate" or "edit_plan_apply" or "edit_plan_preview" => "edit_plan",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };

@@ -50,6 +50,7 @@ internal static partial class CitizenRouteHost
         FilesHandleOverride = null;
         OnboardHandleOverride = null;
         PeelHandleOverride = null;
+        EditPlanDispatchOverride = null;
         CalendarHandleOverride = null;
         LandDispatchOverride = null;
         PkgDispatchOverride = null;
