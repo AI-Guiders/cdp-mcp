@@ -29,6 +29,7 @@
 - Skipping reconcile self-steer and inventing from stale Domain.
 - Forcing pull→reconcile→align→ready when SSOT already sufficient.
 - Inventing «compaction 2.0» / auto chat-delete organ — ADCM already owns Persist→Partition; tempo recycle = glue StageClock pulse + pressure DoD + announce + Autoi new-chat (Cursor-clear stays human/host gate until API). See TM deferred *ADCM voluntary chat recycle by SA tempo*.
+- Treating self-check as «думать лучше» or appending a refute on top of a poisoned thread — **авто-отравление** (epistemic quality ≠ ADCM volume): external SSOT check → snesti poisoned active context → rebuild from stash/TM/domain/tools; mark alone ≠ cure. Same class as Partition/new chat. See TM parked *auto-poisoning card · retract+rebuild…* · scratch `note-20260803-auto-poisoning-retract-rebuild.md`.
 
 ## last_ship
 
