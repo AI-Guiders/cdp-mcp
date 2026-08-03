@@ -79,6 +79,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.Settings => RunSettings(route),
             CitizenIntentRouter.Verb.Restore => RunRestoreRecent(route),
             CitizenIntentRouter.Verb.Intercom => RunIntercom(route),
+            CitizenIntentRouter.Verb.Presentation => RunPresentation(route),
             CitizenIntentRouter.Verb.Edit => RunEdit(route),
             CitizenIntentRouter.Verb.Deploy => RunDeploy(route),
             CitizenIntentRouter.Verb.Undo => RunUndo(route),

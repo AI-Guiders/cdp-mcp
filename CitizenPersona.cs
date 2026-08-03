@@ -154,6 +154,11 @@ internal static class CitizenPersona
           @intent intercom presence seat=pf state=busy
           @intent intercom history limit=10
           @intent intercom_ack
+          @intent cide_presentation
+          @intent presentation
+          @intent cide_presentation scene
+          @intent presentation_set topology=(P)(F)(M)
+          @intent cide_presentation set tier=cockpit
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
