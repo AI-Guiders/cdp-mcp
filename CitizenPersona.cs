@@ -120,6 +120,10 @@ internal static class CitizenPersona
           @intent share with=operator path=CitizenRouteHost.cs
           @intent share with=self body="shelf note"
           @intent share from=self
+          @intent reload
+          @intent reload path=CitizenRouteHost.cs
+          @intent keep_disk path=CitizenRouteHost.cs
+          @intent disk_peek path=CitizenRouteHost.cs pad=2
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost
