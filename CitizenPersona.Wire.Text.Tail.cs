@@ -140,6 +140,29 @@ internal static partial class CitizenPersona
           @intent plugins search q=roslyn
           @intent problems
           @intent errlist
+          @intent report
+          @intent report_board
+          @intent cdp_report
+          @intent debug_sa
+          @intent debug_desk depth=slim
+          @intent cdp_debug_sa
+          @intent test_sa
+          @intent test_desk
+          @intent cdp_test_sa
+          @intent build_sa
+          @intent build_desk
+          @intent cdp_build_sa
+          @intent sys
+          @intent sys_organ
+          @intent ecl
+          @intent chk list
+          @intent cdp_ecl ack ship push
+          @intent review
+          @intent review files
+          @intent cdp_review
+          @intent alert
+          @intent eicas
+          @intent cdp_alert
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy

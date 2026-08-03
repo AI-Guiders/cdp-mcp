@@ -22,7 +22,12 @@ internal static partial class CitizenRouteHost
                 || root.TryGetProperty("schema", out _)
                 || root.TryGetProperty("rows", out _)
                 || root.TryGetProperty("plugins", out _)
-                || root.TryGetProperty("ops", out _);
+                || root.TryGetProperty("ops", out _)
+                || root.TryGetProperty("level", out _)
+                || root.TryGetProperty("idle", out _)
+                || (root.TryGetProperty("view", out var view)
+                    && view.ValueKind == JsonValueKind.Object
+                    && view.TryGetProperty("lines", out _));
         }
         catch
         {
