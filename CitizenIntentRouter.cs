@@ -33,6 +33,7 @@ internal static partial class CitizenIntentRouter
         Browser,
         Script,
         Calendar,
+        Land,
         Edit,
         Deploy,
         Undo,
@@ -464,6 +465,27 @@ internal static partial class CitizenIntentRouter
             return RouteCalendar(raw);
         }
 
+        if (raw.Equals("land", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("land ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("land op=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("deep_link", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("deep_link ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("deeplink", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("deeplink ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("land_restore", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("land_restore ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("land_open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("land_open ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("land_goto", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("land_goto ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("land_show", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("land_show ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("land_go", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("land_go ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteLand(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -681,6 +703,7 @@ internal static partial class CitizenIntentRouter
             "alert" or "sa" => "alert",
             "pressure" => "pressure",
             "calendar" or "clock" or "calendar_desk" => "calendar",
+            "land" or "deep_link" or "deeplink" => "land",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };

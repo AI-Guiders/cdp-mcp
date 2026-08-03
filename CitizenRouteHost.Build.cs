@@ -46,6 +46,7 @@ internal static partial class CitizenRouteHost
         RunLifecycleOverride = null;
         ScriptDispatchOverride = null;
         CalendarHandleOverride = null;
+        LandDispatchOverride = null;
         MetaDispatchResolver = null;
     }
 

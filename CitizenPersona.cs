@@ -115,6 +115,13 @@ internal static class CitizenPersona
           @intent calendar pulse
           @intent clock
           @intent calendar month
+          @intent land
+          @intent land restore
+          @intent land open path=CitizenRouteHost.cs line=50
+          @intent land goto path=CitizenRouteHost.cs line=50 member=RunLand
+          @intent land show path=docs/shot.png
+          @intent land go go=editor_scene
+          @intent land anchor="[Family:navigation;Command:restore]"
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
