@@ -10,7 +10,8 @@ namespace CdpMcp;
 /// Anchor Start/Stop — operator GUI cockpit host (ADR-0019 companion).
 /// Meta <c>cdp_cockpit_host</c> / <c>go=cockpit_start|cockpit_stop</c>.
 /// Config SSOT: <c>[cockpit_host] exe</c> in cdp-mcp.toml (process layer).
-/// Start <c>path=</c> overrides once; env <c>CDP_COCKPIT_HOST_EXE</c> is escape only.
+/// Toml reloads on mtime when config path is bound; Start <c>path=</c> stamps live exe for rediscover.
+/// Env <c>CDP_COCKPIT_HOST_EXE</c> is escape only.
 /// Runtime latch: in-proc + OS rediscover by exe path (no sidecar JSON).
 /// Does not mutate Intent Melody / CascadeIdeSettings.
 /// </summary>
@@ -30,14 +31,24 @@ internal static partial class IdeCockpitHostChannel
     static readonly object Gate = new();
     static CockpitHostSettings _cfg = new();
     static HostState? _live;
+    static string? _configPath;
+    static DateTime? _configMtimeUtc;
 
     /// <summary>Legacy stub path — deleted on Configure so remounts do not revive JSON latch.</summary>
     public static string LegacyStatePath => Path.Combine(CdpProfile.StateRoot, "cockpit-host.json");
 
-    public static void Configure(CockpitHostSettings settings)
+    /// <param name="configPath">cdp-mcp.toml path — when set, <c>[cockpit_host]</c> reloads on file mtime.</param>
+    public static void Configure(CockpitHostSettings settings, string? configPath = null)
     {
-        _cfg = settings ?? new CockpitHostSettings();
-        TryDeleteLegacyJson();
+        lock (Gate)
+        {
+            _cfg = settings ?? new CockpitHostSettings();
+            _configPath = string.IsNullOrWhiteSpace(configPath) ? null : Path.GetFullPath(configPath.Trim());
+            _configMtimeUtc = null;
+            if (_configPath is not null && File.Exists(_configPath))
+                _configMtimeUtc = File.GetLastWriteTimeUtc(_configPath);
+            TryDeleteLegacyJson();
+        }
     }
 
     public static string HandleJson(IReadOnlyDictionary<string, JsonElement>? args = null) =>

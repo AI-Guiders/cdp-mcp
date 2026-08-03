@@ -214,9 +214,9 @@ internal sealed class IntentWorkspaceSettings
     public string? DatabasePath { get; init; }
 }
 
-/// <summary>Process-layer operator GUI host (ADR-0019 companion). Remount to pick up exe=.</summary>
+/// <summary>Process-layer operator GUI host (ADR-0019 companion). Toml mtime refresh + Start stamp pick up exe=.</summary>
 internal sealed class CockpitHostSettings
 {
-    /// <summary>Absolute path to CascadeIDE / thin shell exe. Override at start with path=; env is escape only.</summary>
+    /// <summary>Absolute path to Glass / operator cabin exe. Start path= stamps live; env is escape only.</summary>
     public string? Exe { get; init; }
 }

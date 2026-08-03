@@ -138,6 +138,109 @@ public class IdeCockpitHostChannelTests
     }
 
     [Fact]
+    public void Start_picks_toml_after_mtime_refresh()
+    {
+        if (!TryResolveStandIn(out var exe, out var standInArgs))
+            return;
+
+        var dir = Path.Combine(Path.GetTempPath(), "cdp-host-toml-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        var toml = Path.Combine(dir, "cdp-mcp.toml");
+        File.WriteAllText(toml, "[cockpit_host]\nexe = \"C:\\\\Windows\\\\System32\\\\missing-cabin.exe\"\n");
+
+        var prev = Environment.GetEnvironmentVariable(IdeCockpitHostChannel.EnvExe);
+        var pid = 0;
+        try
+        {
+            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, null);
+            IdeCockpitHostChannel.Configure(
+                new CockpitHostSettings { Exe = @"C:\Windows\System32\missing-cabin.exe" },
+                toml);
+
+            Thread.Sleep(30);
+            var tomlExe = exe.Replace("\\", "\\\\");
+            File.WriteAllText(toml, $"[cockpit_host]\nexe = \"{tomlExe}\"\n");
+
+            using (var started = JsonDocument.Parse(IdeCockpitHostChannel.HandleJson(
+                       new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                       {
+                           ["op"] = JsonSerializer.SerializeToElement("start"),
+                           ["args"] = JsonSerializer.SerializeToElement(standInArgs)
+                       })))
+            {
+                Assert.True(started.RootElement.GetProperty("ok").GetBoolean(),
+                    started.RootElement.TryGetProperty("error", out var err) ? err.GetString() : "start failed");
+                Assert.Equal("up", started.RootElement.GetProperty("gui_host").GetString());
+                Assert.Equal(Path.GetFullPath(exe), Path.GetFullPath(started.RootElement.GetProperty("exe").GetString()!));
+                pid = started.RootElement.GetProperty("pid").GetInt32();
+            }
+
+            StopAndEnsureDead(pid);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, prev);
+            IdeCockpitHostChannel.Configure(new CockpitHostSettings());
+            ForceKill(pid);
+            try { Directory.Delete(dir, recursive: true); } catch { /* temp */ }
+        }
+    }
+
+    [Fact]
+    public void Start_path_override_stamps_for_bare_restart()
+    {
+        if (!TryResolveStandIn(out var exe, out var standInArgs))
+            return;
+
+        var prev = Environment.GetEnvironmentVariable(IdeCockpitHostChannel.EnvExe);
+        var pid = 0;
+        try
+        {
+            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, null);
+            IdeCockpitHostChannel.Configure(new CockpitHostSettings
+            {
+                Exe = @"C:\Windows\System32\missing-cabin.exe"
+            });
+
+            using (var first = JsonDocument.Parse(IdeCockpitHostChannel.HandleJson(
+                       new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                       {
+                           ["op"] = JsonSerializer.SerializeToElement("start"),
+                           ["path"] = JsonSerializer.SerializeToElement(exe),
+                           ["args"] = JsonSerializer.SerializeToElement(standInArgs)
+                       })))
+            {
+                Assert.True(first.RootElement.GetProperty("ok").GetBoolean());
+                pid = first.RootElement.GetProperty("pid").GetInt32();
+            }
+
+            StopAndEnsureDead(pid);
+            pid = 0;
+
+            using (var second = JsonDocument.Parse(IdeCockpitHostChannel.HandleJson(
+                       new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                       {
+                           ["op"] = JsonSerializer.SerializeToElement("start"),
+                           ["args"] = JsonSerializer.SerializeToElement(standInArgs)
+                       })))
+            {
+                Assert.True(second.RootElement.GetProperty("ok").GetBoolean(),
+                    second.RootElement.TryGetProperty("error", out var err) ? err.GetString() : "bare restart failed");
+                Assert.Equal(Path.GetFullPath(exe), Path.GetFullPath(second.RootElement.GetProperty("exe").GetString()!));
+                pid = second.RootElement.GetProperty("pid").GetInt32();
+            }
+
+            StopAndEnsureDead(pid);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, prev);
+            IdeCockpitHostChannel.Configure(new CockpitHostSettings());
+            ForceKill(pid);
+        }
+    }
+
+    [Fact]
     public void Start_and_stop_lifecycle_with_headless_stand_in()
     {
         if (!TryResolveStandIn(out var exe, out var standInArgs))
