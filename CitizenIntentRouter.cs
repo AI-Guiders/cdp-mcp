@@ -43,6 +43,7 @@ internal static partial class CitizenIntentRouter
         Toolchain,
         CockpitHost,
         Qrh,
+        Webcam,
         Edit,
         Deploy,
         Undo,
@@ -740,6 +741,46 @@ internal static partial class CitizenIntentRouter
             return RouteQrh(raw);
         }
 
+        if (raw.Equals("webcam", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_webcam", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_webcam ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_frame", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_frame ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_burst", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_burst ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_av", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_av ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_screen", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_screen ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_window_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_window_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_window", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_window ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_audio", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_audio ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_transcribe", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_transcribe ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_ocr", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_ocr ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("webcam_analyze", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("webcam_analyze ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_webcam_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_webcam_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_webcam_frame", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_webcam_frame ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_webcam_window_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_webcam_window_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_webcam_window", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_webcam_window ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteWebcam(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -967,6 +1008,7 @@ internal static partial class CitizenIntentRouter
             "toolchain" or "toolchain_desk" or "cdp_toolchain" or "toolchain_ensure" or "toolchain_probe" => "toolchain",
             "cockpit_host" or "cdp_cockpit_host" or "cockpit_start" or "cockpit_stop" => "cockpit_host",
             "qrh" or "eqrh" or "cdp_qrh" or "qrh_open" or "qrh_search" or "qrh_index" => "qrh",
+            "webcam" or "webcam_desk" or "cdp_webcam" or "webcam_frame" or "webcam_scene" => "webcam_desk",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
