@@ -167,6 +167,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- 2026-08-03: **dig Glass Terminal ConPTY peel path** — DAL `Features/Terminal/DataAcquisition/*` already Avalonia-free (WindowsConPty + IntegratedShellLaunch); UI SSOT AvaloniaTerminal; Glass = redirected TextBox. Act path: extract DAL→GlassCore · Glass WPF VT control (not TextBox) · share ConPTY factory · dig reject TextBlock fork still holds. Doc: `docs/ui-ux/mfd-terminal-stub-vs-integrated-shell-v1.md`
+- 2026-08-03: **Glass palette+chord mfd_*** — `mp/rf/sm/cr/md/ds/wa` · cascade-ide `fc631619` · surface dogfood 7/7
 - 2026-08-03: **Glass MFD host batch v1** — feeds `77035101` + WPF hosts `f7de96e9` (Git porcelain+diff, Related, Semantic list, CRS FS, Markdig plain, Debug spectator, WebAi URL) · Problems/Build/Tests/Terminal already · Chord=Ctrl+K · live cabin dogfood pid Responding · SoftFL CLOSED · **depth next:** ConPTY/WebView2/Skia/live-DAP/full-CRS
 - 2026-08-03: **operator unHOLD** full Avalonia→Glass WPF hosts (design later) · wave 11 items · shipping Problems first
 - 2026-08-03: Glass Intercom markdown crash — ContentControl+DataTemplate double-parent + shared TextDecorations.Underline killed cabin; StackPanel+deferred rebuild + frozen underline · cascade-ide `5ffc45f2` · lived start pid dual-cockpit ICM
