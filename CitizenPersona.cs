@@ -143,6 +143,11 @@ internal static class CitizenPersona
           @intent settings get key=browser.search_engine
           @intent settings set key=browser.search_engine value=ddg
           @intent lsp_probe id=python
+          @intent restore
+          @intent restore peek
+          @intent recent
+          @intent recent take=5
+          @intent open_recent
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
