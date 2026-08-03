@@ -124,6 +124,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 86 | [@intent scope/peek/target: я сам держу прицел, не через чужой sniper](voice-letter-citizen-sniper-host.ru.md) | citizen · @intent scope|peek|target|aim|scope_clear · EditSniper · 0.5.579 |
 | 87 | [@intent read/close/buffers/doc_diagnostics: я сам держу буфер, не через чужой MCP](voice-letter-citizen-buffer-host.ru.md) | citizen · @intent read|close|buffers|doc_diagnostics · DocumentEditPlane · 0.5.580 |
 | 88 | [@intent find_all/buf_find: я сам ищу в буфере, не через чужой MCP](voice-letter-citizen-findbuf-host.ru.md) | citizen · @intent find_all|buf_find|find scope=buffer · EditorComfort · 0.5.581 |
+| 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
