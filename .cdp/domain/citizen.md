@@ -58,7 +58,7 @@
 
 ## last_ship
 
-- **0.5.635** — `@intent elicit|cdp_elicit` host-execute → Meta `cdp_elicit` (peek/caps/ask; default peek; no steal go=elicit). Fix: `hostDeps.ServerRef = server` after bind (was always no_server). Tests CitizenElicitHostTests 8/8. Lived: dual hard 0.5.635 · live peek Cursor advertises elicitation · dry_run execute `ack=6/6`. VL#142.
+- **0.5.635** — `@intent elicit|cdp_elicit` host-execute → Meta `cdp_elicit` (peek/caps/ask; default peek; no steal go=elicit). Fix: `hostDeps.ServerRef = server` after bind (was always no_server). Tests CitizenElicitHostTests 8/8. Lived: dual hard 0.5.635 · live peek Cursor advertises elicitation · live ask host answered (decline) · dry_run `ack=6/6` · ask peer `ack=1/1`. VL#142.
 - **0.5.631** — Soft FileLines: root helpers → `CitizenIntentRouter.Slice.cs` + `Parse.cs`; root ~227; live recommend leave. Lived: dual hard 0.5.631 · debug leave · VL#138.
 - **0.5.630** — Peel `RouteOne` method_lines~1384 → thin dispatcher + `TryRouteCore|Doc|Desk|Runtime|OrgansA|OrgansB|Nav` (`CitizenIntentRouter.RouteOne.*.cs`). Nav test: bare `recent` = Restore SSOT (`recent_files` = Nav). Lived: dual hard 0.5.630 · debug recommend no longer RouteOne=1384 · OrgansA debt=0 · VL#137.
 - **0.5.629** — `@intent refactor|refactor_plan|cdp_refactor|debt_scene` host-execute → Meta `cdp_refactor` (plan/debt/budget/blast/partials/recommend/pulse; PlaceOrgan refactor_plan; no steal go=refactor_plan). Tests CitizenRefactorHostTests 7/7. Lived: dry_run execute → refactor/plan/cdp/pulse/recommend+path + go=refactor_plan `ack=6/6`. Peer decide-before-cut without Cursor MCP.
