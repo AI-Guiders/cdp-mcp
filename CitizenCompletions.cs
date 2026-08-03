@@ -9,7 +9,7 @@ namespace CdpMcp;
 /// Providers: Anthropic Messages <b>or</b> OpenAI-compat chat.completions
 /// (Cloud.ru FM / OpenAI / DeepSeek) via <see cref="CitizenAiKeys"/>;
 /// wire inject via <see cref="CitizenWire"/>.
-/// Pattern aligned with CIDE <c>OpenAiCompatibleProvider</c> (non-stream turn).
+/// Pattern aligned with CIDE <c>OpenAiCompatibleProvider</c>: SSE stream + layered timeouts.
 /// </summary>
 internal static partial class CitizenCompletions
 {
@@ -79,7 +79,8 @@ internal static partial class CitizenCompletions
                     BoundHandler = TestHandler;
                     SharedHttp = new HttpClient(handler, disposeHandler: TestHandler is null)
                     {
-                        Timeout = TimeSpan.FromSeconds(120)
+                        // Budgets live in CreateTurnCts / Headers / Idle — not one blunt wall.
+                        Timeout = Timeout.InfiniteTimeSpan
                     };
                 }
 

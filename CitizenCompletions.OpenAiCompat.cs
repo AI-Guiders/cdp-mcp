@@ -74,6 +74,7 @@ internal static partial class CitizenCompletions
         int maxTokens,
         CancellationToken cancellationToken)
     {
+        using var turnCts = CreateTurnCts(cancellationToken);
         var url = ChatCompletionsUrl(resolved.BaseUrl!);
         var oaiMessages = new List<object> { new { role = "system", content = built.System } };
         foreach (var m in built.Messages)
@@ -86,7 +87,8 @@ internal static partial class CitizenCompletions
             ["model"] = resolved.Model,
             ["max_tokens"] = Math.Clamp(maxTokens, 64, 8192),
             ["temperature"] = temperature,
-            ["stream"] = false,
+            ["stream"] = true,
+            ["stream_options"] = new { include_usage = true },
             ["messages"] = oaiMessages
         };
         var json = JsonSerializer.Serialize(payload);
@@ -94,12 +96,35 @@ internal static partial class CitizenCompletions
         req.Headers.TryAddWithoutValidation("Authorization", "Bearer " + resolved.ApiKey);
         req.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        using var resp = Http.SendAsync(req, cancellationToken).GetAwaiter().GetResult();
-        var body = resp.Content.ReadAsStringAsync(cancellationToken).GetAwaiter().GetResult();
-        if (!resp.IsSuccessStatusCode)
-            return FailHttp(built, resolved, resp.StatusCode, body);
+        try
+        {
+            using var headersCts = CancellationTokenSource.CreateLinkedTokenSource(turnCts.Token);
+            headersCts.CancelAfter(HeadersTimeout);
+            using var resp = Http
+                .SendAsync(req, HttpCompletionOption.ResponseHeadersRead, headersCts.Token)
+                .GetAwaiter()
+                .GetResult();
 
-        return FinishText(built, resolved, ExtractOpenAiText(body));
+            if (!resp.IsSuccessStatusCode)
+            {
+                var errBody = resp.Content.ReadAsStringAsync(turnCts.Token).GetAwaiter().GetResult();
+                return FailHttp(built, resolved, resp.StatusCode, errBody);
+            }
+
+            // Stub/tests + providers that ignore stream → full JSON body.
+            if (IsJsonNotEventStream(resp))
+            {
+                var body = resp.Content.ReadAsStringAsync(turnCts.Token).GetAwaiter().GetResult();
+                return FinishText(built, resolved, ExtractOpenAiText(body));
+            }
+
+            var text = ReadSseAccumulated(resp, ExtractOpenAiDelta, turnCts.Token);
+            return FinishText(built, resolved, text);
+        }
+        catch (OperationCanceledException oce)
+        {
+            return MapCancel(built, resolved, oce, cancellationToken);
+        }
     }
 
     /// <summary>Normalize base like CIDE OpenAiCompatibleProvider; append /chat/completions.</summary>
