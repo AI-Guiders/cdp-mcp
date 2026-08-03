@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.580** — `@intent read|close|buffers|doc_diagnostics` host-execute → DocumentEditPlane core (start_line=/end_line=; flush=/discard=; bare `diagnostics` stays Ide). Tests CitizenBufferHostTests 8/8. Lived: primary dry_run execute → `ack=3/3` · pulses `scene n=4` / `read L1-5` / `diagnostics lines=403`. Peer buffer hygiene without Cursor cdp_buffer.
 - **0.5.579** — `@intent scope|peek|target|aim|scope_clear|sniper` host-execute → EditSniper.Dispatch (from=/till=/wire=/pad=). Tests CitizenSniperHostTests 7/7. Lived: primary dry_run execute → `ack=3/3` · pulses `scope armed hold=armed L10-10` / `peek …` / `clear`. Peer aim without Cursor cdp_edit_sniper.
 - **0.5.578** — `@intent reload|keep_disk|disk_peek` host-execute → DocumentEditPlane disk hygiene (optional path=/pad=; pad as number). Tests CitizenDiskHostTests 6/6. Lived: cdp-debug dry_run execute → `ack=3/3` · pulses `disk_peek n=0` / `reload n=0` / `keep_disk n=0`. Peer drift recovery without Cursor buffer.
 - **0.5.577** — `@intent share` host-execute → IdeShare via DocumentEditPlane (`with=operator|self`, `from=self`, path/body/ask). Tests CitizenShareHostTests 5/5. Lived: cdp-debug dry_run execute → `ack=1/1` · pulse `share operator … shared chars=845`. Peer operator delivery without loading body into agent.

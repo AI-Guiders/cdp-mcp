@@ -26,6 +26,7 @@
 
 ## last_ship
 
+- 0.5.580: citizen `@intent read|close|buffers|doc_diagnostics` → DocumentEditPlane core (peer without Cursor buffer) · 2026-08-03
 - 0.5.576: citizen `@intent take` → TakeShip verify-then-ship (peer) · 2026-08-03
 - 0.5.575: citizen `@intent scratch` → EditorComfort untitled `.cdp/scratch` (peer) · 2026-08-03
 - 0.5.574: citizen `@intent put` → EditorComfort draft dump (peer Write-analogue hand) · 2026-08-03
