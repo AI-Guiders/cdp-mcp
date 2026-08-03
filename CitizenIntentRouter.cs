@@ -27,6 +27,7 @@ internal static partial class CitizenIntentRouter
         Git,
         Find,
         Ide,
+        Ignite,
         Detail,
         Cmd,
         Refuse,
@@ -259,6 +260,15 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("git op=", StringComparison.OrdinalIgnoreCase))
         {
             return RouteGit(raw);
+        }
+
+        if (raw.Equals("ignite", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ignite ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ignite op=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("autoi", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("autoi ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteIgnite(raw);
         }
 
         if (raw.Equals("find", StringComparison.OrdinalIgnoreCase)

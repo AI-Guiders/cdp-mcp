@@ -85,6 +85,11 @@ internal static class CitizenPersona
           @intent git commit message="feat: peer scm without Cursor"
           @intent git commit message="feat: scoped" paths=["CitizenRouteHost.Git.cs"]
           @intent git push
+          @intent ignite
+          @intent ignite continuity
+          @intent ignite list
+          @intent ignite arm when=timer in=3s last_once=true task="peer continuity insurance"
+          @intent ignite resume
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost
@@ -149,6 +154,7 @@ internal static class CitizenPersona
           @intent shell echo hi
           @intent kb get_definition definition_id=debug-radius
           @intent git
+          @intent ignite
           @intent debug
         Do not invent Russian stand-ins for intents.
 
