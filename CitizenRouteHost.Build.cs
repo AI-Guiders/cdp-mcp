@@ -32,6 +32,7 @@ internal static partial class CitizenRouteHost
         UndoCallOverride = null;
         ClipCallOverride = null;
         ReplaceAllCallOverride = null;
+        NavCallOverride = null;
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)

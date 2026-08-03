@@ -107,6 +107,10 @@ internal static class CitizenPersona
           @intent clipboard
           @intent paste path=CitizenRouteHost.cs place=after
           @intent replace_all path=tools/_tmp.txt query=foo text=bar
+          @intent back
+          @intent forward
+          @intent nav
+          @intent recent_files
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost
