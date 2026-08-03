@@ -29,6 +29,7 @@ internal static partial class CitizenIntentRouter
         Ide,
         Ignite,
         Pressure,
+        Edit,
         Detail,
         Cmd,
         Refuse,
@@ -277,6 +278,16 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("pressure op=", StringComparison.OrdinalIgnoreCase))
         {
             return RoutePressure(raw);
+        }
+
+        if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("anchor", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("anchor ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("anchor path=", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteEdit(raw);
         }
 
         if (raw.Equals("find", StringComparison.OrdinalIgnoreCase)

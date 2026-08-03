@@ -93,6 +93,8 @@ internal static class CitizenPersona
           @intent pressure
           @intent pressure stash body="axes: AutoI/TM/Domain · next leaf"
           @intent pressure recall
+          @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
+          @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost
