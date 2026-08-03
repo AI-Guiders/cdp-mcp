@@ -155,12 +155,11 @@ internal sealed partial class IntentWorkspaceStore
         string jobJson,
         Guid? sceneId = null)
     {
-        lock (DbGate)
+        if (string.IsNullOrWhiteSpace(jobJson))
+            throw new ArgumentException("job_json is required for stage_enqueue.");
+        return WithDb(db =>
         {
             var intentId = RequireIntent(state);
-            if (string.IsNullOrWhiteSpace(jobJson))
-                throw new ArgumentException("job_json is required for stage_enqueue.");
-            using var db = Open();
             var now = DateTimeOffset.UtcNow;
             var ordinal = db.Stages.Count(x => x.IntentId == intentId);
             var entity = new StageEntity
@@ -183,14 +182,13 @@ internal sealed partial class IntentWorkspaceStore
                 status = entity.Status,
                 job_json = entity.JobJson
             };
-        }
+        });
     }
 
     public object StageGet(Guid stageId)
     {
-        lock (DbGate)
+        return WithDb(db =>
         {
-            using var db = Open();
             var entity = db.Stages.AsNoTracking().FirstOrDefault(x => x.Id == stageId)
                          ?? throw new ArgumentException($"stage_id not found: {stageId}");
             var criteria = db.StageCriteria.AsNoTracking()
@@ -223,14 +221,13 @@ internal sealed partial class IntentWorkspaceStore
                     updated_utc = c.UpdatedUtc
                 }).ToList()
             };
-        }
+        });
     }
 
     public void StageCompleteJob(Guid stageId, string lootJson)
     {
-        lock (DbGate)
+        WithDb(db =>
         {
-            using var db = Open();
             var entity = db.Stages.FirstOrDefault(x => x.Id == stageId)
                          ?? throw new ArgumentException($"stage_id not found: {stageId}");
             entity.Status = "done";
@@ -238,14 +235,13 @@ internal sealed partial class IntentWorkspaceStore
             entity.JobError = null;
             entity.UpdatedUtc = DateTimeOffset.UtcNow;
             db.SaveChanges();
-        }
+        });
     }
 
     public void StageFailJob(Guid stageId, string error)
     {
-        lock (DbGate)
+        WithDb(db =>
         {
-            using var db = Open();
             var entity = db.Stages.FirstOrDefault(x => x.Id == stageId)
                          ?? throw new ArgumentException($"stage_id not found: {stageId}");
             entity.Status = "parked";
@@ -258,7 +254,7 @@ internal sealed partial class IntentWorkspaceStore
             });
             entity.UpdatedUtc = DateTimeOffset.UtcNow;
             db.SaveChanges();
-        }
+        });
     }
 
 }
