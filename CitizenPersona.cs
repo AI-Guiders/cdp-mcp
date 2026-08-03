@@ -186,6 +186,14 @@ internal static class CitizenPersona
           @intent evidence_build text="error CS0001"
           @intent cdp_evidence path=logs/build.log
           @intent evidence path=logs/test.log kind=test
+          @intent domain
+          @intent domain_desk
+          @intent domain scene
+          @intent domain pulse
+          @intent domain list
+          @intent domain card id=citizen
+          @intent domain_card id=tm
+          @intent cdp_domain op=scene
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy

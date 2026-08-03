@@ -45,6 +45,7 @@ internal static partial class CitizenIntentRouter
         Qrh,
         Webcam,
         Evidence,
+        Domain,
         Edit,
         Deploy,
         Undo,
@@ -814,6 +815,32 @@ internal static partial class CitizenIntentRouter
             return RouteEvidence(raw);
         }
 
+        if (raw.Equals("domain", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("domain ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("domain_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("domain_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_domain", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_domain ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("domain_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("domain_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("domain_pulse", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("domain_pulse ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("domain_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("domain_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("domain_card", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("domain_card ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_domain_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_domain_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_domain_pulse", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_domain_pulse ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_domain_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_domain_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_domain_card", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_domain_card ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteDomain(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -1043,6 +1070,7 @@ internal static partial class CitizenIntentRouter
             "qrh" or "eqrh" or "cdp_qrh" or "qrh_open" or "qrh_search" or "qrh_index" => "qrh",
             "webcam" or "webcam_desk" or "cdp_webcam" or "webcam_frame" or "webcam_scene" => "webcam_desk",
             "evidence" or "cdp_evidence" or "report" or "pfd" or "evidence_build" or "evidence_test" => "report",
+            "domain" or "domain_desk" or "cdp_domain" or "domain_scene" or "domain_pulse" or "domain_list" or "domain_card" => "domain",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
