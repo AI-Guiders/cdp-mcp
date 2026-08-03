@@ -37,6 +37,7 @@ internal static partial class CitizenIntentRouter
         Pkg,
         Project,
         Settings,
+        Restore,
         Edit,
         Deploy,
         Undo,
@@ -604,6 +605,24 @@ internal static partial class CitizenIntentRouter
             return RouteSettings(raw);
         }
 
+        if (raw.Equals("restore", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("restore ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("restore_previous", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("restore_previous ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("desk_restore", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("desk_restore ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("restore_peek", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("restore_peek ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("recent", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("recent ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("open_recent", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("open_recent ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("recent_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("recent_list ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteRestore(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -825,6 +844,7 @@ internal static partial class CitizenIntentRouter
             "pkg" or "nuget" or "packages" or "package" => "pkg",
             "project" or "projects" or "sln" or "solution" or "project_scene" => "project",
             "settings" or "options" or "prefs" or "ide_settings" or "tools_options" or "languages" => "settings",
+            "restore" or "restore_previous" or "desk_restore" or "recent" or "open_recent" => "restore",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };

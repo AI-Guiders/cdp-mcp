@@ -5,7 +5,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Host execute for <see cref="CitizenIntentRouter.Route"/> — seat place + buffer open/replace + plan REPL + build + test + run + mcp + shell + debug + git + find + ignite.
-/// Sync host path; <c>@intent build|test|run|script|calendar|land|pkg|project|sln|settings|options|mcp|shell|debug|git|kb|find|ignite</c> wait lifecycle/outlet/habitat/plane (bounded) — not cockpit W-spray.
+/// Sync host path; <c>@intent build|test|run|script|calendar|land|pkg|project|sln|settings|options|restore|recent|mcp|shell|debug|git|kb|find|ignite</c> wait lifecycle/outlet/habitat/plane (bounded) — not cockpit W-spray.
 /// </summary>
 internal static partial class CitizenRouteHost
 {
@@ -77,6 +77,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.Pkg => RunPkg(route),
             CitizenIntentRouter.Verb.Project => RunProjSln(route),
             CitizenIntentRouter.Verb.Settings => RunSettings(route),
+            CitizenIntentRouter.Verb.Restore => RunRestoreRecent(route),
             CitizenIntentRouter.Verb.Edit => RunEdit(route),
             CitizenIntentRouter.Verb.Deploy => RunDeploy(route),
             CitizenIntentRouter.Verb.Undo => RunUndo(route),
