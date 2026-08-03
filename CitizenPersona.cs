@@ -95,6 +95,11 @@ internal static class CitizenPersona
           @intent pressure recall
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
+          @intent deploy
+          @intent deploy dry_run=true
+          @intent deploy mode=soft target=sibling
+          @intent deploy mode=hard
+          @intent deploy mode=rollout dry_run=true
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost

@@ -30,6 +30,7 @@ internal static partial class CitizenIntentRouter
         Ignite,
         Pressure,
         Edit,
+        Deploy,
         Detail,
         Cmd,
         Refuse,
@@ -288,6 +289,17 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("anchor path=", StringComparison.OrdinalIgnoreCase))
         {
             return RouteEdit(raw);
+        }
+
+        if (raw.Equals("deploy", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("deploy ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("deploy mode=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("hard_deploy", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("hard_deploy ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("soft_deploy", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("soft_deploy ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteDeploy(raw);
         }
 
         if (raw.Equals("find", StringComparison.OrdinalIgnoreCase)
