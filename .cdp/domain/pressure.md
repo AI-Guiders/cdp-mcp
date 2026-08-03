@@ -18,6 +18,7 @@
 ## Entry
 
 - `cdp_pressure` · `go=pressure_desk` · `IdeDomainPulse`
+- **Citizen peer path (0.5.567):** `@intent pressure …` host-executes the same channel (stash/recall/arm/…). `go=pressure*` still place-only.
 
 ## Antipatterns
 
@@ -30,6 +31,7 @@
 
 ## last_ship
 
+- 0.5.567: citizen `@intent pressure` host-execute → `IdePressureChannel.Handle` (peer L1 stash/recall without Cursor MCP) · VL #74 · 2026-08-03
 - 0.5.540: pressure tips under autonomous — insurance / keep flying, not end-turn park (`AutoIgnitionChecklistLine` · `SceneArmedHint` · `StashHint`)
 - 0.5.411 recall SSOT auto-ready (tax cut; ADR-0024 amend)
 - 0.5.324 recall gate pull→reconcile→align→ready (CDP-ADR-0024)
