@@ -360,18 +360,29 @@ internal static partial class IdeLanguageTools
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
 
 
-    public static object LspHealth() => new
+    public static object LspHealth(bool resolveProbe = true) => new
     {
-        presets = LspPool.Presets.Select(p => new
-        {
-            p.Id,
-            p.Command,
-            candidates = p.CommandCandidates,
-            args = p.Args,
-            resolved_probe = TryProbeResolve(p)
-        }),
+        presets = LspPool.Presets.Select(p => resolveProbe
+            ? (object)new
+            {
+                p.Id,
+                p.Command,
+                candidates = p.CommandCandidates,
+                args = p.Args,
+                resolved_probe = TryProbeResolve(p)
+            }
+            : new
+            {
+                p.Id,
+                p.Command,
+                candidates = p.CommandCandidates,
+                args = p.Args
+            }),
         sessions = LspPool.HealthSnapshot(),
-        note = "Python default prefers basedpyright-langserver (richer codeAction) over pyright-langserver."
+        probe = resolveProbe,
+        note = resolveProbe
+            ? "Python default prefers basedpyright-langserver (richer codeAction) over pyright-langserver."
+            : "pulse — path resolve deferred; use cdp_health detail=full."
     };
 
     static object? TryProbeResolve(LspLaunchPreset p)
