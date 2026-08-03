@@ -136,6 +136,13 @@ internal static class CitizenPersona
           @intent sln
           @intent sln list
           @intent sln projects
+          @intent settings
+          @intent options
+          @intent settings page page=desk
+          @intent languages
+          @intent settings get key=browser.search_engine
+          @intent settings set key=browser.search_engine value=ddg
+          @intent lsp_probe id=python
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy

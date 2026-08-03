@@ -36,6 +36,7 @@ internal static partial class CitizenIntentRouter
         Land,
         Pkg,
         Project,
+        Settings,
         Edit,
         Deploy,
         Undo,
@@ -559,6 +560,50 @@ internal static partial class CitizenIntentRouter
             return RouteProject(raw);
         }
 
+        if (raw.Equals("settings", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("settings ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("options", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("options ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("prefs", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("prefs ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("ide_settings", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ide_settings ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("tools_options", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("tools_options ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("languages", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("languages ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("languages_page", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("languages_page ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("settings_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("settings_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("settings_page", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("settings_page ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("settings_catalog", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("settings_catalog ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("settings_get", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("settings_get ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("settings_set", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("settings_set ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("settings_unset", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("settings_unset ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("settings_which", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("settings_which ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("options_page", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("options_page ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("lsp_probe", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("lsp_probe ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("lsp_status", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("lsp_status ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("lsp_install", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("lsp_install ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("lsp_ensure", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("lsp_ensure ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("lsp_add", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("lsp_add ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteSettings(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -779,6 +824,7 @@ internal static partial class CitizenIntentRouter
             "land" or "deep_link" or "deeplink" => "land",
             "pkg" or "nuget" or "packages" or "package" => "pkg",
             "project" or "projects" or "sln" or "solution" or "project_scene" => "project",
+            "settings" or "options" or "prefs" or "ide_settings" or "tools_options" or "languages" => "settings",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
