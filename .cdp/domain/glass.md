@@ -51,36 +51,36 @@
 
 ## DoD matrix — MfdShellPage presence (2026-08-01 dig)
 
-Presence DoD = SoftOrgan glance | Glass peel | DIG REJECT hold | deferred stub (Avalonia SSOT). Do **not** invent SoftOrgan to fill cells.
+Presence DoD = SoftOrgan glance | Glass peel | **full WPF host** (operator 2026-08-03 unHOLD: design polish later). Do **not** invent SoftOrgan to fill cells.
 
-| Page | SoftOrgan | Glass peel | Verdict |
-|------|-----------|------------|---------|
+| Page | SoftOrgan | Glass peel / host | Verdict |
+|------|-----------|-------------------|--------|
 | WorkspaceHealth | unbound | `GlassWorkspaceHealthGlance` FS | DONE peel |
 | EnvironmentReadiness | unbound | `GlassEnvironmentReadinessGlance` env | DONE peel |
 | Events | unbound | `GlassEventsGlance` latch/catalog | DONE peel |
 | Hypotheses | unbound | `GlassHypothesesGlance` JSON | DONE peel |
-| HybridIndex | unbound (DIG REJECT invent) | `GlassHybridIndexGlance` FS | DONE peel |
-| SolutionExplorer | unbound (DIG REJECT files_desk overlay) | TreeView + `GlassSolutionExplorerGlance` | DONE peel |
-| Chat | unbound (DIG REJECT mcp bind) | `GlassIntercomPresence` card | DONE presence |
+| HybridIndex | unbound (no SoftOrgan invent) | `GlassHybridIndexGlance` FS | DONE peel |
+| SolutionExplorer | unbound | TreeView + `GlassSolutionExplorerGlance` | DONE peel |
+| Chat | unbound | `GlassIntercomPresence` card | DONE presence |
 | Editor | unbound | AvalonEdit on M when Forward=intercom | DONE peel |
-| Terminal | `sys` glance | redirected TextBox (DIG REJECT ConPTY) | DONE peel |
-| Build | `toolchain` glance | redirected log TextBox | DONE peel |
+| Terminal | `sys` glance | redirected TextBox → **full ConPTY host** (wave) | ACT full |
+| Build | `toolchain` glance | redirected log → **full Build host** (wave) | ACT full |
 | Tests | `test_desk` glance | redirected log TextBox | DONE peel |
-| Git | unbound (DIG REJECT invent) | redirected `git status` TextBox | DONE peel |
-| DebugStack | `debug_desk` glance | DIG REJECT DAP fork | HOLD latch |
-| Problems | `review` glance | DIG REJECT Roslyn list | HOLD latch |
-| RelatedFiles | `refactor` glance | DIG REJECT related list | HOLD latch |
-| SemanticMap | `arch` glance | DIG REJECT Skia graph | HOLD latch |
-| MarkdownPreview | `report` glance | DIG REJECT Markdig host | HOLD latch |
+| Git | unbound | redirected status → **full Git panel** (wave) | ACT full |
+| DebugStack | `debug_desk` glance | **full DAP host** (wave) | ACT full |
+| Problems | `review` glance | **full ListBox host** (wave · shipping) | ACT full |
+| RelatedFiles | `refactor` glance | **full related list** (wave) | ACT full |
+| SemanticMap | `arch` glance | **full Skia/WNM graph** (wave) | ACT full |
+| MarkdownPreview | `report` glance | **full Markdig/WPF host** (wave) | ACT full |
 | AiChatSettings | `mcp` glance | settings.toml SSOT | HOLD latch |
-| WebAiPortal | unbound | DIG REJECT WebView2 | HOLD stub |
-| Correspondence | unbound (DIG REJECT CRS SoftOrgan) | DIG REJECT CRS host | HOLD stub |
+| WebAiPortal | unbound | **full WebView2** (wave) | ACT full |
+| Correspondence | unbound | **full CRS host** (wave) | ACT full |
 
 Sources: `Models/MfdShellPage.cs` · `SoftOrganMfdGlance.TryOrganIdForMfdPage` · `MainWindow.MfdBody` · XAML `MfdPages`.
 
-Parity note: Glass XAML / CabinGlass use page string **SemanticMap** (`arch_desk` → MFD); Avalonia `MfdShellPage` has **no** SemanticMap member — graph SSOT = PFD `WorkspaceNavigationMapView` (not MFD shell). DIG REJECT invent enum member (see last_ship).
+Parity note: Glass XAML / CabinGlass use page string **SemanticMap** (`arch_desk` → MFD); Avalonia `MfdShellPage` has **no** SemanticMap member — graph SSOT = PFD `WorkspaceNavigationMapView` (not MFD shell).
 
-**Presence DoD: CLOSED** for all Glass-listed MFD pages. Remaining HOLD = intentional Avalonia SSOT (not orphan stubs).
+**Presence DoD: CLOSED** for latch/peel presence. **Full-host DoD: OPEN** — operator unHOLD 2026-08-03 (полные хосты, дизайн потом). Wave: Problems → Build → Git → Markdown → Chord → RelatedFiles → CRS → DAP → ConPTY → WebAi → SemanticMap.
 
 ## DoD matrix — SoftOrgan chrome beyond MFD (2026-08-01 dig)
 
@@ -155,18 +155,19 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 | Peeled glance MFDs keyboard | **CLOSED** (`sx/hi/wh/er/ev/hy/ic`) |
 | Dialog peer `/citizen` keyboard | **CLOSED** (`cz`) |
 | Citizen full chain Glass↔habitat | **CLOSED** (request latch + bridge + status watcher) |
-| Full Avalonia CascadeChord | **HOLD** |
+| Full Avalonia CascadeChord | **ACT full** (wave) |
 | Agent surface Aim/Drive | **CLOSED** (see `surface.md`) |
 
 **Lived Glass UX epic: CLOSED** for 15.08 one-cockpit survival DoD. **Citizen full chain: CLOSED** (live latch dogfood + StatusText pending→running→done/error).
 
-### Dig 2026-08-03 — CascadeChord HOLD
+### Dig 2026-08-03 — CascadeChord + full hosts unHOLD
 
-- **Verdict: keep HOLD.** Full Avalonia CascadeChord remains intentional Avalonia SSOT (ADR 0060 lives there). Glass already has thin Ctrl+K melody HUD (`MainWindow.CascadeChord`) ≠ Avalonia port.
-- **unHOLD now = regression risk** (dual chord stacks / peel treadmill), not densest Meta.
-- **Next Meta host gap (seeded):** CDP *healthy-agent Rules* organ — standing ε recall (body≠biped, dig/parallel, habitat) as desk SSOT, not Cursor alwaysApply dump. See TM feature.
+- **Operator steer:** полные WPF-хосты из Avalonia; дизайн потом.
+- **Verdict: unHOLD.** DIG REJECT Avalonia-SSOT cancelled for Problems/RelatedFiles/SemanticMap/Markdig/DAP/ConPTY/WebAi/CRS/Git panel/CascadeChord full.
+- Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- 2026-08-03: **operator unHOLD** full Avalonia→Glass WPF hosts (design later) · wave 11 items · shipping Problems first
 - 2026-08-03: Glass Intercom markdown crash — ContentControl+DataTemplate double-parent + shared TextDecorations.Underline killed cabin; StackPanel+deferred rebuild + frozen underline · cascade-ide `5ffc45f2` · lived start pid dual-cockpit ICM
 - 2026-08-03: cockpit_host cfg latch — toml mtime refresh + Start stamp so path=/toml Glass rediscover stays honest without remount · cdp-mcp `36b5355`
 - 2026-08-03: cabin SSOT — cdp-debug [cockpit_host] exe was Avalonia CascadeIDE; pointed to Glass WPF + live start → CDP.GlassCockpit.Windows · ICM bound · Avalonia = agent-IDE/HOLD instruments, not operator cabin
