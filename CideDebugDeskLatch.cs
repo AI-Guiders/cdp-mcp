@@ -7,7 +7,7 @@ namespace CdpMcp;
 /// <summary>
 /// Agent Debug-SA pulse → CIDE/Glass SoftOrgan (instant).
 /// Writes %LocalAppData%/cdp-mcp/debug_desk-LATEST.json; Glass MFD DebugStack glance.
-/// Live DebugStack host SSOT = CIDE Avalonia <c>DebugStackMfdPageView</c>. Idle stays silent (Dark Cockpit).
+/// Live: DAP stopped/continued hooks enrich stack/locals. Idle stays silent (Dark Cockpit).
 /// </summary>
 internal static class CideDebugDeskLatch
 {
@@ -44,7 +44,9 @@ internal static class CideDebugDeskLatch
         string? verdict,
         int bpCount,
         bool stopped,
-        bool activeDap)
+        bool activeDap,
+        IReadOnlyList<StackFrameDoc>? stack = null,
+        IReadOnlyList<LocalVarDoc>? locals = null)
     {
         try
         {
@@ -61,7 +63,9 @@ internal static class CideDebugDeskLatch
                 BpCount = bpCount,
                 Stopped = stopped,
                 ActiveDap = activeDap,
-                ChromeHint = active ? pulseLine : null
+                ChromeHint = active ? pulseLine : null,
+                Stack = stack is { Count: > 0 } ? stack.ToList() : null,
+                Locals = locals is { Count: > 0 } ? locals.ToList() : null
             };
             var json = JsonSerializer.Serialize(doc, JsonOpts);
             var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
@@ -104,5 +108,20 @@ internal static class CideDebugDeskLatch
         public bool Stopped { get; set; }
         public bool ActiveDap { get; set; }
         public string? ChromeHint { get; set; }
+        public List<StackFrameDoc>? Stack { get; set; }
+        public List<LocalVarDoc>? Locals { get; set; }
+    }
+
+    public sealed class StackFrameDoc
+    {
+        public string Name { get; set; } = "?";
+        public string? File { get; set; }
+        public int Line { get; set; }
+    }
+
+    public sealed class LocalVarDoc
+    {
+        public string Name { get; set; } = "?";
+        public string Value { get; set; } = "";
     }
 }

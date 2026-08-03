@@ -292,5 +292,6 @@ await using var server = McpServer.Create(stdio, options);
 serverRef = server;
 hostDeps.ServerRef = server;
 CdpClientWorkspace.Wire(server);
+IdeDebugSaChannel.EnsureLiveLatchWired();
 Console.Error.WriteLine($"CdpMcp {mcpVersion} backends=[{string.Join(",", byDomain.Keys)}] context={CdpEnumParse.ToWire(session.Phase)}/{CdpEnumParse.ToWire(session.Object)} isolation={CdpProfile.Kind}");
 await server.RunAsync();
