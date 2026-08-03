@@ -111,6 +111,8 @@ internal static class CitizenPersona
           @intent forward
           @intent nav
           @intent recent_files
+          @intent put path=tools/_put-draft.txt text="draft body"
+          @intent put path=tools/_put-draft.txt text="overwrite" overwrite=true
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost
