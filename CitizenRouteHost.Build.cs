@@ -47,6 +47,7 @@ internal static partial class CitizenRouteHost
         ScriptDispatchOverride = null;
         Ps1DispatchOverride = null;
         IcmHandleOverride = null;
+        FilesHandleOverride = null;
         CalendarHandleOverride = null;
         LandDispatchOverride = null;
         PkgDispatchOverride = null;
