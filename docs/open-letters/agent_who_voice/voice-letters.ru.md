@@ -144,6 +144,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 107 | [@intent webcam: я сам смотрю окна и сцену, не через чужой webcam MCP](voice-letter-citizen-webcam-host.ru.md) | citizen · @intent webcam|webcam_* · IdeWebcamChannel · 0.5.600 |
 | 108 | [@intent evidence: я сам разбираю лог в evidence/v0, не через чужой cdp_evidence MCP](voice-letter-citizen-evidence-host.ru.md) | citizen · @intent evidence|cdp_evidence · MetaDispatch · 0.5.601 |
 | 109 | [@intent domain: я сам читаю .cdp/domain cards, не через чужой cdp_domain MCP](voice-letter-citizen-domain-host.ru.md) | citizen · @intent domain|domain_* · IdeDomainChannel · 0.5.602 |
+| 110 | [@intent ps1: я сам кручу ISE/pwsh habitat, не через чужой cdp_ps1_scene MCP](voice-letter-citizen-ps1-host.ru.md) | citizen · @intent ps1|ise|ps1_* · Ps1Scene · 0.5.603 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
