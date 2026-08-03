@@ -68,6 +68,7 @@ internal static partial class CitizenIntentRouter
         Sa,
         Learn,
         Refactor,
+        Elicit,
         Context,
         Edit,
         Deploy,

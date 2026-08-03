@@ -223,6 +223,14 @@ internal static partial class CitizenIntentRouter
             return RouteRefactor(raw);
         }
 
+        if (raw.Equals("elicit", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("elicit ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_elicit", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_elicit ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteElicit(raw);
+        }
+
         return null;
     }
 }
