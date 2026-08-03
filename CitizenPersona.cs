@@ -125,6 +125,12 @@ internal static class CitizenPersona
           @intent icm aliases
           @intent icm resolve command_id=plan
           @intent icm_invoke command_id=cdp_health
+          @intent files
+          @intent files_desk
+          @intent cdp_files
+          @intent files list where=project
+          @intent files tree depth=2
+          @intent files_open path=README.md
           @intent calendar
           @intent calendar pulse
           @intent clock

@@ -48,6 +48,7 @@ internal static partial class CitizenIntentRouter
         Domain,
         Ps1,
         Icm,
+        Files,
         Edit,
         Deploy,
         Undo,
@@ -534,6 +535,78 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("cdp_icm_invoke ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteIcm(raw);
+        }
+
+        if (raw.Equals("files", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("file_manager", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("file_manager ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("fm", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("fm ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_ls", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_ls ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_cd", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_cd ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_up", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_up ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_stat", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_stat ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_tree", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_tree ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_open ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_text", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_text ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_read", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_read ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_search", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_search ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_roots", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_roots ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("files_clear", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("files_clear ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files_cd", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files_cd ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files_up", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files_up ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files_stat", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files_stat ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files_tree", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files_tree ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files_open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files_open ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files_text", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files_text ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files_search", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files_search ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files_roots", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files_roots ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_files_clear", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_files_clear ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("fm_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("fm_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("fm_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("fm_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("fm_cd", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("fm_cd ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("fm_tree", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("fm_tree ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("fm_open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("fm_open ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteFiles(raw);
         }
 
         if (raw.Equals("pressure", StringComparison.OrdinalIgnoreCase)
@@ -1151,6 +1224,7 @@ internal static partial class CitizenIntentRouter
             "domain" or "domain_desk" or "cdp_domain" or "domain_scene" or "domain_pulse" or "domain_list" or "domain_card" => "domain",
             "ps1" or "ise" or "ps1_scene" or "ps1_desk" or "cdp_ps1" or "cdp_ps1_scene" or "ps1_put" or "ps1_run" => "ps1_scene",
             "icm" or "icm_desk" or "cdp_icm" or "command_module" or "icm_aliases" or "icm_resolve" or "icm_invoke" => "icm_desk",
+            "files" or "files_desk" or "cdp_files" or "file_manager" or "fm" or "files_list" or "files_tree" or "files_open" => "files_desk",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
