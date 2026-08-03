@@ -38,6 +38,7 @@ internal static partial class CitizenIntentRouter
         Put,
         Scratch,
         Take,
+        Share,
         Detail,
         Cmd,
         Refuse,
@@ -184,6 +185,15 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("take path=", StringComparison.OrdinalIgnoreCase))
         {
             return RouteTake(raw);
+        }
+
+        if (raw.Equals("share", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("share ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("share path=", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("share with=", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("share from=", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteShare(raw);
         }
 
         if (raw.StartsWith("replace ", StringComparison.OrdinalIgnoreCase)
