@@ -34,6 +34,7 @@ internal static partial class CitizenIntentRouter
         Undo,
         Clip,
         ReplaceAll,
+        Nav,
         Detail,
         Cmd,
         Refuse,
@@ -343,6 +344,20 @@ internal static partial class CitizenIntentRouter
             || raw.Equals("clip_clear", StringComparison.OrdinalIgnoreCase))
         {
             return RouteClip(raw);
+        }
+
+        if (raw.Equals("back", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("back ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("forward", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("forward ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("nav", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("nav ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("nav_status", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("recent_files", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("recent_files ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("recent", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteNav(raw);
         }
 
         if (raw.Equals("find", StringComparison.OrdinalIgnoreCase)
