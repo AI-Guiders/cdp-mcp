@@ -134,6 +134,27 @@ public sealed partial class IdeTaskManagerTitlePrecedenceTests
     }
 
     [Fact]
+    public void FindIntent_unique_prefix_does_not_steal_content_twin()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-prefix-twin-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            var twin = store.IntentUpsert(state, "Dig densest SoftFL CLOSED after FeatureDone live", null);
+            // Truncated shared stem — used to unique-prefix onto the Dig densest twin.
+            Assert.Null(store.FindIntentIdByTitle("Dig densest SoftFL CLOSED after FeatureDone"));
+            Assert.Equal(twin.intent_id, store.FindIntentIdByTitle("Dig densest SoftFL CLOSED after FeatureDone live"));
+            // Chrome query must not silently land on bare Dig densest twin (0.5.553).
+            Assert.Null(store.FindIntentIdByTitle("Dig densest SoftFL CLOSED after FeatureDone live @act #CDP"));
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
     public void Shipped_foreign_feature_preserves_active_focus()
     {
         var path = Path.Combine(Path.GetTempPath(), "cdp-tm-ship-foreign-" + Guid.NewGuid().ToString("N") + ".witdb");
