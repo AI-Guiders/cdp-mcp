@@ -9,8 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.630</Version>
-
+    <Version>0.5.631</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -407,6 +406,16 @@
   <ItemGroup>
     <Compile Update="EditorPlane.Scene.Detail.cs">
       <DependentUpon>EditorPlane.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="CitizenIntentRouter.Slice.cs">
+      <DependentUpon>CitizenIntentRouter.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="CitizenIntentRouter.Parse.cs">
+      <DependentUpon>CitizenIntentRouter.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>
