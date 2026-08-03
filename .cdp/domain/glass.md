@@ -159,6 +159,12 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 **Lived Glass UX epic: CLOSED** for 15.08 one-cockpit survival DoD. **Citizen full chain: CLOSED** (live latch dogfood + StatusText pending→running→done/error).
 
+### Dig 2026-08-03 — CascadeChord HOLD
+
+- **Verdict: keep HOLD.** Full Avalonia CascadeChord remains intentional Avalonia SSOT (ADR 0060 lives there). Glass already has thin Ctrl+K melody HUD (`MainWindow.CascadeChord`) ≠ Avalonia port.
+- **unHOLD now = regression risk** (dual chord stacks / peel treadmill), not densest Meta.
+- **Next Meta host gap (seeded):** CDP *healthy-agent Rules* organ — standing ε recall (body≠biped, dig/parallel, habitat) as desk SSOT, not Cursor alwaysApply dump. See TM feature.
+
 ## last_ship
 - 2026-08-03: **0.5.590** citizen `@intent land|deep_link` host-execute → same `cdp_land` / `land-LATEST` latch Glass already peels (peer nav without Cursor MCP)
 - 2026-08-03: Glass→Citizen **PeerAck surface** — habitat appends peer tip to Intercom + latch `peer=`; Glass StatusText paints done·peer · cdp-mcp **0.5.565** · lived latch `c27ace9928e9`
