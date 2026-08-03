@@ -35,6 +35,7 @@ internal static partial class CitizenIntentRouter
         Clip,
         ReplaceAll,
         Nav,
+        Put,
         Detail,
         Cmd,
         Refuse,
@@ -161,6 +162,13 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("replaceall ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteReplaceAll(raw);
+        }
+
+        if (raw.Equals("put", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("put ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("put path=", StringComparison.OrdinalIgnoreCase))
+        {
+            return RoutePut(raw);
         }
 
         if (raw.StartsWith("replace ", StringComparison.OrdinalIgnoreCase)
