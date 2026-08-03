@@ -40,6 +40,7 @@ internal static partial class CitizenIntentRouter
         Take,
         Share,
         Disk,
+        Sniper,
         Detail,
         Cmd,
         Refuse,
@@ -195,6 +196,28 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("share from=", StringComparison.OrdinalIgnoreCase))
         {
             return RouteShare(raw);
+        }
+
+        if (raw.Equals("scope", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("scope ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("scope from=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("scope_clear", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("scope_clear", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("sniper", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("sniper ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("peek", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("peek ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("peek wire=", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("peek pad=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("aim", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("aim ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("aim wire=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("target", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("target ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("outline", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("outline ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteSniper(raw);
         }
 
         if (raw.Equals("reload", StringComparison.OrdinalIgnoreCase)
