@@ -154,6 +154,11 @@ internal static class CitizenPersona
           @intent cdp_analysis_scene
           @intent analysis_clones scope=file path=Foo.cs
           @intent analysis_correspondence path=Foo.cs
+          @intent test_plan
+          @intent test_plan_desk
+          @intent cdp_test_plan
+          @intent test_plan_preview filter=Foo
+          @intent test_plan_apply failed_first=true
           @intent calendar
           @intent calendar pulse
           @intent clock

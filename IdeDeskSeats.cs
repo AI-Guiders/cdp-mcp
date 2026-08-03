@@ -155,6 +155,7 @@ internal static partial class IdeDeskSeats
         ["semantic"] = "m",
         ["test_scene"] = "m",
         ["test"] = "m",
+        ["test_plan"] = "m",
         ["arch_desk"] = "m",
         ["arch_board"] = "m",
         ["arch"] = "m",
