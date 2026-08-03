@@ -100,6 +100,9 @@ internal static class CitizenPersona
           @intent deploy mode=soft target=sibling
           @intent deploy mode=hard
           @intent deploy mode=rollout dry_run=true
+          @intent undo path=CitizenRouteHost.cs
+          @intent redo path=CitizenRouteHost.cs
+          @intent edit_history path=CitizenRouteHost.cs
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost
