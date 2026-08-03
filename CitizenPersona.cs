@@ -117,6 +117,9 @@ internal static class CitizenPersona
           @intent scratch ext=md text="# notes"
           @intent take path=CitizenRouteHost.cs
           @intent take path=CitizenRouteHost.cs check=false
+          @intent share with=operator path=CitizenRouteHost.cs
+          @intent share with=self body="shelf note"
+          @intent share from=self
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost
