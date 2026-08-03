@@ -14,13 +14,15 @@
 ## Entry
 
 - `cdp_rules` · `go=rules|standing` · remount/OOM/escalate charge appendix
+- Citizen `@intent rules|standing|cdp_rules` → host IdeRulesChannel (scene|pulse|list|card)
 - Seed card: `healthy-agent.md`
 
 ## Antipatterns
 
 - Extending eQRH builtins for standing lessons.
-- Citizen `@intent rules` before Meta path dogfood (spike deferred).
+- Treating Cursor alwaysApply as habitat SSOT for ε.
 
 ## last_ship
 
+- 0.5.638: Citizen `@intent rules` host-execute (Domain pattern) · tests 6/6 · dual lag=false · dry_run ack=6/6 · VL#144 · 2026-08-03
 - 0.5.637: IdeStandingPulse + IdeRulesChannel soft organ + remount Standing appendix · seed healthy-agent · 2026-08-03

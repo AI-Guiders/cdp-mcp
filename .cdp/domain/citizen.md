@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.638** — `@intent rules|standing|rules_desk|cdp_rules|healthy_agent` host-execute → IdeRulesChannel (scene|pulse|list|card; PlaceOrgan rules; Domain pattern). Tests CitizenRulesHostTests 6/6. Lived: dual hard 0.5.638 lag=false · dry_run wire `ack=6/6`. VL#144.
 - **0.5.635** — `@intent elicit|cdp_elicit` host-execute → Meta `cdp_elicit` (peek/caps/ask; default peek; no steal go=elicit). Fix: `hostDeps.ServerRef = server` after bind (was always no_server). Tests CitizenElicitHostTests 8/8. Lived: dual hard 0.5.635 · live peek Cursor advertises elicitation · live ask host answered (decline) · dry_run `ack=6/6` · ask peer `ack=1/1`. VL#142.
 - **0.5.631** — Soft FileLines: root helpers → `CitizenIntentRouter.Slice.cs` + `Parse.cs`; root ~227; live recommend leave. Lived: dual hard 0.5.631 · debug leave · VL#138.
 - **0.5.630** — Peel `RouteOne` method_lines~1384 → thin dispatcher + `TryRouteCore|Doc|Desk|Runtime|OrgansA|OrgansB|Nav` (`CitizenIntentRouter.RouteOne.*.cs`). Nav test: bare `recent` = Restore SSOT (`recent_files` = Nav). Lived: dual hard 0.5.630 · debug recommend no longer RouteOne=1384 · OrgansA debt=0 · VL#137.
