@@ -69,6 +69,7 @@
 - Leaving Channel XML tip at tip parity 0.5.537 after leaf Fly clamp/pull ships (pre-0.5.546) — invent-ban hygiene; Channel summary must match Meta (≤3s leaf Fly / HILD; TimerLoop pull-forward).
 - Guest Autoi overnight + idle PF + Composer Stop/Queue habitat-success skip consuming last_once (pre-0.5.547) — lived `leaf-wake` habitat latch, arms=[], operator «выстрела нет»; CDT must wait/requeue.
 - Amnesia postfix without body≠biped recall (pre-0.5.636) — cold PF wears human serial mask; Autoi wake must restore dig/parallel + pipe.
+- Autoi wake → one peel / one Meta host / one CIDE organ (pre list→batch→ship) — timer as single-item mill; Soft FileLines CLOSED; denser pack transfer. Canon: `playbook-pf-body-not-biped-v1` §Throughput.
 
 ## last_ship
 

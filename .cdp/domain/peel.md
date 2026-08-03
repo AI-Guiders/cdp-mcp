@@ -21,7 +21,7 @@
 - Peel Tests: open `CdpMcp.Tests.csproj` before `cdp_peel` (host project → not in solution).
 - Giant prompt/string fields: member peel moves the blob; FileLines warn may remain on the topic partial until content-split.
 - Escaping to user-roslyn MCP for routine FileLines peels when habitat=CDP.
-- Single-file peels as the epic — batch ~10–15 / one ship; peel organ is hygiene throughput.
+- Single-file peels as the epic — **list → batch → ship** (~10–15 / one wave); Soft FileLines CLOSED as Autoi mill. One peel per wake = biped regression (`playbook-pf-body-not-biped-v1` §Throughput).
 
 ## last_ship
 
