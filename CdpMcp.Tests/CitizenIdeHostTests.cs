@@ -50,6 +50,45 @@ public sealed class CitizenIdeHostTests
     }
 
     [Fact]
+    public void Route_complete_requires_column()
+    {
+        var r = CitizenIntentRouter.RouteOne("complete path=X.cs line=10");
+        Assert.False(r.Ok);
+        Assert.Equal("ide_column_required", r.Reason);
+    }
+
+    [Fact]
+    public void Route_complete_ok()
+    {
+        var r = CitizenIntentRouter.RouteOne("complete path=X.cs line=10 column=4 prefix=Run");
+        Assert.True(r.Ok);
+        Assert.Equal("get_completions", r.Op);
+    }
+
+    [Fact]
+    public void Route_signature_ok()
+    {
+        var r = CitizenIntentRouter.RouteOne("signature path=X.cs line=12 column=8");
+        Assert.True(r.Ok);
+        Assert.Equal("get_signature_help", r.Op);
+    }
+
+    [Fact]
+    public void Route_symbols_ok_without_line()
+    {
+        var r = CitizenIntentRouter.RouteOne("symbols path=X.cs");
+        Assert.True(r.Ok);
+        Assert.Equal("get_document_symbols", r.Op);
+    }
+
+    [Fact]
+    public void Route_outline_stays_sniper()
+    {
+        var r = CitizenIntentRouter.RouteOne("outline path=X.cs");
+        Assert.Equal(CitizenIntentRouter.Verb.Sniper, r.Verb);
+    }
+
+    [Fact]
     public void Execute_ide_with_override_ok()
     {
         CitizenRouteHost.UnbindLifecycle();
@@ -68,6 +107,33 @@ public sealed class CitizenIdeHostTests
             Assert.True(applied[0].Ok);
             Assert.Equal("ide", applied[0].Action);
             Assert.Contains("loc", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_complete_passes_prefix_via_override()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.IdeCallOverride = (op, args) =>
+        {
+            Assert.Equal("get_completions", op);
+            Assert.Equal("X.cs", args["file_path"].GetString());
+            Assert.Equal(10, args["line"].GetInt32());
+            Assert.Equal(4, args["column"].GetInt32());
+            Assert.Equal("Run", args["prefix"].GetString());
+            return Task.FromResult("""{"items":[{"label":"RunIde"},{"label":"RunFind"}]}""");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("complete path=X.cs line=10 column=4 prefix=Run")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.Contains("item", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
         {

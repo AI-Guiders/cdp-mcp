@@ -497,7 +497,21 @@ internal static partial class CitizenIntentRouter
             || raw.Equals("diagnostics", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("diagnostics ", StringComparison.OrdinalIgnoreCase)
             || raw.Equals("definition", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("definition ", StringComparison.OrdinalIgnoreCase))
+            || raw.StartsWith("definition ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("complete", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("complete ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("completions", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("completions ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("signature", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("signature ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("signature_help", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("signature_help ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("symbols", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("symbols ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("document_symbols", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("document_symbols ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("doc_symbols", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("doc_symbols ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteIde(raw);
         }
