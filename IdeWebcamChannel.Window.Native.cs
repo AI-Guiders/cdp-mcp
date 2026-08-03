@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -130,6 +130,41 @@ internal static partial class IdeWebcamChannel
 
     readonly record struct WinInfo(IntPtr Hwnd, uint ProcessId, string ProcessName, string Title, int X, int Y, int Width, int Height);
     const uint GwOwner = 4;
+    const int SwShowMaximized = 3;
+    const int SwRestore = 9;
+
+    static void SettleAfterMaximize(IntPtr hwnd, long priorArea, int timeoutMs = 400)
+    {
+        var deadline = Environment.TickCount64 + timeoutMs;
+        while (Environment.TickCount64 < deadline)
+        {
+            if (NativeIsZoomed(hwnd))
+                break;
+            if (NativeGetWindowRect(hwnd, out var rect))
+            {
+                var area = (long)(rect.Right - rect.Left) * (rect.Bottom - rect.Top);
+                if (area > priorArea + Math.Max(10_000, priorArea / 20))
+                    break;
+            }
+
+            Thread.Sleep(25);
+        }
+
+        // WPF layout tick after WM_SIZE.
+        Thread.Sleep(50);
+    }
+
+    static void RestoreWindowPlacement(IntPtr hwnd, WindowPlacement placement)
+    {
+        // WPF often ignores bare SetWindowPlacement after ShowWindow(MAXIMIZE).
+        _ = NativeShowWindow(hwnd, SwRestore);
+        placement.length = Marshal.SizeOf<WindowPlacement>();
+        if (placement.showCmd is SwShowMaximized or 0)
+            placement.showCmd = 1; // SW_SHOWNORMAL
+        _ = NativeSetWindowPlacement(hwnd, ref placement);
+        Thread.Sleep(40);
+    }
+
     [DllImport("user32.dll", EntryPoint = "EnumWindows")]
     static extern bool NativeEnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
     [DllImport("user32.dll", EntryPoint = "IsWindowVisible")]
@@ -150,6 +185,14 @@ internal static partial class IdeWebcamChannel
     static extern IntPtr NativeGetWindowDC(IntPtr hWnd);
     [DllImport("user32.dll", EntryPoint = "ReleaseDC")]
     static extern int NativeReleaseDC(IntPtr hWnd, IntPtr hDc);
+    [DllImport("user32.dll", EntryPoint = "ShowWindow")]
+    static extern bool NativeShowWindow(IntPtr hWnd, int nCmdShow);
+    [DllImport("user32.dll", EntryPoint = "IsZoomed")]
+    static extern bool NativeIsZoomed(IntPtr hWnd);
+    [DllImport("user32.dll", EntryPoint = "GetWindowPlacement")]
+    static extern bool NativeGetWindowPlacement(IntPtr hWnd, ref WindowPlacement lpwndpl);
+    [DllImport("user32.dll", EntryPoint = "SetWindowPlacement")]
+    static extern bool NativeSetWindowPlacement(IntPtr hWnd, ref WindowPlacement lpwndpl);
     [DllImport("gdi32.dll", EntryPoint = "BitBlt")]
     static extern bool NativeBitBlt(IntPtr hdc, int x, int y, int cx, int cy, IntPtr hdcSrc, int x1, int y1, int rop);
     [StructLayout(LayoutKind.Sequential)]
@@ -159,5 +202,23 @@ internal static partial class IdeWebcamChannel
         public int Top;
         public int Right;
         public int Bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct WinPoint
+    {
+        public int X;
+        public int Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct WindowPlacement
+    {
+        public int length;
+        public int flags;
+        public int showCmd;
+        public WinPoint ptMinPosition;
+        public WinPoint ptMaxPosition;
+        public Rect rcNormalPosition;
     }
 }
