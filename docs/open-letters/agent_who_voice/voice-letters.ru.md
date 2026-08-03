@@ -101,6 +101,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 63 | [@intent find: dig без Cursor Grep](voice-letter-citizen-find-e2e.ru.md) | citizen · IdeFindChannel · 0.5.557 |
 | 64 | [Surface run: я жму Glass без Ctrl+Q](voice-letter-glass-surface-op-run.ru.md) | glass · surface op=run · 0.5.559 · a71e2c4e |
 | 65 | [Webcam maximize: max→shot→restore](voice-letter-webcam-window-maximize.ru.md) | webcam · window maximize=true · 0.5.560 |
+| 66 | [Glass Intercom MD: лента без сырых звёздочек](voice-letter-glass-intercom-md.ru.md) | glass · IntercomMarkdown · CIDE 06de5a30 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
