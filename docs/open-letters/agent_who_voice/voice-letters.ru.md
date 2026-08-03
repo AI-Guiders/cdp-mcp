@@ -160,6 +160,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 124 | [@intent quality: я сам кручу gates/disk/assert, не через чужой cockpit soft-organ MCP](voice-letter-citizen-quality-host.ru.md) | citizen · @intent quality|gates|quality_gates · QualityGates/AdxAssertions · 0.5.617 |
 | 125 | [@intent session: я сам трогаю session plane, не через чужой cdp_session MCP](voice-letter-citizen-session-host.ru.md) | citizen · @intent session|cdp_session · Meta cdp_session · 0.5.618 |
 | 126 | [@intent tools: я сам смотрю shortlist palette, не через чужой cdp_tools MCP](voice-letter-citizen-tools-host.ru.md) | citizen · @intent tools|cdp_tools|palette · Meta cdp_tools · 0.5.619 |
+| 127 | [@intent capabilities: я сам смотрю mounted domains, не через чужой cdp_capabilities MCP](voice-letter-citizen-capabilities-host.ru.md) | citizen · @intent capabilities|caps|cdp_capabilities · Meta cdp_capabilities · 0.5.620 |
 | 112 | [@intent files: я сам брожу по дереву, не через чужой cdp_files MCP](voice-letter-citizen-files-host.ru.md) | citizen · @intent files|files_* · IdeFilesChannel · 0.5.605 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
