@@ -8,6 +8,7 @@
 
 - Soft-warn FileLinesWarn=400; Open/Create/Resolve/Park/Scene in `DocumentBufferStore.cs`; Apply/Flush in `.Edit`; Disk owns Reload/Keep/Peek/GuessLanguage; `DocBuffer` type is its own file.
 - Disk mutates go through PathMutateGate + AtomicTextFile — Cursor host Write bypasses the desk.
+- `set_text` on existing path soft-refuses (ADX-HX-001) unless `force=true` — prefer `anchor|replace|replace_range`; bootstrap via `op=create text=` (0.5.563).
 - Flush soft-refuse: `ProbeMaterialDiskChanged` && !`force` → hint `reload|keep_disk|force` (mtime+content drift only; dirty alone does not refuse). Message names `host_write` + `go=quality scope=assert` (0.5.548).
 - Material drift stamps `AdxMutateTrace.host_write` (0.5.517); Scene habitat tip teaches detect, not only bypass (0.5.548).
 
@@ -21,9 +22,11 @@
 - Growing store with PeekDisk/ProbeDisk/ToReadResult on DocBuffer — peel to `DocumentBufferStore.Disk.cs` / `DocBuffer.cs`.
 - Teaching only «Cursor Write bypasses» after host_write detect ships (pre-0.5.548) — invent-ban hygiene; QRH/scene/soft-refuse must name detect path.
 - `replace_range` with only `new_string=` and silent `text??""` — ate spans (bridge incident). Body = `text|new_string`; missing both must refuse (empty `text=""` = intentional delete).
+- Cold `set_text` on missing path ≠ create — OpenUnlocked FileNotFound; bootstrap via `op=create text=`.
 
 ## last_ship
 
+- 0.5.563: `set_text` soft-refuse on existing path (ADX-HX-001) unless `force=true` · 2026-08-03
 - 0.5.562: `replace_range` accepts `new_string=` alias + refuses missing body (no silent eat) · 2026-08-03
 - 0.5.548: PathMutate host Write detect tip parity — QRH + Scene habitat + soft-refuse name `host_write` / quality assert · 2026-08-03
 - PathMutateGate soft-refuse flush on material disk drift + `force=` @ 0.5.500
