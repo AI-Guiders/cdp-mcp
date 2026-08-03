@@ -12,6 +12,7 @@
   - **Phase 2 (batch→ship):** take **all** x ∈ a and move them **simultaneously** toward ship (parallel batch). Not finish one strip and leave the rest for the next Autoi.
 - Active wave is durable (seat `active-wave.json`): `wave seed|scene|start|item done|shipped|clear`. Wave items = a; open→shipping→shipped = phases already — no extra TM stage organ.
 - Prefer `wave seed title=Name items=a;b;c` — bare `title=` + free words without separators must not invent fake items.
+- Prefer short `items=` labels without spaces, or quoted blobs; `items=` with spaces must not invent one item per whitespace token (0.5.650).
 - Inventory [A] = dense gap table + **live SoftOrgan Meta host dig** (`softorgan_host`) + batch_size_recommend (~8–15), not W-spray.
 - SoftOrgan Meta host mill **CLOSED** when inventory reports `meta-host-softorgans=CLOSED` — do not re-wire Crm/Arch from stale TM.
 - SA `biped_mill` when session act + no active wave → next `go=inventory` | `cmd=wave seed`.
@@ -37,6 +38,7 @@
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
 
 ## last_ship
+- **0.5.650** — wave `items=` with spaces no longer invents one fake item per whitespace token (lived: CitizenFullThenNext649 → 0/16). Collect into one blob until next key=; `;|,` still split labels. Test Repl_wave_seed_items_with_spaces_does_not_invent_word_items.
 - **2026-08-04 SickLeaveNight648 mid** — ignite hygiene + glass DIG REJECT reopen; product dig PathMutate vs Autoi duplex seeded.
 - **2026-08-04 invent DIG FindIntent648** — DIG REJECT SoftFL/Meta/Citizen/OOM-eol reopen; DIG ACCEPT densest = throughput-wave idle → SickLeaveNight648 (ignite stale-arms → CIDE/glass citizen15 → product wave).
 - **2026-08-04 Dig FindIntent@0.5.648** — DIG REJECT SoftFL/Meta/Citizen reopen; DIG ACCEPT board CLOSED hygiene under FeatureDone@0.5.647 + FindIntent unique-prefix CLOSED; inventory sole gap = throughput-wave idle; BoardClosedHygiene648 1/4 (Meta defer/BATCH/SoftFL peel shipped; Dig FindIntent feature shipped).
