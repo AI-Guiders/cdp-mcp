@@ -15,8 +15,9 @@
 - Sticky pins: `StateRoot/{seat}/citizen-sticky.json` — op=`sticky` action=get|set|clear; turn `sticky_key=`/`sticky_value=`. Injected as `sticky | k=v` on dialog afferents.
 - Dialog afferent also gets `dialog | pairs=N · … use them; do not claim amnesia`.
 - Persona baseline: **equal standing** (peer, not tool) + human name **Света**; Who = Agent Who series (not operator); **Memory:** use prior turns / sticky.
-- Wire: Bearer + `{base}/v1/chat/completions` (non-stream for citizen turns); system-as-message on OAI path.
-- OpenAI-compat sampling: wire **`temperature=0`**; dialog **`0.6`**. Full param map: agent-notes `knowledge/domains/agent-operations/note-llm-sampling-params-openai-compat-v1.md`.
+- Wire: Bearer + `{base}/v1/chat/completions` — **SSE stream** (`stream=true`, `ResponseHeadersRead`); JSON body fallback when Content-Type is `application/json` (stubs / non-stream providers). Anthropic Messages same policy.
+- Live HTTP budgets (not blunt `HttpClient.Timeout=120`): Headers/TTFT **20s** · Idle between SSE lines **30s** · Overall **90s**; `HttpClient.Timeout=Infinite`. Budget cancel → `error=timeout`.
+- `WireSystemPrompt` is a **property** (Head+Tail partials) — not static field concat (undefined init order → empty system).
 - `invite_ready` is a **record** (not ValueTuple) — JSON must expose Ready/Status/Checklist/Blocker.
 - `dry_run=true` builds persona+wire messages without provider; works with empty keys.
 - Dry-run **model** label mirrors live `ResolveProvider` (FM-first / `DefaultOpenAiModel`), not raw `DefaultModel` (claude).
@@ -60,6 +61,7 @@
 
 ## last_ship
 
+- **0.5.644** — Citizen FM path: SSE stream + layered timeouts (Headers20/Idle30/Overall90; Infinite HttpClient timeout; JSON fallback). WireSystemPrompt property fix (Head/Tail static-order). Tests CitizenCompletionsTests 18/18. Deploy: dual hard.
 - **0.5.643** — SoftOrgan Meta host BATCH-9 (VL#148 defer): `@intent` report|debug_sa|test_sa|build_sa|sys|ecl|review|alert → Ide* hosts; OrgansB wins over Verb.Go for bare report/alert; Evidence stays evidence; sa stays Sa; fuse via `IdeCockpit.TryBuildCitizenSeatExtras`. Tests CitizenSoftOrganMetaHostBatch9Tests 29/29 (+BATCH-8 48/48). VL#149. Deploy: parent dogfood.
 - **0.5.642** — SoftOrgan Meta host BATCH (operator: list then all): `@intent` md_author|project_switch/ps/cdp_scope|glass/cdp_glass|fdr|teeth|postmortem|plugins|problems → Ide*Channel hosts (Crm pattern; PlaceOrgan; no bare steal). Tests CitizenSoftOrganMetaHostBatchTests 19/19. Lived: dual hard 0.5.642 lag=false · dry_run wire `ack=8/8`. VL#148. Defer: debug_sa/test_sa/build_sa, sys/ecl/review/alert.
 - **0.5.641** — `@intent crm|callout|crm_panel|cdp_crm` host-execute → IdeCrmChannel (scene|call|respond|last|clear|lexicon; PlaceOrgan crm; no steal bare approved/go_around). Tests CitizenCrmHostTests 6/6. Lived: dual hard 0.5.641 · dry_run wire. VL#147.
