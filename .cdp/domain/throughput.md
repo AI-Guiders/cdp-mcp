@@ -38,6 +38,7 @@
 
 ## last_ship
 
+- 2026-08-04: SoftOrgan Meta defer dig CLOSED — inventory 32/32; TM feature shipped (no re-wire)
 - stamp a×b turn rectangle + half-a antipattern · 2026-08-04
 - 0.5.646: inventory SoftOrgan host dig + wave seed title= footgun · 2026-08-03
 - 0.5.645: TM wave + inventory + pressure wave[] + SA biped_mill + verify_wave · 2026-08-03
