@@ -244,6 +244,13 @@ internal static class CitizenPersona
           @intent sa depth=full path=CitizenRouteHost.Sa.cs
           @intent go=sa_desk
           @intent go=sa
+          @intent learn
+          @intent learn_desk
+          @intent cdp_learn
+          @intent learning
+          @intent learn list
+          @intent learn op=stash title=ont body=conntrack
+          @intent go=learn
           @intent calendar
           @intent calendar pulse
           @intent clock

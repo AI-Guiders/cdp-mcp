@@ -66,6 +66,7 @@ internal static partial class CitizenIntentRouter
         Cockpit,
         Work,
         Sa,
+        Learn,
         Context,
         Edit,
         Deploy,
@@ -565,6 +566,18 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("sa_code ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteSa(raw);
+        }
+
+        if (raw.Equals("learn", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("learn ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("learn_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("learn_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_learn", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_learn ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("learning", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("learning ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteLearn(raw);
         }
 
         if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
@@ -1562,6 +1575,7 @@ internal static partial class CitizenIntentRouter
             "cockpit" or "cockpit_desk" or "cdp_cockpit" or "agent_desk" => "cockpit",
             "work_desk" or "cdp_work" or "intent_workspace" => "intent_workspace",
             "sa_desk" or "cdp_sa" or "code_sa" or "pre_sa" or "sa_code" => "sa_desk",
+            "learn_desk" or "cdp_learn" or "learning" => "learn",
             "goto" or "goto_all" or "go_to_all" or "cdp_goto" or "goto_feature" or "goto_desk" or "go_to" => "goto",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
