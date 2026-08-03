@@ -25,7 +25,9 @@ internal static partial class CitizenRouteHost
         GitCallOverride = null;
         FindCallOverride = null;
         IdeCallOverride = null;
+        IgniteHandleOverride = null;
         PressureHandleOverride = null;
+        EditCallOverride = null;
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)
