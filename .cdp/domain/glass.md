@@ -160,6 +160,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 **Lived Glass UX epic: CLOSED** for 15.08 one-cockpit survival DoD. **Citizen full chain: CLOSED** (live latch dogfood + StatusText pending→running→done/error).
 
 ## last_ship
+- 2026-08-03: Glass→Citizen **PeerAck surface** — habitat appends peer tip to Intercom + latch `peer=`; Glass StatusText paints done·peer · cdp-mcp **0.5.565** · lived latch `c27ace9928e9`
 - 2026-08-03: **lived** unforced Glass→Citizen→Cloud.ru latch dogfood — RU soft ask → FM `@intent git` → seats `M:git` + Intercom citizen (hands 0.5.561 proved beyond stuffed health)
 - 2026-08-03: Glass→Citizen **hands parity** — habitat `CitizenGlassDialogBridge` Execute+PeerAck after dialog Turn (talk≠hands closed) · cdp-mcp **0.5.561**
 - 2026-08-03: Glass **surface `op=run`** — `AgentSurfaceRun` (action|command_id|text=/slash) without Ctrl+Q; live dogfood `slash_status` + `get_ide_state` + `mfd_git` from cockpit; cascade-ide `a71e2c4e` · cdp-mcp **0.5.559** · VL #64

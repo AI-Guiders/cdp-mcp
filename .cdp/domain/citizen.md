@@ -21,7 +21,7 @@
 - `dry_run=true` builds persona+wire messages without provider; works with empty keys.
 - Dry-run **model** label mirrors live `ResolveProvider` (FM-first / `DefaultOpenAiModel`), not raw `DefaultModel` (claude).
 - Soft deploy ≠ live code; hard-self for this seat needs **terminal_*** + KillRunning (not in-proc `cdp_shell_*`).
-- Glass Intercom → citizen dialog: request latch `%LocalAppData%/cdp-mcp/citizen-dialog-request-LATEST.json` (shared root, not seat). Habitat `CitizenGlassDialogBridge` polls → `CitizenCompletions.Turn(mode=dialog)` → **host-execute `Routes` + `CitizenPeerAck`** (parity with `IdeCitizenChannel`, 0.5.561) → Intercom PF→PM `kind=citizen`. Glass `/citizen` journals only (does **not** Publish human→PF voice).
+- Glass Intercom → citizen dialog: request latch `%LocalAppData%/cdp-mcp/citizen-dialog-request-LATEST.json` (shared root, not seat). Habitat `CitizenGlassDialogBridge` polls → `CitizenCompletions.Turn(mode=dialog)` → **host-execute `Routes` + `CitizenPeerAck`** (parity with `IdeCitizenChannel`, 0.5.561) → Intercom PF→PM `kind=citizen` **with Peer tip appended after prose (0.5.565)** + request latch `peer=` for Glass StatusText. Glass `/citizen` journals only (does **not** Publish human→PF voice).
 - **Autoi wake consume (0.5.551→0.5.554):** when Composer unavailable + invite ready, `TryDeliverHabitatWhenComposerUnavailableAsync` calls `TryDeliverAutoiWake` → Intercom `kind=citizen` · skip CDT (`prefer_citizen`). While Cursor Composer is present, Guest Autoi CDT→Composer even if invite ready (0.5.554 — do not silent-steal).
 - Omit `board=` on turn → host auto-binds live desk seats + TM pulse (`CitizenLiveDesk`).
 - After turn, host executes `@intent` routes by default on live (`CitizenRouteHost`); dry_run skips unless `execute=true` (then parses user `@intent` lines).
@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.565** — Glass→Citizen PeerAck surface: after hands, Intercom body appends peer tip + request latch `peer=`; Glass `CitizenDialogRequestStatus` paints `done · peer`. Tests bridge 4/4 · Glass status 3/3. Lived latch `c27ace9928e9` → Cloud.ru `go=plan` · Intercom body ends `ack=1/1` · dual seats 0.5.565.
 - **0.5.564** — `@intent delete|rm|remove path=…` host-execute → PathMutateGate `DocumentBufferStore.Delete` + land close (remaining Write-surface hand). Dirty buffer needs `force=true`. Tests CitizenDeleteHostTests 5/5. Lived: dry_run execute on cdp-debug → ack delete · scratch gone.
 - **2026-08-03 lived dogfood (0.5.561 chain)** — unforced Glass latch → Cloud.ru Qwen dialog → FM `@intent git` (no stuffed wire) → host Execute seats `M:git_scene` same-second stamp · Intercom `kind=citizen` · latch `28e189ea7ab9` pending→done. Hands parity not just forced `go=health`.
 - **0.5.561** — Glass dialog bridge host-execute parity: `CitizenGlassDialogBridge` runs `CitizenRouteHost.Execute` + `CitizenPeerAck.FromExecuted` after dialog Turn (talk≠hands gap closed). Tests CitizenGlassDialogBridgeTests 4/4.
