@@ -22,6 +22,7 @@
 
 ## last_ship
 
+- 0.5.574: citizen host-execute put — draft dump / frame / sniper · 2026-08-03
 - 0.5.573: citizen host-execute back/forward/nav/recent_files — FindNav NavStep/Status/MRU · 2026-08-03
 - 0.5.572: citizen host-execute replace_all — FindNav ReplaceAll · 2026-08-03
 - 0.5.571: citizen host-execute copy/cut/paste/clipboard — SessionClipboard frames · 2026-08-03
