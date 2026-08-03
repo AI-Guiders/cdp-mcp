@@ -133,6 +133,41 @@ public sealed partial class IdeTaskManagerTitlePrecedenceTests
         }
     }
 
+    [Fact]
+    public void Shipped_foreign_feature_preserves_active_focus()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-tm-ship-foreign-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            var invent = store.IntentUpsert(state, "invent dig focus", null);
+            var inventLeaf = store.StageUpsert(state, "invent-leaf", null, null, null).stage_id;
+            store.FocusStage(state, inventLeaf);
+
+            store.IntentUpsert(state, "WitDB torn quarantine auto-heal", null);
+            store.IntentSelect(state, invent.intent_id);
+            store.FocusStage(state, inventLeaf);
+
+            var result = IdeTaskManager.Handle(store, state, Args(new { tm_op = "shipped", title = "WitDB torn quarantine auto-heal" }));
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            var mut = doc.RootElement.GetProperty("mutation");
+            Assert.Equal("feature_shipped", mut.GetProperty("op").GetString());
+            Assert.False(mut.GetProperty("focus_cleared").GetBoolean());
+            Assert.Equal(invent.intent_id, state.ActiveIntentId);
+            Assert.Equal(inventLeaf, state.ActiveStageId);
+
+            using var db = Open(path);
+            Assert.Equal("active", db.Stages.Single(s => s.Id == inventLeaf).Status);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+
     static Dictionary<string, JsonElement> Args(object anon)
     {
         using var doc = JsonDocument.Parse(JsonSerializer.Serialize(anon));

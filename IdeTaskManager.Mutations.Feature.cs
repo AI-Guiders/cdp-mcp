@@ -112,21 +112,55 @@ internal static partial class IdeTaskManager
         Guid featureId,
         string reason)
     {
+        var wasFocused = state.ActiveIntentId == featureId;
+        var keepIntent = state.ActiveIntentId;
+        var keepStage = state.ActiveStageId;
+
         store.IntentSelect(state, featureId);
         var closed = store.MarkIncompleteStagesDone(state);
-        state.ActiveStageId = null;
-        state.ActiveIntentId = null;
-        store.WorkFocusSave(state);
-        var leaf = LeafPlateau(store, state, $"feature_{reason}");
+
+        if (wasFocused)
+        {
+            state.ActiveStageId = null;
+            state.ActiveIntentId = null;
+            store.WorkFocusSave(state);
+            var leaf = LeafPlateau(store, state, $"feature_{reason}");
+            return new
+            {
+                op = $"feature_{reason}",
+                feature_id = featureId,
+                closed_tasks = closed,
+                focus_cleared = true,
+                leaf_continuity = leaf,
+                hint = closed > 0
+                    ? "Feature closed — incomplete leaves marked done; focus cleared."
+                    : "Feature had no incomplete leaves — focus cleared."
+            };
+        }
+
+        // Hygiene ship of a foreign feature must not steal invent dig / other focus.
+        // IntentSelect(featureId) cleared ActiveStageId — restore both axes.
+        if (keepIntent is { } kid)
+        {
+            store.IntentSelect(state, kid);
+            if (keepStage is { } sid)
+                store.FocusStage(state, sid);
+            else
+                store.WorkFocusSave(state);
+        }
+        else
+            store.WorkFocusSave(state);
+
         return new
         {
             op = $"feature_{reason}",
             feature_id = featureId,
             closed_tasks = closed,
-            leaf_continuity = leaf,
+            focus_cleared = false,
+            focus_preserved = state.ActiveIntentId,
             hint = closed > 0
-                ? "Feature closed — incomplete leaves marked done; focus cleared."
-                : "Feature had no incomplete leaves — focus cleared."
+                ? "Feature closed — incomplete leaves marked done; active focus preserved."
+                : "Feature had no incomplete leaves — active focus preserved."
         };
     }
 }
