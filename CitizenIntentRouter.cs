@@ -47,6 +47,8 @@ internal static partial class CitizenIntentRouter
         Evidence,
         Domain,
         Rules,
+        Inventory,
+        VerifyWave,
         Arch,
         Crm,
         MdAuthor,

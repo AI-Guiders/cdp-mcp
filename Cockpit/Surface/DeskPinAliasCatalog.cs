@@ -120,6 +120,14 @@ public sealed class DeskPinAliasCatalog : ICockpitComputeUnit
         ["ps1_last"] = "ps1_scene",
         ["ps1_help"] = "ps1_scene",
         ["cdp_ps1_scene"] = "ps1_scene",
+        ["inventory"] = "inventory",
+        ["inventory_desk"] = "inventory",
+        ["gaps"] = "inventory",
+        ["cdp_inventory"] = "inventory",
+        ["verify_wave"] = "verify_wave",
+        ["verify_wave_desk"] = "verify_wave",
+        ["wave_verify"] = "verify_wave",
+        ["cdp_verify_wave"] = "verify_wave",
     };
 
     public IReadOnlyDictionary<string, string> Map => BuiltIns;

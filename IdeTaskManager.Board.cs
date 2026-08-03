@@ -105,6 +105,16 @@ internal static partial class IdeTaskManager
             lines.Insert(0, $"·phase mismatch task@{aff} · session={sessionPhase}");
         }
 
+        var waveActive = IdeWaveChannel.TryLoadActive();
+        if (waveActive is not null)
+        {
+            var wDone = waveActive.Items.Count(i => i.Status == "done");
+            lines.Insert(0,
+                $"~wave {waveActive.Status} {wDone}/{waveActive.Items.Count} · {Trim(waveActive.Title, 32)} · cmd=wave scene");
+            pulse = $"{IdeWaveChannel.PulseLine()} · {pulse}";
+            banner = $"| wave:{Trim($"{waveActive.Status} {wDone}/{waveActive.Items.Count}", 18)} " + banner[1..];
+        }
+
         return new Board(
             Pulse: pulse,
             View: new
@@ -114,7 +124,17 @@ internal static partial class IdeTaskManager
                 board = lines.ToArray(),
                 ascii = string.Join('\n', lines),
                 local = localLine,
-                hint = "Scan board. * = active feature; [>] active task; [x] done; [-] parked; [~] deferred; [ ] pending; @phase = affinity. wall= stage Start→Completed; local= host machine clock (go=calendar)."
+                wave = waveActive is null
+                    ? null
+                    : new
+                    {
+                        id = waveActive.Id,
+                        title = waveActive.Title,
+                        status = waveActive.Status,
+                        done = waveActive.Items.Count(i => i.Status == "done"),
+                        total = waveActive.Items.Count
+                    },
+                hint = "Scan board. * = active feature; [>] active task; [x] done; [-] parked; [~] deferred; [ ] pending; @phase = affinity. ~wave = active throughput wave (cmd=wave …). wall= stage Start→Completed; local= host machine clock (go=calendar)."
             },
             Focus: new
             {

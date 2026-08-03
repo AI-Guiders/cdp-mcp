@@ -78,7 +78,9 @@ internal static partial class IdeCockpit
             stageMismatch,
             chk?.OpenRequired ?? 0,
             chk?.Pulse,
-            QuietBandQuality: quietBandQuality);
+            QuietBandQuality: quietBandQuality,
+            SessionAct: string.Equals(CdpEnumParse.ToWire(session.Phase), "act", StringComparison.OrdinalIgnoreCase),
+            NoActiveWave: !IdeWaveChannel.HasActiveOpen());
     }
 
     static string? ResolveLocusLine(BufferSnap buffer, string? projectRoot)

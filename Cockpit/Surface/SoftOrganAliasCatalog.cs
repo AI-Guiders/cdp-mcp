@@ -48,6 +48,10 @@ public sealed class SoftOrganAliasCatalog : ICockpitComputeUnit
             => SoftOrganKind.Calendar,
         "rules" or "rules_desk" or "standing" or "healthy_agent" or "cdp_rules"
             => SoftOrganKind.Rules,
+        "inventory" or "inventory_desk" or "gaps" or "cdp_inventory"
+            => SoftOrganKind.Inventory,
+        "verify_wave" or "verify_wave_desk" or "wave_verify" or "cdp_verify_wave"
+            => SoftOrganKind.VerifyWave,
         _ => null
     };
 }

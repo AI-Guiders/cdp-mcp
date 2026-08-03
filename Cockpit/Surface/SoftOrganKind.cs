@@ -34,5 +34,7 @@ public enum SoftOrganKind
     ProjectSwitch,
     Domain,
     Calendar,
-    Rules
+    Rules,
+    Inventory,
+    VerifyWave
 }

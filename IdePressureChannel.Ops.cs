@@ -105,6 +105,7 @@ internal static partial class IdePressureChannel
         doc.Object = session.Object.ToString();
         doc.IgniteNote = Opt(args, "ignite") ?? doc.IgniteNote;
         doc.PlanNote = Opt(args, "plan") ?? doc.PlanNote;
+        doc.Wave = ResolveWave(args, doc.Body) ?? doc.Wave;
         Save(doc);
         var mdPath = WriteLatestMd(doc);
 
@@ -131,6 +132,7 @@ internal static partial class IdePressureChannel
             memo_id = memo.Id,
             memo_path = MemoPath,
             chars = doc.Body.Length,
+            wave = doc.Wave,
             explain = IdeExplainability.ToObject(Explain(doc)),
             next = new object[]
             {

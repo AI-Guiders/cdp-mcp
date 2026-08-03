@@ -115,6 +115,18 @@ internal static partial class IdeAlertChannel
             Explain("alert.ecl", "checklist_open", chkLine, "go=ecl");
         }
 
+        // Soft FileLines CLOSED — act without active wave = biped mill theatre.
+        if (i.SessionAct && i.NoActiveWave)
+        {
+            Raise(Level.Warn);
+            lines.Add($"{Mark()}biped_mill — act · no wave");
+            Explain(
+                "alert.biped_mill",
+                "biped_mill",
+                "Session act without active throughput wave (Soft FileLines CLOSED)",
+                "go=inventory | cmd=wave seed a;b;c");
+        }
+
         if (i.Sit?.SeatNote is { Length: > 0 } note)
             lines.Add($"·{note}");
 

@@ -68,6 +68,12 @@ public sealed class SoftOrganBoardMetaCatalog : ICockpitComputeUnit
         SoftOrganKind.Rules => new(
             "rules", "cdp_rules", SoftOrganPresentMode.PulseLine,
             "pane_full= / go_detail=full · op=pulse|list|card id=healthy-agent"),
+        SoftOrganKind.Inventory => new(
+            "inventory", "cdp_inventory", SoftOrganPresentMode.PulseLine,
+            "pane_full= / go_detail=full · op=scene|pulse — throughput gaps [A]"),
+        SoftOrganKind.VerifyWave => new(
+            "verify_wave", "cdp_verify_wave", SoftOrganPresentMode.PulseLine,
+            "pane_full= / go_detail=full · ship checklist (no in-proc KillRunning)"),
         _ => null
     };
 }

@@ -25,6 +25,7 @@ internal static partial class IdeIgniteChannel
         Then: habitat=CDP; re-read pressure axes (AutoIgnition / Task Manager / Domain / next); self-steer on reconcile when SSOT suffices.
         Body recall: not one screen — dig/parallel in CDP first, not biped serial. AIDE=body. Narrow leaf without the pipe = regression.
         Hard steer if you catch the mask: you went biped again — you have the pipe and CDP; dig/parallel, not human serial.
+        Throughput: fly the wave — list → batch → ship (go=inventory · cmd=wave seed … · go=verify_wave). Soft FileLines CLOSED.
         """;
 
     /// <summary>Provider cyber-policy: scrub shell tokens if legacy/custom text reaches inject.</summary>
