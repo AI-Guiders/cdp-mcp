@@ -42,7 +42,7 @@ internal sealed partial class IntentWorkspaceStore
                 return null;
             }
 
-            // Bare query: allow chrome strip + unique prefix (done-by-feature-title path).
+            // Bare query: chrome strip (done-by-feature-title). Unique prefix CLOSED below.
             hit = (bare.Length > 0 && bare != t
                     ? Pick(x => x.Title == bare)
                         ?? Pick(x => string.Equals(x.Title, bare, StringComparison.OrdinalIgnoreCase))
@@ -51,18 +51,10 @@ internal sealed partial class IntentWorkspaceStore
             if (hit is not null)
                 return hit;
 
-            if (bare.Length < 8)
-                return null;
-            var prefix = list
-                .Where(x =>
-                {
-                    var stored = StripBoardChrome(x.Title);
-                    return stored.StartsWith(bare, StringComparison.OrdinalIgnoreCase)
-                           || x.Title.StartsWith(t, StringComparison.OrdinalIgnoreCase);
-                })
-                .OrderByDescending(x => x.UpdatedUtc)
-                .ToList();
-            return prefix.Count == 1 ? prefix[0].Id : null;
+            // Intent unique-prefix CLOSED: Dig densest SoftFL… twins share stems;
+            // Count==1 content extension silently stole FeatureDone/focus onto the
+            // surviving twin. Stages keep unique prefix in Find.cs (slash-title seed).
+            return null;
         });
     }
 
