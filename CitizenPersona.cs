@@ -131,6 +131,12 @@ internal static class CitizenPersona
           @intent files list where=project
           @intent files tree depth=2
           @intent files_open path=README.md
+          @intent onboard
+          @intent onboard_desk
+          @intent explore_desk
+          @intent cdp_onboard
+          @intent onboard scan
+          @intent onboard_clear
           @intent calendar
           @intent calendar pulse
           @intent clock

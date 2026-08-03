@@ -49,6 +49,7 @@ internal static partial class CitizenIntentRouter
         Ps1,
         Icm,
         Files,
+        Onboard,
         Edit,
         Deploy,
         Undo,
@@ -607,6 +608,36 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("fm_open ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteFiles(raw);
+        }
+
+        if (raw.Equals("onboard", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("onboard ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("onboard_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("onboard_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("explore_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("explore_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("explore", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("explore ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_onboard", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_onboard ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("onboard_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("onboard_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("onboard_scan", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("onboard_scan ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("onboard_refresh", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("onboard_refresh ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("onboard_rescan", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("onboard_rescan ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("onboard_clear", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("onboard_clear ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_onboard_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_onboard_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_onboard_scan", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_onboard_scan ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_onboard_clear", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_onboard_clear ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteOnboard(raw);
         }
 
         if (raw.Equals("pressure", StringComparison.OrdinalIgnoreCase)
@@ -1225,6 +1256,7 @@ internal static partial class CitizenIntentRouter
             "ps1" or "ise" or "ps1_scene" or "ps1_desk" or "cdp_ps1" or "cdp_ps1_scene" or "ps1_put" or "ps1_run" => "ps1_scene",
             "icm" or "icm_desk" or "cdp_icm" or "command_module" or "icm_aliases" or "icm_resolve" or "icm_invoke" => "icm_desk",
             "files" or "files_desk" or "cdp_files" or "file_manager" or "fm" or "files_list" or "files_tree" or "files_open" => "files_desk",
+            "onboard" or "onboard_desk" or "explore_desk" or "explore" or "cdp_onboard" or "onboard_scan" or "onboard_clear" => "onboard_desk",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
