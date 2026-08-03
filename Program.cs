@@ -116,6 +116,7 @@ shellHabitat.Finished += info =>
 };
 var mcpOutlet = new McpOutletHabitat();
 var internetBrowser = new InternetBrowserHabitat();
+CitizenRouteHost.BrowserHabitatResolver = () => internetBrowser;
 var ideSettings = new IdeSettingsHabitat(
     configPath,
     settings,

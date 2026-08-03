@@ -41,6 +41,8 @@ internal static partial class CitizenRouteHost
         SniperCallOverride = null;
         BufferCallOverride = null;
         FindBufCallOverride = null;
+        BrowserHabitatResolver = null;
+        BrowserDispatchOverride = null;
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)
