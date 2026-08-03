@@ -31,6 +31,7 @@ internal static partial class CitizenIntentRouter
         Pressure,
         Edit,
         Deploy,
+        Undo,
         Detail,
         Cmd,
         Refuse,
@@ -300,6 +301,18 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("soft_deploy ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteDeploy(raw);
+        }
+
+        if (raw.Equals("undo", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("undo ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("undo path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("redo", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("redo ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("redo path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("edit_history", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("edit_history ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteUndo(raw);
         }
 
         if (raw.Equals("find", StringComparison.OrdinalIgnoreCase)
