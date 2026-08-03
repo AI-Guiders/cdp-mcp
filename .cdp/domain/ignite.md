@@ -73,6 +73,7 @@
 
 ## last_ship
 
+- 0.5.645: ChargeAmnesiaPostfix «fly the wave / list→batch→ship» + organs inventory/verify_wave · 2026-08-03
 - 0.5.636: Autoi `ChargeAmnesiaPostfix` body≠biped (dig/parallel · AIDE=body · narrow leaf without pipe = regression) · playbook-pf-body-not-biped-v1 · 2026-08-03
 - 0.5.566: citizen `@intent ignite|autoi` host-execute → `IdeIgniteChannel.Handle` (peer re-ARM without Cursor MCP) · VL #73 · 2026-08-03
 - 0.5.551: Citizen Autoi consume habitat wake (`prefer_citizen` · TryDeliverAutoiWake) + sick_leave_dense deadline to 05.08 · 2026-08-03
