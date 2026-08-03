@@ -33,6 +33,7 @@
 - SoftOrganMfdGlance remapping RelatedFiles ← find_desk (stays ←refactor; FindDesk DoD = CabinGlass pin+chrome, not glance displace).
 - Inventing SoftOrganKind for crs/Correspondence latch+chrome (CabinGlass MFD pin only; Crm chrome ≠ CRS; SoftOrganMfdGlance stays unbound).
 - Soft deploy ≠ remounted habitat; Glass WPF rebuild is separate from cdp-mcp seat.
+- Intercom MarkdownBody as ContentControl setting Content during DataTemplate expand — double-parents built tree (cabin crash); use StackPanel+deferred rebuild.
 - Treat Glass Ctrl+Q `c:` as GlassChord-only aliases — SSOT is `IntentMelody/intent-catalog.toml` via `GlassIntentMelodyCatalog`; chords stay on Ctrl+K.
 - Mapping `mcp` SoftOrgan → MFD `Chat` (Chat = Intercom/citizen; MCP settings = AiChatSettings).
 - Festive per-zone accents (cyan P / gold F / purple M) — Dark Cockpit violation; geography by label, color only on deviation (ON GND / select / EICAS).
@@ -166,6 +167,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - **Next Meta host gap (seeded):** CDP *healthy-agent Rules* organ — standing ε recall (body≠biped, dig/parallel, habitat) as desk SSOT, not Cursor alwaysApply dump. See TM feature.
 
 ## last_ship
+- 2026-08-03: Glass Intercom markdown crash — ContentControl+DataTemplate double-parent + shared TextDecorations.Underline killed cabin; StackPanel+deferred rebuild + frozen underline · cascade-ide `5ffc45f2` · lived start pid dual-cockpit ICM
+- 2026-08-03: cockpit_host cfg latch — toml mtime refresh + Start stamp so path=/toml Glass rediscover stays honest without remount · cdp-mcp `36b5355`
 - 2026-08-03: cabin SSOT — cdp-debug [cockpit_host] exe was Avalonia CascadeIDE; pointed to Glass WPF + live start → CDP.GlassCockpit.Windows · ICM bound · Avalonia = agent-IDE/HOLD instruments, not operator cabin
 - 2026-08-03: **0.5.590** citizen `@intent land|deep_link` host-execute → same `cdp_land` / `land-LATEST` latch Glass already peels (peer nav without Cursor MCP)
 - 2026-08-03: Glass→Citizen **PeerAck surface** — habitat appends peer tip to Intercom + latch `peer=`; Glass StatusText paints done·peer · cdp-mcp **0.5.565** · lived latch `c27ace9928e9`

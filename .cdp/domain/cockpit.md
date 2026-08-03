@@ -26,6 +26,7 @@
 
 ## last_ship
 
+- 2026-08-03: cockpit_host toml mtime refresh + Start path= stamp — rediscover stays on Glass without remount · `36b5355` · Glass cabin crash fixed cascade-ide `5ffc45f2`
 - live: `cdp_cockpit_host` → Glass WPF CDP.GlassCockpit.Windows (not Avalonia CascadeIDE) · dual-cockpit · latches=32 · ICM bound · debug.toml fixed · 2026-08-03
 - 0.5.552: Plan SoftBoard `flattenOrganArgs` + `OptGoArg(tm_op)` — TM mute via go_args fixed · 2026-08-03
 - local clock + calendar soft organ + plan pulse local expand @ 0.5.486 · 2026-08-02
