@@ -159,6 +159,11 @@ internal static class CitizenPersona
           @intent cdp_test_plan
           @intent test_plan_preview filter=Foo
           @intent test_plan_apply failed_first=true
+          @intent test_scene
+          @intent test_scene_desk
+          @intent cdp_test_scene
+          @intent test_runner
+          @intent test_scene path=CdpMcp.Tests max_tests=50
           @intent calendar
           @intent calendar pulse
           @intent clock
