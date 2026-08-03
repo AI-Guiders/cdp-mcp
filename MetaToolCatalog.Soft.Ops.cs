@@ -156,6 +156,19 @@ internal static partial class MetaToolCatalog
                 op = new { type = "string", description = "scene|pulse|month" }
             }
         }),
+    Meta("cdp_rules", "Healthy-agent standing rules [A] from .cdp/rules/*.md (ε body, dig/parallel, not biped). op=scene|pulse|list|card. Alias go=rules|standing. Remount Autoi appends Standing appendix. Not eQRH; not Cursor alwaysApply dump.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|pulse|list|card" },
+                id = new { type = "string", description = "card: rule id (healthy-agent)" },
+                focus = new { type = "string", description = "pulse/scene: focus hint" },
+                hint = new { type = "string", description = "alias of focus=" },
+                card = new { type = "string", description = "alias of id=" }
+            }
+        }),
     Meta("cdp_icm", "ICM discovery for on-demand GUI CDP client (ADR-0019). op=scene|aliases|resolve|invoke. Melody command_id → CDP tool via IdeCommandAliasMap; invoke uses ExecuteAliasedAsync. Alias go=icm|icm_desk. Does not mutate IntentMelody.", new
     {
         type = "object",

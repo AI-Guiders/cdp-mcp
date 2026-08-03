@@ -214,6 +214,20 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
+    static bool TryDispatchRules(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsSoft(goVerb, SoftOrganKind.Rules))
+            return false;
+
+        goResult = SoftBoard(SoftOrganKind.Rules, session, null, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftOrganKind.Rules);
+        return true;
+    }
+
     static bool TryDispatchPs1(
         ref string? goVerb,
         ref object? goResult,

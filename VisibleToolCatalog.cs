@@ -26,6 +26,7 @@ internal static class VisibleToolCatalog
         "cdp_md_author",
         "cdp_learn",
         "cdp_domain",
+        "cdp_rules",
         "cdp_fdr",
         "cdp_teeth",
         "cdp_postmortem",

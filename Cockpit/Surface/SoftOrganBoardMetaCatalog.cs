@@ -65,6 +65,9 @@ public sealed class SoftOrganBoardMetaCatalog : ICockpitComputeUnit
         SoftOrganKind.Calendar => new(
             "calendar", "cdp_calendar", SoftOrganPresentMode.PulseLine,
             "pane_full= / go_detail=full · op=pulse|month"),
+        SoftOrganKind.Rules => new(
+            "rules", "cdp_rules", SoftOrganPresentMode.PulseLine,
+            "pane_full= / go_detail=full · op=pulse|list|card id=healthy-agent"),
         _ => null
     };
 }
