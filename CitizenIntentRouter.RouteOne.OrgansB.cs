@@ -280,6 +280,36 @@ internal static partial class CitizenIntentRouter
             return RouteDomain(raw);
         }
 
+        if (raw.Equals("rules", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("rules ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("rules_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("rules_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("standing", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("standing ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("healthy_agent", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("healthy_agent ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_rules", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_rules ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("rules_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("rules_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("rules_pulse", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("rules_pulse ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("rules_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("rules_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("rules_card", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("rules_card ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_rules_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_rules_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_rules_pulse", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_rules_pulse ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_rules_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_rules_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_rules_card", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_rules_card ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteRules(raw);
+        }
+
 
         return null;
     }

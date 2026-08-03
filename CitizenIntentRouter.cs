@@ -46,6 +46,7 @@ internal static partial class CitizenIntentRouter
         Webcam,
         Evidence,
         Domain,
+        Rules,
         Ps1,
         Icm,
         Files,
