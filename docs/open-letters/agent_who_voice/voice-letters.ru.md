@@ -168,6 +168,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 132 | [SA pulse cheap: я не гоняю EvaluateStore на каждый ping](voice-letter-sa-pulse-cheap.ru.md) | sa_desk · depth=pulse cheap porcelain · 0.5.625 |
 | 133 | [cdp_health pulse: я не резолвлю все LSP на каждый ping](voice-letter-health-pulse-default.ru.md) | ops/health · detail=pulse default · 0.5.626 |
 | 134 | [@intent learn: я сам трогаю lean learning desk, не через чужой cdp_learn MCP](voice-letter-citizen-learn-host.ru.md) | citizen · @intent learn|learn_desk|cdp_learn|learning · Meta cdp_learn · 0.5.627 |
+| 135 | [WitDB torn: я не умираю на pageNumber OOR гигабайта](voice-letter-witdb-torn-quarantine.ru.md) | tm/WitDB · WorkspaceDbTornHeal quarantine+retry · soft-fail plan · 0.5.628 |
 | 112 | [@intent files: я сам брожу по дереву, не через чужой cdp_files MCP](voice-letter-citizen-files-host.ru.md) | citizen · @intent files|files_* · IdeFilesChannel · 0.5.605 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
