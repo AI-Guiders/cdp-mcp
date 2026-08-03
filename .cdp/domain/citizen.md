@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.629** — `@intent refactor|refactor_plan|cdp_refactor|debt_scene` host-execute → Meta `cdp_refactor` (plan/debt/budget/blast/partials/recommend/pulse; PlaceOrgan refactor_plan; no steal go=refactor_plan). Tests CitizenRefactorHostTests 7/7. Lived: dry_run execute → refactor/plan/cdp/pulse/recommend+path + go=refactor_plan `ack=6/6`. Peer decide-before-cut without Cursor MCP.
 - **0.5.627** — `@intent learn|learn_desk|cdp_learn|learning` host-execute → Meta `cdp_learn` (ops scene/stash/list/recall/promote; PlaceOrgan learn; no steal go=learn). Tests CitizenLearnHostTests 7/7. Lived: dry_run execute → learn/desk/cdp/learning/list + go=learn `ack=6/6`. Peer lean learning without Cursor MCP.
 - **0.5.624** — `@intent sa|sa_desk|cdp_sa|code_sa|pre_sa|sa_code` host-execute → Meta `cdp_sa` (depth slim/full/pulse; locus path/locus/focus; scope=; PlaceOrgan sa_desk; no steal go=sa EICAS). Tests CitizenSaHostTests 9/9. Lived: dry_run execute → sa/sa_desk/cdp_sa pulse/path + go=sa `ack=5/5`. Peer pre-refactor SA without Cursor MCP.
 - **0.5.622** — `@intent work|work_desk|cdp_work|intent_workspace` host-execute → Meta `cdp_work` (bare→status; intent_*/stage_*/scene_*; pulse intent/stage/scene; no steal go=work TM/plan / go=plan / cmd=; CanonicalGo only work_desk|cdp_work|intent_workspace). Tests CitizenWorkHostTests 7/7. Lived: dry_run execute → work/work_desk/cdp_work/intent_workspace list ops + go=work→plan `ack=5/6` (status WitDB lock env). Peer intent workspace without Cursor MCP.
