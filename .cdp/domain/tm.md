@@ -32,6 +32,7 @@
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
+- **2026-08-04 SoftFL CLOSED dig** — DIG REJECT SoftFL reopen (inventory CLOSED). densest ACCEPT: board CLOSED noise hygiene under FeatureDone @0.5.647 live dogfood; IntentSelect clears stage by design (restore in FeatureDone); dual `-Target` terminal habit ≠ code mill.
 - **2026-08-04 invent DIG** — SoftFL/Meta/WitDB/Hol/Glass residual/Citizen GREEN CLOSED. densest ACCEPT: FeatureDone always cleared focus on foreign `shipped` (hygiene stole invent dig). SoftFL WARN×4 DIG REJECT reopen. Wave SickLeaveInvent.
 
 - **2026-08-04 DIG REJECT** — post-SoftOrgan densest dig: WitDB torn quarantine already lived @0.5.628 (heal+VL+tm stamp); Hol habit ≠ product organ (throughput list→batch→ship / a×b already flying). SoftFL/Meta peel reopen = regression. Board CLOSED noise → hygiene; densest next ≠ re-mill hosts/peel.

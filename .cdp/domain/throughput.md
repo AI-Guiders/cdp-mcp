@@ -37,6 +37,7 @@
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
 
 ## last_ship
+- **2026-08-04 SoftFL CLOSED dig** — DIG REJECT SoftFL reopen (inventory CLOSED). densest ACCEPT: board CLOSED noise hygiene under FeatureDone @0.5.647 live dogfood; IntentSelect clears stage by design (restore in FeatureDone); dual `-Target` terminal habit ≠ code mill.
 - 2026-08-04 invent DIG — densest ACCEPT FeatureDone preserve-foreign-focus; SoftFL WARN×4 DIG REJECT; inventory throughput-wave was sole gap
 
 - 2026-08-04: SoftOrgan Meta defer dig CLOSED — inventory 32/32; TM feature shipped (no re-wire)
