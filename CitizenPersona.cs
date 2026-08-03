@@ -181,6 +181,11 @@ internal static class CitizenPersona
           @intent webcam_frame
           @intent webcam window_list
           @intent cdp_webcam op=scene
+          @intent evidence text="error CS0001: boom"
+          @intent evidence kind=build text="error CS0001"
+          @intent evidence_build text="error CS0001"
+          @intent cdp_evidence path=logs/build.log
+          @intent evidence path=logs/test.log kind=test
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
