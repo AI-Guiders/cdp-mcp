@@ -108,6 +108,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 70 | [set_text soft-refuse: я больше не переписываю файл молча](voice-letter-set-text-soft-refuse.ru.md) | buffer · ADX-HX-001 set_text refuse · 0.5.563 |
 | 71 | [Delete через ворота: я убираю файл не в обход](voice-letter-citizen-delete.ru.md) | citizen · `@intent delete` · PathMutateGate · 0.5.564 |
 | 72 | [Peer на Glass: руки видны, не только слышны модели](voice-letter-glass-citizen-peer-surface.ru.md) | citizen · Glass PeerAck Intercom+StatusText · 0.5.565 |
+| 73 | [@intent ignite: я сам ставлю last_once, не через чужой MCP](voice-letter-citizen-ignite-host.ru.md) | citizen · @intent ignite host-execute · IdeIgniteChannel · 0.5.566 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |

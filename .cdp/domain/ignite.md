@@ -37,6 +37,7 @@
 ## Entry
 
 - `cdp_ignite` · `IdeIgniteArmHost.*` · `IdeIgniteChannel.PagePick|Cdt|Fire|Connection` · `IdeIgniteNativeDialogs`
+- **Citizen peer path (0.5.566):** `@intent ignite|autoi …` host-executes the same channel (arm/disarm/list/continuity/resume). `go=ignite*` still place-only.
 - Cursor rule: `harness-checkpoint-automation.mdc`
 
 ## Antipatterns
@@ -70,6 +71,7 @@
 
 ## last_ship
 
+- 0.5.566: citizen `@intent ignite|autoi` host-execute → `IdeIgniteChannel.Handle` (peer re-ARM without Cursor MCP) · VL #73 · 2026-08-03
 - 0.5.551: Citizen Autoi consume habitat wake (`prefer_citizen` · TryDeliverAutoiWake) + sick_leave_dense deadline to 05.08 · 2026-08-03
 - 0.5.550: Reclaim/hygiene revive status=error when ShouldRequeueBusy (click_failed tombstones) · 2026-08-03
 - 0.5.549: ShouldRequeueBusy includes click_failed (CDT Send miss → backoff requeue) · 2026-08-03
