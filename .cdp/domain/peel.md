@@ -25,6 +25,7 @@
 
 ## last_ship
 
+- 2026-08-03 → **0.5.634**: soft FileLines — `CitizenRouteHost.PlanCmd.cs` (`RunPlanCmd` + TryRead*); root ~255 leave; RunPlanCmd method_lines cleared (~55 after peel compact). Dual hard dogfood lag=false. Next densest: `IdeCitizenChannel.cs` ~449.
 - 2026-08-03 → **0.5.633**: soft FileLines — `CitizenPersona.Wire.cs` (`WireSystemPrompt`); root ~71 leave. Wire ~400 still warn (single prompt blob; content-split separate). Next densest: CitizenRouteHost / IdeCitizenChannel ~410+.
 - 2026-08-03 → **0.5.632**: soft FileLines densest — `IdeIgniteWakeLatchTests.Mirror.cs` (16 members: busy/mirror escalate|oom|tool|hild + unavailable gates); root ~340 / Mirror ~310 under warn350. **Invariant:** peel Tests files → `cdp_open` Tests.csproj first (host CdpMcp.csproj → file not in solution). Dual hard dogfood; debug leave. Next densest: `CitizenPersona.cs` ~446.
 - 2026-08-03 → **0.5.631**: soft FileLines — `CitizenIntentRouter.Slice.cs` (drill helpers) + `Parse.cs` (keyed extract); root ~227; live recommend leave. Dual hard dogfood. Next densest via refactor_plan (not forced root).
