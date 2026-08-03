@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.643** — SoftOrgan Meta host BATCH-9 (VL#148 defer): `@intent` report|debug_sa|test_sa|build_sa|sys|ecl|review|alert → Ide* hosts; OrgansB wins over Verb.Go for bare report/alert; Evidence stays evidence; sa stays Sa; fuse via `IdeCockpit.TryBuildCitizenSeatExtras`. Tests CitizenSoftOrganMetaHostBatch9Tests 29/29 (+BATCH-8 48/48). VL#149. Deploy: parent dogfood.
 - **0.5.642** — SoftOrgan Meta host BATCH (operator: list then all): `@intent` md_author|project_switch/ps/cdp_scope|glass/cdp_glass|fdr|teeth|postmortem|plugins|problems → Ide*Channel hosts (Crm pattern; PlaceOrgan; no bare steal). Tests CitizenSoftOrganMetaHostBatchTests 19/19. Lived: dual hard 0.5.642 lag=false · dry_run wire `ack=8/8`. VL#148. Defer: debug_sa/test_sa/build_sa, sys/ecl/review/alert.
 - **0.5.641** — `@intent crm|callout|crm_panel|cdp_crm` host-execute → IdeCrmChannel (scene|call|respond|last|clear|lexicon; PlaceOrgan crm; no steal bare approved/go_around). Tests CitizenCrmHostTests 6/6. Lived: dual hard 0.5.641 · dry_run wire. VL#147.
 - **0.5.640** — Soft FileLines batch: Wire `WireSystemPrompt` → Head+Tail content-split (blob under warn350); OrgansB arch gate → `IsArchIntent` in Arch.cs. Soft FileLines CLOSED. Lived: dual hard 0.5.640 lag=false · VL#146.
