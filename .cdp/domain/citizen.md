@@ -61,7 +61,7 @@
 
 ## last_ship
 
-
+- **live 2026-08-03** — Standalone15 dig → densest=`cockpit_host` was down; `op=start` → dual-cockpit · CascadeIDE · latches=32 · ICM bound aliases=31. SoftFL/Meta/GlassChord HOLD untouched. Full-chain citizen smoke earlier GREEN.
 - **0.5.644** — Citizen FM path: SSE stream + layered timeouts (Headers20/Idle30/Overall90; Infinite HttpClient timeout; JSON fallback). WireSystemPrompt property fix (Head/Tail static-order). Tests CitizenCompletionsTests 18/18. Deploy: dual hard.
 - **0.5.643** — SoftOrgan Meta host BATCH-9 (VL#148 defer): `@intent` report|debug_sa|test_sa|build_sa|sys|ecl|review|alert → Ide* hosts; OrgansB wins over Verb.Go for bare report/alert; Evidence stays evidence; sa stays Sa; fuse via `IdeCockpit.TryBuildCitizenSeatExtras`. Tests CitizenSoftOrganMetaHostBatch9Tests 29/29 (+BATCH-8 48/48). VL#149. Deploy: parent dogfood.
 - **0.5.642** — SoftOrgan Meta host BATCH (operator: list then all): `@intent` md_author|project_switch/ps/cdp_scope|glass/cdp_glass|fdr|teeth|postmortem|plugins|problems → Ide*Channel hosts (Crm pattern; PlaceOrgan; no bare steal). Tests CitizenSoftOrganMetaHostBatchTests 19/19. Lived: dual hard 0.5.642 lag=false · dry_run wire `ack=8/8`. VL#148. Defer: debug_sa/test_sa/build_sa, sys/ecl/review/alert.
