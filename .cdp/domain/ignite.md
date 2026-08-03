@@ -68,9 +68,11 @@
 - Arm clamp alone while a long last_once was already armed before leaf Fly (pre-0.5.545) — TimerLoop pull-forward `3s(leaf_pull)` under autonomous+Fly.
 - Leaving Channel XML tip at tip parity 0.5.537 after leaf Fly clamp/pull ships (pre-0.5.546) — invent-ban hygiene; Channel summary must match Meta (≤3s leaf Fly / HILD; TimerLoop pull-forward).
 - Guest Autoi overnight + idle PF + Composer Stop/Queue habitat-success skip consuming last_once (pre-0.5.547) — lived `leaf-wake` habitat latch, arms=[], operator «выстрела нет»; CDT must wait/requeue.
+- Amnesia postfix without body≠biped recall (pre-0.5.636) — cold PF wears human serial mask; Autoi wake must restore dig/parallel + pipe.
 
 ## last_ship
 
+- 0.5.636: Autoi `ChargeAmnesiaPostfix` body≠biped (dig/parallel · AIDE=body · narrow leaf without pipe = regression) · playbook-pf-body-not-biped-v1 · 2026-08-03
 - 0.5.566: citizen `@intent ignite|autoi` host-execute → `IdeIgniteChannel.Handle` (peer re-ARM without Cursor MCP) · VL #73 · 2026-08-03
 - 0.5.551: Citizen Autoi consume habitat wake (`prefer_citizen` · TryDeliverAutoiWake) + sick_leave_dense deadline to 05.08 · 2026-08-03
 - 0.5.550: Reclaim/hygiene revive status=error when ShouldRequeueBusy (click_failed tombstones) · 2026-08-03

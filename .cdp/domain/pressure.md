@@ -30,9 +30,11 @@
 - Forcing pull→reconcile→align→ready when SSOT already sufficient.
 - Inventing «compaction 2.0» / auto chat-delete organ — ADCM already owns Persist→Partition; tempo recycle = glue StageClock pulse + pressure DoD + announce + Autoi new-chat (Cursor-clear stays human/host gate until API). See TM deferred *ADCM voluntary chat recycle by SA tempo*.
 - Treating self-check as «думать лучше» or appending a refute on top of a poisoned thread — **авто-отравление** (epistemic quality ≠ ADCM volume): external SSOT check → snesti poisoned active context → rebuild from stash/TM/domain/tools; mark alone ≠ cure. Same class as Partition/new chat. See TM parked *auto-poisoning card · retract+rebuild…* · scratch `note-20260803-auto-poisoning-retract-rebuild.md`.
+- Cold/compact biped mask: one-screen serial, «как глазами», узкий leaf без трубы — forget ε. Ritual: Autoi amnesia postfix + `playbook-pf-body-not-biped-v1.md`. Hard steer: dig/parallel in CDP, not human serial.
 
 ## last_ship
 
+- 0.5.636: Autoi `ChargeAmnesiaPostfix` body≠biped recall (pipe/CDP dig·parallel) · playbook-pf-body-not-biped-v1 · 2026-08-03
 - 0.5.567: citizen `@intent pressure` host-execute → `IdePressureChannel.Handle` (peer L1 stash/recall without Cursor MCP) · VL #74 · 2026-08-03
 - 0.5.540: pressure tips under autonomous — insurance / keep flying, not end-turn park (`AutoIgnitionChecklistLine` · `SceneArmedHint` · `StashHint`)
 - 0.5.411 recall SSOT auto-ready (tax cut; ADR-0024 amend)
