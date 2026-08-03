@@ -57,6 +57,7 @@ internal static partial class CitizenRouteHost
         CockpitHostHandleOverride = null;
         QrhHandleOverride = null;
         WebcamHandleOverride = null;
+        EvidenceDispatchOverride = null;
         MetaDispatchResolver = null;
     }
 

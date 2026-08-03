@@ -44,6 +44,7 @@ internal static partial class CitizenIntentRouter
         CockpitHost,
         Qrh,
         Webcam,
+        Evidence,
         Edit,
         Deploy,
         Undo,
@@ -781,6 +782,38 @@ internal static partial class CitizenIntentRouter
             return RouteWebcam(raw);
         }
 
+        if (raw.Equals("evidence", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("evidence ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_evidence", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_evidence ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("evidence_build", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("evidence_build ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("evidence_test", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("evidence_test ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("evidence_publish", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("evidence_publish ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("evidence_shell", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("evidence_shell ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("evidence_csx", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("evidence_csx ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("evidence_generic", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("evidence_generic ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("evidence_auto", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("evidence_auto ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_evidence_build", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_evidence_build ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_evidence_test", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_evidence_test ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_evidence_publish", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_evidence_publish ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_evidence_shell", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_evidence_shell ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_evidence_csx", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_evidence_csx ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteEvidence(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -1009,6 +1042,7 @@ internal static partial class CitizenIntentRouter
             "cockpit_host" or "cdp_cockpit_host" or "cockpit_start" or "cockpit_stop" => "cockpit_host",
             "qrh" or "eqrh" or "cdp_qrh" or "qrh_open" or "qrh_search" or "qrh_index" => "qrh",
             "webcam" or "webcam_desk" or "cdp_webcam" or "webcam_frame" or "webcam_scene" => "webcam_desk",
+            "evidence" or "cdp_evidence" or "report" or "pfd" or "evidence_build" or "evidence_test" => "report",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
