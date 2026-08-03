@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.575** — `@intent scratch` host-execute → EditorComfort Scratch (untitled under `.cdp/scratch`; `ext=`/`text=`). Tests CitizenScratchHostTests 4/4. Lived: cdp-debug dry_run execute → `ack=1/1` · pulse `scratch untitled-1.md`. Peer blank pad without Cursor Write.
 - **0.5.574** — `@intent put` host-execute → EditorComfort Put (path dump / anchor / sniper / frame=). Tests CitizenPutHostTests 6/6. Lived: cdp-debug dry_run execute → `ack=1/1` · pulse `put create chars=14`. Peer draft dump without Cursor Write.
 - **0.5.573** — `@intent back|forward|nav|recent_files` host-execute → EditorComfort via DocumentEditPlane. Tests CitizenNavHostTests 6/6. Lived: cdp-debug dry_run execute → `ack=3/3` · back locus + nav pulse + recent_files n=6. Peer Navigate Backward/Forward without Cursor MCP.
 - **0.5.572** — `@intent replace_all` host-execute → EditorComfort via DocumentEditPlane (`query=`/`old=` + `text=`/`new=`; routed before PathMutate `replace`). Tests CitizenReplaceAllHostTests 5/5. Lived: primary dry_run execute → `ack=1/1` · pulse `replace_all n=2`. Peer bulk rename without Cursor MCP.
