@@ -205,7 +205,7 @@ public sealed class CitizenIdeHostTests
             Assert.Equal("rename_symbol", op);
             Assert.Equal("Foo", args["new_name"].GetString());
             Assert.False(args["apply"].GetBoolean());
-            return Task.FromResult("""{"files":["X.cs"],"changes":[{"path":"X.cs"}]}""");
+            return Task.FromResult("{\"files\":[\"X.cs\"],\"changes\":[{\"path\":\"X.cs\"}]}");
         };
         try
         {
@@ -214,6 +214,61 @@ public sealed class CitizenIdeHostTests
             Assert.Single(applied);
             Assert.True(applied[0].Ok);
             Assert.Contains("rename", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Route_related_requires_mode()
+    {
+        var r = CitizenIntentRouter.RouteOne("ide op=get_workspace_navigation_context path=X.cs");
+        Assert.False(r.Ok);
+        Assert.Equal("ide_mode_required", r.Reason);
+    }
+
+    [Fact]
+    public void Route_related_ok_infers_mode()
+    {
+        var r = CitizenIntentRouter.RouteOne("related path=X.cs");
+        Assert.True(r.Ok);
+        Assert.Equal("get_workspace_navigation_context", r.Op);
+    }
+
+    [Fact]
+    public void Route_subgraph_ok()
+    {
+        var r = CitizenIntentRouter.RouteOne("subgraph path=X.cs");
+        Assert.True(r.Ok);
+        Assert.Equal("get_workspace_navigation_context", r.Op);
+    }
+
+    [Fact]
+    public void Route_nav_stays_editor_comfort()
+    {
+        var r = CitizenIntentRouter.RouteOne("nav");
+        Assert.NotEqual(CitizenIntentRouter.Verb.Ide, r.Verb);
+    }
+
+    [Fact]
+    public void Execute_related_passes_mode_via_override()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.IdeCallOverride = (op, args) =>
+        {
+            Assert.Equal("get_workspace_navigation_context", op);
+            Assert.Equal("related", args["mode"].GetString());
+            return Task.FromResult("{\"related\":[{\"path\":\"Y.cs\"},{\"path\":\"Z.cs\"}]}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("related path=X.cs")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.Contains("related", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
         {

@@ -4,7 +4,7 @@ using Cdp.Core;
 
 namespace CdpMcp;
 
-/// <summary>Citizen @intent ide — sync IdeLanguageTools.DispatchBareAsync (nav/complete/rename/actions).</summary>
+/// <summary>Citizen @intent ide — sync IdeLanguageTools.DispatchBareAsync (nav/complete/rename/actions/related).</summary>
 internal static partial class CitizenRouteHost
 {
     /// <summary>Tests: inject JSON; live uses DispatchBareAsync + ByDomainResolver.</summary>
@@ -128,6 +128,16 @@ internal static partial class CitizenRouteHost
             && bool.TryParse(applyRaw, out var apply))
             args["apply"] = JsonSerializer.SerializeToElement(apply);
 
+        var mode = ExtractMcpKeyed(route.Raw, "mode")
+            ?? CitizenIntentRouter.InferWorkspaceNavMode(route.Raw);
+        if (mode is { Length: > 0 })
+            args["mode"] = JsonSerializer.SerializeToElement(mode);
+
+        if (TryParseIdeInt(route.Raw, "max_related", "max_related", out var maxRelated))
+            args["max_related"] = JsonSerializer.SerializeToElement(maxRelated);
+        if (TryParseIdeInt(route.Raw, "max_nodes", "max_nodes", out var maxNodes))
+            args["max_nodes"] = JsonSerializer.SerializeToElement(maxNodes);
+
         return args;
     }
 
@@ -178,6 +188,17 @@ internal static partial class CitizenRouteHost
             if (root.TryGetProperty("actions", out var acts) && acts.ValueKind == JsonValueKind.Array)
                 return TruncPulse($"ide · {ShortIdeOp(op)} · {acts.GetArrayLength()} action(s)");
 
+            if (root.TryGetProperty("related", out var related) && related.ValueKind == JsonValueKind.Array)
+                return TruncPulse($"ide · {ShortIdeOp(op)} · {related.GetArrayLength()} related");
+
+            if (root.TryGetProperty("nodes", out var nodes) && nodes.ValueKind == JsonValueKind.Array)
+            {
+                var edgeN = root.TryGetProperty("edges", out var edges) && edges.ValueKind == JsonValueKind.Array
+                    ? edges.GetArrayLength()
+                    : 0;
+                return TruncPulse($"ide · {ShortIdeOp(op)} · {nodes.GetArrayLength()}n/{edgeN}e");
+            }
+
             if (root.TryGetProperty("name", out var nm) && nm.ValueKind == JsonValueKind.String)
                 return TruncPulse($"ide · {ShortIdeOp(op)} · {nm.GetString()}");
 
@@ -211,6 +232,7 @@ internal static partial class CitizenRouteHost
             "rename_symbol" => "rename",
             "code_actions" => "actions",
             "apply_code_action" => "apply",
+            "get_workspace_navigation_context" => "related",
             _ => op
         };
 }

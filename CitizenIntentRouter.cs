@@ -529,7 +529,19 @@ internal static partial class CitizenIntentRouter
             || raw.Equals("apply_action", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("apply_action ", StringComparison.OrdinalIgnoreCase)
             || raw.Equals("apply_code_action", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("apply_code_action ", StringComparison.OrdinalIgnoreCase))
+            || raw.StartsWith("apply_code_action ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("related", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("related ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("map", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("map ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("semantic_map", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("semantic_map ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("nav_context", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("nav_context ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("workspace_nav", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("workspace_nav ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("subgraph", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("subgraph ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteIde(raw);
         }

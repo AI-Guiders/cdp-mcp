@@ -2,7 +2,7 @@
 
 namespace CdpMcp;
 
-/// <summary>Citizen @intent ide|goto|usages|diagnostics|complete|rename|actions — bare IDE without Cursor Roslyn MCP.</summary>
+/// <summary>Citizen @intent ide|goto|usages|complete|rename|related — bare IDE without Cursor Roslyn MCP.</summary>
 internal static partial class CitizenIntentRouter
 {
     static Route RouteIde(string raw)
@@ -94,6 +94,23 @@ internal static partial class CitizenIntentRouter
                 Reason: "ide_action_index_required");
         }
 
+        if (op is "get_workspace_navigation_context")
+        {
+            var mode = ExtractKeyedValue(raw, "mode") ?? InferWorkspaceNavMode(raw);
+            if (string.IsNullOrWhiteSpace(mode)
+                || mode is not ("related" or "subgraph"))
+            {
+                return new Route(
+                    Verb.Ide,
+                    raw,
+                    Ok: false,
+                    Op: op,
+                    Path: path,
+                    Go: "editor_scene",
+                    Reason: "ide_mode_required");
+            }
+        }
+
         return new Route(
             Verb.Ide,
             raw,
@@ -101,6 +118,34 @@ internal static partial class CitizenIntentRouter
             Op: op,
             Path: path,
             Go: "editor_scene");
+    }
+
+    internal static string? InferWorkspaceNavMode(string raw)
+    {
+        if (raw.StartsWith("subgraph", StringComparison.OrdinalIgnoreCase)
+            || raw.Contains(" mode=subgraph", StringComparison.OrdinalIgnoreCase)
+            || raw.Contains(" mode=sub", StringComparison.OrdinalIgnoreCase))
+            return "subgraph";
+        if (raw.StartsWith("related", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("map ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("map", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("semantic_map", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("nav_context", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("workspace_nav", StringComparison.OrdinalIgnoreCase)
+            || raw.Contains(" mode=related", StringComparison.OrdinalIgnoreCase))
+            return "related";
+        if (raw.StartsWith("ide ", StringComparison.OrdinalIgnoreCase))
+        {
+            var rest = raw["ide ".Length..].Trim();
+            var sp = rest.IndexOf(' ');
+            var head = sp < 0 ? rest : rest[..sp];
+            if (head.Equals("subgraph", StringComparison.OrdinalIgnoreCase))
+                return "subgraph";
+            if (head is "related" or "map" or "semantic_map" or "nav_context" or "workspace_nav")
+                return "related";
+        }
+
+        return null;
     }
 
     static string? InferIdeOpHead(string raw)
@@ -179,6 +224,20 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("apply_code_action ", StringComparison.OrdinalIgnoreCase))
             return "apply_action";
 
+        if (raw.Equals("related", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("related ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("map", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("map ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("semantic_map", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("semantic_map ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("nav_context", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("nav_context ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("workspace_nav", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("workspace_nav ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("subgraph", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("subgraph ", StringComparison.OrdinalIgnoreCase))
+            return "related";
+
         return null;
     }
 
@@ -195,11 +254,14 @@ internal static partial class CitizenIntentRouter
             "rename" or "rename_symbol" => "rename_symbol",
             "actions" or "code_actions" or "quickfix" or "get_code_actions" => "code_actions",
             "apply_action" or "apply_code_action" or "apply" => "apply_code_action",
+            "related" or "map" or "semantic_map" or "nav_context" or "workspace_nav" or "subgraph"
+                or "get_workspace_navigation_context" => "get_workspace_navigation_context",
             _ => op
         };
 
     static bool IsIdeOp(string? op) =>
         op is "go_to_definition" or "find_usages" or "get_diagnostics"
             or "get_completions" or "get_signature_help" or "get_document_symbols"
-            or "get_symbol_at_position" or "rename_symbol" or "code_actions" or "apply_code_action";
+            or "get_symbol_at_position" or "rename_symbol" or "code_actions" or "apply_code_action"
+            or "get_workspace_navigation_context";
 }
