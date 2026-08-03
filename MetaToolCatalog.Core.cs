@@ -14,11 +14,12 @@ internal static partial class MetaToolCatalog
         type = "object",
         properties = new { tool = new { type = "string" } }
     }),
-    Meta("cdp_health", "[A] Backend health + runtime (version/exe/build_utc/pending_update). Optional explain_tool=prefixed name → why missing from shortlist.", new
+    Meta("cdp_health", "[A] Backend health + runtime. Default detail=pulse (no LSP resolved_probe). detail=full|lsp for fat card + path resolve. Optional explain_tool=.", new
     {
         type = "object",
         properties = new
         {
+            detail = new { type = "string", description = "pulse|slim (default, A) | full|lsp (C — resolved_probe per preset)" },
             explain_tool = new { type = "string", description = "Prefixed tool name to explain visibility." }
         }
     }),

@@ -11,7 +11,9 @@ internal static partial class MetaDispatch
         var session = d.Session;
         var modules = d.Modules;
         var mcpVersion = d.McpVersion;
-        var Pretty = d.Pretty;
+        var detail = ResolveHealthDetail(callArgs);
+        var full = detail == "full";
+        var jsonOpts = full ? d.Pretty : CompactHealthJson;
 
         var explain = TryExplainTool(d, callArgs);
         var asm = typeof(Program).Assembly;
@@ -22,6 +24,7 @@ internal static partial class MetaDispatch
         return JsonSerializer.Serialize(new
         {
             ok = true,
+            detail,
             runtime = new
             {
                 version = mcpVersion,
@@ -39,7 +42,7 @@ internal static partial class MetaDispatch
             teeth_pulse = IdeTeethChannel.PulseLine(),
             backends = modules.Select(m => new { domain = m.Domain, enabled = m.IsEnabled, health = m.HealthSummary }),
             typescript_worker = IdeLanguageTools.TsHealth(),
-            lsp = IdeLanguageTools.LspHealth(),
+            lsp = IdeLanguageTools.LspHealth(resolveProbe: full),
             project = new
             {
                 root = session.ProjectRoot,
@@ -49,12 +52,35 @@ internal static partial class MetaDispatch
                 tsconfig_path = session.TsConfigPath
             },
             explain_tool = explain,
-            recovery_note =
-                "Prefer go=deploy / cdp_deploy from the survivor seat (sibling Target). " +
-                "Hard KillRunning + CDP_RELOAD_NUDGE (kj-1349) unless -NoNudgeMcp. " +
-                "Not connected + exe still up: terminal_* Recover-CdpSeatRemount.ps1 -Seat cdp|cdp-debug (stamps remount-wake pending by default). " +
-                "Fallback: human Reload. Soft stages <target>.next + cdp-pending-update.json. " +
-                "Cold tools auto-warm desk bookmark once/process. Prefer cdp_health + explain_tool before guessing."
-        }, Pretty);
+            recovery_note = full
+                ? "Prefer go=deploy / cdp_deploy from the survivor seat (sibling Target). " +
+                  "Hard KillRunning + CDP_RELOAD_NUDGE (kj-1349) unless -NoNudgeMcp. " +
+                  "Not connected + exe still up: terminal_* Recover-CdpSeatRemount.ps1 -Seat cdp|cdp-debug (stamps remount-wake pending by default). " +
+                  "Fallback: human Reload. Soft stages <target>.next + cdp-pending-update.json. " +
+                  "Cold tools auto-warm desk bookmark once/process. Prefer cdp_health + explain_tool before guessing."
+                : "pulse default — detail=full for LSP resolved_probe + long recovery_note",
+            next = full
+                ? null
+                : new { full = "detail=full" }
+        }, jsonOpts);
+    }
+
+    static readonly JsonSerializerOptions CompactHealthJson = new() { WriteIndented = false };
+
+    /// <summary>Default pulse (no LSP path resolve). full|lsp = prior fat card.</summary>
+    static string ResolveHealthDetail(IReadOnlyDictionary<string, JsonElement> callArgs)
+    {
+        if (callArgs.TryGetValue("detail", out var el) && el.GetString() is { Length: > 0 } raw)
+        {
+            var d = raw.Trim().ToLowerInvariant();
+            return d switch
+            {
+                "full" or "lsp" or "map" => "full",
+                "pulse" or "slim" or "a" => "pulse",
+                _ => "pulse"
+            };
+        }
+
+        return "pulse";
     }
 }
