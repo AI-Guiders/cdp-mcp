@@ -41,6 +41,7 @@ internal static partial class CitizenIntentRouter
         Share,
         Disk,
         Sniper,
+        Buffer,
         Detail,
         Cmd,
         Refuse,
@@ -235,6 +236,32 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("peek_disk ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteDisk(raw);
+        }
+
+        if (raw.Equals("read", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("read ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("read path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("close", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("close ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("close path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("buffers", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buffers ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("doc_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("doc_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("buffer_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buffer_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("buffer", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buffer ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("doc_read", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("doc_close", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buffer_read", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buffer_close", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("doc_diagnostics", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buffer_diagnostics", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buf_diagnostics", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buf_diags", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteBuffer(raw);
         }
 
         if (raw.StartsWith("replace ", StringComparison.OrdinalIgnoreCase)
