@@ -147,6 +147,9 @@ internal static class CitizenPersona
           @intent complete path=CitizenRouteHost.cs line=50 column=1 prefix=Run
           @intent signature path=CitizenRouteHost.cs line=50 column=20
           @intent symbols path=CitizenRouteHost.cs
+          @intent symbol path=CitizenRouteHost.cs line=50 column=10
+          @intent rename path=CitizenRouteHost.cs line=50 column=10 new_name=RunIdePreview apply=false
+          @intent actions path=CitizenRouteHost.cs line=50 column=10
           @intent ide goto path=CitizenIntentRouter.cs line=11
           @intent shell echo citizen-shell-ok
           @intent shell command="dotnet --version"
