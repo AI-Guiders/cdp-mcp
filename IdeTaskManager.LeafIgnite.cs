@@ -15,6 +15,10 @@ internal static partial class IdeTaskManager
         string reason,
         Guid? preferredStageId = null)
     {
+        // Operator halt / autonomous_off: do not resurrect Autoi on feature/task focus.
+        if (!IdeIgniteArmHost.IsAutonomousArmed())
+            return null;
+
         Guid? leafId = null;
         if (preferredStageId is { } pref)
             leafId = store.ResolveIncompleteLeaf(state, pref);

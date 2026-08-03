@@ -76,6 +76,36 @@ public partial class IdeIgniteAutonomousTests
     }
 
     [Fact]
+    public void ArmForLeaf_when_autonomous_off_refuses_without_arming()
+    {
+        IdeIgniteArmHost.BindAutonomous(true);
+        IdeIgniteArmHost.BindAutonomous(false);
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["all"] = JsonSerializer.SerializeToElement(true),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+
+        var result = IdeIgniteArmHost.ArmForLeaf("Ship tooth", "feature_focus");
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+        Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal("autonomous_off", doc.RootElement.GetProperty("error").GetString());
+
+        var list = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("list")
+        });
+        using var listDoc = JsonDocument.Parse(JsonSerializer.Serialize(list));
+        var arms = listDoc.RootElement.GetProperty("arms").EnumerateArray()
+            .Select(a => a.GetProperty("id").GetString())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain(IdeIgniteArmHost.LeafWakeArmId, arms);
+
+        IdeIgniteArmHost.BindAutonomous(true);
+    }
+
+    [Fact]
     public void ArmForLeafHint_under_autonomous_does_not_teach_end_turn_park()
     {
         var auto = IdeIgniteArmHost.ArmForLeafHint(autonomous: true);

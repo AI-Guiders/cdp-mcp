@@ -82,7 +82,7 @@ internal static partial class MetaToolCatalog
             peek = new { type = "boolean", description = "find scope=project: auto open+peek top hit (default true)" },
             clear = new { type = "boolean", description = "clipboard: true = clear (all, or frame= one)" },
             frame = new { type = "string", description = "paste|put|clipboard: frame id cN (omit = current MRU)" },
-            place = new { type = "string", description = "edit_op=anchor|paste|put: before|after|replace (anchor default replace). paste/put also sniper. CRITICAL: place=before/after inserts — does not overwrite locus." },
+            place = new { type = "string", description = "edit_op=anchor|paste|put: before|after|replace (anchor default replace). csharp M: before|after = inside method/type braces (not outside member — same footgun class as T:). paste/put also sniper. CRITICAL: place=before/after inserts — does not overwrite locus." },
             sniper = new { type = "boolean", description = "paste|put: apply into edit sniper hold" },
             preserve = new { type = "boolean", description = "paste|put: keep frame after use (default true); false = burn" },
             body = new { type = "string", description = "put: alias of text= draft body" },
