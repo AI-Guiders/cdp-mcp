@@ -111,6 +111,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.Evidence => RunEvidence(route),
             CitizenIntentRouter.Verb.Domain => RunDomain(route),
             CitizenIntentRouter.Verb.Rules => RunRules(route),
+            CitizenIntentRouter.Verb.Arch => RunArch(route),
             CitizenIntentRouter.Verb.Edit => RunEdit(route),
             CitizenIntentRouter.Verb.Deploy => RunDeploy(route),
             CitizenIntentRouter.Verb.Undo => RunUndo(route),
