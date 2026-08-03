@@ -52,6 +52,7 @@ internal static partial class CitizenRouteHost
         SettingsDispatchOverride = null;
         RestoreDispatchOverride = null;
         IntercomHandleOverride = null;
+        PresentationHandleOverride = null;
         MetaDispatchResolver = null;
     }
 

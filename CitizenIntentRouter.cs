@@ -39,6 +39,7 @@ internal static partial class CitizenIntentRouter
         Settings,
         Restore,
         Intercom,
+        Presentation,
         Edit,
         Deploy,
         Undo,
@@ -644,6 +645,24 @@ internal static partial class CitizenIntentRouter
             return RouteIntercom(raw);
         }
 
+        if (raw.Equals("cide_presentation", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cide_presentation ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cide_presentation_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cide_presentation_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cide_presentation_set", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cide_presentation_set ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cide_presentation_get", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cide_presentation_get ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("presentation", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("presentation ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("presentation_set", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("presentation_set ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("presentation_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("presentation_scene ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RoutePresentation(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -867,6 +886,7 @@ internal static partial class CitizenIntentRouter
             "settings" or "options" or "prefs" or "ide_settings" or "tools_options" or "languages" => "settings",
             "restore" or "restore_previous" or "desk_restore" or "recent" or "open_recent" => "restore",
             "intercom" or "cide_intercom" or "intercom_send" or "intercom_scene" or "intercom_ack" or "intercom_history" or "intercom_presence" => "intercom",
+            "cide_presentation" or "presentation" or "presentation_set" or "presentation_scene" => "cide_presentation",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
