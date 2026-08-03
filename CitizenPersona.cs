@@ -228,6 +228,14 @@ internal static class CitizenPersona
           @intent agent_desk
           @intent cockpit layout=code+shell pane_full=p
           @intent go=cockpit
+          @intent work
+          @intent work_desk
+          @intent cdp_work
+          @intent intent_workspace
+          @intent work status
+          @intent work intent_list
+          @intent cdp_work op=stage_list
+          @intent go=work
           @intent calendar
           @intent calendar pulse
           @intent clock
