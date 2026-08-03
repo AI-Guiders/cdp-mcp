@@ -62,6 +62,7 @@ internal static partial class CitizenIntentRouter
         Quality,
         Session,
         Tools,
+        Capabilities,
         Context,
         Edit,
         Deploy,
@@ -509,6 +510,18 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("palette ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteTools(raw);
+        }
+
+        if (raw.Equals("capabilities", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("capabilities ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("capabilities_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("capabilities_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_capabilities", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_capabilities ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("caps", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("caps ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteCapabilities(raw);
         }
 
         if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
@@ -1502,6 +1515,7 @@ internal static partial class CitizenIntentRouter
                 or "quality_disk" or "quality_assert" or "quality_adx" => "quality",
             "session" or "session_desk" or "session_plane" or "cdp_session" => "session",
             "tools" or "tools_desk" or "tools_palette" or "cdp_tools" or "palette" => "tools",
+            "capabilities" or "capabilities_desk" or "cdp_capabilities" or "caps" => "capabilities",
             "goto" or "goto_all" or "go_to_all" or "cdp_goto" or "goto_feature" or "goto_desk" or "go_to" => "goto",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
