@@ -22,4 +22,5 @@
 
 ## last_ship
 
+- 0.5.570: citizen host-execute undo/redo/history — same EditorComfort stack as buffer comfort · 2026-08-03
 - soft-warn peel: Clipboard/Put/ClipEdit/FindNav/Span/Wire @ 0.5.394; FindNav~347 · Core~180

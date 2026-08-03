@@ -26,6 +26,7 @@
 
 ## last_ship
 
+- 0.5.570: citizen `@intent undo|redo|edit_history` → EditorComfort via DocumentEditPlane (peer recovery hand) · 2026-08-03
 - 0.5.568: citizen `@intent edit|anchor` → `DocumentEditPlane` edit_op=anchor (peer precise hand) · 2026-08-03
 - 0.5.563: `set_text` soft-refuse on existing path (ADX-HX-001) unless `force=true` · 2026-08-03
 - 0.5.562: `replace_range` accepts `new_string=` alias + refuses missing body (no silent eat) · 2026-08-03
