@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.578** — `@intent reload|keep_disk|disk_peek` host-execute → DocumentEditPlane disk hygiene (optional path=/pad=; pad as number). Tests CitizenDiskHostTests 6/6. Lived: cdp-debug dry_run execute → `ack=3/3` · pulses `disk_peek n=0` / `reload n=0` / `keep_disk n=0`. Peer drift recovery without Cursor buffer.
 - **0.5.577** — `@intent share` host-execute → IdeShare via DocumentEditPlane (`with=operator|self`, `from=self`, path/body/ask). Tests CitizenShareHostTests 5/5. Lived: cdp-debug dry_run execute → `ack=1/1` · pulse `share operator … shared chars=845`. Peer operator delivery without loading body into agent.
 - **0.5.576** — `@intent take` host-execute → TakeShip via DocumentEditPlane (path/anchor/sniper; check=/force=/vision=). Tests CitizenTakeHostTests 4/4. Lived: cdp-debug dry_run execute → `ack=1/1` · pulse `take chars=825 lines=18 skipped`. Peer verify-then-ship without Cursor buffer.
 - **0.5.575** — `@intent scratch` host-execute → EditorComfort Scratch (untitled under `.cdp/scratch`; `ext=`/`text=`). Tests CitizenScratchHostTests 4/4. Lived: cdp-debug dry_run execute → `ack=1/1` · pulse `scratch untitled-1.md`. Peer blank pad without Cursor Write.
