@@ -2,7 +2,7 @@
 
 **organ:** ops / `cdp_health` · `IdeLanguageTools.LspHealth`
 **ship:** 0.5.626
-**dogfood:** 2026-08-03 — default CallTool без `detail=` → `detail=pulse` · `lsp.probe=false` · нет `resolved_probe` · compact JSON · dual after hard deploy
+**dogfood:** 2026-08-03 — live dual 0.5.626 lag=false · default CallTool → `detail=pulse` · `lsp.probe=false` · presets без `resolved_probe` · compact JSON
 **tests:** IdeLanguageToolsLspHealthTests 2/2
 
 ## Было
