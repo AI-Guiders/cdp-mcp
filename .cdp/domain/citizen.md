@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.616** — `@intent context|context_desk|cdp_context|session_context` host-execute → Meta `cdp_context` (phase/object/intent/language/get/layout_hold; Meta `#` tails stripped; no steal go=context place). Tests CitizenContextHostTests 7/7. Lived: dry_run execute → context/desk/cdp/session/get/set+hold/go=context `ack=7/7`. Peer session retarget without Cursor MCP.
 - **0.5.615** — `@intent health|health_desk|cdp_health|ops_health` host-execute → Meta `cdp_health` (explain_tool=/explain=/tool=; positional; ops_pulse preferred; no steal go=health place). Tests CitizenHealthHostTests 6/6. Lived: dry_run execute → health/desk/cdp/ops/explain×2/go=health `ack=7/7`. Peer ops pulse without Cursor MCP.
 - **0.5.614** — `@intent man|man_desk|cdp_man|manual` host-execute → Meta `cdp_man` (tool=/name=/page=; positional page; plain TOC/Manual pulse; no steal go=health). Tests CitizenManHostTests 6/6. Lived: dry_run execute → man/desk/cdp/manual/tool=cdp_health/context_budget `ack=7/7`. Peer ops manual without Cursor MCP.
 - **0.5.613** — `@intent editor_scene|editor_scene_desk|cdp_editor_scene|editor_desk|editor` host-execute → Meta `cdp_editor_scene` (detail/path/doc_id/locus/context_lines; no steal bare open). Tests CitizenEditorSceneHostTests 6/6. Lived: primary dry_run execute → editor_scene/desk/cdp/editor/path+full/map `ack=6/6`. Peer editor map without Cursor MCP.
