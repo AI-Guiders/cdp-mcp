@@ -26,7 +26,7 @@
 
 ## last_ship
 
-- live: `cdp_cockpit_host op=start` → dual-cockpit up · CascadeIDE · latches=32 · Standalone15 densest (was down/agent-only) · 2026-08-03
+- live: `cdp_cockpit_host` → Glass WPF CDP.GlassCockpit.Windows (not Avalonia CascadeIDE) · dual-cockpit · latches=32 · ICM bound · debug.toml fixed · 2026-08-03
 - 0.5.552: Plan SoftBoard `flattenOrganArgs` + `OptGoArg(tm_op)` — TM mute via go_args fixed · 2026-08-03
 - local clock + calendar soft organ + plan pulse local expand @ 0.5.486 · 2026-08-02
 - IdeDeskSeats.Presets peel (≤ADX soft-warn): main 365→267 + Presets104 @ 0.5.429 · 2026-08-01

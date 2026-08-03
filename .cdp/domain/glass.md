@@ -166,6 +166,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - **Next Meta host gap (seeded):** CDP *healthy-agent Rules* organ — standing ε recall (body≠biped, dig/parallel, habitat) as desk SSOT, not Cursor alwaysApply dump. See TM feature.
 
 ## last_ship
+- 2026-08-03: cabin SSOT — cdp-debug [cockpit_host] exe was Avalonia CascadeIDE; pointed to Glass WPF + live start → CDP.GlassCockpit.Windows · ICM bound · Avalonia = agent-IDE/HOLD instruments, not operator cabin
 - 2026-08-03: **0.5.590** citizen `@intent land|deep_link` host-execute → same `cdp_land` / `land-LATEST` latch Glass already peels (peer nav without Cursor MCP)
 - 2026-08-03: Glass→Citizen **PeerAck surface** — habitat appends peer tip to Intercom + latch `peer=`; Glass StatusText paints done·peer · cdp-mcp **0.5.565** · lived latch `c27ace9928e9`
 - 2026-08-03: **lived** unforced Glass→Citizen→Cloud.ru latch dogfood — RU soft ask → FM `@intent git` → seats `M:git` + Intercom citizen (hands 0.5.561 proved beyond stuffed health)
