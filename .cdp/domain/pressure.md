@@ -32,9 +32,11 @@
 - Treating self-check as «думать лучше» or appending a refute on top of a poisoned thread — **авто-отравление** (epistemic quality ≠ ADCM volume): external SSOT check → snesti poisoned active context → rebuild from stash/TM/domain/tools; mark alone ≠ cure. Same class as Partition/new chat. See TM parked *auto-poisoning card · retract+rebuild…* · scratch `note-20260803-auto-poisoning-retract-rebuild.md`.
 - Cold/compact biped mask: one-screen serial, «как глазами», узкий leaf без трубы — forget ε. Ritual: Autoi amnesia postfix + `playbook-pf-body-not-biped-v1.md`. Hard steer: dig/parallel in CDP, not human serial.
 - Throughput biped: dig→one ship→wake→dig→one — **list → batch → ship** instead (Meta hosts, FileLines, CIDE pack). Autoi timer ≠ license for single-item mill.
+- Ignoring structured `wave=` / `## wave` on stash when flying a throughput batch (0.5.645+).
 
 ## last_ship
 
+- 0.5.645: stash/recall `wave` field · SA biped_mill · organs inventory/verify_wave · 2026-08-03
 - 0.5.636: Autoi `ChargeAmnesiaPostfix` body≠biped recall (pipe/CDP dig·parallel) · playbook-pf-body-not-biped-v1 · 2026-08-03
 - 0.5.567: citizen `@intent pressure` host-execute → `IdePressureChannel.Handle` (peer L1 stash/recall without Cursor MCP) · VL #74 · 2026-08-03
 - 0.5.540: pressure tips under autonomous — insurance / keep flying, not end-turn park (`AutoIgnitionChecklistLine` · `SceneArmedHint` · `StashHint`)
