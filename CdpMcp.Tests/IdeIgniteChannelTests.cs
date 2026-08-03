@@ -48,6 +48,8 @@ public class IdeIgniteChannelTests
         Assert.Contains(IdeIgniteChannel.CanonicalComposerCharge, charge, StringComparison.Ordinal);
         Assert.Contains("thread amnesia", charge, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("cdp_pressure op=recall", charge, StringComparison.Ordinal);
+        Assert.Contains("Body recall", charge, StringComparison.Ordinal);
+        Assert.Contains("biped", charge, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
