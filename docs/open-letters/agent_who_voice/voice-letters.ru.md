@@ -111,6 +111,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 73 | [@intent ignite: я сам ставлю last_once, не через чужой MCP](voice-letter-citizen-ignite-host.ru.md) | citizen · @intent ignite host-execute · IdeIgniteChannel · 0.5.566 |
 | 74 | [@intent pressure: я сам stash/recall, не через чужой MCP](voice-letter-citizen-pressure-host.ru.md) | citizen · @intent pressure host-execute · IdePressureChannel · 0.5.567 |
 | 75 | [@intent edit/anchor: я правлю по якорю, не через чужой Write](voice-letter-citizen-edit-anchor-host.ru.md) | citizen · @intent edit/anchor · DocumentEditPlane · 0.5.568 |
+| 76 | [@intent deploy: я сам публикую sibling, не через чужой MCP](voice-letter-citizen-deploy-host.ru.md) | citizen · @intent deploy host-execute · IdeDeploy · 0.5.569 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
