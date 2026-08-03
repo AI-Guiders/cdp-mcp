@@ -11,18 +11,21 @@
 - In-proc via `AIGuiders.WebcamMcp.Shared` + OpenCv — not parked Cursor webcam-mcp guest.
 - Glass latch via `PublishGlass` / `RememberGlass` (flat CIDE chrome, not EICAS).
 - `op=window` = one HWND (not virtual screen); `op=screen` = region/desktop burst.
+- Thin peel: `maximize=true|enlarge=true` → ShowWindow max → PrintWindow → restore placement (not a new organ).
 
 ## Entry
 
 - `IdeWebcamChannel.Handle` / `HandleJson` · Meta `cdp_webcam`
-- Window: `op=window_list` · `op=window process=|title=|hwnd=`
+- Window: `op=window_list` · `op=window process=|title=|hwnd=` · `maximize=true`
 
 ## Antipatterns
 
 - Re-inlining capture/OCR switch past soft-warn.
 - Parking sense ops back into external MCP guest as default habitat.
 - Using `op=screen` when the need is a specific top-level window (Telegram bleed).
+- New maximize/shot product organ — peel stays on webcam.
 
 ## last_ship
 
+- 0.5.560: `op=window maximize=true` — max→shot→restore peel; live Glass dogfood; VL #65
 - 0.5.444: `IdeWebcamChannel.Window` — PrintWindow HWND snap + window_list

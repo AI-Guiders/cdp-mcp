@@ -175,7 +175,7 @@ internal static partial class IdeWebcamChannel
             planned = Array.Empty<string>(),
             audio = AudioDeviceScene(),
             whisper_model = Environment.GetEnvironmentVariable(EnvWhisperModelPath),
-            hint = "op=window process=|title=|hwnd= — HWND PNG (PrintWindow); op=window_list to discover"
+            hint = "op=window process=|title=|hwnd= · maximize=true → max→shot→restore (PrintWindow)"
         };
     }
 

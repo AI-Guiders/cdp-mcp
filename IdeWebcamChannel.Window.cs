@@ -61,7 +61,7 @@ internal static partial class IdeWebcamChannel
                 count = listed.Count,
                 total_matched = windows.Count,
                 windows = listed,
-                hint = "op=window hwnd=|process=|title= → PNG of that HWND (PrintWindow)"
+                hint = "op=window hwnd=|process=|title= → PNG; maximize=true for max→shot→restore"
             };
         }
 
@@ -114,8 +114,44 @@ internal static partial class IdeWebcamChannel
             : MakeSafeFileName(fileName);
         var filePath = Path.Combine(outputDir, $"{safeName}.{imageFormat}");
 
-        using var bitmap = CaptureHwndBitmap(target.Hwnd, target.Width, target.Height);
-        SaveBitmap(bitmap, filePath, imageFormat, jpegQuality);
+        var maximize = WantMaximize(args);
+        WindowPlacement? restorePlacement = null;
+        var didMaximize = false;
+        var wasZoomed = false;
+        var captureW = target.Width;
+        var captureH = target.Height;
+        try
+        {
+            if (maximize)
+            {
+                var placement = new WindowPlacement { length = Marshal.SizeOf<WindowPlacement>() };
+                if (NativeGetWindowPlacement(target.Hwnd, ref placement))
+                {
+                    restorePlacement = placement;
+                    wasZoomed = NativeIsZoomed(target.Hwnd);
+                    if (!wasZoomed)
+                    {
+                        _ = NativeShowWindow(target.Hwnd, SwShowMaximized);
+                        didMaximize = true;
+                        SettleAfterMaximize(target.Hwnd, (long)target.Width * target.Height);
+                    }
+
+                    if (NativeGetWindowRect(target.Hwnd, out var rect))
+                    {
+                        captureW = Math.Max(1, rect.Right - rect.Left);
+                        captureH = Math.Max(1, rect.Bottom - rect.Top);
+                    }
+                }
+            }
+
+            using var bitmap = CaptureHwndBitmap(target.Hwnd, captureW, captureH);
+            SaveBitmap(bitmap, filePath, imageFormat, jpegQuality);
+        }
+        finally
+        {
+            if (didMaximize && restorePlacement is { } saved)
+                RestoreWindowPlacement(target.Hwnd, saved);
+        }
 
         return new
         {
@@ -124,22 +160,32 @@ internal static partial class IdeWebcamChannel
             op = "window",
             go = GoName,
             tool = ToolName,
-            pulse = $"webcam · window · {target.ProcessName} · {target.Width}x{target.Height}",
+            pulse = maximize
+                ? $"webcam · window · max · {target.ProcessName} · {captureW}x{captureH}"
+                : $"webcam · window · {target.ProcessName} · {captureW}x{captureH}",
             success = true,
             file_path = filePath,
             hwnd = unchecked((long)target.Hwnd),
             process_id = target.ProcessId,
             process_name = target.ProcessName,
             title = target.Title,
-            width = target.Width,
-            height = target.Height,
+            width = captureW,
+            height = captureH,
+            maximize,
+            maximized = didMaximize || wasZoomed,
+            restored = didMaximize,
             image_format = imageFormat,
             captured_at_utc = DateTime.UtcNow.ToString("O"),
             workspace = workspaceRoot,
             method = "PrintWindow",
-            hint = "Read PNG path; op=ocr file_path= for text"
+            hint = "maximize=true → ShowWindow max → PrintWindow → restore placement"
         };
     }
+
+    /// <summary>Thin peel: enlarge HWND for readable cabin dogfood shots.</summary>
+    internal static bool WantMaximize(IReadOnlyDictionary<string, JsonElement> args) =>
+        GetOptionalBool(args, "maximize", false)
+        || GetOptionalBool(args, "enlarge", false);
 
 
     delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
