@@ -54,4 +54,9 @@
       <DependentUpon>IdeArchBoardChannelTests.AsBuilt.cs</DependentUpon>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeIgniteWakeLatchTests.Mirror.cs">
+      <DependentUpon>IdeIgniteWakeLatchTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>
