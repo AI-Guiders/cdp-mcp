@@ -40,7 +40,7 @@
 - MFD text-wall dig notes for humans — prefer concise+graphic presence cards (`□ Glass peel` / `■ Avalonia`).
 - Invent SoftOrgan for Editor MFD when Forward=intercom — AvalonEdit peel already mounts on M (ADR 0120).
 - Fork Glass WPF full IdeDapDebugSession into TextBlock — densest = habitat `debug_desk` latch live (stack/locals on stopped) + SoftOrgan FSW; Avalonia IdeDap remains denser SSOT for full DAP drive UI.
-- Fork Glass WPF Git panel into TextBlock — SSOT = Avalonia `GitMfdPageView` + `GitPanel`; no SoftOrganKind (do not invent); Glass stays CabinGlass stub (optional later: `git status` Process-redirect thin peel ≠ full panel).
+- Fork Glass WPF Git panel into TextBlock — densest = Process-redirect porcelain+stage/commit on host (`GlassGitProcess`); no SoftOrganKind; Avalonia `GitPanel` remains denser SSOT (push/submodule).
 - Treat HybridIndex as empty □/■ stub forever — Glass FS status glance (`GlassHybridIndexGlance`) is the presence peel; Avalonia HCI remains SSOT (do not invent SoftOrgan).
 - Treat WorkspaceHealth / EnvironmentReadiness as empty □/■ stubs forever — Glass FS/env presence glances (`GlassWorkspaceHealthGlance` / `GlassEnvironmentReadinessGlance`); Avalonia IdeHealth / EnvReady CCU remain SSOT (do not invent SoftOrgan).
 - Treat Events / Hypotheses as empty □/■ stubs forever — Glass latch/catalog + JSON status glances (`GlassEventsGlance` / `GlassHypothesesGlance`); Avalonia EventsMFD / HypothesesMfd remain SSOT (do not invent SoftOrgan).
@@ -66,10 +66,10 @@ Presence DoD = SoftOrgan glance | Glass peel | **full WPF host** (operator 2026-
 | Terminal | `sys` glance | EasyWindowsTerminalControl (WT VT) | DONE VT · Avalonia EOL |
 | Build | `toolchain` glance | redirected log TextBox (≈ Avalonia log MFD) | DONE v1 |
 | Tests | `test_desk` glance | redirected log TextBox | DONE peel |
-| Git | unbound | porcelain list + diff (`GlassGitPorcelainParse`) | DONE v1 · depth commit UI |
+| Git | unbound | porcelain + stage/unstage/commit Process (`GlassGitProcess`) | DONE v1 · depth commit UI CLOSED |
 | DebugStack | `debug_desk` glance | live latch stack/locals (SoftOrgan FSW) | DONE live DAP · Avalonia IdeDap deeper |
 | Problems | `review` glance | ListBox + MSBuild parse | DONE v1 |
-| RelatedFiles | `refactor` glance | FS heuristic list | DONE v1 · depth map orchestrator |
+| RelatedFiles | `refactor` glance | WNM-shaped list feed (`GlassRelatedFilesFeed`) | DONE v1 · IdeMcp orchestrator residual |
 | SemanticMap | `arch` glance | Skia radial + list | DONE Skia · Avalonia WNM still denser |
 | MarkdownPreview | `report` glance | Markdig `ToPlainText` | DONE v1 · depth rich tree |
 | AiChatSettings | `mcp` glance | settings.toml SSOT | HOLD latch |
@@ -167,6 +167,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- 2026-08-04: **Glass residual Git+RelatedFiles** — `GlassGitProcess` stage/unstage/commit · `GlassRelatedFilesFeed` WNM-shaped list · tests 29/29 · cabin pid live · SoftFL CLOSED
 - 2026-08-04: **Glass Correspondence full CRS** — Peel15 CRS DAL→GlassCore · feed wires WorkspaceCorrespondenceResolver+DocReverseAnchorResolver+layers · smoke F=14 R=1 on DocReverseAnchorResolver · Depth DoD CLOSED
 - 2026-08-04: **Glass DebugStack live DAP** — SoftOrganChanged→MFD refresh · latch stack/locals enrich on DAP stopped · dogfood `mfd_debug_stack` → `MfdDebugStackHost` visible + latch frames
 - 2026-08-04: **Glass SemanticMap Skia** — WriteableBitmap+SkiaSharp radial graph · RelatedFiles heuristic · live dogfood `semantic · skia N · click node` + SemanticSkia visible
