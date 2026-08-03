@@ -222,6 +222,12 @@ internal static class CitizenPersona
           @intent cdp_capabilities
           @intent caps
           @intent go=capabilities
+          @intent cockpit
+          @intent cockpit_desk
+          @intent cdp_cockpit
+          @intent agent_desk
+          @intent cockpit layout=code+shell pane_full=p
+          @intent go=cockpit
           @intent calendar
           @intent calendar pulse
           @intent clock

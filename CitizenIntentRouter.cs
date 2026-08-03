@@ -63,6 +63,7 @@ internal static partial class CitizenIntentRouter
         Session,
         Tools,
         Capabilities,
+        Cockpit,
         Context,
         Edit,
         Deploy,
@@ -522,6 +523,18 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("caps ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteCapabilities(raw);
+        }
+
+        if (raw.Equals("cockpit", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cockpit ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cockpit_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cockpit_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_cockpit", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_cockpit ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("agent_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("agent_desk ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteCockpit(raw);
         }
 
         if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
@@ -1516,6 +1529,7 @@ internal static partial class CitizenIntentRouter
             "session" or "session_desk" or "session_plane" or "cdp_session" => "session",
             "tools" or "tools_desk" or "tools_palette" or "cdp_tools" or "palette" => "tools",
             "capabilities" or "capabilities_desk" or "cdp_capabilities" or "caps" => "capabilities",
+            "cockpit" or "cockpit_desk" or "cdp_cockpit" or "agent_desk" => "cockpit",
             "goto" or "goto_all" or "go_to_all" or "cdp_goto" or "goto_feature" or "goto_desk" or "go_to" => "goto",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
