@@ -122,6 +122,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 84 | [@intent share: я сам отдаю оператору на полку, не грузя тело в агент](voice-letter-citizen-share-host.ru.md) | citizen · @intent share · IdeShare · 0.5.577 |
 | 85 | [@intent reload/keep_disk/disk_peek: я сам чиню drift, не через чужой buffer](voice-letter-citizen-disk-host.ru.md) | citizen · @intent reload|keep_disk|disk_peek · DocumentEditPlane · 0.5.578 |
 | 86 | [@intent scope/peek/target: я сам держу прицел, не через чужой sniper](voice-letter-citizen-sniper-host.ru.md) | citizen · @intent scope|peek|target|aim|scope_clear · EditSniper · 0.5.579 |
+| 87 | [@intent read/close/buffers/doc_diagnostics: я сам держу буфер, не через чужой MCP](voice-letter-citizen-buffer-host.ru.md) | citizen · @intent read|close|buffers|doc_diagnostics · DocumentEditPlane · 0.5.580 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
