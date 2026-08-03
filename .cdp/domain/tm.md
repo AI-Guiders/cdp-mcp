@@ -15,6 +15,7 @@
 - `shipped` without prior `start` → implicit wall start (ADX ceremony tax).
 - Soft-warn FileLinesWarn=400; `IntentWorkspaceStore` is `partial` by concern (Core/Intent/Stage/Scene/Persist/Find + Leaf/StageCriteria(+Norm)/StageEvents/StageProduct).
 - WitDB path = `StateRoot/{seat}/intent-workspace.witdb` (per-seat; dual seats never share FileShare.None). Primary `cdp` once Moves legacy flat file.
+- **All store DB I/O via `WithDb`** (file Mutex + in-proc Lock + transient retry). Never bare `Open()` for Status/Scene*/Stage* — concurrent desk readers race FileShare.None (fixed 0.5.623).
 
 ## Entry
 
@@ -32,6 +33,7 @@
 
 ## last_ship
 
+- **0.5.623** — WitDB: Status/SceneList/ScenePark/SceneSwitch/StageEnqueue|Get|Complete|Fail via `WithDb` (was ungated `Open()` → concurrent IOException). Test IntentWorkspaceWithDbGateTests. Lived: `@intent work op=status|scene_list` `ack=4/4`.
 - 0.5.553: FindIntent chrome query refuses bare-title twin (survivor seat wrong-board) · 2026-08-03
 - 0.5.521: CCL refuse `;` + board-verb chain (`RefuseChainedBoardCmd` / `ChainedTitleHint`) — no junk feature/task titles · VL #27 · 2026-08-02
 - Persist FileLines near-miss peel: OpenRecent + StageClock out of Persist.cs (300→105) @ 0.5.454 · 2026-08-02
