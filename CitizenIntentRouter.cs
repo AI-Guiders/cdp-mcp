@@ -53,6 +53,7 @@ internal static partial class CitizenIntentRouter
         Peel,
         EditPlan,
         Analysis,
+        TestPlan,
         Edit,
         Deploy,
         Undo,
@@ -359,6 +360,28 @@ internal static partial class CitizenIntentRouter
         {
             var path = ExtractLifecyclePath(raw, "build");
             return new Route(Verb.Build, raw, Ok: true, Path: path, Go: "build");
+        }
+
+        if (raw.Equals("test_plan", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("test_plan ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("test_plan_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("test_plan_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_test_plan", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_test_plan ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("test_plan_preview", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("test_plan_preview ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("test_plan_apply", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("test_plan_apply ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("test_plan_draft", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("test_plan_draft ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("test_plan_run", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("test_plan_run ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_test_plan_preview", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_test_plan_preview ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_test_plan_apply", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_test_plan_apply ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteTestPlan(raw);
         }
 
         if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
@@ -1339,6 +1362,7 @@ internal static partial class CitizenIntentRouter
             "peel" or "peel_desk" or "cdp_peel" or "peel_preview" or "peel_apply" => "peel",
             "edit_plan" or "edit_plan_desk" or "cdp_edit_plan" or "edit_plan_draft" or "edit_plan_validate" or "edit_plan_apply" or "edit_plan_preview" => "edit_plan",
             "analysis" or "analysis_desk" or "analysis_scene" or "cdp_analysis" or "cdp_analysis_scene" or "analysis_map" or "analysis_clones" or "analysis_correspondence" or "analysis_corr" or "analysis_semantic" or "analysis_semantic_map" => "analysis_scene",
+            "test_plan" or "test_plan_desk" or "cdp_test_plan" or "test_plan_preview" or "test_plan_apply" or "test_plan_draft" or "test_plan_run" => "test_plan",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
