@@ -130,6 +130,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 93 | [@intent browser: я сам хожу в сеть, не через чужой Browser MCP](voice-letter-citizen-browser-host.ru.md) | citizen · @intent browser|internet_browser · InternetBrowserHabitat · 0.5.586 |
 | 94 | [@intent run: я сам запускаю проект, не через чужой shell](voice-letter-citizen-run-host.ru.md) | citizen · @intent run|dotnet_run · IdeSessionLifecycle.RunAsync · 0.5.587 |
 | 95 | [@intent script: я сам живу в CSX habitat, не через чужой MCP](voice-letter-citizen-script-host.ru.md) | citizen · @intent script|csx · ScriptScene · 0.5.588 |
+| 96 | [@intent calendar: я сам вижу местные сутки, не через чужой clock MCP](voice-letter-citizen-calendar-host.ru.md) | citizen · @intent calendar|clock · IdeCalendarChannel · 0.5.589 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
