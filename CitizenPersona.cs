@@ -130,6 +130,12 @@ internal static class CitizenPersona
           @intent pkg add id=Newtonsoft.Json version=13.0.3
           @intent pkg outdated
           @intent pkg_list
+          @intent project
+          @intent project list
+          @intent project_scene
+          @intent sln
+          @intent sln list
+          @intent sln projects
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
