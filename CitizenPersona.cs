@@ -124,6 +124,12 @@ internal static class CitizenPersona
           @intent reload path=CitizenRouteHost.cs
           @intent keep_disk path=CitizenRouteHost.cs
           @intent disk_peek path=CitizenRouteHost.cs pad=2
+          @intent scope from=[F:CitizenRouteHost.cs;L:10]
+          @intent peek
+          @intent target
+          @intent aim wire=[F:CitizenRouteHost.cs;M:CitizenRouteHost.RunSniper]
+          @intent scope_clear
+          @intent sniper
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost
