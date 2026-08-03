@@ -43,6 +43,42 @@ public class CideDebugDeskLatchTests : IDisposable
     }
 
     [Fact]
+    public void Publish_with_stack_and_locals_roundtrips()
+    {
+        CideDebugDeskLatch.Publish(
+            active: true,
+            pulse: "debug_desk · continue · STOPPED t=1 · bp=1",
+            verdict: "continue",
+            bpCount: 1,
+            stopped: true,
+            activeDap: true,
+            stack:
+            [
+                new CideDebugDeskLatch.StackFrameDoc
+                {
+                    Name = "Main",
+                    File = @"C:\proj\Program.cs",
+                    Line = 12
+                }
+            ],
+            locals:
+            [
+                new CideDebugDeskLatch.LocalVarDoc { Name = "x", Value = "42" }
+            ]);
+
+        var latch = CideDebugDeskLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.NotNull(latch!.Stack);
+        Assert.Single(latch.Stack!);
+        Assert.Equal("Main", latch.Stack[0].Name);
+        Assert.Equal(12, latch.Stack[0].Line);
+        Assert.NotNull(latch.Locals);
+        Assert.Single(latch.Locals!);
+        Assert.Equal("x", latch.Locals[0].Name);
+        Assert.Equal("42", latch.Locals[0].Value);
+    }
+
+    [Fact]
     public void Publish_idle_clears_chrome_hint()
     {
         CideDebugDeskLatch.Publish(

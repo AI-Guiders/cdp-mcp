@@ -43,6 +43,9 @@ internal static partial class IdeDebugSaChannel
             stopped: snap.Stopped,
             activeDap: snap.ActiveDap);
 
+        if (snap.Stopped && snap.ActiveDap)
+            _ = PublishLiveAsync(forceStopped: true);
+
         if (depth == "pulse")
         {
             return new
