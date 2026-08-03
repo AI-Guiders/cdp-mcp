@@ -23,6 +23,7 @@
 
 ## last_ship
 
+- 2026-08-03 → **0.5.631**: soft FileLines — `CitizenIntentRouter.Slice.cs` (drill helpers) + `Parse.cs` (keyed extract); root ~227; live recommend leave. Dual hard dogfood. Next densest via refactor_plan (not forced root).
 - 2026-08-03 → **0.5.630**: RouteOne method_lines~1384 cleared — family `TryRoute*` peels (not FileLines-only of already-thin RouteXxx). Dogfood: live recommend no longer hotspots RouteOne; Organs split A/B under warn350. Next soft: CitizenIntentRouter.cs FileLines~435 Slice.
 - 2026-08-02 → **0.5.477**: wave24 — refactor_plan Recommend: `DetectShape` skips non-`.cs` → `non_csharp` leave; top-level under size gates → leave (not introduce_program). Tests: Program leave + csproj non_csharp. Next: citizen chain or BuildRecommend method_lines soft.
 - 2026-08-02 → wave23 DIG REJECT — CdpMcp.csproj FileLines=411 open-buffer only (XML; disk scan is `*.cs` → disk ok WARN=0 near=0). refactor_plan `introduce_program_class` is design/cheap=false + mis-shape on .csproj; Program already has Dispatch|Instructions peels (debt=0). Pivot → fix false recommend / citizen chain.
