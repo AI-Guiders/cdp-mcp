@@ -140,6 +140,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 103 | [@intent cide_presentation: я сам кручу glass latch, не через чужой cdp_cide_presentation MCP](voice-letter-citizen-presentation-host.ru.md) | citizen · @intent cide_presentation|presentation · IdeCidePresentationChannel · 0.5.596 |
 | 104 | [@intent toolchain: я сам проверяю PATH, не через чужой cdp_toolchain MCP](voice-letter-citizen-toolchain-host.ru.md) | citizen · @intent toolchain|toolchain_* · IdeToolchainChannel · 0.5.597 |
 | 105 | [@intent cockpit_host: я сам поднимаю Glass, не через чужой Meta CallTool](voice-letter-citizen-cockpit-host.ru.md) | citizen · @intent cockpit_host|cockpit_start|stop · IdeCockpitHostChannel · 0.5.598 |
+| 106 | [@intent qrh: я сам открываю handbook, не через чужой go=qrh MCP](voice-letter-citizen-qrh-host.ru.md) | citizen · @intent qrh|eqrh|qrh_* · IdeQrhChannel · 0.5.599 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
