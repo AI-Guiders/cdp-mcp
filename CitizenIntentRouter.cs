@@ -48,6 +48,7 @@ internal static partial class CitizenIntentRouter
         Domain,
         Rules,
         Arch,
+        Crm,
         Ps1,
         Icm,
         Files,

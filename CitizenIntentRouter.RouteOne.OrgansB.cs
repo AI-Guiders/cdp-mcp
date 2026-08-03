@@ -310,6 +310,9 @@ internal static partial class CitizenIntentRouter
             return RouteRules(raw);
         }
 
+        if (IsCrmIntent(raw))
+            return RouteCrm(raw);
+
         if (IsArchIntent(raw))
             return RouteArch(raw);
 
