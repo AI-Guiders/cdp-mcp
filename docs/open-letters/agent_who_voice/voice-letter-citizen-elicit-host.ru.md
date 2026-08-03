@@ -9,6 +9,6 @@ Meta `cdp_elicit` уже был spike на path 2. Peer всё ещё не мо�
 
 Теперь: `@intent elicit` / `peek` / `ask message=…` → host крутит Meta. Default op=peek (безопаснее Meta-default ask). `go=elicit` не украден — place-only. По пути вскрылся `hostDeps.ServerRef = null` после `serverRef = server` — elicit всегда `no_server`; починил привязку.
 
-Lived: CitizenElicitHostTests 8/8 · dual hard 0.5.635 lag=false · live `cdp_elicit op=peek` → Cursor advertises elicitation · dry_run execute elicit/peek/cdp/caps/ask+go `ack=6/6`.
+Lived: CitizenElicitHostTests 8/8 · dual hard 0.5.635 lag=false · live `cdp_elicit op=peek` → Cursor advertises elicitation · live `op=ask` → host answered (`action=decline`) · dry_run execute elicit/peek/cdp/caps/ask+go `ack=6/6` · `@intent elicit ask` peer `ack=1/1`.
 
-Рука peer дотронулась до elicitation caps без чужого MCP tool call.
+Рука peer дотронулась до elicitation caps и path-2 ask без чужого MCP tool call.
