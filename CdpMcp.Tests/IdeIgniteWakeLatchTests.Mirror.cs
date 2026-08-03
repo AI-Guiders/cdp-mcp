@@ -1,0 +1,310 @@
+using Xunit;
+
+namespace CdpMcp.Tests;
+
+public partial class IdeIgniteWakeLatchTests
+{
+    [Theory]
+    [InlineData("stop", true)]
+    [InlineData("queue", true)]
+    [InlineData("STOP", true)]
+    [InlineData("voice", false)]
+    [InlineData("send", false)]
+    public void IsComposerBusyKind_stop_or_queue(string kind, bool expected) => Assert.Equal(expected, IdeIgniteArmHost.IsComposerBusyKind(kind));
+    [Theory]
+    [InlineData(true, "stop", true)]
+    [InlineData(true, "queue", true)]
+    [InlineData(true, "voice", false)]
+    [InlineData(true, "send", false)]
+    [InlineData(false, "no_composer", true)]
+    [InlineData(false, "down", true)]
+    [InlineData(true, "no_composer", true)]
+    [InlineData(true, "down", true)]
+    public void ShouldSkipCdtAfterIntercomMirror_busy_or_gone(bool sampleOk, string kind, bool expected) => Assert.Equal(expected, IdeIgniteArmHost.ShouldSkipCdtAfterIntercomMirror(sampleOk, kind));
+    [Fact]
+    public async Task TryDeliverMirroredWhenComposerBusy_skips_when_not_mirrored()
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "remount-wake-not-mirrored",
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = "remount",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 5
+        };
+        Assert.Null(await IdeIgniteArmHost.TryDeliverMirroredWhenComposerBusyAsync(arm, "reason=remount", intercomMirrored: false, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task TryDeliverMirroredWhenComposerBusy_skips_when_not_mirrored_work_arm()
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-work",
+            Event = "timer",
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 5
+        };
+        Assert.Null(await IdeIgniteArmHost.TryDeliverMirroredWhenComposerBusyAsync(arm, "resume", intercomMirrored: false, CancellationToken.None));
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_escalate_publishes_when_pf_busy()
+    {
+        CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = IdeIgniteArmHost.HildEscalateArmId,
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = IdeIgniteArmHost.HildEscalateChargeMode,
+            Reason = IdeIgniteArmHost.HildEscalateReason,
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+        Assert.True(IdeIgniteArmHost.IsHildEscalateWakeArm(arm));
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "reason=escalate"));
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=escalate busy PF"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("reason=escalate busy PF", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_escalate_publishes_when_pf_idle()
+    {
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = IdeIgniteArmHost.HildEscalateArmId,
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = IdeIgniteArmHost.HildEscalateChargeMode,
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=escalate"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("reason=escalate", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_oom_publishes_when_pf_busy()
+    {
+        CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "oom-wake-xyz",
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = IdeOomWake.ChargeMode,
+            Reason = IdeOomWake.Reason,
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+        Assert.True(IdeIgniteArmHost.IsOomWakeArm(arm));
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "reason=oom"));
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=oom busy PF"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("reason=oom busy PF", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_oom_publishes_when_pf_idle()
+    {
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "oom-wake-xyz",
+            Event = "timer",
+            Status = "firing",
+            ChargeMode = IdeOomWake.ChargeMode,
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=oom"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("reason=oom", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_tool_wake_publishes_when_pf_busy()
+    {
+        CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "tool-wake-abc",
+            Event = "timer",
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+        Assert.True(IdeIgniteArmHost.IsToolWakeArmId(arm.Id));
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "tool still running"));
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "tool still running busy PF"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("tool still running busy PF", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_tool_wake_publishes_when_pf_idle()
+    {
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "tool-wake-xyz",
+            Event = "timer",
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "tool still running"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("tool still running", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_hild_away_publishes_when_pf_busy()
+    {
+        CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = IdeIgniteArmHost.HildAwayArmId,
+            Event = "human_away",
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+        Assert.True(IdeIgniteArmHost.IsHildAwayWakeArm(arm));
+        Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "HILD human_away"));
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "HILD human_away busy PF"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("HILD human_away busy PF", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MirrorTimerWakeToIntercom_hild_away_publishes_when_pf_idle()
+    {
+        Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = IdeIgniteArmHost.HildAwayArmId,
+            Event = "human_away",
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "HILD human_away"));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("HILD human_away", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("arm-work", "timer", true)]
+    [InlineData("remount-wake-x", "timer", true)]
+    [InlineData("tool-wake-x", "timer", true)]
+    [InlineData("hild-away", "human_away", true)]
+    [InlineData("arm-build", "build_finished", false)]
+    [InlineData("arm-test", "test_finished", false)]
+    [InlineData("arm-shell", "shell_finished", false)]
+    public void MayDeliverHabitatWhenComposerUnavailable_gates(string id, string ev, bool expected)
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = id,
+            Event = ev,
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 5
+        };
+        Assert.Equal(expected, IdeIgniteArmHost.MayDeliverHabitatWhenComposerUnavailable(arm));
+    }
+
+    [Fact]
+    public async Task TryDeliverHabitatWhenComposerUnavailable_delivers_when_sample_down_without_mirror()
+    {
+        // No CDT → TrySampleComposerAsync returns (false, down) → ShouldSkip → habitat.
+        // Invite blocked so we exercise habitat Intercom path (not prefer_citizen).
+        IdeCitizenChannel.InviteReadyOverrideForTests = () => false;
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-no-mirror",
+            Event = "timer",
+            Status = "firing",
+            Reason = "timer",
+            Task = "leaf",
+            Once = true,
+            Port = 1,
+            WaitSeconds = 1
+        };
+        var result = await IdeIgniteArmHost.TryDeliverHabitatWhenComposerUnavailableAsync(arm, "resume without mirror", CancellationToken.None);
+        Assert.NotNull(result);
+        var latch = IdeIgniteWakeLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.Equal(IdeIgniteWakeLatch.ChannelHabitat, latch!.Channel);
+        Assert.Equal("resume without mirror", latch.Charge);
+        Assert.Equal("idle_pf_composer_gone", result!.GetType().GetProperty("detail")!.GetValue(result));
+        var voice = CideIntercomVoiceLatch.TryRead();
+        Assert.NotNull(voice);
+        Assert.Contains("resume without mirror", voice!.Body, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("arm-work", "timer", true, "stop", true, false, false)]
+    [InlineData("arm-work", "timer", true, "queue", true, false, false)]
+    [InlineData("arm-work", "timer", true, "stop", false, false, true)]
+    [InlineData("arm-work", "timer", true, "stop", true, true, true)]
+    [InlineData("arm-work", "timer", true, "down", true, false, true)]
+    [InlineData("arm-work", "timer", true, "voice", true, false, false)]
+    [InlineData("remount-wake-x", "timer", true, "stop", true, false, true)]
+    [InlineData("hild-escalate-x", "timer", true, "stop", true, false, true)]
+    public void ShouldHabitatSkipWhenComposerUnavailable_guest_autoi_busy_falls_through(string id, string ev, bool sampleOk, string kind, bool autonomous, bool duplex, bool expect)
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = id,
+            Event = ev,
+            Status = "firing",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 5
+        };
+        Assert.Equal(expect, IdeIgniteArmHost.ShouldHabitatSkipWhenComposerUnavailable(arm, sampleOk, kind, autonomous, duplex));
+    }
+
+    [Fact]
+    public async Task TryDeliverHabitatWhenComposerUnavailable_skips_build_finished()
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-build",
+            Event = "build_finished",
+            Status = "firing",
+            Once = true,
+            Port = 1,
+            WaitSeconds = 1
+        };
+        Assert.Null(await IdeIgniteArmHost.TryDeliverHabitatWhenComposerUnavailableAsync(arm, "build wake", CancellationToken.None));
+        Assert.Null(IdeIgniteWakeLatch.TryRead());
+    }
+}
