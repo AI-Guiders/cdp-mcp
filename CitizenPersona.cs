@@ -217,6 +217,11 @@ internal static class CitizenPersona
           @intent tools phase=act object=code limit=5
           @intent cdp_tools phase=explore object=code language=csharp
           @intent go=tools
+          @intent capabilities
+          @intent capabilities_desk
+          @intent cdp_capabilities
+          @intent caps
+          @intent go=capabilities
           @intent calendar
           @intent calendar pulse
           @intent clock
