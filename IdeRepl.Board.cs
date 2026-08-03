@@ -10,7 +10,8 @@ internal static partial class IdeRepl
         string head,
         IReadOnlyList<string> tokens,
         Dictionary<string, JsonElement> merged)
-        => TryBoardSeed(head, tokens, merged)
+        => TryBoardWave(head, tokens, merged)
+            ?? TryBoardSeed(head, tokens, merged)
             ?? TryBoardClock(head, tokens, merged)
             ?? TryBoardCriteria(head, tokens, merged);
 }

@@ -81,6 +81,14 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
             IdeRulesChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeRulesChannel.PulseLine(_bag.Session),
             IdeRulesChannel.SchemaVersion),
+        SoftOrganKind.Inventory => Hit(
+            IdeInventoryChannel.Handle(_bag.Session, _bag.TileArgs),
+            IdeInventoryChannel.PulseLine(_bag.Session),
+            IdeInventoryChannel.SchemaVersion),
+        SoftOrganKind.VerifyWave => Hit(
+            IdeVerifyWaveChannel.Handle(_bag.Session, _bag.TileArgs),
+            IdeVerifyWaveChannel.PulseLine(_bag.Session),
+            IdeVerifyWaveChannel.SchemaVersion),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
     };
 

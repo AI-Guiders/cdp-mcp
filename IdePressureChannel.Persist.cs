@@ -23,6 +23,15 @@ internal static partial class IdePressureChannel
         sb.AppendLine($"- recall_gate: {doc.RecallGate}");
         sb.AppendLine($"- recall_gate_utc: {doc.RecallGateUtc}");
         sb.AppendLine();
+        if (doc.Wave is { Count: > 0 })
+        {
+            sb.AppendLine("## wave");
+            sb.AppendLine();
+            foreach (var item in doc.Wave)
+                sb.AppendLine($"- {item}");
+            sb.AppendLine();
+        }
+
         sb.AppendLine("## Body");
         sb.AppendLine();
         sb.AppendLine(doc.Body ?? "");
@@ -104,6 +113,81 @@ internal static partial class IdePressureChannel
         };
     }
 
+    /// <summary>Prefer wave= JSON / array arg; else parse ## wave section from body.</summary>
+    static List<string>? ResolveWave(IReadOnlyDictionary<string, JsonElement> args, string? body)
+    {
+        if (args.TryGetValue("wave", out var el))
+        {
+            if (el.ValueKind == JsonValueKind.Array)
+            {
+                var fromArr = el.EnumerateArray()
+                    .Select(e => e.ValueKind == JsonValueKind.String ? e.GetString() : e.ToString())
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(s => s!.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                if (fromArr.Count > 0)
+                    return fromArr;
+            }
+            else if (el.ValueKind == JsonValueKind.String && el.GetString() is { Length: > 0 } raw)
+            {
+                var parsed = ParseWaveJsonOrLines(raw);
+                if (parsed is { Count: > 0 })
+                    return parsed;
+            }
+        }
+
+        if (body is { Length: > 0 })
+            return ParseWaveSectionFromBody(body);
+        return null;
+    }
+
+    static List<string>? ParseWaveJsonOrLines(string raw)
+    {
+        var t = raw.Trim();
+        if (t.StartsWith('['))
+        {
+            try
+            {
+                var arr = JsonSerializer.Deserialize<List<string>>(t);
+                if (arr is { Count: > 0 })
+                    return arr.Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()).ToList();
+            }
+            catch
+            {
+                /* fall through to lines */
+            }
+        }
+
+        return SplitWaveLines(t);
+    }
+
+    static List<string>? ParseWaveSectionFromBody(string body)
+    {
+        var idx = body.IndexOf("## wave", StringComparison.OrdinalIgnoreCase);
+        if (idx < 0)
+            return null;
+        var rest = body[(idx + "## wave".Length)..];
+        var next = rest.IndexOf("\n## ", StringComparison.Ordinal);
+        if (next >= 0)
+            rest = rest[..next];
+        return SplitWaveLines(rest);
+    }
+
+    static List<string>? SplitWaveLines(string text)
+    {
+        var list = new List<string>();
+        foreach (var line in text.Split(['\r', '\n', ';', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var label = line.Trim().TrimStart('-', '*', '•').Trim();
+            if (label.Length == 0 || label.StartsWith('#')) continue;
+            if (list.Any(x => x.Equals(label, StringComparison.OrdinalIgnoreCase))) continue;
+            list.Add(label);
+        }
+
+        return list.Count == 0 ? null : list;
+    }
+
     sealed class PressureDoc
     {
         public string Schema { get; set; } = SchemaVersion;
@@ -122,5 +206,7 @@ internal static partial class IdePressureChannel
         public string? RecallGate { get; set; }
         public string? RecallGateUtc { get; set; }
         public string? RecallGateNote { get; set; }
+        /// <summary>Structured throughput wave labels (JSON array) — stash wave= / ## wave.</summary>
+        public List<string>? Wave { get; set; }
     }
 }

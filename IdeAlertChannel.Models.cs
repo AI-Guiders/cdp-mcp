@@ -37,7 +37,9 @@ internal static partial class IdeAlertChannel
         string? StagePhaseMismatch = null,
         int ChkOpenRequired = 0,
         string? ChkPulse = null,
-        bool QuietBandQuality = true);
+        bool QuietBandQuality = true,
+        bool SessionAct = false,
+        bool NoActiveWave = false);
 
     public sealed record Snap(
         Level Level,

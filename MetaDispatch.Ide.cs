@@ -94,6 +94,10 @@ internal static partial class MetaDispatch
         return IdeDomainChannel.HandleJson(session, callArgs);
     case "cdp_rules":
         return IdeRulesChannel.HandleJson(session, callArgs);
+    case "cdp_inventory":
+        return IdeInventoryChannel.HandleJson(session, callArgs);
+    case "cdp_verify_wave":
+        return IdeVerifyWaveChannel.HandleJson(session, callArgs);
     case "cdp_calendar":
         return IdeCalendarChannel.HandleJson(session, callArgs);
     case "cdp_icm":

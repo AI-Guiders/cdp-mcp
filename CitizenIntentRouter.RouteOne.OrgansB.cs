@@ -310,6 +310,46 @@ internal static partial class CitizenIntentRouter
             return RouteRules(raw);
         }
 
+        if (raw.Equals("inventory", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("inventory ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("inventory_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("inventory_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("gaps", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("gaps ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_inventory", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_inventory ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("inventory_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("inventory_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("inventory_pulse", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("inventory_pulse ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_inventory_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_inventory_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_inventory_pulse", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_inventory_pulse ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteInventory(raw);
+        }
+
+        if (raw.Equals("verify_wave", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("verify_wave ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("verify_wave_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("verify_wave_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("wave_verify", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("wave_verify ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_verify_wave", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_verify_wave ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("verify_wave_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("verify_wave_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("verify_wave_pulse", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("verify_wave_pulse ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_verify_wave_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_verify_wave_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_verify_wave_pulse", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_verify_wave_pulse ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteVerifyWave(raw);
+        }
+
         if (IsCrmIntent(raw))
             return RouteCrm(raw);
 

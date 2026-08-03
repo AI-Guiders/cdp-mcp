@@ -64,6 +64,8 @@ internal static partial class IdeTaskManager
             "criterion_drop" => TaskCriterionDrop(store, state, args),
             "change_plan" or "cp" or "changeplan" => TaskChangePlan(store, state, args),
             "leftover" or "sweep" or "leftover_sweep" => TaskLeftoverSweep(store, state, args),
+            "wave" or "wave_scene" or "wave_seed" or "wave_start" or "wave_shipped" or "wave_clear"
+                or "wave_item" or "wave_done" => IdeWaveChannel.Handle(WithWaveOp(args, op)),
             "promote" or "promote_plan" or "ask_confirm"
                 or "share" or "share_plan"
                 or "report" or "digest" or "share_report" or "status_report" =>
@@ -90,7 +92,7 @@ internal static partial class IdeTaskManager
                 Opt(args, "plan_id") ?? OptGoArg(args, "plan_id"),
                 reject: true),
             _ => throw new ArgumentException(
-                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|await_operator|start_phase|complete_phase|events|note|criteria|criterion|change_plan|leftover|product|category|share|report|promote|confirm|reject.")
+                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|await_operator|start_phase|complete_phase|events|note|criteria|criterion|change_plan|leftover|product|category|wave|share|report|promote|confirm|reject.")
         };
 
     static IReadOnlyDictionary<string, JsonElement> WithStatus(
@@ -101,6 +103,25 @@ internal static partial class IdeTaskManager
         {
             ["status"] = JsonSerializer.SerializeToElement(status)
         };
+        return d;
+    }
+
+    static IReadOnlyDictionary<string, JsonElement> WithWaveOp(
+        IReadOnlyDictionary<string, JsonElement> args,
+        string tmOp)
+    {
+        var d = new Dictionary<string, JsonElement>(args, StringComparer.OrdinalIgnoreCase);
+        var waveOp = tmOp switch
+        {
+            "wave_seed" => "seed",
+            "wave_start" => "start",
+            "wave_shipped" => "shipped",
+            "wave_clear" => "clear",
+            "wave_item" or "wave_done" => "item_done",
+            "wave_scene" => "scene",
+            _ => Opt(args, "wave_op") ?? OptGoArg(args, "wave_op") ?? Opt(args, "op") ?? "scene"
+        };
+        d["op"] = JsonSerializer.SerializeToElement(waveOp);
         return d;
     }
 }

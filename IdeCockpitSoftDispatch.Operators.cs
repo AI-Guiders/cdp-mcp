@@ -228,6 +228,34 @@ internal static partial class IdeCockpitSoftDispatch
         return true;
     }
 
+    static bool TryDispatchInventory(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsSoft(goVerb, SoftOrganKind.Inventory))
+            return false;
+
+        goResult = SoftBoard(SoftOrganKind.Inventory, session, null, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftOrganKind.Inventory);
+        return true;
+    }
+
+    static bool TryDispatchVerifyWave(
+        ref string? goVerb,
+        ref object? goResult,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!IsSoft(goVerb, SoftOrganKind.VerifyWave))
+            return false;
+
+        goResult = SoftBoard(SoftOrganKind.VerifyWave, session, null, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftOrganKind.VerifyWave);
+        return true;
+    }
+
     static bool TryDispatchPs1(
         ref string? goVerb,
         ref object? goResult,

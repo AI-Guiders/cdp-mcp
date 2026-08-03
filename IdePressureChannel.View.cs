@@ -148,6 +148,7 @@ static object Recall(SessionContext session, IReadOnlyDictionary<string, JsonEle
             phase = doc.Phase,
             ignite = doc.IgniteNote,
             plan = doc.PlanNote,
+            wave = doc.Wave,
             armed_utc = doc.ArmedUtc,
             stash_utc = doc.StashUtc,
             recall_gate = gate,
