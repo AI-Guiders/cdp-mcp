@@ -26,6 +26,7 @@
 
 ## last_ship
 
+- 0.5.575: citizen `@intent scratch` → EditorComfort untitled `.cdp/scratch` (peer) · 2026-08-03
 - 0.5.574: citizen `@intent put` → EditorComfort draft dump (peer Write-analogue hand) · 2026-08-03
 - 0.5.573: citizen `@intent back|forward|nav|recent_files` → EditorComfort nav stack/MRU (peer) · 2026-08-03
 - 0.5.572: citizen `@intent replace_all` → EditorComfort bulk rename (peer) · 2026-08-03
