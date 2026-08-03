@@ -150,6 +150,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 114 | [@intent peel: я сам выношу member, не через чужой cdp_peel MCP](voice-letter-citizen-peel-host.ru.md) | citizen · @intent peel|peel_*|cdp_peel · IdePeelChannel · 0.5.607 |
 | 115 | [@intent edit_plan: я сам черчу YAML-план правок, не через чужой cdp_edit_plan MCP](voice-letter-citizen-edit-plan-host.ru.md) | citizen · @intent edit_plan|edit_plan_*|cdp_edit_plan · Meta cdp_edit_plan · 0.5.608 |
 | 116 | [@intent analysis: я сам открываю analysis_scene, не через чужой cdp_analysis_scene MCP](voice-letter-citizen-analysis-host.ru.md) | citizen · @intent analysis|analysis_*|cdp_analysis · Meta cdp_analysis_scene · 0.5.609 |
+| 117 | [@intent test_plan: я сам планирую/прогоняю тесты, не через чужой cdp_test_plan MCP](voice-letter-citizen-test-plan-host.ru.md) | citizen · @intent test_plan|cdp_test_plan|test_plan_* · Meta cdp_test_plan · 0.5.610 |
 | 112 | [@intent files: я сам брожу по дереву, не через чужой cdp_files MCP](voice-letter-citizen-files-host.ru.md) | citizen · @intent files|files_* · IdeFilesChannel · 0.5.605 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
