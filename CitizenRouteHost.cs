@@ -79,6 +79,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.Scratch => RunScratch(route),
             CitizenIntentRouter.Verb.Take => RunTake(route),
             CitizenIntentRouter.Verb.Share => RunShare(route),
+            CitizenIntentRouter.Verb.Disk => RunDisk(route),
             CitizenIntentRouter.Verb.Cmd => RunPlanCmd(route),
             CitizenIntentRouter.Verb.Refuse => new Applied(
                 route.Raw,

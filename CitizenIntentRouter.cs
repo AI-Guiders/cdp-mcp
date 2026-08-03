@@ -39,6 +39,7 @@ internal static partial class CitizenIntentRouter
         Scratch,
         Take,
         Share,
+        Disk,
         Detail,
         Cmd,
         Refuse,
@@ -194,6 +195,23 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("share from=", StringComparison.OrdinalIgnoreCase))
         {
             return RouteShare(raw);
+        }
+
+        if (raw.Equals("reload", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("reload ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("reload path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("keep_disk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("keep_disk ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("keep_disk path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("disk_peek", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("disk_peek ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("disk_peek path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("diskpeek", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("diskpeek ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("peek_disk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("peek_disk ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteDisk(raw);
         }
 
         if (raw.StartsWith("replace ", StringComparison.OrdinalIgnoreCase)

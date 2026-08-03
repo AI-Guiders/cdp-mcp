@@ -234,8 +234,17 @@ internal static partial class DocumentEditPlane
         return n;
     }
 
-    static int? IntOrNull(IReadOnlyDictionary<string, JsonElement> args, string key) =>
-        args.TryGetValue(key, out var el) && el.TryGetInt32(out var n) ? n : null;
+    static int? IntOrNull(IReadOnlyDictionary<string, JsonElement> args, string key)
+    {
+        if (!args.TryGetValue(key, out var el))
+            return null;
+        if (el.TryGetInt32(out var n))
+            return n;
+        if (el.ValueKind == JsonValueKind.String
+            && int.TryParse(el.GetString(), out var fromText))
+            return fromText;
+        return null;
+    }
 
     static bool BoolOr(IReadOnlyDictionary<string, JsonElement> args, string key, bool defaultValue)
     {
