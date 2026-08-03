@@ -43,6 +43,7 @@ internal static partial class CitizenRouteHost
         FindBufCallOverride = null;
         BrowserHabitatResolver = null;
         BrowserDispatchOverride = null;
+        RunLifecycleOverride = null;
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)
