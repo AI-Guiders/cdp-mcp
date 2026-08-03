@@ -39,6 +39,7 @@ internal static partial class CitizenRouteHost
         ShareCallOverride = null;
         DiskCallOverride = null;
         SniperCallOverride = null;
+        BufferCallOverride = null;
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)

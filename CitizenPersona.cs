@@ -130,6 +130,10 @@ internal static class CitizenPersona
           @intent aim wire=[F:CitizenRouteHost.cs;M:CitizenRouteHost.RunSniper]
           @intent scope_clear
           @intent sniper
+          @intent read path=CitizenRouteHost.cs start_line=1 end_line=20
+          @intent buffers
+          @intent close path=tools/_put-draft.txt
+          @intent doc_diagnostics path=CitizenRouteHost.cs
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost
