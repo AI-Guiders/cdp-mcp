@@ -25,6 +25,7 @@
 ## Antipatterns
 
 - `feature` with `@phase/#Product` must not dedupe onto a bare-title twin (chrome query → create tagged or match chrome-bearing only) @ 0.5.553+.
+- Intent unique-prefix CLOSED @ 0.5.648 — Dig densest SoftFL… stems; truncated title must not FeatureDone/focus onto content twin. Stages keep unique prefix (slash-title seed).
 - Asking operator how focus/done works without reading Leaf + Mutations.
 - Seeding task titles that contain REPL verbs (`|focus|start`).
 - Chaining board verbs with `;` in one `cmd=` (`feature X; task Y; start`) — junk titles; refuse `multi_cmd` @ 0.5.521.
@@ -32,6 +33,7 @@
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
+- **0.5.648** — FindIntent unique-prefix CLOSED for intents (content-twin Dig densest SoftFL… steal). Test FindIntent_unique_prefix_does_not_steal_content_twin. Stages keep Find.cs unique prefix.
 - **2026-08-04 SoftFL CLOSED dig** — DIG REJECT SoftFL reopen (inventory CLOSED). densest ACCEPT: board CLOSED noise hygiene under FeatureDone @0.5.647 live dogfood; IntentSelect clears stage by design (restore in FeatureDone); dual `-Target` terminal habit ≠ code mill.
 - **2026-08-04 invent DIG** — SoftFL/Meta/WitDB/Hol/Glass residual/Citizen GREEN CLOSED. densest ACCEPT: FeatureDone always cleared focus on foreign `shipped` (hygiene stole invent dig). SoftFL WARN×4 DIG REJECT reopen. Wave SickLeaveInvent.
 
