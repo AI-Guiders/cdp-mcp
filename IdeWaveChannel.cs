@@ -290,22 +290,23 @@ internal static class IdeWaveChannel
 
     static List<string> ParseLabels(IReadOnlyDictionary<string, JsonElement> args)
     {
-        var raw = Opt(args, "items")
+        var fromItems = Opt(args, "items")
             ?? Opt(args, "labels")
             ?? Opt(args, "body")
             ?? Opt(args, "text")
             ?? Opt(args, "q")
             ?? Opt(args, "title_items");
-        // REPL may put leftovers in title when seed has no keyed items
-        if (string.IsNullOrWhiteSpace(raw))
-            raw = Opt(args, "title");
+        var titleOnlyFallback = string.IsNullOrWhiteSpace(fromItems);
+        var raw = titleOnlyFallback ? Opt(args, "title") : fromItems;
 
         var list = new List<string>();
         if (string.IsNullOrWhiteSpace(raw))
             return list;
 
-        // If title-only and looks like a wave name without separators, ignore as labels
-        // when items= was empty — handled by caller requiring labels.
+        // title=Foo polish words (no list separators) is a wave name — not a single fake item.
+        if (titleOnlyFallback
+            && raw.IndexOfAny([';', ',', '|', '\n', '\r']) < 0)
+            return list;
 
         foreach (var part in SplitLabels(raw))
         {
@@ -315,7 +316,6 @@ internal static class IdeWaveChannel
             list.Add(label);
         }
 
-        // Heuristic: seed "Throughput a;b;c" → title Throughput + items — if single token and title set separately
         return list;
     }
 

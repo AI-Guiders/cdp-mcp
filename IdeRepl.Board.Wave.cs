@@ -80,6 +80,7 @@ internal static partial class IdeRepl
 
         string? title = null;
         var itemParts = new List<string>();
+        var hadItemsKey = false;
         foreach (var tok in rest)
         {
             if (tok.StartsWith("title=", StringComparison.OrdinalIgnoreCase))
@@ -90,6 +91,7 @@ internal static partial class IdeRepl
 
             if (tok.StartsWith("items=", StringComparison.OrdinalIgnoreCase))
             {
+                hadItemsKey = true;
                 itemParts.Add(tok["items=".Length..].Trim().Trim('"'));
                 continue;
             }
@@ -103,19 +105,21 @@ internal static partial class IdeRepl
             itemParts.Add(tok);
         }
 
+        // title=Foo polish words without separators → extend title (Autoi footgun),
+        // not invent 14 fake wave items. Prefer items=a;b;c when title= is set.
+        if (title is { Length: > 0 }
+            && !hadItemsKey
+            && itemParts.Count > 0
+            && itemParts.All(p => p.IndexOfAny([';', ',', '|', '\n', '\r']) < 0))
+        {
+            title = (title + " " + string.Join(' ', itemParts)).Trim();
+            itemParts.Clear();
+        }
+
         var joined = string.Join(';', itemParts);
         if (joined.Length > 0)
             args["items"] = JsonSerializer.SerializeToElement(joined);
         if (title is { Length: > 0 })
             args["title"] = JsonSerializer.SerializeToElement(title);
-        else if (itemParts.Count > 1
-                 && !joined.Contains(';')
-                 && !joined.Contains(',')
-                 && itemParts[0].IndexOfAny([';', ',', '|', '\n']) < 0)
-        {
-            // wave seed Throughput a b c — first token title, rest items
-            // only when no separators in first token and multiple tokens without items=
-            // Skip: if first looks like items list already joined
-        }
     }
 }
