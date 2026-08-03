@@ -39,7 +39,7 @@
 - Festive per-zone accents (cyan P / gold F / purple M) — Dark Cockpit violation; geography by label, color only on deviation (ON GND / select / EICAS).
 - MFD text-wall dig notes for humans — prefer concise+graphic presence cards (`□ Glass peel` / `■ Avalonia`).
 - Invent SoftOrgan for Editor MFD when Forward=intercom — AvalonEdit peel already mounts on M (ADR 0120).
-- Fork Glass WPF DAP / DebugStack session into TextBlock — SSOT = Avalonia `IdeDapDebugSession` + `DebugStackMfdPageView`; Glass stays `debug_desk` SoftOrganMfdGlance (+ quiet chrome projector).
+- Fork Glass WPF full IdeDapDebugSession into TextBlock — densest = habitat `debug_desk` latch live (stack/locals on stopped) + SoftOrgan FSW; Avalonia IdeDap remains denser SSOT for full DAP drive UI.
 - Fork Glass WPF Git panel into TextBlock — SSOT = Avalonia `GitMfdPageView` + `GitPanel`; no SoftOrganKind (do not invent); Glass stays CabinGlass stub (optional later: `git status` Process-redirect thin peel ≠ full panel).
 - Treat HybridIndex as empty □/■ stub forever — Glass FS status glance (`GlassHybridIndexGlance`) is the presence peel; Avalonia HCI remains SSOT (do not invent SoftOrgan).
 - Treat WorkspaceHealth / EnvironmentReadiness as empty □/■ stubs forever — Glass FS/env presence glances (`GlassWorkspaceHealthGlance` / `GlassEnvironmentReadinessGlance`); Avalonia IdeHealth / EnvReady CCU remain SSOT (do not invent SoftOrgan).
@@ -67,7 +67,7 @@ Presence DoD = SoftOrgan glance | Glass peel | **full WPF host** (operator 2026-
 | Build | `toolchain` glance | redirected log TextBox (≈ Avalonia log MFD) | DONE v1 |
 | Tests | `test_desk` glance | redirected log TextBox | DONE peel |
 | Git | unbound | porcelain list + diff (`GlassGitPorcelainParse`) | DONE v1 · depth commit UI |
-| DebugStack | `debug_desk` glance | spectator from `debug_desk-LATEST` | DONE v1 · depth live DAP |
+| DebugStack | `debug_desk` glance | live latch stack/locals (SoftOrgan FSW) | DONE live DAP · Avalonia IdeDap deeper |
 | Problems | `review` glance | ListBox + MSBuild parse | DONE v1 |
 | RelatedFiles | `refactor` glance | FS heuristic list | DONE v1 · depth map orchestrator |
 | SemanticMap | `arch` glance | Skia radial + list | DONE Skia · Avalonia WNM still denser |
@@ -80,7 +80,7 @@ Sources: `Models/MfdShellPage.cs` · `SoftOrganMfdGlance.TryOrganIdForMfdPage` �
 
 Parity note: Glass XAML / CabinGlass use page string **SemanticMap** (`arch_desk` → MFD); Avalonia `MfdShellPage` has **no** SemanticMap member — graph SSOT = PFD `WorkspaceNavigationMapView` (not MFD shell).
 
-**Presence DoD: CLOSED**. **Full-host v1 DoD: CLOSED** (2026-08-03 batch `77035101`+`f7de96e9`) — CascadeChord = Ctrl+K overlay (not MFD). **Depth DoD: OPEN** — live DAP · full CRS resolver. **Terminal VT: CLOSED** · **WebView2 WebAi: CLOSED** · **SemanticMap Skia: CLOSED**.
+**Presence DoD: CLOSED**. **Full-host v1 DoD: CLOSED** (2026-08-03 batch `77035101`+`f7de96e9`) — CascadeChord = Ctrl+K overlay (not MFD). **Depth DoD: OPEN** — full CRS resolver. **Terminal VT: CLOSED** · **WebView2 WebAi: CLOSED** · **SemanticMap Skia: CLOSED** · **DebugStack live DAP: CLOSED**.
 
 ## DoD matrix — SoftOrgan chrome beyond MFD (2026-08-01 dig)
 
@@ -167,6 +167,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- 2026-08-04: **Glass DebugStack live DAP** — SoftOrganChanged→MFD refresh · latch stack/locals enrich on DAP stopped · dogfood `mfd_debug_stack` → `MfdDebugStackHost` visible + latch frames
 - 2026-08-04: **Glass SemanticMap Skia** — WriteableBitmap+SkiaSharp radial graph · RelatedFiles heuristic · live dogfood `semantic · skia N · click node` + SemanticSkia visible
 - 2026-08-04: **Glass WebAi WebView2** — embedded Microsoft.Web.WebView2 in MFD · URL bar + go/Enter · Avalonia portal EOL for cabin
 - 2026-08-04: **Glass Terminal VT focus fix** — start after layout size · Focus steal from Composer · `c66d0c25`
