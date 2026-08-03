@@ -74,13 +74,13 @@ Presence DoD = SoftOrgan glance | Glass peel | **full WPF host** (operator 2026-
 | MarkdownPreview | `report` glance | Markdig `ToPlainText` | DONE v1 · depth rich tree |
 | AiChatSettings | `mcp` glance | settings.toml SSOT | HOLD latch |
 | WebAiPortal | unbound | WebView2 embedded | DONE VT-class · Avalonia EOL |
-| Correspondence | unbound | thin FS reverse/forward | DONE v1 · depth full CRS |
+| Correspondence | unbound | full CRS resolvers (Toml ADR/feature + reverse anchors + layers) | DONE full CRS |
 
 Sources: `Models/MfdShellPage.cs` · `SoftOrganMfdGlance.TryOrganIdForMfdPage` · `MainWindow.MfdBody` · XAML `MfdPages`.
 
 Parity note: Glass XAML / CabinGlass use page string **SemanticMap** (`arch_desk` → MFD); Avalonia `MfdShellPage` has **no** SemanticMap member — graph SSOT = PFD `WorkspaceNavigationMapView` (not MFD shell).
 
-**Presence DoD: CLOSED**. **Full-host v1 DoD: CLOSED** (2026-08-03 batch `77035101`+`f7de96e9`) — CascadeChord = Ctrl+K overlay (not MFD). **Depth DoD: OPEN** — full CRS resolver. **Terminal VT: CLOSED** · **WebView2 WebAi: CLOSED** · **SemanticMap Skia: CLOSED** · **DebugStack live DAP: CLOSED**.
+**Presence DoD: CLOSED**. **Full-host v1 DoD: CLOSED** (2026-08-03 batch `77035101`+`f7de96e9`) — CascadeChord = Ctrl+K overlay (not MFD). **Depth DoD: CLOSED** — full CRS resolver (Peel15 GlassCore). **Terminal VT: CLOSED** · **WebView2 WebAi: CLOSED** · **SemanticMap Skia: CLOSED** · **DebugStack live DAP: CLOSED** · **Correspondence full CRS: CLOSED**.
 
 ## DoD matrix — SoftOrgan chrome beyond MFD (2026-08-01 dig)
 
@@ -167,6 +167,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- 2026-08-04: **Glass Correspondence full CRS** — Peel15 CRS DAL→GlassCore · feed wires WorkspaceCorrespondenceResolver+DocReverseAnchorResolver+layers · smoke F=14 R=1 on DocReverseAnchorResolver · Depth DoD CLOSED
 - 2026-08-04: **Glass DebugStack live DAP** — SoftOrganChanged→MFD refresh · latch stack/locals enrich on DAP stopped · dogfood `mfd_debug_stack` → `MfdDebugStackHost` visible + latch frames
 - 2026-08-04: **Glass SemanticMap Skia** — WriteableBitmap+SkiaSharp radial graph · RelatedFiles heuristic · live dogfood `semantic · skia N · click node` + SemanticSkia visible
 - 2026-08-04: **Glass WebAi WebView2** — embedded Microsoft.Web.WebView2 in MFD · URL bar + go/Enter · Avalonia portal EOL for cabin
