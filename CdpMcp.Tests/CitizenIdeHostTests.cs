@@ -89,6 +89,61 @@ public sealed class CitizenIdeHostTests
     }
 
     [Fact]
+    public void Route_symbol_requires_column()
+    {
+        var r = CitizenIntentRouter.RouteOne("symbol path=X.cs line=10");
+        Assert.False(r.Ok);
+        Assert.Equal("ide_column_required", r.Reason);
+    }
+
+    [Fact]
+    public void Route_symbol_ok()
+    {
+        var r = CitizenIntentRouter.RouteOne("symbol path=X.cs line=10 column=4");
+        Assert.True(r.Ok);
+        Assert.Equal("get_symbol_at_position", r.Op);
+    }
+
+    [Fact]
+    public void Route_rename_requires_new_name()
+    {
+        var r = CitizenIntentRouter.RouteOne("rename path=X.cs line=10 column=4");
+        Assert.False(r.Ok);
+        Assert.Equal("ide_new_name_required", r.Reason);
+    }
+
+    [Fact]
+    public void Route_rename_ok()
+    {
+        var r = CitizenIntentRouter.RouteOne("rename path=X.cs line=10 column=4 new_name=Foo");
+        Assert.True(r.Ok);
+        Assert.Equal("rename_symbol", r.Op);
+    }
+
+    [Fact]
+    public void Route_actions_ok()
+    {
+        var r = CitizenIntentRouter.RouteOne("actions path=X.cs line=10 column=4");
+        Assert.True(r.Ok);
+        Assert.Equal("code_actions", r.Op);
+    }
+
+    [Fact]
+    public void Route_apply_action_requires_index()
+    {
+        var r = CitizenIntentRouter.RouteOne("apply_action path=X.cs line=10 column=4");
+        Assert.False(r.Ok);
+        Assert.Equal("ide_action_index_required", r.Reason);
+    }
+
+    [Fact]
+    public void Route_peek_stays_sniper()
+    {
+        var r = CitizenIntentRouter.RouteOne("peek path=X.cs");
+        Assert.Equal(CitizenIntentRouter.Verb.Sniper, r.Verb);
+    }
+
+    [Fact]
     public void Execute_ide_with_override_ok()
     {
         CitizenRouteHost.UnbindLifecycle();
@@ -134,6 +189,31 @@ public sealed class CitizenIdeHostTests
             Assert.Single(applied);
             Assert.True(applied[0].Ok);
             Assert.Contains("item", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_rename_passes_new_name_via_override()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.IdeCallOverride = (op, args) =>
+        {
+            Assert.Equal("rename_symbol", op);
+            Assert.Equal("Foo", args["new_name"].GetString());
+            Assert.False(args["apply"].GetBoolean());
+            return Task.FromResult("""{"files":["X.cs"],"changes":[{"path":"X.cs"}]}""");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("rename path=X.cs line=10 column=4 new_name=Foo apply=false")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.Contains("rename", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
         {

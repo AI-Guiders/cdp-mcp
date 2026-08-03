@@ -4,7 +4,7 @@ using Cdp.Core;
 
 namespace CdpMcp;
 
-/// <summary>Citizen @intent ide — sync IdeLanguageTools.DispatchBareAsync (goto/usages/diagnostics).</summary>
+/// <summary>Citizen @intent ide — sync IdeLanguageTools.DispatchBareAsync (nav/complete/rename/actions).</summary>
 internal static partial class CitizenRouteHost
 {
     /// <summary>Tests: inject JSON; live uses DispatchBareAsync + ByDomainResolver.</summary>
@@ -101,6 +101,11 @@ internal static partial class CitizenRouteHost
         else if (!args.ContainsKey("column") && route.Op is "go_to_definition" or "find_usages")
             args["column"] = JsonSerializer.SerializeToElement(1);
 
+        if (TryParseIdeInt(route.Raw, "end_line", "el", out var endLine))
+            args["end_line"] = JsonSerializer.SerializeToElement(endLine);
+        if (TryParseIdeInt(route.Raw, "end_column", "ec", out var endCol))
+            args["end_column"] = JsonSerializer.SerializeToElement(endCol);
+
         if (ExtractMcpKeyed(route.Raw, "scope") is { Length: > 0 } scope)
             args["scope"] = JsonSerializer.SerializeToElement(scope);
 
@@ -108,6 +113,20 @@ internal static partial class CitizenRouteHost
             args["prefix"] = JsonSerializer.SerializeToElement(prefix);
         if (TryParseIdeInt(route.Raw, "max", "limit", out var max))
             args["max"] = JsonSerializer.SerializeToElement(max);
+
+        var newName = ExtractMcpKeyed(route.Raw, "new_name")
+            ?? ExtractMcpKeyed(route.Raw, "name")
+            ?? ExtractMcpKeyed(route.Raw, "to");
+        if (newName is { Length: > 0 })
+            args["new_name"] = JsonSerializer.SerializeToElement(newName);
+
+        if (TryParseIdeInt(route.Raw, "action_index", "index", out var actionIndex)
+            || TryParseIdeInt(route.Raw, "i", "i", out actionIndex))
+            args["action_index"] = JsonSerializer.SerializeToElement(actionIndex);
+
+        if (ExtractMcpKeyed(route.Raw, "apply") is { Length: > 0 } applyRaw
+            && bool.TryParse(applyRaw, out var apply))
+            args["apply"] = JsonSerializer.SerializeToElement(apply);
 
         return args;
     }
@@ -156,6 +175,18 @@ internal static partial class CitizenRouteHost
             if (root.TryGetProperty("symbols", out var syms) && syms.ValueKind == JsonValueKind.Array)
                 return TruncPulse($"ide · {ShortIdeOp(op)} · {syms.GetArrayLength()} sym(s)");
 
+            if (root.TryGetProperty("actions", out var acts) && acts.ValueKind == JsonValueKind.Array)
+                return TruncPulse($"ide · {ShortIdeOp(op)} · {acts.GetArrayLength()} action(s)");
+
+            if (root.TryGetProperty("name", out var nm) && nm.ValueKind == JsonValueKind.String)
+                return TruncPulse($"ide · {ShortIdeOp(op)} · {nm.GetString()}");
+
+            if (root.TryGetProperty("changes", out var ch) && ch.ValueKind == JsonValueKind.Array)
+                return TruncPulse($"ide · {ShortIdeOp(op)} · {ch.GetArrayLength()} change(s)");
+
+            if (root.TryGetProperty("files", out var files) && files.ValueKind == JsonValueKind.Array)
+                return TruncPulse($"ide · {ShortIdeOp(op)} · {files.GetArrayLength()} file(s)");
+
             if (root.TryGetProperty("error_count", out var ec) && ec.TryGetInt32(out var n))
                 return TruncPulse($"ide · diags · errors={n}");
         }
@@ -176,6 +207,10 @@ internal static partial class CitizenRouteHost
             "get_completions" => "complete",
             "get_signature_help" => "signature",
             "get_document_symbols" => "symbols",
+            "get_symbol_at_position" => "symbol",
+            "rename_symbol" => "rename",
+            "code_actions" => "actions",
+            "apply_code_action" => "apply",
             _ => op
         };
 }

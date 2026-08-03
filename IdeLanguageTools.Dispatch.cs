@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Cdp.Core;
@@ -42,8 +42,7 @@ internal static partial class IdeLanguageTools
 
         if (lang.Equals(CdpLanguages.Csharp, StringComparison.OrdinalIgnoreCase))
         {
-            if (name is "rename_symbol" or "code_actions" or "apply_code_action")
-                throw new ArgumentException($"{name} via LSP is for languages with [[languages.lsp]] presets. For csharp use roslyn_rename / roslyn_get_code_actions.");
+            // csharp: rename/code_actions/apply → roslyn_* in DispatchCsharpAsync (not LSP).
             return await DispatchCsharpAsync(name, session, byDomain, args, cancellationToken).ConfigureAwait(false);
         }
 
@@ -143,6 +142,9 @@ internal static partial class IdeLanguageTools
             "get_completions" => "roslyn_get_completions",
             "get_signature_help" => "roslyn_get_signature_help",
             "get_workspace_navigation_context" => "roslyn_get_workspace_navigation_context",
+            "rename_symbol" => "roslyn_rename",
+            "code_actions" => "roslyn_get_code_actions",
+            "apply_code_action" => "roslyn_apply_code_action",
             _ => throw new ArgumentException($"Unsupported bare verb for csharp: {name}")};
         return await roslyn.CallAsync(underlying, mapped).ConfigureAwait(false);
     }
@@ -157,7 +159,9 @@ internal static partial class IdeLanguageTools
             dict[kv.Key] = kv.Value;
         }
 
-        if (name is "go_to_definition" or "find_usages" or "get_workspace_navigation_context" or "get_completions" or "get_signature_help")
+        if (name is "go_to_definition" or "find_usages" or "get_workspace_navigation_context" or "get_completions" or "get_signature_help"
+            or "rename_symbol" or "code_actions" or "apply_code_action")
+
         {
             if (!dict.ContainsKey("solution_or_project_path") || dict["solution_or_project_path"].ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(dict["solution_or_project_path"].GetString()))
             {

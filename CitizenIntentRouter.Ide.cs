@@ -2,7 +2,7 @@
 
 namespace CdpMcp;
 
-/// <summary>Citizen @intent ide|goto|usages|diagnostics — bare IDE nav without Cursor Roslyn MCP.</summary>
+/// <summary>Citizen @intent ide|goto|usages|diagnostics|complete|rename|actions — bare IDE without Cursor Roslyn MCP.</summary>
 internal static partial class CitizenIntentRouter
 {
     static Route RouteIde(string raw)
@@ -29,7 +29,8 @@ internal static partial class CitizenIntentRouter
                 Reason: "ide_path_required");
         }
 
-        if (op is "go_to_definition" or "find_usages" or "get_completions" or "get_signature_help")
+        if (op is "go_to_definition" or "find_usages" or "get_completions" or "get_signature_help"
+            or "get_symbol_at_position" or "rename_symbol" or "code_actions" or "apply_code_action")
         {
             if (ExtractKeyedValue(raw, "line") is not { Length: > 0 }
                 && ExtractKeyedValue(raw, "l") is not { Length: > 0 })
@@ -45,7 +46,8 @@ internal static partial class CitizenIntentRouter
             }
         }
 
-        if (op is "get_completions" or "get_signature_help")
+        if (op is "get_completions" or "get_signature_help" or "get_symbol_at_position"
+            or "rename_symbol" or "code_actions" or "apply_code_action")
         {
             if (ExtractKeyedValue(raw, "column") is not { Length: > 0 }
                 && ExtractKeyedValue(raw, "col") is not { Length: > 0 }
@@ -60,6 +62,36 @@ internal static partial class CitizenIntentRouter
                     Go: "editor_scene",
                     Reason: "ide_column_required");
             }
+        }
+
+        if (op is "rename_symbol"
+            && ExtractKeyedValue(raw, "new_name") is not { Length: > 0 }
+            && ExtractKeyedValue(raw, "name") is not { Length: > 0 }
+            && ExtractKeyedValue(raw, "to") is not { Length: > 0 })
+        {
+            return new Route(
+                Verb.Ide,
+                raw,
+                Ok: false,
+                Op: op,
+                Path: path,
+                Go: "editor_scene",
+                Reason: "ide_new_name_required");
+        }
+
+        if (op is "apply_code_action"
+            && ExtractKeyedValue(raw, "action_index") is not { Length: > 0 }
+            && ExtractKeyedValue(raw, "index") is not { Length: > 0 }
+            && ExtractKeyedValue(raw, "i") is not { Length: > 0 })
+        {
+            return new Route(
+                Verb.Ide,
+                raw,
+                Ok: false,
+                Op: op,
+                Path: path,
+                Go: "editor_scene",
+                Reason: "ide_action_index_required");
         }
 
         return new Route(
@@ -121,6 +153,32 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("doc_symbols ", StringComparison.OrdinalIgnoreCase))
             return "symbols";
 
+        if (raw.Equals("symbol", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("symbol ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("hover", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("hover ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("symbol_at", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("symbol_at ", StringComparison.OrdinalIgnoreCase))
+            return "symbol";
+
+        if (raw.Equals("rename", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("rename ", StringComparison.OrdinalIgnoreCase))
+            return "rename";
+
+        if (raw.Equals("actions", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("actions ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("code_actions", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("code_actions ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("quickfix", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("quickfix ", StringComparison.OrdinalIgnoreCase))
+            return "actions";
+
+        if (raw.Equals("apply_action", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("apply_action ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("apply_code_action", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("apply_code_action ", StringComparison.OrdinalIgnoreCase))
+            return "apply_action";
+
         return null;
     }
 
@@ -133,10 +191,15 @@ internal static partial class CitizenIntentRouter
             "complete" or "completion" or "completions" or "get_completions" or "intellisense" => "get_completions",
             "signature" or "signature_help" or "sighelp" or "get_signature_help" or "sig" => "get_signature_help",
             "symbols" or "document_symbols" or "get_document_symbols" or "doc_symbols" => "get_document_symbols",
+            "symbol" or "hover" or "symbol_at" or "get_symbol_at_position" => "get_symbol_at_position",
+            "rename" or "rename_symbol" => "rename_symbol",
+            "actions" or "code_actions" or "quickfix" or "get_code_actions" => "code_actions",
+            "apply_action" or "apply_code_action" or "apply" => "apply_code_action",
             _ => op
         };
 
     static bool IsIdeOp(string? op) =>
         op is "go_to_definition" or "find_usages" or "get_diagnostics"
-            or "get_completions" or "get_signature_help" or "get_document_symbols";
+            or "get_completions" or "get_signature_help" or "get_document_symbols"
+            or "get_symbol_at_position" or "rename_symbol" or "code_actions" or "apply_code_action";
 }
