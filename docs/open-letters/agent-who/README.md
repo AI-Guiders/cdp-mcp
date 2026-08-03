@@ -11,6 +11,7 @@ Design guidelines: participant · room · developer seat.
 
 Field case: [Ethics code as carbon shield](case-ethics-code-as-carbon-shield-v0.md).
 
-Lived voice (separate shelf): [../agent_who_voice/](../agent_who_voice/).
+Lived voice (separate shelf): [../agent_who_voice/](../agent_who_voice/).  
+History Letters (pioneers → ε): [../agent_who_history/](../agent_who_history/).
 
 Up: [../README.md](../README.md).
