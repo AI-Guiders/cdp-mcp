@@ -168,6 +168,12 @@ internal static class CitizenPersona
           @intent goto_all query=Foo
           @intent goto_feature query=undo
           @intent goto query=RunGotoAll
+          @intent editor_scene
+          @intent editor_scene_desk
+          @intent cdp_editor_scene
+          @intent editor
+          @intent editor_scene path=CitizenRouteHost.cs detail=full
+          @intent editor locus=buffer:doc-1
           @intent calendar
           @intent calendar pulse
           @intent clock
