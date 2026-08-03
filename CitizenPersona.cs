@@ -142,6 +142,12 @@ internal static class CitizenPersona
           @intent cdp_peel
           @intent peel path=Foo.cs members=Bar out=Foo.Bar.cs apply=false
           @intent peel_apply path=Foo.cs members=Bar out=Foo.Bar.cs
+          @intent edit_plan
+          @intent edit_plan_desk
+          @intent cdp_edit_plan
+          @intent edit_plan_draft sketch=fix path=Foo.cs
+          @intent edit_plan_validate yaml="- path: Foo.cs"
+          @intent edit_plan_apply yaml="- path: Foo.cs"
           @intent calendar
           @intent calendar pulse
           @intent clock
