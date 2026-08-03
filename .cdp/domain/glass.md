@@ -73,14 +73,14 @@ Presence DoD = SoftOrgan glance | Glass peel | **full WPF host** (operator 2026-
 | SemanticMap | `arch` glance | same list v1 (no Skia) | DONE v1 · depth Skia/WNM |
 | MarkdownPreview | `report` glance | Markdig `ToPlainText` | DONE v1 · depth rich tree |
 | AiChatSettings | `mcp` glance | settings.toml SSOT | HOLD latch |
-| WebAiPortal | unbound | URL chrome → external browser | DONE v1 · depth WebView2 |
+| WebAiPortal | unbound | WebView2 embedded | DONE VT-class · Avalonia EOL |
 | Correspondence | unbound | thin FS reverse/forward | DONE v1 · depth full CRS |
 
 Sources: `Models/MfdShellPage.cs` · `SoftOrganMfdGlance.TryOrganIdForMfdPage` · `MainWindow.MfdBody` · XAML `MfdPages`.
 
 Parity note: Glass XAML / CabinGlass use page string **SemanticMap** (`arch_desk` → MFD); Avalonia `MfdShellPage` has **no** SemanticMap member — graph SSOT = PFD `WorkspaceNavigationMapView` (not MFD shell).
 
-**Presence DoD: CLOSED**. **Full-host v1 DoD: CLOSED** (2026-08-03 batch `77035101`+`f7de96e9`) — CascadeChord = Ctrl+K overlay (not MFD). **Depth DoD: OPEN** — WebView2 · Skia SemanticMap · live DAP · full CRS resolver. **Terminal VT: CLOSED** (EasyWindowsTerminalControl · Avalonia EOL → WPF ready).
+**Presence DoD: CLOSED**. **Full-host v1 DoD: CLOSED** (2026-08-03 batch `77035101`+`f7de96e9`) — CascadeChord = Ctrl+K overlay (not MFD). **Depth DoD: OPEN** — Skia SemanticMap · live DAP · full CRS resolver. **Terminal VT: CLOSED** · **WebView2 WebAi: CLOSED**.
 
 ## DoD matrix — SoftOrgan chrome beyond MFD (2026-08-01 dig)
 
@@ -167,6 +167,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- 2026-08-04: **Glass WebAi WebView2** — embedded Microsoft.Web.WebView2 in MFD · URL bar + go/Enter · Avalonia portal EOL for cabin
+- 2026-08-04: **Glass Terminal VT focus fix** — start after layout size · Focus steal from Composer · `c66d0c25`
 - 2026-08-04: **Glass Terminal VT** — EasyWindowsTerminalControl (WT WPF) · Avalonia EOL steer · launch via GlassCore IntegratedShellLaunch · TextBox/GlassConPtyShell removed from MFD
 - 2026-08-03: **Glass ConPTY session shared** — Terminal DAL linked into GlassCore · (superseded by VT host above for Glass MFD)
 - 2026-08-03: **dig Glass Terminal ConPTY peel path** — DAL Avalonia-free; UI SSOT AvaloniaTerminal; extract→GlassCore + Glass host path stamped
