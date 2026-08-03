@@ -134,6 +134,9 @@ internal static class CitizenPersona
           @intent buffers
           @intent close path=tools/_put-draft.txt
           @intent doc_diagnostics path=CitizenRouteHost.cs
+          @intent find_all path=CitizenRouteHost.cs query=RunFindBuf
+          @intent buf_find path=CitizenRouteHost.cs query=FindBuf
+          @intent find query=x scope=buffer path=CitizenRouteHost.cs
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost

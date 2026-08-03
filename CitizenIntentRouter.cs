@@ -42,6 +42,7 @@ internal static partial class CitizenIntentRouter
         Disk,
         Sniper,
         Buffer,
+        FindBuf,
         Detail,
         Cmd,
         Refuse,
@@ -461,6 +462,20 @@ internal static partial class CitizenIntentRouter
             return RouteNav(raw);
         }
 
+        if (raw.Equals("find_all", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("find_all ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("findall", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("findall ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buf_find", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buffer_find", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("find_in", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("find_buffer", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buf_find_all", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buffer_find_all", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteFindBuf(raw);
+        }
+
         if (raw.Equals("find", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("find ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("find query=", StringComparison.OrdinalIgnoreCase)
@@ -468,6 +483,8 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("search ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("search query=", StringComparison.OrdinalIgnoreCase))
         {
+            if (LooksLikeBufferFindScope(raw))
+                return RouteFindBuf(raw);
             return RouteFind(raw);
         }
 
