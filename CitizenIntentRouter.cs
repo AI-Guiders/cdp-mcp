@@ -59,6 +59,7 @@ internal static partial class CitizenIntentRouter
         EditorScene,
         Man,
         Health,
+        Quality,
         Context,
         Edit,
         Deploy,
@@ -450,6 +451,36 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("session_context ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteContext(raw);
+        }
+
+        if (raw.Equals("quality", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("quality ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("quality_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("quality_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("quality_gates", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("quality_gates ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_quality", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_quality ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("gates", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("gates ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("quality_disk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("quality_disk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("quality_assert", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("quality_assert ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("quality_assertions", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("quality_assertions ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("quality_adx", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("quality_adx ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("quality_project", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("quality_project ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("quality_map", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("quality_map ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("gates_disk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("gates_disk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("gates_assert", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("gates_assert ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteQuality(raw);
         }
 
         if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
@@ -1439,6 +1470,8 @@ internal static partial class CitizenIntentRouter
             "man" or "man_desk" or "cdp_man" or "manual" => "man",
             "health" or "health_desk" or "cdp_health" or "ops_health" => "health",
             "context" or "context_desk" or "cdp_context" or "session_context" => "context",
+            "quality" or "quality_desk" or "quality_gates" or "cdp_quality" or "gates"
+                or "quality_disk" or "quality_assert" or "quality_adx" => "quality",
             "goto" or "goto_all" or "go_to_all" or "cdp_goto" or "goto_feature" or "goto_desk" or "go_to" => "goto",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
