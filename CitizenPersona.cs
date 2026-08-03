@@ -119,6 +119,12 @@ internal static class CitizenPersona
           @intent ps1_last
           @intent cdp_ps1_scene op=scene
           @intent ps1_put name=probe.ps1 text="Write-Host hi"
+          @intent icm
+          @intent icm_desk
+          @intent cdp_icm
+          @intent icm aliases
+          @intent icm resolve command_id=plan
+          @intent icm_invoke command_id=cdp_health
           @intent calendar
           @intent calendar pulse
           @intent clock
