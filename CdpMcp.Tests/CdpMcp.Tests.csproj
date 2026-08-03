@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -59,4 +59,9 @@
       <DependentUpon>IdeIgniteWakeLatchTests.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-</Project>
+  <ItemGroup>
+    <Compile Update="CitizenRouteHostTests.LiveMock.cs">
+      <DependentUpon>CitizenRouteHostTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="IdeIgniteArmHostTests.Continuity.Arm.cs"><DependentUpon>IdeIgniteArmHostTests.Continuity.cs</DependentUpon></Compile></ItemGroup></Project>

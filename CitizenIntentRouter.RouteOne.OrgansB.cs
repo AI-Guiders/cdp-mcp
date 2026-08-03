@@ -310,39 +310,8 @@ internal static partial class CitizenIntentRouter
             return RouteRules(raw);
         }
 
-        if (raw.Equals("arch", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("arch ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("arch_desk", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("arch_desk ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("arch_board", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("arch_board ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("board", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("board ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("sketch_desk", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("sketch_desk ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("cdp_arch", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("cdp_arch ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("arch_scene", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("arch_scene ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("arch_roles", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("arch_roles ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("arch_clear", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("arch_clear ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("arch_promote", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("arch_promote ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("arch_as_built", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("arch_as_built ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("cdp_arch_scene", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("cdp_arch_scene ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("cdp_arch_roles", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("cdp_arch_roles ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("cdp_arch_as_built", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("cdp_arch_as_built ", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("board_scene", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("board_scene ", StringComparison.OrdinalIgnoreCase))
-        {
+        if (IsArchIntent(raw))
             return RouteArch(raw);
-        }
 
 
         return null;

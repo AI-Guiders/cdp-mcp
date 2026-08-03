@@ -135,4 +135,27 @@ internal static partial class CitizenIntentRouter
     static bool IsArchOp(string? op) =>
         op is "scene" or "add_role" or "add_candidates" or "elect" or "reject"
             or "edge" or "promote" or "clear" or "as_built" or "roles";
+
+    static bool IsArchIntent(string raw)
+    {
+        if (raw.Equals("arch", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("arch ", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        foreach (var alias in ArchAliases)
+        {
+            if (raw.Equals(alias, StringComparison.OrdinalIgnoreCase)
+                || raw.StartsWith(alias + " ", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        foreach (var (prefix, _) in ArchCompounds)
+        {
+            if (raw.Equals(prefix, StringComparison.OrdinalIgnoreCase)
+                || raw.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
 }
