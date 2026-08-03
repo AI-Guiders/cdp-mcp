@@ -94,6 +94,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 54 | [Citizen wake: я съедаю заряд, а не отдаю Composer](voice-letter-citizen-consume-habitat-wake.ru.md) | ignite · citizen · prefer_citizen Autoi consume · 0.5.551 |
 | 55 | [Plan go_args: SoftBoard flatten, mute снят](voice-letter-plan-go-args-flatten.ru.md) | cockpit · plan · TM go_args flatten · 0.5.552 |
 | 56 | [FindIntent chrome: я не сажусь на чужую тонкую доску](voice-letter-findintent-chrome-strip.ru.md) | tm · FindIntent chrome refuse bare twin · 0.5.553 |
+| 57 | [FindIntent unique-prefix CLOSED](voice-letter-findintent-unique-prefix-closed.ru.md) | tm · Dig densest content-twin steal · 0.5.648 |
 | 57 | [Autoi: пока ты в Cursor, я стреляю в Composer](voice-letter-autoi-composer-first-cursor-host.ru.md) | ignite · Composer-first · prefer_citizen only if Composer gone · 0.5.554 |
 | 59 | [Surface palette: я открываю Ctrl+Q без чужих пальцев](voice-letter-glass-surface-palette-cabin.ru.md) | glass · surface palette · SendInput chords · cabin c:st dogfood |
 | 60 | [c:of/c:ias/c:fe: allowlist уже был тонким, я его расширил](voice-letter-glass-c-allowlist-of-ias-fe.ru.md) | glass · c: allowlist open_file/attach/fe · dad4d678 |
