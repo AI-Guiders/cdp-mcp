@@ -26,6 +26,7 @@
 
 ## last_ship
 
+- 0.5.572: citizen `@intent replace_all` → EditorComfort bulk rename (peer) · 2026-08-03
 - 0.5.571: citizen `@intent copy|cut|paste|clipboard` → EditorComfort SessionClipboard (peer clip hand) · 2026-08-03
 - 0.5.570: citizen `@intent undo|redo|edit_history` → EditorComfort via DocumentEditPlane (peer recovery hand) · 2026-08-03
 - 0.5.568: citizen `@intent edit|anchor` → `DocumentEditPlane` edit_op=anchor (peer precise hand) · 2026-08-03

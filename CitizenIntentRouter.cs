@@ -33,6 +33,7 @@ internal static partial class CitizenIntentRouter
         Deploy,
         Undo,
         Clip,
+        ReplaceAll,
         Detail,
         Cmd,
         Refuse,
@@ -150,6 +151,15 @@ internal static partial class CitizenIntentRouter
             return string.IsNullOrWhiteSpace(path)
                 ? new Route(Verb.Unknown, raw, Ok: false, Reason: "open_path_empty")
                 : new Route(Verb.Open, raw, Ok: true, Path: path, Go: "buffer");
+        }
+
+        if (raw.Equals("replace_all", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("replace_all ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("replace_all path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("replaceall", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("replaceall ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteReplaceAll(raw);
         }
 
         if (raw.StartsWith("replace ", StringComparison.OrdinalIgnoreCase)
