@@ -57,6 +57,7 @@ internal static partial class CitizenIntentRouter
         TestScene,
         GotoAll,
         EditorScene,
+        Man,
         Edit,
         Deploy,
         Undo,
@@ -411,6 +412,18 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("editor ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteEditorScene(raw);
+        }
+
+        if (raw.Equals("man", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("man ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("man_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("man_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_man", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_man ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("manual", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("manual ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteMan(raw);
         }
 
         if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
@@ -1397,6 +1410,7 @@ internal static partial class CitizenIntentRouter
             "test_plan" or "test_plan_desk" or "cdp_test_plan" or "test_plan_preview" or "test_plan_apply" or "test_plan_draft" or "test_plan_run" => "test_plan",
             "test_scene" or "test_scene_desk" or "cdp_test_scene" or "test_runner" => "test_scene",
             "editor_scene" or "editor_scene_desk" or "cdp_editor_scene" or "editor_desk" => "editor_scene",
+            "man" or "man_desk" or "cdp_man" or "manual" => "man",
             "goto" or "goto_all" or "go_to_all" or "cdp_goto" or "goto_feature" or "goto_desk" or "go_to" => "goto",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
