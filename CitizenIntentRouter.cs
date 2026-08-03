@@ -65,6 +65,7 @@ internal static partial class CitizenIntentRouter
         Capabilities,
         Cockpit,
         Work,
+        Sa,
         Context,
         Edit,
         Deploy,
@@ -548,6 +549,22 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("intent_workspace ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteWork(raw);
+        }
+
+        if (raw.Equals("sa", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("sa ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("sa_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("sa_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_sa", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_sa ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("code_sa", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("code_sa ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("pre_sa", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("pre_sa ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("sa_code", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("sa_code ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteSa(raw);
         }
 
         if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
@@ -1544,6 +1561,7 @@ internal static partial class CitizenIntentRouter
             "capabilities" or "capabilities_desk" or "cdp_capabilities" or "caps" => "capabilities",
             "cockpit" or "cockpit_desk" or "cdp_cockpit" or "agent_desk" => "cockpit",
             "work_desk" or "cdp_work" or "intent_workspace" => "intent_workspace",
+            "sa_desk" or "cdp_sa" or "code_sa" or "pre_sa" or "sa_code" => "sa_desk",
             "goto" or "goto_all" or "go_to_all" or "cdp_goto" or "goto_feature" or "goto_desk" or "go_to" => "goto",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o

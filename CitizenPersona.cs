@@ -236,6 +236,14 @@ internal static class CitizenPersona
           @intent work intent_list
           @intent cdp_work op=stage_list
           @intent go=work
+          @intent sa
+          @intent sa_desk
+          @intent cdp_sa
+          @intent code_sa
+          @intent sa pulse
+          @intent sa depth=full path=CitizenRouteHost.Sa.cs
+          @intent go=sa_desk
+          @intent go=sa
           @intent calendar
           @intent calendar pulse
           @intent clock
