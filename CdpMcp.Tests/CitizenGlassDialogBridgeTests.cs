@@ -122,7 +122,13 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         Assert.Contains("go=plan", CitizenPeerAck.LastEvent!, StringComparison.OrdinalIgnoreCase);
 
         using var latch = JsonDocument.Parse(File.ReadAllText(CideIntercomVoiceLatch.LatchPath));
-        Assert.Equal("citizen-echo:hands please", latch.RootElement.GetProperty("body").GetString());
+        var body = latch.RootElement.GetProperty("body").GetString();
+        Assert.Contains("citizen-echo:hands please", body, StringComparison.Ordinal);
+        Assert.Contains("ack=1/1", body, StringComparison.Ordinal);
+
+        using var status = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        Assert.Equal("done", status.RootElement.GetProperty("status").GetString());
+        Assert.Contains("ack=1/1", status.RootElement.GetProperty("peer").GetString(), StringComparison.Ordinal);
     }
 
     void WritePending(string id, string body, bool resetProcessed = true)
