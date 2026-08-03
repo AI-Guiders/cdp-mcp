@@ -21,5 +21,6 @@
 
 ## last_ship
 
+- **0.5.588** — citizen `@intent script|csx` → ScriptScene.DispatchAsync (host-execute; MetaDispatch for run). Peer CSX without Cursor MCP.
 - soft-warn: Check+Run peels (`ScriptScene.Check.cs` / `.Run.cs`); façade 376→244 @ 0.5.420 · 2026-08-01
 - soft-warn near-miss: peel FlattenJson→BoolOr (+TryGetLast/path wire) → `ScriptScene.Helpers.Flatten.cs` @ 0.5.407; Helpers~195 / Flatten~205
