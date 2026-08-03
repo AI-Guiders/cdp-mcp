@@ -42,6 +42,7 @@ internal static partial class CitizenIntentRouter
         Presentation,
         Toolchain,
         CockpitHost,
+        Qrh,
         Edit,
         Deploy,
         Undo,
@@ -705,6 +706,40 @@ internal static partial class CitizenIntentRouter
             return RouteCockpitHost(raw);
         }
 
+        if (raw.Equals("qrh", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("qrh ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("eqrh", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("eqrh ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_qrh", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_qrh ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("qrh_open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("qrh_open ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("qrh_search", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("qrh_search ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("qrh_index", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("qrh_index ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("qrh_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("qrh_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("qrh_shelf", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("qrh_shelf ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("qrh_related", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("qrh_related ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("eqrh_open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("eqrh_open ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("eqrh_search", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("eqrh_search ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("eqrh_index", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("eqrh_index ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_qrh_open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_qrh_open ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_qrh_search", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_qrh_search ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_qrh_index", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_qrh_index ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteQrh(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -931,6 +966,7 @@ internal static partial class CitizenIntentRouter
             "cide_presentation" or "presentation" or "presentation_set" or "presentation_scene" => "cide_presentation",
             "toolchain" or "toolchain_desk" or "cdp_toolchain" or "toolchain_ensure" or "toolchain_probe" => "toolchain",
             "cockpit_host" or "cdp_cockpit_host" or "cockpit_start" or "cockpit_stop" => "cockpit_host",
+            "qrh" or "eqrh" or "cdp_qrh" or "qrh_open" or "qrh_search" or "qrh_index" => "qrh",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
