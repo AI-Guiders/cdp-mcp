@@ -34,6 +34,7 @@ internal static partial class CitizenIntentRouter
         Script,
         Calendar,
         Land,
+        Pkg,
         Edit,
         Deploy,
         Undo,
@@ -486,6 +487,43 @@ internal static partial class CitizenIntentRouter
             return RouteLand(raw);
         }
 
+        if (raw.Equals("pkg", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("pkg ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("pkg op=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("nuget", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("nuget ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("packages", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("packages ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("package", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("package ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("pkg_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("pkg_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("pkg_find", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("pkg_find ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("pkg_add", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("pkg_add ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("pkg_remove", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("pkg_remove ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("pkg_update", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("pkg_update ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("pkg_outdated", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("pkg_outdated ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("nuget_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("nuget_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("nuget_find", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("nuget_find ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("nuget_add", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("nuget_add ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("nuget_remove", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("nuget_remove ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("nuget_update", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("nuget_update ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("nuget_outdated", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("nuget_outdated ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RoutePkg(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -704,6 +742,7 @@ internal static partial class CitizenIntentRouter
             "pressure" => "pressure",
             "calendar" or "clock" or "calendar_desk" => "calendar",
             "land" or "deep_link" or "deeplink" => "land",
+            "pkg" or "nuget" or "packages" or "package" => "pkg",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };

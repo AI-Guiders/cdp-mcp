@@ -122,6 +122,14 @@ internal static class CitizenPersona
           @intent land show path=docs/shot.png
           @intent land go go=editor_scene
           @intent land anchor="[Family:navigation;Command:restore]"
+          @intent pkg
+          @intent pkg list
+          @intent nuget
+          @intent pkg find query=Newtonsoft take=5
+          @intent pkg find Serilog
+          @intent pkg add id=Newtonsoft.Json version=13.0.3
+          @intent pkg outdated
+          @intent pkg_list
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
