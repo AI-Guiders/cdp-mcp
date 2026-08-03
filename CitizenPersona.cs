@@ -111,6 +111,14 @@ internal static class CitizenPersona
           @intent script check name=probe.csx
           @intent script run name=probe.csx
           @intent script last
+          @intent ps1
+          @intent ise
+          @intent ps1_scene
+          @intent ps1 scene
+          @intent ps1 help
+          @intent ps1_last
+          @intent cdp_ps1_scene op=scene
+          @intent ps1_put name=probe.ps1 text="Write-Host hi"
           @intent calendar
           @intent calendar pulse
           @intent clock

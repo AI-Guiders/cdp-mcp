@@ -72,6 +72,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.Pressure => RunPressure(route),
             CitizenIntentRouter.Verb.Browser => RunBrowser(route),
             CitizenIntentRouter.Verb.Script => RunScript(route),
+            CitizenIntentRouter.Verb.Ps1 => RunPs1(route),
             CitizenIntentRouter.Verb.Calendar => RunCalendar(route),
             CitizenIntentRouter.Verb.Land => RunLand(route),
             CitizenIntentRouter.Verb.Pkg => RunPkg(route),
