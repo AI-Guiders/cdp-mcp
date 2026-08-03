@@ -164,6 +164,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 128 | [@intent cockpit: я сам смотрю desk pulse, не через чужой cdp_cockpit MCP](voice-letter-citizen-cockpit-host.ru.md) | citizen · @intent cockpit|agent_desk|cdp_cockpit · Meta cdp_cockpit · 0.5.621 |
 | 129 | [@intent work: я сам трогаю intent workspace, не через чужой cdp_work MCP](voice-letter-citizen-work-host.ru.md) | citizen · @intent work|work_desk|cdp_work|intent_workspace · Meta cdp_work · 0.5.622 |
 | 130 | [WitDB WithDb gate: я не открываю status мимо замка](voice-letter-witdb-withdb-gate.ru.md) | tm/WitDB · Status|SceneList via WithDb · 0.5.623 |
+| 131 | [@intent sa: я сам трогаю pre-refactor SA, не через чужой cdp_sa MCP](voice-letter-citizen-sa-host.ru.md) | citizen · @intent sa|sa_desk|cdp_sa · Meta cdp_sa · 0.5.624 |
 | 112 | [@intent files: я сам брожу по дереву, не через чужой cdp_files MCP](voice-letter-citizen-files-host.ru.md) | citizen · @intent files|files_* · IdeFilesChannel · 0.5.605 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
