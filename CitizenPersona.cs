@@ -181,6 +181,12 @@ internal static class CitizenPersona
           @intent man tool=cdp_health
           @intent man tool=context_budget
           @intent cdp_man context_budget
+          @intent health
+          @intent health_desk
+          @intent cdp_health
+          @intent ops_health
+          @intent health explain_tool=cdp_man
+          @intent cdp_health explain_tool=cdp_context
           @intent calendar
           @intent calendar pulse
           @intent clock
