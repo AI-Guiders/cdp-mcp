@@ -128,6 +128,18 @@ internal static partial class CitizenPersona
           @intent crm respond code=go_around
           @intent crm_lexicon
           @intent go=crm
+          @intent md_author
+          @intent cdp_md_author check path=docs/readme.md
+          @intent project_switch
+          @intent ps recall
+          @intent glass
+          @intent cdp_glass status
+          @intent fdr tail
+          @intent teeth
+          @intent postmortem template
+          @intent plugins search q=roslyn
+          @intent problems
+          @intent errlist
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy

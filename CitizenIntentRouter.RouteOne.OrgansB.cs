@@ -316,6 +316,29 @@ internal static partial class CitizenIntentRouter
         if (IsArchIntent(raw))
             return RouteArch(raw);
 
+        if (IsMdAuthorIntent(raw))
+            return RouteMdAuthor(raw);
+
+        if (IsScopeIntent(raw))
+            return RouteScope(raw);
+
+        if (IsGlassIntent(raw))
+            return RouteGlass(raw);
+
+        if (IsFdrIntent(raw))
+            return RouteFdr(raw);
+
+        if (IsTeethIntent(raw))
+            return RouteTeeth(raw);
+
+        if (IsPostmortemIntent(raw))
+            return RoutePostmortem(raw);
+
+        if (IsPluginsIntent(raw))
+            return RoutePlugins(raw);
+
+        if (IsProblemsIntent(raw))
+            return RouteProblems(raw);
 
         return null;
     }
