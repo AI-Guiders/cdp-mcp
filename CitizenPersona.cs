@@ -103,6 +103,14 @@ internal static class CitizenPersona
           @intent browser open url="https://example.com"
           @intent browser dump
           @intent browser links
+          @intent script
+          @intent script scene
+          @intent csx
+          @intent script_put name=probe text="await Help.Of(\"Symbol\");"
+          @intent script put name=probe.csx text="await Help.Of(\"Symbol\");"
+          @intent script check name=probe.csx
+          @intent script run name=probe.csx
+          @intent script last
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
