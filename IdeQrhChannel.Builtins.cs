@@ -47,11 +47,12 @@ internal static partial class IdeQrhChannel
             "path-mutate-gate",
             "abnormal",
             "Host Read/Write bypassed desk",
-            "Cursor Write skips PathMutateGate; Cursor Read dumps file bodies into chat context (~1%/read). Material disk drift on open buffers stamps AdxMutateTrace host_write (go=quality scope=assert) — detect, not gate. Thick set_text on large files = thrash — prefer edit_op=anchor / go=scope sniper.",
-            ["buffer", "write", "read", "mutate", "path_mutate", "context", "set_text", "thrash", "host_write"],
+            "Cursor Write skips PathMutateGate; Cursor Read dumps file bodies into chat context (~1%/read). Material disk drift on open buffers stamps AdxMutateTrace host_write (go=quality scope=assert) — detect, not gate. set_text on existing path soft-refuses (ADX-HX-001) unless force=true — prefer edit_op=anchor|replace|replace_range; bootstrap via op=create text=. Thick set_text on large files = thrash — prefer sniper.",
+            ["buffer", "write", "read", "mutate", "path_mutate", "context", "set_text", "thrash", "host_write", "force"],
             [
                 "Prefer cdp_buffer over Cursor Write on project paths",
                 "Prefer cdp_buffer open/find/read over Cursor Read (context tax)",
+                "Existing path: set_text refuses unless force=true — use anchor|replace",
                 "Large file: anchor/sniper — not whole-file set_text",
                 "Material drift: reload|keep_disk|force; host_write via go=quality scope=assert"
             ],

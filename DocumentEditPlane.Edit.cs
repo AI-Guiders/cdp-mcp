@@ -34,8 +34,20 @@ internal static partial class DocumentEditPlane
                 switch (op)
                 {
                     case "set_text":
+                    {
+                        // ADX-HX-001: full rewrite on existing path is habitat host_write analog — soft-refuse unless force=.
+                        var forceRewrite = BoolOr(args, "force", defaultValue: false);
+                        if (pathExistedBefore && !forceRewrite)
+                        {
+                            throw new InvalidOperationException(
+                                $"Refusing set_text on existing '{pathKey}' (ADX-HX-001). " +
+                                "Prefer edit_op=anchor|replace|replace_range; pass force=true for intentional full rewrite. " +
+                                "Bootstrap new files via op=create text=.");
+                        }
+
                         store.ApplySetText(buf, OptString(args, "text") ?? "");
                         break;
+                    }
                     case "replace":
                         store.ApplyReplace(buf, RequireString(args, "old_string"), OptString(args, "new_string") ?? "");
                         break;
