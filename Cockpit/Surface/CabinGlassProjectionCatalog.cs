@@ -77,6 +77,8 @@ public static class CabinGlassProjectionCatalog
             "learn" => new Projection("MarkdownPreview", "agent · M: learn"),
             "domain" or "cdp_domain" or "ownership"
                 => new Projection("MarkdownPreview", "agent · M: domain"),
+            "rules" or "rules_desk" or "standing" or "healthy_agent" or "cdp_rules"
+                => new Projection("MarkdownPreview", "agent · M: rules"),
             "calendar" or "calendar_desk" or "clock" or "local_clock" or "cdp_calendar"
                 => new Projection(null, "agent · M: calendar"),
             "fds" or "flight_data_storage" or "flight_data_store" or "shared_desk"

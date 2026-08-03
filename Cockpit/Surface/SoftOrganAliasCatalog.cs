@@ -46,6 +46,8 @@ public sealed class SoftOrganAliasCatalog : ICockpitComputeUnit
             => SoftOrganKind.Domain,
         "calendar" or "calendar_desk" or "clock" or "local_clock" or "cdp_calendar"
             => SoftOrganKind.Calendar,
+        "rules" or "rules_desk" or "standing" or "healthy_agent" or "cdp_rules"
+            => SoftOrganKind.Rules,
         _ => null
     };
 }

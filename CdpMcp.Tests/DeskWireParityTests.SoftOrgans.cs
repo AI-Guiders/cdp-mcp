@@ -50,6 +50,9 @@ public sealed partial class DeskWireParityTests
         Assert.Equal(SoftOrganKind.Calendar, cat.TryResolve("calendar"));
         Assert.Equal(SoftOrganKind.Calendar, cat.TryResolve("clock"));
         Assert.Equal(SoftOrganKind.Calendar, cat.TryResolve("cdp_calendar"));
+        Assert.Equal(SoftOrganKind.Rules, cat.TryResolve("rules"));
+        Assert.Equal(SoftOrganKind.Rules, cat.TryResolve("cdp_rules"));
+        Assert.Equal(SoftOrganKind.Rules, cat.TryResolve("standing"));
         Assert.Null(cat.TryResolve("editor_scene"));
         Assert.Null(cat.TryResolve("git_scene"));
     }
@@ -96,6 +99,9 @@ public sealed partial class DeskWireParityTests
         Assert.Equal("calendar", cat.Require(SoftOrganKind.Calendar).Go);
         Assert.Equal("cdp_calendar", cat.Require(SoftOrganKind.Calendar).Tool);
         Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.Calendar).Mode);
+        Assert.Equal("rules", cat.Require(SoftOrganKind.Rules).Go);
+        Assert.Equal("cdp_rules", cat.Require(SoftOrganKind.Rules).Tool);
+        Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.Rules).Mode);
         Assert.Equal("project_switch", cat.Require(SoftOrganKind.ProjectSwitch).Go);
         Assert.Equal("cdp_scope", cat.Require(SoftOrganKind.ProjectSwitch).Tool);
         Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.ProjectSwitch).Mode);

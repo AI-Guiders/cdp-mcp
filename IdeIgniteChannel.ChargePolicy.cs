@@ -44,19 +44,13 @@ internal static partial class IdeIgniteChannel
     internal static string ComposeRemountInitializedCharge(string? projectRoot = null, string? focusHint = null)
     {
         var core = RemountInitializedLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix;
-        var domain = IdeDomainPulse.RemountDomainAppendix(projectRoot, focusHint);
-        if (domain.Length == 0)
-            return SanitizeComposerCharge(core);
-        return SanitizeComposerCharge(core + "\n\n---\n" + domain);
+        return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
     internal static string ComposeOomWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
         var core = OomWakeLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix;
-        var domain = IdeDomainPulse.RemountDomainAppendix(projectRoot, focusHint);
-        if (domain.Length == 0)
-            return SanitizeComposerCharge(core);
-        return SanitizeComposerCharge(core + "\n\n---\n" + domain);
+        return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
     /// <summary>Lead line when HILD away escalates to autonomy — agent must wake even if first away turn ended.</summary>
@@ -66,10 +60,22 @@ internal static partial class IdeIgniteChannel
     internal static string ComposeEscalateWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
         var core = EscalateWakeLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix;
+        return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
+    }
+
+    /// <summary>Domain + standing rules appendices for remount/OOM/escalate — empty extras leave core alone.</summary>
+    static string AppendRemountExtras(string core, string? projectRoot, string? focusHint)
+    {
+        var chunks = new List<string>(2);
         var domain = IdeDomainPulse.RemountDomainAppendix(projectRoot, focusHint);
-        if (domain.Length == 0)
-            return SanitizeComposerCharge(core);
-        return SanitizeComposerCharge(core + "\n\n---\n" + domain);
+        if (domain.Length > 0)
+            chunks.Add(domain);
+        var standing = IdeStandingPulse.RemountStandingAppendix(projectRoot, focusHint);
+        if (standing.Length > 0)
+            chunks.Add(standing);
+        if (chunks.Count == 0)
+            return core;
+        return core + "\n\n---\n" + string.Join("\n\n", chunks);
     }
 
 

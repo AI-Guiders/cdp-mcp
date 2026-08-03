@@ -33,5 +33,6 @@ public enum SoftOrganKind
     Learn,
     ProjectSwitch,
     Domain,
-    Calendar
+    Calendar,
+    Rules
 }
