@@ -41,6 +41,7 @@ internal static partial class CitizenIntentRouter
         Intercom,
         Presentation,
         Toolchain,
+        CockpitHost,
         Edit,
         Deploy,
         Undo,
@@ -686,6 +687,24 @@ internal static partial class CitizenIntentRouter
             return RouteToolchain(raw);
         }
 
+        if (raw.Equals("cockpit_host", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cockpit_host ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_cockpit_host", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_cockpit_host ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cockpit_start", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cockpit_start ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cockpit_stop", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cockpit_stop ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cockpit_host_start", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cockpit_host_start ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cockpit_host_stop", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cockpit_host_stop ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cockpit_host_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cockpit_host_scene ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteCockpitHost(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -911,6 +930,7 @@ internal static partial class CitizenIntentRouter
             "intercom" or "cide_intercom" or "intercom_send" or "intercom_scene" or "intercom_ack" or "intercom_history" or "intercom_presence" => "intercom",
             "cide_presentation" or "presentation" or "presentation_set" or "presentation_scene" => "cide_presentation",
             "toolchain" or "toolchain_desk" or "cdp_toolchain" or "toolchain_ensure" or "toolchain_probe" => "toolchain",
+            "cockpit_host" or "cdp_cockpit_host" or "cockpit_start" or "cockpit_stop" => "cockpit_host",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
