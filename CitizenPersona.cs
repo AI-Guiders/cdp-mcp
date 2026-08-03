@@ -111,6 +111,10 @@ internal static class CitizenPersona
           @intent script check name=probe.csx
           @intent script run name=probe.csx
           @intent script last
+          @intent calendar
+          @intent calendar pulse
+          @intent clock
+          @intent calendar month
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
