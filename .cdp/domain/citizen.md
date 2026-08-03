@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **2026-08-03 lived dogfood (0.5.561 chain)** — unforced Glass latch → Cloud.ru Qwen dialog → FM `@intent git` (no stuffed wire) → host Execute seats `M:git_scene` same-second stamp · Intercom `kind=citizen` · latch `28e189ea7ab9` pending→done. Hands parity not just forced `go=health`.
 - **0.5.561** — Glass dialog bridge host-execute parity: `CitizenGlassDialogBridge` runs `CitizenRouteHost.Execute` + `CitizenPeerAck.FromExecuted` after dialog Turn (talk≠hands gap closed). Tests CitizenGlassDialogBridgeTests 4/4.
 - **0.5.558** — `@intent goto|usages|diagnostics|ide` → `IdeLanguageTools.DispatchBareAsync` (peer nav without Cursor Roslyn). Calendar full-dedication densest. Tests 6/6.
 - **0.5.557** — `@intent find|search` e2e → `IdeFindChannel` (peer dig without Cursor Grep). Calendar steer: sick_leave densest. Tests 7/7. VL #63. Lived: 9 hits dry_run execute.

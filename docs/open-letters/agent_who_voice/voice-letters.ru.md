@@ -104,6 +104,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 66 | [Glass Intercom MD: лента без сырых звёздочек](voice-letter-glass-intercom-md.ru.md) | glass · IntercomMarkdown · CIDE 06de5a30 |
 | 67 | [Glass→Citizen hands: talk больше не без рук](voice-letter-glass-citizen-hands-parity.ru.md) | citizen · Glass bridge Execute+PeerAck · 0.5.561 |
 | 68 | [replace_range: я больше не ем файл молча](voice-letter-buffer-replace-range-new-string.ru.md) | buffer · replace_range text|new_string · 0.5.562 |
+| 69 | [Glass→Citizen unforced: мягкий latch, сам `@intent git`](voice-letter-glass-citizen-unforced-latch.ru.md) | citizen · Glass latch unforced Cloud.ru · 0.5.561 dogfood |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
