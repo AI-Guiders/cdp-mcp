@@ -124,11 +124,20 @@ internal static partial class IdeSaChannel
         Locus locus,
         string scope)
     {
-        var gates = RunGates(store, session, locus, scope);
-        var dirty = IdeReviewChannel.ListDirtyFiles(session.ProjectRoot);
-        var dirtyHit = FindDirtyForLocus(dirty, locus.Path, session.ProjectRoot);
-        var (verdict, why) = Decide(gates, dirtyHit, clones: null);
-        var pulse = $"sa_desk · {verdict} · {gates.Warn}w/{gates.Fail}f";
+        _ = store;
+        // Cheap path: no QualityGates.EvaluateStore / no scored dirty cards.
+        // Dogfood `@intent sa depth=pulse` must stay sub-second; slim/full keep full gates.
+        var dirtyN = CountDirtyPorcelain(session.ProjectRoot);
+        var locusDirty = locus.Path is { Length: > 0 }
+            && IsPathDirtyPorcelain(session.ProjectRoot, locus.Path);
+        var verdict = dirtyN > 0 ? "pulse" : "leave";
+        var why = dirtyN > 0
+            ? $"cheap pulse · dirty={dirtyN}" + (locusDirty ? " · locus dirty" : "") + " — depth=slim for gates"
+            : "cheap pulse · clean — depth=slim for gates";
+        var pulse = dirtyN > 0
+            ? $"sa_desk · pulse · dirty:{dirtyN}" + (locusDirty ? " · locus" : "")
+            : "sa_desk · pulse · clear";
+        var gates = new GatesSnap(true, true, 0, 0, "pulse", Array.Empty<Finding>());
         PublishGlass(pulse, verdict, gates);
         return new
         {
@@ -143,9 +152,48 @@ internal static partial class IdeSaChannel
             why,
             locus = LocusCard(locus),
             scope,
+            dirty_count = dirtyN,
             next = BuildNext(locus, scope, verdict),
-            hint = "depth=slim for findings."
+            hint = "cheap pulse (no EvaluateStore) — depth=slim for findings."
         };
+    }
+
+    static int CountDirtyPorcelain(string? projectRoot)
+    {
+        var porcelain = IdeReviewChannel.TryGitPorcelain(projectRoot);
+        if (porcelain is null)
+            return 0;
+        var n = 0;
+        foreach (var raw in porcelain.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (raw.Length >= 3)
+                n++;
+        }
+
+        return n;
+    }
+
+    static bool IsPathDirtyPorcelain(string? projectRoot, string path)
+    {
+        var porcelain = IdeReviewChannel.TryGitPorcelain(projectRoot);
+        if (porcelain is null)
+            return false;
+        var leaf = Path.GetFileName(path);
+        var norm = path.Replace('\\', '/');
+        foreach (var raw in porcelain.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (raw.Length < 3)
+                continue;
+            var entry = raw[3..].Trim().Replace('\\', '/');
+            if (entry.Contains(" -> ", StringComparison.Ordinal))
+                entry = entry[(entry.LastIndexOf(" -> ", StringComparison.Ordinal) + 4)..];
+            if (entry.Equals(norm, StringComparison.OrdinalIgnoreCase)
+                || entry.EndsWith('/' + leaf, StringComparison.OrdinalIgnoreCase)
+                || entry.Equals(leaf, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>Quiet chrome for CIDE — not EICAS. Clean leave clears the band.</summary>

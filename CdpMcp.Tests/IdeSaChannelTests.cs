@@ -40,7 +40,7 @@ public class IdeSaChannelTests
     }
 
     [Fact]
-    public void Pulse_is_thin()
+    public void Pulse_is_thin_and_skips_quality_block()
     {
         var store = new DocumentBufferStore();
         var session = new SessionContext { ProjectRoot = Path.GetTempPath() };
@@ -54,6 +54,8 @@ public class IdeSaChannelTests
         Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
         Assert.Equal("pulse", doc.RootElement.GetProperty("detail").GetString());
         Assert.False(doc.RootElement.TryGetProperty("clones", out _));
+        Assert.False(doc.RootElement.TryGetProperty("quality", out _), json);
+        Assert.Contains("cheap pulse", doc.RootElement.GetProperty("hint").GetString() ?? "", StringComparison.Ordinal);
     }
 
     [Fact]

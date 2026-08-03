@@ -13,7 +13,7 @@ internal static partial class IdeReviewChannel
         string porcelain;
         try
         {
-            porcelain = RunGit(projectRoot, "status --porcelain -uall") ?? "";
+            porcelain = TryGitPorcelain(projectRoot, untrackedAll: true) ?? "";
         }
         catch
         {
@@ -41,6 +41,22 @@ internal static partial class IdeReviewChannel
             .OrderByDescending(c => RiskRank(c.Risk))
             .ThenBy(c => c.Path, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
+
+    /// <summary>Cheap porcelain for pulse — default <c>-uno</c> skips untracked thrash.</summary>
+    public static string? TryGitPorcelain(string? projectRoot, bool untrackedAll = false)
+    {
+        if (projectRoot is not { Length: > 0 } || !Directory.Exists(projectRoot))
+            return null;
+        try
+        {
+            var u = untrackedAll ? "-uall" : "-uno";
+            return RunGit(projectRoot, "status --porcelain " + u);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     static int RiskRank(string risk) => risk switch
