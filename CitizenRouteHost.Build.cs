@@ -34,6 +34,7 @@ internal static partial class CitizenRouteHost
         ReplaceAllCallOverride = null;
         NavCallOverride = null;
         PutCallOverride = null;
+        ScratchCallOverride = null;
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)
