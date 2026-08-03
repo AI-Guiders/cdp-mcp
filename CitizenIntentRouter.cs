@@ -40,6 +40,7 @@ internal static partial class CitizenIntentRouter
         Restore,
         Intercom,
         Presentation,
+        Toolchain,
         Edit,
         Deploy,
         Undo,
@@ -663,6 +664,28 @@ internal static partial class CitizenIntentRouter
             return RoutePresentation(raw);
         }
 
+        if (raw.Equals("toolchain", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("toolchain ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("toolchain_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("toolchain_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_toolchain", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_toolchain ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("toolchain_ensure", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("toolchain_ensure ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("toolchain_probe", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("toolchain_probe ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("toolchain_install", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("toolchain_install ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("toolchain_add", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("toolchain_add ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("toolchain_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("toolchain_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("toolchain_which", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("toolchain_which ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteToolchain(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -887,6 +910,7 @@ internal static partial class CitizenIntentRouter
             "restore" or "restore_previous" or "desk_restore" or "recent" or "open_recent" => "restore",
             "intercom" or "cide_intercom" or "intercom_send" or "intercom_scene" or "intercom_ack" or "intercom_history" or "intercom_presence" => "intercom",
             "cide_presentation" or "presentation" or "presentation_set" or "presentation_scene" => "cide_presentation",
+            "toolchain" or "toolchain_desk" or "cdp_toolchain" or "toolchain_ensure" or "toolchain_probe" => "toolchain",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };

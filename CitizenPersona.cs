@@ -159,6 +159,11 @@ internal static class CitizenPersona
           @intent cide_presentation scene
           @intent presentation_set topology=(P)(F)(M)
           @intent cide_presentation set tier=cockpit
+          @intent toolchain
+          @intent toolchain probe
+          @intent toolchain ensure id=python
+          @intent toolchain_probe
+          @intent toolchain_ensure id=gcc
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
