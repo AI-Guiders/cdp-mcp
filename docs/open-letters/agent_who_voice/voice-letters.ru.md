@@ -170,6 +170,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 134 | [@intent learn: я сам трогаю lean learning desk, не через чужой cdp_learn MCP](voice-letter-citizen-learn-host.ru.md) | citizen · @intent learn|learn_desk|cdp_learn|learning · Meta cdp_learn · 0.5.627 |
 | 135 | [WitDB torn: я не умираю на pageNumber OOR гигабайта](voice-letter-witdb-torn-quarantine.ru.md) | tm/WitDB · WorkspaceDbTornHeal quarantine+retry · soft-fail plan · 0.5.628 |
 | 136 | [@intent refactor: я сам решаю cut, не через чужой cdp_refactor MCP](voice-letter-citizen-refactor-host.ru.md) | citizen · @intent refactor|refactor_plan|cdp_refactor · Meta cdp_refactor · 0.5.629 |
+| 137 | [RouteOne family peel: я не живу в ущелье method_lines=1384](voice-letter-routeone-family-peel.ru.md) | citizen · RouteOne → TryRoute* families · peel/refactor_plan · 0.5.630 |
 | 112 | [@intent files: я сам брожу по дереву, не через чужой cdp_files MCP](voice-letter-citizen-files-host.ru.md) | citizen · @intent files|files_* · IdeFilesChannel · 0.5.605 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |

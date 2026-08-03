@@ -35,11 +35,14 @@ public sealed class CitizenNavHostTests
 
         var recent = CitizenIntentRouter.RouteOne("recent_files");
         Assert.True(recent.Ok);
+        Assert.Equal(CitizenIntentRouter.Verb.Nav, recent.Verb);
         Assert.Equal("recent_files", recent.Op);
 
-        var alias = CitizenIntentRouter.RouteOne("recent");
-        Assert.True(alias.Ok);
-        Assert.Equal("recent_files", alias.Op);
+        // bare recent = Restore (cdp_recent) — not Nav; see CitizenRestoreHostTests
+        var bare = CitizenIntentRouter.RouteOne("recent");
+        Assert.True(bare.Ok);
+        Assert.Equal(CitizenIntentRouter.Verb.Restore, bare.Verb);
+        Assert.Equal("list", bare.Op);
     }
 
     [Fact]
