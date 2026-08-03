@@ -38,6 +38,7 @@ internal static partial class CitizenIntentRouter
         Project,
         Settings,
         Restore,
+        Intercom,
         Edit,
         Deploy,
         Undo,
@@ -623,6 +624,26 @@ internal static partial class CitizenIntentRouter
             return RouteRestore(raw);
         }
 
+        if (raw.Equals("intercom", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("intercom ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cide_intercom", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cide_intercom ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("intercom_send", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("intercom_send ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("intercom_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("intercom_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("intercom_ack", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("intercom_ack ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("intercom_history", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("intercom_history ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("intercom_presence", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("intercom_presence ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("intercom_inbox", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("intercom_inbox ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteIntercom(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -845,6 +866,7 @@ internal static partial class CitizenIntentRouter
             "project" or "projects" or "sln" or "solution" or "project_scene" => "project",
             "settings" or "options" or "prefs" or "ide_settings" or "tools_options" or "languages" => "settings",
             "restore" or "restore_previous" or "desk_restore" or "recent" or "open_recent" => "restore",
+            "intercom" or "cide_intercom" or "intercom_send" or "intercom_scene" or "intercom_ack" or "intercom_history" or "intercom_presence" => "intercom",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
