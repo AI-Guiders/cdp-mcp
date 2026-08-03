@@ -15,6 +15,7 @@
 
 - `cdp_health` — seats + ops_pulse
 - `go=deploy` — hard sibling; remount target for new bits
+- **Citizen peer path (0.5.569):** `@intent deploy …` host-executes `IdeDeploy.Run`. `go=deploy*` still place-only.
 
 ## Antipatterns
 
@@ -24,6 +25,7 @@
 
 ## last_ship
 
+- 0.5.569: citizen `@intent deploy` → `IdeDeploy.Run` (peer remount without Cursor) · 2026-08-03
 - same-seat remount reclaim: `IdeSeatProcessReclaim.Ensure` kills older same-exe `CdpMcp` on startup (sibling path untouched) @ 0.5.450 · 2026-08-02
 - per-seat WitDB isolation dogfood: `cdp_open` store under `…/cdp/intent-workspace.witdb`; kill same-seat zombie pile before diagnose @ 0.5.448 · 2026-08-02
 - dual-seat version pulse @ 0.5.410 · 2026-08-01
