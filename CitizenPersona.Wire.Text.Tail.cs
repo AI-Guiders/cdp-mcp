@@ -120,6 +120,14 @@ internal static partial class CitizenPersona
           @intent domain card id=citizen
           @intent domain_card id=tm
           @intent cdp_domain op=scene
+          @intent crm
+          @intent callout
+          @intent crm_panel
+          @intent cdp_crm
+          @intent crm call ask="Confirm approach"
+          @intent crm respond code=go_around
+          @intent crm_lexicon
+          @intent go=crm
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
