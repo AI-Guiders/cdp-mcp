@@ -35,6 +35,7 @@ internal static partial class CitizenIntentRouter
         Calendar,
         Land,
         Pkg,
+        Project,
         Edit,
         Deploy,
         Undo,
@@ -524,6 +525,40 @@ internal static partial class CitizenIntentRouter
             return RoutePkg(raw);
         }
 
+        if (raw.Equals("project", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("project ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("projects", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("projects ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("project_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("project_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("project_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("project_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("project_create", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("project_create ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("project_close", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("project_close ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("project_add", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("project_add ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("project_add_to_sln", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("project_add_to_sln ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("sln", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("sln ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("solution", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("solution ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("sln_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("sln_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("sln_create", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("sln_create ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("sln_projects", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("sln_projects ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("sln_add", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("sln_add ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("sln_remove", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("sln_remove ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteProject(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -743,6 +778,7 @@ internal static partial class CitizenIntentRouter
             "calendar" or "clock" or "calendar_desk" => "calendar",
             "land" or "deep_link" or "deeplink" => "land",
             "pkg" or "nuget" or "packages" or "package" => "pkg",
+            "project" or "projects" or "sln" or "solution" or "project_scene" => "project",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };

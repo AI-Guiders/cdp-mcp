@@ -48,6 +48,7 @@ internal static partial class CitizenRouteHost
         CalendarHandleOverride = null;
         LandDispatchOverride = null;
         PkgDispatchOverride = null;
+        ProjectDispatchOverride = null;
         MetaDispatchResolver = null;
     }
 
