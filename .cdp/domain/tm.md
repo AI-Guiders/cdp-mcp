@@ -33,6 +33,7 @@
 
 ## last_ship
 
+- **0.5.628** — WitDB torn free-list / pageNumber OOR: `WorkspaceDbTornHeal` quarantine `*.torn-*.bak` + EnsureCreated inside `WithDb` (one retry); IdeTaskManager soft-fail wraps BuildBoard (`torn_witdb`). Tests WorkspaceDbTornHealTests. Lived: dual hard · quarantine 1.1GB+39MB seats · `cdp_open`+`go=plan` green · fresh ~220KB/~176KB.
 - **0.5.623** — WitDB: Status/SceneList/ScenePark/SceneSwitch/StageEnqueue|Get|Complete|Fail via `WithDb` (was ungated `Open()` → concurrent IOException). Test IntentWorkspaceWithDbGateTests. Lived: `@intent work op=status|scene_list` `ack=4/4`.
 - 0.5.553: FindIntent chrome query refuses bare-title twin (survivor seat wrong-board) · 2026-08-03
 - 0.5.521: CCL refuse `;` + board-verb chain (`RefuseChainedBoardCmd` / `ChainedTitleHint`) — no junk feature/task titles · VL #27 · 2026-08-02
