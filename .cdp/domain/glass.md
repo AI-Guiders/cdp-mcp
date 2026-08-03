@@ -167,6 +167,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-04 SickLeaveNight648** — dig-ignite hygiene (error+stale arms cleared); glass/CIDE DIG REJECT reopen (VT/WebView2/Skia/DAP/CRS Depth DoD already 2026-08-04); product next = PathMutate vs Autoi duplex densest dig.
 - 2026-08-04: **CIDE-Glass-residual wave CLOSED** — 14 densest peels (FlowDocument md · HCI RelatedFiles · git push/submodule · DAP step bridge · SemanticMap multi-hop · Chord AwaitMelodyTail · AiChat host · SE tree · build/test fail lists · HybridIndex status probe · msg-code chips · Roslyn problems merge · palette prefix allowlist) · Glass tests 92/92 · tip `0641be14` · SoftFL CLOSED
 - 2026-08-04: **Glass residual Git+RelatedFiles** — `GlassGitProcess` stage/unstage/commit · `GlassRelatedFilesFeed` WNM-shaped list · tests 29/29 · cabin pid live · SoftFL CLOSED
 - 2026-08-04: **Glass Correspondence full CRS** — Peel15 CRS DAL→GlassCore · feed wires WorkspaceCorrespondenceResolver+DocReverseAnchorResolver+layers · smoke F=14 R=1 on DocReverseAnchorResolver · Depth DoD CLOSED
