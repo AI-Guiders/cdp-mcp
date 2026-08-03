@@ -46,6 +46,7 @@ internal static partial class CitizenIntentRouter
         Webcam,
         Evidence,
         Domain,
+        Ps1,
         Edit,
         Deploy,
         Undo,
@@ -456,6 +457,46 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("script_report ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteScript(raw);
+        }
+
+        if (raw.Equals("ps1", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ps1 ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("ise", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ise ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("ps1_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ps1_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("ps1_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ps1_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_ps1", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_ps1 ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_ps1_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_ps1_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("ps1_put", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ps1_put ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("ps1_open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ps1_open ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("ps1_check", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ps1_check ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("ps1_run", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ps1_run ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("ps1_last", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ps1_last ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("ps1_help", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("ps1_help ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_ps1_put", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_ps1_put ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_ps1_open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_ps1_open ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_ps1_check", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_ps1_check ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_ps1_run", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_ps1_run ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_ps1_last", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_ps1_last ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_ps1_help", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_ps1_help ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RoutePs1(raw);
         }
 
         if (raw.Equals("pressure", StringComparison.OrdinalIgnoreCase)
@@ -1071,6 +1112,7 @@ internal static partial class CitizenIntentRouter
             "webcam" or "webcam_desk" or "cdp_webcam" or "webcam_frame" or "webcam_scene" => "webcam_desk",
             "evidence" or "cdp_evidence" or "report" or "pfd" or "evidence_build" or "evidence_test" => "report",
             "domain" or "domain_desk" or "cdp_domain" or "domain_scene" or "domain_pulse" or "domain_list" or "domain_card" => "domain",
+            "ps1" or "ise" or "ps1_scene" or "ps1_desk" or "cdp_ps1" or "cdp_ps1_scene" or "ps1_put" or "ps1_run" => "ps1_scene",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
