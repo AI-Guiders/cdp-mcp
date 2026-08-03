@@ -173,6 +173,9 @@ internal static partial class IdeDeskSeats
         ["cdp_onboard"] = "m",
         ["restore"] = "m",
         ["recent"] = "m",
+        ["intercom"] = "m",
+        ["cide_intercom"] = "m",
+        ["cdp_intercom"] = "m",
     };
 
     public static string[] PresetIds =>
