@@ -85,6 +85,31 @@ internal sealed partial class DocumentBufferStore
         });
     }
 
+    /// <summary>Delete file under PathMutateGate; drop open buffer. Dirty requires force=true.</summary>
+    public void Delete(string path, bool force = false)
+    {
+        var full = Path.GetFullPath(path);
+        _gate.Run(full, () =>
+        {
+            if (Directory.Exists(full))
+                throw new InvalidOperationException($"Refusing delete of directory '{full}'. Files only.");
+
+            if (!File.Exists(full))
+                throw new FileNotFoundException($"File not found: {full}", full);
+
+            if (_byPath.TryGetValue(full, out var buf) && buf.Dirty && !force)
+            {
+                throw new InvalidOperationException(
+                    $"Refusing delete of dirty buffer '{full}'. Flush/close first, or pass force=true.");
+            }
+
+            _byPath.Remove(full);
+            File.Delete(full);
+            AdxMutateTrace.Record(full, "delete", isCreate: false, pathExistedBefore: true);
+            return 0;
+        });
+    }
+
     public DocBuffer Resolve(string? path, string? docId)
     {
         if (docId is { Length: > 0 })

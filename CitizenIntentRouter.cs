@@ -17,6 +17,7 @@ internal static partial class CitizenIntentRouter
         Replace,
         Create,
         Append,
+        Delete,
         Kb,
         Build,
         Test,
@@ -188,6 +189,24 @@ internal static partial class CitizenIntentRouter
                 Ok: true,
                 Path: path,
                 NewString: body,
+                Go: "buffer");
+        }
+
+        if (raw.StartsWith("delete ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("delete path=", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("rm ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("rm path=", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("remove ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("remove path=", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!TryParseDelete(raw, out var path, out var force, out var reason))
+                return new Route(Verb.Unknown, raw, Ok: false, Reason: reason);
+            return new Route(
+                Verb.Delete,
+                raw,
+                Ok: true,
+                Path: path,
+                Op: force ? "force" : null,
                 Go: "buffer");
         }
 

@@ -103,6 +103,8 @@ internal static class CitizenPersona
           @intent create path=rel/new.cs body="class New { }"
           @intent write path=rel/new.cs text="class New { }"
           @intent append path=rel/file.cs body="\n// note"
+          @intent delete path=rel/scratch.tmp
+          @intent rm path=rel/scratch.tmp force=true
           @intent cmd=feature leaf-title @act #CDP
           @intent cmd=task dig-step @act #CDP
           @intent cmd=done
@@ -141,6 +143,7 @@ internal static class CitizenPersona
           @intent replace path=rel/file.cs old="needle" new="patch"
           @intent create path=rel/new.cs body="class New { }"
           @intent append path=rel/file.cs body="\n// note"
+          @intent delete path=rel/scratch.tmp
           @intent test
           @intent mcp
           @intent shell echo hi
