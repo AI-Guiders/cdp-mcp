@@ -70,7 +70,7 @@ Presence DoD = SoftOrgan glance | Glass peel | **full WPF host** (operator 2026-
 | DebugStack | `debug_desk` glance | spectator from `debug_desk-LATEST` | DONE v1 · depth live DAP |
 | Problems | `review` glance | ListBox + MSBuild parse | DONE v1 |
 | RelatedFiles | `refactor` glance | FS heuristic list | DONE v1 · depth map orchestrator |
-| SemanticMap | `arch` glance | same list v1 (no Skia) | DONE v1 · depth Skia/WNM |
+| SemanticMap | `arch` glance | Skia radial + list | DONE Skia · Avalonia WNM still denser |
 | MarkdownPreview | `report` glance | Markdig `ToPlainText` | DONE v1 · depth rich tree |
 | AiChatSettings | `mcp` glance | settings.toml SSOT | HOLD latch |
 | WebAiPortal | unbound | WebView2 embedded | DONE VT-class · Avalonia EOL |
@@ -80,7 +80,7 @@ Sources: `Models/MfdShellPage.cs` · `SoftOrganMfdGlance.TryOrganIdForMfdPage` �
 
 Parity note: Glass XAML / CabinGlass use page string **SemanticMap** (`arch_desk` → MFD); Avalonia `MfdShellPage` has **no** SemanticMap member — graph SSOT = PFD `WorkspaceNavigationMapView` (not MFD shell).
 
-**Presence DoD: CLOSED**. **Full-host v1 DoD: CLOSED** (2026-08-03 batch `77035101`+`f7de96e9`) — CascadeChord = Ctrl+K overlay (not MFD). **Depth DoD: OPEN** — Skia SemanticMap · live DAP · full CRS resolver. **Terminal VT: CLOSED** · **WebView2 WebAi: CLOSED**.
+**Presence DoD: CLOSED**. **Full-host v1 DoD: CLOSED** (2026-08-03 batch `77035101`+`f7de96e9`) — CascadeChord = Ctrl+K overlay (not MFD). **Depth DoD: OPEN** — live DAP · full CRS resolver. **Terminal VT: CLOSED** · **WebView2 WebAi: CLOSED** · **SemanticMap Skia: CLOSED**.
 
 ## DoD matrix — SoftOrgan chrome beyond MFD (2026-08-01 dig)
 
@@ -167,6 +167,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- 2026-08-04: **Glass SemanticMap Skia** — WriteableBitmap+SkiaSharp radial graph · RelatedFiles heuristic · live dogfood `semantic · skia N · click node` + SemanticSkia visible
 - 2026-08-04: **Glass WebAi WebView2** — embedded Microsoft.Web.WebView2 in MFD · URL bar + go/Enter · Avalonia portal EOL for cabin
 - 2026-08-04: **Glass Terminal VT focus fix** — start after layout size · Focus steal from Composer · `c66d0c25`
 - 2026-08-04: **Glass Terminal VT** — EasyWindowsTerminalControl (WT WPF) · Avalonia EOL steer · launch via GlassCore IntegratedShellLaunch · TextBox/GlassConPtyShell removed from MFD
