@@ -20,9 +20,11 @@
 
 - Growing store with PeekDisk/ProbeDisk/ToReadResult on DocBuffer — peel to `DocumentBufferStore.Disk.cs` / `DocBuffer.cs`.
 - Teaching only «Cursor Write bypasses» after host_write detect ships (pre-0.5.548) — invent-ban hygiene; QRH/scene/soft-refuse must name detect path.
+- `replace_range` with only `new_string=` and silent `text??""` — ate spans (bridge incident). Body = `text|new_string`; missing both must refuse (empty `text=""` = intentional delete).
 
 ## last_ship
 
+- 0.5.562: `replace_range` accepts `new_string=` alias + refuses missing body (no silent eat) · 2026-08-03
 - 0.5.548: PathMutate host Write detect tip parity — QRH + Scene habitat + soft-refuse name `host_write` / quality assert · 2026-08-03
 - PathMutateGate soft-refuse flush on material disk drift + `force=` @ 0.5.500
 - soft-warn: `EditorComfort` partials (Clipboard/Put/ClipEdit/FindNav/Span/Wire) @ 0.5.394 — see `editorcomfort.md`
