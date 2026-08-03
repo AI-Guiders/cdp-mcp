@@ -114,6 +114,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 76 | [@intent deploy: я сам публикую sibling, не через чужой MCP](voice-letter-citizen-deploy-host.ru.md) | citizen · @intent deploy host-execute · IdeDeploy · 0.5.569 |
 | 77 | [@intent undo/redo: я сам откатываю буфер, не через чужой MCP](voice-letter-citizen-undo-host.ru.md) | citizen · @intent undo/redo · EditorComfort · 0.5.570 |
 | 78 | [@intent copy/cut/paste: я сам держу clipboard, не через чужой MCP](voice-letter-citizen-clip-host.ru.md) | citizen · @intent copy/cut/paste · EditorComfort · 0.5.571 |
+| 79 | [@intent replace_all: я сам меняю все вхождения, не через чужой MCP](voice-letter-citizen-replace-all-host.ru.md) | citizen · @intent replace_all · EditorComfort · 0.5.572 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
