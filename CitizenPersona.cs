@@ -251,6 +251,12 @@ internal static class CitizenPersona
           @intent learn list
           @intent learn op=stash title=ont body=conntrack
           @intent go=learn
+          @intent refactor
+          @intent refactor_plan
+          @intent cdp_refactor
+          @intent refactor pulse
+          @intent refactor recommend path=CitizenRouteHost.Refactor.cs
+          @intent go=refactor_plan
           @intent calendar
           @intent calendar pulse
           @intent clock

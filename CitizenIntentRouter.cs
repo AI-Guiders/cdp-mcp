@@ -67,6 +67,7 @@ internal static partial class CitizenIntentRouter
         Work,
         Sa,
         Learn,
+        Refactor,
         Context,
         Edit,
         Deploy,
@@ -578,6 +579,18 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("learning ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteLearn(raw);
+        }
+
+        if (raw.Equals("refactor", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("refactor ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("refactor_plan", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("refactor_plan ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_refactor", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_refactor ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("debt_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("debt_scene ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteRefactor(raw);
         }
 
         if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
@@ -1576,6 +1589,7 @@ internal static partial class CitizenIntentRouter
             "work_desk" or "cdp_work" or "intent_workspace" => "intent_workspace",
             "sa_desk" or "cdp_sa" or "code_sa" or "pre_sa" or "sa_code" => "sa_desk",
             "learn_desk" or "cdp_learn" or "learning" => "learn",
+            "refactor_plan" or "cdp_refactor" or "debt_scene" => "refactor_plan",
             "goto" or "goto_all" or "go_to_all" or "cdp_goto" or "goto_feature" or "goto_desk" or "go_to" => "goto",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
