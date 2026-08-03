@@ -20,6 +20,17 @@ internal static partial class IdeSessionLifecycle
         return CdpLanguages.Any;
     }
 
+    /// <summary>Relative path= joins session ProjectRoot (not process cwd) — MCP host cwd is often user home.</summary>
+    static string ResolveAgainstSession(SessionContext session, string path)
+    {
+        if (Path.IsPathRooted(path))
+            return Path.GetFullPath(path);
+        var root = session.ProjectRoot;
+        if (string.IsNullOrWhiteSpace(root))
+            root = Environment.CurrentDirectory;
+        return Path.GetFullPath(Path.Combine(root, path));
+    }
+
     public static bool TryResolveTarget(
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args,
@@ -30,13 +41,13 @@ internal static partial class IdeSessionLifecycle
         error = "";
         if (args.TryGetValue("path", out var p) && p.GetString() is { Length: > 0 } path)
         {
-            target = Path.GetFullPath(path);
+            target = ResolveAgainstSession(session, path);
             return true;
         }
 
         if (args.TryGetValue("solution_path", out var s) && s.GetString() is { Length: > 0 } sol)
         {
-            target = Path.GetFullPath(sol);
+            target = ResolveAgainstSession(session, sol);
             return true;
         }
 

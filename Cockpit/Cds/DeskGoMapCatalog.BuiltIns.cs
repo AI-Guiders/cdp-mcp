@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Text.Json;
 using CdpMcp.Cockpit.ComputingUnits;
 
@@ -202,6 +202,7 @@ public sealed partial class DeskGoMapCatalog : ICockpitComputeUnit
         ["debug_scene"] = new Entry("cdp_debug", Dict(("op", "scene"))),
         ["debug"] = new Entry("cdp_debug", Dict(("op", "scene"))),
         ["build"] = new Entry("cdp_build", null),
+        ["run"] = new Entry("cdp_run", null),
         ["project_scene"] = new Entry("cdp_project_scene", null),
         ["project"] = new Entry("cdp_project_scene", null),
         // Plan = Task Manager organ (Feature/Task vocabulary). work/tasks/tm = aliases.

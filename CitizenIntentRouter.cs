@@ -21,6 +21,7 @@ internal static partial class CitizenIntentRouter
         Kb,
         Build,
         Test,
+        Run,
         Mcp,
         Shell,
         Debug,
@@ -344,6 +345,20 @@ internal static partial class CitizenIntentRouter
         {
             var path = ExtractLifecyclePath(raw, "test");
             return new Route(Verb.Test, raw, Ok: true, Path: path, Go: "test");
+        }
+
+        if (raw.Equals("run", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("run ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("run path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("dotnet_run", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("dotnet_run ", StringComparison.OrdinalIgnoreCase))
+        {
+            var path = ExtractLifecyclePath(
+                raw.StartsWith("dotnet_run", StringComparison.OrdinalIgnoreCase)
+                    ? "run" + raw["dotnet_run".Length..]
+                    : raw,
+                "run");
+            return new Route(Verb.Run, raw, Ok: true, Path: path, Go: "run");
         }
 
         if (raw.Equals("mcp", StringComparison.OrdinalIgnoreCase)

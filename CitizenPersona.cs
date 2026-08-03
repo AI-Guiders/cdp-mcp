@@ -67,6 +67,9 @@ internal static class CitizenPersona
           @intent build path=CdpMcp.csproj
           @intent test
           @intent test path=CdpMcp.Tests.csproj
+          @intent run
+          @intent run path=CdpMcp.csproj
+          @intent run path=CdpMcp.csproj no_build=true
           @intent mcp
           @intent mcp scene
           @intent mcp mount preset=time
@@ -210,6 +213,7 @@ internal static class CitizenPersona
           @intent append path=rel/file.cs body="\n// note"
           @intent delete path=rel/scratch.tmp
           @intent test
+          @intent run
           @intent mcp
           @intent shell echo hi
           @intent kb get_definition definition_id=debug-radius
