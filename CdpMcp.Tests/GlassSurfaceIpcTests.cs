@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Cdp.Core;
 using Xunit;
 
 namespace CdpMcp.Tests;
@@ -80,5 +81,22 @@ public sealed class GlassSurfaceIpcTests : IDisposable
         var (ok, _, error) = GlassSurfaceIpc.Call("layout", args: null, timeoutMs: 200);
         Assert.False(ok);
         Assert.Equal("surface_timeout", error);
+    }
+}
+
+public sealed class IdeGlassSurfaceChannelTests
+{
+    [Fact]
+    public void Scene_lists_run_and_palette()
+    {
+        var json = IdeGlassSurfaceChannel.HandleJson(new SessionContext(), null);
+        using var doc = JsonDocument.Parse(json);
+        var set = doc.RootElement.GetProperty("implemented")
+            .EnumerateArray()
+            .Select(e => e.GetString())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("run", set);
+        Assert.Contains("palette", set);
+        Assert.Contains("action", set);
     }
 }

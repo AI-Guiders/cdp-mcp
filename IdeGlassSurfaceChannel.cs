@@ -21,7 +21,7 @@ internal static class IdeGlassSurfaceChannel
     static readonly HashSet<string> Implemented = new(StringComparer.OrdinalIgnoreCase)
     {
         "scene", "status", "caps", "layout",
-        "highlight", "focus", "click", "set_text", "send_keys", "palette",
+        "highlight", "focus", "click", "set_text", "send_keys", "palette", "run", "action",
         "appearance", "colors", "colors_under_cursor",
         "set_control_layout", "set_panel_size", "request_confirmation"
     };
@@ -44,6 +44,7 @@ internal static class IdeGlassSurfaceChannel
             {
                 "scene" or "status" or "caps" => Scene(),
                 "layout" or "highlight" or "focus" or "click" or "set_text" or "send_keys" or "palette"
+                    or "run" or "action"
                     or "appearance" or "colors" or "colors_under_cursor"
                     or "set_control_layout" or "set_panel_size" or "request_confirmation"
                     => Rpc(op, args),
@@ -82,7 +83,7 @@ internal static class IdeGlassSurfaceChannel
         implemented = Implemented.OrderBy(x => x).ToArray(),
         planned = Array.Empty<string>(),
         hint =
-            "op=layout|highlight|focus|click|set_text|send_keys|palette|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required."
+            "op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required."
     };
 
     static object Rpc(string op, IReadOnlyDictionary<string, JsonElement> args)
@@ -95,7 +96,12 @@ internal static class IdeGlassSurfaceChannel
             timeoutMs = Math.Clamp(ti, 500, 300_000);
 
         var rpcArgs = new JsonObject();
-        foreach (var key in new[] { "name", "text", "keys", "layout", "panel", "width", "height", "message", "query", "execute" })
+        foreach (var key in new[]
+                 {
+                     "name", "text", "keys", "layout", "panel", "width", "height", "message",
+                     "query", "execute", "action", "id", "command_id", "command", "args",
+                     "start", "end", "line"
+                 })
         {
             var v = Opt(args, key);
             if (v is not null)

@@ -27,6 +27,7 @@
 
 ## last_ship
 
+- 2026-08-03: **`op=run`** — direct Glass action/command_id/slash without Ctrl+Q; Meta+channel+hub; dogfood slash_status/get_ide_state/mfd_git · **0.5.559**
 - 2026-08-02: Full debt close — `set_control_layout|set_panel_size|request_confirmation` @ 0.5.447; dogfood layout+panel (confirm = human modal, not auto-dogfood)
 - 2026-08-02: Aim+Drive — `highlight|focus|click|set_text|send_keys|appearance|colors` @ 0.5.446; dogfood SendBtn highlight + ComposerBox focus
 - 2026-08-02: v0 Sense `layout` live — Meta + IPC + WPF walker; dogfood 3 TopLevels
