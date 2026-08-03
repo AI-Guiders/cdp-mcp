@@ -47,6 +47,7 @@ internal static partial class CitizenIntentRouter
         Evidence,
         Domain,
         Ps1,
+        Icm,
         Edit,
         Deploy,
         Undo,
@@ -497,6 +498,42 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("cdp_ps1_help ", StringComparison.OrdinalIgnoreCase))
         {
             return RoutePs1(raw);
+        }
+
+        if (raw.Equals("icm", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("icm ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("icm_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("icm_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_icm", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_icm ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("command_module", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("command_module ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("icm_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("icm_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("icm_aliases", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("icm_aliases ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("icm_list", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("icm_list ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("icm_map", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("icm_map ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("icm_resolve", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("icm_resolve ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("icm_invoke", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("icm_invoke ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("icm_exec", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("icm_exec ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("icm_run", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("icm_run ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_icm_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_icm_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_icm_aliases", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_icm_aliases ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_icm_resolve", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_icm_resolve ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_icm_invoke", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_icm_invoke ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteIcm(raw);
         }
 
         if (raw.Equals("pressure", StringComparison.OrdinalIgnoreCase)
@@ -1113,6 +1150,7 @@ internal static partial class CitizenIntentRouter
             "evidence" or "cdp_evidence" or "report" or "pfd" or "evidence_build" or "evidence_test" => "report",
             "domain" or "domain_desk" or "cdp_domain" or "domain_scene" or "domain_pulse" or "domain_list" or "domain_card" => "domain",
             "ps1" or "ise" or "ps1_scene" or "ps1_desk" or "cdp_ps1" or "cdp_ps1_scene" or "ps1_put" or "ps1_run" => "ps1_scene",
+            "icm" or "icm_desk" or "cdp_icm" or "command_module" or "icm_aliases" or "icm_resolve" or "icm_invoke" => "icm_desk",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
