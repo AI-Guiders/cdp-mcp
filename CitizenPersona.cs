@@ -103,6 +103,9 @@ internal static class CitizenPersona
           @intent undo path=CitizenRouteHost.cs
           @intent redo path=CitizenRouteHost.cs
           @intent edit_history path=CitizenRouteHost.cs
+          @intent copy path=CitizenRouteHost.cs text="snippet"
+          @intent clipboard
+          @intent paste path=CitizenRouteHost.cs place=after
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost

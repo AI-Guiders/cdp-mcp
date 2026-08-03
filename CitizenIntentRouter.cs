@@ -32,6 +32,7 @@ internal static partial class CitizenIntentRouter
         Edit,
         Deploy,
         Undo,
+        Clip,
         Detail,
         Cmd,
         Refuse,
@@ -315,6 +316,25 @@ internal static partial class CitizenIntentRouter
             return RouteUndo(raw);
         }
 
+        if (raw.Equals("copy", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("copy ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("copy path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cut", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cut ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cut path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("paste", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("paste ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("paste path=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("clipboard", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("clipboard ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("clip", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("clip ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("clipboard_clear", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("clip_clear", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteClip(raw);
+        }
+
         if (raw.Equals("find", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("find ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("find query=", StringComparison.OrdinalIgnoreCase)
@@ -537,7 +557,7 @@ static Route RouteMcp(string raw)
         return true;
     }
 
-    static string? ExtractKeyedValue(string raw, string key)
+    internal static string? ExtractKeyedValue(string raw, string key)
     {
         var needle = key + "=";
         var idx = raw.IndexOf(needle, StringComparison.OrdinalIgnoreCase);
