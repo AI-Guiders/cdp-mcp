@@ -82,17 +82,32 @@ internal static partial class CitizenRouteHost
             ?? ExtractMcpKeyed(route.Raw, "file_path")
             ?? ExtractMcpKeyed(route.Raw, "file");
         if (path is { Length: > 0 })
+        {
+            var root = SessionResolver?.Invoke()?.ProjectRoot
+                ?? IdeCockpitHostChannel.ProjectRootResolver?.Invoke();
+            if (!string.IsNullOrWhiteSpace(root) && !Path.IsPathRooted(path))
+                path = Path.GetFullPath(Path.Combine(root, path));
+            else if (Path.IsPathRooted(path))
+                path = Path.GetFullPath(path);
             args["file_path"] = JsonSerializer.SerializeToElement(path);
+        }
 
         if (TryParseIdeInt(route.Raw, "line", "l", out var line))
             args["line"] = JsonSerializer.SerializeToElement(line);
         if (TryParseIdeInt(route.Raw, "column", "col", out var col))
             args["column"] = JsonSerializer.SerializeToElement(col);
+        else if (TryParseIdeInt(route.Raw, "c", "c", out var cAlias))
+            args["column"] = JsonSerializer.SerializeToElement(cAlias);
         else if (!args.ContainsKey("column") && route.Op is "go_to_definition" or "find_usages")
             args["column"] = JsonSerializer.SerializeToElement(1);
 
         if (ExtractMcpKeyed(route.Raw, "scope") is { Length: > 0 } scope)
             args["scope"] = JsonSerializer.SerializeToElement(scope);
+
+        if (ExtractMcpKeyed(route.Raw, "prefix") is { Length: > 0 } prefix)
+            args["prefix"] = JsonSerializer.SerializeToElement(prefix);
+        if (TryParseIdeInt(route.Raw, "max", "limit", out var max))
+            args["max"] = JsonSerializer.SerializeToElement(max);
 
         return args;
     }
@@ -132,6 +147,15 @@ internal static partial class CitizenRouteHost
             if (root.TryGetProperty("diagnostics", out var diags) && diags.ValueKind == JsonValueKind.Array)
                 return TruncPulse($"ide · diags · {diags.GetArrayLength()}");
 
+            if (root.TryGetProperty("completions", out var comps) && comps.ValueKind == JsonValueKind.Array)
+                return TruncPulse($"ide · {ShortIdeOp(op)} · {comps.GetArrayLength()} item(s)");
+
+            if (root.TryGetProperty("signatures", out var sigs) && sigs.ValueKind == JsonValueKind.Array)
+                return TruncPulse($"ide · {ShortIdeOp(op)} · {sigs.GetArrayLength()} sig(s)");
+
+            if (root.TryGetProperty("symbols", out var syms) && syms.ValueKind == JsonValueKind.Array)
+                return TruncPulse($"ide · {ShortIdeOp(op)} · {syms.GetArrayLength()} sym(s)");
+
             if (root.TryGetProperty("error_count", out var ec) && ec.TryGetInt32(out var n))
                 return TruncPulse($"ide · diags · errors={n}");
         }
@@ -149,6 +173,9 @@ internal static partial class CitizenRouteHost
             "go_to_definition" => "goto",
             "find_usages" => "usages",
             "get_diagnostics" => "diags",
+            "get_completions" => "complete",
+            "get_signature_help" => "signature",
+            "get_document_symbols" => "symbols",
             _ => op
         };
 }
