@@ -34,6 +34,7 @@
 
 ## last_ship
 
+- **0.5.640** — Soft FileLines BATCH close: densest peels (LanguageTools/CitizenChannel/RouteHostTests/Continuity) + Wire Head/Tail content-split + OrgansB `IsArchIntent`; densest top 341; Soft FileLines feature shipped. Lived: dual hard lag=false · VL#146. Next denser≠single peel mill.
 - 0.5.548: PathMutate host Write detect tip parity (QRH/scene/soft-refuse name host_write) · buffer domain · 2026-08-03
 - ADX-IG-001 last_once under autonomous ≠ awaiting invent-ban (`LastOnceFireAwaitingOk` · Z3) @ 0.5.529 · 2026-08-02
 - AdxMutateTrace host_write on material outside-IDE drift (`RecordOutsideIde` · DocBuffer.Disk · assert pulse) @ 0.5.517 · 2026-08-02

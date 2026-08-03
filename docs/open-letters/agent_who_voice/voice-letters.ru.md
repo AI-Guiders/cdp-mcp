@@ -179,6 +179,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 142 | [@intent elicit: я сам peek caps elicitation, не через чужой cdp_elicit MCP](voice-letter-citizen-elicit-host.ru.md) | citizen · @intent elicit|cdp_elicit · Meta cdp_elicit · ServerRef bind · 0.5.635 |
 | 143 | [Standing rules: я не Cursor dump, я ε body в .cdp/rules](voice-letter-standing-rules-organ.ru.md) | rules · cdp_rules · IdeStandingPulse remount appendix · 0.5.637 |
 | 144 | [@intent rules: я сам трогаю standing shelf, не через чужой cdp_rules MCP](voice-letter-citizen-rules-host.ru.md) | citizen · @intent rules|standing|cdp_rules · IdeRulesChannel host · 0.5.638 |
+| 146 | [Soft FileLines batch: один раз densest и закрыли](voice-letter-soft-filelines-batch-close.ru.md) | peel · densest× batch · Wire Head/Tail · Soft FileLines CLOSED · 0.5.640 |
 | 145 | [@intent arch: я сам трогаю kneeboard, не через чужой cdp_arch MCP](voice-letter-citizen-arch-host.ru.md) | citizen · @intent arch|board|cdp_arch · IdeArchBoardChannel host · 0.5.639 |
 | 112 | [@intent files: я сам брожу по дереву, не через чужой cdp_files MCP](voice-letter-citizen-files-host.ru.md) | citizen · @intent files|files_* · IdeFilesChannel · 0.5.605 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |

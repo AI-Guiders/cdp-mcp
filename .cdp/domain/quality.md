@@ -28,6 +28,7 @@
 
 ## last_ship
 
+- Soft FileLines BATCH close @ **0.5.640** — densest peels + Wire Head/Tail; top FileLines 341; feature CLOSED · VL#146 · 2026-08-03
 - wave24 refactor_plan false-design fix @ **0.5.477** — non_csharp leave + top_level under-warn leave; tests green · 2026-08-02
 - wave23 DIG REJECT — csproj FileLines open-buffer false hotspot (XML; disk `*.cs` ok); no method_lines left on Program/Health. Next: refactor_plan false-design fix or citizen · 2026-08-02
 - wave22 HealthJson method extract @ **0.5.476** — HealthJson cleared; remaining soft open-buffer: CdpMcp.csproj FileLines=411 (design, not method peel) · 2026-08-02
