@@ -21,7 +21,7 @@
 - `dry_run=true` builds persona+wire messages without provider; works with empty keys.
 - Dry-run **model** label mirrors live `ResolveProvider` (FM-first / `DefaultOpenAiModel`), not raw `DefaultModel` (claude).
 - Soft deploy ≠ live code; hard-self for this seat needs **terminal_*** + KillRunning (not in-proc `cdp_shell_*`).
-- Glass Intercom → citizen dialog: request latch `%LocalAppData%/cdp-mcp/citizen-dialog-request-LATEST.json` (shared root, not seat). Habitat `CitizenGlassDialogBridge` polls → `CitizenCompletions.Turn(mode=dialog)` → Intercom PF→PM `kind=citizen`. Glass `/citizen` journals only (does **not** Publish human→PF voice).
+- Glass Intercom → citizen dialog: request latch `%LocalAppData%/cdp-mcp/citizen-dialog-request-LATEST.json` (shared root, not seat). Habitat `CitizenGlassDialogBridge` polls → `CitizenCompletions.Turn(mode=dialog)` → **host-execute `Routes` + `CitizenPeerAck`** (parity with `IdeCitizenChannel`, 0.5.561) → Intercom PF→PM `kind=citizen`. Glass `/citizen` journals only (does **not** Publish human→PF voice).
 - **Autoi wake consume (0.5.551→0.5.554):** when Composer unavailable + invite ready, `TryDeliverHabitatWhenComposerUnavailableAsync` calls `TryDeliverAutoiWake` → Intercom `kind=citizen` · skip CDT (`prefer_citizen`). While Cursor Composer is present, Guest Autoi CDT→Composer even if invite ready (0.5.554 — do not silent-steal).
 - Omit `board=` on turn → host auto-binds live desk seats + TM pulse (`CitizenLiveDesk`).
 - After turn, host executes `@intent` routes by default on live (`CitizenRouteHost`); dry_run skips unless `execute=true` (then parses user `@intent` lines).
@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.561** — Glass dialog bridge host-execute parity: `CitizenGlassDialogBridge` runs `CitizenRouteHost.Execute` + `CitizenPeerAck.FromExecuted` after dialog Turn (talk≠hands gap closed). Tests CitizenGlassDialogBridgeTests 4/4.
 - **0.5.558** — `@intent goto|usages|diagnostics|ide` → `IdeLanguageTools.DispatchBareAsync` (peer nav without Cursor Roslyn). Calendar full-dedication densest. Tests 6/6.
 - **0.5.557** — `@intent find|search` e2e → `IdeFindChannel` (peer dig without Cursor Grep). Calendar steer: sick_leave densest. Tests 7/7. VL #63. Lived: 9 hits dry_run execute.
 - **0.5.556** — `@intent git` e2e host-execute: scene/diff/preflight + commit/push/pull/fetch (not observe-only). `go=git` place-only. Live dogfood: scene dirty → self-commit `4b01419` → push → ok-parse fix `17a220b`. VL #62. Dig: PathMutate host_write arch residual; operator rejected thin peel.

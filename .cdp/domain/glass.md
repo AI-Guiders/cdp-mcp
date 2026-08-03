@@ -135,7 +135,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 | Message↔code | `/open` + journal chips · disk resolve chrome · strip brackets · range select; Avalonia Skia still fuller | **P2 shipped** |
 | FDS (Flight Data Storage) | MFD shelf peels plan/shared/report/pressure · `/fds` | **P1 shipped** |
 | Intercom identity | `Кир · guest` / `Света · operator` / `Citizen · citizen` RoleLabel · Who ≠ operator | **P0 shipped** |
-| Intercom → citizen dialog | Glass `/citizen` → request latch → habitat bridge → Intercom citizen reply · chord `cz` | **P0 shipped (0.5.496)** |
+| Intercom → citizen dialog | Glass `/citizen` → request latch → habitat bridge → Intercom citizen reply · chord `cz` · **hands Execute+PeerAck 0.5.561** | **P0 shipped (0.5.496+561)** |
 
 ### P0→P3
 
@@ -160,6 +160,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 **Lived Glass UX epic: CLOSED** for 15.08 one-cockpit survival DoD. **Citizen full chain: CLOSED** (live latch dogfood + StatusText pending→running→done/error).
 
 ## last_ship
+- 2026-08-03: Glass→Citizen **hands parity** — habitat `CitizenGlassDialogBridge` Execute+PeerAck after dialog Turn (talk≠hands closed) · cdp-mcp **0.5.561**
 - 2026-08-03: Glass **surface `op=run`** — `AgentSurfaceRun` (action|command_id|text=/slash) without Ctrl+Q; live dogfood `slash_status` + `get_ide_state` + `mfd_git` from cockpit; cascade-ide `a71e2c4e` · cdp-mcp **0.5.559** · VL #64
 - 2026-08-03: Glass **c: cabin peels** — `save_document`/`focus_composer`/`glass.slash_*`/`glass.mfd_*` → existing RunPaletteEntry; live latch `c:sf`/`c:fc`/`c:cz`/`c:wh`/`c:sh`→`/help`; cascade-ide `c24c4ca1` · VL #61
 - 2026-08-03: Glass **c: allowlist widen** — `open_file`/`open_file_dialog`→`open_file`; `intercom.attach_*`→`slash_attach`; melody `of`/`fe`; live latch dogfood `c:of`/`c:ias`/`c:fe`; cascade-ide `dad4d678` · VL #60
