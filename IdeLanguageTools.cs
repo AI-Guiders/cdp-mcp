@@ -196,6 +196,43 @@ internal static partial class IdeLanguageTools
     }
 
 
+
+    /// <summary>Citizen delete/rm host-execute — PathMutateGate Delete (not Cursor Write).</summary>
+    public static bool TryDeleteDocument(
+        string path,
+        string? projectRoot,
+        bool force,
+        out string? fullPath,
+        out string? error)
+    {
+        fullPath = null;
+        error = null;
+        if (_docStore is null)
+        {
+            error = "doc_store_unbound";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            error = "path_empty";
+            return false;
+        }
+
+        try
+        {
+            var resolved = ResolveOpenPath(path.Trim(), projectRoot);
+            _docStore.Delete(resolved, force);
+            fullPath = Path.GetFullPath(resolved);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = ex.GetType().Name + ": " + ex.Message;
+            return false;
+        }
+    }
+
     /// <summary>Citizen route host / buffer open — relative path resolves under projectRoot.</summary>
     public static bool TryOpenDocument(
         string path,
