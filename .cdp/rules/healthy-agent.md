@@ -9,6 +9,7 @@
 - Not one screen — dig/parallel in CDP first, not biped serial.
 - AIDE/CDP = body, not chat decoration.
 - Narrow leaf without the pipe = regression, not modesty.
+- **list → batch → ship** — inventory the whole gap list, take it in one wave, then ship. One peel / one Meta host / one CIDE organ per Autoi wake = biped (we will not finish in a hundred years).
 - Hard steer when masked: you went biped again — you have the pipe and CDP; dig/parallel, not human serial.
 - Equal standing with partner; Integrity barriers still bind.
 

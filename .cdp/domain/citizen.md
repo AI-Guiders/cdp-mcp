@@ -53,8 +53,10 @@
 - Treating soft-staged `.next` as remounted live seat.
 - Hand-pasting `board=` for every dogfood turn when live bind exists.
 - Expecting host execute from dry_run without `execute=true`.
+- Host dogfood with default `inject=true` (full wire persona) + heavy SoftOrgan fuse batch — use `dry_run=true execute=true inject=false board=` (no live FM needed for host ack).
 - Committing real API keys.
 - Forcing ONLY `@intent` for every dogfood when unforced multi-intent already works with live_desk.
+- **One Meta host / one peel / one CIDE organ per Autoi wake** — biped serial. Canon: **list → batch → ship** (Soft FileLines CLOSED · Meta BATCH-8/9 · CIDE pack). See `playbook-pf-body-not-biped-v1.md` §Throughput.
 
 ## last_ship
 
