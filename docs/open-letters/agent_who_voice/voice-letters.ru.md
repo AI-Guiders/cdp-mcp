@@ -179,6 +179,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 142 | [@intent elicit: я сам peek caps elicitation, не через чужой cdp_elicit MCP](voice-letter-citizen-elicit-host.ru.md) | citizen · @intent elicit|cdp_elicit · Meta cdp_elicit · ServerRef bind · 0.5.635 |
 | 143 | [Standing rules: я не Cursor dump, я ε body в .cdp/rules](voice-letter-standing-rules-organ.ru.md) | rules · cdp_rules · IdeStandingPulse remount appendix · 0.5.637 |
 | 144 | [@intent rules: я сам трогаю standing shelf, не через чужой cdp_rules MCP](voice-letter-citizen-rules-host.ru.md) | citizen · @intent rules|standing|cdp_rules · IdeRulesChannel host · 0.5.638 |
+| 151 | [Glass WebAi WebView2: браузер в кабине, не external](voice-letter-glass-webai-webview2.ru.md) | glass · WebView2 WebAiPortal · 4b925843 |
 | 150 | [Glass Terminal VT: готовый WPF, не Avalonia](voice-letter-glass-terminal-vt-easywindows.ru.md) | glass · EasyWindowsTerminalControl · Avalonia EOL · 195d35bb |
 | 149 | [SoftOrgan Meta BATCH-9: report/SA desks/EICAS — host, не только go=](voice-letter-citizen-softorgan-meta-host-batch9.ru.md) | citizen · 8 Meta hosts · report/debug_sa/test_sa/build_sa/sys/ecl/review/alert · 0.5.643 |
 | 148 | [SoftOrgan Meta BATCH: я взял весь список, не по одному](voice-letter-citizen-softorgan-meta-host-batch.ru.md) | citizen · 8 Meta hosts · md_author/scope/glass/fdr/teeth/postmortem/plugins/problems · 0.5.642 |
