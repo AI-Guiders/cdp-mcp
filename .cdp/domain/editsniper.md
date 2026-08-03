@@ -22,4 +22,6 @@
 
 ## last_ship
 
+- 0.5.579: citizen `@intent scope|peek|target|aim|scope_clear` → EditSniper.Dispatch (peer aim without Cursor MCP) · 2026-08-03
+
 - soft-warn peel: Core277 Ops330 PeekResolve320 Syntax233 @ 0.5.397
