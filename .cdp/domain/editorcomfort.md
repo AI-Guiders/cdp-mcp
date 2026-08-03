@@ -22,6 +22,7 @@
 
 ## last_ship
 
+- 0.5.581: citizen host-execute find_all|buf_find|find scope=buffer — EditorComfort Find · 2026-08-03
 - 0.5.576: citizen host-execute take — TakeShip via DocumentEditPlane · 2026-08-03
 - 0.5.575: citizen host-execute scratch — untitled under .cdp/scratch · 2026-08-03
 - 0.5.574: citizen host-execute put — draft dump / frame / sniper · 2026-08-03
