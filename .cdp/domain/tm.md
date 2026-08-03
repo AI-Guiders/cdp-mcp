@@ -33,6 +33,7 @@
 
 ## last_ship
 
+- **2026-08-04 DIG REJECT** — post-SoftOrgan densest dig: WitDB torn quarantine already lived @0.5.628 (heal+VL+tm stamp); Hol habit ≠ product organ (throughput list→batch→ship / a×b already flying). SoftFL/Meta peel reopen = regression. Board CLOSED noise → hygiene; densest next ≠ re-mill hosts/peel.
 - **0.5.628** — WitDB torn free-list / pageNumber OOR: `WorkspaceDbTornHeal` quarantine `*.torn-*.bak` + EnsureCreated inside `WithDb` (one retry); IdeTaskManager soft-fail wraps BuildBoard (`torn_witdb`). Tests WorkspaceDbTornHealTests. Lived: dual hard · quarantine 1.1GB+39MB seats · `cdp_open`+`go=plan` green · fresh ~220KB/~176KB.
 - **0.5.623** — WitDB: Status/SceneList/ScenePark/SceneSwitch/StageEnqueue|Get|Complete|Fail via `WithDb` (was ungated `Open()` → concurrent IOException). Test IntentWorkspaceWithDbGateTests. Lived: `@intent work op=status|scene_list` `ack=4/4`.
 - 0.5.553: FindIntent chrome query refuses bare-title twin (survivor seat wrong-board) · 2026-08-03
