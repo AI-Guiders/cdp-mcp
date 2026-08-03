@@ -63,24 +63,24 @@ Presence DoD = SoftOrgan glance | Glass peel | **full WPF host** (operator 2026-
 | SolutionExplorer | unbound | TreeView + `GlassSolutionExplorerGlance` | DONE peel |
 | Chat | unbound | `GlassIntercomPresence` card | DONE presence |
 | Editor | unbound | AvalonEdit on M when Forward=intercom | DONE peel |
-| Terminal | `sys` glance | redirected TextBox → **full ConPTY host** (wave) | ACT full |
-| Build | `toolchain` glance | redirected log → **full Build host** (wave) | ACT full |
+| Terminal | `sys` glance | redirected TextBox (**ConPTY** depth) | DONE v1 · depth ConPTY |
+| Build | `toolchain` glance | redirected log TextBox (≈ Avalonia log MFD) | DONE v1 |
 | Tests | `test_desk` glance | redirected log TextBox | DONE peel |
-| Git | unbound | redirected status → **full Git panel** (wave) | ACT full |
-| DebugStack | `debug_desk` glance | **full DAP host** (wave) | ACT full |
-| Problems | `review` glance | **full ListBox host** (wave · shipping) | ACT full |
-| RelatedFiles | `refactor` glance | **full related list** (wave) | ACT full |
-| SemanticMap | `arch` glance | **full Skia/WNM graph** (wave) | ACT full |
-| MarkdownPreview | `report` glance | **full Markdig/WPF host** (wave) | ACT full |
+| Git | unbound | porcelain list + diff (`GlassGitPorcelainParse`) | DONE v1 · depth commit UI |
+| DebugStack | `debug_desk` glance | spectator from `debug_desk-LATEST` | DONE v1 · depth live DAP |
+| Problems | `review` glance | ListBox + MSBuild parse | DONE v1 |
+| RelatedFiles | `refactor` glance | FS heuristic list | DONE v1 · depth map orchestrator |
+| SemanticMap | `arch` glance | same list v1 (no Skia) | DONE v1 · depth Skia/WNM |
+| MarkdownPreview | `report` glance | Markdig `ToPlainText` | DONE v1 · depth rich tree |
 | AiChatSettings | `mcp` glance | settings.toml SSOT | HOLD latch |
-| WebAiPortal | unbound | **full WebView2** (wave) | ACT full |
-| Correspondence | unbound | **full CRS host** (wave) | ACT full |
+| WebAiPortal | unbound | URL chrome → external browser | DONE v1 · depth WebView2 |
+| Correspondence | unbound | thin FS reverse/forward | DONE v1 · depth full CRS |
 
 Sources: `Models/MfdShellPage.cs` · `SoftOrganMfdGlance.TryOrganIdForMfdPage` · `MainWindow.MfdBody` · XAML `MfdPages`.
 
 Parity note: Glass XAML / CabinGlass use page string **SemanticMap** (`arch_desk` → MFD); Avalonia `MfdShellPage` has **no** SemanticMap member — graph SSOT = PFD `WorkspaceNavigationMapView` (not MFD shell).
 
-**Presence DoD: CLOSED** for latch/peel presence. **Full-host DoD: OPEN** — operator unHOLD 2026-08-03 (полные хосты, дизайн потом). Wave: Problems → Build → Git → Markdown → Chord → RelatedFiles → CRS → DAP → ConPTY → WebAi → SemanticMap.
+**Presence DoD: CLOSED**. **Full-host v1 DoD: CLOSED** (2026-08-03 batch `77035101`+`f7de96e9`) — CascadeChord = Ctrl+K overlay (not MFD). **Depth DoD: OPEN** — ConPTY · WebView2 · Skia SemanticMap · live DAP · full CRS resolver.
 
 ## DoD matrix — SoftOrgan chrome beyond MFD (2026-08-01 dig)
 
@@ -167,6 +167,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- 2026-08-03: **Glass MFD host batch v1** — feeds `77035101` + WPF hosts `f7de96e9` (Git porcelain+diff, Related, Semantic list, CRS FS, Markdig plain, Debug spectator, WebAi URL) · Problems/Build/Tests/Terminal already · Chord=Ctrl+K · live cabin dogfood pid Responding · SoftFL CLOSED · **depth next:** ConPTY/WebView2/Skia/live-DAP/full-CRS
 - 2026-08-03: **operator unHOLD** full Avalonia→Glass WPF hosts (design later) · wave 11 items · shipping Problems first
 - 2026-08-03: Glass Intercom markdown crash — ContentControl+DataTemplate double-parent + shared TextDecorations.Underline killed cabin; StackPanel+deferred rebuild + frozen underline · cascade-ide `5ffc45f2` · lived start pid dual-cockpit ICM
 - 2026-08-03: cockpit_host cfg latch — toml mtime refresh + Start stamp so path=/toml Glass rediscover stays honest without remount · cdp-mcp `36b5355`
