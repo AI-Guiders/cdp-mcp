@@ -40,14 +40,21 @@ internal static partial class DocumentEditPlane
                         store.ApplyReplace(buf, RequireString(args, "old_string"), OptString(args, "new_string") ?? "");
                         break;
                     case "replace_range":
+                    {
+                        // text= primary; new_string= MCP alias (parity with anchor).
+                        // Missing both must refuse — silent OptString(text)??"" ate spans when agents only passed new_string=.
+                        var body = OptString(args, "text") ?? OptString(args, "new_string")
+                            ?? throw new ArgumentException(
+                                "replace_range needs text= or new_string= (pass text=\"\" to delete the span).");
                         store.ApplyReplaceRange(
                             buf,
                             RequireInt(args, "start_line"),
                             RequireInt(args, "start_column"),
                             RequireInt(args, "end_line"),
                             RequireInt(args, "end_column"),
-                            OptString(args, "text") ?? "");
+                            body);
                         break;
+                    }
                     case "anchor":
                         anchorResolved = ApplyAnchorEdit(store, session, buf, args);
                         break;
