@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.614** — `@intent man|man_desk|cdp_man|manual` host-execute → Meta `cdp_man` (tool=/name=/page=; positional page; plain TOC/Manual pulse; no steal go=health). Tests CitizenManHostTests 6/6. Lived: dry_run execute → man/desk/cdp/manual/tool=cdp_health/context_budget `ack=7/7`. Peer ops manual without Cursor MCP.
 - **0.5.613** — `@intent editor_scene|editor_scene_desk|cdp_editor_scene|editor_desk|editor` host-execute → Meta `cdp_editor_scene` (detail/path/doc_id/locus/context_lines; no steal bare open). Tests CitizenEditorSceneHostTests 6/6. Lived: primary dry_run execute → editor_scene/desk/cdp/editor/path+full/map `ack=6/6`. Peer editor map without Cursor MCP.
 - **0.5.612** — `@intent cdp_goto|goto_all|go_to_all|goto_feature|goto_desk|go_to` + bare `goto query=` (no path) host-execute → Meta `cdp_goto` (query/kind/max/peek; empty→goto_query_required; gate before Ide goto; no steal `goto path=+line=` Ide definition). Tests CitizenGotoAllHostTests 6/6. Lived: primary dry_run execute → cdp_goto/goto_all/goto_feature/goto query=/go_to/positional `ack=6/6`. Peer GoToAll without Cursor MCP.
 - **0.5.611** — `@intent test_scene|test_scene_desk|cdp_test_scene|test_runner` host-execute → Meta `cdp_test_scene` (path/configuration/max_tests; gate after test_plan before bare test; no steal bare test|test_plan|test_desk). Tests CitizenTestSceneHostTests 6/6. Lived: primary dry_run execute → test_scene/desk/cdp/runner/path+max/config `ack=6/6`. Peer test-runner map without Cursor MCP.
