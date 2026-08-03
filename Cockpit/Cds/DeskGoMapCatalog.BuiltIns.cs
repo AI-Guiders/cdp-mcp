@@ -192,6 +192,10 @@ public sealed partial class DeskGoMapCatalog : ICockpitComputeUnit
         ["ps1_help"] = new Entry("cdp_ps1_scene", Dict(("op", "help"))),
         ["goto"] = new Entry("cdp_goto", null),
         ["go_to"] = new Entry("cdp_goto", null),
+        ["man"] = new Entry("cdp_man", null),
+        ["man_desk"] = new Entry("cdp_man", null),
+        ["cdp_man"] = new Entry("cdp_man", null),
+        ["manual"] = new Entry("cdp_man", null),
         ["t"] = new Entry("cdp_goto", null),
         // Goto Feature (code nav) — not Task Manager; TM uses soft organ + plan aliases.
         ["q"] = new Entry("cdp_goto", Dict(("kind", "feature"))),

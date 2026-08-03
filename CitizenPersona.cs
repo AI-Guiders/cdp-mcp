@@ -174,6 +174,13 @@ internal static class CitizenPersona
           @intent editor
           @intent editor_scene path=CitizenRouteHost.cs detail=full
           @intent editor locus=buffer:doc-1
+          @intent man
+          @intent man_desk
+          @intent cdp_man
+          @intent manual
+          @intent man tool=cdp_health
+          @intent man tool=context_budget
+          @intent cdp_man context_budget
           @intent calendar
           @intent calendar pulse
           @intent clock
