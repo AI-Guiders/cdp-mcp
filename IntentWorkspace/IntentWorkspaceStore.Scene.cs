@@ -17,13 +17,12 @@ internal sealed partial class IntentWorkspaceStore
         int? focusLine,
         Guid? bindStageId)
     {
-        lock (DbGate)
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("name is required for scene_park.");
+        name = name.Trim();
+        return WithDb(db =>
         {
             var intentId = RequireIntent(state);
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("name is required for scene_park.");
-            name = name.Trim();
-            using var db = Open();
             var now = DateTimeOffset.UtcNow;
             var entity = db.Scenes.FirstOrDefault(x => x.IntentId == intentId && x.Name == name);
             if (entity is null)
@@ -57,7 +56,7 @@ internal sealed partial class IntentWorkspaceStore
             db.SaveChanges();
             state.ActiveSceneId = entity.Id;
             return SceneDto(entity);
-        }
+        });
     }
 
     public object SceneSwitch(
@@ -66,13 +65,12 @@ internal sealed partial class IntentWorkspaceStore
         string name,
         Action notifyListChanged)
     {
-        lock (DbGate)
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("name is required for scene_switch.");
+        name = name.Trim();
+        return WithDb(db =>
         {
             var intentId = RequireIntent(state);
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("name is required for scene_switch.");
-            name = name.Trim();
-            using var db = Open();
             var now = DateTimeOffset.UtcNow;
 
             if (state.ActiveSceneId is { } currentId)
@@ -125,67 +123,73 @@ internal sealed partial class IntentWorkspaceStore
                 session = JsonSerializer.Deserialize<JsonElement>(session.ToJson()),
                 stages_open = openStages
             };
-        }
+        });
     }
 
     public object SceneList(IntentWorkspaceState state)
     {
         var intentId = RequireIntent(state);
-        using var db = Open();
-        var rows = db.Scenes.AsNoTracking()
-            .Where(x => x.IntentId == intentId)
-            .OrderBy(x => x.Name)
-            .Select(x => new
-            {
-                scene_id = x.Id,
-                name = x.Name,
-                focus_path = x.FocusPath,
-                focus_line = x.FocusLine,
-                loot = x.Loot,
-                updated_utc = x.UpdatedUtc
-            })
-            .ToList();
-        return new { intent_id = intentId, scenes = rows };
+        return WithDb(db =>
+        {
+            var rows = db.Scenes.AsNoTracking()
+                .Where(x => x.IntentId == intentId)
+                .OrderBy(x => x.Name)
+                .Select(x => new
+                {
+                    scene_id = x.Id,
+                    name = x.Name,
+                    focus_path = x.FocusPath,
+                    focus_line = x.FocusLine,
+                    loot = x.Loot,
+                    updated_utc = x.UpdatedUtc
+                })
+                .ToList();
+            return (object)new { intent_id = intentId, scenes = rows };
+        });
     }
 
     public object Status(IntentWorkspaceState state, SessionContext session)
     {
-        using var db = Open();
-        string? intentTitle = null;
-        string? sceneName = null;
-        string? stageTitle = null;
-        if (state.ActiveIntentId is { } iid)
-            intentTitle = db.Intents.AsNoTracking().Where(x => x.Id == iid).Select(x => x.Title).FirstOrDefault();
-        if (state.ActiveSceneId is { } sid)
-            sceneName = db.Scenes.AsNoTracking().Where(x => x.Id == sid).Select(x => x.Name).FirstOrDefault();
-        if (state.ActiveStageId is { } stid)
-            stageTitle = db.Stages.AsNoTracking().Where(x => x.Id == stid).Select(x => x.Title).FirstOrDefault();
-
-        return new
+        return WithDb(db =>
         {
-            database_path = state.DatabasePath,
-            active_intent_id = state.ActiveIntentId,
-            active_intent_title = intentTitle,
-            active_stage_id = state.ActiveStageId,
-            active_stage_title = stageTitle,
-            active_scene_id = state.ActiveSceneId,
-            active_scene_name = sceneName,
-            session = JsonSerializer.Deserialize<JsonElement>(session.ToJson())
-        };
+            string? intentTitle = null;
+            string? sceneName = null;
+            string? stageTitle = null;
+            if (state.ActiveIntentId is { } iid)
+                intentTitle = db.Intents.AsNoTracking().Where(x => x.Id == iid).Select(x => x.Title).FirstOrDefault();
+            if (state.ActiveSceneId is { } sid)
+                sceneName = db.Scenes.AsNoTracking().Where(x => x.Id == sid).Select(x => x.Name).FirstOrDefault();
+            if (state.ActiveStageId is { } stid)
+                stageTitle = db.Stages.AsNoTracking().Where(x => x.Id == stid).Select(x => x.Title).FirstOrDefault();
+
+            return (object)new
+            {
+                database_path = state.DatabasePath,
+                active_intent_id = state.ActiveIntentId,
+                active_intent_title = intentTitle,
+                active_stage_id = state.ActiveStageId,
+                active_stage_title = stageTitle,
+                active_scene_id = state.ActiveSceneId,
+                active_scene_name = sceneName,
+                session = JsonSerializer.Deserialize<JsonElement>(session.ToJson())
+            };
+        });
     }
 
     public (string? IntentId, string? SceneId, string? SceneName, string DatabasePath) PlaneIds(IntentWorkspaceState state)
     {
-        using var db = Open();
-        string? sceneName = null;
-        if (state.ActiveSceneId is { } sid)
-            sceneName = db.Scenes.AsNoTracking().Where(x => x.Id == sid).Select(x => x.Name).FirstOrDefault();
+        return WithDb(db =>
+        {
+            string? sceneName = null;
+            if (state.ActiveSceneId is { } sid)
+                sceneName = db.Scenes.AsNoTracking().Where(x => x.Id == sid).Select(x => x.Name).FirstOrDefault();
 
-        return (
-            state.ActiveIntentId?.ToString("D"),
-            state.ActiveSceneId?.ToString("D"),
-            sceneName,
-            state.DatabasePath);
+            return (
+                state.ActiveIntentId?.ToString("D"),
+                state.ActiveSceneId?.ToString("D"),
+                sceneName,
+                state.DatabasePath);
+        });
     }
 
     private static Guid RequireIntent(IntentWorkspaceState state) =>
