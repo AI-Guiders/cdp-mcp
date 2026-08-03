@@ -56,6 +56,7 @@ internal static partial class CitizenIntentRouter
         TestPlan,
         TestScene,
         GotoAll,
+        EditorScene,
         Edit,
         Deploy,
         Undo,
@@ -396,6 +397,20 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("test_runner ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteTestScene(raw);
+        }
+
+        if (raw.Equals("editor_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("editor_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("editor_scene_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("editor_scene_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_editor_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_editor_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("editor_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("editor_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("editor", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("editor ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteEditorScene(raw);
         }
 
         if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
@@ -1381,6 +1396,7 @@ internal static partial class CitizenIntentRouter
             "analysis" or "analysis_desk" or "analysis_scene" or "cdp_analysis" or "cdp_analysis_scene" or "analysis_map" or "analysis_clones" or "analysis_correspondence" or "analysis_corr" or "analysis_semantic" or "analysis_semantic_map" => "analysis_scene",
             "test_plan" or "test_plan_desk" or "cdp_test_plan" or "test_plan_preview" or "test_plan_apply" or "test_plan_draft" or "test_plan_run" => "test_plan",
             "test_scene" or "test_scene_desk" or "cdp_test_scene" or "test_runner" => "test_scene",
+            "editor_scene" or "editor_scene_desk" or "cdp_editor_scene" or "editor_desk" => "editor_scene",
             "goto" or "goto_all" or "go_to_all" or "cdp_goto" or "goto_feature" or "goto_desk" or "go_to" => "goto",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
