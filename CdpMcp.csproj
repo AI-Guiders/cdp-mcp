@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.633</Version>
+    <Version>0.5.634</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -421,6 +421,11 @@
   <ItemGroup>
     <Compile Update="CitizenPersona.Wire.cs">
       <DependentUpon>CitizenPersona.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="CitizenRouteHost.PlanCmd.cs">
+      <DependentUpon>CitizenRouteHost.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>
