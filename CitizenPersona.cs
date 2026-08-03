@@ -209,6 +209,14 @@ internal static class CitizenPersona
           @intent session include_pack=true
           @intent cdp_session include_pack=true
           @intent go=session
+          @intent tools
+          @intent tools_desk
+          @intent cdp_tools
+          @intent tools_palette
+          @intent palette
+          @intent tools phase=act object=code limit=5
+          @intent cdp_tools phase=explore object=code language=csharp
+          @intent go=tools
           @intent calendar
           @intent calendar pulse
           @intent clock
