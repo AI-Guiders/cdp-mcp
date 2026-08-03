@@ -32,7 +32,7 @@ internal static class CitizenGlassDialogBridge
     internal static string? RootOverrideForTests { get; set; }
 
     /// <summary>Test hook — when set, skips live CitizenCompletions.</summary>
-    internal static Func<string, (bool Ok, string? Text, string? Error)>? TurnOverrideForTests { get; set; }
+    internal static Func<string, CitizenCompletions.TurnResult>? TurnOverrideForTests { get; set; }
 
     internal static void ResetProcessedForTests() => LastProcessedId = null;
 
@@ -109,39 +109,39 @@ internal static class CitizenGlassDialogBridge
 
         try
         {
-            string? replyText;
-            string? err;
+            CitizenCompletions.TurnResult turn;
             if (TurnOverrideForTests is { } ov)
             {
-                var fake = ov(req.Body);
-                replyText = fake.Text;
-                err = fake.Error;
-                if (!fake.Ok || string.IsNullOrWhiteSpace(replyText))
-                {
-                    MarkStatus(req, "error", err ?? "empty_reply");
-                    return true;
-                }
+                turn = ov(req.Body);
             }
             else
             {
-                var turn = CitizenCompletions.Turn(
+                var live = CitizenLiveDesk.TryCaptureLive();
+                turn = CitizenCompletions.Turn(
                     req.Body,
+                    boardLines: live.BoardLines.Length > 0 ? live.BoardLines : null,
+                    tm: live.TmPulse,
                     inject: true,
                     mode: CitizenTurnMode.Dialog,
                     history: true);
-                if (!turn.Ok || string.IsNullOrWhiteSpace(turn.Text))
-                {
-                    MarkStatus(req, "error", turn.Error ?? "empty_reply");
-                    return true;
-                }
+            }
 
-                replyText = turn.Text;
+            if (!turn.Ok || string.IsNullOrWhiteSpace(turn.Text))
+            {
+                MarkStatus(req, "error", turn.Error ?? "empty_reply");
+                return true;
+            }
+
+            if (turn.Routes is { Count: > 0 })
+            {
+                var executed = CitizenRouteHost.Execute(turn.Routes);
+                _ = CitizenPeerAck.FromExecuted(executed);
             }
 
             var published = CideIntercomVoiceLatch.Publish(
                 fromSeat: CideIntercomVoiceLatch.SeatPf,
                 toSeat: CideIntercomVoiceLatch.SeatPm,
-                body: replyText!,
+                body: turn.Text!,
                 origin: CideIntercomVoiceLatch.OriginAgent,
                 id: null,
                 name: CideIntercomVoiceLatch.DefaultNameCitizen,
