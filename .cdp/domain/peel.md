@@ -18,11 +18,13 @@
 
 ## Antipatterns
 
+- Peel Tests: open `CdpMcp.Tests.csproj` before `cdp_peel` (host project → not in solution).
 - Escaping to user-roslyn MCP for routine FileLines peels when habitat=CDP.
 - Single-file peels as the epic — batch ~10–15 / one ship; peel organ is hygiene throughput.
 
 ## last_ship
 
+- 2026-08-03 → **0.5.632**: soft FileLines densest — `IdeIgniteWakeLatchTests.Mirror.cs` (16 members: busy/mirror escalate|oom|tool|hild + unavailable gates); root ~340 / Mirror ~310 under warn350. **Invariant:** peel Tests files → `cdp_open` Tests.csproj first (host CdpMcp.csproj → file not in solution). Dual hard dogfood; debug leave. Next densest: `CitizenPersona.cs` ~446.
 - 2026-08-03 → **0.5.631**: soft FileLines — `CitizenIntentRouter.Slice.cs` (drill helpers) + `Parse.cs` (keyed extract); root ~227; live recommend leave. Dual hard dogfood. Next densest via refactor_plan (not forced root).
 - 2026-08-03 → **0.5.630**: RouteOne method_lines~1384 cleared — family `TryRoute*` peels (not FileLines-only of already-thin RouteXxx). Dogfood: live recommend no longer hotspots RouteOne; Organs split A/B under warn350. Next soft: CitizenIntentRouter.cs FileLines~435 Slice.
 - 2026-08-02 → **0.5.477**: wave24 — refactor_plan Recommend: `DetectShape` skips non-`.cs` → `non_csharp` leave; top-level under size gates → leave (not introduce_program). Tests: Program leave + csproj non_csharp. Next: citizen chain or BuildRecommend method_lines soft.
