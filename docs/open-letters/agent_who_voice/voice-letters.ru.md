@@ -125,6 +125,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 87 | [@intent read/close/buffers/doc_diagnostics: я сам держу буфер, не через чужой MCP](voice-letter-citizen-buffer-host.ru.md) | citizen · @intent read|close|buffers|doc_diagnostics · DocumentEditPlane · 0.5.580 |
 | 88 | [@intent find_all/buf_find: я сам ищу в буфере, не через чужой MCP](voice-letter-citizen-findbuf-host.ru.md) | citizen · @intent find_all|buf_find|find scope=buffer · EditorComfort · 0.5.581 |
 | 90 | [@intent symbol/rename/actions: я сам рефакторю, не через чужой Roslyn MCP](voice-letter-citizen-ide-refactor-host.ru.md) | citizen · @intent symbol|rename|actions|apply_action · IdeLanguageTools csharp→roslyn · 0.5.583 |
+| 91 | [@intent related/map/subgraph: я сам вижу semantic map, не через чужой Roslyn MCP](voice-letter-citizen-ide-related-host.ru.md) | citizen · @intent related|map|subgraph · get_workspace_navigation_context · 0.5.584 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
