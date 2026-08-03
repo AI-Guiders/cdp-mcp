@@ -137,6 +137,11 @@ internal static class CitizenPersona
           @intent cdp_onboard
           @intent onboard scan
           @intent onboard_clear
+          @intent peel
+          @intent peel_desk
+          @intent cdp_peel
+          @intent peel path=Foo.cs members=Bar out=Foo.Bar.cs apply=false
+          @intent peel_apply path=Foo.cs members=Bar out=Foo.Bar.cs
           @intent calendar
           @intent calendar pulse
           @intent clock

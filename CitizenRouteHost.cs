@@ -76,6 +76,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.Icm => RunIcm(route),
             CitizenIntentRouter.Verb.Files => RunFiles(route),
             CitizenIntentRouter.Verb.Onboard => RunOnboard(route),
+            CitizenIntentRouter.Verb.Peel => RunPeel(route),
             CitizenIntentRouter.Verb.Calendar => RunCalendar(route),
             CitizenIntentRouter.Verb.Land => RunLand(route),
             CitizenIntentRouter.Verb.Pkg => RunPkg(route),

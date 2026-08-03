@@ -50,6 +50,7 @@ internal static partial class CitizenIntentRouter
         Icm,
         Files,
         Onboard,
+        Peel,
         Edit,
         Deploy,
         Undo,
@@ -638,6 +639,24 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("cdp_onboard_clear ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteOnboard(raw);
+        }
+
+        if (raw.Equals("peel", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("peel ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("peel_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("peel_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_peel", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_peel ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("peel_preview", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("peel_preview ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("peel_apply", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("peel_apply ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_peel_preview", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_peel_preview ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_peel_apply", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_peel_apply ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RoutePeel(raw);
         }
 
         if (raw.Equals("pressure", StringComparison.OrdinalIgnoreCase)
@@ -1257,6 +1276,7 @@ internal static partial class CitizenIntentRouter
             "icm" or "icm_desk" or "cdp_icm" or "command_module" or "icm_aliases" or "icm_resolve" or "icm_invoke" => "icm_desk",
             "files" or "files_desk" or "cdp_files" or "file_manager" or "fm" or "files_list" or "files_tree" or "files_open" => "files_desk",
             "onboard" or "onboard_desk" or "explore_desk" or "explore" or "cdp_onboard" or "onboard_scan" or "onboard_clear" => "onboard_desk",
+            "peel" or "peel_desk" or "cdp_peel" or "peel_preview" or "peel_apply" => "peel",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
