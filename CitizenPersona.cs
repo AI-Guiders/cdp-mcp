@@ -164,6 +164,11 @@ internal static class CitizenPersona
           @intent toolchain ensure id=python
           @intent toolchain_probe
           @intent toolchain_ensure id=gcc
+          @intent cockpit_host
+          @intent cockpit_host scene
+          @intent cockpit_start
+          @intent cockpit_stop
+          @intent cdp_cockpit_host op=scene
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy

@@ -54,6 +54,7 @@ internal static partial class CitizenRouteHost
         IntercomHandleOverride = null;
         PresentationHandleOverride = null;
         ToolchainHandleOverride = null;
+        CockpitHostHandleOverride = null;
         MetaDispatchResolver = null;
     }
 
