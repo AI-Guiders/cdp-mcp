@@ -222,6 +222,10 @@ public sealed partial class DeskGoMapCatalog : ICockpitComputeUnit
         ["capabilities_desk"] = new Entry("cdp_capabilities", null),
         ["cdp_capabilities"] = new Entry("cdp_capabilities", null),
         ["caps"] = new Entry("cdp_capabilities", null),
+        ["cockpit"] = new Entry("cdp_cockpit", null),
+        ["cockpit_desk"] = new Entry("cdp_cockpit", null),
+        ["cdp_cockpit"] = new Entry("cdp_cockpit", null),
+        ["agent_desk"] = new Entry("cdp_cockpit", null),
         ["t"] = new Entry("cdp_goto", null),
         // Goto Feature (code nav) — not Task Manager; TM uses soft organ + plan aliases.
         ["q"] = new Entry("cdp_goto", Dict(("kind", "feature"))),
