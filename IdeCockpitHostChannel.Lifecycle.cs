@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -76,15 +76,45 @@ internal static partial class IdeCockpitHostChannel
         }
     }
 
-    /// <summary>path= → toml exe → env escape.</summary>
+    /// <summary>path= → toml exe (mtime refresh) → env escape. Caller holds Gate.</summary>
     static string? ResolveExe(string? overridePath)
     {
         if (!string.IsNullOrWhiteSpace(overridePath))
             return Path.GetFullPath(overridePath.Trim());
+        RefreshCfgFromTomlIfNeeded();
         if (!string.IsNullOrWhiteSpace(_cfg.Exe))
             return Path.GetFullPath(_cfg.Exe.Trim());
         var env = Environment.GetEnvironmentVariable(EnvExe);
         return string.IsNullOrWhiteSpace(env) ? null : Path.GetFullPath(env.Trim());
+    }
+
+    /// <summary>Pick up install-toml edits without MCP remount. Caller holds Gate.</summary>
+    static void RefreshCfgFromTomlIfNeeded()
+    {
+        if (_configPath is null || !File.Exists(_configPath))
+            return;
+        DateTime mtime;
+        try
+        {
+            mtime = File.GetLastWriteTimeUtc(_configPath);
+        }
+        catch
+        {
+            return;
+        }
+
+        if (_configMtimeUtc is { } prev && mtime == prev)
+            return;
+
+        try
+        {
+            _cfg = CdpSettings.Load(_configPath).CockpitHost;
+            _configMtimeUtc = mtime;
+        }
+        catch
+        {
+            /* keep previous cfg */
+        }
     }
 
     static string ConfigSourceLabel()

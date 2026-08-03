@@ -18,7 +18,7 @@ var configPath = args.SkipWhile(a => a != "--config").Skip(1).FirstOrDefault()
     ?? Path.Combine(AppContext.BaseDirectory, "config", "cdp-mcp.toml");
 var settings = CdpSettings.Load(configPath);
 IdeLanguageTools.Configure(settings.Languages, settings.LspPresets);
-IdeCockpitHostChannel.Configure(settings.CockpitHost);
+IdeCockpitHostChannel.Configure(settings.CockpitHost, configPath);
 VendorCatalog.Configure(settings.Vendor);
 IdeIgniteArmHost.EnsureStarted();
 
