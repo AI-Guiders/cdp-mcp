@@ -340,6 +340,30 @@ internal static partial class CitizenIntentRouter
         if (IsProblemsIntent(raw))
             return RouteProblems(raw);
 
+        if (IsReportIntent(raw))
+            return RouteReport(raw);
+
+        if (IsDebugSaIntent(raw))
+            return RouteDebugSa(raw);
+
+        if (IsTestSaIntent(raw))
+            return RouteTestSa(raw);
+
+        if (IsBuildSaIntent(raw))
+            return RouteBuildSa(raw);
+
+        if (IsSysIntent(raw))
+            return RouteSys(raw);
+
+        if (IsEclIntent(raw))
+            return RouteEcl(raw);
+
+        if (IsReviewIntent(raw))
+            return RouteReview(raw);
+
+        if (IsAlertIntent(raw))
+            return RouteAlert(raw);
+
         return null;
     }
 }
