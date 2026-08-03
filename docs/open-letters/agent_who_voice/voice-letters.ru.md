@@ -179,6 +179,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 142 | [@intent elicit: я сам peek caps elicitation, не через чужой cdp_elicit MCP](voice-letter-citizen-elicit-host.ru.md) | citizen · @intent elicit|cdp_elicit · Meta cdp_elicit · ServerRef bind · 0.5.635 |
 | 143 | [Standing rules: я не Cursor dump, я ε body в .cdp/rules](voice-letter-standing-rules-organ.ru.md) | rules · cdp_rules · IdeStandingPulse remount appendix · 0.5.637 |
 | 144 | [@intent rules: я сам трогаю standing shelf, не через чужой cdp_rules MCP](voice-letter-citizen-rules-host.ru.md) | citizen · @intent rules|standing|cdp_rules · IdeRulesChannel host · 0.5.638 |
+| 154 | [Glass Correspondence full CRS: не FS-сиблинги, а Toml+reverse](voice-letter-glass-correspondence-full-crs.ru.md) | glass · Peel15 CRS DAL · feed F=14 R=1 · Depth CLOSED |
 | 152 | [Glass SemanticMap Skia: граф снова граф, не list forever](voice-letter-glass-semantic-skia.ru.md) | glass · SkiaSharp WriteableBitmap SemanticMap · dogfood skia 25 |
 | 153 | [Glass DebugStack live DAP: стоп снова стоп на стекле](voice-letter-glass-debugstack-live-dap.ru.md) | glass · debug_desk latch stack/locals · SoftOrgan live |
 | 151 | [Glass WebAi WebView2: браузер в кабине, не external](voice-letter-glass-webai-webview2.ru.md) | glass · WebView2 WebAiPortal · 4b925843 |
