@@ -55,6 +55,7 @@ internal static partial class CitizenIntentRouter
         Analysis,
         TestPlan,
         TestScene,
+        GotoAll,
         Edit,
         Deploy,
         Undo,
@@ -1230,6 +1231,9 @@ internal static partial class CitizenIntentRouter
             return RouteFind(raw);
         }
 
+        if (LooksLikeGotoAll(raw))
+            return RouteGotoAll(raw);
+
         if (raw.Equals("ide", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("ide ", StringComparison.OrdinalIgnoreCase)
             || raw.Equals("goto", StringComparison.OrdinalIgnoreCase)
@@ -1377,6 +1381,7 @@ internal static partial class CitizenIntentRouter
             "analysis" or "analysis_desk" or "analysis_scene" or "cdp_analysis" or "cdp_analysis_scene" or "analysis_map" or "analysis_clones" or "analysis_correspondence" or "analysis_corr" or "analysis_semantic" or "analysis_semantic_map" => "analysis_scene",
             "test_plan" or "test_plan_desk" or "cdp_test_plan" or "test_plan_preview" or "test_plan_apply" or "test_plan_draft" or "test_plan_run" => "test_plan",
             "test_scene" or "test_scene_desk" or "cdp_test_scene" or "test_runner" => "test_scene",
+            "goto" or "goto_all" or "go_to_all" or "cdp_goto" or "goto_feature" or "goto_desk" or "go_to" => "goto",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };

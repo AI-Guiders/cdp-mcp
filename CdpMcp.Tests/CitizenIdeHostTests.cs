@@ -8,12 +8,11 @@ namespace CdpMcp.Tests;
 public sealed class CitizenIdeHostTests
 {
     [Fact]
-    public void Route_goto_requires_path()
+    public void Route_goto_alone_is_goto_all_query_required()
     {
         var r = CitizenIntentRouter.RouteOne("goto");
         Assert.False(r.Ok);
-        Assert.Equal(CitizenIntentRouter.Verb.Ide, r.Verb);
-        Assert.Equal("ide_path_required", r.Reason);
+        Assert.Equal("goto_query_required", r.Reason);
     }
 
     [Fact]

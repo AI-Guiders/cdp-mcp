@@ -30,6 +30,7 @@ internal static partial class IdeDeskSeats
         ["buffer"] = "forward",
         ["edit_draft"] = "forward",
         ["edit_plan"] = "forward",
+        ["goto"] = "forward",
         ["scope"] = "forward",
         ["target"] = "forward",
         ["peek"] = "forward",

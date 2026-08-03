@@ -164,6 +164,10 @@ internal static class CitizenPersona
           @intent cdp_test_scene
           @intent test_runner
           @intent test_scene path=CdpMcp.Tests max_tests=50
+          @intent cdp_goto query=CitizenRouteHost
+          @intent goto_all query=Foo
+          @intent goto_feature query=undo
+          @intent goto query=RunGotoAll
           @intent calendar
           @intent calendar pulse
           @intent clock
