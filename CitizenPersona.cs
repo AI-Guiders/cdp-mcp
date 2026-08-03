@@ -175,6 +175,12 @@ internal static class CitizenPersona
           @intent qrh search q=path
           @intent qrh_open id=dap-pdb-lock
           @intent eqrh
+          @intent webcam
+          @intent webcam_desk
+          @intent webcam scene
+          @intent webcam_frame
+          @intent webcam window_list
+          @intent cdp_webcam op=scene
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
