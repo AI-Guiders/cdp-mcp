@@ -60,6 +60,7 @@ internal static partial class CitizenIntentRouter
         Man,
         Health,
         Quality,
+        Session,
         Context,
         Edit,
         Deploy,
@@ -481,6 +482,18 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("gates_assert ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteQuality(raw);
+        }
+
+        if (raw.Equals("session", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("session ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("session_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("session_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("session_plane", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("session_plane ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_session", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_session ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteSession(raw);
         }
 
         if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
@@ -1472,6 +1485,7 @@ internal static partial class CitizenIntentRouter
             "context" or "context_desk" or "cdp_context" or "session_context" => "context",
             "quality" or "quality_desk" or "quality_gates" or "cdp_quality" or "gates"
                 or "quality_disk" or "quality_assert" or "quality_adx" => "quality",
+            "session" or "session_desk" or "session_plane" or "cdp_session" => "session",
             "goto" or "goto_all" or "go_to_all" or "cdp_goto" or "goto_feature" or "goto_desk" or "go_to" => "goto",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
