@@ -15,6 +15,28 @@ internal static partial class IdeQrhChannel
 {
     public const string SchemaVersion = "qrh_organ/v0";
 
+    /// <summary>Citizen / JSON host adapter — ProbeCtx from session (suggest still binds phase/intent).</summary>
+    public static string HandleJson(
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement>? args = null,
+        IdeChkChannel.Snap? ecl = null)
+    {
+        var ctx = IdeChkChannel.CtxFrom(
+            session,
+            taskOpen: true,
+            igniteIdle: true,
+            gitKnown: false,
+            gitDirty: false,
+            testsGreen: false,
+            testsFailed: false,
+            problemsClean: true,
+            dapStopped: false,
+            dapActive: false,
+            sniperOk: true);
+        var result = Handle(ctx, args, ecl);
+        return result is string s ? s : JsonSerializer.Serialize(result, JsonOpts);
+    }
+
     public static Suggest SuggestFor(IdeChkChannel.ProbeCtx ctx, IdeChkChannel.Snap? ecl = null)
     {
         var hits = new List<(string Id, int Score)>();

@@ -169,6 +169,12 @@ internal static class CitizenPersona
           @intent cockpit_start
           @intent cockpit_stop
           @intent cdp_cockpit_host op=scene
+          @intent qrh
+          @intent qrh index
+          @intent qrh open id=intake-brief
+          @intent qrh search q=path
+          @intent qrh_open id=dap-pdb-lock
+          @intent eqrh
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
