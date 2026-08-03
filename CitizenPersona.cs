@@ -187,6 +187,12 @@ internal static class CitizenPersona
           @intent ops_health
           @intent health explain_tool=cdp_man
           @intent cdp_health explain_tool=cdp_context
+          @intent context
+          @intent context_desk
+          @intent cdp_context
+          @intent session_context
+          @intent context get=true
+          @intent cdp_context phase=act object=code intent=change
           @intent calendar
           @intent calendar pulse
           @intent clock

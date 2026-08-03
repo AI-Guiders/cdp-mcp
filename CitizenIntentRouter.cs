@@ -59,6 +59,7 @@ internal static partial class CitizenIntentRouter
         EditorScene,
         Man,
         Health,
+        Context,
         Edit,
         Deploy,
         Undo,
@@ -437,6 +438,18 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("ops_health ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteHealth(raw);
+        }
+
+        if (raw.Equals("context", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("context ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("context_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("context_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_context", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_context ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("session_context", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("session_context ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteContext(raw);
         }
 
         if (raw.Equals("test", StringComparison.OrdinalIgnoreCase)
@@ -1425,6 +1438,7 @@ internal static partial class CitizenIntentRouter
             "editor_scene" or "editor_scene_desk" or "cdp_editor_scene" or "editor_desk" => "editor_scene",
             "man" or "man_desk" or "cdp_man" or "manual" => "man",
             "health" or "health_desk" or "cdp_health" or "ops_health" => "health",
+            "context" or "context_desk" or "cdp_context" or "session_context" => "context",
             "goto" or "goto_all" or "go_to_all" or "cdp_goto" or "goto_feature" or "goto_desk" or "go_to" => "goto",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
