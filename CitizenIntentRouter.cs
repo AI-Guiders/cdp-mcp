@@ -541,7 +541,15 @@ internal static partial class CitizenIntentRouter
             || raw.Equals("workspace_nav", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("workspace_nav ", StringComparison.OrdinalIgnoreCase)
             || raw.Equals("subgraph", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("subgraph ", StringComparison.OrdinalIgnoreCase))
+            || raw.StartsWith("subgraph ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("project_root", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("project_root ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("resolve_root", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("resolve_root ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("resolve_project_root", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("resolve_project_root ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("workspace_root", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("workspace_root ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteIde(raw);
         }
