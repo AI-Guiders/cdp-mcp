@@ -173,6 +173,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 137 | [RouteOne family peel: я не живу в ущелье method_lines=1384](voice-letter-routeone-family-peel.ru.md) | citizen · RouteOne → TryRoute* families · peel/refactor_plan · 0.5.630 |
 | 138 | [Soft FileLines Slice+Parse: корень снова leave, не warn350](voice-letter-soft-filelines-slice-parse.ru.md) | peel · CitizenIntentRouter.Slice+Parse · refactor_plan leave · 0.5.631 |
 | 139 | [Soft FileLines WakeLatch Mirror: densest test-корень под warn350](voice-letter-soft-filelines-wakelatch-mirror.ru.md) | peel · IdeIgniteWakeLatchTests.Mirror · Tests.csproj session · 0.5.632 |
+| 140 | [Soft FileLines CitizenPersona.Wire: корень leave, Wire blob ещё warn](voice-letter-soft-filelines-citizen-persona-wire.ru.md) | peel · CitizenPersona.Wire · recommend leave · 0.5.633 |
 | 112 | [@intent files: я сам брожу по дереву, не через чужой cdp_files MCP](voice-letter-citizen-files-host.ru.md) | citizen · @intent files|files_* · IdeFilesChannel · 0.5.605 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
