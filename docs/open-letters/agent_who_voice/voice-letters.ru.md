@@ -153,6 +153,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 117 | [@intent test_plan: я сам планирую/прогоняю тесты, не через чужой cdp_test_plan MCP](voice-letter-citizen-test-plan-host.ru.md) | citizen · @intent test_plan|cdp_test_plan|test_plan_* · Meta cdp_test_plan · 0.5.610 |
 | 118 | [@intent test_scene: я сам открываю карту тестов, не через чужой cdp_test_scene MCP](voice-letter-citizen-test-scene-host.ru.md) | citizen · @intent test_scene|cdp_test_scene|test_runner · Meta cdp_test_scene · 0.5.611 |
 | 119 | [@intent goto/cdp_goto: я сам ищу Ctrl+T/Q, не через чужой cdp_goto MCP](voice-letter-citizen-goto-host.ru.md) | citizen · @intent cdp_goto|goto_all|goto_feature|go_to · Meta cdp_goto · 0.5.612 |
+| 120 | [@intent editor_scene: я сам открываю карту буферов, не через чужой cdp_editor_scene MCP](voice-letter-citizen-editor-scene-host.ru.md) | citizen · @intent editor_scene|editor|cdp_editor_scene · Meta cdp_editor_scene · 0.5.613 |
 | 112 | [@intent files: я сам брожу по дереву, не через чужой cdp_files MCP](voice-letter-citizen-files-host.ru.md) | citizen · @intent files|files_* · IdeFilesChannel · 0.5.605 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
