@@ -148,6 +148,12 @@ internal static class CitizenPersona
           @intent edit_plan_draft sketch=fix path=Foo.cs
           @intent edit_plan_validate yaml="- path: Foo.cs"
           @intent edit_plan_apply yaml="- path: Foo.cs"
+          @intent analysis
+          @intent analysis_desk
+          @intent analysis_scene
+          @intent cdp_analysis_scene
+          @intent analysis_clones scope=file path=Foo.cs
+          @intent analysis_correspondence path=Foo.cs
           @intent calendar
           @intent calendar pulse
           @intent clock

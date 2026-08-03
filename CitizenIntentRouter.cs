@@ -52,6 +52,7 @@ internal static partial class CitizenIntentRouter
         Onboard,
         Peel,
         EditPlan,
+        Analysis,
         Edit,
         Deploy,
         Undo,
@@ -686,6 +687,38 @@ internal static partial class CitizenIntentRouter
             return RouteEditPlan(raw);
         }
 
+        if (raw.Equals("analysis", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("analysis ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("analysis_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("analysis_desk ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("analysis_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("analysis_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_analysis_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_analysis_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_analysis", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_analysis ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("analysis_map", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("analysis_map ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("analysis_clones", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("analysis_clones ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("analysis_correspondence", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("analysis_correspondence ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("analysis_corr", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("analysis_corr ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("analysis_semantic", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("analysis_semantic ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("analysis_semantic_map", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("analysis_semantic_map ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_analysis_clones", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_analysis_clones ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_analysis_correspondence", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_analysis_correspondence ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_analysis_semantic", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_analysis_semantic ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteAnalysis(raw);
+        }
+
         if (raw.Equals("pressure", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("pressure ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("pressure op=", StringComparison.OrdinalIgnoreCase))
@@ -1305,6 +1338,7 @@ internal static partial class CitizenIntentRouter
             "onboard" or "onboard_desk" or "explore_desk" or "explore" or "cdp_onboard" or "onboard_scan" or "onboard_clear" => "onboard_desk",
             "peel" or "peel_desk" or "cdp_peel" or "peel_preview" or "peel_apply" => "peel",
             "edit_plan" or "edit_plan_desk" or "cdp_edit_plan" or "edit_plan_draft" or "edit_plan_validate" or "edit_plan_apply" or "edit_plan_preview" => "edit_plan",
+            "analysis" or "analysis_desk" or "analysis_scene" or "cdp_analysis" or "cdp_analysis_scene" or "analysis_map" or "analysis_clones" or "analysis_correspondence" or "analysis_corr" or "analysis_semantic" or "analysis_semantic_map" => "analysis_scene",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
