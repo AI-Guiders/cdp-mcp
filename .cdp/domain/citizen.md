@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.618** — `@intent session|session_desk|session_plane|cdp_session` host-execute → Meta `cdp_session` (include_pack=/pack=; pulse phase/object · A|pack; no steal go=session / session_context). Tests CitizenSessionHostTests 6/6. Lived: dry_run execute → session/desk/cdp/plane/include_pack/go=session `ack=6/6`. Peer omnibus without Cursor MCP.
 - **0.5.617** — `@intent quality|gates|quality_desk|quality_gates|cdp_quality` (+ quality_disk|quality_assert compounds) host-execute → QualityGates/AdxAssertions (scope=disk|assert|buffers; path=; limit=; gate FAIL≠host fail; no steal go=quality place). Tests CitizenQualityHostTests 8/8. Lived: dry_run execute → quality/gates/desk/gates/cdp/disk/assert/go=quality `ack=8/8`. Peer quality pulse without Cursor MCP.
 - **0.5.616** — `@intent context|context_desk|cdp_context|session_context` host-execute → Meta `cdp_context` (phase/object/intent/language/get/layout_hold; Meta `#` tails stripped; no steal go=context place). Tests CitizenContextHostTests 7/7. Lived: dry_run execute → context/desk/cdp/session/get/set+hold/go=context `ack=7/7`. Peer session retarget without Cursor MCP.
 - **0.5.615** — `@intent health|health_desk|cdp_health|ops_health` host-execute → Meta `cdp_health` (explain_tool=/explain=/tool=; positional; ops_pulse preferred; no steal go=health place). Tests CitizenHealthHostTests 6/6. Lived: dry_run execute → health/desk/cdp/ops/explain×2/go=health `ack=7/7`. Peer ops pulse without Cursor MCP.
