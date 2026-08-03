@@ -60,6 +60,7 @@ internal static partial class CitizenRouteHost
         HealthDispatchOverride = null;
         ContextDispatchOverride = null;
         QualityHandleOverride = null;
+        SessionDispatchOverride = null;
         CalendarHandleOverride = null;
         LandDispatchOverride = null;
         PkgDispatchOverride = null;

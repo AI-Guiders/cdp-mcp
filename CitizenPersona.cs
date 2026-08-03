@@ -202,6 +202,13 @@ internal static class CitizenPersona
           @intent quality_disk limit=20
           @intent quality_assert
           @intent go=quality
+          @intent session
+          @intent session_desk
+          @intent cdp_session
+          @intent session_plane
+          @intent session include_pack=true
+          @intent cdp_session include_pack=true
+          @intent go=session
           @intent calendar
           @intent calendar pulse
           @intent clock
