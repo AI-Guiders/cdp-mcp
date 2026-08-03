@@ -53,6 +53,11 @@ public sealed partial class DeskWireParityTests
         Assert.Equal(SoftOrganKind.Rules, cat.TryResolve("rules"));
         Assert.Equal(SoftOrganKind.Rules, cat.TryResolve("cdp_rules"));
         Assert.Equal(SoftOrganKind.Rules, cat.TryResolve("standing"));
+        Assert.Equal(SoftOrganKind.Inventory, cat.TryResolve("inventory"));
+        Assert.Equal(SoftOrganKind.Inventory, cat.TryResolve("cdp_inventory"));
+        Assert.Equal(SoftOrganKind.Inventory, cat.TryResolve("gaps"));
+        Assert.Equal(SoftOrganKind.VerifyWave, cat.TryResolve("verify_wave"));
+        Assert.Equal(SoftOrganKind.VerifyWave, cat.TryResolve("cdp_verify_wave"));
         Assert.Null(cat.TryResolve("editor_scene"));
         Assert.Null(cat.TryResolve("git_scene"));
     }
@@ -102,6 +107,12 @@ public sealed partial class DeskWireParityTests
         Assert.Equal("rules", cat.Require(SoftOrganKind.Rules).Go);
         Assert.Equal("cdp_rules", cat.Require(SoftOrganKind.Rules).Tool);
         Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.Rules).Mode);
+        Assert.Equal("inventory", cat.Require(SoftOrganKind.Inventory).Go);
+        Assert.Equal("cdp_inventory", cat.Require(SoftOrganKind.Inventory).Tool);
+        Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.Inventory).Mode);
+        Assert.Equal("verify_wave", cat.Require(SoftOrganKind.VerifyWave).Go);
+        Assert.Equal("cdp_verify_wave", cat.Require(SoftOrganKind.VerifyWave).Tool);
+        Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.VerifyWave).Mode);
         Assert.Equal("project_switch", cat.Require(SoftOrganKind.ProjectSwitch).Go);
         Assert.Equal("cdp_scope", cat.Require(SoftOrganKind.ProjectSwitch).Tool);
         Assert.Equal(SoftOrganPresentMode.PulseLine, cat.Require(SoftOrganKind.ProjectSwitch).Mode);
