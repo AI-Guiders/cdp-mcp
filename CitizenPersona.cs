@@ -115,6 +115,8 @@ internal static class CitizenPersona
           @intent put path=tools/_put-draft.txt text="overwrite" overwrite=true
           @intent scratch
           @intent scratch ext=md text="# notes"
+          @intent take path=CitizenRouteHost.cs
+          @intent take path=CitizenRouteHost.cs check=false
           @intent find query="IdeFindChannel" where=project shape=list
           @intent find IdeFindChannel where=project
           @intent search query=CitizenRouteHost
