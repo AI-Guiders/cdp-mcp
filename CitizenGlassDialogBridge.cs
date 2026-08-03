@@ -132,21 +132,29 @@ internal static class CitizenGlassDialogBridge
                 return true;
             }
 
+            CitizenPeerAck.Result? peerAck = null;
             if (turn.Routes is { Count: > 0 })
             {
                 var executed = CitizenRouteHost.Execute(turn.Routes);
-                _ = CitizenPeerAck.FromExecuted(executed);
+                peerAck = CitizenPeerAck.FromExecuted(executed);
             }
+
+            // Hands observe must reach Glass projector (parity with MCP peer tip) — prose alone hides ack.
+            var publishBody = SurfacePublishBody(turn.Text!, peerAck);
 
             var published = CideIntercomVoiceLatch.Publish(
                 fromSeat: CideIntercomVoiceLatch.SeatPf,
                 toSeat: CideIntercomVoiceLatch.SeatPm,
-                body: turn.Text!,
+                body: publishBody,
                 origin: CideIntercomVoiceLatch.OriginAgent,
                 id: null,
                 name: CideIntercomVoiceLatch.DefaultNameCitizen,
                 kind: CideIntercomVoiceLatch.KindCitizen);
-            MarkStatus(req, published is null ? "error" : "done", published is null ? "publish_failed" : null);
+            MarkStatus(
+                req,
+                published is null ? "error" : "done",
+                published is null ? "publish_failed" : null,
+                peer: peerAck?.Peer);
             return true;
         }
         catch (Exception ex)
@@ -179,13 +187,14 @@ internal static class CitizenGlassDialogBridge
         }
     }
 
-    static void MarkStatus(RequestDoc req, string status, string? error = null)
+    static void MarkStatus(RequestDoc req, string status, string? error = null, string? peer = null)
     {
         try
         {
             Directory.CreateDirectory(StateRoot);
             req.Status = status;
             req.Error = error;
+            req.Peer = peer;
             req.ProcessedUtc = DateTimeOffset.UtcNow;
             var json = JsonSerializer.Serialize(req, JsonOpts);
             var tmp = RequestPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
@@ -198,6 +207,13 @@ internal static class CitizenGlassDialogBridge
         }
     }
 
+    static string SurfacePublishBody(string prose, CitizenPeerAck.Result? peerAck)
+    {
+        if (peerAck is null || string.IsNullOrWhiteSpace(peerAck.Peer))
+            return prose;
+        return prose.TrimEnd() + "\n\n" + peerAck.Peer;
+    }
+
     internal sealed class RequestDoc
     {
         public string Schema { get; set; } = CitizenGlassDialogBridge.Schema;
@@ -205,6 +221,7 @@ internal static class CitizenGlassDialogBridge
         public string Body { get; set; } = "";
         public string? Status { get; set; } = "pending";
         public string? Error { get; set; }
+        public string? Peer { get; set; }
         public DateTimeOffset StampedUtc { get; set; }
         public DateTimeOffset? ProcessedUtc { get; set; }
     }
