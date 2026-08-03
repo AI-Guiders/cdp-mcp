@@ -13,6 +13,9 @@ internal static partial class IdeIgniteArmHost
     /// </summary>
     public static object ArmForLeaf(string taskTitle, string reason)
     {
+        if (!IsAutonomousArmed())
+            return Err("leaf_arm", "autonomous_off", "ArmForLeaf skipped — autonomous continuity is off (op=autonomous_off / halt)");
+
         if (string.IsNullOrWhiteSpace(taskTitle))
             return Err("arm", "leaf_title_required", "ArmForLeaf needs task title");
 

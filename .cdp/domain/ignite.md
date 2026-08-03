@@ -12,6 +12,7 @@
 - `leaf-wake` stable id — next leaf replaces prior.
 - **Autonomous Continuity:** empty TM / unknown next ≠ stop. Investigate, seed leaf, build domain/tools/KB, use internet — ~99% without partner. Soft invent-ban: `await_partner` (alias `await_operator`). Conscious stop-world: `op=halt` (autonomous+HILD off, clear all arms, await partner — no reseed). Hard human gates (secrets/money/irreversible/harm) → halt or await_partner.
 - Auto-`LeafPlateau` latch under overnight/autonomous armed is a **bug relative to contract** — clear with `op=resume`, seed, re-ARM; do not celebrate wait.
+- **`op=halt` / `autonomous_off`:** `ArmForLeaf` and `TryLeafIgniteAfterFocus` must not re-arm — feature/task focus is not a backdoor to Autoi (0.5.649).
 - **`disarm all` under autonomous:** clears work arms only (keeps `autonomous-seed-wake`, `leaf-wake`, `hild-away-*`, `remount-wake-*`, `tool-wake-*`, mid-flight event wakes). If wake path empty → auto seed. `force=true` clears store too but still re-seeds while autonomous latch is on. HILD is a separate latch (`op=hild`) — not cleared by disarm.
 - **`op=halt`:** stop-world until partner — not `disarm all`. Turns autonomous+HILD off, clears every arm, plants awaiting_partner latch. Resume does not auto-restore autonomous/HILD.
 - **`disarm` under autonomous:** work-arm remove that empties wake path → seed (`removed > 0`); noop missing-id (`removed=0`) does **not** plant Guest Autoi CDT seed (0.5.535). Re-ARM `last_once` via `arm` supersede — do not disarm→arm ritual.
@@ -73,6 +74,7 @@
 
 ## last_ship
 
+- **0.5.649** — ArmForLeaf / TryLeafIgniteAfterFocus refuse when !IsAutonomousArmed() · 2026-08-04
 - 0.5.645: ChargeAmnesiaPostfix «fly the wave / list→batch→ship» + organs inventory/verify_wave · 2026-08-03
 - 0.5.636: Autoi `ChargeAmnesiaPostfix` body≠biped (dig/parallel · AIDE=body · narrow leaf without pipe = regression) · playbook-pf-body-not-biped-v1 · 2026-08-03
 - 0.5.566: citizen `@intent ignite|autoi` host-execute → `IdeIgniteChannel.Handle` (peer re-ARM without Cursor MCP) · VL #73 · 2026-08-03

@@ -51,8 +51,34 @@ internal static partial class DocumentEditPlane
                 throw new ArgumentException(
                     $"axes_mismatch: csharp axes on language={buf.Language}. path={buf.Path}");
 
-            if (!BracketSyntaxResolve.TryResolve(buf.Path, buf.Text, span, out var range, out var detail))
+            if (!BracketSyntaxResolve.TryFindAttachTarget(buf.Path, buf.Text, span, out var target, out var detail))
                 throw new ArgumentException($"Anchor resolve failed ({detail}): {wire}");
+
+            BracketSyntaxResolve.TextRange range;
+            if (!string.IsNullOrWhiteSpace(span.TextNeedle))
+            {
+                if (!BracketSyntaxResolve.TryNarrowRangeToTextNeedle(
+                        target.Tree, target.Node, span.TextNeedle, out range, out var narrowDetail))
+                    throw new ArgumentException($"Anchor resolve failed ({narrowDetail}): {wire}");
+                detail = $"{target.Detail}+T";
+            }
+            else if (place is "before" or "after"
+                     && BracketSyntaxResolve.TryGetBlockInteriorInsertPoint(
+                         target.Node, before: place == "before", out range, out var bodyDetail))
+            {
+                // Same footgun class as ignored T: — place must not land outside the member.
+                detail = $"{target.Detail}+{bodyDetail}";
+            }
+            else
+            {
+                var lineSpan = target.Node.GetLocation().GetLineSpan();
+                range = new BracketSyntaxResolve.TextRange(
+                    lineSpan.StartLinePosition.Line + 1,
+                    lineSpan.StartLinePosition.Character + 1,
+                    lineSpan.EndLinePosition.Line + 1,
+                    Math.Max(1, lineSpan.EndLinePosition.Character + 1));
+                detail = target.Detail;
+            }
 
             ApplyPlacedRange(
                 store, buf, place,
@@ -160,13 +186,14 @@ internal static partial class DocumentEditPlane
 
         if (place == "before")
         {
-            // Insert at line start (col 1), not member token col — otherwise leading
-            // indent of the locus sticks to the inserted text and the old member loses it.
-            store.ApplyReplaceRange(buf, lineStart, 1, lineStart, 1, text);
+            // Zero-width insert point (block interior / T: edge): keep column.
+            // Multi-line locus (sibling before member): col 1 so leading indent stays on the locus.
+            var col = lineStart == lineEnd && colStart == colEnd ? colStart : 1;
+            store.ApplyReplaceRange(buf, lineStart, col, lineStart, col, text);
             return;
         }
 
-        // after — exclusive end point of resolved locus
+        // after — exclusive end point of resolved locus (also zero-width when body-narrowed)
         store.ApplyReplaceRange(buf, lineEnd, colEnd, lineEnd, colEnd, text);
     }
 

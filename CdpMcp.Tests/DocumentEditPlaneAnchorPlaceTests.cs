@@ -24,11 +24,36 @@ public sealed class DocumentEditPlaneAnchorPlaceTests
 
         """;
 
+    const string BodyGuard =
+        """
+                    if (armed) return;
+
+        """;
+
     [Fact]
-    public async Task Place_before_inserts_without_wiping_locus()
+    public async Task Place_before_on_method_inserts_inside_body_not_outside()
     {
         await using var fx = await AnchorFixture.CreateAsync(FixtureBody);
-        var json = await fx.EditAnchorAsync(place: "before", text: PulseMember);
+        var json = await fx.EditAnchorAsync(place: "before", text: BodyGuard);
+
+        Assert.Contains("\"place\": \"before\"", json, StringComparison.Ordinal);
+        Assert.Contains("block_body_start", json, StringComparison.Ordinal);
+        Assert.Contains("if (armed) return;", fx.Text, StringComparison.Ordinal);
+        Assert.Contains("KeepMe", fx.Text, StringComparison.Ordinal);
+        var open = fx.Text.IndexOf("KeepMe()", StringComparison.Ordinal);
+        var guard = fx.Text.IndexOf("if (armed) return;", StringComparison.Ordinal);
+        var close = fx.Text.IndexOf('}', guard);
+        Assert.True(open >= 0 && guard > open && close > guard, fx.Text);
+    }
+
+    [Fact]
+    public async Task Place_before_on_type_inserts_inside_type_body()
+    {
+        await using var fx = await AnchorFixture.CreateAsync(FixtureBody);
+        var json = await fx.EditAnchorAsync(
+            place: "before",
+            text: PulseMember,
+            anchor: "[F:SceneMap.cs;M:SceneMap]");
 
         Assert.Contains("\"place\": \"before\"", json, StringComparison.Ordinal);
         Assert.Contains("InsertedPulse", fx.Text, StringComparison.Ordinal);
@@ -42,20 +67,52 @@ public sealed class DocumentEditPlaneAnchorPlaceTests
     public async Task Place_pre_alias_is_before()
     {
         await using var fx = await AnchorFixture.CreateAsync(FixtureBody);
-        var json = await fx.EditAnchorAsync(place: "pre", text: PulseMember);
+        var json = await fx.EditAnchorAsync(place: "pre", text: BodyGuard);
 
         Assert.Contains("\"place\": \"before\"", json, StringComparison.Ordinal);
         Assert.Contains("KeepMe", fx.Text, StringComparison.Ordinal);
-        Assert.Contains("InsertedPulse", fx.Text, StringComparison.Ordinal);
+        Assert.Contains("if (armed) return;", fx.Text, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task Place_after_inserts_after_locus()
+    public async Task Place_after_on_method_inserts_before_closing_brace()
+    {
+        const string body =
+            """
+            namespace Fixture;
+
+            internal static class SceneMap
+            {
+                public static void KeepMe()
+                {
+                    var x = 1;
+                }
+            }
+            """;
+
+        await using var fx = await AnchorFixture.CreateAsync(body);
+        var json = await fx.EditAnchorAsync(
+            place: "after",
+            text: "\n                    var y = 2;");
+
+        Assert.Contains("\"place\": \"after\"", json, StringComparison.Ordinal);
+        Assert.Contains("block_body_end", json, StringComparison.Ordinal);
+        Assert.Contains("var x = 1;", fx.Text, StringComparison.Ordinal);
+        Assert.Contains("var y = 2;", fx.Text, StringComparison.Ordinal);
+        var x = fx.Text.IndexOf("var x = 1;", StringComparison.Ordinal);
+        var y = fx.Text.IndexOf("var y = 2;", StringComparison.Ordinal);
+        var close = fx.Text.IndexOf('}', y);
+        Assert.True(x >= 0 && y > x && close > y, fx.Text);
+    }
+
+    [Fact]
+    public async Task Place_after_on_type_inserts_sibling_member_at_type_end()
     {
         await using var fx = await AnchorFixture.CreateAsync(FixtureBody);
         var json = await fx.EditAnchorAsync(
             place: "after",
-            text: "\n    public static string AfterPulse() => \"after\";\n");
+            text: "\n    public static string AfterPulse() => \"after\";\n",
+            anchor: "[F:SceneMap.cs;M:SceneMap]");
 
         Assert.Contains("\"place\": \"after\"", json, StringComparison.Ordinal);
         Assert.Contains("KeepMe", fx.Text, StringComparison.Ordinal);
