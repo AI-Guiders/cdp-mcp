@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.601** — `@intent evidence|cdp_evidence|evidence_*` host-execute → MetaDispatch `cdp_evidence` (kind=auto|build|test|publish|shell|csx|generic; text=|path= required; bare evidence without input refused; no steal bare report). Tests CitizenEvidenceHostTests 5/5. Lived: debug dry_run execute → evidence/build/compound/cdp/test/shell `ack=6/6`. Peer evidence preprocess without Cursor MCP.
 - **0.5.600** — `@intent webcam|webcam_desk|webcam_*|cdp_webcam` host-execute → `IdeWebcamChannel.HandleJson` (scene|frame|burst|av|screen|window|window_list|audio|transcribe|ocr|analyze; bare webcam=scene; window_list not collapsed to window; no steal bare frame/screen/ocr). Tests CitizenWebcamHostTests 7/7. Lived: debug dry_run execute → webcam/desk/cdp/scene/window_list/webcam_window_list `ack=6/6`. Peer sense plane without Cursor MCP.
 - **0.5.599** — `@intent qrh|eqrh|qrh_*|cdp_qrh` host-execute → `IdeQrhChannel.HandleJson` (index|open|search|shelf|related|…; bare qrh=index; no steal bare search/open/find). Tests CitizenQrhHostTests 6/6. Lived: primary dry_run execute → qrh/index/eqrh/open/search/qrh_open `ack=6/6`. Peer eQRH without Cursor MCP.
 - **0.5.598** — `@intent cockpit_host|cockpit_start|cockpit_stop|cdp_cockpit_host` host-execute → `IdeCockpitHostChannel.HandleJson` (scene|start|stop; bare cockpit_host=scene; no steal bare start/stop). Tests CitizenCockpitHostHostTests 5/5. Lived: primary dry_run execute → scene×3/start/scene/stop `ack=6/6`. Peer Glass GUI without Cursor MCP.
