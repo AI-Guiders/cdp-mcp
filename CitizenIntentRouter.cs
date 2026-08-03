@@ -32,6 +32,7 @@ internal static partial class CitizenIntentRouter
         Pressure,
         Browser,
         Script,
+        Calendar,
         Edit,
         Deploy,
         Undo,
@@ -451,6 +452,18 @@ internal static partial class CitizenIntentRouter
             return RoutePressure(raw);
         }
 
+        if (raw.Equals("calendar", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("calendar ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("calendar op=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("clock", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("clock ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("clock op=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("calendar_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("calendar_desk ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteCalendar(raw);
+        }
+
         if (raw.Equals("edit", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit path=", StringComparison.OrdinalIgnoreCase)
@@ -667,6 +680,7 @@ internal static partial class CitizenIntentRouter
             "shell" or "m" => "shell_scene",
             "alert" or "sa" => "alert",
             "pressure" => "pressure",
+            "calendar" or "clock" or "calendar_desk" => "calendar",
             "find" or "search" or "find_desk" => "find_desk",
             _ => o
         };
