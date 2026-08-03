@@ -134,6 +134,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 97 | [@intent land: я сам сажусь на якорь, не через чужой land MCP](voice-letter-citizen-land-host.ru.md) | citizen · @intent land|deep_link · NavigationLand · 0.5.590 |
 | 98 | [@intent pkg: я сам трогаю NuGet, не через чужой pkg MCP](voice-letter-citizen-pkg-host.ru.md) | citizen · @intent pkg|nuget · cdp_pkg_* · 0.5.591 |
 | 99 | [@intent project|sln: я сам вижу карту проектов, не через чужой project MCP](voice-letter-citizen-project-host.ru.md) | citizen · @intent project|sln · cdp_project_*/cdp_sln_* · 0.5.592 |
+| 100 | [@intent settings|options: я сам хожу в Tools→Options, не через чужой settings MCP](voice-letter-citizen-settings-host.ru.md) | citizen · @intent settings|options · cdp_settings · 0.5.593 |
 | 89 | [@intent complete/signature/symbols: я сам зову IntelliSense, не через чужой Roslyn MCP](voice-letter-citizen-ide-complete-host.ru.md) | citizen · @intent complete|signature|symbols · IdeLanguageTools · 0.5.582 |
 | 58 | [@intent kb: я читаю pack, а не чужой MCP memory](voice-letter-citizen-kb-intent.ru.md) | citizen · @intent kb → memory_world/skill · 0.5.555 |
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
