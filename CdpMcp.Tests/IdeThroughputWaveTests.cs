@@ -77,6 +77,37 @@ public sealed class IdeWaveChannelTests
             try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
         }
     }
+
+    [Fact]
+    public void Repl_wave_seed_title_without_items_key_does_not_invent_labels()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "cdp-wave-title-" + Guid.NewGuid().ToString("n"));
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, "active-wave.json");
+        IdeWaveChannel.FilePathOverride = () => path;
+        try
+        {
+            var applied = IdeRepl.Apply(
+                "wave seed title=0.5.646 polish inventory SoftOrgan coverage",
+                new Dictionary<string, JsonElement>());
+            Assert.NotNull(applied);
+            var json = JsonSerializer.Serialize(applied!.Value.Direct);
+            Assert.Contains("items_required", json, StringComparison.OrdinalIgnoreCase);
+
+            var ok = IdeRepl.Apply(
+                "wave seed title=0.5.646 items=a;b;c",
+                new Dictionary<string, JsonElement>());
+            Assert.NotNull(ok);
+            var okJson = JsonSerializer.Serialize(ok!.Value.Direct);
+            Assert.Contains("\"total\":3", okJson.Replace(" ", ""), StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("0.5.646", okJson, StringComparison.Ordinal);
+        }
+        finally
+        {
+            IdeWaveChannel.FilePathOverride = null;
+            try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
+        }
+    }
 }
 
 public sealed class IdeInventoryVerifyWaveTests
@@ -89,6 +120,19 @@ public sealed class IdeInventoryVerifyWaveTests
         Assert.Contains("gaps", json, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Soft FileLines", json, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("batch_size_recommend", json, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Inventory_softorgan_host_probe_reports_coverage()
+    {
+        var snap = IdeInventoryChannel.ProbeSoftOrganHosts();
+        Assert.True(snap.Total > 0);
+        Assert.True(
+            snap.Covered >= snap.Total - 2,
+            $"unexpected SoftOrgan host gaps: {string.Join(", ", snap.Missing)}");
+        var json = IdeInventoryChannel.HandleJson(new SessionContext());
+        Assert.Contains("softorgan_host", json, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("meta-host-softorgans", json, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
