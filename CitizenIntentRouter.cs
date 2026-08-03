@@ -37,6 +37,7 @@ internal static partial class CitizenIntentRouter
         Nav,
         Put,
         Scratch,
+        Take,
         Detail,
         Cmd,
         Refuse,
@@ -176,6 +177,13 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("scratch ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteScratch(raw);
+        }
+
+        if (raw.Equals("take", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("take ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("take path=", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteTake(raw);
         }
 
         if (raw.StartsWith("replace ", StringComparison.OrdinalIgnoreCase)
