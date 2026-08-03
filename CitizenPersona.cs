@@ -93,6 +93,13 @@ internal static class CitizenPersona
           @intent pressure
           @intent pressure stash body="axes: AutoI/TM/Domain · next leaf"
           @intent pressure recall
+          @intent browser
+          @intent browser scene
+          @intent browser which
+          @intent browser search q="standalone cdp without cursor"
+          @intent browser open url="https://example.com"
+          @intent browser dump
+          @intent browser links
           @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
@@ -210,6 +217,7 @@ internal static class CitizenPersona
           @intent ignite
           @intent pressure
           @intent debug
+          @intent browser
         Do not invent Russian stand-ins for intents.
 
         Mutate only through gated organs when using hands. Do not guess peer/runtime state — read peer= when present.

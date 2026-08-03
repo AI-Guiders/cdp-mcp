@@ -29,6 +29,7 @@ internal static partial class CitizenIntentRouter
         Ide,
         Ignite,
         Pressure,
+        Browser,
         Edit,
         Deploy,
         Undo,
@@ -387,6 +388,19 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("autoi ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteIgnite(raw);
+        }
+
+        if (raw.Equals("browser", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("browser ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("browser op=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("internet_browser", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("internet_browser ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("web", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("web ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("lynx", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("lynx ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteBrowser(raw);
         }
 
         if (raw.Equals("pressure", StringComparison.OrdinalIgnoreCase)
