@@ -51,6 +51,7 @@ internal sealed partial class IntentWorkspaceStore(
     {
         using var fileGate = EnterFileGate(_databasePath);
         const int attempts = 8;
+        var tornHealed = false;
         for (var i = 0; ; i++)
         {
             try
@@ -68,6 +69,12 @@ internal sealed partial class IntentWorkspaceStore(
             catch (Exception ex) when (i < attempts - 1 && IsTransientDbLock(ex))
             {
                 Thread.Sleep(50 * (i + 1));
+            }
+            catch (Exception ex) when (!tornHealed && WorkspaceDbTornHeal.IsTornPageException(ex))
+            {
+                // Seat free-list torn (pageNumber OOR) — quarantine under Mutex, fresh EnsureCreated, retry once.
+                tornHealed = true;
+                WorkspaceDbTornHeal.QuarantineAndRecreate(options, _databasePath);
             }
         }
     }
