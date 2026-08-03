@@ -108,6 +108,31 @@ public sealed class IdeWaveChannelTests
             try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
         }
     }
+
+    [Fact]
+    public void Repl_wave_seed_items_with_spaces_does_not_invent_word_items()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "cdp-wave-items-space-" + Guid.NewGuid().ToString("n"));
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, "active-wave.json");
+        IdeWaveChannel.FilePathOverride = () => path;
+        try
+        {
+            var applied = IdeRepl.Apply(
+                "wave seed title=CitizenFullThenNext649 items=Live full-chain dogfood;Stamp remount;Invent densest",
+                new Dictionary<string, JsonElement>());
+            Assert.NotNull(applied);
+            var json = JsonSerializer.Serialize(applied!.Value.Direct);
+            Assert.Contains("\"total\":3", json.Replace(" ", ""), StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Live full-chain dogfood", json, StringComparison.Ordinal);
+            Assert.DoesNotContain("\"total\":16", json.Replace(" ", ""), StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            IdeWaveChannel.FilePathOverride = null;
+            try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
+        }
+    }
 }
 
 public sealed class IdeInventoryVerifyWaveTests

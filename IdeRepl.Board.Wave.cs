@@ -73,7 +73,7 @@ internal static partial class IdeRepl
         return (merged, IdeWaveChannel.Handle(args));
     }
 
-    static void ParseWaveSeedRest(IReadOnlyList<string> rest, Dictionary<string, JsonElement> args)
+        static void ParseWaveSeedRest(IReadOnlyList<string> rest, Dictionary<string, JsonElement> args)
     {
         if (rest.Count == 0)
             return;
@@ -81,24 +81,41 @@ internal static partial class IdeRepl
         string? title = null;
         var itemParts = new List<string>();
         var hadItemsKey = false;
+        var collecting = "none"; // none | title | items
         foreach (var tok in rest)
         {
-            if (tok.StartsWith("title=", StringComparison.OrdinalIgnoreCase))
+            if (tok.StartsWith("title=", StringComparison.OrdinalIgnoreCase)
+                || tok.StartsWith("name=", StringComparison.OrdinalIgnoreCase))
             {
-                title = tok["title=".Length..].Trim().Trim('"');
+                collecting = "title";
+                var keyLen = tok.StartsWith("title=", StringComparison.OrdinalIgnoreCase) ? "title=".Length : "name=".Length;
+                title = tok[keyLen..].Trim().Trim('"');
                 continue;
             }
 
             if (tok.StartsWith("items=", StringComparison.OrdinalIgnoreCase))
             {
                 hadItemsKey = true;
-                itemParts.Add(tok["items=".Length..].Trim().Trim('"'));
+                collecting = "items";
+                var chunk = tok["items=".Length..].Trim().Trim('"');
+                if (chunk.Length > 0)
+                    itemParts.Add(chunk);
                 continue;
             }
 
-            if (tok.StartsWith("name=", StringComparison.OrdinalIgnoreCase))
+            if (collecting == "title")
             {
-                title = tok["name=".Length..].Trim().Trim('"');
+                title = ((title ?? "") + " " + tok).Trim();
+                continue;
+            }
+
+            if (collecting == "items")
+            {
+                // Space-split after items= must stay one blob until ;|, — not one fake item per word.
+                if (itemParts.Count == 0)
+                    itemParts.Add(tok);
+                else
+                    itemParts[^1] = itemParts[^1] + " " + tok;
                 continue;
             }
 
