@@ -284,6 +284,69 @@ public class CitizenCompletionsTests : IDisposable
     }
 
     [Fact]
+    public void Turn_openai_compat_streams_sse_deltas()
+    {
+        var sse = """
+            data: {"choices":[{"delta":{"content":"@intent "}}]}
+
+            data: {"choices":[{"delta":{"content":"go=plan\n"}}]}
+
+            data: [DONE]
+
+            """;
+        CitizenCompletions.TestOpenAiApiKey = "sk-cloud-ru-test-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        CitizenCompletions.TestHandler = new StubHandler(HttpStatusCode.OK, sse, "text/event-stream");
+        CitizenCompletions.ResetHttpForTests();
+
+        try
+        {
+            var r = CitizenCompletions.Turn("status?", dryRun: false);
+            Assert.True(r.Ok);
+            Assert.Equal(CitizenCompletions.ProviderOpenAiCompat, r.Provider);
+            Assert.Contains("@intent go=plan", r.Text!);
+            Assert.NotNull(r.Routes);
+            Assert.Single(r.Routes!);
+            Assert.Equal("plan", r.Routes[0].Go);
+        }
+        finally
+        {
+            CitizenCompletions.TestOpenAiApiKey = null;
+            CitizenCompletions.TestOpenAiBaseUrl = null;
+            CitizenCompletions.TestHandler = null;
+            CitizenCompletions.ResetHttpForTests();
+        }
+    }
+
+    [Fact]
+    public void Turn_openai_compat_headers_timeout_returns_timeout_error()
+    {
+        CitizenCompletions.TestOpenAiApiKey = "sk-cloud-ru-test-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        CitizenCompletions.TestHeadersTimeout = TimeSpan.FromMilliseconds(80);
+        CitizenCompletions.TestOverallTimeout = TimeSpan.FromSeconds(5);
+        CitizenCompletions.TestHandler = new HangHeadersHandler(TimeSpan.FromSeconds(3));
+        CitizenCompletions.ResetHttpForTests();
+
+        try
+        {
+            var r = CitizenCompletions.Turn("status?", dryRun: false);
+            Assert.False(r.Ok);
+            Assert.Equal("timeout", r.Error);
+            Assert.Contains("http_budget", r.Hint!, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenCompletions.TestOpenAiApiKey = null;
+            CitizenCompletions.TestOpenAiBaseUrl = null;
+            CitizenCompletions.TestHeadersTimeout = null;
+            CitizenCompletions.TestOverallTimeout = null;
+            CitizenCompletions.TestHandler = null;
+            CitizenCompletions.ResetHttpForTests();
+        }
+    }
+
+    [Fact]
     public void ChatCompletionsUrl_normalizes_cloud_ru_base()
     {
         Assert.Equal(
@@ -326,14 +389,29 @@ public class CitizenCompletionsTests : IDisposable
 
 }
 
-sealed class StubHandler(HttpStatusCode code, string body) : HttpMessageHandler
+sealed class StubHandler(HttpStatusCode code, string body, string mediaType = "application/json") : HttpMessageHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var resp = new HttpResponseMessage(code)
         {
-            Content = new StringContent(body, Encoding.UTF8, "application/json")
+            Content = new StringContent(body, Encoding.UTF8, mediaType)
         };
         return Task.FromResult(resp);
+    }
+}
+
+/// <summary>Never returns headers until cancel — exercises HeadersTimeout.</summary>
+sealed class HangHeadersHandler(TimeSpan delay) : HttpMessageHandler
+{
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        await Task.Delay(delay, cancellationToken);
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("{}", Encoding.UTF8, "application/json")
+        };
     }
 }
