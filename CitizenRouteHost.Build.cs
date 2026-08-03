@@ -28,6 +28,7 @@ internal static partial class CitizenRouteHost
         IgniteHandleOverride = null;
         PressureHandleOverride = null;
         EditCallOverride = null;
+        DeployCallOverride = null;
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)
