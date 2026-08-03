@@ -58,6 +58,7 @@
 
 ## last_ship
 
+- **0.5.640** — Soft FileLines batch: Wire `WireSystemPrompt` → Head+Tail content-split (blob under warn350); OrgansB arch gate → `IsArchIntent` in Arch.cs. Soft FileLines CLOSED. Lived: dual hard 0.5.640 lag=false · VL#146.
 - **0.5.639** — `@intent arch|arch_desk|arch_board|board|cdp_arch|sketch_desk` host-execute → IdeArchBoardChannel (scene|add_role|add_candidates|elect|reject|edge|promote|clear|as_built|roles; PlaceOrgan arch_desk). Tests CitizenArchHostTests 6/6. Lived: dual hard 0.5.639 · dry_run wire. VL#145.
 - **0.5.638** — `@intent rules|standing|rules_desk|cdp_rules|healthy_agent` host-execute → IdeRulesChannel (scene|pulse|list|card; PlaceOrgan rules; Domain pattern). Tests CitizenRulesHostTests 6/6. Lived: dual hard 0.5.638 lag=false · dry_run wire `ack=6/6`. VL#144.
 - **0.5.635** — `@intent elicit|cdp_elicit` host-execute → Meta `cdp_elicit` (peek/caps/ask; default peek; no steal go=elicit). Fix: `hostDeps.ServerRef = server` after bind (was always no_server). Tests CitizenElicitHostTests 8/8. Lived: dual hard 0.5.635 · live peek Cursor advertises elicitation · live ask host answered (decline) · dry_run `ack=6/6` · ask peer `ack=1/1`. VL#142.
