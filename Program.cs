@@ -276,6 +276,7 @@ Task<string> DispatchAsync(
     IReadOnlyDictionary<string, JsonElement> callArgs,
     CancellationToken cancellationToken) =>
     ProgramHost.DispatchAsync(hostDeps, name, callArgs, cancellationToken);
+CitizenRouteHost.MetaDispatchResolver = DispatchAsync;
 void NotifyListChanged()
 {
     if (serverRef is null) return;

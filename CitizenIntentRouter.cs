@@ -31,6 +31,7 @@ internal static partial class CitizenIntentRouter
         Ignite,
         Pressure,
         Browser,
+        Script,
         Edit,
         Deploy,
         Undo,
@@ -416,6 +417,31 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("lynx ", StringComparison.OrdinalIgnoreCase))
         {
             return RouteBrowser(raw);
+        }
+
+        if (raw.Equals("script", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("script ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("script op=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("csx", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("csx ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("script_scene", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("script_scene ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("script_put", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("script_put ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("script_open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("script_open ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("script_check", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("script_check ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("script_run", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("script_run ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("script_last", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("script_last ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("script_help", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("script_help ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("script_report", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("script_report ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteScript(raw);
         }
 
         if (raw.Equals("pressure", StringComparison.OrdinalIgnoreCase)

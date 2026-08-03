@@ -44,6 +44,8 @@ internal static partial class CitizenRouteHost
         BrowserHabitatResolver = null;
         BrowserDispatchOverride = null;
         RunLifecycleOverride = null;
+        ScriptDispatchOverride = null;
+        MetaDispatchResolver = null;
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)
