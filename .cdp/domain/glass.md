@@ -307,4 +307,5 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - operator glass: `[cockpit_host] exe` = WPF `CDP.GlassCockpit.Windows` (not Avalonia `CascadeIDE.exe`); Intercom Forward feed is ops voice — Avalonia Chat panel is not the operator console
 - 2026-08-04: Hold DIG — operator «в UI ничего» = `cockpit_host · down · agent-only` (cabin off), not missing organs. Wave CabinUpHumanFlight: `cdp_cockpit_host op=start` → dual-cockpit pid live · ICM bound · surface RPC full debt · Intercom @PM. Antipattern: treat SoftFL/Meta CLOSED + agent tools as Glass Done while GUI host down.
 - **0.5.653** — Human-face axe: Autoi `ChargeHumanFacePostfix` + TM `#CIDE` done/shipped refuse without PNG evidence (`IdeHumanFaceShield`) · 2026-08-04
+- **2026-08-04** — Glass share-to-model: human Intercom send mirrors IdeShare operator inbox (`GlassOperatorShareShelf` → `.cdp/share` + habitat `cdp-mcp/share`) so `share from=operator` works; PNG evidence Intercom/near-black/CFG
 
