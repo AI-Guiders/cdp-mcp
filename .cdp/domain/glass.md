@@ -38,6 +38,9 @@
 - Mapping `mcp` SoftOrgan → MFD `Chat` (Chat = Intercom/citizen; MCP settings = AiChatSettings).
 - Festive per-zone accents (cyan P / gold F / purple M) — Dark Cockpit violation; geography by label, color only on deviation (ON GND / select / EICAS).
 - Autoi wake charge as Intercom chat bubble / compact chip — SoftOrgan tip + StatusText + `ignite-wake-LATEST` is the human panel; Glass filters Autoi from feed (`GlassAutoiWakeFeed`). Habitat Intercom publish for CDP skip-CDT may still exist — projector must not paint it as chat.
+- **enforce `raw_diff_as_primary`:** ship Git/Glass UI with raw unified diff as human primary → soft-refuse until human face (files/hunks/tint). Dump legal ⇒ think optional.
+- **enforce `glass_ship_without_human_shot`:** `#CIDE` `done`/`shipped` without `evidence=.png` | `shot=true` → `IdeHumanFaceShield` refuse (`human_face_cide_shot`); `force=true` escape only.
+- **enforce `autoi_as_chat`:** Autoi wake as Intercom chat — already filtered; do not re-teach via chat.
 - MFD text-wall dig notes for humans — prefer concise+graphic presence cards (`□ Glass peel` / `■ Avalonia`).
 - Invent SoftOrgan for Editor MFD when Forward=intercom — AvalonEdit peel already mounts on M (ADR 0120).
 - Fork Glass WPF full IdeDapDebugSession into TextBlock — densest = habitat `debug_desk` latch live (stack/locals on stopped) + SoftOrgan FSW; Avalonia IdeDap remains denser SSOT for full DAP drive UI.
@@ -300,4 +303,5 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - dig reject: Glass WPF RelatedFiles related/find_usages instrument host — SSOT = CIDE Avalonia `RelatedFilesMfdPageView` + `WorkspaceNavigationMapViewModel`; SoftOrganMfdGlance ←`refactor` stays (find_desk pin ≠ displace); Glass stays latch glance + CabinGlass stub (do not fork related list/Skia into TextBlock) · cascade-ide `4fd14b57`
 - operator glass: `[cockpit_host] exe` = WPF `CDP.GlassCockpit.Windows` (not Avalonia `CascadeIDE.exe`); Intercom Forward feed is ops voice — Avalonia Chat panel is not the operator console
 - 2026-08-04: Hold DIG — operator «в UI ничего» = `cockpit_host · down · agent-only` (cabin off), not missing organs. Wave CabinUpHumanFlight: `cdp_cockpit_host op=start` → dual-cockpit pid live · ICM bound · surface RPC full debt · Intercom @PM. Antipattern: treat SoftFL/Meta CLOSED + agent tools as Glass Done while GUI host down.
+- **0.5.653** — Human-face axe: Autoi `ChargeHumanFacePostfix` + TM `#CIDE` done/shipped refuse without PNG evidence (`IdeHumanFaceShield`) · 2026-08-04
 
