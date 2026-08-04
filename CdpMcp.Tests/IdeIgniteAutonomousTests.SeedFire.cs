@@ -215,6 +215,30 @@ public partial class IdeIgniteAutonomousTests
         Assert.Equal(TimeSpan.FromSeconds(3), leaf);
         Assert.Equal("3s(leaf_started)", leafNote);
 
+        var inventHold = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(
+            TimeSpan.FromMinutes(3),
+            lastOnce: true,
+            autonomous: true,
+            force: false,
+            out var inventHoldNote,
+            partnerAway: false,
+            leafFlying: true,
+            inventOnlyHold: true);
+        Assert.Equal(TimeSpan.FromMinutes(3), inventHold);
+        Assert.Null(inventHoldNote);
+
+        var inventHoldLong = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(
+            TimeSpan.FromMinutes(45),
+            lastOnce: true,
+            autonomous: true,
+            force: false,
+            out var inventHoldLongNote,
+            partnerAway: false,
+            leafFlying: true,
+            inventOnlyHold: true);
+        Assert.Equal(TimeSpan.FromMinutes(3), inventHoldLong);
+        Assert.Equal("3m(invent_only_hold)", inventHoldLongNote);
+
         // Partner-away wins over leaf-fly for the note tag.
         var awayWins = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(
             TimeSpan.FromMinutes(45),
@@ -280,5 +304,14 @@ public partial class IdeIgniteAutonomousTests
             out var note));
         Assert.Equal(now.AddSeconds(3), newDue);
         Assert.Equal("3s(leaf_pull)", note);
+    }
+
+    [Fact]
+    public void IsInventOnlyHoldTask_matches_hold_invent_only_title()
+    {
+        Assert.True(IdeIgniteArmHost.IsInventOnlyHoldTask(
+            "Hold Citizen Done stable to 15.08 — invent only on real product gap"));
+        Assert.False(IdeIgniteArmHost.IsInventOnlyHoldTask("Ship cabin detach survival"));
+        Assert.False(IdeIgniteArmHost.IsInventOnlyHoldTask(null));
     }
 }
