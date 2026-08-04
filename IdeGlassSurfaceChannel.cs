@@ -82,7 +82,7 @@ internal static class IdeGlassSurfaceChannel
         var leaf = plan?.Task;
         var mfd = seats?.MfdPage ?? presentation?.MfdPage;
         var fileSitu = BuildFileSitu(landPath, session.ProjectRoot, why, leaf, includeDiff: false);
-        var autoi = ignite is { Active: true, Autonomous: true } ? "ON" : "off";
+        var autoi = FormatAutoiFace(ignite);
         var pulse = plan is { Active: true }
             ? $"glass_scene · {Truncate(mfd ?? "cabin", 16)} · NEXT · {Truncate(next, 36)} · Autoi {autoi}"
             : $"glass_scene · cabin SA · Autoi {autoi} · surface RPC ready";
@@ -110,6 +110,9 @@ internal static class IdeGlassSurfaceChannel
                     autonomous = ignite.Autonomous,
                     hild = ignite.Hild,
                     vad = ignite.Vad,
+                    await_partner = ignite.AwaitPartner,
+                    mode = ignite.Mode ?? "fly",
+                    face = autoi,
                     pulse = ignite.Pulse,
                     course = Truncate(ignite.Course, 120)
                 },
@@ -448,6 +451,23 @@ internal static class IdeGlassSurfaceChannel
         {
             return null;
         }
+    }
+
+    /// <summary>Human Autoi face: TALK/HALT · ON · ARMED · OFF (not active=false ⇒ off while autonomous).</summary>
+    internal static string FormatAutoiFace(CideIgniteLatch.IgniteLatchDoc? ignite)
+    {
+        if (ignite is null)
+            return "—";
+        var mode = CideIgniteLatch.NormalizeMode(ignite.Mode, ignite.AwaitPartner, ignite.AwaitingCount);
+        if (mode is "halt")
+            return "HALT";
+        if (mode is "talk" || ignite.AwaitPartner)
+            return "TALK";
+        if (ignite.Autonomous && ignite.Active)
+            return "ON";
+        if (ignite.Autonomous)
+            return "ARMED";
+        return "OFF";
     }
 
     static string? Truncate(string? s, int max)

@@ -53,11 +53,18 @@ internal static partial class IdeIgniteArmHost
     {
         var list = Snapshot();
         var armedCount = list.Count(a => a.Status is "armed" or "firing");
-        var awaitingCount = list.Count(a => a.Status == "awaiting");
+        var awaiting = list.Where(a => a.Status == "awaiting").ToList();
+        var awaitingCount = awaiting.Count;
         var providerBlocked = list.Any(a => a.Status == ProviderBlockedStatus);
         // SoftOrgan chrome stays Dark Cockpit when no arms — HUD still gets autonomous/hild/course.
         var active = armedCount > 0 || awaitingCount > 0 || providerBlocked;
         var course = IdePressureChannel.TryPeekSealedCourse();
+        var awaitPartner = awaitingCount > 0;
+        var mode = !awaitPartner
+            ? "fly"
+            : awaiting.Any(a => string.Equals(a.Event, "halt", StringComparison.OrdinalIgnoreCase))
+                ? "halt"
+                : "talk";
         CideIgniteLatch.Publish(
             active,
             ContinuityPulseLine(list),
@@ -66,7 +73,9 @@ internal static partial class IdeIgniteArmHost
             providerBlocked,
             IsAutonomousArmed(),
             IsHildArmed(),
-            course);
+            course,
+            awaitPartner: awaitPartner,
+            mode: mode);
     }
 
     static IdeExplainability.ExplainCard ContinuityExplain(IReadOnlyList<IgniteArm> list)

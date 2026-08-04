@@ -70,4 +70,44 @@ public class CideIgniteLatchTests : IDisposable
         Assert.Equal("1. Glass Done (human flight)", latch.Course);
         Assert.Null(latch.ChromeHint);
     }
+
+    [Fact]
+    public void Publish_writes_await_partner_mode()
+    {
+        CideIgniteLatch.Publish(
+            active: true,
+            pulse: "ignite · continuity · awaiting_partner · latch=1",
+            armedCount: 0,
+            awaitingCount: 1,
+            providerBlocked: false,
+            autonomous: true,
+            awaitPartner: true,
+            mode: "talk");
+
+        var latch = CideIgniteLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.True(latch!.AwaitPartner);
+        Assert.Equal("talk", latch.Mode);
+        Assert.True(latch.Autonomous);
+    }
+
+    [Fact]
+    public void Publish_halt_mode()
+    {
+        CideIgniteLatch.Publish(
+            active: true,
+            pulse: "ignite · halt · await partner",
+            armedCount: 0,
+            awaitingCount: 1,
+            providerBlocked: false,
+            autonomous: false,
+            awaitPartner: true,
+            mode: "halt");
+
+        var latch = CideIgniteLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.Equal("halt", latch!.Mode);
+        Assert.True(latch.AwaitPartner);
+        Assert.False(latch.Autonomous);
+    }
 }
