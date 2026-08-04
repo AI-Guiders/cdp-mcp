@@ -29,6 +29,7 @@
 
 ## Antipatterns
 
+- **Teeth naming (lie):** AutoI / FeatureDone half-a refuse is a **shield** (holds blow, seals course, latch/armor) — not «зубы». «Teeth» sounds like aggression and rhymes with «рубить дерево зубами» (imitation instead of axe). Prefer future rename shield|latch|course-guard; until then hold: щит ≠ зубы-имитация.
 - One peel / one Meta / one organ per Autoi wake while FileLines CLOSED.
 - **Half-a residual:** ship densest subset (e.g. Git+RelatedFiles) and defer rest of same inventory (e.g. Markdown) to next Autoi — serial strips, not one integral over a.
 - **Domain-sliced CIDE port:** treat SoftOrgan / MFD / glass.md rows as separate waves — wrong. For Avalonia→Glass, **a** = весь остаток переноса CIDE (что ещё надо перенести), one wave to ship; not «сначала Git-домен, потом MD-домен».
