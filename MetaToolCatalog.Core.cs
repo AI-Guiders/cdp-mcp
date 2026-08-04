@@ -46,7 +46,7 @@ internal static partial class MetaToolCatalog
             recent_index = new { type = "integer", description = "Optional 0-based Open Recent index (0 = last opened)." }
         }
     }),
-    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|put|take|share|read|edit|diagnostics|close|reload|keep_disk|disk_peek + comfort undo|redo|history|copy|cut|paste|clipboard|find|…. put= dump draft; share with=operator|self (inbox/shelf + thin chat); share from=self|latest (pull shelf body into tool result); take= file span into agent (rare). Instant Save. Anchors: edit_op=anchor + place=before|after|replace (default replace). Relative path= → ProjectRoot.", new
+    Meta("cdp_buffer", "File buffer plane: op=scene|open|create|put|take|share|read|edit|diagnostics|close|reload|keep_disk|disk_peek + comfort undo|redo|history|copy|cut|paste|clipboard|find|…. put= dump draft; share with=operator|self (inbox/shelf + thin chat); share from=self|latest (pull shelf body into tool result); take= file span into agent (rare). Instant Save. Anchors: edit_op=anchor + place=before|after|into|end|replace (default replace). Relative path= → ProjectRoot.", new
     {
         type = "object",
         properties = new
@@ -68,7 +68,7 @@ internal static partial class MetaToolCatalog
             edit_op = new { type = "string", description = "edit: anchor|set_text|replace|replace_range — prefer anchor" },
             anchor = new { type = "string", description = "edit_op=anchor / copy|cut|paste: csharp [F:;M:;K:] or xml [F:;X:path;A:attr?][+K:Element]" },
             at = new { type = "string", description = "Alias of anchor" },
-            text = new { type = "string", description = "edit set_text / create body / replace_range body / anchor text (replace=overwrite locus; place=before|after=insert body) / paste override / find query alias" },
+            text = new { type = "string", description = "edit set_text / create body / replace_range body / anchor text (replace=overwrite locus; place=before|after|into|end=insert) / paste override / find query alias" },
             old_string = new { type = "string" },
             new_string = new { type = "string", description = "replace; also alias of text for anchor and replace_range" },
             start_column = new { type = "integer" },
@@ -82,7 +82,7 @@ internal static partial class MetaToolCatalog
             peek = new { type = "boolean", description = "find scope=project: auto open+peek top hit (default true)" },
             clear = new { type = "boolean", description = "clipboard: true = clear (all, or frame= one)" },
             frame = new { type = "string", description = "paste|put|clipboard: frame id cN (omit = current MRU)" },
-            place = new { type = "string", description = "edit_op=anchor|paste|put: before|after|replace (anchor default replace). csharp M: before|after = inside method/type braces (not outside member — same footgun class as T:). paste/put also sniper. CRITICAL: place=before/after inserts — does not overwrite locus." },
+            place = new { type = "string", description = "edit_op=anchor|paste|put: before|after|into|end|replace (anchor default replace). csharp M: before|after = sibling outside member; into|end = inside braces; type/ns before|after = inside type. paste/put also sniper. CRITICAL: place=before/after/into/end inserts — does not overwrite locus." },
             sniper = new { type = "boolean", description = "paste|put: apply into edit sniper hold" },
             preserve = new { type = "boolean", description = "paste|put: keep frame after use (default true); false = burn" },
             body = new { type = "string", description = "put: alias of text= draft body" },

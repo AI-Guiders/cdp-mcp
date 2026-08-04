@@ -62,11 +62,15 @@ internal static partial class DocumentEditPlane
                     throw new ArgumentException($"Anchor resolve failed ({narrowDetail}): {wire}");
                 detail = $"{target.Detail}+T";
             }
-            else if (place is "before" or "after"
+            else if (WantsBlockInteriorPlace(place, target.Node)
                      && BracketSyntaxResolve.TryGetBlockInteriorInsertPoint(
-                         target.Node, before: place == "before", out range, out var bodyDetail))
+                         target.Node,
+                         before: place is "before" or "into",
+                         out range,
+                         out var bodyDetail))
             {
-                // Same footgun class as ignored T: — place must not land outside the member.
+                // Type/namespace / explicit into|end — inside braces.
+                // Method M:+before|after is sibling (outside) — MergeGoArgs footgun 2026-08-04.
                 detail = $"{target.Detail}+{bodyDetail}";
             }
             else
@@ -80,8 +84,9 @@ internal static partial class DocumentEditPlane
                 detail = target.Detail;
             }
 
+            var applyPlace = place is "into" ? "before" : place is "end" ? "after" : place;
             ApplyPlacedRange(
-                store, buf, place,
+                store, buf, applyPlace,
                 range.LineStart, range.ColumnStart, range.LineEnd, range.ColumnEnd,
                 replacement);
 
@@ -148,7 +153,12 @@ internal static partial class DocumentEditPlane
     }
 
     /// <summary>
-    /// <c>place=</c> for <c>edit_op=anchor</c>: before|after insert at locus edges; replace (default) overwrites.
+    /// <c>place=</c> for <c>edit_op=anchor</c>:
+    /// <list type="bullet">
+    /// <item><c>before|after</c> — insert at locus edges (method = sibling outside; type/ns = inside braces).</item>
+    /// <item><c>into|end</c> — always insert inside method/type braces (body start / before close).</item>
+    /// <item><c>replace</c> (default) — overwrite locus.</item>
+    /// </list>
     /// Silent ignore was ultra-critical — agents passed place=before and wiped the member.
     /// </summary>
     static string NormalizeAnchorPlace(string? raw)
@@ -160,12 +170,30 @@ internal static partial class DocumentEditPlane
         {
             "before" or "pre" or "b" => "before",
             "after" or "post" or "a" => "after",
-            "replace" or "over" or "r" or "into" => "replace",
+            "into" or "body" or "start" or "in" => "into",
+            "end" or "into_end" or "body_end" => "end",
+            "replace" or "over" or "r" or "into_replace" => "replace",
             "sniper" or "hold" or "target" => throw new ArgumentException(
-                "place=sniper is paste/put only — for anchor use place=before|after|replace."),
+                "place=sniper is paste/put only — for anchor use place=before|after|into|end|replace."),
             _ => throw new ArgumentException(
-                $"Unknown place='{raw}' for edit_op=anchor — use before|after|replace.")
+                $"Unknown place='{raw}' for edit_op=anchor — use before|after|into|end|replace.")
         };
+    }
+
+    /// <summary>
+    /// Body-interior places, or type/namespace where before|after mean "first/last member inside".
+    /// Method/ctor/… + before|after stay sibling-outside (agent "new helper before this method").
+    /// </summary>
+    static bool WantsBlockInteriorPlace(string place, Microsoft.CodeAnalysis.SyntaxNode node)
+    {
+        if (place is "into" or "end")
+            return true;
+        if (place is not ("before" or "after"))
+            return false;
+
+        return node is Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax
+            or Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax
+            or Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax;
     }
 
     static void ApplyPlacedRange(

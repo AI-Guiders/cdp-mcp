@@ -21,5 +21,6 @@
 
 ## last_ship
 
-- **0.5.649** — csharp `place=before|after` on `M:` inserts **inside** method/type braces (`TryGetBlockInteriorInsertPoint`), not outside the member (same footgun class as ignored `T:` → wrong edge). Sibling members → `M:TypeName`. Tests DocumentEditPlaneAnchorPlaceTests 11/11.
+- **0.5.660** — csharp `M:` `place=before|after` = **sibling outside** member (MergeGoArgs footgun fix). Body interior = `into|end` (aliases body/start → into). Type/ns `before|after` still interior. Meta + DocumentEditPlaneAnchorPlaceTests.
+- **0.5.649** — csharp `place=before|after` on `M:` inserts **inside** method/type braces (`TryGetBlockInteriorInsertPoint`), not outside the member (same footgun class as ignored `T:` → wrong edge). Sibling members → `M:TypeName`. Tests DocumentEditPlaneAnchorPlaceTests 11/11. **Superseded for method siblings by 0.5.660.**
 - soft-warn peel: Core253 Edit210 Anchor244 Diagnostics251 @ 0.5.400
