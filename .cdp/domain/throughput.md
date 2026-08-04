@@ -10,6 +10,7 @@
 - **Turn = rectangle a×b** (operator 2026-08-04): vertical **a** = full work list for this turn; horizontal **b** = duration of this turn; **t = b = ship**.
   - **Phase 1 (list):** research + full markup — determine **a** and partition into points. No densest overnight cut of a residual pack.
   - **Phase 2 (batch→ship):** take **all** x ∈ a and move them **simultaneously** toward ship (parallel batch). Not finish one strip and leave the rest for the next Autoi.
+  - **Teeth (0.5.652):** focused `feature_done` under autonomous with no active wave → refuse (half-a). Escape: `force=true` or `wave seed` first.
 - Active wave is durable (seat `active-wave.json`): `wave seed|scene|start|item done|shipped|clear`. Wave items = a; open→shipping→shipped = phases already — no extra TM stage organ.
 - Prefer `wave seed title=Name items=a;b;c` — bare `title=` + free words without separators must not invent fake items.
 - Prefer short `items=` labels without spaces, or quoted blobs; `items=` with spaces must not invent one item per whitespace token (0.5.650).
@@ -38,6 +39,7 @@
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
 
 ## last_ship
+- **0.5.652** — FeatureDone refuse half-a under autonomous + no active wave (`force=` escape). Teeth for a×b rectangle close. Tests IdeFeatureDoneAxbTests.
 - **0.5.650** — wave `items=` with spaces no longer invents one fake item per whitespace token (lived: CitizenFullThenNext649 → 0/16). Collect into one blob until next key=; `;|,` still split labels. Test Repl_wave_seed_items_with_spaces_does_not_invent_word_items.
 - **2026-08-04 SickLeaveNight648 mid** — ignite hygiene + glass DIG REJECT reopen; product dig PathMutate vs Autoi duplex seeded.
 - **2026-08-04 invent DIG FindIntent648** — DIG REJECT SoftFL/Meta/Citizen/OOM-eol reopen; DIG ACCEPT densest = throughput-wave idle → SickLeaveNight648 (ignite stale-arms → CIDE/glass citizen15 → product wave).
