@@ -65,6 +65,7 @@
 
 ## last_ship
 
+- **2026-08-04 CitizenDomainCardRoute** — `domain card=X`/`id=`/`name=` without `op=` → op=card (was silent scene + lying peer ack). Cascade-ide stub `.cdp/domain/citizen.md` for seat dig. Tests CitizenDomainHostTests 7/7.
 - **0.5.663** — Citizen vision: `image_path=` / `cdp_see` latch → OpenAI-compat `image_url`; auto `Qwen/Qwen3.6-35B-A3B`; thinking off on vision turns. Tests CitizenVisionLatchTests 3/3.
 - **0.5.656** — Intercom human surface: `CitizenIntercomHumanSurface` strips `@intent`/`@event`/`@frame` + peer tip from Glass letter; harness → «Сделала: …»; peer wire stays on request `peer=` only. Tests HumanSurface+GlassBridge 7/7.
 - **0.5.655** — Reasoning-aware OpenAI extract: content∅→reasoning*|thinking; SSE dual-accumulate; dialog max_tokens=4096 / wire=2048; empty_text+finish_reason=length; wire enable_thinking=false. Tests 25/25. Dual hard lag=false. Live dialog smoke Qwen3-Coder-Next «Пинг.» OK.

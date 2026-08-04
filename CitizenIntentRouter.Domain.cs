@@ -9,6 +9,13 @@ internal static partial class CitizenIntentRouter
     {
         var work = NormalizeDomainCompound(raw);
         var op = ExtractKeyedValue(work, "op") ?? ExtractKeyedValue(work, "cmd");
+        var keyedCardId = ExtractKeyedValue(work, "id")
+            ?? ExtractKeyedValue(work, "card")
+            ?? ExtractKeyedValue(work, "name");
+        // Keyed card=/id=/name= without explicit op → card (not silent scene + lying ack).
+        // Lived 2026-08-04: "domain card=citizen" was Op=scene Path=citizen.
+        if (string.IsNullOrWhiteSpace(op) && keyedCardId is { Length: > 0 })
+            op = "card";
         if (string.IsNullOrWhiteSpace(op))
         {
             if (work.StartsWith("domain ", StringComparison.OrdinalIgnoreCase)
@@ -30,9 +37,7 @@ internal static partial class CitizenIntentRouter
         if (!IsDomainOp(op))
             return new Route(Verb.Unknown, raw, Ok: false, Reason: "domain_op_unknown");
 
-        var path = ExtractKeyedValue(work, "id")
-            ?? ExtractKeyedValue(work, "card")
-            ?? ExtractKeyedValue(work, "name")
+        var path = keyedCardId
             ?? ExtractKeyedValue(work, "focus")
             ?? ExtractKeyedValue(work, "hint")
             ?? ExtractKeyedValue(work, "q")

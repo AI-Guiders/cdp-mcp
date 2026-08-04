@@ -43,6 +43,28 @@ public sealed class CitizenDomainHostTests
         Assert.Equal("card", positional.Op);
         Assert.Equal("citizen", positional.Path);
     }
+    [Fact]
+    public void Route_keyed_card_equals_without_op_is_card()
+    {
+        // Lived: "domain card=citizen" was Op=scene Path=citizen → scene ack lie.
+        var cardEq = CitizenIntentRouter.RouteOne("domain card=citizen");
+        Assert.True(cardEq.Ok);
+        Assert.Equal(CitizenIntentRouter.Verb.Domain, cardEq.Verb);
+        Assert.Equal("card", cardEq.Op);
+        Assert.Equal("citizen", cardEq.Path);
+
+        var idEq = CitizenIntentRouter.RouteOne("domain id=ignite");
+        Assert.True(idEq.Ok);
+        Assert.Equal("card", idEq.Op);
+        Assert.Equal("ignite", idEq.Path);
+
+        // Explicit op=scene still wins over keyed id=.
+        var sceneKeep = CitizenIntentRouter.RouteOne("domain op=scene id=citizen");
+        Assert.True(sceneKeep.Ok);
+        Assert.Equal("scene", sceneKeep.Op);
+        Assert.Equal("citizen", sceneKeep.Path);
+    }
+
 
     [Fact]
     public void Route_no_steal_bare_list_pulse_card_scene()
