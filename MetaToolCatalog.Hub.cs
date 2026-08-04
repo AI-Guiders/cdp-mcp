@@ -105,9 +105,9 @@ internal static partial class MetaToolCatalog
             start_column = new { type = "integer" },
             end_column = new { type = "integer" },
             edit_op = new { type = "string", description = "buffer_edit: set_text|replace|replace_range" },
-            text = new { type = "string", description = "set_text / replace_range body" },
+            text = new { type = "string", description = "set_text / replace|replace_range body" },
             old_string = new { type = "string" },
-            new_string = new { type = "string", description = "replace; alias of text for replace_range" }
+            new_string = new { type = "string", description = "replace body; alias of text for replace|replace_range — missing both refuses" }
         },
         required = new[] { "op" }
     }),
