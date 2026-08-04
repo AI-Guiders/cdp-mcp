@@ -64,7 +64,7 @@
 
 ## last_ship
 
-- **0.5.655** — Reasoning-aware OpenAI extract: content∅→reasoning*|thinking; SSE dual-accumulate; dialog max_tokens=4096 / wire=2048; empty_text+finish_reason=length; wire enable_thinking=false. Tests extract/SSE/length. **Not Citizen Done / full-ready** until live GLM dialog dogfood green. Deploy: dual hard pending.
+- **0.5.655** — Reasoning-aware OpenAI extract: content∅→reasoning*|thinking; SSE dual-accumulate; dialog max_tokens=4096 / wire=2048; empty_text+finish_reason=length; wire enable_thinking=false. Tests 25/25. Dual hard lag=false. Live dialog smoke Qwen3-Coder-Next «Пинг.» OK. **Not Citizen Done / full-ready** until live GLM dialog dogfood green (operator burn path).
 - **2026-08-04 ProductDigCitizen15** — DIG ACCEPT product dig: SoftFL/Meta/Glass IOP CLOSED; sole inv gap=throughput-wave idle ≠ SoftFL mill; DIG REJECT SoftFL/Meta/board hygiene / host re-prove. Voice Letter #157. Hold leaf seeded to 15.08 — invent only on real product gap.
 - **2026-08-04 CitizenDoneAxb** — DIG ACCEPT close densest dig (full-chain already GREEN; DIG REJECT re-prove hosts). Wave axb-teeth+cabin+verdict shipped. Throughput teeth FeatureDone half-a refuse @0.5.652. Keep feature open to 15.08 — product densest only, not SoftFL/Meta mill.
 - **live 2026-08-04 night** — Operator: finish board → citizen fully → next. Board clean (zombie drops + wave clear; TM no open feature). Live full-chain: wire health+shell · multi health/sys/inventory/elicit **ack=4/4** · dialog reset tea (empty TM pulse observed). SoftOrgan/SoftFL/Meta DIG REJECT. Autoi OFF. Next densest ops: remount primary 0.5.648→0.5.649 (soft staged).
