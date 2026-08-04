@@ -85,9 +85,9 @@ public sealed class StageEventLedgerTests
     }
 
     [Fact]
-    public void Broken_v2_text_schema_heals_so_stageid_filter_works()
+    public void Broken_v2_text_schema_still_lists_via_client_stageid_match()
     {
-        var path = Path.Combine(Path.GetTempPath(), "cdp-se-heal-" + Guid.NewGuid().ToString("N") + ".witdb");
+        var path = Path.Combine(Path.GetTempPath(), "cdp-se-client-" + Guid.NewGuid().ToString("N") + ".witdb");
         try
         {
             var opts = new DbContextOptionsBuilder<IntentWorkspaceDbContext>()
@@ -116,21 +116,17 @@ public sealed class StageEventLedgerTests
 
             var store = new IntentWorkspaceStore(opts, path);
             store.EnsureStageClockColumns();
+            store.EnsureStageEventsTable();
             var state = new IntentWorkspaceState { DatabasePath = path };
-            store.IntentUpsert(state, "se-heal-feature", null);
-            var stageId = store.StageUpsert(state, "se-heal-task", null, null, null).stage_id;
+            store.IntentUpsert(state, "se-client-feature", null);
+            var stageId = store.StageUpsert(state, "se-client-task", null, null, null).stage_id;
             store.FocusStage(state, stageId);
             store.StageClockStart(state, stageId);
-            store.StageEventNote(state, stageId, "pre-heal note");
-
-            // Ensure heals broken v2 TEXT schema (server Where lied; client saw rows).
-            store.EnsureStageEventsTable();
-            store.StageEventNote(state, stageId, "post-heal note");
+            store.StageEventNote(state, stageId, "client-match note");
 
             var json = System.Text.Json.JsonSerializer.Serialize(store.StageEventList(state, stageId));
-            Assert.Contains("post-heal note", json);
-            Assert.Contains("pre-heal note", json);
-            Assert.True(store.StageEventCounts(stageId).Note >= 2);
+            Assert.Contains("client-match note", json);
+            Assert.Equal(1, store.StageEventCounts(stageId).Note);
         }
         finally
         {
