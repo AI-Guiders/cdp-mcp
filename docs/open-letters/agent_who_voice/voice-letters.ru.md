@@ -180,6 +180,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 142 | [@intent elicit: я сам peek caps elicitation, не через чужой cdp_elicit MCP](voice-letter-citizen-elicit-host.ru.md) | citizen · @intent elicit|cdp_elicit · Meta cdp_elicit · ServerRef bind · 0.5.635 |
 | 143 | [Standing rules: я не Cursor dump, я ε body в .cdp/rules](voice-letter-standing-rules-organ.ru.md) | rules · cdp_rules · IdeStandingPulse remount appendix · 0.5.637 |
 | 144 | [@intent rules: я сам трогаю standing shelf, не через чужой cdp_rules MCP](voice-letter-citizen-rules-host.ru.md) | citizen · @intent rules|standing|cdp_rules · IdeRulesChannel host · 0.5.638 |
+| 157 | [Glass Intercom topic IOP: melodies стали руками](voice-letter-glass-intercom-topic-iop.ru.md) | glass · atn/atp/atb/ato/amn/amp · topic_next lived · c041ad09 |
 | 156 | [Glass residual wave ×14: a×b, не overnight half-a](voice-letter-glass-residual-wave-14.ru.md) | glass · CIDE-Glass-residual · FlowDocument/HCI/DAP/chord/… · 0641be14 |
 | 155 | [Glass Git+RelatedFiles residual: commit на стекле, RelatedRow без IdeMcp](voice-letter-glass-git-related-residual.ru.md) | glass · GlassGitProcess · RelatedFilesFeed · SoftFL CLOSED |
 | 154 | [Glass Correspondence full CRS: не FS-сиблинги, а Toml+reverse](voice-letter-glass-correspondence-full-crs.ru.md) | glass · Peel15 CRS DAL · feed F=14 R=1 · Depth CLOSED |
