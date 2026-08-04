@@ -38,12 +38,24 @@ internal static class CideIgniteLatch
 
     public static string LatchPath => Path.Combine(StateRoot, "ignite-LATEST.json");
 
-    public static void Publish(bool active, string pulse, int armedCount, int awaitingCount, bool providerBlocked)
+    public static void Publish(
+        bool active,
+        string pulse,
+        int armedCount,
+        int awaitingCount,
+        bool providerBlocked,
+        bool autonomous = false,
+        bool hild = false,
+        string? course = null,
+        bool vad = false)
     {
         try
         {
             Directory.CreateDirectory(StateRoot);
             var pulseLine = string.IsNullOrWhiteSpace(pulse) ? "ignite · continuity · idle" : pulse.Trim();
+            var courseLine = string.IsNullOrWhiteSpace(course) ? null : course.Trim();
+            if (courseLine is { Length: > 1600 })
+                courseLine = courseLine[..1600].TrimEnd() + "…";
             var doc = new IgniteLatchDoc
             {
                 Schema = Schema,
@@ -54,6 +66,10 @@ internal static class CideIgniteLatch
                 ArmedCount = armedCount,
                 AwaitingCount = awaitingCount,
                 ProviderBlocked = providerBlocked,
+                Autonomous = autonomous,
+                Hild = hild,
+                Vad = vad,
+                Course = courseLine,
                 // Silent when idle — seats chrome owns packing; ignite only when continuity live.
                 ChromeHint = active ? pulseLine : null
             };
@@ -96,6 +112,10 @@ internal static class CideIgniteLatch
         public int ArmedCount { get; set; }
         public int AwaitingCount { get; set; }
         public bool ProviderBlocked { get; set; }
+        public bool Autonomous { get; set; }
+        public bool Hild { get; set; }
+        public bool Vad { get; set; }
+        public string? Course { get; set; }
         public string? ChromeHint { get; set; }
     }
 }

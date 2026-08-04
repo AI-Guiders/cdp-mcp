@@ -49,4 +49,25 @@ public class CideIgniteLatchTests : IDisposable
         Assert.False(latch!.Active);
         Assert.Null(latch.ChromeHint);
     }
+
+    [Fact]
+    public void Publish_writes_autonomous_hild_course()
+    {
+        CideIgniteLatch.Publish(
+            active: false,
+            pulse: "ignite · continuity · armed=0",
+            armedCount: 0,
+            awaitingCount: 0,
+            providerBlocked: false,
+            autonomous: true,
+            hild: false,
+            course: "1. Glass Done (human flight)");
+
+        var latch = CideIgniteLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.True(latch!.Autonomous);
+        Assert.False(latch.Hild);
+        Assert.Equal("1. Glass Done (human flight)", latch.Course);
+        Assert.Null(latch.ChromeHint);
+    }
 }

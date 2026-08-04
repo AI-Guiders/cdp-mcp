@@ -114,6 +114,7 @@ internal static partial class IdeIgniteArmHost
         if (armed)
             EnsureHildStarted();
 
+        PublishGlass();
         return HildStatusPayload(why);
     }
 

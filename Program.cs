@@ -99,6 +99,8 @@ using var intercomCannon = IntercomVoiceCannonWatcher.Start();
 IdeIgniteArmHost.StartHildWatch();
 IdeIgniteArmHost.StartOomWatch();
 CitizenGlassDialogBridge.Start();
+GlassIgniteCmdBridge.Start();
+IdeIgniteArmHost.PublishGlass();
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
 CitizenRouteHost.ShellHabitatResolver = () => shellHabitat;
