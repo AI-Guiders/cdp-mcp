@@ -38,6 +38,26 @@ public class CidePlanLatchTests : IDisposable
         Assert.Equal("Wire plan Task Manager pulse", latch.Task);
         Assert.Equal("Glass Done (human flight)", latch.Why);
         Assert.Equal("Glass › Wire plan @act · explore", latch.ChromeHint);
+        Assert.Null(latch.Board);
+    }
+
+    [Fact]
+    public void Publish_active_writes_board_lines()
+    {
+        CidePlanLatch.Publish(
+            active: true,
+            pulse: "Feat › Leaf · act",
+            feature: "Feat",
+            task: "Leaf",
+            why: "Glass Done",
+            board: ["*Feat", "|--- [>] Leaf", "|--- [x] Prior"]);
+
+        var latch = CidePlanLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.NotNull(latch!.Board);
+        Assert.Equal(3, latch.Board!.Length);
+        Assert.Equal("*Feat", latch.Board[0]);
+        Assert.Contains("[>]", latch.Board[1], StringComparison.Ordinal);
     }
 
     [Fact]

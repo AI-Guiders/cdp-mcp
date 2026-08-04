@@ -38,7 +38,13 @@ internal static class CidePlanLatch
 
     public static string LatchPath => Path.Combine(StateRoot, "plan-LATEST.json");
 
-    public static void Publish(bool active, string pulse, string? feature, string? task, string? why = null)
+    public static void Publish(
+        bool active,
+        string pulse,
+        string? feature,
+        string? task,
+        string? why = null,
+        IReadOnlyList<string>? board = null)
     {
         try
         {
@@ -47,6 +53,18 @@ internal static class CidePlanLatch
             var whyLine = string.IsNullOrWhiteSpace(why) ? null : why.Trim();
             if (whyLine is { Length: > 160 })
                 whyLine = whyLine[..159].TrimEnd() + "…";
+            string[]? boardLines = null;
+            if (board is { Count: > 0 })
+            {
+                boardLines = board
+                    .Where(static l => !string.IsNullOrWhiteSpace(l))
+                    .Select(static l => l.Trim())
+                    .Take(32)
+                    .ToArray();
+                if (boardLines.Length == 0)
+                    boardLines = null;
+            }
+
             var doc = new PlanLatchDoc
             {
                 Schema = Schema,
@@ -57,7 +75,8 @@ internal static class CidePlanLatch
                 Feature = string.IsNullOrWhiteSpace(feature) ? null : feature.Trim(),
                 Task = string.IsNullOrWhiteSpace(task) ? null : task.Trim(),
                 Why = whyLine,
-                ChromeHint = active ? pulseLine : null
+                ChromeHint = active ? pulseLine : null,
+                Board = active ? boardLines : null
             };
             var json = JsonSerializer.Serialize(doc, JsonOpts);
             var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
@@ -100,5 +119,7 @@ internal static class CidePlanLatch
         /// <summary>Human WHY (sealed course goal line) — shared-SSOT Plan face.</summary>
         public string? Why { get; set; }
         public string? ChromeHint { get; set; }
+        /// <summary>Active-feature stage tree lines for P leaf board instrument.</summary>
+        public string[]? Board { get; set; }
     }
 }
