@@ -85,9 +85,19 @@ internal static class CidePresentationLatch
                 instruments = null;
         }
 
-        var topology = string.IsNullOrWhiteSpace(patch.Topology) ? null : patch.Topology.Trim();
-        var tier = string.IsNullOrWhiteSpace(patch.Tier) ? null : patch.Tier.Trim().ToLowerInvariant();
-        var mfdPage = string.IsNullOrWhiteSpace(patch.MfdPage) ? null : patch.MfdPage.Trim();
+        // Partial patch merges prior latch — mfd_page alone must not wipe topology (OneOf pack).
+        var prior = TryRead();
+        var topology = !string.IsNullOrWhiteSpace(patch.Topology)
+            ? patch.Topology.Trim()
+            : prior?.Topology;
+        var tier = !string.IsNullOrWhiteSpace(patch.Tier)
+            ? patch.Tier.Trim().ToLowerInvariant()
+            : prior?.Tier;
+        var mfdPage = !string.IsNullOrWhiteSpace(patch.MfdPage)
+            ? patch.MfdPage.Trim()
+            : prior?.MfdPage;
+        if (instruments is null && prior?.Instruments is { Count: > 0 } priorInstr)
+            instruments = new Dictionary<string, string>(priorInstr, StringComparer.OrdinalIgnoreCase);
 
         if (topology is null && tier is null && instruments is null && mfdPage is null)
             return;
