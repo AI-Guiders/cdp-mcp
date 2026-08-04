@@ -53,6 +53,7 @@
 
 ## Antipatterns
 
+- Treating **full-chain GREEN** as 15.08 Done — DoD is **full-ready** (usable habitat peer), not pipe re-prove.
 - Starting dogfood from social/speech hubs — citizen is completions host, not CASA speech.
 - Expecting live turn with empty `ai-keys.toml` (file may exist and still block).
 - Treating soft-staged `.next` as remounted live seat.
@@ -65,6 +66,7 @@
 
 ## last_ship
 
+- **2026-08-04 operator steer** — 15.08 DoD = **full-ready**, not full-chain. full-chain observe→act→verify / Glass latch already GREEN/CLOSED — invent densest toward readiness, not pipe re-mill.
 - **2026-08-04 CitizenDomainCardRoute** — `domain card=X`/`id=`/`name=` without `op=` → op=card (was silent scene + lying peer ack). Cascade-ide stub `.cdp/domain/citizen.md` for seat dig. Tests CitizenDomainHostTests 7/7.
 - **0.5.663** — Citizen vision: `image_path=` / `cdp_see` latch → OpenAI-compat `image_url`; auto `Qwen/Qwen3.6-35B-A3B`; thinking off on vision turns. Tests CitizenVisionLatchTests 3/3.
 - **0.5.656** — Intercom human surface: `CitizenIntercomHumanSurface` strips `@intent`/`@event`/`@frame` + peer tip from Glass letter; harness → «Сделала: …»; peer wire stays on request `peer=` only. Tests HumanSurface+GlassBridge 7/7.
