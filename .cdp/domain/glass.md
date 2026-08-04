@@ -17,6 +17,7 @@
 - CabinGlassProjectionCatalog: every SoftOrganKind go-pin resolves (MfdPage or chrome_hint stub).
 - Host start hydration (`CockpitHostLatchHydration`) must include SoftOrgan + EICAS latch names that exist on disk.
 - Intercom partner presence = separate latch `intercom-presence-LATEST.json` (idle|composing|busy + reader stale) — do **not** mix into voice/journal, SoftOrgan, EICAS, or host-start hydration (fake freshness).
+- Intercom sticky Who = separate latch `intercom-identity-LATEST.json` (freeform nick per seat) — resolve explicit `name=` → sticky → bootstrap (`Кир`/`Operator`/`Citizen`); machine-local nick (e.g. Света) is claim, not repo default. `cdp_intercom op=identity`.
 - `mcp` SoftOrgan → MFD `AiChatSettings` (MCP settings live there); MFD `Chat` = Intercom/citizen secondary — not mcp.
 
 ## Entry
@@ -145,7 +146,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 | Topic cards | XAML/`GlassIntercomTopics` + empty hint; **30m** quiet-gap cluster · follow-newest on stickEnd · `/topics N` · cluster tail 240 | **P0b shipped** |
 | Message↔code | `/open` + journal chips · disk resolve chrome · strip brackets · range select; Avalonia Skia still fuller | **P2 shipped** |
 | FDS (Flight Data Storage) | MFD shelf peels plan/shared/report/pressure · `/fds` | **P1 shipped** |
-| Intercom identity | `Кир · guest` / `Света · operator` / `Citizen · citizen` RoleLabel · Who ≠ operator | **P0 shipped** |
+| Intercom identity | sticky Who latch + RoleLabel · bootstrap `Кир`/`Operator`/`Citizen` · Who ≠ operator · personal nick via `op=identity` | **P0 shipped** |
 | Intercom → citizen dialog | Glass `/citizen` → request latch → habitat bridge → Intercom citizen reply · chord `cz` · **hands Execute+PeerAck 0.5.561** | **P0 shipped (0.5.496+561)** |
 
 ### P0→P3
