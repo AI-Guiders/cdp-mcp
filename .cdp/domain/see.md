@@ -25,4 +25,5 @@
 
 ## last_ship
 
+- 0.5.663: also arms `CitizenVisionLatch` for next `cdp_citizen` turn (image_url path)
 - 0.5.662: `cdp_see` path=|url= → ImageContent; go=see|see_desk|vision; World dig charge line; always-ListTools
