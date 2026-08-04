@@ -25,7 +25,8 @@ internal static partial class IdeCideIntercomChannel
             "ack" or "read" or "clear" => Ack(args),
             "history" or "line" or "journal" or "tail" => History(args),
             "presence" or "status" or "pulse_presence" => Presence(args),
-            _ => Fail("unknown_op", "op=scene|send|ack|history|presence  to=pm|pf body= | seat= state=")
+            "identity" or "who" or "nick" => Identity(args),
+            _ => Fail("unknown_op", "op=scene|send|ack|history|presence|identity  to=pm|pf body= | seat= name=|state=")
         };
     }
 
@@ -37,6 +38,11 @@ internal static partial class IdeCideIntercomChannel
         var journalCount = CideIntercomVoiceLatch.JournalCount();
         var presence = CideIntercomPresenceLatch.TryReadEffective();
         var partnerPresence = CideIntercomPresenceLatch.PartnerLine(CideIntercomVoiceLatch.SeatPf, presence);
+        var identity = CideIntercomIdentityLatch.TryRead();
+        var (pfName, pfKind) = CideIntercomVoiceLatch.ResolveIdentity(
+            CideIntercomVoiceLatch.SeatPf, CideIntercomVoiceLatch.OriginAgent, null, null);
+        var (pmName, pmKind) = CideIntercomVoiceLatch.ResolveIdentity(
+            CideIntercomVoiceLatch.SeatPm, CideIntercomVoiceLatch.OriginHuman, null, null);
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
@@ -45,10 +51,12 @@ internal static partial class IdeCideIntercomChannel
             role = "cide_intercom",
             seats = new
             {
-                pf = "Кир · guest (v0 Cursor PF)",
-                pm = "Света · operator (v0)",
+                pf = $"{pfName} · {pfKind} (v0 Cursor PF)",
+                pm = $"{pmName} · {pmKind} (v0)",
                 kinds = new[] { "guest", "citizen", "operator" }
             },
+            identity_path = CideIntercomIdentityLatch.LatchPath,
+            identity = IdentityCard(identity),
             latch_path = CideIntercomVoiceLatch.LatchPath,
             journal_path = CideIntercomVoiceLatch.JournalPath,
             journal_count = journalCount,
@@ -59,15 +67,14 @@ internal static partial class IdeCideIntercomChannel
             unread = unread is null ? null : Card(unread),
             latest = latch is null ? null : Card(latch),
             hint =
-                "send to=pm body=… [name=Кир] [kind=guest|citizen] → @PM on Glass Intercom. " +
-                "from=pm|operator body=… [name=Света] → operator voice (origin=human). " +
-                "Who = Agent Who series (agent identity), not the human. " +
-                "presence seat=pf|pm state=idle|composing|busy — partner observability (no thinking dump). " +
-                "history limit= — Virtual History on demand (not auto into flight). " +
-                "ack id= after you read.",
+                "send to=pm body=… [name=…] [kind=guest|citizen] → @PM on Glass. " +
+                "op=identity seat=pf|pm name=… — sticky Who (freeform nick); send name= also claims. " +
+                "Bootstrap defaults Guest/Operator — not personal names in repo. " +
+                "presence seat= state=idle|composing|busy. history limit=. ack id= after you read.",
             next = new object[]
             {
                 new { go = "intercom_send", label = "@PM say", why = "to=pm body=…" },
+                new { go = "intercom", label = "Identity", why = "op=identity seat=pf name=…" },
                 new { go = "intercom_presence", label = "Presence", why = "op=presence seat=pf state=busy" },
                 new { go = "intercom_ack", label = "Ack unread", why = "op=ack" },
                 new { go = "intercom", label = "History", why = "op=history limit=20" },
@@ -173,6 +180,79 @@ internal static partial class IdeCideIntercomChannel
             partner_for_glass = CideIntercomPresenceLatch.PartnerLine(CideIntercomVoiceLatch.SeatPm, doc),
             partner_for_agent = CideIntercomPresenceLatch.PartnerLine(CideIntercomVoiceLatch.SeatPf, doc),
             hint = "Presence latch updated — Glass paints partner on IntercomSubtitle; no journal / no thinking dump."
+        });
+    }
+
+    static string Identity(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var action = (Arg(args, "action") ?? Arg(args, "mode") ?? "get").Trim().ToLowerInvariant();
+        var seatRaw = Arg(args, "seat") ?? Arg(args, "from") ?? Arg(args, "who");
+        var name = Arg(args, "name") ?? Arg(args, "display_name") ?? Arg(args, "as") ?? Arg(args, "nick");
+        var kind = Arg(args, "kind") ?? Arg(args, "role");
+
+        if (action is "set" or "claim" or "put")
+        {
+            if (string.IsNullOrWhiteSpace(seatRaw))
+                seatRaw = CideIntercomVoiceLatch.SeatPf;
+            if (string.IsNullOrWhiteSpace(name))
+                return Fail("name_required", "identity action=set seat=pf|pm name=… [kind=guest|citizen|operator]");
+            if (kind is not null && CideIntercomVoiceLatch.NormalizeKind(kind) is null)
+                return Fail("kind_invalid", "kind=guest|citizen|operator");
+            var doc = CideIntercomIdentityLatch.Claim(seatRaw!, name!, kind);
+            if (doc is null)
+                return Fail("identity_failed", "seat=pf|pm name=… (freeform Who / nick)");
+            return JsonSerializer.Serialize(new
+            {
+                schema = Schema,
+                ok = true,
+                op = "identity",
+                action = "set",
+                identity_path = CideIntercomIdentityLatch.LatchPath,
+                identity = IdentityCard(doc),
+                hint = "Sticky Who claimed — subsequent send without name= uses this seat label."
+            });
+        }
+
+        if (action is "clear" or "reset" or "drop")
+        {
+            if (string.IsNullOrWhiteSpace(seatRaw))
+                return Fail("seat_required", "identity action=clear seat=pf|pm");
+            var doc = CideIntercomIdentityLatch.Clear(seatRaw!);
+            if (doc is null)
+                return Fail("identity_failed", "seat=pf|pm");
+            return JsonSerializer.Serialize(new
+            {
+                schema = Schema,
+                ok = true,
+                op = "identity",
+                action = "clear",
+                identity_path = CideIntercomIdentityLatch.LatchPath,
+                identity = IdentityCard(doc),
+                hint = "Sticky cleared — seat falls back to bootstrap Guest/Operator until next claim."
+            });
+        }
+
+        // get / scene
+        var identity = CideIntercomIdentityLatch.TryRead();
+        object? focus = null;
+        if (!string.IsNullOrWhiteSpace(seatRaw))
+        {
+            var slot = CideIntercomIdentityLatch.TrySeat(seatRaw!);
+            focus = slot is null
+                ? null
+                : new { seat = CideIntercomVoiceLatch.NormalizeSeat(seatRaw), name = slot.Name, kind = slot.Kind, stamped_utc = slot.StampedUtc };
+        }
+
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "identity",
+            action = "get",
+            identity_path = CideIntercomIdentityLatch.LatchPath,
+            identity = IdentityCard(identity),
+            seat = focus,
+            hint = "Sticky Who per seat. action=set seat= name= to claim; send name= also claims."
         });
     }
 

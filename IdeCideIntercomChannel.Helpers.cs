@@ -4,6 +4,22 @@ using System.Text.Json;
 namespace CdpMcp;
 internal static partial class IdeCideIntercomChannel
 {
+    static object? IdentityCard(CideIntercomIdentityLatch.IdentityDoc? doc)
+    {
+        if (doc is null)
+            return null;
+        return new
+        {
+            schema = doc.Schema,
+            pf = IdentitySeatCard(doc.Pf),
+            pm = IdentitySeatCard(doc.Pm)
+        };
+    }
+
+    static object? IdentitySeatCard(CideIntercomIdentityLatch.IdentitySeat? s) => s is null || string.IsNullOrWhiteSpace(s.Name)
+        ? null
+        : new { name = s.Name, kind = s.Kind, stamped_utc = s.StampedUtc };
+
     static object? PresenceCard(CideIntercomPresenceLatch.PresenceDoc? doc)
     {
         if (doc is null)
@@ -52,7 +68,7 @@ internal static partial class IdeCideIntercomChannel
         acked = d.Acked,
         stamped_utc = d.StampedUtc
     };
-    /// <summary>PF defaults to agent; PM (operator/Света) defaults to human. Explicit origin= wins. Who ≠ human.</summary>
+    /// <summary>PF defaults to agent; PM defaults to human. Explicit origin= wins. Who ≠ human.</summary>
     static string? ResolveOrigin(string fromSeat, string? originRaw)
     {
         if (!string.IsNullOrWhiteSpace(originRaw))

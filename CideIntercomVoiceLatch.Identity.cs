@@ -12,10 +12,11 @@ internal static partial class CideIntercomVoiceLatch
     public const string KindCitizen = "citizen";
     public const string KindOperator = "operator";
 
+    /// <summary>Bootstrap guest label until sticky claim — not a forced passport.</summary>
     public const string DefaultNameGuest = "Кир";
     public const string DefaultNameCitizen = "Citizen";
-    /// <summary>Human operator personal name — not Agent Who (series / agent identity).</summary>
-    public const string DefaultNameOperator = "Света";
+    /// <summary>Generic operator bootstrap — personal names live in sticky identity latch (not repo default).</summary>
+    public const string DefaultNameOperator = "Operator";
 
     public static string? NormalizeKind(string? raw)
     {
@@ -32,7 +33,10 @@ internal static partial class CideIntercomVoiceLatch
         };
     }
 
-    /// <summary>Fill name+kind from explicit args or origin/seat defaults.</summary>
+    /// <summary>
+    /// Fill name+kind: explicit arg → sticky seat identity → bootstrap default.
+    /// Sticky = agent-line continuity (freeform Who / nick); change anytime via claim or send name=.
+    /// </summary>
     public static (string Name, string Kind) ResolveIdentity(
         string fromSeat,
         string origin,
@@ -52,13 +56,21 @@ internal static partial class CideIntercomVoiceLatch
         var n = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
         if (n is null)
         {
-            n = k switch
+            var sticky = CideIntercomIdentityLatch.TrySeat(fromSeat);
+            if (sticky is not null && !string.IsNullOrWhiteSpace(sticky.Name))
             {
-                KindOperator => DefaultNameOperator,
-                KindCitizen => DefaultNameCitizen,
-                _ => DefaultNameGuest
-            };
+                n = sticky.Name.Trim();
+                if (NormalizeKind(sticky.Kind) is { } stickyKind)
+                    k = stickyKind;
+            }
         }
+
+        n ??= k switch
+        {
+            KindOperator => DefaultNameOperator,
+            KindCitizen => DefaultNameCitizen,
+            _ => DefaultNameGuest
+        };
 
         return (n, k);
     }

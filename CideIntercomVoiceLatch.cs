@@ -61,6 +61,7 @@ internal static partial class CideIntercomVoiceLatch
             return null;
 
         var originNorm = origin.ToLowerInvariant();
+        var explicitName = !string.IsNullOrWhiteSpace(name);
         var (resolvedName, resolvedKind) = ResolveIdentity(from, originNorm, name, kind);
 
         var doc = new IntercomVoiceDoc
@@ -85,6 +86,9 @@ internal static partial class CideIntercomVoiceLatch
             File.WriteAllText(tmp, json);
             File.Move(tmp, LatchPath, overwrite: true);
             AppendJournal(doc);
+            // Explicit name= / as= claims sticky Who (agent-line). Bootstrap defaults do not.
+            if (explicitName)
+                _ = CideIntercomIdentityLatch.Claim(from, resolvedName, resolvedKind);
             return doc;
         }
         catch
@@ -185,7 +189,7 @@ internal static partial class CideIntercomVoiceLatch
         public string ToSeat { get; set; } = SeatPm;
         public string Body { get; set; } = "";
         public string Origin { get; set; } = OriginAgent;
-        /// <summary>Personal display name (Кир / Света / …) — not model id; Who = Agent Who series, not operator.</summary>
+        /// <summary>Personal display name (sticky Who / nick) — not model id; Who = Agent Who series, not the human.</summary>
         public string? Name { get; set; }
         /// <summary>guest | citizen | operator</summary>
         public string? Kind { get; set; }
