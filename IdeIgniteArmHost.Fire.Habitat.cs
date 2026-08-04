@@ -57,6 +57,10 @@ internal static partial class IdeIgniteArmHost
 
         var duplex = IsHabitatPartnerLive();
 
+        // Dual Autoi: debug twin must not FDR/Intercom-double the live seat (lived ~174 wake_habitat*/h).
+        if (!duplex && !IsPrimaryAutoiSeat())
+            return null;
+
         var latch = IdeIgniteWakeLatch.Publish(
             arm.Id,
             charge,
@@ -70,7 +74,8 @@ internal static partial class IdeIgniteArmHost
         {
             IdeFlightDataRecorder.RecordWake(
                 "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_duplex");
-            PublishHabitatIntercomCharge(charge);
+            if (IsPrimaryAutoiSeat())
+                PublishHabitatIntercomCharge(arm, charge);
             return HabitatWakeResult(arm.Id, "prefer_duplex", submitKind: "habitat");
         }
 
@@ -79,6 +84,7 @@ internal static partial class IdeIgniteArmHost
             "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_autonomous");
         return null;
     }
+
 
     static object HabitatWakeResult(string armId, string detail, string submitKind) =>
         new
@@ -139,10 +145,16 @@ internal static partial class IdeIgniteArmHost
                 return false;
             if (IsHabitatPartnerLive())
                 return false;
+            if (!IsPrimaryAutoiSeat())
+                return false;
             detail = "idle_pf_intercom";
         }
 
-        var voiceBody = TruncateHabitatCharge(charge);
+        // Dual Autoi (cdp + cdp-debug): one Intercom publish per wake family window.
+        if (!TryClaimSharedWakeMirror(MirrorClaimKey(arm)))
+            return false;
+
+        var voiceBody = FormatHabitatIntercomRadio(arm, charge);
         var voice = CideIntercomVoiceLatch.Publish(
             fromSeat: CideIntercomVoiceLatch.SeatPf,
             toSeat: CideIntercomVoiceLatch.SeatPm,
@@ -309,9 +321,17 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Best-effort Intercom voice for habitat wakes (prefer + composer-unavailable).</summary>
-    static void PublishHabitatIntercomCharge(string charge)
+    static void PublishHabitatIntercomCharge(string charge) =>
+        PublishHabitatIntercomCharge(arm: null, charge);
+
+    static void PublishHabitatIntercomCharge(IgniteArm? arm, string charge)
     {
-        var voiceBody = TruncateHabitatCharge(charge);
+        if (!IsPrimaryAutoiSeat())
+            return;
+        if (arm is not null && !TryClaimSharedWakeMirror(MirrorClaimKey(arm)))
+            return;
+
+        var voiceBody = FormatHabitatIntercomRadio(arm, charge);
         _ = CideIntercomVoiceLatch.Publish(
             fromSeat: CideIntercomVoiceLatch.SeatPf,
             toSeat: CideIntercomVoiceLatch.SeatPm,
