@@ -128,6 +128,8 @@ public sealed partial class DeskGoMapCatalog : ICockpitComputeUnit
         ["surface_desk"] = new Entry(IdeGlassSurfaceChannel.ToolName, null),
         ["surface"] = new Entry(IdeGlassSurfaceChannel.ToolName, null),
         ["glass_surface"] = new Entry(IdeGlassSurfaceChannel.ToolName, null),
+        ["glass_scene"] = new Entry(IdeGlassSurfaceChannel.ToolName, null),
+        ["cabin_sa"] = new Entry(IdeGlassSurfaceChannel.ToolName, null),
         ["cdp_glass"] = new Entry(IdeGlassSurfaceChannel.ToolName, null),
         ["pressure_desk"] = new Entry(IdePressureChannel.ToolName, null),
         ["pressure"] = new Entry(IdePressureChannel.ToolName, null),

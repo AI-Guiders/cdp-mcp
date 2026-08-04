@@ -69,32 +69,73 @@ internal static class IdeGlassSurfaceChannel
     static object Scene(SessionContext session)
     {
         var plan = CidePlanLatch.TryRead();
+        var seats = CideSeatsLatch.TryRead();
+        var presentation = CidePresentationLatch.TryRead();
+        var ignite = CideIgniteLatch.TryRead();
         var land = TryPeekLand();
         var landPath = TryPeekLandPath();
+        var shared = TryPeekShared();
+        var alert = TryPeekAlert();
         var next = plan?.Task ?? plan?.Feature;
         var why = plan?.Why ?? IdePressureChannel.CompactWhyLine(IdePressureChannel.TryPeekSealedCourse());
+        var course = plan?.Feature;
         var leaf = plan?.Task;
+        var mfd = seats?.MfdPage ?? presentation?.MfdPage;
         var fileSitu = BuildFileSitu(landPath, session.ProjectRoot, why, leaf);
+        var autoi = ignite is { Active: true, Autonomous: true } ? "ON" : "off";
         var pulse = plan is { Active: true }
-            ? $"glass · NEXT · {Truncate(next, 40)} · WHY · {Truncate(why, 40)}"
-            : "surface · glass RPC · full debt live (sense+aim+drive+confirm)";
+            ? $"glass_scene · {Truncate(mfd ?? "cabin", 16)} · NEXT · {Truncate(next, 36)} · Autoi {autoi}"
+            : $"glass_scene · cabin SA · Autoi {autoi} · surface RPC ready";
+
+        // Cabin SA omnibus (gap 2.2): same latches Glass paints — agent pulse without PNG ritual.
+        var cabin = new
+        {
+            schema = "cabin_sa/v0",
+            why,
+            next,
+            course,
+            feature = plan?.Feature,
+            active = plan?.Active ?? false,
+            seats = seats?.Seats,
+            mfd_page = mfd,
+            topology = presentation?.Topology,
+            tier = presentation?.Tier,
+            land,
+            shared,
+            ignite = ignite is null
+                ? null
+                : new
+                {
+                    active = ignite.Active,
+                    autonomous = ignite.Autonomous,
+                    hild = ignite.Hild,
+                    vad = ignite.Vad,
+                    pulse = ignite.Pulse,
+                    course = Truncate(ignite.Course, 120)
+                },
+            alert,
+            file_situ = fileSitu,
+            stamped_utc = plan?.StampedUtc ?? seats?.StampedUtc
+        };
 
         return new
         {
             schema = Schema,
             ok = true,
             go = GoName,
+            go_alias = "glass_scene",
             tool = ToolName,
             op = "scene",
             pulse,
-            // Shared-SSOT A-side: same situation human sees on Plan/HDG + Editor FILE WHY/BLAST.
+            cabin,
+            // Compat: prior shared_ssot shape (Plan + file_situ). Prefer cabin=.
             shared_ssot = new
             {
                 next,
                 why,
                 feature = plan?.Feature,
                 active = plan?.Active ?? false,
-                land = land,
+                land,
                 file_situ = fileSitu,
                 stamped_utc = plan?.StampedUtc
             },
@@ -107,7 +148,7 @@ internal static class IdeGlassSurfaceChannel
             implemented = Implemented.OrderBy(x => x).ToArray(),
             planned = Array.Empty<string>(),
             hint =
-                "shared_ssot = Plan NEXT+WHY + file_situ (path/why_this_file/blast/role_in_graph/diff_intent/applies_on_locus) (+ land). RPC: op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required for RPC."
+                "cabin = glass_scene SA pulse (why/next/course/seats/mfd/land/shared/ignite/alert/file_situ) — no PNG. RPC: op=layout|highlight|focus|click|…. Glass host for drive; cabin works from latches alone."
         };
     }
 
@@ -319,6 +360,50 @@ internal static class IdeGlassSurfaceChannel
                 return null;
             using var doc = JsonDocument.Parse(File.ReadAllText(path));
             return doc.RootElement.TryGetProperty("path", out var p) ? p.GetString() : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    static object? TryPeekShared()
+    {
+        try
+        {
+            var path = SharedFileIndication.LatchPath;
+            if (!File.Exists(path))
+                return null;
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            var root = doc.RootElement;
+            return new
+            {
+                path = root.TryGetProperty("path", out var p) ? p.GetString() : null,
+                shared = root.TryGetProperty("shared", out var s) && s.ValueKind is JsonValueKind.True,
+                stamped_utc = root.TryGetProperty("stamped_utc", out var t) ? t.GetString() : null
+            };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    static object? TryPeekAlert()
+    {
+        try
+        {
+            var path = Path.Combine(GlassSurfaceIpc.StateRoot, "alert-LATEST.json");
+            if (!File.Exists(path))
+                return null;
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            var root = doc.RootElement;
+            return new
+            {
+                level = root.TryGetProperty("level", out var l) ? l.GetString() : null,
+                ok = !root.TryGetProperty("ok", out var o) || o.ValueKind is not JsonValueKind.False,
+                pulse = root.TryGetProperty("pulse", out var p) ? p.GetString() : null
+            };
         }
         catch
         {

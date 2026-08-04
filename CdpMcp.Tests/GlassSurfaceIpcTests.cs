@@ -116,4 +116,26 @@ public sealed class IdeGlassSurfaceChannelTests
         Assert.Equal(JsonValueKind.Array, blast.ValueKind);
         Assert.True(situ.TryGetProperty("role_in_graph", out _));
     }
+
+    [Fact]
+    public void Scene_includes_cabin_sa_omnibus()
+    {
+        var json = IdeGlassSurfaceChannel.HandleJson(new SessionContext(), null);
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal("glass_scene", doc.RootElement.GetProperty("go_alias").GetString());
+        Assert.True(doc.RootElement.TryGetProperty("cabin", out var cabin));
+        Assert.Equal("cabin_sa/v0", cabin.GetProperty("schema").GetString());
+        Assert.True(cabin.TryGetProperty("why", out _));
+        Assert.True(cabin.TryGetProperty("next", out _));
+        Assert.True(cabin.TryGetProperty("course", out _));
+        Assert.True(cabin.TryGetProperty("seats", out _));
+        Assert.True(cabin.TryGetProperty("mfd_page", out _));
+        Assert.True(cabin.TryGetProperty("land", out _));
+        Assert.True(cabin.TryGetProperty("shared", out _));
+        Assert.True(cabin.TryGetProperty("ignite", out _));
+        Assert.True(cabin.TryGetProperty("alert", out _));
+        Assert.True(cabin.TryGetProperty("file_situ", out var situ));
+        Assert.True(situ.TryGetProperty("applies_on_locus", out _));
+        Assert.Contains("glass_scene", doc.RootElement.GetProperty("pulse").GetString(), StringComparison.OrdinalIgnoreCase);
+    }
 }

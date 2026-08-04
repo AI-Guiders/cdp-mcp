@@ -52,7 +52,7 @@ internal static partial class MetaToolCatalog
             wait_seconds = new { type = "integer", description = "max wait for idle (not Stop/Queue), default 90" }
         }
     }),
-    Meta("cdp_glass", "Agent surface parity desk — Glass WPF co-presence RPC (cmd/reply latches). Ops: layout|appearance|colors|highlight|focus|click|set_text|send_keys|palette|run|set_control_layout|set_panel_size|request_confirmation. run: action=|command_id=|text=/slash without Ctrl+Q. Alias go=surface_desk. Not webcam/PrintWindow.", new
+    Meta("cdp_glass", "Glass cabin SA + surface parity. op=scene (default) → cabin_sa/v0 pulse (why/next/course/seats/mfd/land/shared/ignite/alert/file_situ) without PNG. RPC: layout|appearance|colors|highlight|focus|click|set_text|send_keys|palette|run|…. Alias go=glass_scene|surface_desk|cabin_sa. Not webcam/PrintWindow.", new
     {
         type = "object",
         properties = new
