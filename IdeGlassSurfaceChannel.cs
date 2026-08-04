@@ -107,7 +107,7 @@ internal static class IdeGlassSurfaceChannel
             implemented = Implemented.OrderBy(x => x).ToArray(),
             planned = Array.Empty<string>(),
             hint =
-                "shared_ssot = Plan NEXT+WHY + file_situ (path/why_this_file/blast) (+ land). RPC: op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required for RPC."
+                "shared_ssot = Plan NEXT+WHY + file_situ (path/why_this_file/blast/role_in_graph) (+ land). RPC: op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required for RPC."
         };
     }
 
@@ -119,7 +119,8 @@ internal static class IdeGlassSurfaceChannel
             {
                 path = (string?)null,
                 why_this_file = (string?)null,
-                blast = Array.Empty<string>()
+                blast = Array.Empty<string>(),
+                role_in_graph = (object?)null
             };
         }
 
@@ -130,11 +131,33 @@ internal static class IdeGlassSurfaceChannel
             whyBits.Add(Truncate(why!.Trim(), 72)!);
         var whyThisFile = whyBits.Count > 0 ? string.Join(" · ", whyBits) : null;
 
+        var blast = CollectSameStemBlast(workspaceRoot, editorPath, max: 3);
+        var role = BuildRoleInGraph(workspaceRoot, editorPath);
+
         return new
         {
             path = editorPath,
             why_this_file = whyThisFile,
-            blast = CollectSameStemBlast(workspaceRoot, editorPath, max: 3)
+            blast,
+            role_in_graph = role
+        };
+    }
+
+    static object BuildRoleInGraph(string? workspaceRoot, string editorPath)
+    {
+        // Mirror GlassSemanticMapGraph hop counts (same-stem companions as hop-1 stand-in for MCP seat).
+        var hop1 = CollectSameStemBlast(workspaceRoot, editorPath, max: 12);
+        var orphan = hop1.Length == 0;
+        var hops = hop1.Take(3).Select(n => "h1:" + n).ToArray();
+        return new
+        {
+            orphan,
+            nodes = hop1.Length,
+            edges = hop1.Length,
+            hops,
+            line = orphan
+                ? "ORPHAN · 0 hops"
+                : $"focus · {hop1.Length}n/{hop1.Length}e · " + string.Join(" · ", hops)
         };
     }
 
