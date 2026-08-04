@@ -15,10 +15,26 @@ internal static partial class IdeDeploy
 
     internal static string ClassifySeat(string? selfRoot)
     {
-        if (SamePath(selfRoot, ReleaseTarget))
+        if (string.IsNullOrWhiteSpace(selfRoot))
+            return "other";
+
+        var full = Path.GetFullPath(selfRoot);
+        if (SamePath(full, ReleaseTarget))
             return "cdp";
-        if (SamePath(selfRoot, DebugTarget))
+        if (SamePath(full, DebugTarget))
             return "cdp-debug";
+
+        var leaf = Path.GetFileName(full.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        // target=self mis-resolve → ...\cdp-mcp\self — walk parent once.
+        if (leaf.Equals("self", StringComparison.OrdinalIgnoreCase)
+            && Path.GetDirectoryName(full) is { Length: > 0 } parent)
+            return ClassifySeat(parent);
+
+        if (leaf.Equals("cdp-mcp-debug", StringComparison.OrdinalIgnoreCase))
+            return "cdp-debug";
+        if (leaf.Equals("cdp-mcp", StringComparison.OrdinalIgnoreCase))
+            return "cdp";
+
         return "other";
     }
 

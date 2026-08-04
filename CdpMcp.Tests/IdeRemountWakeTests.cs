@@ -56,6 +56,33 @@ public class IdeRemountWakeTests : IDisposable
     }
 
     [Fact]
+    public void TryConsume_reclaims_orphan_other_when_target_classifies_to_seat()
+    {
+        var orphanPath = IdeRemountWake.PendingPathForSeat("other");
+        var doc = new IdeRemountWake.RemountPendingDoc
+        {
+            Schema = IdeRemountWake.Schema,
+            Seat = "other",
+            Target = Path.Combine(IdeDeploy.ReleaseTarget, "self"),
+            Reason = "hard_deploy",
+            StampedUtc = DateTimeOffset.UtcNow
+        };
+        Directory.CreateDirectory(IdeRemountWake.StateRoot);
+        File.WriteAllText(
+            orphanPath,
+            JsonSerializer.Serialize(doc, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+            }));
+
+        Assert.True(IdeRemountWake.TryConsumePending("cdp", out var pending));
+        Assert.NotNull(pending);
+        Assert.Equal("hard_deploy", pending!.Reason);
+        Assert.False(File.Exists(orphanPath));
+    }
+
+    [Fact]
     public void TryScheduleRemountInitializedWake_arms_remount_charge()
     {
         IdeRemountWake.MarkPending(IdeDeploy.ReleaseTarget, "unit_test");

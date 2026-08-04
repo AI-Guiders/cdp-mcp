@@ -72,11 +72,23 @@ internal static class IdeRemountWake
             reason: Reason);
     }
 
-    /// <summary>Atomically consume pending for this seat (delete file). Returns false if none.</summary>
+    /// <summary>Atomically consume pending for this seat (delete file). Returns false if none.
+    /// Also consumes orphan <c>other</c> pending when Target matches this install (pre-0.5.661
+    /// ClassifySeat miss left remount-wake-other.pending.json forever).</summary>
     public static bool TryConsumePending(string? seat, out RemountPendingDoc? pending)
     {
         pending = null;
-        var path = PendingPathForSeat(NormalizeSeat(seat ?? IdeIgniteArmHost.Seat));
+        var normalized = NormalizeSeat(seat ?? IdeIgniteArmHost.Seat);
+        if (TryConsumePendingExact(normalized, out pending))
+            return true;
+
+        return TryConsumeOrphanMatchingSelf(normalized, out pending);
+    }
+
+    static bool TryConsumePendingExact(string seat, out RemountPendingDoc? pending)
+    {
+        pending = null;
+        var path = PendingPathForSeat(seat);
         if (!File.Exists(path))
             return false;
 
@@ -84,13 +96,13 @@ internal static class IdeRemountWake
         {
             var raw = File.ReadAllText(path);
             pending = JsonSerializer.Deserialize<RemountPendingDoc>(raw, JsonOpts)
-                      ?? new RemountPendingDoc { Seat = NormalizeSeat(seat), Reason = "hard_deploy" };
+                      ?? new RemountPendingDoc { Seat = seat, Reason = "hard_deploy" };
         }
         catch
         {
             pending = new RemountPendingDoc
             {
-                Seat = NormalizeSeat(seat),
+                Seat = seat,
                 Reason = "hard_deploy",
                 StampedUtc = DateTimeOffset.UtcNow
             };
@@ -100,6 +112,55 @@ internal static class IdeRemountWake
         catch { /* best-effort — avoid double-fire if delete fails next boot may retry */ }
 
         return true;
+    }
+
+    static bool TryConsumeOrphanMatchingSelf(string seat, out RemountPendingDoc? pending)
+    {
+        pending = null;
+        if (!Directory.Exists(StateRoot))
+            return false;
+
+        string[] orphans;
+        try
+        {
+            orphans = Directory.GetFiles(StateRoot, "remount-wake-*.pending.json");
+        }
+        catch
+        {
+            return false;
+        }
+
+        var exactPath = PendingPathForSeat(seat);
+        foreach (var path in orphans)
+        {
+            // Exact seat file already attempted.
+            if (string.Equals(path, exactPath, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            RemountPendingDoc? doc;
+            try
+            {
+                doc = JsonSerializer.Deserialize<RemountPendingDoc>(File.ReadAllText(path), JsonOpts);
+            }
+            catch
+            {
+                continue;
+            }
+
+            if (doc?.Target is not { Length: > 0 } target)
+                continue;
+
+            // Target path classifies to this boot seat (e.g. ...\cdp-mcp\self → cdp after 0.5.661).
+            if (!IdeDeploy.ClassifySeat(target).Equals(seat, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            pending = doc;
+            try { File.Delete(path); }
+            catch { /* best-effort */ }
+            return true;
+        }
+
+        return false;
     }
 
     public sealed class RemountPendingDoc

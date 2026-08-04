@@ -18,6 +18,7 @@
 - SoftOrgan Meta host mill **CLOSED** when inventory reports `meta-host-softorgans=CLOSED` — do not re-wire Crm/Arch from stale TM.
 - SA `biped_mill` when session act + no active wave → next `go=inventory` | `cmd=wave seed`.
 - `verify_wave` = checklist only — dual hard via `terminal_*` + `publish-and-deploy.ps1`, never in-proc KillRunning.
+- Hard deploy remount nudge is **per-seat** (0.5.661) — sibling hard must not remount the live survivor (`CdpReloadNudge.ps1`).
 - Pressure stash accepts `wave=` JSON / `## wave` in body; recall returns `wave`.
 
 ## Entry
@@ -35,11 +36,13 @@
 - **Domain-sliced CIDE port:** treat SoftOrgan / MFD / glass.md rows as separate waves — wrong. For Avalonia→Glass, **a** = весь остаток переноса CIDE (что ещё надо перенести), one wave to ship; not «сначала Git-домен, потом MD-домен».
 - Treating soft-staged `.next` as remounted live seat.
 - In-proc `cdp_shell` hard deploy (kills self).
+- Global MCP nudge remounting both seats on sibling hard (pre-0.5.661).
 - Reminding via alwaysApply text instead of using wave/inventory affordances.
 - Seeding `wave seed title=Foo polish words` without `items=` (pre-0.5.646 invented fake labels).
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
 
 ## last_ship
+- **0.5.661** — per-seat remount nudge + orphan remount pending (sibling hard ≠ kill survivor seat) · 2026-08-04
 - **2026-08-04 ProductDigCitizen15** — wave a×b: glass-done-close · dig-verdict · voice-letter-intercom-iop · citizen-hold · (bogus CCL `wave start` noop). DIG REJECT SoftFL mill; DIG ACCEPT invent=Voice Letter after cabin + hold to 15.08.
 - **2026-08-04 cabin** — Intercom IOP live dogfood: Glass host rebuilt; surface `run action=topic_next` → `glass · topic next · …` (stale Release exe was unknown). Wave item glass-cabin-iop-dogfood.
 - **0.5.652** — FeatureDone refuse half-a under autonomous + no active wave (`force=` escape). Teeth for a×b rectangle close. Tests IdeFeatureDoneAxbTests.

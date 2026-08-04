@@ -1,6 +1,7 @@
 # Recover Cursor MCP seat when tools say "Not connected" but CdpMcp.exe still runs.
 # Escape hatch: run from terminal_* / external shell — never from in-proc cdp_shell_* while targeting self.
-# Pattern: KillRunning seat exe + CDP_RELOAD_NUDGE (kj-1349) + remount-wake pending (default; -NoStampRemountPending to skip). Human Reload is last fallback.
+# Pattern: KillRunning seat exe + per-seat CDP_RELOAD_NUDGE (kj-1349 / 0.5.661) + remount-wake pending
+# (default; -NoStampRemountPending to skip). Human Reload is last fallback.
 #
 # Examples:
 #   pwsh -File Recover-CdpSeatRemount.ps1 -Seat cdp
@@ -17,10 +18,15 @@ param(
 
     [switch] $NoKill,
 
-    [switch] $NoStampRemountPending
+    [switch] $NoStampRemountPending,
+
+    # Escape: bump every CDP_RELOAD_NUDGE (pre-0.5.661 global thrash — avoid).
+    [switch] $NudgeAllSeats
 )
 
 $ErrorActionPreference = 'Stop'
+
+. (Join-Path $PSScriptRoot 'CdpReloadNudge.ps1')
 
 if (-not $Target) {
     $Target = if ($Seat -eq 'cdp-debug') { 'D:\cdp-mcp-debug' } else { 'D:\cdp-mcp' }
@@ -28,48 +34,6 @@ if (-not $Target) {
 $Target = [System.IO.Path]::GetFullPath($Target)
 $exeName = 'CdpMcp.exe'
 $exePath = Join-Path $Target $exeName
-
-function Invoke-CdpReloadNudge {
-    $mcpJson = Join-Path $env:USERPROFILE '.cursor\mcp.json'
-    if (-not (Test-Path -LiteralPath $mcpJson)) {
-        return @{ Ok = $false; Error = "missing $mcpJson" }
-    }
-    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $raw = Get-Content -LiteralPath $mcpJson -Raw -Encoding utf8
-    if ($raw -notmatch '"CDP_RELOAD_NUDGE"') {
-        return @{ Ok = $false; Error = 'no CDP_RELOAD_NUDGE keys in mcp.json' }
-    }
-    $count = ([regex]::Matches($raw, '"CDP_RELOAD_NUDGE"\s*:')).Count
-    $next = [regex]::Replace(
-        $raw,
-        '"CDP_RELOAD_NUDGE"\s*:\s*"[^"]*"',
-        "`"CDP_RELOAD_NUDGE`": `"$stamp`"")
-    if ($next -eq $raw) {
-        return @{ Ok = $false; Error = 'replace produced no change' }
-    }
-    Set-Content -LiteralPath $mcpJson -Value $next -Encoding utf8 -NoNewline
-    return @{ Ok = $true; Path = $mcpJson; Value = $stamp; Count = $count }
-}
-
-function Write-CdpRemountWakePending([string]$TargetRoot) {
-    $full = [System.IO.Path]::GetFullPath($TargetRoot)
-    $leaf = [System.IO.Path]::GetFileName($full.TrimEnd('\', '/'))
-    $seatName = if ($leaf -ieq 'cdp-mcp-debug') { 'cdp-debug' }
-                elseif ($leaf -ieq 'cdp-mcp') { 'cdp' }
-                else { 'other' }
-    $dir = Join-Path $env:LOCALAPPDATA 'cdp-mcp'
-    New-Item -ItemType Directory -Force -Path $dir | Out-Null
-    $path = Join-Path $dir "remount-wake-$seatName.pending.json"
-    $doc = [ordered]@{
-        schema      = 'remount_wake/v1'
-        seat        = $seatName
-        target      = $full
-        reason      = 'recover_seat'
-        stamped_utc = (Get-Date).ToUniversalTime().ToString('o')
-    }
-    ($doc | ConvertTo-Json -Depth 4) | Set-Content -LiteralPath $path -Encoding utf8
-    return @{ Ok = $true; Path = $path; Seat = $seatName }
-}
 
 Write-Host "Recover seat remount"
 Write-Host "  Seat:   $Seat"
@@ -96,7 +60,7 @@ if (-not $NoKill) {
 }
 
 if (-not $NoStampRemountPending) {
-    $pending = Write-CdpRemountWakePending $Target
+    $pending = Write-CdpRemountWakePending -TargetRoot $Target -Reason 'recover_seat'
     if ($pending.Ok) {
         Write-Host "Remount pending: $($pending.Path) seat=$($pending.Seat)"
     }
@@ -104,9 +68,14 @@ if (-not $NoStampRemountPending) {
 
 if (-not $NoNudgeMcp) {
     if ($PSCmdlet.ShouldProcess((Join-Path $env:USERPROFILE '.cursor\mcp.json'), 'Bump CDP_RELOAD_NUDGE')) {
-        $nudge = Invoke-CdpReloadNudge
+        if ($NudgeAllSeats) {
+            $nudge = Invoke-CdpReloadNudge -AllSeats
+        } else {
+            $nudge = Invoke-CdpReloadNudge -Server $Seat
+        }
         if ($nudge.Ok) {
-            Write-Host "MCP nudge: $($nudge.Path) CDP_RELOAD_NUDGE=$($nudge.Value) (x$($nudge.Count))"
+            $who = if ($nudge.Servers) { ($nudge.Servers -join ',') } else { $Seat }
+            Write-Host "MCP nudge: $($nudge.Path) seat=$who CDP_RELOAD_NUDGE=$($nudge.Value) (x$($nudge.Count))"
         }
         else {
             Write-Warning "Nudge failed: $($nudge.Error)"

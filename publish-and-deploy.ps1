@@ -6,7 +6,8 @@
 #   soft (default) — stage to <Target>.next WITHOUT killing live MCP; write
 #                    <Target>\cdp-pending-update.json so cdp_health.runtime.pending_update shows it.
 #   hard           — KillRunning + deploy to <Target>; clear pending; auto-bump
-#                    ~/.cursor/mcp.json CDP_RELOAD_NUDGE (kj-1349) unless -NoNudgeMcp.
+#                    ~/.cursor/mcp.json CDP_RELOAD_NUDGE for THAT seat only (kj-1349)
+#                    unless -NoNudgeMcp. -NudgeAllSeats = legacy dual remount escape.
 #
 # Run:  cd ...\cdp-mcp  ;  .\publish-and-deploy.ps1
 #       .\publish-and-deploy.ps1 -Mode hard
@@ -22,7 +23,9 @@ param(
     # Other backends still need the monorepo until they have package fallbacks.
     [switch] $UseNuGet,
     # Hard mode: skip auto CDP_RELOAD_NUDGE bump in ~/.cursor/mcp.json.
-    [switch] $NoNudgeMcp
+    [switch] $NoNudgeMcp,
+    # Escape: bump every CDP_RELOAD_NUDGE (pre-0.5.661 global thrash — avoid).
+    [switch] $NudgeAllSeats
 )
 
 $ErrorActionPreference = "Stop"
@@ -33,47 +36,7 @@ if (-not (Test-Path -LiteralPath $csproj)) {
     exit 1
 }
 
-function Invoke-CdpReloadNudge {
-    $mcpJson = Join-Path $env:USERPROFILE ".cursor\mcp.json"
-    if (-not (Test-Path -LiteralPath $mcpJson)) {
-        return @{ Ok = $false; Error = "missing $mcpJson" }
-    }
-    $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-    $raw = Get-Content -LiteralPath $mcpJson -Raw -Encoding utf8
-    if ($raw -notmatch '"CDP_RELOAD_NUDGE"') {
-        return @{ Ok = $false; Error = "no CDP_RELOAD_NUDGE keys in mcp.json" }
-    }
-    $count = ([regex]::Matches($raw, '"CDP_RELOAD_NUDGE"\s*:')).Count
-    $next = [regex]::Replace(
-        $raw,
-        '"CDP_RELOAD_NUDGE"\s*:\s*"[^"]*"',
-        "`"CDP_RELOAD_NUDGE`": `"$stamp`"")
-    if ($next -eq $raw) {
-        return @{ Ok = $false; Error = "replace produced no change" }
-    }
-    Set-Content -LiteralPath $mcpJson -Value $next -Encoding utf8 -NoNewline
-    return @{ Ok = $true; Path = $mcpJson; Value = $stamp; Count = $count }
-}
-
-function Write-CdpRemountWakePending([string]$TargetRoot) {
-    $full = [System.IO.Path]::GetFullPath($TargetRoot)
-    $leaf = [System.IO.Path]::GetFileName($full.TrimEnd('\', '/'))
-    $seat = if ($leaf -ieq 'cdp-mcp-debug') { 'cdp-debug' }
-            elseif ($leaf -ieq 'cdp-mcp') { 'cdp' }
-            else { 'other' }
-    $dir = Join-Path $env:LOCALAPPDATA 'cdp-mcp'
-    New-Item -ItemType Directory -Force -Path $dir | Out-Null
-    $path = Join-Path $dir "remount-wake-$seat.pending.json"
-    $doc = [ordered]@{
-        schema      = 'remount_wake/v1'
-        seat        = $seat
-        target      = $full
-        reason      = 'hard_deploy'
-        stamped_utc = (Get-Date).ToUniversalTime().ToString('o')
-    }
-    ($doc | ConvertTo-Json -Depth 4) | Set-Content -LiteralPath $path -Encoding utf8
-    return @{ Ok = $true; Path = $path; Seat = $seat }
-}
+. (Join-Path $here "CdpReloadNudge.ps1")
 
 $deployRoot = if ($Mode -eq "soft") { "$Target.next" } else { $Target }
 $pendingMarker = Join-Path $Target "cdp-pending-update.json"
@@ -187,18 +150,29 @@ try {
         Write-Host "Config:        $configDst"
         Write-Host "Pending cleared."
 
+        $wakeSeat = $null
         try {
-            $wake = Write-CdpRemountWakePending -TargetRoot $Target
+            $wake = Write-CdpRemountWakePending -TargetRoot $Target -Reason 'hard_deploy'
+            $wakeSeat = $wake.Seat
             Write-Host "Remount wake:  $($wake.Path) seat=$($wake.Seat)"
         } catch {
             Write-Host "Remount wake:  failed — $($_.Exception.Message)"
+            $wakeSeat = Resolve-CdpRemountSeatName -TargetRoot $Target
         }
 
         if (-not $NoNudgeMcp) {
             try {
-                $nudge = Invoke-CdpReloadNudge
+                $server = Resolve-CdpMcpServerName -Seat $wakeSeat -TargetRoot $Target
+                if ($NudgeAllSeats) {
+                    $nudge = Invoke-CdpReloadNudge -AllSeats
+                } elseif ($server) {
+                    $nudge = Invoke-CdpReloadNudge -Server $server
+                } else {
+                    $nudge = @{ Ok = $false; Error = "unknown seat for Target=$Target (pass -NudgeAllSeats escape)" }
+                }
                 if ($nudge.Ok) {
-                    Write-Host "MCP nudge:     $($nudge.Path) CDP_RELOAD_NUDGE=$($nudge.Value) (×$($nudge.Count))"
+                    $who = if ($nudge.Servers) { ($nudge.Servers -join ',') } else { '?' }
+                    Write-Host "MCP nudge:     $($nudge.Path) seat=$who CDP_RELOAD_NUDGE=$($nudge.Value) (×$($nudge.Count))"
                 } else {
                     Write-Host "MCP nudge:     skipped — $($nudge.Error) (human Reload fallback)"
                 }

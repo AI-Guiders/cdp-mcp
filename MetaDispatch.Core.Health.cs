@@ -54,7 +54,7 @@ internal static partial class MetaDispatch
             explain_tool = explain,
             recovery_note = full
                 ? "Prefer go=deploy / cdp_deploy from the survivor seat (sibling Target). " +
-                  "Hard KillRunning + CDP_RELOAD_NUDGE (kj-1349) unless -NoNudgeMcp. " +
+                  "Hard KillRunning + per-seat CDP_RELOAD_NUDGE (0.5.661; -NudgeAllSeats escape) unless -NoNudgeMcp. " +
                   "Not connected + exe still up: terminal_* Recover-CdpSeatRemount.ps1 -Seat cdp|cdp-debug (stamps remount-wake pending by default). " +
                   "Fallback: human Reload. Soft stages <target>.next + cdp-pending-update.json. " +
                   "Cold tools auto-warm desk bookmark once/process. Prefer cdp_health + explain_tool before guessing."
