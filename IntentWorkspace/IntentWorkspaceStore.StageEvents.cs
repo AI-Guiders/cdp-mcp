@@ -14,29 +14,80 @@ internal sealed partial class IntentWorkspaceStore
     {
         WithDb(db =>
         {
-            db.Database.ExecuteSqlRaw(
-                """
-                CREATE TABLE IF NOT EXISTS stage_events_v2 (
-                    Id GUID NOT NULL PRIMARY KEY,
-                    StageId GUID NOT NULL,
-                    Utc DATETIMEOFFSET NOT NULL,
-                    Kind TEXT NOT NULL,
-                    Source TEXT NOT NULL,
-                    Summary TEXT NOT NULL,
-                    Ref TEXT NULL
-                );
-                """);
-            try
-            {
-                db.Database.ExecuteSqlRaw(
-                    "CREATE INDEX IF NOT EXISTS IX_stage_events_v2_StageId_Utc ON stage_events_v2 (StageId, Utc);");
-            }
-            catch
-            {
-                // index already exists / engine variance
-            }
+            CreateStageEventsV2Table(db);
+            HealStageEventsStageIdFilterIfBroken(db);
         });
     }
+
+    static void CreateStageEventsV2Table(IntentWorkspaceDbContext db)
+    {
+        db.Database.ExecuteSqlRaw(
+            """
+            CREATE TABLE IF NOT EXISTS stage_events_v2 (
+                Id GUID NOT NULL PRIMARY KEY,
+                StageId GUID NOT NULL,
+                Utc DATETIMEOFFSET NOT NULL,
+                Kind TEXT NOT NULL,
+                Source TEXT NOT NULL,
+                Summary TEXT NOT NULL,
+                Ref TEXT NULL
+            );
+            """);
+        try
+        {
+            db.Database.ExecuteSqlRaw(
+                "CREATE INDEX IF NOT EXISTS IX_stage_events_v2_StageId_Utc ON stage_events_v2 (StageId, Utc);");
+        }
+        catch
+        {
+            // index already exists / engine variance
+        }
+    }
+
+    /// <summary>
+    /// Live WitDB can keep a stage_events_v2 where materialize+Guid equality works
+    /// but server-side Where(StageId==guid) returns empty (bytes equal client-side).
+    /// Rebuild table from materialized rows so dig/list/review open counts work.
+    /// </summary>
+    static void HealStageEventsStageIdFilterIfBroken(IntentWorkspaceDbContext db)
+    {
+        var sample = db.StageEvents.OrderByDescending(e => e.Utc).FirstOrDefault();
+        if (sample is null)
+            return;
+        var server = db.StageEvents.Count(e => e.StageId == sample.StageId);
+        if (server > 0)
+            return;
+
+        var rows = db.StageEvents.AsEnumerable()
+            .Select(e => new StageEventEntity
+            {
+                Id = e.Id,
+                StageId = e.StageId,
+                Utc = e.Utc,
+                Kind = e.Kind,
+                Source = e.Source,
+                Summary = e.Summary,
+                Ref = e.Ref
+            })
+            .ToList();
+        db.ChangeTracker.Clear();
+        db.Database.ExecuteSqlRaw("DROP TABLE IF EXISTS stage_events_v2;");
+        CreateStageEventsV2Table(db);
+        db.StageEvents.AddRange(rows);
+        if (db.SaveChanges() < rows.Count)
+            throw new InvalidOperationException("stage_events_v2 heal SaveChanges under-wrote rows");
+        db.ChangeTracker.Clear();
+        if (db.StageEvents.Count(e => e.StageId == sample.StageId) == 0)
+            throw new InvalidOperationException(
+                "stage_events_v2 StageId filter still broken after heal — dig will stay empty");
+    }
+
+    /// <summary>
+    /// Prefer client StageId match: OutWit server Where(StageId) can lie on durable DBs.
+    /// </summary>
+    static List<StageEventEntity> StageEventsForStage(IntentWorkspaceDbContext db, Guid stageId) =>
+        db.StageEvents.AsEnumerable().Where(e => e.StageId == stageId).ToList();
+
 
     /// <summary>
     /// Append only while wall clock open (Started set, Completed null).
@@ -124,8 +175,7 @@ internal sealed partial class IntentWorkspaceStore
         {
             _ = db.Stages.FirstOrDefault(x => x.Id == stageId && x.IntentId == intentId)
                 ?? throw new ArgumentException($"stage_id not found: {stageId}");
-            var rows = db.StageEvents
-                .Where(e => e.StageId == stageId)
+            var rows = StageEventsForStage(db, stageId)
                 .OrderBy(e => e.Utc)
                 .Take(take)
                 .Select(e => new
@@ -153,20 +203,15 @@ internal sealed partial class IntentWorkspaceStore
     }
 
     public (int Wait, int Fail, int Note) StageEventCounts(Guid stageId) =>
-        WithDb(db =>
-        {
-            var kinds = db.StageEvents.Where(e => e.StageId == stageId).Select(e => e.Kind).ToList();
-            return CountKinds(kinds);
-        });
+        WithDb(db => CountKinds(StageEventsForStage(db, stageId).Select(e => e.Kind)));
 
     /// <summary>phase.start / phase.complete rows for wall segment formatting.</summary>
     public IReadOnlyList<(string Kind, string Summary, DateTimeOffset Utc)> StageEventPhaseRows(Guid stageId) =>
         WithDb(db =>
-            db.StageEvents
-                .Where(e => e.StageId == stageId
-                            && (e.Kind == "phase.start" || e.Kind == "phase.complete"))
+            StageEventsForStage(db, stageId)
+                .Where(e => e.Kind == "phase.start" || e.Kind == "phase.complete")
                 .OrderBy(e => e.Utc)
-                .Select(e => new ValueTuple<string, string, DateTimeOffset>(e.Kind, e.Summary, e.Utc))
+                .Select(e => (e.Kind, e.Summary, e.Utc))
                 .ToList());
 
     static (int Wait, int Fail, int Note) CountKinds(IEnumerable<string> kinds)

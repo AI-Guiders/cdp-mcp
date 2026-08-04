@@ -84,6 +84,61 @@ public sealed class StageEventLedgerTests
         }
     }
 
+    [Fact]
+    public void Broken_v2_text_schema_heals_so_stageid_filter_works()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-se-heal-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var opts = new DbContextOptionsBuilder<IntentWorkspaceDbContext>()
+                .UseWitDb($"Data Source={path}")
+                .Options;
+            using (var boot = new IntentWorkspaceDbContext(opts))
+                boot.Database.EnsureCreated();
+
+            using (var db = new IntentWorkspaceDbContext(opts))
+            {
+                db.Database.ExecuteSqlRaw(
+                    """
+                    DROP TABLE IF EXISTS stage_events;
+                    DROP TABLE IF EXISTS stage_events_v2;
+                    CREATE TABLE stage_events_v2 (
+                        Id TEXT NOT NULL PRIMARY KEY,
+                        StageId TEXT NOT NULL,
+                        Utc TEXT NOT NULL,
+                        Kind TEXT NOT NULL,
+                        Source TEXT NOT NULL,
+                        Summary TEXT NOT NULL,
+                        Ref TEXT NULL
+                    );
+                    """);
+            }
+
+            var store = new IntentWorkspaceStore(opts, path);
+            store.EnsureStageClockColumns();
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "se-heal-feature", null);
+            var stageId = store.StageUpsert(state, "se-heal-task", null, null, null).stage_id;
+            store.FocusStage(state, stageId);
+            store.StageClockStart(state, stageId);
+            store.StageEventNote(state, stageId, "pre-heal note");
+
+            // Ensure heals broken v2 TEXT schema (server Where lied; client saw rows).
+            store.EnsureStageEventsTable();
+            store.StageEventNote(state, stageId, "post-heal note");
+
+            var json = System.Text.Json.JsonSerializer.Serialize(store.StageEventList(state, stageId));
+            Assert.Contains("post-heal note", json);
+            Assert.Contains("pre-heal note", json);
+            Assert.True(store.StageEventCounts(stageId).Note >= 2);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+
     static IntentWorkspaceStore BootStore(string path)
     {
         var opts = new DbContextOptionsBuilder<IntentWorkspaceDbContext>()

@@ -131,7 +131,7 @@ internal sealed partial class IntentWorkspaceStore
         foreach (var child in children)
             DeleteStageTreeUnlocked(db, child);
         db.StageCriteria.RemoveRange(db.StageCriteria.Where(x => x.StageId == stageId));
-        db.StageEvents.RemoveRange(db.StageEvents.Where(x => x.StageId == stageId));
+        db.StageEvents.RemoveRange(StageEventsForStage(db, stageId));
         var row = db.Stages.FirstOrDefault(x => x.Id == stageId);
         if (row is not null)
             db.Stages.Remove(row);
