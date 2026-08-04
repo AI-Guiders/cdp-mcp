@@ -263,6 +263,7 @@ internal static partial class IdeCitizenChannel
             CitizenStickyFacts.Set(stickyKey!, stickyVal!);
         var (board, tm, liveBound) = ResolveBoardAndTm(args, inject);
         var peerIn = Arg(args, "peer") ?? CitizenPeerAck.LastPeer;
+        var maxTok = IntArg(args, "max_tokens") ?? IntArg(args, "maxTokens");
 
         var result = CitizenCompletions.Turn(
             message!,
@@ -275,7 +276,8 @@ internal static partial class IdeCitizenChannel
             dryRun: dryRun,
             inject: inject,
             mode: mode,
-            history: useHistory);
+            history: useHistory,
+            maxTokens: maxTok);
 
         IReadOnlyList<CitizenRouteHost.Applied>? executed = null;
         CitizenPeerAck.Result? peerAck = null;

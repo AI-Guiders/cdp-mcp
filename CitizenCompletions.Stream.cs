@@ -19,7 +19,68 @@ internal static partial class CitizenCompletions
 
     /// <summary>
     /// Read SSE <c>data:</c> lines; reset idle budget each line.
-    /// Returns accumulated text (may be null/empty).
+    /// Prefer accumulated <c>content</c>; else reasoning_* (GLM/Qwen).
+    /// </summary>
+    static OpenAiExtract ReadSseOpenAiAccumulated(HttpResponseMessage resp, CancellationToken ct)
+    {
+        using var idleCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        void Touch() => idleCts.CancelAfter(IdleTimeout);
+        Touch();
+
+        using var stream = resp.Content.ReadAsStream(idleCts.Token);
+        using var reader = new StreamReader(stream);
+        var contentSb = new StringBuilder();
+        var reasoningSb = new StringBuilder();
+        string? finish = null;
+        int? prompt = null, completion = null, total = null;
+
+        while (true)
+        {
+            var line = reader.ReadLineAsync(idleCts.Token).AsTask().GetAwaiter().GetResult();
+            if (line is null)
+                break;
+            Touch();
+            if (!line.StartsWith("data:", StringComparison.Ordinal))
+                continue;
+            var json = line.Length > 5 ? line[5..].Trim() : "";
+            if (json.Length == 0 || json == "[DONE]")
+                continue;
+
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("usage", out var usage) && usage.ValueKind == JsonValueKind.Object)
+                {
+                    prompt ??= TryIntProp(usage, "prompt_tokens");
+                    completion ??= TryIntProp(usage, "completion_tokens");
+                    total ??= TryIntProp(usage, "total_tokens");
+                }
+
+                var (c, r, fr) = ExtractOpenAiDeltaParts(json);
+                if (!string.IsNullOrEmpty(fr))
+                    finish = fr;
+                if (!string.IsNullOrEmpty(c))
+                    contentSb.Append(c);
+                if (!string.IsNullOrEmpty(r))
+                    reasoningSb.Append(r);
+            }
+            catch (JsonException)
+            {
+                // skip malformed chunk
+            }
+        }
+
+        if (contentSb.Length > 0)
+            return new OpenAiExtract(contentSb.ToString(), finish, false, prompt, completion, total);
+        if (reasoningSb.Length > 0)
+            return new OpenAiExtract(reasoningSb.ToString(), finish, true, prompt, completion, total);
+        return new OpenAiExtract(null, finish, false, prompt, completion, total);
+    }
+
+    /// <summary>
+    /// Read SSE <c>data:</c> lines; reset idle budget each line.
+    /// Returns accumulated text (may be null/empty). Anthropic path.
     /// </summary>
     static string? ReadSseAccumulated(
         HttpResponseMessage resp,
@@ -63,18 +124,10 @@ internal static partial class CitizenCompletions
 
     static string? ExtractOpenAiDelta(string chunkJson)
     {
-        using var doc = JsonDocument.Parse(chunkJson);
-        var root = doc.RootElement;
-        if (!root.TryGetProperty("choices", out var choices)
-            || choices.ValueKind != JsonValueKind.Array
-            || choices.GetArrayLength() == 0)
-            return null;
-        if (!choices[0].TryGetProperty("delta", out var delta))
-            return null;
-        if (delta.TryGetProperty("content", out var content)
-            && content.ValueKind == JsonValueKind.String)
-            return content.GetString();
-        return null;
+        var (content, reasoning, _) = ExtractOpenAiDeltaParts(chunkJson);
+        if (!string.IsNullOrEmpty(content))
+            return content;
+        return string.IsNullOrEmpty(reasoning) ? null : reasoning;
     }
 
     static string? ExtractAnthropicDelta(string chunkJson)

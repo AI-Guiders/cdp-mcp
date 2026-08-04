@@ -19,6 +19,20 @@ internal static partial class CitizenCompletions
     public const string ProviderAnthropic = "anthropic";
     public const string ProviderOpenAiCompat = "openai_compat";
 
+    /// <summary>Wire @intent turns — enough for multi-intent without reasoning burn.</summary>
+    public const int DefaultMaxTokensWire = 2048;
+
+    /// <summary>Dialog peer — room for GLM/Qwen reasoning + visible answer.</summary>
+    public const int DefaultMaxTokensDialog = 4096;
+
+    /// <summary>Clamp requested; null/≤0 → mode default.</summary>
+    public static int ResolveMaxTokens(CitizenTurnMode mode, int? requested = null)
+    {
+        if (requested is > 0)
+            return Math.Clamp(requested.Value, 64, 8192);
+        return mode == CitizenTurnMode.Dialog ? DefaultMaxTokensDialog : DefaultMaxTokensWire;
+    }
+
     static readonly object HttpGate = new();
     static HttpClient? SharedHttp;
     static HttpMessageHandler? BoundHandler;
@@ -182,7 +196,7 @@ internal static partial class CitizenCompletions
         bool inject = true,
         CitizenTurnMode mode = CitizenTurnMode.Wire,
         bool history = true,
-        int maxTokens = 1024,
+        int? maxTokens = null,
         CancellationToken cancellationToken = default)
     {
         var built = Build(userText, boardLines, sa, peer, next, tm, inject, mode, history);
@@ -224,9 +238,10 @@ internal static partial class CitizenCompletions
 
         try
         {
+            var tokens = ResolveMaxTokens(mode, maxTokens);
             var result = resolved.Provider == ProviderOpenAiCompat
-                ? TurnOpenAiCompat(built, resolved, maxTokens, cancellationToken)
-                : TurnAnthropic(built, resolved, maxTokens, cancellationToken);
+                ? TurnOpenAiCompat(built, resolved, tokens, cancellationToken)
+                : TurnAnthropic(built, resolved, tokens, cancellationToken);
             if (result.Ok && mode == CitizenTurnMode.Dialog && history && !string.IsNullOrWhiteSpace(result.Text))
                 CitizenDialogHistory.Append(userText, result.Text!);
             return result;

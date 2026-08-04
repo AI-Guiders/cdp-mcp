@@ -45,5 +45,17 @@ internal static partial class IdeCitizenChannel
         };
     }
 
+    static int? IntArg(IReadOnlyDictionary<string, JsonElement> args, string key)
+    {
+        if (!args.TryGetValue(key, out var el))
+            return null;
+        if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var n))
+            return n;
+        if (el.ValueKind == JsonValueKind.String
+            && int.TryParse(el.GetString(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            return parsed;
+        return null;
+    }
+
     static string Fail(string error, string hint) => JsonSerializer.Serialize(new { schema = Schema, ok = false, error, hint });
 }
