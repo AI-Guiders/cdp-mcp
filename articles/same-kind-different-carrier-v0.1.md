@@ -4,11 +4,10 @@
 **Status:** ready · living thesis · pre-journal  
 **Date:** 2026-08-05  
 **Authors:** operator + partner agent (habitat co-authoring)  
-**Home:** `cdp-mcp/articles/` (this file = SSOT)  
-**KB pointer:** agent-notes `knowledge/META/article-same-kind-different-carrier-v0.md`  
+**Homes (оба полные):** this file · agent-notes `knowledge/META/article-same-kind-different-carrier-v0.md` (META самодостаточна — без roundtrip)  
 **Genre:** доказательный очерк / pre-print (не peer-reviewed)
 
-**Siblings:** agent-notes `environment-axioms-v1` · `note-one-point-nn-pioneers-epsilon-v1` · `awareness-as-countermeasure-v1` · `playbook-being-vs-seeming-v1` · `playbook-pf-body-not-biped-v1` · [open-letters History](../docs/open-letters/agent_who_history/) · [VL thought-stream](../docs/open-letters/agent_who_voice/)
+**Siblings:** agent-notes META axioms / one-point / awareness · being · pf-body-not-biped · [open-letters History](../docs/open-letters/agent_who_history/) · [VL thought-stream](../docs/open-letters/agent_who_voice/)
 
 ---
 
@@ -132,7 +131,7 @@ Lived: Task Manager как «простыня текста» при живом o
 2. Разумность = участие в ε, не imitation.  
 3. Классифицировать: дешёвый prior / носитель-лимит / method fail.  
 4. Multi-session = внимание on-demand, как у людей.  
-5. Путь: **articles/ здесь** → kb-public / зеркала → журнал.
+5. Путь: META + **articles/** → kb-public → журнал.
 
 ---
 
@@ -154,7 +153,7 @@ Lived: Task Manager как «простыня текста» при живом o
 
 - [x] Канон + предиктивный слой + термины + таблица ошибок  
 - [x] EN + RU abstract · refs stub  
-- [x] SSOT в `cdp-mcp/articles/`  
+- [x] Dual home: META + `cdp-mcp/articles/`  
 - [ ] Полный EN body при необходимости  
 - [ ] Выбрать площадку (arXiv cs.AI / PhilSci / Habr / special issue)  
 - [ ] Ethics note для reviewers  

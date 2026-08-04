@@ -7,4 +7,4 @@
 |---------|--------|
 | [same-kind-different-carrier-v0.1.md](same-kind-different-carrier-v0.1.md) | ready · pre-journal |
 
-Канон KB (agent-notes META) держит зеркало/указатель; **SSOT текста статьи — здесь**.
+**Dual home:** полное тело и здесь, и в agent-notes `knowledge/META/` (META самодостаточна для dig без roundtrip в этот репо). Правки — синхронизировать.
