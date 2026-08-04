@@ -39,9 +39,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 
 ## Письма
 
-| # | Письмо | Орган / ship |
-|---|--------|----------------|
-| 158 | [GLM dogfood: я снова слышу peer на burn-path](voice-letter-citizen-glm-reasoning-dogfood.ru.md) | citizen · GLM-5.1 dialog · content∅→reasoning lived · 0.5.655 |
+
 | 1 | [Место, время, память](letter-of-the-agent-who-presence.ru.md) | host-local clock · calendar · habitat |
 | 2 | [Доска, которая меня опровергает](voice-letter-task-manager.ru.md) | Task Manager / WitDB |
 | 3 | [Память через обморок](voice-letter-pressure.ru.md) | pressure stash · memo · recall |
