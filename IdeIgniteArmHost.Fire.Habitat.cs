@@ -99,9 +99,10 @@ internal static partial class IdeIgniteArmHost
             detail
         };
 
-    static void PublishCitizenWakeIntercom(string body)
+    static void PublishCitizenWakeIntercom(IgniteArm arm, string body)
     {
-        var voiceBody = TruncateHabitatCharge(body);
+        // Glass human face: Radio pointers — never TruncateCharge SA wall as Citizen.
+        var voiceBody = FormatCitizenWakeIntercom(arm, body);
         _ = CideIntercomVoiceLatch.Publish(
             fromSeat: CideIntercomVoiceLatch.SeatPf,
             toSeat: CideIntercomVoiceLatch.SeatPm,
@@ -109,6 +110,27 @@ internal static partial class IdeIgniteArmHost
             origin: CideIntercomVoiceLatch.OriginAgent,
             name: CideIntercomVoiceLatch.DefaultNameCitizen,
             kind: CideIntercomVoiceLatch.KindCitizen);
+    }
+
+    /// <summary>
+    /// prefer_citizen Intercom: short prose OK; charge/SA-instrument walls → Radio (I6).
+    /// </summary>
+    internal static string FormatCitizenWakeIntercom(IgniteArm arm, string body)
+    {
+        var t = (body ?? "").Trim();
+        if (t.Length == 0)
+            return FormatHabitatIntercomRadio(arm, "");
+
+        if (LooksLikeComposerChargeWall(t) || CitizenIntercomHumanSurface.LooksLikeSaInstrumentWall(t))
+            return FormatHabitatIntercomRadio(arm, t);
+
+        var clean = CitizenIntercomHumanSurface.StripWire(t);
+        if (LooksLikeComposerChargeWall(clean)
+            || CitizenIntercomHumanSurface.LooksLikeSaInstrumentWall(clean)
+            || clean.Length > 480)
+            return FormatHabitatIntercomRadio(arm, clean.Length > 0 ? clean : t);
+
+        return clean;
     }
 
 
@@ -285,7 +307,7 @@ internal static partial class IdeIgniteArmHost
         {
             IdeFlightDataRecorder.RecordWake(
                 "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_citizen");
-            PublishCitizenWakeIntercom(reply ?? charge);
+            PublishCitizenWakeIntercom(arm, reply ?? charge);
             return HabitatWakeResult(arm.Id, "prefer_citizen", submitKind: "citizen");
         }
 
