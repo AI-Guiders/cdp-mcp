@@ -22,10 +22,12 @@
 - Growing store with PeekDisk/ProbeDisk/ToReadResult on DocBuffer — peel to `DocumentBufferStore.Disk.cs` / `DocBuffer.cs`.
 - Teaching only «Cursor Write bypasses» after host_write detect ships (pre-0.5.548) — invent-ban hygiene; QRH/scene/soft-refuse must name detect path.
 - `replace_range` with only `new_string=` and silent `text??""` — ate spans (bridge incident). Body = `text|new_string`; missing both must refuse (empty `text=""` = intentional delete).
+- `edit_op=replace` with only `text=` while code reads `new_string??""` — deleted PublishGlass (2026-08-04). Body = `new_string|text`; missing both must refuse (empty `new_string=""` = intentional delete).
 - Cold `set_text` on missing path ≠ create — OpenUnlocked FileNotFound; bootstrap via `op=create text=`.
 
 ## last_ship
 
+- 0.5.664: `edit_op=replace` accepts `text=` alias + refuses missing body (PublishGlass wipe) · DocumentEditPlaneReplaceTests 4/4 · 2026-08-04
 - 0.5.580: citizen `@intent read|close|buffers|doc_diagnostics` → DocumentEditPlane core (peer without Cursor buffer) · 2026-08-03
 - 0.5.576: citizen `@intent take` → TakeShip verify-then-ship (peer) · 2026-08-03
 - 0.5.575: citizen `@intent scratch` → EditorComfort untitled `.cdp/scratch` (peer) · 2026-08-03

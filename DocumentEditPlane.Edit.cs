@@ -49,8 +49,15 @@ internal static partial class DocumentEditPlane
                         break;
                     }
                     case "replace":
-                        store.ApplyReplace(buf, RequireString(args, "old_string"), OptString(args, "new_string") ?? "");
+                    {
+                        // new_string= primary; text= alias (agent habit from set_text / Cursor StrReplace).
+                        // Missing both must refuse — silent OptString(new_string)??"" deleted PublishGlass (2026-08-04).
+                        var body = OptString(args, "new_string") ?? OptString(args, "text")
+                            ?? throw new ArgumentException(
+                                "replace needs new_string= or text= (pass new_string=\"\" to delete the span).");
+                        store.ApplyReplace(buf, RequireString(args, "old_string"), body);
                         break;
+                    }
                     case "replace_range":
                     {
                         // text= primary; new_string= MCP alias (parity with anchor).
