@@ -25,7 +25,7 @@
 - `dry_run=true` builds persona+wire messages without provider; works with empty keys.
 - Dry-run **model** label mirrors live `ResolveProvider` (FM-first / `DefaultOpenAiModel`), not raw `DefaultModel` (claude).
 - Soft deploy ≠ live code; hard-self for this seat needs **terminal_*** + KillRunning (not in-proc `cdp_shell_*`).
-- Glass Intercom → citizen dialog: request latch `%LocalAppData%/cdp-mcp/citizen-dialog-request-LATEST.json` (shared root, not seat). Habitat `CitizenGlassDialogBridge` polls → `CitizenCompletions.Turn(mode=dialog)` → **host-execute `Routes` + `CitizenPeerAck`** (parity with `IdeCitizenChannel`, 0.5.561) → Intercom PF→PM `kind=citizen` **with Peer tip appended after prose (0.5.565)** + request latch `peer=` for Glass StatusText. Glass `/citizen` journals only (does **not** Publish human→PF voice).
+- Glass Intercom → citizen dialog: request latch `%LocalAppData%/cdp-mcp/citizen-dialog-request-LATEST.json` (shared root, not seat). Habitat `CitizenGlassDialogBridge` polls → `CitizenCompletions.Turn(mode=dialog)` → **host-execute `Routes` + `CitizenPeerAck`** (parity with `IdeCitizenChannel`) → Intercom PF→PM `kind=citizen` via `CitizenIntercomHumanSurface` (**strip `@intent`/`@event`/`@frame` + human «Сделала: …»; peer wire stays on request latch `peer=` for StatusText, not in letter body**). Glass `/citizen` journals only (does **not** Publish human→PF voice).
 - **Autoi wake consume (0.5.551→0.5.554):** when Composer unavailable + invite ready, `TryDeliverHabitatWhenComposerUnavailableAsync` calls `TryDeliverAutoiWake` → Intercom `kind=citizen` · skip CDT (`prefer_citizen`). While Cursor Composer is present, Guest Autoi CDT→Composer even if invite ready (0.5.554 — do not silent-steal).
 - Omit `board=` on turn → host auto-binds live desk seats + TM pulse (`CitizenLiveDesk`).
 - After turn, host executes `@intent` routes by default on live (`CitizenRouteHost`); dry_run skips unless `execute=true` (then parses user `@intent` lines).
@@ -64,6 +64,7 @@
 
 ## last_ship
 
+- **0.5.656** — Intercom human surface: `CitizenIntercomHumanSurface` strips `@intent`/`@event`/`@frame` + peer tip from Glass letter; harness → «Сделала: …»; peer wire stays on request `peer=` only. Tests HumanSurface+GlassBridge 7/7.
 - **0.5.655** — Reasoning-aware OpenAI extract: content∅→reasoning*|thinking; SSE dual-accumulate; dialog max_tokens=4096 / wire=2048; empty_text+finish_reason=length; wire enable_thinking=false. Tests 25/25. Dual hard lag=false. Live dialog smoke Qwen3-Coder-Next «Пинг.» OK. **Not Citizen Done / full-ready** until live GLM dialog dogfood green (operator burn path).
 - **2026-08-04 ProductDigCitizen15** — DIG ACCEPT product dig: SoftFL/Meta/Glass IOP CLOSED; sole inv gap=throughput-wave idle ≠ SoftFL mill; DIG REJECT SoftFL/Meta/board hygiene / host re-prove. Voice Letter #157. Hold leaf seeded to 15.08 — invent only on real product gap.
 - **2026-08-04 CitizenDoneAxb** — DIG ACCEPT close densest dig (full-chain already GREEN; DIG REJECT re-prove hosts). Wave axb-teeth+cabin+verdict shipped. Throughput teeth FeatureDone half-a refuse @0.5.652. Keep feature open to 15.08 — product densest only, not SoftFL/Meta mill.

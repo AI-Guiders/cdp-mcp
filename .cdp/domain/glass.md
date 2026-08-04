@@ -171,6 +171,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-04 human-faced overnight v0** — near-black Dark Cockpit tokens (`#0A` night, G1000 cue) · CFG chip cycles UI scale 0.85/1/1.15/1.3 (`GlassUiScale` + `ScaleRoot`) · Intercom feed strips wire (`CompactIntercomBody`) · publish humanize lives in cdp-mcp 0.5.656. Build Glass green. Eyes dogfood + PNG still open for #CIDE Done.
 - **2026-08-04 Intercom HUD v0** — flat Korry AUTOI/HILD/VAD + HDG/CRS from `ignite-LATEST` (`autonomous`/`hild`/`course`); Glass→`ignite-cmd-LATEST` toggle bridge; model picker at Composer. GlassCore `GlassIntercomHud` 3/3 · MCP latch/cmd 4/4 · Glass Release build green. Eyes dogfood pending (not Product Ready).
 - **2026-08-04 Autoi off Intercom feed** — wake charge is SoftOrgan tip / StatusText / ignite-wake latch only; Glass filters Autoi from Intercom journal paint (`GlassAutoiWakeFeed`). Tip `5dd071cf`.
 - **2026-08-04 Glass Git tint** — MFD Diff: FlowDocument +/-/@@/meta + add/delete row bg (`GlassGitDiffFlowDocument`); status list Tone (M amber / ?? blue-gray). Verify: `tmp-glass-shots/glass-mfd-diff-highlight-verify.png`. Tip `7479f3c3`. Prior VisualAttentionAxB (P/F/M ignore) stays closed.

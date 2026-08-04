@@ -96,7 +96,7 @@ internal static class CitizenGlassDialogBridge
     }
 
     /// <summary>Process pending request if any (also used by tests).</summary>
-    internal static bool TryProcessOnce()
+    public static bool TryProcessOnce()
     {
         var req = TryReadPending();
         if (req is null)
@@ -132,15 +132,16 @@ internal static class CitizenGlassDialogBridge
                 return true;
             }
 
+            IReadOnlyList<CitizenRouteHost.Applied>? executed = null;
             CitizenPeerAck.Result? peerAck = null;
             if (turn.Routes is { Count: > 0 })
             {
-                var executed = CitizenRouteHost.Execute(turn.Routes);
+                executed = CitizenRouteHost.Execute(turn.Routes);
                 peerAck = CitizenPeerAck.FromExecuted(executed);
             }
 
-            // Hands observe must reach Glass projector (parity with MCP peer tip) — prose alone hides ack.
-            var publishBody = SurfacePublishBody(turn.Text!, peerAck);
+            // Human Intercom: strip wire; harness → «Сделала: …» (not peer tip dump).
+            var publishBody = SurfacePublishBody(turn.Text!, executed);
 
             var published = CideIntercomVoiceLatch.Publish(
                 fromSeat: CideIntercomVoiceLatch.SeatPf,
@@ -163,6 +164,9 @@ internal static class CitizenGlassDialogBridge
             return true;
         }
     }
+
+    static string SurfacePublishBody(string prose, IReadOnlyList<CitizenRouteHost.Applied>? executed) =>
+        CitizenIntercomHumanSurface.Publish(prose, executed);
 
     static RequestDoc? TryReadPending()
     {
@@ -207,12 +211,6 @@ internal static class CitizenGlassDialogBridge
         }
     }
 
-    static string SurfacePublishBody(string prose, CitizenPeerAck.Result? peerAck)
-    {
-        if (peerAck is null || string.IsNullOrWhiteSpace(peerAck.Peer))
-            return prose;
-        return prose.TrimEnd() + "\n\n" + peerAck.Peer;
-    }
 
     internal sealed class RequestDoc
     {
