@@ -21,7 +21,8 @@
 - Wake: `IdeIgniteChannel.ChargePolicy` · Amnesia + HumanFace postfix
 - Shield: `IdeHumanFaceShield` (`glass_ship_without_human_shot`)
 - Related domains: `ignite` · `glass`
-- KB: playbook-being-vs-seeming-v1
+- KB: playbook-being-vs-seeming-v1 · note-one-mind-n-seats-2026-08-05
+- ADR: CDP-ADR-0030 (Citizen multi-session continuity) · CIDE 0203 (Intercom CCC pointer)
 
 ## Antipatterns
 
