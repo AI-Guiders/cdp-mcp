@@ -68,6 +68,28 @@ public class CidePresentationLatchTests : IDisposable
     }
 
     [Fact]
+    public void Publish_mfd_page_alone_preserves_prior_topology()
+    {
+        CidePresentationLatch.Publish(
+            new CidePresentationLatch.PresentationPatch
+            {
+                Topology = "(intercom)(sit/world/alert)",
+                Tier = "cockpit"
+            },
+            CidePresentationLatch.OriginAgent);
+
+        CidePresentationLatch.Publish(
+            new CidePresentationLatch.PresentationPatch { MfdPage = "Browser" },
+            CidePresentationLatch.OriginAgent);
+
+        var latch = CidePresentationLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.Equal("(intercom)(sit/world/alert)", latch!.Topology);
+        Assert.Equal("cockpit", latch.Tier);
+        Assert.Equal("Browser", latch.MfdPage);
+    }
+
+    [Fact]
     public void Publish_rejects_unknown_instrument_keys()
     {
         CidePresentationLatch.Publish(
