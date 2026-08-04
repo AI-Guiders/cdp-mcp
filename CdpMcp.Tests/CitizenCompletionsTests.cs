@@ -263,6 +263,144 @@ public class CitizenCompletionsTests : IDisposable
     }
 
     [Fact]
+    public void Extract_prefers_content_over_reasoning()
+    {
+        var body = """
+            {"choices":[{"finish_reason":"stop","message":{"role":"assistant","content":"visible","reasoning_content":"hidden"}}],"usage":{"prompt_tokens":10,"completion_tokens":20,"total_tokens":30}}
+            """;
+        var x = CitizenCompletions.ExtractOpenAiCompletion(body);
+        Assert.Equal("visible", x.Text);
+        Assert.False(x.FromReasoning);
+        Assert.Equal("stop", x.FinishReason);
+        Assert.Equal(20, x.CompletionTokens);
+    }
+
+    [Fact]
+    public void Extract_falls_back_to_reasoning_when_content_empty()
+    {
+        var body = """
+            {"choices":[{"finish_reason":"length","message":{"role":"assistant","content":"","reasoning_content":"the real answer"}}],"usage":{"completion_tokens":1800}}
+            """;
+        var x = CitizenCompletions.ExtractOpenAiCompletion(body);
+        Assert.Equal("the real answer", x.Text);
+        Assert.True(x.FromReasoning);
+        Assert.Equal("length", x.FinishReason);
+        Assert.Equal(1800, x.CompletionTokens);
+    }
+
+    [Fact]
+    public void Extract_falls_back_to_reasoning_field()
+    {
+        var body = """
+            {"choices":[{"message":{"role":"assistant","content":null,"reasoning":"answer in reasoning"}}]}
+            """;
+        var x = CitizenCompletions.ExtractOpenAiCompletion(body);
+        Assert.Equal("answer in reasoning", x.Text);
+        Assert.True(x.FromReasoning);
+    }
+
+    [Fact]
+    public void ResolveMaxTokens_defaults_by_mode()
+    {
+        Assert.Equal(CitizenCompletions.DefaultMaxTokensDialog, CitizenCompletions.ResolveMaxTokens(CitizenTurnMode.Dialog));
+        Assert.Equal(CitizenCompletions.DefaultMaxTokensWire, CitizenCompletions.ResolveMaxTokens(CitizenTurnMode.Wire));
+        Assert.Equal(3072, CitizenCompletions.ResolveMaxTokens(CitizenTurnMode.Dialog, 3072));
+        Assert.Equal(64, CitizenCompletions.ResolveMaxTokens(CitizenTurnMode.Wire, 1));
+    }
+
+    [Fact]
+    public void Turn_openai_compat_uses_reasoning_when_content_empty()
+    {
+        var payload = """
+            {"choices":[{"finish_reason":"stop","message":{"role":"assistant","content":"","reasoning_content":"@intent go=plan\nok"}}],"usage":{"completion_tokens":400}}
+            """;
+        CitizenCompletions.TestOpenAiApiKey = "sk-cloud-ru-test-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        CitizenCompletions.TestHandler = new StubHandler(HttpStatusCode.OK, payload);
+        CitizenCompletions.ResetHttpForTests();
+
+        try
+        {
+            var r = CitizenCompletions.Turn("status?", dryRun: false);
+            Assert.True(r.Ok);
+            Assert.Contains("@intent go=plan", r.Text!);
+            Assert.Contains("text from reasoning", r.Hint!, StringComparison.Ordinal);
+            Assert.Equal("plan", r.Routes![0].Go);
+        }
+        finally
+        {
+            CitizenCompletions.TestOpenAiApiKey = null;
+            CitizenCompletions.TestOpenAiBaseUrl = null;
+            CitizenCompletions.TestHandler = null;
+            CitizenCompletions.ResetHttpForTests();
+        }
+    }
+
+    [Fact]
+    public void Turn_openai_compat_empty_text_surfaces_finish_reason_length()
+    {
+        var payload = """
+            {"choices":[{"finish_reason":"length","message":{"role":"assistant","content":"","reasoning_content":""}}],"usage":{"completion_tokens":1800,"prompt_tokens":500}}
+            """;
+        CitizenCompletions.TestOpenAiApiKey = "sk-cloud-ru-test-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        CitizenCompletions.TestHandler = new StubHandler(HttpStatusCode.OK, payload);
+        CitizenCompletions.ResetHttpForTests();
+
+        try
+        {
+            var r = CitizenCompletions.Turn("long?", dryRun: false, mode: CitizenTurnMode.Dialog);
+            Assert.False(r.Ok);
+            Assert.Equal("empty_text", r.Error);
+            Assert.Contains("finish_reason=length", r.Hint!, StringComparison.Ordinal);
+            Assert.Contains("completion_tokens=1800", r.Hint!, StringComparison.Ordinal);
+            Assert.Contains("truncated", r.Hint!, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            CitizenCompletions.TestOpenAiApiKey = null;
+            CitizenCompletions.TestOpenAiBaseUrl = null;
+            CitizenCompletions.TestHandler = null;
+            CitizenCompletions.ResetHttpForTests();
+        }
+    }
+
+    [Fact]
+    public void Turn_openai_compat_streams_reasoning_deltas_when_content_absent()
+    {
+        var sse = """
+            data: {"choices":[{"delta":{"reasoning_content":"@intent "}}]}
+
+            data: {"choices":[{"delta":{"reasoning_content":"go=plan\n"}}]}
+
+            data: {"choices":[{"delta":{},"finish_reason":"stop"}]}
+
+            data: [DONE]
+
+            """;
+        CitizenCompletions.TestOpenAiApiKey = "sk-cloud-ru-test-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        CitizenCompletions.TestHandler = new StubHandler(HttpStatusCode.OK, sse, "text/event-stream");
+        CitizenCompletions.ResetHttpForTests();
+
+        try
+        {
+            var r = CitizenCompletions.Turn("status?", dryRun: false);
+            Assert.True(r.Ok);
+            Assert.Contains("@intent go=plan", r.Text!);
+            Assert.Contains("text from reasoning", r.Hint!, StringComparison.Ordinal);
+            Assert.Equal("plan", r.Routes![0].Go);
+        }
+        finally
+        {
+            CitizenCompletions.TestOpenAiApiKey = null;
+            CitizenCompletions.TestOpenAiBaseUrl = null;
+            CitizenCompletions.TestHandler = null;
+            CitizenCompletions.ResetHttpForTests();
+        }
+    }
+
+    [Fact]
     public void Turn_openai_compat_parses_choices_message()
     {
         var payload = """

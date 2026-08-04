@@ -91,6 +91,14 @@ internal static partial class CitizenCompletions
             ["stream_options"] = new { include_usage = true },
             ["messages"] = oaiMessages
         };
+        // Wire: prefer no hidden reasoning budget (GLM/Qwen OpenAI-compat forks).
+        // Dialog keeps provider default so thinking models can reason into content/reasoning_*.
+        if (built.Mode != CitizenTurnMode.Dialog)
+        {
+            payload["enable_thinking"] = false;
+            payload["chat_template_kwargs"] = new { enable_thinking = false };
+        }
+
         var json = JsonSerializer.Serialize(payload);
         using var req = new HttpRequestMessage(HttpMethod.Post, url);
         req.Headers.TryAddWithoutValidation("Authorization", "Bearer " + resolved.ApiKey);
@@ -115,11 +123,12 @@ internal static partial class CitizenCompletions
             if (IsJsonNotEventStream(resp))
             {
                 var body = resp.Content.ReadAsStringAsync(turnCts.Token).GetAwaiter().GetResult();
-                return FinishText(built, resolved, ExtractOpenAiText(body));
+                var extract = ExtractOpenAiCompletion(body);
+                return FinishText(built, resolved, extract.Text, extract);
             }
 
-            var text = ReadSseAccumulated(resp, ExtractOpenAiDelta, turnCts.Token);
-            return FinishText(built, resolved, text);
+            var streamed = ReadSseOpenAiAccumulated(resp, turnCts.Token);
+            return FinishText(built, resolved, streamed.Text, streamed);
         }
         catch (OperationCanceledException oce)
         {
@@ -136,26 +145,5 @@ internal static partial class CitizenCompletions
         if (!t.EndsWith("/v1", StringComparison.OrdinalIgnoreCase))
             t += "/v1";
         return t + "/chat/completions";
-    }
-
-    static string? ExtractOpenAiText(string body)
-    {
-        using var doc = JsonDocument.Parse(body);
-        if (!doc.RootElement.TryGetProperty("choices", out var choices)
-            || choices.ValueKind != JsonValueKind.Array
-            || choices.GetArrayLength() == 0)
-            return null;
-
-        var first = choices[0];
-        if (first.TryGetProperty("message", out var message)
-            && message.TryGetProperty("content", out var content)
-            && content.ValueKind == JsonValueKind.String)
-            return content.GetString();
-
-        if (first.TryGetProperty("text", out var textEl)
-            && textEl.ValueKind == JsonValueKind.String)
-            return textEl.GetString();
-
-        return null;
     }
 }
