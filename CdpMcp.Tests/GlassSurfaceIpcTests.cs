@@ -114,5 +114,6 @@ public sealed class IdeGlassSurfaceChannelTests
         Assert.True(situ.TryGetProperty("why_this_file", out _));
         Assert.True(situ.TryGetProperty("blast", out var blast));
         Assert.Equal(JsonValueKind.Array, blast.ValueKind);
+        Assert.True(situ.TryGetProperty("role_in_graph", out _));
     }
 }
