@@ -129,6 +129,44 @@ internal static partial class IdePressureChannel
         && body.Contains("## operator_priority", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
+    /// Human Plan/HDG face: first sealed priority line (not full course dump).
+    /// Shared-SSOT WHY without Intercom sermon.
+    /// </summary>
+    internal static string? CompactWhyLine(string? courseOrBody, int maxChars = 120)
+    {
+        if (string.IsNullOrWhiteSpace(courseOrBody))
+            return null;
+
+        foreach (var raw in courseOrBody.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
+        {
+            var line = raw.Trim();
+            if (line.Length == 0 || line.StartsWith('#'))
+                continue;
+            if (line.StartsWith("Before act", StringComparison.OrdinalIgnoreCase))
+                break;
+            if (line.StartsWith("Empty TM", StringComparison.OrdinalIgnoreCase)
+                || line.StartsWith("Being", StringComparison.OrdinalIgnoreCase)
+                || line.StartsWith("Ontology", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (line.Length > 2 && char.IsDigit(line[0]))
+            {
+                var dot = line.IndexOf('.');
+                if (dot is > 0 and < 4 && dot + 1 < line.Length)
+                    line = line[(dot + 1)..].Trim();
+            }
+
+            if (line.Length == 0)
+                continue;
+            if (line.Length > maxChars)
+                line = line[..(maxChars - 1)].TrimEnd() + "…";
+            return line;
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Soft-refuse stash that drops SEALED course (night wipe → resume-and-invent). force= escape.
     /// </summary>
     internal static void RefuseStashDroppingSealedCourse(

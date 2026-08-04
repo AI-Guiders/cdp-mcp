@@ -38,12 +38,15 @@ internal static class CidePlanLatch
 
     public static string LatchPath => Path.Combine(StateRoot, "plan-LATEST.json");
 
-    public static void Publish(bool active, string pulse, string? feature, string? task)
+    public static void Publish(bool active, string pulse, string? feature, string? task, string? why = null)
     {
         try
         {
             Directory.CreateDirectory(StateRoot);
             var pulseLine = string.IsNullOrWhiteSpace(pulse) ? "no plan" : pulse.Trim();
+            var whyLine = string.IsNullOrWhiteSpace(why) ? null : why.Trim();
+            if (whyLine is { Length: > 160 })
+                whyLine = whyLine[..159].TrimEnd() + "…";
             var doc = new PlanLatchDoc
             {
                 Schema = Schema,
@@ -53,6 +56,7 @@ internal static class CidePlanLatch
                 Pulse = pulseLine,
                 Feature = string.IsNullOrWhiteSpace(feature) ? null : feature.Trim(),
                 Task = string.IsNullOrWhiteSpace(task) ? null : task.Trim(),
+                Why = whyLine,
                 ChromeHint = active ? pulseLine : null
             };
             var json = JsonSerializer.Serialize(doc, JsonOpts);
@@ -93,6 +97,8 @@ internal static class CidePlanLatch
         public string? Pulse { get; set; }
         public string? Feature { get; set; }
         public string? Task { get; set; }
+        /// <summary>Human WHY (sealed course goal line) — shared-SSOT Plan face.</summary>
+        public string? Why { get; set; }
         public string? ChromeHint { get; set; }
     }
 }

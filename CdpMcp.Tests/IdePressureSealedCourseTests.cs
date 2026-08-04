@@ -75,6 +75,13 @@ public sealed class IdePressureSealedCourseTests : IDisposable
     }
 
     [Fact]
+    public void CompactWhyLine_first_priority_not_dump()
+    {
+        var why = IdePressureChannel.CompactWhyLine(IdePressureChannel.CanonicalSealedCourse);
+        Assert.Equal("Glass Done (human flight)", why);
+    }
+
+    [Fact]
     public void EnsureStashHasSealedCourse_prepends_canonical_when_missing()
     {
         var body = IdePressureChannel.EnsureStashHasSealedCourse("agent notes only");

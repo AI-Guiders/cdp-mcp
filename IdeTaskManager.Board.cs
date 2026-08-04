@@ -41,7 +41,9 @@ internal static partial class IdeTaskManager
             var pulse = PulseLine(store, state, sessionPhase);
             // Dark Cockpit: silent when no active feature.
             var active = snap.ActiveFeatureTitle is { Length: > 0 };
-            CidePlanLatch.Publish(active, pulse, snap.ActiveFeatureTitle, snap.ActiveStageTitle);
+            // Shared-SSOT: WHY from sealed course on same latch as NEXT (feature/task).
+            var why = IdePressureChannel.CompactWhyLine(IdePressureChannel.TryPeekSealedCourse());
+            CidePlanLatch.Publish(active, pulse, snap.ActiveFeatureTitle, snap.ActiveStageTitle, why);
         }
         catch
         {
