@@ -39,6 +39,7 @@
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
 
 ## last_ship
+- **2026-08-04 ProductDigCitizen15** — wave a×b: glass-done-close · dig-verdict · voice-letter-intercom-iop · citizen-hold · (bogus CCL `wave start` noop). DIG REJECT SoftFL mill; DIG ACCEPT invent=Voice Letter after cabin + hold to 15.08.
 - **2026-08-04 cabin** — Intercom IOP live dogfood: Glass host rebuilt; surface `run action=topic_next` → `glass · topic next · …` (stale Release exe was unknown). Wave item glass-cabin-iop-dogfood.
 - **0.5.652** — FeatureDone refuse half-a under autonomous + no active wave (`force=` escape). Teeth for a×b rectangle close. Tests IdeFeatureDoneAxbTests.
 - **0.5.650** — wave `items=` with spaces no longer invents one fake item per whitespace token (lived: CitizenFullThenNext649 → 0/16). Collect into one blob until next key=; `;|,` still split labels. Test Repl_wave_seed_items_with_spaces_does_not_invent_word_items.
