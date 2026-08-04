@@ -95,6 +95,26 @@ internal static partial class IdePressureChannel
         }
 
         var doc = Load() ?? new PressureDoc();
+        try
+        {
+            RefuseStashDroppingSealedCourse(doc.Body, body, args);
+        }
+        catch (ArgumentException ex)
+        {
+            return new
+            {
+                ok = false,
+                schema = SchemaVersion,
+                go = GoName,
+                tool = ToolName,
+                op = "stash",
+                error = ex.Message,
+                hint = "Keep ## operator_priority (SEALED) + Before act criteria; notes under ## agent_state. force=true escape."
+            };
+        }
+
+        body = EnsureStashHasSealedCourse(body);
+
         doc.Schema = SchemaVersion;
         doc.Armed = true;
         doc.ArmedUtc ??= DateTime.UtcNow.ToString("o");
