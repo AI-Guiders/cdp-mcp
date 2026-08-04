@@ -62,7 +62,7 @@ internal static partial class IdeCockpitHostChannel
             _live = null;
             return new
             {
-                ok = error is null,
+                ok = error is null || killed,
                 schema = SchemaVersion,
                 op = "stop",
                 gui_host = "down",
@@ -139,6 +139,9 @@ internal static partial class IdeCockpitHostChannel
         _live = null;
         var preferred = ResolveExe(null);
         if (preferred is null)
+            return null;
+        // OS rediscover is cabin-only. Stand-in pwsh must not adopt a stray operator shell.
+        if (!IsCabinFamilyExe(preferred))
             return null;
         var found = FindByExePath(preferred);
         if (found is not null)
