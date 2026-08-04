@@ -26,7 +26,8 @@ public class CidePlanLatchTests : IDisposable
             active: true,
             pulse: "Glass › Wire plan @act · explore",
             feature: "Glass as context economy (0-sync)",
-            task: "Wire plan Task Manager pulse");
+            task: "Wire plan Task Manager pulse",
+            why: "Glass Done (human flight)");
 
         var latch = CidePlanLatch.TryRead();
         Assert.NotNull(latch);
@@ -35,6 +36,7 @@ public class CidePlanLatchTests : IDisposable
         Assert.True(latch.Active);
         Assert.Equal("Glass as context economy (0-sync)", latch.Feature);
         Assert.Equal("Wire plan Task Manager pulse", latch.Task);
+        Assert.Equal("Glass Done (human flight)", latch.Why);
         Assert.Equal("Glass › Wire plan @act · explore", latch.ChromeHint);
     }
 
