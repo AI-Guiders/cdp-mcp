@@ -30,8 +30,8 @@
 - Wake charge SSOT: `%LocalAppData%/cdp-mcp/ignite-wake-LATEST.json` (`composer`|`habitat`) — Composer is not the only spine for charge body. **`course=`** stamps sealed operator_priority (0.5.651).
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
 - HILD (default ARMED): Composer text idle **30s** on Voice → `human_away` **once** (latch until Composer text); wake → autonomous; on edge/escalate **pull-forward** armed last_once work timers ≤3s (`PullForwardLongWorkTimersOnHildAway`); arm under `away_latched` clamps ≤3s; after wake continuity **1–3s** not 45m; suppress under `await_partner` / halt. DefaultIdle=30s since 0.5.359 (meta tip 0.5.363).
-- **last_once arm clamp under autonomous:** ≤3m by default; **≤3s** when HILD `away_latched` **or** TM `ContinuityFlight.Fly` (`3s(hild_away)` / `3s(leaf_started)` · `force=true` escape).
-- **Already-armed last_once:** HILD away edge/escalate pull-forward ≤3s; under autonomous + leaf Fly, TimerLoop also pull-forwards (`3s(leaf_pull)`).
+- **last_once arm clamp under autonomous:** ≤3m by default; **≤3s** when HILD `away_latched` **or** TM `ContinuityFlight.Fly` (`3s(hild_away)` / `3s(leaf_started)` · `force=true` escape). **Exception:** task title contains `invent only` (Hold invent-only) — keep ≤3m / skip leaf_pull (`3m(invent_only_hold)`); HILD away still ≤3s.
+- **Already-armed last_once:** HILD away edge/escalate pull-forward ≤3s; under autonomous + leaf Fly, TimerLoop also pull-forwards (`3s(leaf_pull)`) except invent-only Hold tasks.
 - After successful fire: watch Cursor for "Connection Problems" / Try again|Retry overlay until next fire; auto-click (not Idle-only).
 - After successful fire: also Win32-click Electron stall dialog "The window is not responding" → **Keep Waiting** (not OS hung dialog; not CDT).
 
@@ -57,6 +57,7 @@
 - Dual-seat twin OOM wake (pre-0.5.499) — both click dialog + schedule → twin `no_agent_composer` silent once-drop.
 - Recover Not-connected zombie without remount-wake pending (pre-0.5.503 opt-in `-StampRemountPending`) — silent no Autoi initialized wake after remount.
 
+- Autonomous + Hold invent-only leaf + leaf_pull ≤3s DIG REJECT mill (pre-0.5.655) — park police thrash under sealed invent-only; skip leaf_pull / keep ≤3m when task title has `invent only`.
 - Leaving Meta `cdp_ignite` tip as Composer-only Autoi spine after habitat prefer / Guest CDT fallthrough ships (pre-0.5.533) — invent-ban hygiene; tip must match runtime.
 - Noop `disarm id=` (`removed=0`) under autonomous planting `autonomous-seed-wake` (pre-0.5.535) — Guest Autoi CDT thrash mid re-ARM; re-ARM via `arm` supersede, not disarm→arm.
 - LeafPlateau `autonomous-seed-wake` firing Guest Autoi while next incomplete leaf already landed mid-window (pre-0.5.536) — CDT thrash with wrong "seed next leaf" charge; fire-time recheck → `leaf-wake`.
@@ -76,6 +77,7 @@
 
 ## last_ship
 
+- **0.5.657** — Hold invent-only softener: skip leaf_pull + ≤3m clamp (`invent only` task title); HILD away still ≤3s · 2026-08-04
 - **0.5.654** — CanonicalSealedCourse + criteria-before-act in course=; stash refuse drop · 2026-08-04
 - **0.5.653** — `ChargeHumanFacePostfix` on all Autoi compose paths + `#CIDE` TM shield · 2026-08-04
 - **0.5.651** — Wake latch course= + ChargeCoursePointer · 2026-08-04

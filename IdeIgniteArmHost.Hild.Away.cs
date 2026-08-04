@@ -104,13 +104,15 @@ internal static partial class IdeIgniteArmHost
             tape: "hild_pull_forward",
             log: "hild");
 
-    /// <summary>Pull long last_once while TM ContinuityFlight.Fly under autonomous — agent-park police.</summary>
+    /// <summary>Pull long last_once while TM ContinuityFlight.Fly under autonomous — agent-park police.
+    /// Skip invent-only Hold arms (≤3m insurance; DIG REJECT mill ≠ park).</summary>
     static void PullForwardLongWorkTimersOnLeafFly() =>
         PullForwardLongWorkTimers(
             compute: TryComputeLeafFlyPullForwardDue,
             lastError: "leaf_fly_pull_forward",
             tape: "leaf_pull_forward",
-            log: "leaf Fly");
+            log: "leaf Fly",
+            skip: static a => IsInventOnlyHoldTask(a.Task));
 
     delegate bool HabitPullForwardCompute(
         DateTimeOffset? dueUtc,
@@ -126,7 +128,8 @@ internal static partial class IdeIgniteArmHost
         HabitPullForwardCompute compute,
         string lastError,
         string tape,
-        string log)
+        string log,
+        Func<IgniteArm, bool>? skip = null)
     {
         EnsureLoaded();
         var now = DateTimeOffset.UtcNow;
@@ -135,6 +138,9 @@ internal static partial class IdeIgniteArmHost
         {
             foreach (var a in Arms)
             {
+                if (skip?.Invoke(a) == true)
+                    continue;
+
                 if (!compute(
                         a.DueUtc,
                         a.LastOnce,
