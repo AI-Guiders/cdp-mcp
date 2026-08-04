@@ -49,6 +49,7 @@ public sealed class IdeLocalClockTests
             Assert.False((bool)dSick.overdue);
             dynamic dCitizen = deadlines[1];
             Assert.Equal("citizen_chain", (string)dCitizen.id);
+            Assert.Equal("≥1 citizen full-ready", (string)dCitizen.label);
             Assert.Equal("2026-08-15", (string)dCitizen.due);
             Assert.Equal(14, (int)dCitizen.days_left);
             Assert.False((bool)dCitizen.overdue);

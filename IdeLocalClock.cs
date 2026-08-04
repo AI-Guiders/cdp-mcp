@@ -57,7 +57,8 @@ internal static class IdeLocalClock
 
 public static object[] Deadlines(DateTimeOffset local)
     {
-        // Continuity contract frame (2026): sick-leave dense until 05.08; full chain ≥1 citizen by 15.08.
+        // Continuity contract frame (2026): sick-leave dense until 05.08; ≥1 citizen full-ready by 15.08.
+        // full-chain (observe→act→verify / Glass latch) is GREEN — deadline label is readiness, not pipe re-prove.
         var sickDue = new DateTimeOffset(2026, 8, 5, 23, 59, 59, local.Offset);
         var citizenDue = new DateTimeOffset(2026, 8, 15, 23, 59, 59, local.Offset);
         var sickDays = (sickDue.Date - local.Date).Days;
@@ -75,7 +76,7 @@ public static object[] Deadlines(DateTimeOffset local)
             new
             {
                 id = "citizen_chain",
-                label = "≥1 citizen full chain",
+                label = "≥1 citizen full-ready",
                 due = "2026-08-15",
                 days_left = citizenDays,
                 overdue = citizenDays < 0
