@@ -145,19 +145,20 @@ internal static class IdeGlassSurfaceChannel
 
     static object BuildRoleInGraph(string? workspaceRoot, string editorPath)
     {
-        // Mirror GlassSemanticMapGraph hop counts (same-stem companions as hop-1 stand-in for MCP seat).
+        // ROLE glance ≠ BLAST twin: orphan|IN-MAP + counts only. Full map = MFD SemanticMap.
         var hop1 = CollectSameStemBlast(workspaceRoot, editorPath, max: 12);
         var orphan = hop1.Length == 0;
-        var hops = hop1.Take(3).Select(n => "h1:" + n).ToArray();
+        var nodes = orphan ? 0 : hop1.Length + 1; // focus + companions (MCP same-stem stand-in)
+        var edges = hop1.Length;
         return new
         {
             orphan,
-            nodes = hop1.Length,
-            edges = hop1.Length,
-            hops,
+            nodes,
+            edges,
+            map_locus = "semantic_map_mfd",
             line = orphan
-                ? "ORPHAN · 0 hops"
-                : $"focus · {hop1.Length}n/{hop1.Length}e · " + string.Join(" · ", hops)
+                ? "ORPHAN · map on MFD"
+                : $"IN-MAP · {nodes}n/{edges}e · map on MFD"
         };
     }
 
