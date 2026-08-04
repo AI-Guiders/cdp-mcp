@@ -10,6 +10,7 @@ internal static partial class IdeIgniteArmHost
     /// <summary>
     /// Continuity arm for the current TM leaf. Stable id so the next leaf supersedes the prior.
     /// Short timer so the shot lands after the agent ends the take/done turn (not mid-Stop).
+    /// Invent-only Hold uses 3m — DIG REJECT mill ≠ 2s thrash (same family as last_once softener).
     /// </summary>
     public static object ArmForLeaf(string taskTitle, string reason)
     {
@@ -19,11 +20,15 @@ internal static partial class IdeIgniteArmHost
         if (string.IsNullOrWhiteSpace(taskTitle))
             return Err("arm", "leaf_title_required", "ArmForLeaf needs task title");
 
+        var title = taskTitle.Trim();
+        var inventOnlyHold = IsInventOnlyHoldTask(title);
+        var inRaw = inventOnlyHold ? "3m" : "2s";
+
         var args = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
         {
             ["when"] = JsonSerializer.SerializeToElement("timer"),
-            ["in"] = JsonSerializer.SerializeToElement("2s"),
-            ["task"] = JsonSerializer.SerializeToElement(taskTitle.Trim()),
+            ["in"] = JsonSerializer.SerializeToElement(inRaw),
+            ["task"] = JsonSerializer.SerializeToElement(title),
             ["id"] = JsonSerializer.SerializeToElement(LeafWakeArmId),
             ["once"] = JsonSerializer.SerializeToElement(true),
             ["charge"] = JsonSerializer.SerializeToElement("minimal"),
@@ -38,15 +43,26 @@ internal static partial class IdeIgniteArmHost
             ok = true,
             op = "leaf_arm",
             reason,
-            task = taskTitle.Trim(),
+            task = title,
+            invent_only_hold = inventOnlyHold,
+            in_raw = inRaw,
             arm = result,
-            hint = ArmForLeafHint(IsAutonomousArmed())
+            hint = ArmForLeafHint(IsAutonomousArmed(), inventOnlyHold)
         };
     }
 
-    /// <summary>ArmForLeaf tip — under autonomous do not teach End-turn park.</summary>
-    internal static string ArmForLeafHint(bool autonomous) =>
-        autonomous
+    /// <summary>ArmForLeaf tip — under autonomous do not teach End-turn park; invent-only Hold ≠ 2s DIG REJECT mill.</summary>
+    internal static string ArmForLeafHint(bool autonomous, bool inventOnlyHold = false)
+    {
+        if (inventOnlyHold)
+        {
+            return autonomous
+                ? "Leaf continuity armed (3m invent-only Hold). DIG REJECT mill ≠ 2s thrash — AutoI is insurance if the thread dies, not a license to park."
+                : "Leaf continuity armed (3m invent-only Hold). End turn — AutoI fires wake for this leaf.";
+        }
+
+        return autonomous
             ? "Leaf continuity armed (2s). Keep flying the leaf — AutoI is insurance if the thread dies, not a license to park."
             : "Leaf continuity armed (2s). End turn — AutoI fires wake for this leaf.";
+    }
 }

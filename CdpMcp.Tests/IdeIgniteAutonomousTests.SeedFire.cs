@@ -115,6 +115,42 @@ public partial class IdeIgniteAutonomousTests
 
         var partner = IdeIgniteArmHost.ArmForLeafHint(autonomous: false);
         Assert.Contains("End turn", partner, StringComparison.Ordinal);
+
+        var invent = IdeIgniteArmHost.ArmForLeafHint(autonomous: true, inventOnlyHold: true);
+        Assert.Contains("3m invent-only", invent, StringComparison.Ordinal);
+        Assert.Contains("DIG REJECT", invent, StringComparison.Ordinal);
+        Assert.DoesNotContain("End turn", invent, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ArmForLeaf_invent_only_hold_uses_3m_not_2s()
+    {
+        IdeIgniteArmHost.BindAutonomous(true);
+        IdeIgniteArmHost.BindAutonomous(false);
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["all"] = JsonSerializer.SerializeToElement(true),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+        IdeIgniteArmHost.BindAutonomous(true);
+
+        var result = IdeIgniteArmHost.ArmForLeaf(
+            "Hold Citizen Done stable to 15.08 — invent only on real product gap",
+            "invent_only_softener");
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.True(doc.RootElement.GetProperty("invent_only_hold").GetBoolean());
+        Assert.Equal("3m", doc.RootElement.GetProperty("in_raw").GetString());
+
+        var list = IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("list")
+        });
+        using var listDoc = JsonDocument.Parse(JsonSerializer.Serialize(list));
+        var leaf = listDoc.RootElement.GetProperty("arms").EnumerateArray()
+            .First(a => a.GetProperty("id").GetString() == IdeIgniteArmHost.LeafWakeArmId);
+        Assert.Equal("3m", leaf.GetProperty("in_raw").GetString());
     }
 
     [Fact]
