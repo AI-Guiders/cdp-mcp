@@ -5,8 +5,9 @@ namespace CdpMcp;
 
 /// <summary>
 /// Side-channel images for the current MCP tool call (AsyncLocal).
-/// CallToolHandler drains into <see cref="ImageContentBlock"/> when the agent opted in
-/// (<c>vision=true</c> / <c>see=true</c>) — never auto-inject without that flag.
+/// CallToolHandler always drains pending into <see cref="ImageContentBlock"/>.
+/// Producers opt in by calling <see cref="TryAdd"/> — e.g. <c>cdp_see</c>, or
+/// <c>take</c> with <c>vision=true</c>/<c>see=true</c> (PlantUML). Do not TryAdd by default.
 /// </summary>
 internal static class ToolMediaOutbox
 {
