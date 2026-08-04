@@ -26,6 +26,7 @@
 
 ## last_ship
 
+- 2026-08-04: VisualAttentionAxB webcam verify green (P plan-LATEST · F Autoi compact · M gitignore) — Glass Done human-flight attention leaf closed; next sealed = Citizen Done.
 - 2026-08-04: live dogfood — `cdp_cockpit_host op=start` after down/agent-only; dual-cockpit · ICM bound · Intercom send visible path. Invariant: Glass Done human flight requires `gui_host=up` — agent-only ≠ Done.
 - 2026-08-03: cockpit_host toml mtime refresh + Start path= stamp — rediscover stays on Glass without remount · `36b5355` · Glass cabin crash fixed cascade-ide `5ffc45f2`
 - live: `cdp_cockpit_host` → Glass WPF CDP.GlassCockpit.Windows (not Avalonia CascadeIDE) · dual-cockpit · latches=32 · ICM bound · debug.toml fixed · 2026-08-03
