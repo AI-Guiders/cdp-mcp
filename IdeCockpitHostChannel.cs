@@ -1,5 +1,6 @@
 #nullable enable
 using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Cdp.Core;
@@ -58,9 +59,12 @@ internal static partial class IdeCockpitHostChannel
     public static CockpitHostProfile.Snapshot GetHostPulse()
     {
         var st = Snapshot();
-        return st is null
-            ? new CockpitHostProfile.Snapshot("down", "agent-only", null)
-            : new CockpitHostProfile.Snapshot("up", "dual-cockpit", st.Pid);
+        if (st is not null)
+            return new CockpitHostProfile.Snapshot("up", "dual-cockpit", st.Pid);
+        var preferred = ResolveExe(null);
+        if (preferred is not null && ListCabinPathOrphans(preferred) is { Count: > 0 } orphans)
+            return new CockpitHostProfile.Snapshot("orphan", "path-mismatch", orphans[0].Pid);
+        return new CockpitHostProfile.Snapshot("down", "agent-only", null);
     }
 
     public static object Handle(IReadOnlyDictionary<string, JsonElement>? args = null)
@@ -78,26 +82,48 @@ internal static partial class IdeCockpitHostChannel
     static object Scene()
     {
         var st = Snapshot();
+        var preferred = ResolveExe(null);
+        var orphans = preferred is null ? [] : ListCabinPathOrphans(preferred);
+        var orphanPulse = orphans.Count == 0
+            ? null
+            : $" · orphans={orphans.Count} pid={string.Join(',', orphans.Select(o => o.Pid))}";
+        var guiHost = st is not null
+            ? "up"
+            : orphans.Count > 0 ? "orphan" : "down";
+        var hostProfile = st is not null
+            ? "dual-cockpit"
+            : orphans.Count > 0 ? "path-mismatch" : "agent-only";
+        var pulse = st is not null
+            ? $"cockpit_host · up · pid={st.Pid}{orphanPulse}"
+            : orphans.Count > 0
+                ? $"cockpit_host · orphan path-mismatch{orphanPulse} · preferred down"
+                : "cockpit_host · down · agent-only";
         return new
         {
             ok = true,
             schema = SchemaVersion,
             tool = ToolName,
             op = "scene",
-            pulse = st is not null
-                ? $"cockpit_host · up · pid={st.Pid}"
-                : "cockpit_host · down · agent-only",
-            gui_host = st is not null ? "up" : "down",
-            host_profile = st is not null ? "dual-cockpit" : "agent-only",
+            pulse,
+            gui_host = guiHost,
+            host_profile = hostProfile,
             pid = st?.Pid,
             exe = st?.Exe,
             started_utc = st?.StartedUtc,
-            exe_configured = ResolveExe(null) is not null,
+            preferred_exe = preferred,
+            path_orphans = orphans.Count == 0
+                ? null
+                : orphans.Select(o => new { pid = o.Pid, exe = o.Exe }).ToArray(),
+            exe_configured = preferred is not null,
             config_source = ConfigSourceLabel(),
             env_escape = EnvExe,
             hint = st is not null
-                ? "op=stop to close GUI; MCP/ICM keep running."
-                : "op=start path=… or [cockpit_host] exe in cdp-mcp.toml (env CDP_COCKPIT_HOST_EXE = escape). Melody/settings load with shell — do not strip them."
+                ? orphans.Count > 0
+                    ? "Preferred cabin up; kill path_orphans (Debug vs Release twin) — do not Start another."
+                    : "op=stop to close GUI; MCP/ICM keep running."
+                : orphans.Count > 0
+                    ? "Preferred exe down but GlassCockpit lives on another path — Start refuses twin; path= orphan exe or kill orphan then Start preferred."
+                    : "op=start path=… or [cockpit_host] exe in cdp-mcp.toml (env CDP_COCKPIT_HOST_EXE = escape). Melody/settings load with shell — do not strip them."
         };
     }
 

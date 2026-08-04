@@ -146,6 +146,56 @@ internal static partial class IdeCockpitHostChannel
         return _live;
     }
 
+    /// <summary>
+    /// Same process name, different path (Debug vs Release Glass).
+    /// Cabin-family only — never adopt generic shells (pwsh stand-in tests).
+    /// </summary>
+    static List<(int Pid, string Exe)> ListCabinPathOrphans(string preferredExe)
+    {
+        var list = new List<(int, string)>();
+        if (!IsCabinFamilyExe(preferredExe))
+            return list;
+        var name = Path.GetFileNameWithoutExtension(preferredExe);
+        if (string.IsNullOrWhiteSpace(name))
+            return list;
+        foreach (var p in Process.GetProcessesByName(name))
+        {
+            try
+            {
+                using (p)
+                {
+                    if (p.HasExited)
+                        continue;
+                    string? path = null;
+                    try
+                    {
+                        path = p.MainModule?.FileName;
+                    }
+                    catch
+                    {
+                        /* access denied — skip */
+                    }
+
+                    if (path is null || !IsCabinFamilyExe(path))
+                        continue;
+                    if (PathsEqual(path, preferredExe))
+                        continue;
+                    list.Add((p.Id, Path.GetFullPath(path)));
+                }
+            }
+            catch
+            {
+                /* skip */
+            }
+        }
+
+        return list;
+    }
+
+    static bool IsCabinFamilyExe(string? path) =>
+        !string.IsNullOrWhiteSpace(path)
+        && path.Contains("GlassCockpit", StringComparison.OrdinalIgnoreCase);
+
     static HostState? FindByExePath(string preferredExe)
     {
         var name = Path.GetFileNameWithoutExtension(preferredExe);
