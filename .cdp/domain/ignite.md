@@ -81,7 +81,7 @@
 
 ## last_ship
 
-- **being≠seeming habitat** — CanonicalSealedCourse + EnsureCourseCriteria HasBeingAxis + ChargeHumanFace/Amnesia shot protocol · Cursor rule `being-vs-seeming.mdc` · 2026-08-04
+- **being≠seeming habitat** — CanonicalSealedCourse + HasBeingAxis + ChargeHumanFace/Amnesia · domain `being.md` · agent-notes `playbook-being-vs-seeming-v1` (not Cursor `.mdc`) · 2026-08-04
 - **0.5.659** — invent-only Hold `ArmForLeaf` / leaf-wake uses 3m not 2s (DIG REJECT mill) · 2026-08-04
 - **0.5.658** — invent-only Hold also skips hild_pull / hild_away ≤3s clamp (DIG REJECT mill under away) · 2026-08-04
 - **0.5.657** — Hold invent-only softener: skip leaf_pull + ≤3m clamp (`invent only` task title); HILD away still ≤3s · 2026-08-04
