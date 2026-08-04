@@ -167,6 +167,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-04 cabin live** — Rebuild Glass Release (stale exe unknown topic_next); surface `run action=topic_next` → `glass · topic next · …`. Glass Done feature closed. Voice Letter skip (amenity, no new organ voice).
 - 2026-08-04: Intercom keyboard IOP — melody atn/atp/atb/ato/amn/amp → topic_next/prev/topics_all/slash_open/feed_page; GlassIntercomTopicNav + RunPaletteEntry; tests 21/21 · cascade-ide `c041ad09`
 - **2026-08-04 night invent** — PathMutate/Autoi duplex DIG ACCEPT shipped 0.5.649 (place=before body + Autoi-off respect). Glass/CIDE residual DIG REJECT reopen. Citizen full-chain live GREEN. Densest after remount: invent product beyond SoftFL/Meta/Glass CLOSED (not board hygiene).
 - **2026-08-04 SickLeaveNight648** — dig-ignite hygiene (error+stale arms cleared); glass/CIDE DIG REJECT reopen (VT/WebView2/Skia/DAP/CRS Depth DoD already 2026-08-04); product next = PathMutate vs Autoi duplex densest dig.

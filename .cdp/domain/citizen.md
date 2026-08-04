@@ -61,6 +61,7 @@
 
 ## last_ship
 
+- **2026-08-04 CitizenDoneAxb** — DIG ACCEPT close densest dig (full-chain already GREEN; DIG REJECT re-prove hosts). Wave axb-teeth+cabin+verdict shipped. Throughput teeth FeatureDone half-a refuse @0.5.652. Keep feature open to 15.08 — product densest only, not SoftFL/Meta mill.
 - **live 2026-08-04 night** — Operator: finish board → citizen fully → next. Board clean (zombie drops + wave clear; TM no open feature). Live full-chain: wire health+shell · multi health/sys/inventory/elicit **ack=4/4** · dialog reset tea (empty TM pulse observed). SoftOrgan/SoftFL/Meta DIG REJECT. Autoi OFF. Next densest ops: remount primary 0.5.648→0.5.649 (soft staged).
 - **live 2026-08-03** — Standalone15 dig → densest=`cockpit_host` was down; `op=start` → dual-cockpit · CascadeIDE · latches=32 · ICM bound aliases=31. SoftFL/Meta/GlassChord HOLD untouched. Full-chain citizen smoke earlier GREEN.
 - **0.5.644** — Citizen FM path: SSE stream + layered timeouts (Headers20/Idle30/Overall90; Infinite HttpClient timeout; JSON fallback). WireSystemPrompt property fix (Head/Tail static-order). Tests CitizenCompletionsTests 18/18. Deploy: dual hard.
