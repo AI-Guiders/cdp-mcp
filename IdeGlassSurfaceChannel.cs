@@ -81,7 +81,7 @@ internal static class IdeGlassSurfaceChannel
         var course = plan?.Feature;
         var leaf = plan?.Task;
         var mfd = seats?.MfdPage ?? presentation?.MfdPage;
-        var fileSitu = BuildFileSitu(landPath, session.ProjectRoot, why, leaf);
+        var fileSitu = BuildFileSitu(landPath, session.ProjectRoot, why, leaf, includeDiff: false);
         var autoi = ignite is { Active: true, Autonomous: true } ? "ON" : "off";
         var pulse = plan is { Active: true }
             ? $"glass_scene · {Truncate(mfd ?? "cabin", 16)} · NEXT · {Truncate(next, 36)} · Autoi {autoi}"
@@ -152,7 +152,12 @@ internal static class IdeGlassSurfaceChannel
         };
     }
 
-    static object BuildFileSitu(string? editorPath, string? workspaceRoot, string? why, string? leaf)
+    static object BuildFileSitu(
+        string? editorPath,
+        string? workspaceRoot,
+        string? why,
+        string? leaf,
+        bool includeDiff = true)
     {
         if (string.IsNullOrWhiteSpace(editorPath))
         {
@@ -176,7 +181,10 @@ internal static class IdeGlassSurfaceChannel
 
         var blast = CollectSameStemBlast(workspaceRoot, editorPath, max: 3);
         var role = BuildRoleInGraph(workspaceRoot, editorPath);
-        var diff = BuildDiffIntent(workspaceRoot, editorPath);
+        // Cabin/glass_scene pulse must stay latch-fast (FDR: sync git ReadToEnd hung 230s).
+        var diff = includeDiff
+            ? BuildDiffIntent(workspaceRoot, editorPath)
+            : new { line = "DIFF · on demand", added = 0, deleted = 0, hunks = 0, clean = true, untracked = false };
         var applies = BuildAppliesOnLocus(editorPath);
 
         return new
@@ -285,10 +293,19 @@ internal static class IdeGlassSurfaceChannel
             using var p = System.Diagnostics.Process.Start(psi);
             if (p is null)
                 return "";
-            var stdout = p.StandardOutput.ReadToEnd();
-            _ = p.StandardError.ReadToEnd();
-            p.WaitForExit(15_000);
-            return stdout.Trim();
+
+            // ReadToEnd before WaitForExit can block forever on hung git (FDR surface_desk 230s).
+            var stdoutTask = p.StandardOutput.ReadToEndAsync();
+            var stderrTask = p.StandardError.ReadToEndAsync();
+            if (!p.WaitForExit(3_000))
+            {
+                try { p.Kill(entireProcessTree: true); } catch { /* best-effort */ }
+                try { p.WaitForExit(1_000); } catch { /* ignore */ }
+                return "";
+            }
+
+            _ = Task.WhenAll(stdoutTask, stderrTask).Wait(500);
+            return stdoutTask.IsCompletedSuccessfully ? stdoutTask.Result.Trim() : "";
         }
         catch
         {

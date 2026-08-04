@@ -137,5 +137,7 @@ public sealed class IdeGlassSurfaceChannelTests
         Assert.True(cabin.TryGetProperty("file_situ", out var situ));
         Assert.True(situ.TryGetProperty("applies_on_locus", out _));
         Assert.Contains("glass_scene", doc.RootElement.GetProperty("pulse").GetString(), StringComparison.OrdinalIgnoreCase);
+        var diff = situ.GetProperty("diff_intent");
+        Assert.Equal("DIFF · on demand", diff.GetProperty("line").GetString());
     }
 }
