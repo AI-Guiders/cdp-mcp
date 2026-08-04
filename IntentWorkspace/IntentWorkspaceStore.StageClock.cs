@@ -46,14 +46,13 @@ internal sealed partial class IntentWorkspaceStore
             entity.UpdatedUtc = now;
             db.SaveChanges();
             var elapsed = IdeTaskManager.FormatWallElapsed(entity.StartedUtc.Value, entity.CompletedUtc.Value);
-            var kinds = db.StageEvents.Where(e => e.StageId == entity.Id).Select(e => e.Kind).ToList();
-            var counts = CountKinds(kinds);
+            var stageEvents = StageEventsForStage(db, entity.Id);
+            var counts = CountKinds(stageEvents.Select(e => e.Kind));
             var events = IdeTaskManager.FormatEventCountsSuffix(counts.Wait, counts.Fail, counts.Note);
-            var phaseRows = db.StageEvents
-                .Where(e => e.StageId == entity.Id
-                            && (e.Kind == "phase.start" || e.Kind == "phase.complete"))
+            var phaseRows = stageEvents
+                .Where(e => e.Kind == "phase.start" || e.Kind == "phase.complete")
                 .OrderBy(e => e.Utc)
-                .Select(e => new ValueTuple<string, string, DateTimeOffset>(e.Kind, e.Summary, e.Utc))
+                .Select(e => (e.Kind, e.Summary, e.Utc))
                 .ToList();
             var phases = IdeTaskManager.FormatPhaseSegmentsSuffix(phaseRows, entity.CompletedUtc.Value);
             var suffix = phases + events;

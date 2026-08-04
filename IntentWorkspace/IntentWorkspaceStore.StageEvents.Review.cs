@@ -91,9 +91,8 @@ internal sealed partial class IntentWorkspaceStore
         {
             _ = db.Stages.FirstOrDefault(x => x.Id == stageId && x.IntentId == intentId)
                 ?? throw new ArgumentException($"stage_id not found: {stageId}");
-            var review = db.StageEvents.FirstOrDefault(e =>
-                e.Id == reviewId && e.StageId == stageId
-                && e.Kind == ReviewKind);
+            var review = StageEventsForStage(db, stageId)
+                .FirstOrDefault(e => e.Id == reviewId && e.Kind == ReviewKind);
             if (review is null)
                 throw new ArgumentException($"review not found: {reviewId}");
             if (IsReviewAcked(db, stageId, reviewId))
@@ -147,11 +146,9 @@ internal sealed partial class IntentWorkspaceStore
         {
             take = Math.Clamp(take, 1, 20);
             var acked = AckedReviewIds(db, stageId);
-            return db.StageEvents
-                .Where(e => e.StageId == stageId && e.Kind == ReviewKind)
+            return StageEventsForStage(db, stageId)
+                .Where(e => e.Kind == ReviewKind && !acked.Contains(e.Id))
                 .OrderBy(e => e.Utc)
-                .AsEnumerable()
-                .Where(e => !acked.Contains(e.Id))
                 .Select(e => e.Summary)
                 .Take(take)
                 .ToList();
@@ -160,26 +157,22 @@ internal sealed partial class IntentWorkspaceStore
     static int CountOpenReviews(IntentWorkspaceDbContext db, Guid stageId)
     {
         var acked = AckedReviewIds(db, stageId);
-        var ids = db.StageEvents
-            .Where(e => e.StageId == stageId && e.Kind == ReviewKind)
-            .Select(e => e.Id)
-            .ToList();
-        return ids.Count(id => !acked.Contains(id));
+        return StageEventsForStage(db, stageId)
+            .Where(e => e.Kind == ReviewKind)
+            .Count(e => !acked.Contains(e.Id));
     }
 
     static bool IsReviewAcked(IntentWorkspaceDbContext db, Guid stageId, Guid reviewId)
     {
         var key = reviewId.ToString("N");
-        return db.StageEvents.Any(e =>
-            e.StageId == stageId
-            && e.Kind == ReviewAckKind
-            && e.Ref == key);
+        return StageEventsForStage(db, stageId)
+            .Any(e => e.Kind == ReviewAckKind && e.Ref == key);
     }
 
     static HashSet<Guid> AckedReviewIds(IntentWorkspaceDbContext db, Guid stageId)
     {
-        var refs = db.StageEvents
-            .Where(e => e.StageId == stageId && e.Kind == ReviewAckKind && e.Ref != null)
+        var refs = StageEventsForStage(db, stageId)
+            .Where(e => e.Kind == ReviewAckKind && e.Ref != null)
             .Select(e => e.Ref!)
             .ToList();
         var set = new HashSet<Guid>();
@@ -195,8 +188,8 @@ internal sealed partial class IntentWorkspaceStore
     static List<object> ListReviews(IntentWorkspaceDbContext db, Guid stageId, bool openOnly)
     {
         var acked = AckedReviewIds(db, stageId);
-        var rows = db.StageEvents
-            .Where(e => e.StageId == stageId && e.Kind == ReviewKind)
+        var rows = StageEventsForStage(db, stageId)
+            .Where(e => e.Kind == ReviewKind)
             .OrderBy(e => e.Utc)
             .ToList();
         var list = new List<object>();
