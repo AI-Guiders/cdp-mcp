@@ -75,6 +75,21 @@ internal static partial class MetaToolCatalog
             timeout_ms = new { type = "integer", description = "RPC wait (default 8000; confirm 120000)" }
         }
     }),
+    Meta("cdp_see", "Agent vision — attach image as MCP ImageContent (ToolMediaOutbox). path=|file= local PNG/JPEG/WebP; url= http(s) download (+ optional .cdp/evidence/see-cache). op=scene|see. Alias go=see|see_desk. World dig: paper figures / UI refs / Glass evidence — not Lynx, not host-only Read.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|see (default see when path/url set)" },
+            path = new { type = "string", description = "local image path (absolute or under ProjectRoot)" },
+            file = new { type = "string", description = "alias of path=" },
+            file_path = new { type = "string", description = "alias of path=" },
+            image = new { type = "string", description = "alias of path=" },
+            url = new { type = "string", description = "http(s) or file:// image URL" },
+            href = new { type = "string", description = "alias of url=" },
+            src = new { type = "string", description = "alias of url=" }
+        }
+    }),
     Meta("cdp_webcam", "Sense desk — in-proc Shared+OpenCv+NAudio+Whisper. op=scene|frame|burst|av|screen|window|window_list|audio|transcribe|ocr|analyze. window: HWND PNG via PrintWindow (process=|title=|hwnd=); maximize=true = max→shot→restore peel. Alias go=webcam_desk.", new
     {
         type = "object",

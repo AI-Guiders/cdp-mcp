@@ -70,6 +70,7 @@ internal static partial class IdeIgniteChannel
         Training memory ≠ dig. Slap-slap Done under doubt = seeming.
         SoftFL invent / invent theater / board-hygiene done needs dig= (path|pack|URL|kb) or force=.
         Perception/HCI/SA stack when human UI: dig before invent chrome.
+        Agent vision: cdp_see path=|url= → ImageContent (not Lynx; not host-Read-only).
         """;
 
     /// <summary>Provider cyber-policy: scrub shell tokens if legacy/custom text reaches inject.</summary>
