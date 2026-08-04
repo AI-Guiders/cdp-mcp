@@ -105,7 +105,7 @@ internal static class IdeVerifyWaveChannel
                 seats = new[] { @"D:\cdp-mcp", @"D:\cdp-mcp-debug" },
                 script = "publish-and-deploy.ps1",
                 habitat = "terminal_* (escape) — not cdp_shell_* during KillRunning",
-                nudge = "Bump env.CDP_RELOAD_NUDGE in ~/.cursor/mcp.json after hard"
+                nudge = "Per-seat env.CDP_RELOAD_NUDGE in ~/.cursor/mcp.json after hard (0.5.661; not both seats)"
             },
             ops = new[] { "scene", "pulse" },
             next = new object[]

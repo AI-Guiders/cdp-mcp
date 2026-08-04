@@ -7,6 +7,18 @@ namespace CdpMcp.Tests;
 public sealed class IdeDeployTests
 {
     [Fact]
+    public void ClassifySeat_walks_self_leaf_and_repo_leaf()
+    {
+        Assert.Equal("cdp", IdeDeploy.ClassifySeat(IdeDeploy.ReleaseTarget));
+        Assert.Equal("cdp-debug", IdeDeploy.ClassifySeat(IdeDeploy.DebugTarget));
+        Assert.Equal("cdp", IdeDeploy.ClassifySeat(Path.Combine(IdeDeploy.ReleaseTarget, "self")));
+        Assert.Equal(
+            "cdp-debug",
+            IdeDeploy.ClassifySeat(Path.Combine(@"D:\Experiments\tmp\cdp-mcp-debug", "self")));
+        Assert.Equal("other", IdeDeploy.ClassifySeat(@"D:\somewhere-else"));
+    }
+
+    [Fact]
     public void ResolveTarget_hard_defaults_to_sibling()
     {
         var d = IdeDeploy.ResolveTarget(

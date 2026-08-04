@@ -57,6 +57,8 @@
 - Digging CDT-down from health `cdt=?` (pre-0.5.498 PulseLine never live-sampled).
 - Dual-seat twin OOM wake (pre-0.5.499) — both click dialog + schedule → twin `no_agent_composer` silent once-drop.
 - Recover Not-connected zombie without remount-wake pending (pre-0.5.503 opt-in `-StampRemountPending`) — silent no Autoi initialized wake after remount.
+- Hard sibling deploy bumps **both** seats' `CDP_RELOAD_NUDGE` (pre-0.5.661) — survivor seat remount thrash / Not connected while only sibling was killed; nudge is per-seat (`CdpReloadNudge.ps1`; `-NudgeAllSeats` escape).
+- Leaving `remount-wake-other.pending.json` when Target was `...\self` / repo leaf (pre-0.5.661 ClassifySeat) — remount wake never arms.
 
 - Autonomous + Hold invent-only leaf + leaf_pull ≤3s DIG REJECT mill (pre-0.5.655) — park police thrash under sealed invent-only; skip leaf_pull / keep ≤3m when task title has `invent only`.
 - Hold invent-only + `ArmForLeaf` 2s leaf-wake DIG REJECT mill (pre-0.5.659) — ContinuityFlight plants 2s after last_once fire; invent-only → 3m.
@@ -81,6 +83,7 @@
 
 ## last_ship
 
+- **0.5.661** — per-seat MCP remount nudge (hard sibling ≠ remount survivor) + ClassifySeat `self`/leaf + orphan other pending consume · 2026-08-04
 - **being≠seeming habitat** — CanonicalSealedCourse + HasBeingAxis + ChargeHumanFace/Amnesia · domain `being.md` · agent-notes `playbook-being-vs-seeming-v1` (not Cursor `.mdc`) · 2026-08-04
 - **0.5.659** — invent-only Hold `ArmForLeaf` / leaf-wake uses 3m not 2s (DIG REJECT mill) · 2026-08-04
 - **0.5.658** — invent-only Hold also skips hild_pull / hild_away ≤3s clamp (DIG REJECT mill under away) · 2026-08-04
