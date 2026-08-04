@@ -103,4 +103,25 @@ public partial class IdeIgniteWakeLatchTests
         Assert.Equal("family:remount", IdeIgniteArmHost.MirrorClaimKey(a));
         Assert.Equal(IdeIgniteArmHost.MirrorClaimKey(a), IdeIgniteArmHost.MirrorClaimKey(b));
     }
+
+    [Fact]
+    public void FormatCitizenWakeIntercom_collapses_sa_frame_wall()
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = IdeIgniteArmHost.LeafWakeArmId,
+            Event = "timer",
+            Task = "Dig densest Glass human flight"
+        };
+        var wall =
+            "Света, спасибо за `@frame desk v0`. Вижу:\n\n" +
+            "- **`tm | Shared-SSOT › Dig densest`**\n" +
+            "- **`board | P:webcam_desk · F:editor · M:shell`**\n" +
+            "…[truncated habitat wake]";
+        var body = IdeIgniteArmHost.FormatCitizenWakeIntercom(arm, wall);
+        Assert.Contains("→ PFD.NEXT", body, StringComparison.Ordinal);
+        Assert.Contains("delta → Plan", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("board |", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("truncated habitat wake", body, StringComparison.OrdinalIgnoreCase);
+    }
 }

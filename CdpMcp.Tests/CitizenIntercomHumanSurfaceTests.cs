@@ -59,4 +59,29 @@ public sealed class CitizenIntercomHumanSurfaceTests
         ]);
         Assert.Equal("Сделала: plan — не вышло", tip);
     }
+
+    [Fact]
+    public void LooksLikeSaInstrumentWall_detects_frame_desk_dump()
+    {
+        var wall =
+            "Света, спасибо за `@frame desk v0`. Вижу:\n\n" +
+            "- **`tm | Shared-SSOT › Dig densest`**\n" +
+            "- **`board | P:webcam_desk · F:editor · M:shell`**\n" +
+            "…[truncated habitat wake]";
+        Assert.True(CitizenIntercomHumanSurface.LooksLikeSaInstrumentWall(wall));
+    }
+
+    [Fact]
+    public void StripWire_drops_sa_instrument_bullets()
+    {
+        var raw =
+            "Коротко: leaf жив.\n\n" +
+            "- **`tm | Shared-SSOT › Dig densest`**\n" +
+            "- **`board | P:webcam · F:editor`**\n" +
+            "ok · gen=1 · mcp=live · compact=no · ack=1/1";
+        var clean = CitizenIntercomHumanSurface.StripWire(raw);
+        Assert.Equal("Коротко: leaf жив.", clean);
+        Assert.DoesNotContain("tm |", clean, StringComparison.Ordinal);
+        Assert.DoesNotContain("board |", clean, StringComparison.Ordinal);
+    }
 }

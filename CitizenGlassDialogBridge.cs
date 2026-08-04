@@ -165,8 +165,19 @@ internal static class CitizenGlassDialogBridge
         }
     }
 
-    static string SurfacePublishBody(string prose, IReadOnlyList<CitizenRouteHost.Applied>? executed) =>
-        CitizenIntercomHumanSurface.Publish(prose, executed);
+    static string SurfacePublishBody(string prose, IReadOnlyList<CitizenRouteHost.Applied>? executed)
+    {
+        var body = CitizenIntercomHumanSurface.Publish(prose, executed);
+        // Dialog SA walls → Radio leaf pointer (I6), not @frame desk dump on Glass.
+        if (CitizenIntercomHumanSurface.LooksLikeSaInstrumentWall(body) || body.Length > 480)
+        {
+            return IdeIgniteArmHost.FormatHabitatIntercomRadio(
+                arm: null,
+                charge: body);
+        }
+
+        return body;
+    }
 
     static RequestDoc? TryReadPending()
     {
