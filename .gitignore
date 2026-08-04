@@ -3,6 +3,11 @@ obj/
 publish/
 publish-release/
 dist/
+# Dual-instance deploy seats (go=deploy) — local runtime binaries, not source
+self/
+sibling/
+release/
+debug/
 *.user
 *.suo
 .vs/
