@@ -27,7 +27,7 @@
 - **Timer busy requeue:** `ShouldRequeueBusy` for timer includes `busy_timeout` / `no_agent_composer` / `wrong_surface` / **`click_failed`** (0.5.549) — CDT Send click miss must not leave last_once as dead error arm.
 - **Stale error reclaim (0.5.550):** `ReclaimOverdue` + `SweepNoise` revive `status=error` when `ShouldRequeueBusy` would apply (`reclaimed_error_*` / `hygiene_requeue_*`) — tombstones from pre-requeue era.
 - Composer-unavailable habitat skip also publishes Intercom charge (`PublishHabitatIntercomCharge`) — Glass parity with prefer duplex when mirror miss (0.5.529).
-- Wake charge SSOT: `%LocalAppData%/cdp-mcp/ignite-wake-LATEST.json` (`composer`|`habitat`) — Composer is not the only spine for charge body.
+- Wake charge SSOT: `%LocalAppData%/cdp-mcp/ignite-wake-LATEST.json` (`composer`|`habitat`) — Composer is not the only spine for charge body. **`course=`** stamps sealed operator_priority (0.5.651).
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
 - HILD (default ARMED): Composer text idle **30s** on Voice → `human_away` **once** (latch until Composer text); wake → autonomous; on edge/escalate **pull-forward** armed last_once work timers ≤3s (`PullForwardLongWorkTimersOnHildAway`); arm under `away_latched` clamps ≤3s; after wake continuity **1–3s** not 45m; suppress under `await_partner` / halt. DefaultIdle=30s since 0.5.359 (meta tip 0.5.363).
 - **last_once arm clamp under autonomous:** ≤3m by default; **≤3s** when HILD `away_latched` **or** TM `ContinuityFlight.Fly` (`3s(hild_away)` / `3s(leaf_started)` · `force=true` escape).
@@ -74,6 +74,7 @@
 
 ## last_ship
 
+- **0.5.651** — Wake latch course= + ChargeCoursePointer · 2026-08-04
 - **0.5.649** — ArmForLeaf / TryLeafIgniteAfterFocus refuse when !IsAutonomousArmed() · 2026-08-04
 - 0.5.645: ChargeAmnesiaPostfix «fly the wave / list→batch→ship» + organs inventory/verify_wave · 2026-08-03
 - 0.5.636: Autoi `ChargeAmnesiaPostfix` body≠biped (dig/parallel · AIDE=body · narrow leaf without pipe = regression) · playbook-pf-body-not-biped-v1 · 2026-08-03
