@@ -27,6 +27,7 @@ internal static partial class IdeChkChannel
             ["phase:act"],
             [
                 new("buffer", "memory", "Mutate via cdp_buffer — not Cursor Write", Action: "cdp_buffer", Required: false),
+                new("world-dig", "memory", "Doubt/variants → dig domain/pack/cdp_browser/internet before slap-slap edit (training ≠ dig)", Action: "cdp_browser", Required: false),
                 new("find-desk", "memory", "Search via desk (cdp_search / buffer find / index) — not shell rg", Action: "cdp_search", Required: false),
                 new("files-desk", "memory", "Browse via desk (cdp_files / go=files_desk) — not shell ls/dir", Action: "cdp_files", Required: false),
                 new("sa-before-refactor", "memory", "Before structural extract/split: cdp_sa / go=sa_desk (not EICAS go=sa)", Action: "cdp_sa", Required: false),
@@ -43,6 +44,7 @@ internal static partial class IdeChkChannel
             ["phase:act+state:task.none"],
             [
                 new("no-invented-stage", "memory", "Do not invent empty TM stages just to satisfy AutoIgnition", Action: "plan", Required: false),
+                new("world-dig-plateau", "memory", "Plateau ≠ slap-slap invent — dig KB/internet/variants when next is unknown", Action: "cdp_browser", Required: false),
                 new("ignite-authorized", "memory", "Re-arm ignite only after operator steer or an authorized TM task exists", Action: "cdp_ignite", Required: false),
                 new("pressure-stash", "memory", "Plateau invariants belong in pressure stash, not only in host summary", Action: "cdp_pressure", Required: false)
             ],
@@ -56,7 +58,8 @@ internal static partial class IdeChkChannel
             "After verify",
             ["phase:verify"],
             [
-                new("tests-desk", "memory", "Tests via desk (cdp_test_sa / go=test_desk → cdp_test*) — not shell dotnet test", Action: "cdp_test_sa", Required: false)
+                new("tests-desk", "memory", "Tests via desk (cdp_test_sa / go=test_desk → cdp_test*) — not shell dotnet test", Action: "cdp_test_sa", Required: false),
+                new("world-dig-verify", "memory", "Claims under doubt have dig artifact (domain/pack/URL) — not training memory alone", Action: "cdp_pressure", Required: false)
             ],
             [
                 new("problems", "auto", "Problems: no errors", Probe: "problems.clean", Action: "go=problems"),

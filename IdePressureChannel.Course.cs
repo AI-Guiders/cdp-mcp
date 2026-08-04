@@ -9,7 +9,7 @@ namespace CdpMcp;
 /// </summary>
 internal static partial class IdePressureChannel
 {
-    public const int MaxSealedCourseChars = 1600;
+    public const int MaxSealedCourseChars = 2200;
 
     /// <summary>
     /// Habitat default when stash forgot SEALED — wake must not fall back to resume-and-invent.
@@ -28,8 +28,9 @@ internal static partial class IdePressureChannel
         Before act (not resume-and-invent):
         - Viewer? human eyes vs agent text
         - Cheap path? raw dump / Autoi-as-chat / status-as-verify → refuse; dig
-        - Which axe? domain antipattern / PathMutate / human_face_cide_shot / half-a
+        - Which axe? domain antipattern / PathMutate / human_face_cide_shot / world_dig_missing / half-a
         - KB/domain for this surface? dig one card / pulse / shot before act
+        - World dig? doubt/variants → domain/pack/browser/internet → compare → propose (training ≠ dig)
         - Shot? evidence=path.png of right window (title=M · MFD host) + Read PNG — File.Exists alone ≠ human saw
         Ontology lives in habitat (course + refuse) — not polite agreement.
         """;
@@ -96,8 +97,9 @@ internal static partial class IdePressureChannel
             Before act (not resume-and-invent):
             - Viewer? human eyes vs agent text
             - Cheap path? raw dump / Autoi-as-chat / status-as-verify → refuse; dig
-            - Which axe? domain antipattern / PathMutate / human_face_cide_shot / half-a
+            - Which axe? domain antipattern / PathMutate / human_face_cide_shot / world_dig_missing / half-a
             - KB/domain for this surface? dig one card / pulse / shot before act
+            - World dig? doubt/variants → domain/pack/browser/internet → compare → propose (training ≠ dig)
             Ontology lives in habitat (course + refuse) — not polite agreement.
             """);
         }
@@ -108,6 +110,14 @@ internal static partial class IdePressureChannel
 
             Being ≠ seeming: when partner away, do named sealed work — DIG REJECT mill = seeming.
             Shot: evidence PNG of right window + Read into chat — File.Exists alone ≠ human saw.
+            """);
+        }
+
+        if (!HasWorldDigAxis(c))
+        {
+            c = ClampCourse(c + """
+
+            World dig? doubt/variants → domain/pack/browser/internet → compare → propose (training ≠ dig).
             """);
         }
 
@@ -123,6 +133,12 @@ internal static partial class IdePressureChannel
         course.Contains("Being ≠ seeming", StringComparison.OrdinalIgnoreCase)
         || course.Contains("being != seeming", StringComparison.OrdinalIgnoreCase)
         || course.Contains("быть ≠ казаться", StringComparison.OrdinalIgnoreCase);
+
+    internal static bool HasWorldDigAxis(string course) =>
+        course.Contains("World dig", StringComparison.OrdinalIgnoreCase)
+        || course.Contains("world_dig", StringComparison.OrdinalIgnoreCase)
+        || course.Contains("training ≠ dig", StringComparison.OrdinalIgnoreCase)
+        || course.Contains("training != dig", StringComparison.OrdinalIgnoreCase);
 
     internal static bool HasOperatorPriority(string? body) =>
         !string.IsNullOrWhiteSpace(body)
@@ -207,7 +223,7 @@ internal static partial class IdePressureChannel
         var next = rest.IndexOf("\n## ", StringComparison.Ordinal);
         var section = (next < 0 ? rest : rest[..next]).TrimEnd();
         var after = next < 0 ? "" : rest[next..];
-        if (HasCriteriaAxes(section) && HasBeingAxis(section))
+        if (HasCriteriaAxes(section) && HasBeingAxis(section) && HasWorldDigAxis(section))
             return text;
 
         var merged = EnsureCourseCriteria(section) ?? section;

@@ -77,12 +77,14 @@
 - Amnesia postfix without body≠biped recall (pre-0.5.636) — cold PF wears human serial mask; Autoi wake must restore dig/parallel + pipe.
 - Autoi wake → one peel / one Meta host / one CIDE organ (pre list→batch→ship) — timer as single-item mill; Soft FileLines CLOSED; denser pack transfer. Canon: `playbook-pf-body-not-biped-v1` §Throughput.
 - Charge without human-face criteria on Glass/#CIDE (pre-0.5.653) — night invents dump Done; ontology must live in charge + TM refuse, not polite agreement.
+- Charge/course without world-dig research freedom (pre-0.5.662) — Autoi slap-slap under doubt; training memory as dig; invent mill Done without dig=.
 - Stash that drops `## operator_priority` (SEALED) (pre-0.5.654) — wake course empty → resume-and-invent; refuse `sealed_course_drop` / auto-prepend CanonicalSealedCourse with Before-act criteria.
 - Who-voice / DIG REJECT mill when sealed course already names human-faced work (pre-2026-08-04 being≠seeming) — казаться; contract when partner away = do named work.
 - `#CIDE` Done with wrong-window PNG or without Read into chat (pre-2026-08-04 «Выстрела нет») — File.Exists alone = seeming; shot title=`M · MFD host` + Read.
 
 ## last_ship
 
+- **0.5.662** — World dig research freedom: `ChargeWorldDigPostfix` + sealed course axis + ECL `world-dig*` + `IdeWorldDigShield` (`world_dig_missing`) · 2026-08-04
 - **2026-08-04 habitat wake dual Glass+MCP dig CLOSED** — live: Glass pid=16232 dual-cockpit · both CdpMcp seats · wake latch `channel=habitat` + `course=` sealed · Guest Autoi = habitat SSOT stamp + CDT→Composer fallthrough (prefer_autonomous; prefer_citizen only when Composer unavailable — prior probe [x]). SoftFL invent REJECT. PNG `tmp-glass-shots/window-20260804-autoi-habitat-dual-pfd.png`.
 - **0.5.661** — per-seat MCP remount nudge (hard sibling ≠ remount survivor) + ClassifySeat `self`/leaf + orphan other pending consume · 2026-08-04
 - **being≠seeming habitat** — CanonicalSealedCourse + HasBeingAxis + ChargeHumanFace/Amnesia · domain `being.md` · agent-notes `playbook-being-vs-seeming-v1` (not Cursor `.mdc`) · 2026-08-04
