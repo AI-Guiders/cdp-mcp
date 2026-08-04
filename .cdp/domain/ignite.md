@@ -72,9 +72,11 @@
 - Amnesia postfix without body≠biped recall (pre-0.5.636) — cold PF wears human serial mask; Autoi wake must restore dig/parallel + pipe.
 - Autoi wake → one peel / one Meta host / one CIDE organ (pre list→batch→ship) — timer as single-item mill; Soft FileLines CLOSED; denser pack transfer. Canon: `playbook-pf-body-not-biped-v1` §Throughput.
 - Charge without human-face criteria on Glass/#CIDE (pre-0.5.653) — night invents dump Done; ontology must live in charge + TM refuse, not polite agreement.
+- Stash that drops `## operator_priority` (SEALED) (pre-0.5.654) — wake course empty → resume-and-invent; refuse `sealed_course_drop` / auto-prepend CanonicalSealedCourse with Before-act criteria.
 
 ## last_ship
 
+- **0.5.654** — CanonicalSealedCourse + criteria-before-act in course=; stash refuse drop · 2026-08-04
 - **0.5.653** — `ChargeHumanFacePostfix` on all Autoi compose paths + `#CIDE` TM shield · 2026-08-04
 - **0.5.651** — Wake latch course= + ChargeCoursePointer · 2026-08-04
 - **0.5.649** — ArmForLeaf / TryLeafIgniteAfterFocus refuse when !IsAutonomousArmed() · 2026-08-04
