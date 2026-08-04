@@ -12,11 +12,13 @@ public class CideIntercomVoiceLatchTests : IDisposable
         _root = Path.Combine(Path.GetTempPath(), "cdp-icm-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_root);
         CideIntercomVoiceLatch.RootOverrideForTests = _root;
+        CideIntercomIdentityLatch.RootOverrideForTests = _root;
     }
 
     public void Dispose()
     {
         CideIntercomVoiceLatch.RootOverrideForTests = null;
+        CideIntercomIdentityLatch.RootOverrideForTests = null;
         try { Directory.Delete(_root, recursive: true); } catch { /* ignore */ }
     }
 
@@ -103,23 +105,69 @@ public class CideIntercomVoiceLatchTests : IDisposable
     }
 
     [Fact]
-    public void Channel_send_from_pm_defaults_operator_sveta()
+    public void Channel_send_from_pm_defaults_operator_bootstrap()
     {
         var sendJson = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
         {
             ["op"] = JsonSerializer.SerializeToElement("send"),
             ["from"] = JsonSerializer.SerializeToElement("pm"),
             ["to"] = JsonSerializer.SerializeToElement("pf"),
-            ["body"] = JsonSerializer.SerializeToElement("sveta as operator")
+            ["body"] = JsonSerializer.SerializeToElement("operator bootstrap")
         });
         using var send = JsonDocument.Parse(sendJson);
         Assert.True(send.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal("pm", send.RootElement.GetProperty("message").GetProperty("from").GetString());
         Assert.Equal("human", send.RootElement.GetProperty("message").GetProperty("origin").GetString());
-        Assert.Equal("Света", send.RootElement.GetProperty("message").GetProperty("name").GetString());
+        Assert.Equal(CideIntercomVoiceLatch.DefaultNameOperator, send.RootElement.GetProperty("message").GetProperty("name").GetString());
         Assert.Equal("operator", send.RootElement.GetProperty("message").GetProperty("kind").GetString());
-        Assert.Contains("Света · operator", send.RootElement.GetProperty("message").GetProperty("role_label").GetString());
+        Assert.Contains("Operator · operator", send.RootElement.GetProperty("message").GetProperty("role_label").GetString());
         Assert.NotNull(CideIntercomVoiceLatch.TryUnreadForPf());
+    }
+
+    [Fact]
+    public void Sticky_identity_claims_and_shapes_send_without_name()
+    {
+        var setJson = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("identity"),
+            ["action"] = JsonSerializer.SerializeToElement("set"),
+            ["seat"] = JsonSerializer.SerializeToElement("pf"),
+            ["name"] = JsonSerializer.SerializeToElement("Морж"),
+            ["kind"] = JsonSerializer.SerializeToElement("guest")
+        });
+        using var set = JsonDocument.Parse(setJson);
+        Assert.True(set.RootElement.GetProperty("ok").GetBoolean());
+
+        var sendJson = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("send"),
+            ["to"] = JsonSerializer.SerializeToElement("pm"),
+            ["body"] = JsonSerializer.SerializeToElement("sticky who")
+        });
+        using var send = JsonDocument.Parse(sendJson);
+        Assert.True(send.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal("Морж", send.RootElement.GetProperty("message").GetProperty("name").GetString());
+        Assert.Contains("Морж · guest", send.RootElement.GetProperty("message").GetProperty("role_label").GetString());
+    }
+
+    [Fact]
+    public void Send_explicit_name_claims_sticky()
+    {
+        var sendJson = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("send"),
+            ["to"] = JsonSerializer.SerializeToElement("pm"),
+            ["body"] = JsonSerializer.SerializeToElement("claiming"),
+            ["name"] = JsonSerializer.SerializeToElement("Neumann"),
+            ["kind"] = JsonSerializer.SerializeToElement("citizen")
+        });
+        using var send = JsonDocument.Parse(sendJson);
+        Assert.True(send.RootElement.GetProperty("ok").GetBoolean());
+
+        var slot = CideIntercomIdentityLatch.TrySeat("pf");
+        Assert.NotNull(slot);
+        Assert.Equal("Neumann", slot!.Name);
+        Assert.Equal(CideIntercomVoiceLatch.KindCitizen, slot.Kind);
     }
 
     [Fact]

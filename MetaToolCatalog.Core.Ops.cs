@@ -81,20 +81,25 @@ internal static partial class MetaToolCatalog
             page = new { type = "string", description = "alias of mfd_page" }
         }
     }),
-    Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack|history|presence. send to=pm body= → intercom-LATEST + journal. presence seat= state=idle|composing|busy → intercom-presence-LATEST (partner observability; no thinking dump). Virtual History: op=history. Alias go=intercom.", new
+    Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack|history|presence|identity. send to=pm body= [name=] → latch+journal; name= claims sticky Who. op=identity action=set|get|clear seat= name= — freeform sticky nick (agent-line). presence seat= state=. Alias go=intercom.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene|get|inbox|send|ack|history|presence (default scene)" },
+            op = new { type = "string", description = "scene|get|inbox|send|ack|history|presence|identity (default scene)" },
             to = new { type = "string", description = "send: pm|pf or @PM|@PF (default pm)" },
-            from = new { type = "string", description = "send: optional seat override (default pf); presence: alias of seat" },
+            from = new { type = "string", description = "send: optional seat override (default pf); presence/identity: alias of seat" },
             body = new { type = "string", description = "send: message text" },
             message = new { type = "string", description = "send: alias of body" },
             text = new { type = "string", description = "send: alias of body" },
+            name = new { type = "string", description = "send/identity: freeform Who / nick (claims sticky on send)" },
+            display_name = new { type = "string", description = "alias of name" },
+            nick = new { type = "string", description = "alias of name (also send as=)" },
+            kind = new { type = "string", description = "send/identity: guest|citizen|operator" },
+            action = new { type = "string", description = "identity: get|set|clear (default get)" },
             id = new { type = "string", description = "ack: optional message id" },
             limit = new { type = "integer", description = "history: last N messages (default 20, max 200)" },
-            seat = new { type = "string", description = "presence: pf|pm (default pf)" },
+            seat = new { type = "string", description = "presence/identity: pf|pm (default pf)" },
             state = new { type = "string", description = "presence: idle|composing|busy" },
             status = new { type = "string", description = "presence: alias of state" },
             ttl_s = new { type = "integer", description = "presence: optional TTL seconds (composing/busy stale after)" }
