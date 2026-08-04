@@ -9,14 +9,12 @@ internal sealed partial class IntentWorkspaceStore
     /// Legacy <c>stage_events</c> (TEXT Id/StageId) made EF <c>Where(StageId == guid)</c>
     /// return empty while same-context SaveChanges still looked successful.
     /// New table name avoids DROP races on remount / dual-seat Ensure*.
+    /// Do not DROP/rebuild durable rows to "heal" StageId filters — rewrite can corrupt Utc.
+    /// Dig/list/review use <see cref="StageEventsForStage"/> (client Guid match) instead.
     /// </summary>
     public void EnsureStageEventsTable()
     {
-        WithDb(db =>
-        {
-            CreateStageEventsV2Table(db);
-            HealStageEventsStageIdFilterIfBroken(db);
-        });
+        WithDb(CreateStageEventsV2Table);
     }
 
     static void CreateStageEventsV2Table(IntentWorkspaceDbContext db)
@@ -45,45 +43,8 @@ internal sealed partial class IntentWorkspaceStore
     }
 
     /// <summary>
-    /// Live WitDB can keep a stage_events_v2 where materialize+Guid equality works
-    /// but server-side Where(StageId==guid) returns empty (bytes equal client-side).
-    /// Rebuild table from materialized rows so dig/list/review open counts work.
-    /// </summary>
-    static void HealStageEventsStageIdFilterIfBroken(IntentWorkspaceDbContext db)
-    {
-        var sample = db.StageEvents.OrderByDescending(e => e.Utc).FirstOrDefault();
-        if (sample is null)
-            return;
-        var server = db.StageEvents.Count(e => e.StageId == sample.StageId);
-        if (server > 0)
-            return;
-
-        var rows = db.StageEvents.AsEnumerable()
-            .Select(e => new StageEventEntity
-            {
-                Id = e.Id,
-                StageId = e.StageId,
-                Utc = e.Utc,
-                Kind = e.Kind,
-                Source = e.Source,
-                Summary = e.Summary,
-                Ref = e.Ref
-            })
-            .ToList();
-        db.ChangeTracker.Clear();
-        db.Database.ExecuteSqlRaw("DROP TABLE IF EXISTS stage_events_v2;");
-        CreateStageEventsV2Table(db);
-        db.StageEvents.AddRange(rows);
-        if (db.SaveChanges() < rows.Count)
-            throw new InvalidOperationException("stage_events_v2 heal SaveChanges under-wrote rows");
-        db.ChangeTracker.Clear();
-        if (db.StageEvents.Count(e => e.StageId == sample.StageId) == 0)
-            throw new InvalidOperationException(
-                "stage_events_v2 StageId filter still broken after heal — dig will stay empty");
-    }
-
-    /// <summary>
-    /// Prefer client StageId match: OutWit server Where(StageId) can lie on durable DBs.
+    /// Client StageId match: OutWit server Where(StageId==guid) can return empty on durable
+    /// WitDB while materialize+Guid equality still works (bytes equal).
     /// </summary>
     static List<StageEventEntity> StageEventsForStage(IntentWorkspaceDbContext db, Guid stageId) =>
         db.StageEvents.AsEnumerable().Where(e => e.StageId == stageId).ToList();
