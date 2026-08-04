@@ -99,4 +99,15 @@ public sealed class IdeGlassSurfaceChannelTests
         Assert.Contains("palette", set);
         Assert.Contains("action", set);
     }
+
+    [Fact]
+    public void Scene_includes_shared_ssot_shape()
+    {
+        var json = IdeGlassSurfaceChannel.HandleJson(new SessionContext(), null);
+        using var doc = JsonDocument.Parse(json);
+        Assert.True(doc.RootElement.TryGetProperty("shared_ssot", out var ssot));
+        Assert.True(ssot.TryGetProperty("next", out _));
+        Assert.True(ssot.TryGetProperty("why", out _));
+        Assert.True(ssot.TryGetProperty("active", out _));
+    }
 }
