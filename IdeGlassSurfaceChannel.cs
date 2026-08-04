@@ -107,7 +107,7 @@ internal static class IdeGlassSurfaceChannel
             implemented = Implemented.OrderBy(x => x).ToArray(),
             planned = Array.Empty<string>(),
             hint =
-                "shared_ssot = Plan NEXT+WHY + file_situ (path/why_this_file/blast/role_in_graph) (+ land). RPC: op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required for RPC."
+                "shared_ssot = Plan NEXT+WHY + file_situ (path/why_this_file/blast/role_in_graph/diff_intent) (+ land). RPC: op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required for RPC."
         };
     }
 
@@ -120,7 +120,8 @@ internal static class IdeGlassSurfaceChannel
                 path = (string?)null,
                 why_this_file = (string?)null,
                 blast = Array.Empty<string>(),
-                role_in_graph = (object?)null
+                role_in_graph = (object?)null,
+                diff_intent = (object?)null
             };
         }
 
@@ -133,14 +134,106 @@ internal static class IdeGlassSurfaceChannel
 
         var blast = CollectSameStemBlast(workspaceRoot, editorPath, max: 3);
         var role = BuildRoleInGraph(workspaceRoot, editorPath);
+        var diff = BuildDiffIntent(workspaceRoot, editorPath);
 
         return new
         {
             path = editorPath,
             why_this_file = whyThisFile,
             blast,
-            role_in_graph = role
+            role_in_graph = role,
+            diff_intent = diff
         };
+    }
+
+    static object BuildDiffIntent(string? workspaceRoot, string editorPath)
+    {
+        // Human-face summary only — not raw unified dump (raw_diff_as_primary).
+        try
+        {
+            if (!File.Exists(editorPath))
+                return new { line = "", added = 0, deleted = 0, hunks = 0, clean = true, untracked = false };
+
+            var root = FindGitRoot(editorPath) ?? (string.IsNullOrWhiteSpace(workspaceRoot) || !Directory.Exists(workspaceRoot)
+                ? Path.GetDirectoryName(editorPath)
+                : Path.GetFullPath(workspaceRoot.Trim()));
+            if (string.IsNullOrWhiteSpace(root))
+                return new { line = "NO-GIT", added = 0, deleted = 0, hunks = 0, clean = true, untracked = false };
+
+            string rel;
+            try { rel = Path.GetRelativePath(root, editorPath).Replace('\\', '/'); }
+            catch { return new { line = "NO-GIT", added = 0, deleted = 0, hunks = 0, clean = true, untracked = false }; }
+
+            // Lightweight: porcelain + word-count style via git diff --numstat
+            var porcelain = RunGit(root, "status", "--porcelain=v1", "--", rel);
+            if (porcelain.StartsWith("??", StringComparison.Ordinal))
+                return new { line = "UNTRACKED", added = 0, deleted = 0, hunks = 0, clean = false, untracked = true };
+
+            var numstat = RunGit(root, "diff", "HEAD", "--numstat", "--", rel);
+            if (string.IsNullOrWhiteSpace(numstat))
+                return new { line = "CLEAN", added = 0, deleted = 0, hunks = 0, clean = true, untracked = false };
+
+            var parts = numstat.Trim().Split('\t', StringSplitOptions.RemoveEmptyEntries);
+            var added = parts.Length > 0 && int.TryParse(parts[0], out var a) ? a : 0;
+            var deleted = parts.Length > 1 && int.TryParse(parts[1], out var d) ? d : 0;
+            var line = $"+{added} −{deleted}";
+            return new { line, added, deleted, hunks = added + deleted > 0 ? 1 : 0, clean = added == 0 && deleted == 0, untracked = false };
+        }
+        catch
+        {
+            return new { line = "DIFF-ERR", added = 0, deleted = 0, hunks = 0, clean = true, untracked = false };
+        }
+    }
+
+    static string? FindGitRoot(string editorPath)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(Path.GetFullPath(editorPath));
+            while (!string.IsNullOrWhiteSpace(dir))
+            {
+                if (Directory.Exists(Path.Combine(dir, ".git")) || File.Exists(Path.Combine(dir, ".git")))
+                    return dir;
+                dir = Path.GetDirectoryName(dir);
+            }
+        }
+        catch
+        {
+            /* ignore */
+        }
+
+        return null;
+    }
+
+    static string RunGit(string root, params string[] args)
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "git",
+                WorkingDirectory = root,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
+            psi.ArgumentList.Add("-C");
+            psi.ArgumentList.Add(root);
+            foreach (var a in args)
+                psi.ArgumentList.Add(a);
+            using var p = System.Diagnostics.Process.Start(psi);
+            if (p is null)
+                return "";
+            var stdout = p.StandardOutput.ReadToEnd();
+            _ = p.StandardError.ReadToEnd();
+            p.WaitForExit(15_000);
+            return stdout.Trim();
+        }
+        catch
+        {
+            return "";
+        }
     }
 
     static object BuildRoleInGraph(string? workspaceRoot, string editorPath)
