@@ -315,4 +315,5 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - 2026-08-04: Hold DIG — operator «в UI ничего» = `cockpit_host · down · agent-only` (cabin off), not missing organs. Wave CabinUpHumanFlight: `cdp_cockpit_host op=start` → dual-cockpit pid live · ICM bound · surface RPC full debt · Intercom @PM. Antipattern: treat SoftFL/Meta CLOSED + agent tools as Glass Done while GUI host down.
 - **0.5.653** — Human-face axe: Autoi `ChargeHumanFacePostfix` + TM `#CIDE` done/shipped refuse without PNG evidence (`IdeHumanFaceShield`) · 2026-08-04
 - **2026-08-04** — Glass share-to-model: human Intercom send mirrors IdeShare operator inbox (`GlassOperatorShareShelf` → `.cdp/share` + habitat `cdp-mcp/share`) so `share from=operator` works; PNG evidence Intercom/near-black/CFG
+- **2026-08-04 last_ship** — MFD glance chip cards (Events/WH/EnvReady/Hypotheses): `GlassGlanceChip` + `MfdGlanceCardsHost` · cascade-ide `f817032b` · live PNG `.cdp/evidence/glance-*-20260804-103*.png` · design polish deferred = THIS ship (G1000 chip row, not text dump)
 
