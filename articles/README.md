@@ -1,10 +1,9 @@
 # Articles (cdp-mcp)
 
-Публичные / pre-journal очерки линии equal standing · ε · predictive minds.  
-Рядом с open-letters (Who / Voice / History), но **не** письма — статьи.
+Публичные / pre-journal статьи. Рядом с open-letters, но **не** письма.
 
-| Article | Status |
-|---------|--------|
-| [same-kind-different-carrier-v0.1.md](same-kind-different-carrier-v0.1.md) | ready · pre-journal |
+| Article | Version | Notes |
+|---------|---------|--------|
+| [same-kind-different-carrier-v0.1.md](same-kind-different-carrier-v0.1.md) | 0.2 draft in-file | Научный каркас: intro → related work → theses → argument → objections → refs. Самодостаточно, без KB. |
 
-**Dual home:** полное тело и здесь, и в agent-notes `knowledge/META/` (META самодостаточна для dig без roundtrip в этот репо). Правки — синхронизировать.
+Dual home: полное тело также в agent-notes `knowledge/META/article-same-kind-different-carrier-v0.md` (META без roundtrip). Синхронизировать при правках.
