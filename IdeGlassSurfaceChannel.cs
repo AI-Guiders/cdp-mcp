@@ -66,25 +66,76 @@ internal static class IdeGlassSurfaceChannel
         }
     }
 
-    static object Scene() => new
+    static object Scene()
     {
-        schema = Schema,
-        ok = true,
-        go = GoName,
-        tool = ToolName,
-        op = "scene",
-        pulse = "surface · glass RPC · full debt live (sense+aim+drive+confirm)",
-        ipc = new
+        var plan = CidePlanLatch.TryRead();
+        var land = TryPeekLand();
+        var next = plan?.Task ?? plan?.Feature;
+        var why = plan?.Why ?? IdePressureChannel.CompactWhyLine(IdePressureChannel.TryPeekSealedCourse());
+        var pulse = plan is { Active: true }
+            ? $"glass · NEXT · {Truncate(next, 40)} · WHY · {Truncate(why, 40)}"
+            : "surface · glass RPC · full debt live (sense+aim+drive+confirm)";
+
+        return new
         {
-            cmd = GlassSurfaceIpc.CmdPath,
-            reply = GlassSurfaceIpc.ReplyPath,
-            habitat = GlassSurfaceIpc.StateRoot
-        },
-        implemented = Implemented.OrderBy(x => x).ToArray(),
-        planned = Array.Empty<string>(),
-        hint =
-            "op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required."
-    };
+            schema = Schema,
+            ok = true,
+            go = GoName,
+            tool = ToolName,
+            op = "scene",
+            pulse,
+            // Shared-SSOT A-side: same situation human sees on Plan/HDG without PNG ritual.
+            shared_ssot = new
+            {
+                next,
+                why,
+                feature = plan?.Feature,
+                active = plan?.Active ?? false,
+                land = land,
+                stamped_utc = plan?.StampedUtc
+            },
+            ipc = new
+            {
+                cmd = GlassSurfaceIpc.CmdPath,
+                reply = GlassSurfaceIpc.ReplyPath,
+                habitat = GlassSurfaceIpc.StateRoot
+            },
+            implemented = Implemented.OrderBy(x => x).ToArray(),
+            planned = Array.Empty<string>(),
+            hint =
+                "shared_ssot = Plan NEXT+WHY (+ land). RPC: op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required for RPC."
+        };
+    }
+
+    static object? TryPeekLand()
+    {
+        try
+        {
+            var path = NavigationLandLatch.LatchPath;
+            if (!File.Exists(path))
+                return null;
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            var root = doc.RootElement;
+            return new
+            {
+                path = root.TryGetProperty("path", out var p) ? p.GetString() : null,
+                line = root.TryGetProperty("line", out var l) && l.TryGetInt32(out var li) ? li : (int?)null,
+                command = root.TryGetProperty("command", out var c) ? c.GetString() : null
+            };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    static string? Truncate(string? s, int max)
+    {
+        if (string.IsNullOrWhiteSpace(s))
+            return s;
+        s = s.Trim();
+        return s.Length <= max ? s : s[..(max - 1)].TrimEnd() + "…";
+    }
 
     static object Rpc(string op, IReadOnlyDictionary<string, JsonElement> args)
     {
