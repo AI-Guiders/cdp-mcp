@@ -21,6 +21,7 @@ internal static partial class IdeTaskManager
 
         IdeHumanFaceShield.RefuseCideDoneWithoutShot(store, id.Value, args);
         IdeWorldDigShield.RefuseInventMillDoneWithoutDig(store, id.Value, args);
+        IdeReviewShield.RefuseDoneWithOpenReviews(store, id.Value, args);
 
         var wasActive = state.ActiveStageId == id;
         var r = store.StageSetStatus(state, id.Value, "done");
@@ -123,6 +124,7 @@ internal static partial class IdeTaskManager
 
         IdeHumanFaceShield.RefuseCideDoneWithoutShot(store, id.Value, args);
         IdeWorldDigShield.RefuseInventMillDoneWithoutDig(store, id.Value, args);
+        IdeReviewShield.RefuseDoneWithOpenReviews(store, id.Value, args);
 
         IdeStageCycle.TryPhaseComplete(); // close open phase segment before clock end
         var startedImplicit = false;

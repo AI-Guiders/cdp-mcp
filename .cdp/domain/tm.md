@@ -16,14 +16,17 @@
 - Soft-warn FileLinesWarn=400; `IntentWorkspaceStore` is `partial` by concern (Core/Intent/Stage/Scene/Persist/Find + Leaf/StageCriteria(+Norm)/StageEvents/StageProduct).
 - WitDB path = `StateRoot/{seat}/intent-workspace.witdb` (per-seat; dual seats never share FileShare.None). Primary `cdp` once Moves legacy flat file.
 - **All store DB I/O via `WithDb`** (file Mutex + in-proc Lock + transient retry). Never bare `Open()` for Status/Scene*/Stage* — concurrent desk readers race FileShare.None (fixed 0.5.623).
+- **Review Results** (operator remarks): `cmd=review <text>|list|ack <id>` (alias remark|rr) — durable stage_events on open leaf; pulse `review×N`; `done`/`shipped` soft-refuse while open (`IdeReviewShield`, force= escape). Dialog stays dialog — agent stamps; dig before Done. SoftOrgan `review files|open` unchanged.
 
 ## Entry
 
 - Cockpit `cmd=` / `go=plan`
-- `IdeTaskManager.Dispatch` · `Mutations.Feature|Task.*` · `IntentWorkspaceStore.Leaf`
+- `IdeTaskManager.Dispatch` · `Mutations.Feature|Task.*` · `IntentWorkspaceStore.Leaf` · `StageEvents.Review` · `IdeReviewShield`
 
 ## Antipatterns
 
+- Glass form roundtrip for operator remarks when dialog + TM stamp already carry the remark.
+- Treating SoftOrgan `go=review` (code-review desk) as Review Results — TM is `review <remark>` / `review list`.
 - `feature` with `@phase/#Product` must not dedupe onto a bare-title twin (chrome query → create tagged or match chrome-bearing only) @ 0.5.553+.
 - Intent unique-prefix CLOSED @ 0.5.648 — Dig densest SoftFL… stems; truncated title must not FeatureDone/focus onto content twin. Stages keep unique prefix (slash-title seed).
 - Asking operator how focus/done works without reading Leaf + Mutations.
@@ -33,6 +36,7 @@
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
+- **2026-08-05 Review Results MLP** — operator remarks on leaf (`review`/`remark`/`rr`) · open dig · ack · done refuse `open_operator_reviews` · SoftOrgan `review files` narrowed · tests IdeTaskManagerReviewTests
 - **2026-08-04 SickLeaveNight648 mid** — ignite hygiene + glass DIG REJECT reopen; product dig PathMutate vs Autoi duplex seeded.
 - **2026-08-04 invent DIG FindIntent648** — DIG REJECT SoftFL/Meta/Citizen/OOM-eol reopen; DIG ACCEPT densest = throughput-wave idle → SickLeaveNight648 (ignite stale-arms → CIDE/glass citizen15 → product wave).
 - **2026-08-04 Dig FindIntent@0.5.648** — DIG REJECT SoftFL/Meta/Citizen reopen; DIG ACCEPT board CLOSED hygiene under FeatureDone@0.5.647 + FindIntent unique-prefix CLOSED; inventory sole gap = throughput-wave idle; BoardClosedHygiene648 1/4 (Meta defer/BATCH/SoftFL peel shipped; Dig FindIntent feature shipped).

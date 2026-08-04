@@ -71,15 +71,16 @@ internal static partial class IdeTaskManager
         return $" · wall …{FormatWallElapsed(started.Value, now)}";
     }
 
-    /// <summary>wait/fail/note pointers — SA diagnostic composition of wall, not a score.</summary>
-    internal static string FormatEventCountsSuffix(int wait, int fail, int note)
+    /// <summary>wait/fail/note/review pointers — SA diagnostic composition of wall, not a score.</summary>
+    internal static string FormatEventCountsSuffix(int wait, int fail, int note, int review = 0)
     {
-        if (wait == 0 && fail == 0 && note == 0)
+        if (wait == 0 && fail == 0 && note == 0 && review == 0)
             return "";
         var parts = new List<string>();
         if (wait > 0) parts.Add($"wait×{wait}");
         if (fail > 0) parts.Add($"fail×{fail}");
         if (note > 0) parts.Add($"note×{note}");
+        if (review > 0) parts.Add($"review×{review}");
         return " · " + string.Join(' ', parts);
     }
 

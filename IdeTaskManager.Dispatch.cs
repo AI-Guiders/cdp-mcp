@@ -54,6 +54,7 @@ internal static partial class IdeTaskManager
             "complete_phase" or "phase_complete" or "end_phase" => TaskPhaseComplete(store, state, args),
             "events" or "event_list" => TaskEvents(store, state, args),
             "note" or "event_note" => TaskEventNote(store, state, args),
+            "review" or "reviews" or "review_results" => TaskReview(store, state, args),
             "criteria" or "criterion_list" => TaskCriteriaList(store, state, args),
             "criterion" or "criterion_add" => TaskCriterionSmart(store, state, args),
             "criterion_met" => TaskCriterionSetStatus(store, state, WithStatus(args, "met")),
@@ -92,7 +93,7 @@ internal static partial class IdeTaskManager
                 Opt(args, "plan_id") ?? OptGoArg(args, "plan_id"),
                 reject: true),
             _ => throw new ArgumentException(
-                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|await_operator|start_phase|complete_phase|events|note|criteria|criterion|change_plan|leftover|product|category|wave|share|report|promote|confirm|reject.")
+                $"unknown task op '{op}'. Use board|feature|task|focus|done|park|defer|drop|start|shipped|await_operator|start_phase|complete_phase|events|note|review|criteria|criterion|change_plan|leftover|product|category|wave|share|report|promote|confirm|reject.")
         };
 
     static IReadOnlyDictionary<string, JsonElement> WithStatus(
