@@ -239,7 +239,7 @@ public partial class IdeIgniteAutonomousTests
         Assert.Equal(TimeSpan.FromMinutes(3), inventHoldLong);
         Assert.Equal("3m(invent_only_hold)", inventHoldLongNote);
 
-        // Partner-away wins over leaf-fly for the note tag.
+        // Partner-away wins over leaf-fly for the note tag — except invent-only Hold (≤3m).
         var awayWins = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(
             TimeSpan.FromMinutes(45),
             lastOnce: true,
@@ -250,6 +250,18 @@ public partial class IdeIgniteAutonomousTests
             leafFlying: true);
         Assert.Equal(TimeSpan.FromSeconds(3), awayWins);
         Assert.Equal("3s(hild_away)", awayWinsNote);
+
+        var inventHoldAway = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(
+            TimeSpan.FromMinutes(3),
+            lastOnce: true,
+            autonomous: true,
+            force: false,
+            out var inventHoldAwayNote,
+            partnerAway: true,
+            leafFlying: true,
+            inventOnlyHold: true);
+        Assert.Equal(TimeSpan.FromMinutes(3), inventHoldAway);
+        Assert.Null(inventHoldAwayNote);
     }
 
     [Fact]
