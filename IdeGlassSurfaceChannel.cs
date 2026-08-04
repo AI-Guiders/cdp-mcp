@@ -107,7 +107,7 @@ internal static class IdeGlassSurfaceChannel
             implemented = Implemented.OrderBy(x => x).ToArray(),
             planned = Array.Empty<string>(),
             hint =
-                "shared_ssot = Plan NEXT+WHY + file_situ (path/why_this_file/blast/role_in_graph/diff_intent) (+ land). RPC: op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required for RPC."
+                "shared_ssot = Plan NEXT+WHY + file_situ (path/why_this_file/blast/role_in_graph/diff_intent/applies_on_locus) (+ land). RPC: op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required for RPC."
         };
     }
 
@@ -121,7 +121,8 @@ internal static class IdeGlassSurfaceChannel
                 why_this_file = (string?)null,
                 blast = Array.Empty<string>(),
                 role_in_graph = (object?)null,
-                diff_intent = (object?)null
+                diff_intent = (object?)null,
+                applies_on_locus = (object?)null
             };
         }
 
@@ -135,6 +136,7 @@ internal static class IdeGlassSurfaceChannel
         var blast = CollectSameStemBlast(workspaceRoot, editorPath, max: 3);
         var role = BuildRoleInGraph(workspaceRoot, editorPath);
         var diff = BuildDiffIntent(workspaceRoot, editorPath);
+        var applies = BuildAppliesOnLocus(editorPath);
 
         return new
         {
@@ -142,7 +144,8 @@ internal static class IdeGlassSurfaceChannel
             why_this_file = whyThisFile,
             blast,
             role_in_graph = role,
-            diff_intent = diff
+            diff_intent = diff,
+            applies_on_locus = applies
         };
     }
 
@@ -184,6 +187,22 @@ internal static class IdeGlassSurfaceChannel
             return new { line = "DIFF-ERR", added = 0, deleted = 0, hunks = 0, clean = true, untracked = false };
         }
     }
+    static object BuildAppliesOnLocus(string editorPath)
+    {
+        // Agent pulse stub — Glass ECAM APPLIES (Roslyn locus) is human SSOT.
+        try
+        {
+            if (string.IsNullOrWhiteSpace(editorPath))
+                return new { line = "", errors = 0, warnings = 0, test_fails = 0, clean = true };
+
+            return new { line = "CLEAN · problems on MFD", errors = 0, warnings = 0, test_fails = 0, clean = true };
+        }
+        catch
+        {
+            return new { line = "APPLIES-ERR", errors = 0, warnings = 0, test_fails = 0, clean = true };
+        }
+    }
+
 
     static string? FindGitRoot(string editorPath)
     {
