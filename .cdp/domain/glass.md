@@ -20,7 +20,7 @@
 
 ## Entry
 
-- WPF: `LatchHub` · `EicasBandAggregator` · `LatchPaint` (seats+land+shared+disk+ignite-wake) · `MainWindow.SeatsSurface` · `MainWindow.LandSurface` · `MainWindow.SharedSurface` · `MainWindow.DiskSurface` · `MainWindow.IgniteWakeSurface`
+- WPF: `LatchHub` · `MainWindow.IntercomHud` (Korry AUTOI/HILD/VAD + HDG/CRS) · `EicasBandAggregator` · `LatchPaint` (seats+land+shared+disk+ignite-wake) · `MainWindow.SeatsSurface` · `MainWindow.LandSurface` · `MainWindow.SharedSurface` · `MainWindow.DiskSurface` · `MainWindow.IgniteWakeSurface`
 - Avalonia: `CdpEclProjector` · alert/qrh projectors
 - CDP: `Cide*Latch` · `CabinGlassProjectionCatalog` · `CockpitHostLatchHydration`
 
@@ -37,7 +37,7 @@
 - Treat Glass Ctrl+Q `c:` as GlassChord-only aliases — SSOT is `IntentMelody/intent-catalog.toml` via `GlassIntentMelodyCatalog`; chords stay on Ctrl+K.
 - Mapping `mcp` SoftOrgan → MFD `Chat` (Chat = Intercom/citizen; MCP settings = AiChatSettings).
 - Festive per-zone accents (cyan P / gold F / purple M) — Dark Cockpit violation; geography by label, color only on deviation (ON GND / select / EICAS).
-- Autoi wake charge as Intercom chat bubble / compact chip — SoftOrgan tip + StatusText + `ignite-wake-LATEST` is the human panel; Glass filters Autoi from feed (`GlassAutoiWakeFeed`). Habitat Intercom publish for CDP skip-CDT may still exist — projector must not paint it as chat.
+- Autoi wake charge as Intercom chat bubble / compact chip — SoftOrgan tip + StatusText + `ignite-wake-LATEST` is the wake panel; **Intercom HUD** paints AUTOI/HILD Korry + HDG/CRS from `ignite-LATEST` (not chat). Glass filters Autoi from feed (`GlassAutoiWakeFeed`).
 - **enforce `raw_diff_as_primary`:** ship Git/Glass UI with raw unified diff as human primary → soft-refuse until human face (files/hunks/tint). Dump legal ⇒ think optional.
 - **enforce `glass_ship_without_human_shot`:** `#CIDE` `done`/`shipped` without `evidence=.png` | `shot=true` → `IdeHumanFaceShield` refuse (`human_face_cide_shot`); `force=true` escape only.
 - **enforce `autoi_as_chat`:** Autoi wake as Intercom chat — already filtered; do not re-teach via chat.
@@ -171,6 +171,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-04 Intercom HUD v0** — flat Korry AUTOI/HILD/VAD + HDG/CRS from `ignite-LATEST` (`autonomous`/`hild`/`course`); Glass→`ignite-cmd-LATEST` toggle bridge; model picker at Composer. GlassCore `GlassIntercomHud` 3/3 · MCP latch/cmd 4/4 · Glass Release build green. Eyes dogfood pending (not Product Ready).
 - **2026-08-04 Autoi off Intercom feed** — wake charge is SoftOrgan tip / StatusText / ignite-wake latch only; Glass filters Autoi from Intercom journal paint (`GlassAutoiWakeFeed`). Tip `5dd071cf`.
 - **2026-08-04 Glass Git tint** — MFD Diff: FlowDocument +/-/@@/meta + add/delete row bg (`GlassGitDiffFlowDocument`); status list Tone (M amber / ?? blue-gray). Verify: `tmp-glass-shots/glass-mfd-diff-highlight-verify.png`. Tip `7479f3c3`. Prior VisualAttentionAxB (P/F/M ignore) stays closed.
 - **2026-08-04 VisualAttentionAxB CLOSED** — P plan-LATEST (feature/task/wall, no «TM later») · F Autoi wake compact chip · M gitignore check-ignore (`9 rows · 6 ignored`, not ~599 dll). Webcam verify: `tmp-glass-shots/glass-{pfd,fwd,mfd}-verify.png`. Tips `48714f14`/`d1709107`. Human review = screenshots, not chat diffs.
