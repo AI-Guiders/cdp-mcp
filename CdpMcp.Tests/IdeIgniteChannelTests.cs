@@ -55,7 +55,8 @@ public class IdeIgniteChannelTests
         Assert.Contains("Empty TM", charge, StringComparison.Ordinal);
         Assert.Contains(IdeIgniteChannel.ChargeHumanFacePostfix.Trim(), charge, StringComparison.Ordinal);
         Assert.Contains("Human-face axe", charge, StringComparison.Ordinal);
-        Assert.Contains("evidence=.png", charge, StringComparison.Ordinal);
+        Assert.Contains("evidence=path.png", charge, StringComparison.Ordinal);
+        Assert.Contains("shot=true bool alone illegal", charge, StringComparison.Ordinal);
         Assert.Contains("viewer?", charge, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Not resume-and-invent", charge, StringComparison.Ordinal);
     }
