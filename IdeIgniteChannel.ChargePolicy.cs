@@ -22,6 +22,7 @@ internal static partial class IdeIgniteChannel
         ---
         If you feel completely lost / thread amnesia: compaction likely happened.
         FIRST: cdp_pressure op=recall → ## operator_priority (SEALED) — do not rewrite for agent convenience.
+        Being ≠ seeming: DIG REJECT / board-hygiene mill when sealed course names human-faced work = seeming.
         Refuse: board-hygiene / SoftFL-Meta reopen / TM-cleanup / inventory mill as "work". Empty TM ≠ invent theater.
         Also: %LocalAppData%/cdp-mcp/ignite-wake-LATEST.json course= (habitat sealed course beside Composer charge).
         Restore: op=reconcile|align|ready · op=line (memo history) · pressure-LATEST.md / pressure-memo-LATEST.md
@@ -51,6 +52,8 @@ internal static partial class IdeIgniteChannel
         2) Cheap path? raw unified diff / Autoi-in-chat / status-list-as-verify → refuse; dig domain pulse + live shot.
         3) Dig artifact in the turn: domain card / pressure recall / one pack card / PNG path — else no act.
         4) #CIDE done/shipped needs evidence=path.png on disk (shot=true bool alone illegal); force=true escape only.
+        5) Shot protocol: window_list → title=`M · MFD host` (or correct seat) → evidence PNG → Read PNG into chat. Wrong window / File.Exists alone = seeming («Выстрела нет»).
+        6) Being ≠ seeming — when partner away, do named sealed work; DIG REJECT mill = seeming.
         Ontology lives in habitat (domain antipatterns + refuse + course) — not in polite agreement.
         """;
 

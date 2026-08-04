@@ -45,6 +45,7 @@ public sealed class IdePressureSealedCourseTests : IDisposable
         Assert.Contains("Viewer?", course, StringComparison.Ordinal);
         Assert.Contains("Before act", course, StringComparison.Ordinal);
         Assert.Contains("Glass Done", course, StringComparison.Ordinal);
+        Assert.Contains("Being ≠ seeming", course, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -55,6 +56,22 @@ public sealed class IdePressureSealedCourseTests : IDisposable
         Assert.NotNull(course);
         Assert.Contains("Viewer?", course!, StringComparison.Ordinal);
         Assert.Contains("Cheap path?", course, StringComparison.Ordinal);
+        Assert.Contains("Being ≠ seeming", course, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void EnsureCourseCriteria_appends_being_when_criteria_present()
+    {
+        var course = IdePressureChannel.EnsureCourseCriteria(
+            """
+            ## operator_priority (SEALED)
+            1. Glass Done
+            Before act (not resume-and-invent):
+            - Viewer? human eyes vs agent text
+            """);
+        Assert.NotNull(course);
+        Assert.Contains("Being ≠ seeming", course!, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("File.Exists alone", course, StringComparison.Ordinal);
     }
 
     [Fact]
