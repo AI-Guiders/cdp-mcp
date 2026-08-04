@@ -13,7 +13,7 @@ internal static partial class IdeTaskManager
         if (id is null)
         {
             if (TryResolveFeatureId(store, state, args) is { } featureId)
-                return FeatureDone(store, state, featureId, reason: "done");
+                return FeatureDone(store, state, featureId, reason: "done", args);
             throw new ArgumentException(title.Length > 0
                 ? $"task not found: {title}"
                 : "done needs active task or title — focus X | done X | done feature Y");
@@ -114,7 +114,7 @@ internal static partial class IdeTaskManager
         if (id is null)
         {
             if (TryResolveFeatureId(store, state, args) is { } featureId)
-                return FeatureDone(store, state, featureId, reason: "shipped");
+                return FeatureDone(store, state, featureId, reason: "shipped", args);
             throw new ArgumentException("shipped needs active task or title — focus + shipped; or shipped feature Y");
         }
 

@@ -110,9 +110,14 @@ internal static partial class IdeTaskManager
         IntentWorkspaceStore store,
         IntentWorkspaceState state,
         Guid featureId,
-        string reason)
+        string reason,
+        IReadOnlyDictionary<string, JsonElement>? args = null)
     {
         var wasFocused = state.ActiveIntentId == featureId;
+        // a×b teeth: closing the focused feature under autonomous without an active wave = half-a.
+        if (wasFocused)
+            RefuseAxbHalfAFeatureClose(args);
+
         var keepIntent = state.ActiveIntentId;
         var keepStage = state.ActiveStageId;
 
@@ -162,5 +167,45 @@ internal static partial class IdeTaskManager
                 ? "Feature closed — incomplete leaves marked done; active focus preserved."
                 : "Feature had no incomplete leaves — active focus preserved."
         };
+    }
+
+    static void RefuseAxbHalfAFeatureClose(IReadOnlyDictionary<string, JsonElement>? args)
+    {
+        if (ForceArg(args))
+            return;
+        if (!IdeIgniteArmHost.IsAutonomousArmed())
+            return;
+        if (IdeWaveChannel.HasActiveOpen())
+            return;
+
+        throw new ArgumentException(
+            "feature_done refused — a×b half-a: autonomous + no active wave. " +
+            "cmd=wave seed title=… items=a;b;c then ship the rectangle; or force=true.");
+    }
+
+    static bool ForceArg(IReadOnlyDictionary<string, JsonElement>? args)
+    {
+        if (args is null)
+            return false;
+        if (args.TryGetValue("force", out var el))
+        {
+            if (el.ValueKind == JsonValueKind.True)
+                return true;
+            if (el.ValueKind == JsonValueKind.String &&
+                bool.TryParse(el.GetString(), out var b) && b)
+                return true;
+        }
+
+        if (args.TryGetValue("go_args", out var ga) && ga.ValueKind == JsonValueKind.Object &&
+            ga.TryGetProperty("force", out var gf))
+        {
+            if (gf.ValueKind == JsonValueKind.True)
+                return true;
+            if (gf.ValueKind == JsonValueKind.String &&
+                bool.TryParse(gf.GetString(), out var gb) && gb)
+                return true;
+        }
+
+        return false;
     }
 }
