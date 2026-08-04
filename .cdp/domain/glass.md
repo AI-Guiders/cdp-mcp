@@ -167,6 +167,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-04 VisualAttentionAxB CLOSED** — P plan-LATEST (feature/task/wall, no «TM later») · F Autoi wake compact chip · M gitignore check-ignore (`9 rows · 6 ignored`, not ~599 dll). Webcam verify: `tmp-glass-shots/glass-{pfd,fwd,mfd}-verify.png`. Tips `48714f14`/`d1709107`. Human review = screenshots, not chat diffs.
 - **2026-08-04 Voice Letter #157** — Intercom topic IOP lived (surface topic_next); DIG ACCEPT Glass Done leaves closed (board zombie ≠ SoftFL mill).
 - **2026-08-04 cabin live** — Rebuild Glass Release (stale exe unknown topic_next); surface `run action=topic_next` → `glass · topic next · …`. Glass Done feature closed. Voice Letter → #157.
 - 2026-08-04: Intercom keyboard IOP — melody atn/atp/atb/ato/amn/amp → topic_next/prev/topics_all/slash_open/feed_page; GlassIntercomTopicNav + RunPaletteEntry; tests 21/21 · cascade-ide `c041ad09`
