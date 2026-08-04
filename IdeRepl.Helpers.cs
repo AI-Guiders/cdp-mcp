@@ -6,6 +6,26 @@ namespace CdpMcp;
 
 internal static partial class IdeRepl
 {
+    /// <summary>
+    /// Merge patch keys into existing cockpit <c>go_args</c> (preserve evidence=/force= for human-face done).
+    /// Plain overwrite of go_args wipes CCL extras — #CIDE shot shield then refuses forever.
+    /// </summary>
+    static void MergeGoArgs(Dictionary<string, JsonElement> merged, object patch)
+    {
+        var ga = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        if (merged.TryGetValue("go_args", out var existing) && existing.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var p in existing.EnumerateObject())
+                ga[p.Name] = p.Value.Clone();
+        }
+
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(patch));
+        foreach (var p in doc.RootElement.EnumerateObject())
+            ga[p.Name] = p.Value.Clone();
+
+        merged["go_args"] = JsonSerializer.SerializeToElement(ga);
+    }
+
     static void ApplyGoArgsOnly(Dictionary<string, JsonElement> merged, IReadOnlyList<string> tokens, int start)
     {
         if (tokens.Count <= start)

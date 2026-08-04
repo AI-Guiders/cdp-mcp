@@ -95,4 +95,23 @@ public sealed class IdeCockpitPlanPulseTests
         Assert.True(IdeCockpit.WantsPlanPulseFastPath("plan", applied.Value.Args));
         Assert.True(IdeCockpit.WantsDeskPulseFastPath(applied.Value.Args));
     }
+
+    [Fact]
+    public void Repl_done_preserves_evidence_and_force_in_go_args()
+    {
+        // Regression: cmd=done used to overwrite go_args and wipe human_face_cide_shot evidence=.
+        const string png = "D:/tmp/glass-verify.png";
+        var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+        {
+            ["cmd"] = JsonSerializer.SerializeToElement("done"),
+            ["go_args"] = JsonSerializer.SerializeToElement(new { evidence = png, force = true })
+        };
+        var applied = IdeRepl.Apply("done", args);
+        Assert.NotNull(applied);
+        Assert.True(applied!.Value.Args.TryGetValue("go_args", out var ga));
+        Assert.Equal(JsonValueKind.Object, ga.ValueKind);
+        Assert.Equal("done", ga.GetProperty("op").GetString());
+        Assert.Equal(png, ga.GetProperty("evidence").GetString());
+        Assert.True(ga.GetProperty("force").GetBoolean());
+    }
 }
