@@ -46,10 +46,13 @@ public class IdeIgniteChannelTests
     {
         var charge = IdeIgniteChannel.ComposeArmFireCharge();
         Assert.Contains(IdeIgniteChannel.CanonicalComposerCharge, charge, StringComparison.Ordinal);
+        Assert.Contains(IdeIgniteChannel.ChargeCoursePointer, charge, StringComparison.Ordinal);
         Assert.Contains("thread amnesia", charge, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("operator_priority", charge, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("cdp_pressure op=recall", charge, StringComparison.Ordinal);
         Assert.Contains("Body recall", charge, StringComparison.Ordinal);
         Assert.Contains("biped", charge, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Empty TM", charge, StringComparison.Ordinal);
     }
 
     [Fact]

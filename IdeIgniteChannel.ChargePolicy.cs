@@ -14,25 +14,36 @@ internal static partial class IdeIgniteChannel
 
     /// <summary>
     /// Honest compaction hint — host may summarize without warning; pairs with cdp_pressure stash + memo line.
+    /// Sealed course lives in pressure + ignite-wake-LATEST.course — not a full dump in Composer (cybersec).
     /// </summary>
     internal const string ChargeAmnesiaPostfix =
         """
 
         ---
         If you feel completely lost / thread amnesia: compaction likely happened.
-        Restore: cdp_pressure op=recall (hot stash → gate pull) · op=reconcile|align|ready · op=line (memo history).
-        Also: %LocalAppData%/cdp-mcp/…/pressure-LATEST.md · pressure-memo-LATEST.md
-        Then: habitat=CDP; re-read pressure axes (AutoIgnition / Task Manager / Domain / next); self-steer on reconcile when SSOT suffices.
+        FIRST: cdp_pressure op=recall → ## operator_priority (SEALED) — do not rewrite for agent convenience.
+        Refuse: board-hygiene / SoftFL-Meta reopen / TM-cleanup / inventory mill as "work". Empty TM ≠ invent theater.
+        Also: %LocalAppData%/cdp-mcp/ignite-wake-LATEST.json course= (habitat sealed course beside Composer charge).
+        Restore: op=reconcile|align|ready · op=line (memo history) · pressure-LATEST.md / pressure-memo-LATEST.md
+        Then: habitat=CDP; re-read pressure axes (sealed course / AutoIgnition / Task Manager / Domain / next); self-steer on reconcile when SSOT suffices.
         Body recall: not one screen — dig/parallel in CDP first, not biped serial. AIDE=body. Narrow leaf without the pipe = regression.
         Hard steer if you catch the mask: you went biped again — you have the pipe and CDP; dig/parallel, not human serial.
         Throughput: fly the wave — list → batch → ship (go=inventory · cmd=wave seed … · go=verify_wave). Soft FileLines CLOSED.
         """;
 
+    /// <summary>
+    /// Short Composer pointer to sealed course — no task/tooling/git body (cybersec-safe).
+    /// Full course stamps into ignite-wake-LATEST.course + pressure stash.
+    /// </summary>
+    internal const string ChargeCoursePointer =
+        "Course: sealed operator_priority in pressure stash — recall first. Empty TM ≠ board hygiene / SoftFL reopen / inventory mill. Drive Glass Done + Citizen Done.";
+
     /// <summary>Provider cyber-policy: scrub shell tokens if legacy/custom text reaches inject.</summary>
     static readonly Regex ShellWord = new(@"\bshell\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     internal static string ComposeArmFireCharge() =>
-        SanitizeComposerCharge(CanonicalComposerCharge + ChargeAmnesiaPostfix);
+        SanitizeComposerCharge(
+            CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix);
 
     /// <summary>Lead line for hard-remount boot wake — agent hears remount provenance, not silent DeskWarm.</summary>
     internal const string RemountInitializedLead =
@@ -44,13 +55,13 @@ internal static partial class IdeIgniteChannel
 
     internal static string ComposeRemountInitializedCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = RemountInitializedLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix;
+        var core = RemountInitializedLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
     internal static string ComposeOomWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = OomWakeLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix;
+        var core = OomWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
@@ -60,7 +71,7 @@ internal static partial class IdeIgniteChannel
 
     internal static string ComposeEscalateWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = EscalateWakeLead + " " + CanonicalComposerCharge + ChargeAmnesiaPostfix;
+        var core = EscalateWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
