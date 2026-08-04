@@ -141,6 +141,12 @@ internal static partial class IdeCockpitHostChannel
     {
         pid = 0;
         error = "";
+        // Cabin must outlive MCP remount: IdeSeatProcessReclaim / KillRunning use
+        // Kill(entireProcessTree). Direct Process.Start keeps Glass as CdpMcp child → quiet-exit.
+        // Stand-in tests (pwsh) stay direct so Start pid == process under Gate.
+        if (IsCabinFamilyExe(exe))
+            return TrySpawnCabinDetached(exe, workDir, argsLine, out pid, out error);
+
         ProcessStartInfo psi = new()
         {
             FileName = exe,
@@ -161,6 +167,60 @@ internal static partial class IdeCockpitHostChannel
 
             pid = proc.Id;
             return true;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// <c>cmd /c start</c> so Glass parent ≠ CdpMcp; then resolve real pid by preferred path.
+    /// </summary>
+    static bool TrySpawnCabinDetached(string exe, string workDir, string? argsLine, out int pid, out string error)
+    {
+        pid = 0;
+        error = "";
+        var comspec = Environment.GetEnvironmentVariable("ComSpec");
+        if (string.IsNullOrWhiteSpace(comspec))
+            comspec = Path.Combine(Environment.SystemDirectory, "cmd.exe");
+
+        var quotedExe = "\"" + exe.Replace("\"", "", StringComparison.Ordinal) + "\"";
+        var argsPart = string.IsNullOrWhiteSpace(argsLine) ? "" : " " + argsLine.Trim();
+        ProcessStartInfo psi = new()
+        {
+            FileName = comspec,
+            Arguments = "/c start \"CDP GlassCockpit\" " + quotedExe + argsPart,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WorkingDirectory = workDir
+        };
+
+        try
+        {
+            using var launcher = Process.Start(psi);
+            if (launcher is null)
+            {
+                error = "detached launcher Process.Start returned null";
+                return false;
+            }
+
+            _ = launcher.WaitForExit(5000);
+            for (var i = 0; i < 40; i++)
+            {
+                var found = FindByExePath(exe);
+                if (found is not null)
+                {
+                    pid = found.Pid;
+                    return true;
+                }
+
+                Thread.Sleep(50);
+            }
+
+            error = "detached cabin started but preferred exe pid not found";
+            return false;
         }
         catch (Exception ex)
         {
