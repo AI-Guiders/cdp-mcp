@@ -8,6 +8,7 @@ namespace CdpMcp;
 /// Last AutoI wake charge → habitat SSOT (not Composer-only spine).
 /// Latch: %LocalAppData%/cdp-mcp/ignite-wake-LATEST.json
 /// Channel: composer (CDT adapter) | habitat (duplex prefer skip-CDT, or autonomous stamp before Guest CDT).
+/// Course: sealed operator_priority from pressure stash (habitat; not dumped into Composer charge).
 /// </summary>
 internal static class IdeIgniteWakeLatch
 {
@@ -56,13 +57,18 @@ internal static class IdeIgniteWakeLatch
         string charge,
         string channel,
         string? reason = null,
-        string? task = null)
+        string? task = null,
+        string? course = null)
     {
         var id = armId?.Trim() ?? "";
         var body = charge?.Trim() ?? "";
         var ch = NormalizeChannel(channel);
         if (id.Length == 0 || body.Length == 0 || ch is null)
             return null;
+
+        var sealedCourse = string.IsNullOrWhiteSpace(course)
+            ? IdePressureChannel.TryPeekSealedCourse()
+            : course.Trim();
 
         try
         {
@@ -73,6 +79,7 @@ internal static class IdeIgniteWakeLatch
                 ArmId = id,
                 Channel = ch,
                 Charge = body,
+                Course = sealedCourse,
                 Reason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim(),
                 Task = string.IsNullOrWhiteSpace(task) ? null : task.Trim(),
                 StampedUtc = DateTimeOffset.UtcNow
@@ -125,6 +132,8 @@ internal static class IdeIgniteWakeLatch
         public string ArmId { get; set; } = "";
         public string Channel { get; set; } = ChannelComposer;
         public string Charge { get; set; } = "";
+        /// <summary>Sealed operator_priority from pressure — habitat course, not Composer dump.</summary>
+        public string? Course { get; set; }
         public string? Reason { get; set; }
         public string? Task { get; set; }
         public DateTimeOffset StampedUtc { get; set; }
