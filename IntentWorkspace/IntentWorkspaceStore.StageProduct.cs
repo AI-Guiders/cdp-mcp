@@ -37,6 +37,14 @@ internal sealed partial class IntentWorkspaceStore
         });
     }
 
+    /// <summary>Title + Product peek for human-face shield (no focus mutate).</summary>
+    public (string Title, string? Product)? TryGetStageTitleProduct(Guid stageId) =>
+        WithDb(db =>
+        {
+            var e = db.Stages.AsNoTracking().FirstOrDefault(x => x.Id == stageId);
+            return e is null ? ((string Title, string? Product)?)null : (e.Title, e.Product);
+        });
+
     /// <summary>Normalize freeform product/category tags. Known: Cursor|CDP|CIDE. clear/- → null.</summary>
     internal static string? NormalizeProduct(string? raw)
     {

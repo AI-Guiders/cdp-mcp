@@ -19,6 +19,8 @@ internal static partial class IdeTaskManager
                 : "done needs active task or title — focus X | done X | done feature Y");
         }
 
+        IdeHumanFaceShield.RefuseCideDoneWithoutShot(store, id.Value, args);
+
         var wasActive = state.ActiveStageId == id;
         var r = store.StageSetStatus(state, id.Value, "done");
         object? leafContinuity = null;
@@ -117,6 +119,8 @@ internal static partial class IdeTaskManager
                 return FeatureDone(store, state, featureId, reason: "shipped", args);
             throw new ArgumentException("shipped needs active task or title — focus + shipped; or shipped feature Y");
         }
+
+        IdeHumanFaceShield.RefuseCideDoneWithoutShot(store, id.Value, args);
 
         IdeStageCycle.TryPhaseComplete(); // close open phase segment before clock end
         var startedImplicit = false;

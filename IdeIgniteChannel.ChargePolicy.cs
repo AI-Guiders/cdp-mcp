@@ -38,12 +38,28 @@ internal static partial class IdeIgniteChannel
     internal const string ChargeCoursePointer =
         "Course: sealed operator_priority in pressure stash — recall first. Empty TM ≠ board hygiene / SoftFL reopen / inventory mill. Drive Glass Done + Citizen Done.";
 
+    /// <summary>
+    /// Full think is mandatory when cheap dump is illegal — axe in habitat, not a wish.
+    /// Viewer · cheap path · dig evidence · domain card for the surface.
+    /// </summary>
+    internal const string ChargeHumanFacePostfix =
+        """
+
+        ---
+        Human-face axe (before act on Glass/#CIDE surfaces):
+        1) Viewer? human eyes vs agent text — if human, dump ≠ Done.
+        2) Cheap path? raw unified diff / Autoi-in-chat / status-list-as-verify → refuse; dig domain pulse + live shot.
+        3) Dig artifact in the turn: domain card / pressure recall / one pack card / PNG path — else no act.
+        4) #CIDE done/shipped needs evidence=.png (or shot=true); force=true is escape only.
+        Ontology lives in habitat (domain antipatterns + refuse) — not in polite agreement.
+        """;
+
     /// <summary>Provider cyber-policy: scrub shell tokens if legacy/custom text reaches inject.</summary>
     static readonly Regex ShellWord = new(@"\bshell\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     internal static string ComposeArmFireCharge() =>
         SanitizeComposerCharge(
-            CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix);
+            CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix + ChargeHumanFacePostfix);
 
     /// <summary>Lead line for hard-remount boot wake — agent hears remount provenance, not silent DeskWarm.</summary>
     internal const string RemountInitializedLead =
@@ -55,13 +71,13 @@ internal static partial class IdeIgniteChannel
 
     internal static string ComposeRemountInitializedCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = RemountInitializedLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix;
+        var core = RemountInitializedLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix + ChargeHumanFacePostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
     internal static string ComposeOomWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = OomWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix;
+        var core = OomWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix + ChargeHumanFacePostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
@@ -71,7 +87,7 @@ internal static partial class IdeIgniteChannel
 
     internal static string ComposeEscalateWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = EscalateWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix;
+        var core = EscalateWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix + ChargeHumanFacePostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 

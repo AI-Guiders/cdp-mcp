@@ -53,6 +53,9 @@ public class IdeIgniteChannelTests
         Assert.Contains("Body recall", charge, StringComparison.Ordinal);
         Assert.Contains("biped", charge, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Empty TM", charge, StringComparison.Ordinal);
+        Assert.Contains(IdeIgniteChannel.ChargeHumanFacePostfix.Trim(), charge, StringComparison.Ordinal);
+        Assert.Contains("Human-face axe", charge, StringComparison.Ordinal);
+        Assert.Contains("evidence=.png", charge, StringComparison.Ordinal);
     }
 
     [Fact]
