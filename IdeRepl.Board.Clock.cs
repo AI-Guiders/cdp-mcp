@@ -47,13 +47,14 @@ internal static partial class IdeRepl
         {
             merged["go"] = JsonSerializer.SerializeToElement("plan");
             merged["tm_op"] = JsonSerializer.SerializeToElement("done");
+            // Merge — do not wipe cockpit go_args.evidence / force (human_face_cide_shot).
             if (tokens.Count >= 2)
             {
                 var title = string.Join(' ', tokens.Skip(1));
-                merged["go_args"] = JsonSerializer.SerializeToElement(new { title, op = "done" });
+                MergeGoArgs(merged, new { title, op = "done" });
             }
             else
-                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "done" });
+                MergeGoArgs(merged, new { op = "done" });
             return (merged, null);
         }
 
