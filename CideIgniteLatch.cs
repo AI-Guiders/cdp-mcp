@@ -47,7 +47,9 @@ internal static class CideIgniteLatch
         bool autonomous = false,
         bool hild = false,
         string? course = null,
-        bool vad = false)
+        bool vad = false,
+        bool awaitPartner = false,
+        string? mode = null)
     {
         try
         {
@@ -56,6 +58,8 @@ internal static class CideIgniteLatch
             var courseLine = string.IsNullOrWhiteSpace(course) ? null : course.Trim();
             if (courseLine is { Length: > 1600 })
                 courseLine = courseLine[..1600].TrimEnd() + "…";
+            var modeLine = NormalizeMode(mode, awaitPartner, awaitingCount);
+            var talk = awaitPartner || modeLine is "talk" or "halt";
             var doc = new IgniteLatchDoc
             {
                 Schema = Schema,
@@ -69,6 +73,8 @@ internal static class CideIgniteLatch
                 Autonomous = autonomous,
                 Hild = hild,
                 Vad = vad,
+                AwaitPartner = talk,
+                Mode = modeLine,
                 Course = courseLine,
                 // Silent when idle — seats chrome owns packing; ignite only when continuity live.
                 ChromeHint = active ? pulseLine : null
@@ -82,6 +88,21 @@ internal static class CideIgniteLatch
         {
             /* best-effort */
         }
+    }
+
+    /// <summary>fly = Autoi may run · talk = soft await partner · halt = stop-world.</summary>
+    public static string NormalizeMode(string? mode, bool awaitPartner, int awaitingCount)
+    {
+        if (!string.IsNullOrWhiteSpace(mode))
+        {
+            var m = mode.Trim().ToLowerInvariant();
+            if (m is "fly" or "talk" or "halt")
+                return m;
+        }
+
+        if (awaitPartner || awaitingCount > 0)
+            return "talk";
+        return "fly";
     }
 
     public static IgniteLatchDoc? TryRead()
@@ -115,6 +136,9 @@ internal static class CideIgniteLatch
         public bool Autonomous { get; set; }
         public bool Hild { get; set; }
         public bool Vad { get; set; }
+        public bool AwaitPartner { get; set; }
+        /// <summary>fly | talk | halt — human Autoi face without chat.</summary>
+        public string? Mode { get; set; }
         public string? Course { get; set; }
         public string? ChromeHint { get; set; }
     }
