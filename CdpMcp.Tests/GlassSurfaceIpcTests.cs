@@ -109,5 +109,10 @@ public sealed class IdeGlassSurfaceChannelTests
         Assert.True(ssot.TryGetProperty("next", out _));
         Assert.True(ssot.TryGetProperty("why", out _));
         Assert.True(ssot.TryGetProperty("active", out _));
+        Assert.True(ssot.TryGetProperty("file_situ", out var situ));
+        Assert.True(situ.TryGetProperty("path", out _));
+        Assert.True(situ.TryGetProperty("why_this_file", out _));
+        Assert.True(situ.TryGetProperty("blast", out var blast));
+        Assert.Equal(JsonValueKind.Array, blast.ValueKind);
     }
 }

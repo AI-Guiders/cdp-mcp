@@ -42,13 +42,13 @@ internal static class IdeGlassSurfaceChannel
         {
             return op switch
             {
-                "scene" or "status" or "caps" => Scene(),
+                "scene" or "status" or "caps" => Scene(session),
                 "layout" or "highlight" or "focus" or "click" or "set_text" or "send_keys" or "palette"
                     or "run" or "action"
                     or "appearance" or "colors" or "colors_under_cursor"
                     or "set_control_layout" or "set_panel_size" or "request_confirmation"
                     => Rpc(op, args),
-                _ => Scene()
+                _ => Scene(session)
             };
         }
         catch (Exception ex)
@@ -66,12 +66,15 @@ internal static class IdeGlassSurfaceChannel
         }
     }
 
-    static object Scene()
+    static object Scene(SessionContext session)
     {
         var plan = CidePlanLatch.TryRead();
         var land = TryPeekLand();
+        var landPath = TryPeekLandPath();
         var next = plan?.Task ?? plan?.Feature;
         var why = plan?.Why ?? IdePressureChannel.CompactWhyLine(IdePressureChannel.TryPeekSealedCourse());
+        var leaf = plan?.Task;
+        var fileSitu = BuildFileSitu(landPath, session.ProjectRoot, why, leaf);
         var pulse = plan is { Active: true }
             ? $"glass · NEXT · {Truncate(next, 40)} · WHY · {Truncate(why, 40)}"
             : "surface · glass RPC · full debt live (sense+aim+drive+confirm)";
@@ -84,7 +87,7 @@ internal static class IdeGlassSurfaceChannel
             tool = ToolName,
             op = "scene",
             pulse,
-            // Shared-SSOT A-side: same situation human sees on Plan/HDG without PNG ritual.
+            // Shared-SSOT A-side: same situation human sees on Plan/HDG + Editor FILE WHY/BLAST.
             shared_ssot = new
             {
                 next,
@@ -92,6 +95,7 @@ internal static class IdeGlassSurfaceChannel
                 feature = plan?.Feature,
                 active = plan?.Active ?? false,
                 land = land,
+                file_situ = fileSitu,
                 stamped_utc = plan?.StampedUtc
             },
             ipc = new
@@ -103,8 +107,87 @@ internal static class IdeGlassSurfaceChannel
             implemented = Implemented.OrderBy(x => x).ToArray(),
             planned = Array.Empty<string>(),
             hint =
-                "shared_ssot = Plan NEXT+WHY (+ land). RPC: op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required for RPC."
+                "shared_ssot = Plan NEXT+WHY + file_situ (path/why_this_file/blast) (+ land). RPC: op=layout|highlight|focus|click|set_text|send_keys|palette|run|appearance|colors|set_control_layout|set_panel_size|request_confirmation. Glass host required for RPC."
         };
+    }
+
+    static object BuildFileSitu(string? editorPath, string? workspaceRoot, string? why, string? leaf)
+    {
+        if (string.IsNullOrWhiteSpace(editorPath))
+        {
+            return new
+            {
+                path = (string?)null,
+                why_this_file = (string?)null,
+                blast = Array.Empty<string>()
+            };
+        }
+
+        var whyBits = new List<string>(2);
+        if (!string.IsNullOrWhiteSpace(leaf))
+            whyBits.Add(Truncate(leaf!.Trim(), 48)!);
+        if (!string.IsNullOrWhiteSpace(why))
+            whyBits.Add(Truncate(why!.Trim(), 72)!);
+        var whyThisFile = whyBits.Count > 0 ? string.Join(" · ", whyBits) : null;
+
+        return new
+        {
+            path = editorPath,
+            why_this_file = whyThisFile,
+            blast = CollectSameStemBlast(workspaceRoot, editorPath, max: 3)
+        };
+    }
+
+    static string[] CollectSameStemBlast(string? workspaceRoot, string editorPath, int max)
+    {
+        var names = new List<string>(max);
+        try
+        {
+            if (!File.Exists(editorPath))
+                return [];
+            var dir = Path.GetDirectoryName(editorPath);
+            if (string.IsNullOrWhiteSpace(dir) || !Directory.Exists(dir))
+                return [];
+            var stem = Path.GetFileNameWithoutExtension(editorPath);
+            var root = string.IsNullOrWhiteSpace(workspaceRoot) || !Directory.Exists(workspaceRoot)
+                ? null
+                : Path.GetFullPath(workspaceRoot.Trim());
+            foreach (var f in Directory.EnumerateFiles(dir))
+            {
+                if (names.Count >= max)
+                    break;
+                if (string.Equals(f, editorPath, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (!string.Equals(Path.GetFileNameWithoutExtension(f), stem, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                var rel = root is null
+                    ? Path.GetFileName(f)
+                    : Path.GetRelativePath(root, f).Replace('\\', '/');
+                names.Add(Path.GetFileName(rel));
+            }
+        }
+        catch
+        {
+            /* skip */
+        }
+
+        return names.ToArray();
+    }
+
+    static string? TryPeekLandPath()
+    {
+        try
+        {
+            var path = NavigationLandLatch.LatchPath;
+            if (!File.Exists(path))
+                return null;
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            return doc.RootElement.TryGetProperty("path", out var p) ? p.GetString() : null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     static object? TryPeekLand()
