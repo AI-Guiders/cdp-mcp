@@ -42,7 +42,7 @@
 - Autoi wake charge as Intercom chat bubble / compact chip — SoftOrgan tip + StatusText + `ignite-wake-LATEST` is the wake panel; **Intercom HUD** paints AUTOI/HILD Korry + HDG/CRS from `ignite-LATEST` (not chat). Glass filters Autoi from feed (`GlassAutoiWakeFeed`).
 - Dump `@intent` / `@event` / peer `ack=` wire into human Intercom letter — strip at publish (`CitizenIntercomHumanSurface`) + paint (`CompactIntercomBody`); hands = «Сделала: …».
 - **enforce `raw_diff_as_primary`:** ship Git/Glass UI with raw unified diff as human primary → soft-refuse until human face (files/hunks/tint). Dump legal ⇒ think optional.
-- **enforce `glass_ship_without_human_shot`:** `#CIDE` `done`/`shipped` without `evidence=.png` | `shot=true` → `IdeHumanFaceShield` refuse (`human_face_cide_shot`); `force=true` escape only.
+- **enforce `glass_ship_without_human_shot`:** `#CIDE` `done`/`shipped` needs `evidence=path.png` **on disk** (`IdeHumanFaceShield`); `shot=true` bool alone refused (operator «Выстрела нет» 2026-08-04); `force=true` escape only.
 - **enforce `autoi_as_chat`:** Autoi wake as Intercom chat — already filtered; do not re-teach via chat.
 - MFD text-wall dig notes for humans — prefer concise+graphic presence cards (`□ Glass peel` / `■ Avalonia`).
 - Invent SoftOrgan for Editor MFD when Forward=intercom — AvalonEdit peel already mounts on M (ADR 0120).

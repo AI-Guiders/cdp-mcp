@@ -50,7 +50,7 @@ internal static partial class IdeIgniteChannel
         1) Viewer? human eyes vs agent text — if human, dump ≠ Done.
         2) Cheap path? raw unified diff / Autoi-in-chat / status-list-as-verify → refuse; dig domain pulse + live shot.
         3) Dig artifact in the turn: domain card / pressure recall / one pack card / PNG path — else no act.
-        4) #CIDE done/shipped needs evidence=.png (or shot=true); force=true is escape only.
+        4) #CIDE done/shipped needs evidence=path.png on disk (shot=true bool alone illegal); force=true escape only.
         Ontology lives in habitat (domain antipatterns + refuse + course) — not in polite agreement.
         """;
 

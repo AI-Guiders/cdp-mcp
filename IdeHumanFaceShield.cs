@@ -6,7 +6,8 @@ namespace CdpMcp;
 
 /// <summary>
 /// Human-face shield for #CIDE ships — cheap agent-text Done is illegal when viewer is human.
-/// Parity with FeatureDone half-a / PathMutateGate: refuse until dig evidence (PNG) or force=.
+/// Parity with FeatureDone half-a / PathMutateGate: refuse until dig evidence (PNG path on disk) or force=.
+/// shot=true bool alone is seeming — operator 2026-08-04 «Выстрела нет».
 /// </summary>
 internal static class IdeHumanFaceShield
 {
@@ -30,8 +31,8 @@ internal static class IdeHumanFaceShield
             return;
 
         throw new ArgumentException(
-            $"task_done refused — {RefuseId}: #CIDE ship needs human screenshot evidence " +
-            "(evidence=path.png | shot=true). Glass Done = human eyes, not agent text dump. force=true escape.");
+            $"task_done refused — {RefuseId}: #CIDE ship needs evidence=path.png on disk " +
+            "(shot=true bool alone is illegal). Glass Done = human eyes on PNG, not agent claim. force=true escape.");
     }
 
     internal static bool HasShotEvidence(IReadOnlyDictionary<string, JsonElement>? args)
@@ -39,17 +40,10 @@ internal static class IdeHumanFaceShield
         if (args is null)
             return false;
 
-        if (Boolish(args, "shot") || Boolish(args, "screenshot") || Boolish(args, "human_shot"))
-            return true;
-
+        // shot=true / screenshot=true alone = seeming (operator «Выстрела нет» 2026-08-04).
         foreach (var key in new[] { "evidence", "shot_path", "screenshot_path", "png" })
         {
-            if (!args.TryGetValue(key, out var el))
-                continue;
-            if (el.ValueKind != JsonValueKind.String)
-                continue;
-            var s = el.GetString()?.Trim() ?? "";
-            if (s.Length > 0 && s.Contains(".png", StringComparison.OrdinalIgnoreCase))
+            if (TryPngPath(args, key))
                 return true;
         }
 
@@ -57,23 +51,40 @@ internal static class IdeHumanFaceShield
         {
             foreach (var p in ga.EnumerateObject())
             {
-                if (p.NameEquals("shot") || p.NameEquals("screenshot") || p.NameEquals("human_shot"))
-                {
-                    if (p.Value.ValueKind == JsonValueKind.True)
-                        return true;
-                    if (p.Value.ValueKind == JsonValueKind.String
-                        && bool.TryParse(p.Value.GetString(), out var b) && b)
-                        return true;
-                }
-
-                if ((p.NameEquals("evidence") || p.NameEquals("shot_path") || p.NameEquals("png"))
+                if ((p.NameEquals("evidence") || p.NameEquals("shot_path") || p.NameEquals("png")
+                     || p.NameEquals("screenshot_path"))
                     && p.Value.ValueKind == JsonValueKind.String
-                    && (p.Value.GetString() ?? "").Contains(".png", StringComparison.OrdinalIgnoreCase))
+                    && IsPngEvidencePath(p.Value.GetString()))
                     return true;
             }
         }
 
         return false;
+    }
+
+    static bool TryPngPath(IReadOnlyDictionary<string, JsonElement> args, string key)
+    {
+        if (!args.TryGetValue(key, out var el) || el.ValueKind != JsonValueKind.String)
+            return false;
+        return IsPngEvidencePath(el.GetString());
+    }
+
+    /// <summary>Path must name a .png and exist on disk — bool shot= is not evidence.</summary>
+    internal static bool IsPngEvidencePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return false;
+        var s = path.Trim();
+        if (!s.Contains(".png", StringComparison.OrdinalIgnoreCase))
+            return false;
+        try
+        {
+            return File.Exists(s);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     static bool Boolish(IReadOnlyDictionary<string, JsonElement> args, string key)
