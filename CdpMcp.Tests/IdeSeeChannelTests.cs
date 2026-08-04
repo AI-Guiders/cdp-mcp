@@ -26,6 +26,7 @@ public sealed class IdeSeeChannelTests
     public void Path_attaches_ImageContent()
     {
         ToolMediaOutbox.Clear();
+        CitizenVisionLatch.ResetForTests();
         var dir = Path.Combine(Path.GetTempPath(), "cdp-see-" + Guid.NewGuid().ToString("n"));
         Directory.CreateDirectory(dir);
         try
@@ -38,13 +39,16 @@ public sealed class IdeSeeChannelTests
             Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
             Assert.True(doc.RootElement.GetProperty("attached_image").GetBoolean());
             Assert.Equal("image/png", doc.RootElement.GetProperty("mime").GetString());
+            Assert.True(doc.RootElement.GetProperty("citizen_vision_latched").GetBoolean());
 
             var blocks = ToolMediaOutbox.BuildContent("see-test");
             Assert.Equal(2, blocks.Count); // text + image
+            Assert.NotNull(CitizenVisionLatch.Peek());
         }
         finally
         {
             ToolMediaOutbox.Clear();
+            CitizenVisionLatch.ResetForTests();
             try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
         }
     }
@@ -63,6 +67,7 @@ public sealed class IdeSeeChannelTests
     public void Relative_path_under_ProjectRoot()
     {
         ToolMediaOutbox.Clear();
+        CitizenVisionLatch.ResetForTests();
         var dir = Path.Combine(Path.GetTempPath(), "cdp-see-rel-" + Guid.NewGuid().ToString("n"));
         Directory.CreateDirectory(dir);
         try
@@ -77,6 +82,7 @@ public sealed class IdeSeeChannelTests
         finally
         {
             ToolMediaOutbox.Clear();
+            CitizenVisionLatch.ResetForTests();
             try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
         }
     }

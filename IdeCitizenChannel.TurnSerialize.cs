@@ -14,7 +14,42 @@ internal static partial class IdeCitizenChannel
         if (peerAck is not null)
             hint = (hint is { Length: > 0 } ? hint + " · " : "") + "peer ack " + peerAck.Applied + "/" + (peerAck.Applied + peerAck.Dropped);
         var routes = routesOverride ?? result.Routes;
-        return JsonSerializer.Serialize(new { schema = Schema, ok = result.Ok, op = "turn", mode = mode == CitizenTurnMode.Dialog ? "dialog" : "wire", dry_run = result.DryRun, execute, dialog = mode == CitizenTurnMode.Dialog ? CitizenDialogHistory.Pulse() : null, sticky = mode == CitizenTurnMode.Dialog ? CitizenStickyFacts.Pulse() : null, error = result.Error, hint, provider = result.Provider, model = result.Model, text = result.Text, injected = result.Built?.Injected, live_desk = liveBound, peer = peerAck?.Peer, peer_event = peerAck?.Event, afferent = result.Built?.AfferentPulse, message_count = result.Built?.Messages.Count, system_chars = result.Built?.System.Length, wire_intents = result.WireIntents?.Select(m => new { kind = m.Kind.ToString(), type = m.Type, intent = m.IntentText, fields = m.Fields }).ToArray(), routes = routes?.Select(r => new { verb = r.Verb.ToString(), raw = r.Raw, ok = r.Ok, go = r.Go, organ = r.Organ, path = r.Path, detail = r.Detail, scene = r.Scene, cmd = r.Cmd, reason = r.Reason }).ToArray(), executed = executed?.Select(a => new { verb = a.Verb, raw = a.Raw, ok = a.Ok, action = a.Action, seat = a.Seat, go = a.Go, path = a.Path, doc_id = a.DocId, cmd = a.Cmd, pulse = a.Pulse, reason = a.Reason }).ToArray() });
+        var vision = result.Built?.Vision;
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = result.Ok,
+            op = "turn",
+            mode = mode == CitizenTurnMode.Dialog ? "dialog" : "wire",
+            dry_run = result.DryRun,
+            execute,
+            dialog = mode == CitizenTurnMode.Dialog ? CitizenDialogHistory.Pulse() : null,
+            sticky = mode == CitizenTurnMode.Dialog ? CitizenStickyFacts.Pulse() : null,
+            error = result.Error,
+            hint,
+            provider = result.Provider,
+            model = result.Model,
+            text = result.Text,
+            injected = result.Built?.Injected,
+            live_desk = liveBound,
+            vision = vision is null
+                ? null
+                : new
+                {
+                    attached = true,
+                    mime = vision.Mime,
+                    bytes = vision.Bytes.Length,
+                    path = vision.Path
+                },
+            peer = peerAck?.Peer,
+            peer_event = peerAck?.Event,
+            afferent = result.Built?.AfferentPulse,
+            message_count = result.Built?.Messages.Count,
+            system_chars = result.Built?.System.Length,
+            wire_intents = result.WireIntents?.Select(m => new { kind = m.Kind.ToString(), type = m.Type, intent = m.IntentText, fields = m.Fields }).ToArray(),
+            routes = routes?.Select(r => new { verb = r.Verb.ToString(), raw = r.Raw, ok = r.Ok, go = r.Go, organ = r.Organ, path = r.Path, detail = r.Detail, scene = r.Scene, cmd = r.Cmd, reason = r.Reason }).ToArray(),
+            executed = executed?.Select(a => new { verb = a.Verb, raw = a.Raw, ok = a.Ok, action = a.Action, seat = a.Seat, go = a.Go, path = a.Path, doc_id = a.DocId, cmd = a.Cmd, pulse = a.Pulse, reason = a.Reason }).ToArray()
+        });
     }
 
     static bool Bool(IReadOnlyDictionary<string, JsonElement> args, string key, bool defaultTrue = false)

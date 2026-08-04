@@ -118,6 +118,14 @@ internal static class IdeSeeChannel
             }
 
             var attached = ToolMediaOutbox.TryAdd(bytes, mime);
+            try
+            {
+                CitizenVisionLatch.Arm(bytes, mime, localPath);
+            }
+            catch
+            {
+                // latch optional — MCP ImageContent still primary for Cursor path
+            }
             return new
             {
                 ok = true,
@@ -134,10 +142,11 @@ internal static class IdeSeeChannel
                 bytes = bytes.Length,
                 mime,
                 attached_image = attached,
+                citizen_vision_latched = CitizenVisionLatch.Peek() is not null,
                 note = attached
-                    ? "ImageContent attached for agent vision (ToolMediaOutbox)"
+                    ? "ImageContent attached for agent vision (ToolMediaOutbox); also latched for next cdp_citizen turn"
                     : "outbox full (max 2) or reject — shrink / see fewer images this turn",
-                hint = "World dig: after cdp_browser links → cdp_see url=|path= before inventing UI chrome."
+                hint = "World dig: after cdp_browser links → cdp_see url=|path= before inventing UI chrome. Citizen: next turn consumes latch (or image_path=)."
             };
         }
         catch (Exception ex)

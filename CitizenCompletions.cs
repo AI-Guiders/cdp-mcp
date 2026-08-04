@@ -56,7 +56,8 @@ internal static partial class CitizenCompletions
         IReadOnlyList<ChatMessage> Messages,
         string? AfferentPulse,
         bool Injected,
-        CitizenTurnMode Mode = CitizenTurnMode.Wire);
+        CitizenTurnMode Mode = CitizenTurnMode.Wire,
+        CitizenVisionLatch.Frame? Vision = null);
 
     public sealed record TurnResult(
         bool Ok,
@@ -112,7 +113,8 @@ internal static partial class CitizenCompletions
         string? tm = null,
         bool inject = true,
         CitizenTurnMode mode = CitizenTurnMode.Wire,
-        bool history = true)
+        bool history = true,
+        CitizenVisionLatch.Frame? vision = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userText);
         string? afferent = null;
@@ -173,7 +175,7 @@ internal static partial class CitizenCompletions
             msgs.Add(new ChatMessage("user", userText.Trim()));
         }
 
-        return new BuiltTurn(CitizenPersona.ForMode(mode), msgs, afferent, injected, mode);
+        return new BuiltTurn(CitizenPersona.ForMode(mode), msgs, afferent, injected, mode, vision);
     }
 
     static string AppendAfferentLine(string? afferent, string line)
@@ -197,19 +199,49 @@ internal static partial class CitizenCompletions
         CitizenTurnMode mode = CitizenTurnMode.Wire,
         bool history = true,
         int? maxTokens = null,
+        string? imagePath = null,
+        bool consumeVisionLatch = true,
         CancellationToken cancellationToken = default)
     {
-        var built = Build(userText, boardLines, sa, peer, next, tm, inject, mode, history);
+        CitizenVisionLatch.Frame? vision = null;
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(imagePath))
+                vision = CitizenVisionLatch.LoadPath(imagePath);
+            else if (consumeVisionLatch)
+                vision = CitizenVisionLatch.Take();
+        }
+        catch (Exception ex)
+        {
+            return new TurnResult(
+                false,
+                "vision_load_failed",
+                ex.Message,
+                null,
+                model,
+                null,
+                null,
+                null,
+                null,
+                dryRun);
+        }
+
+        var built = Build(userText, boardLines, sa, peer, next, tm, inject, mode, history, vision);
+        var effectiveModel = ResolveVisionModel(model, vision);
         if (dryRun)
         {
-            var dryModel = ResolveDryRunModel(model);
+            var dryModel = ResolveDryRunModel(effectiveModel);
             var modeHint = mode == CitizenTurnMode.Dialog ? "dialog prose" : "wire hands";
             var histN = mode == CitizenTurnMode.Dialog && history ? CitizenDialogHistory.Load().Count : 0;
+            var visionHint = vision is null
+                ? ""
+                : " · vision=" + vision.Mime + " · " + vision.Bytes.Length + "B";
             return new TurnResult(
                 Ok: true,
                 Error: null,
                 Hint: "dry_run — no provider call; messages built with persona + wire inject · mode=" + modeHint
-                    + (histN > 0 ? " · history=" + histN : ""),
+                    + (histN > 0 ? " · history=" + histN : "")
+                    + visionHint,
                 Text: null,
                 Model: dryModel,
                 Provider: "dry_run",
@@ -220,7 +252,7 @@ internal static partial class CitizenCompletions
         }
 
         var keys = CitizenAiKeys.Load();
-        var resolved = ResolveProvider(keys, model);
+        var resolved = ResolveProvider(keys, effectiveModel);
         if (resolved is null)
         {
             return new TurnResult(
@@ -228,8 +260,24 @@ internal static partial class CitizenCompletions
                 "keys_missing",
                 "set open_ai_api_key (Cloud.ru FM) or anthropic_api_key in %LocalAppData%\\CascadeIDE\\ai-keys.toml (CDP-ADR-0026)",
                 null,
-                model ?? CitizenAiKeys.DefaultOpenAiModel,
+                effectiveModel ?? CitizenAiKeys.DefaultOpenAiModel,
                 null,
+                built,
+                null,
+                null,
+                false);
+        }
+
+        if (vision is not null && resolved.Provider != ProviderOpenAiCompat)
+        {
+            return new TurnResult(
+                false,
+                "vision_requires_openai_compat",
+                "citizen vision needs Cloud.ru FM / OpenAI-compat (image_url). Set open_ai_api_key; model default "
+                    + CitizenVisionLatch.DefaultVisionModel,
+                null,
+                resolved.Model,
+                resolved.Provider,
                 built,
                 null,
                 null,

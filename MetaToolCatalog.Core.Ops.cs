@@ -100,7 +100,7 @@ internal static partial class MetaToolCatalog
             ttl_s = new { type = "integer", description = "presence: optional TTL seconds (composing/busy stale after)" }
         }
     }),
-    Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn|history|clear|sticky. turn message= [mode=wire|dialog] [history=true] [reset=true] [sticky_key=] [sticky_value=] [board=] [dry_run=true] [model=] — dialog=prose peer + multi-turn memory + sticky pins; wire=hands @intent. Alias go=citizen.", new
+    Meta("cdp_citizen", "Citizen completions host (ADR-0028). op=scene|keys|turn|history|clear|sticky. turn message= [mode=wire|dialog] [image_path=] [history=true] [reset=true] [sticky_key=] [sticky_value=] [board=] [dry_run=true] [model=] — dialog=prose peer + multi-turn memory + sticky pins; wire=hands @intent. Vision: image_path= or prior cdp_see latch → OpenAI-compat image_url (default model Qwen/Qwen3.6-35B-A3B). Alias go=citizen.", new
     {
         type = "object",
         properties = new
@@ -117,7 +117,11 @@ internal static partial class MetaToolCatalog
             peer = new { type = "string", description = "turn: optional peer field" },
             next = new { type = "string", description = "turn: optional next field" },
             tm = new { type = "string", description = "turn: optional tm field" },
-            model = new { type = "string", description = "turn: model id (default: Cloud.ru FM or Anthropic sonnet by provider)" },
+            model = new { type = "string", description = "turn: model id (default: Cloud.ru FM or Anthropic sonnet by provider; vision auto → Qwen3.6)" },
+            image_path = new { type = "string", description = "turn: local PNG/JPEG/WebP → multimodal image_url (also aliases image=|see_path=|vision_path=)" },
+            image = new { type = "string", description = "turn: alias of image_path=" },
+            see_path = new { type = "string", description = "turn: alias of image_path=" },
+            vision_path = new { type = "string", description = "turn: alias of image_path=" },
             dry_run = new { type = "boolean", description = "turn: build messages only, no provider call" },
             execute = new { type = "boolean", description = "turn: host-execute @intent routes (default: live=true, dry_run=false); place go/drill + open path" },
             inject = new { type = "boolean", description = "turn: prepend wire afferent (default true)" }

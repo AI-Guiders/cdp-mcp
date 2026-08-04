@@ -27,6 +27,7 @@ public class CitizenCompletionsTests : IDisposable
         CitizenCompletions.TestOpenAiBaseUrl = null;
         CitizenCompletions.ResetHttpForTests();
         CitizenDialogHistory.ResetForTests();
+        CitizenVisionLatch.ResetForTests();
     }
 
     [Fact]

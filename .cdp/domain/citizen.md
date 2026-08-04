@@ -9,6 +9,7 @@
 
 - Live invite needs `open_ai_api_key` **or** `anthropic_api_key` in `%LocalAppData%/CascadeIDE/ai-keys.toml`.
 - Prefer **OpenAI-compat** when `open_ai` key set (Cloud.ru FM); else Anthropic.
+- Vision: `image_path=` (or prior `cdp_see` latch) → multimodal `image_url`; auto-model `Qwen/Qwen3.6-35B-A3B` when default/non-vision; thinking off on vision turns. Not in dialog jsonl.
 - Defaults when keys omit URL/model: `https://foundation-models.api.cloud.ru/v1` · `ai-sage/GigaChat3-10B-A1.8B`.
 - Turn `mode=wire` (default) = HARD @intent contract + OAI `temperature=0`. `mode=dialog` = prose peer persona + `temperature=0.6`; optional @intent after prose. Aliases: prose|chat|talk|peer.
 - Dialog multi-turn: `StateRoot/{seat}/citizen-dialog.jsonl` (op=history|clear; turn `history=`/`reset=`). Wire ignores history. Window = **40** msgs (20 pairs).
@@ -64,6 +65,7 @@
 
 ## last_ship
 
+- **0.5.663** — Citizen vision: `image_path=` / `cdp_see` latch → OpenAI-compat `image_url`; auto `Qwen/Qwen3.6-35B-A3B`; thinking off on vision turns. Tests CitizenVisionLatchTests 3/3.
 - **0.5.656** — Intercom human surface: `CitizenIntercomHumanSurface` strips `@intent`/`@event`/`@frame` + peer tip from Glass letter; harness → «Сделала: …»; peer wire stays on request `peer=` only. Tests HumanSurface+GlassBridge 7/7.
 - **0.5.655** — Reasoning-aware OpenAI extract: content∅→reasoning*|thinking; SSE dual-accumulate; dialog max_tokens=4096 / wire=2048; empty_text+finish_reason=length; wire enable_thinking=false. Tests 25/25. Dual hard lag=false. Live dialog smoke Qwen3-Coder-Next «Пинг.» OK.
 - **2026-08-04 live GLM dogfood** — `cdp_citizen` dialog `model=zai-org/GLM-5.1` inject=false reset «Пинг.…» → text=`Понг.` ok (burn-path gate green). Hold to 15.08 continues — invent only on real gap.

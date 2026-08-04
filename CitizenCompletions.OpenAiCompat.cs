@@ -22,6 +22,16 @@ internal static partial class CitizenCompletions
         return CitizenAiKeys.DefaultOpenAiModel;
     }
 
+    /// <summary>When a vision frame is present and model is blank/non-vision, prefer Qwen3.6 vision.</summary>
+    static string? ResolveVisionModel(string? model, CitizenVisionLatch.Frame? vision)
+    {
+        if (vision is null)
+            return model;
+        if (string.IsNullOrWhiteSpace(model) || CitizenVisionLatch.ModelLooksNonVision(model))
+            return CitizenVisionLatch.DefaultVisionModel;
+        return model.Trim();
+    }
+
     static Resolved? ResolveProvider(CitizenAiKeys.Snapshot keys, string? model)
     {
         if (!string.IsNullOrWhiteSpace(TestApiKey))
@@ -77,8 +87,34 @@ internal static partial class CitizenCompletions
         using var turnCts = CreateTurnCts(cancellationToken);
         var url = ChatCompletionsUrl(resolved.BaseUrl!);
         var oaiMessages = new List<object> { new { role = "system", content = built.System } };
-        foreach (var m in built.Messages)
-            oaiMessages.Add(new { role = m.Role, content = m.Content });
+        var lastUserIdx = -1;
+        for (var i = 0; i < built.Messages.Count; i++)
+        {
+            if (built.Messages[i].Role == "user")
+                lastUserIdx = i;
+        }
+
+        for (var i = 0; i < built.Messages.Count; i++)
+        {
+            var m = built.Messages[i];
+            if (built.Vision is { } vision && i == lastUserIdx && m.Role == "user")
+            {
+                var dataUrl = "data:" + vision.Mime + ";base64," + Convert.ToBase64String(vision.Bytes);
+                oaiMessages.Add(new
+                {
+                    role = m.Role,
+                    content = new object[]
+                    {
+                        new { type = "text", text = m.Content },
+                        new { type = "image_url", image_url = new { url = dataUrl } }
+                    }
+                });
+            }
+            else
+            {
+                oaiMessages.Add(new { role = m.Role, content = m.Content });
+            }
+        }
 
         // Wire dogfood needs temp=0 for @intent fidelity; dialog peer needs room to reason.
         var temperature = built.Mode == CitizenTurnMode.Dialog ? 0.6 : 0.0;
@@ -93,7 +129,8 @@ internal static partial class CitizenCompletions
         };
         // Wire: prefer no hidden reasoning budget (GLM/Qwen OpenAI-compat forks).
         // Dialog keeps provider default so thinking models can reason into content/reasoning_*.
-        if (built.Mode != CitizenTurnMode.Dialog)
+        // Vision turns: always disable thinking — otherwise content∅ while budget burns on reasoning.
+        if (built.Mode != CitizenTurnMode.Dialog || built.Vision is not null)
         {
             payload["enable_thinking"] = false;
             payload["chat_template_kwargs"] = new { enable_thinking = false };

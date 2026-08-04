@@ -264,6 +264,8 @@ internal static partial class IdeCitizenChannel
         var (board, tm, liveBound) = ResolveBoardAndTm(args, inject);
         var peerIn = Arg(args, "peer") ?? CitizenPeerAck.LastPeer;
         var maxTok = IntArg(args, "max_tokens") ?? IntArg(args, "maxTokens");
+        var imagePath = Arg(args, "image_path") ?? Arg(args, "image") ?? Arg(args, "see_path")
+            ?? Arg(args, "vision_path");
 
         var result = CitizenCompletions.Turn(
             message!,
@@ -277,7 +279,8 @@ internal static partial class IdeCitizenChannel
             inject: inject,
             mode: mode,
             history: useHistory,
-            maxTokens: maxTok);
+            maxTokens: maxTok,
+            imagePath: imagePath);
 
         IReadOnlyList<CitizenRouteHost.Applied>? executed = null;
         CitizenPeerAck.Result? peerAck = null;
