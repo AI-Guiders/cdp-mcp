@@ -30,6 +30,7 @@ public sealed partial class IdeTaskManagerTitlePrecedenceTests
     [Fact]
     public void Done_by_feature_title_strips_board_chrome()
     {
+        IdeIgniteArmHost.BindAutonomous(false);
         var path = Path.Combine(Path.GetTempPath(), "cdp-tm-feat-chrome-" + Guid.NewGuid().ToString("N") + ".witdb");
         try
         {
@@ -51,6 +52,7 @@ public sealed partial class IdeTaskManagerTitlePrecedenceTests
         }
         finally
         {
+            IdeIgniteArmHost.BindAutonomous(null);
             try
             {
                 File.Delete(path);
@@ -64,6 +66,7 @@ public sealed partial class IdeTaskManagerTitlePrecedenceTests
     [Fact]
     public void Done_by_feature_title_closes_incomplete_leaves()
     {
+        IdeIgniteArmHost.BindAutonomous(false);
         var path = Path.Combine(Path.GetTempPath(), "cdp-tm-feat-done-" + Guid.NewGuid().ToString("N") + ".witdb");
         try
         {
@@ -88,6 +91,7 @@ public sealed partial class IdeTaskManagerTitlePrecedenceTests
         }
         finally
         {
+            IdeIgniteArmHost.BindAutonomous(null);
             try
             {
                 File.Delete(path);
