@@ -133,6 +133,12 @@ internal static partial class IdeRepl
             return "events — list stage cycle event pointers";
         if (title.Equals("note", StringComparison.OrdinalIgnoreCase))
             return "note <text> — append pointer while clock open";
+        if (title.Equals("review", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("reviews", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("remark", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("remarks", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("rr", StringComparison.OrdinalIgnoreCase))
+            return "review <text> | review list | review ack <id> — operator remarks; dig before done (alias remark|rr)";
         if (title.Equals("criteria", StringComparison.OrdinalIgnoreCase))
             return "criteria [dor|ac|dod] — list work-unit criteria";
         if (title.Equals("criterion", StringComparison.OrdinalIgnoreCase))

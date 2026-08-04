@@ -217,22 +217,34 @@ internal static partial class IdeRepl
 
         if (head is "review")
         {
-            merged["go"] = JsonSerializer.SerializeToElement("review");
+            // SoftOrgan code-review desk: review files|index|open …
+            // Freeform / list / ack → Task Manager Review Results (TryBoardClock).
             if (tokens.Count >= 2)
             {
                 var sub = tokens[1].ToLowerInvariant();
-                if (sub is "files" or "list" or "index")
-                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "files" });
-                else if (sub is "open")
+                if (sub is "files" or "index")
                 {
+                    merged["go"] = JsonSerializer.SerializeToElement("review");
+                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "files" });
+                    return (merged, null);
+                }
+
+                if (sub is "open")
+                {
+                    merged["go"] = JsonSerializer.SerializeToElement("review");
                     var path = tokens.Count >= 3 ? string.Join(' ', tokens.Skip(2)) : null;
                     merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "open", path });
+                    return (merged, null);
                 }
-                else
-                    merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "open", path = tokens[1] });
+            }
+            else
+            {
+                // Bare `review` → organ index (legacy).
+                merged["go"] = JsonSerializer.SerializeToElement("review");
+                return (merged, null);
             }
 
-            return (merged, null);
+            return null;
         }
 
         if (head is "nav")

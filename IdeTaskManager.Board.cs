@@ -83,7 +83,9 @@ internal static partial class IdeTaskManager
             try
             {
                 var c = store.StageEventCounts(eventStageId);
-                events = FormatEventCountsSuffix(c.Wait, c.Fail, c.Note);
+                var openReviews = 0;
+                try { openReviews = store.StageEventOpenReviewCount(eventStageId); } catch { /* diagnostic */ }
+                events = FormatEventCountsSuffix(c.Wait, c.Fail, c.Note, openReviews);
                 var phaseRows = store.StageEventPhaseRows(eventStageId);
                 var end = snap.ActiveStageCompletedUtc ?? DateTimeOffset.UtcNow;
                 events = FormatPhaseSegmentsSuffix(phaseRows, end) + events;

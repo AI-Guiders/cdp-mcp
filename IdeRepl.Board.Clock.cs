@@ -138,6 +138,17 @@ internal static partial class IdeRepl
             return (merged, null);
         }
 
+        // Operator Review Results — durable remarks on leaf (dialog → stamp; dig before done).
+        // SoftOrgan `review files|open` stays in Organs; freeform / list / ack land here.
+        if (head is "review" or "reviews" or "remark" or "remarks" or "rr")
+        {
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["tm_op"] = JsonSerializer.SerializeToElement("review");
+            var rest = tokens.Count >= 2 ? string.Join(' ', tokens.Skip(1)) : "";
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "review", title = rest });
+            return (merged, null);
+        }
+
         return null;
     }
 }
