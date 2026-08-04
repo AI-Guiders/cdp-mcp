@@ -16,6 +16,9 @@
 - Dialog afferent also gets `dialog | pairs=N · … use them; do not claim amnesia`.
 - Persona baseline: **equal standing** (peer, not tool) + human name **Света**; Who = Agent Who series (not operator); **Memory:** use prior turns / sticky.
 - Wire: Bearer + `{base}/v1/chat/completions` — **SSE stream** (`stream=true`, `ResponseHeadersRead`); JSON body fallback when Content-Type is `application/json` (stubs / non-stream providers). Anthropic Messages same policy.
+- OpenAI-compat extract (**0.5.655**): prefer non-empty `content`; else `reasoning_content` / `reasoning` / `thinking` (GLM/Qwen). SSE accumulates content vs reasoning separately — content wins if any. ATL: reasoning models ≠ content-only.
+- Token budget: dialog default **4096**, wire **2048** (`ResolveMaxTokens`); `cdp_citizen` turn accepts `max_tokens=` / `maxTokens=`. Wire payload sets `enable_thinking=false` (+ `chat_template_kwargs`) to avoid burning budget on hidden CoT.
+- `empty_text` surfaces `finish_reason` + `completion_tokens` (esp. `length` truncate) — not silent blank after paid tokens.
 - Live HTTP budgets (not blunt `HttpClient.Timeout=120`): Headers/TTFT **20s** · Idle between SSE lines **30s** · Overall **90s**; `HttpClient.Timeout=Infinite`. Budget cancel → `error=timeout`.
 - `WireSystemPrompt` is a **property** (Head+Tail partials) — not static field concat (undefined init order → empty system).
 - `invite_ready` is a **record** (not ValueTuple) — JSON must expose Ready/Status/Checklist/Blocker.
@@ -61,6 +64,7 @@
 
 ## last_ship
 
+- **0.5.655** — Reasoning-aware OpenAI extract: content∅→reasoning*|thinking; SSE dual-accumulate; dialog max_tokens=4096 / wire=2048; empty_text+finish_reason=length; wire enable_thinking=false. Tests extract/SSE/length. **Not Citizen Done / full-ready** until live GLM dialog dogfood green. Deploy: dual hard pending.
 - **2026-08-04 ProductDigCitizen15** — DIG ACCEPT product dig: SoftFL/Meta/Glass IOP CLOSED; sole inv gap=throughput-wave idle ≠ SoftFL mill; DIG REJECT SoftFL/Meta/board hygiene / host re-prove. Voice Letter #157. Hold leaf seeded to 15.08 — invent only on real product gap.
 - **2026-08-04 CitizenDoneAxb** — DIG ACCEPT close densest dig (full-chain already GREEN; DIG REJECT re-prove hosts). Wave axb-teeth+cabin+verdict shipped. Throughput teeth FeatureDone half-a refuse @0.5.652. Keep feature open to 15.08 — product densest only, not SoftFL/Meta mill.
 - **live 2026-08-04 night** — Operator: finish board → citizen fully → next. Board clean (zombie drops + wave clear; TM no open feature). Live full-chain: wire health+shell · multi health/sys/inventory/elicit **ack=4/4** · dialog reset tea (empty TM pulse observed). SoftOrgan/SoftFL/Meta DIG REJECT. Autoi OFF. Next densest ops: remount primary 0.5.648→0.5.649 (soft staged).
