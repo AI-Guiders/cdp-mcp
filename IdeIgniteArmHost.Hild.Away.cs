@@ -96,13 +96,15 @@ internal static partial class IdeIgniteArmHost
             $"[ide_ignite] hild away escalate — still away after {AwayEscalateAfter.TotalSeconds:0}s → autonomous on + escalate wake");
     }
 
-    /// <summary>Pull armed last_once work timers with DueUtc &gt; 3s forward — HILD away ≠ license for 45m park.</summary>
+    /// <summary>Pull armed last_once work timers with DueUtc &gt; 3s forward — HILD away ≠ license for 45m park.
+    /// Skip invent-only Hold arms (≤3m insurance; DIG REJECT mill ≠ park).</summary>
     static void PullForwardLongWorkTimersOnHildAway() =>
         PullForwardLongWorkTimers(
             compute: TryComputeHildAwayPullForwardDue,
             lastError: "hild_away_pull_forward",
             tape: "hild_pull_forward",
-            log: "hild");
+            log: "hild",
+            skip: static a => IsInventOnlyHoldTask(a.Task));
 
     /// <summary>Pull long last_once while TM ContinuityFlight.Fly under autonomous — agent-park police.
     /// Skip invent-only Hold arms (≤3m insurance; DIG REJECT mill ≠ park).</summary>

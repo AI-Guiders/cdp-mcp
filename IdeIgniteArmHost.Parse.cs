@@ -164,13 +164,13 @@ internal static partial class IdeIgniteArmHost
     /// <summary>While HILD away_latched / on human_away edge — last_once work timers ≤3s (habit), not ≤3m.</summary>
     internal static readonly TimeSpan HildAwayContinuityMax = TimeSpan.FromSeconds(3);
 
-    /// <summary>Hold invent-only leaf — DIG REJECT mill must not be forced by ≤3s leaf_pull (VL#47 park police stays for active work leaves).</summary>
+    /// <summary>Hold invent-only leaf — DIG REJECT mill must not be forced by ≤3s leaf_pull / hild_pull (VL#47 park police stays for active work leaves).</summary>
     internal static bool IsInventOnlyHoldTask(string? task) =>
         !string.IsNullOrWhiteSpace(task)
         && task.Contains("invent only", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Clamp long last_once timers under autonomous unless force=true.
-    /// Partner-away or TM leaf Fly tightens to 3s (habit); invent-only Hold skips leaf Fly clamp (≤3m); else ≤3m.</summary>
+    /// Partner-away or TM leaf Fly tightens to 3s (habit); invent-only Hold keeps ≤3m (both paths); else ≤3m.</summary>
     internal static TimeSpan ClampAutonomousLastOnceInsurance(
         TimeSpan requested,
         bool lastOnce,
@@ -186,12 +186,17 @@ internal static partial class IdeIgniteArmHost
             return requested;
         TimeSpan max;
         string note;
-        if (partnerAway)
+        if (inventOnlyHold)
+        {
+            max = AutonomousLastOnceInsuranceMax;
+            note = "3m(invent_only_hold)";
+        }
+        else if (partnerAway)
         {
             max = HildAwayContinuityMax;
             note = "3s(hild_away)";
         }
-        else if (leafFlying && !inventOnlyHold)
+        else if (leafFlying)
         {
             max = HildAwayContinuityMax;
             note = "3s(leaf_started)";
@@ -199,7 +204,7 @@ internal static partial class IdeIgniteArmHost
         else
         {
             max = AutonomousLastOnceInsuranceMax;
-            note = inventOnlyHold && leafFlying ? "3m(invent_only_hold)" : "3m(clamped)";
+            note = "3m(clamped)";
         }
 
         if (requested <= max)
