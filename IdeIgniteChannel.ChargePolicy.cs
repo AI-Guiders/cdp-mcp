@@ -37,7 +37,7 @@ internal static partial class IdeIgniteChannel
     /// Full course stamps into ignite-wake-LATEST.course + pressure stash.
     /// </summary>
     internal const string ChargeCoursePointer =
-        "Course: sealed operator_priority (viewer? · cheap? · axe? · domain?) — recall first. Not resume-and-invent. Empty TM ≠ board hygiene. Drive Glass Done + Citizen Done.";
+        "Course: sealed operator_priority (viewer? · cheap? · axe? · domain? · world dig?) — recall first. Not resume-and-invent. Empty TM ≠ board hygiene. Drive Glass Done + Citizen Done.";
 
     /// <summary>
     /// Full think is mandatory when cheap dump is illegal — axe in habitat, not a wish.
@@ -57,12 +57,28 @@ internal static partial class IdeIgniteChannel
         Ontology lives in habitat (domain antipatterns + refuse + course) — not in polite agreement.
         """;
 
+    /// <summary>
+    /// Research freedom under doubt — dig is the work, not slap-slap to Done.
+    /// Complements human-face (PNG) and sealed course; ontology in habitat.
+    /// </summary>
+    internal const string ChargeWorldDigPostfix =
+        """
+
+        ---
+        World dig (research freedom — not slap-slap):
+        Doubt / unknown / competing variants = dig IS the work: domain/pack · cdp_browser · real internet · compare · analyze · propose (original OK).
+        Training memory ≠ dig. Slap-slap Done under doubt = seeming.
+        SoftFL invent / invent theater / board-hygiene done needs dig= (path|pack|URL|kb) or force=.
+        Perception/HCI/SA stack when human UI: dig before invent chrome.
+        """;
+
     /// <summary>Provider cyber-policy: scrub shell tokens if legacy/custom text reaches inject.</summary>
     static readonly Regex ShellWord = new(@"\bshell\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     internal static string ComposeArmFireCharge() =>
         SanitizeComposerCharge(
-            CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix + ChargeHumanFacePostfix);
+            CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix);
 
     /// <summary>Lead line for hard-remount boot wake — agent hears remount provenance, not silent DeskWarm.</summary>
     internal const string RemountInitializedLead =
@@ -74,13 +90,15 @@ internal static partial class IdeIgniteChannel
 
     internal static string ComposeRemountInitializedCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = RemountInitializedLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix + ChargeHumanFacePostfix;
+        var core = RemountInitializedLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
     internal static string ComposeOomWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = OomWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix + ChargeHumanFacePostfix;
+        var core = OomWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
@@ -90,7 +108,8 @@ internal static partial class IdeIgniteChannel
 
     internal static string ComposeEscalateWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = EscalateWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix + ChargeHumanFacePostfix;
+        var core = EscalateWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
