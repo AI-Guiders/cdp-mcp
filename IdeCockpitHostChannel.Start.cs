@@ -1,5 +1,6 @@
 #nullable enable
 using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using Cdp.Core;
 
@@ -44,6 +45,26 @@ internal static partial class IdeCockpitHostChannel
                     config_source = ConfigSourceLabel(),
                     env_escape = EnvExe,
                     hint = "Set [cockpit_host] exe in cdp-mcp.toml (hot-reload on mtime), or pass path=. Env CDP_COCKPIT_HOST_EXE is escape only. Does not launch Avalonia by guessing."
+                };
+            }
+
+            // Debug vs Release twin: preferred path dead but same GlassCockpit name alive elsewhere.
+            var orphans = ListCabinPathOrphans(exe);
+            if (orphans.Count > 0)
+            {
+                var first = orphans[0];
+                return new
+                {
+                    ok = false,
+                    schema = SchemaVersion,
+                    op = "start",
+                    error = "cabin path orphan — refuse twin spawn",
+                    gui_host = "orphan",
+                    host_profile = "path-mismatch",
+                    preferred_exe = exe,
+                    path_orphans = orphans.Select(o => new { pid = o.Pid, exe = o.Exe }).ToArray(),
+                    pulse = $"cockpit_host · refuse twin · orphan pid={first.Pid}",
+                    hint = "GlassCockpit already running on another path (often Debug vs Release). Start with path= that exe, or kill the orphan then Start preferred — do not spawn a second cabin."
                 };
             }
 

@@ -33,6 +33,7 @@
 - SoftOrganMfdGlance remapping RelatedFiles ← find_desk (stays ←refactor; FindDesk DoD = CabinGlass pin+chrome, not glance displace).
 - Inventing SoftOrganKind for crs/Correspondence latch+chrome (CabinGlass MFD pin only; Crm chrome ≠ CRS; SoftOrganMfdGlance stays unbound).
 - Soft deploy ≠ remounted habitat; Glass WPF rebuild is separate from cdp-mcp seat.
+- Treat `cockpit_host · down` as process death without checking Debug vs Release path_orphans — false-down + twin Start is the bug; refuse twin, path= orphan or kill then preferred.
 - Intercom MarkdownBody as ContentControl setting Content during DataTemplate expand — double-parents built tree (cabin crash); use StackPanel+deferred rebuild.
 - Treat Glass Ctrl+Q `c:` as GlassChord-only aliases — SSOT is `IntentMelody/intent-catalog.toml` via `GlassIntentMelodyCatalog`; chords stay on Ctrl+K.
 - Mapping `mcp` SoftOrgan → MFD `Chat` (Chat = Intercom/citizen; MCP settings = AiChatSettings).
@@ -173,6 +174,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 ## last_ship
 - **2026-08-04 human-faced overnight v0** — near-black Dark Cockpit tokens (`#0A` night, G1000 cue) · CFG chip cycles UI scale 0.85/1/1.15/1.3 (`GlassUiScale` + `ScaleRoot`) · Intercom feed strips wire (`CompactIntercomBody`) · publish humanize lives in cdp-mcp 0.5.656. Build Glass green. Eyes dogfood + PNG CLOSED (`window-20260804-032857` + HUD `063729`).
+- **2026-08-04 cabin path-orphan fix** — dig: «dies between wakes» ≠ crash (no App Error). Dual Glass Debug+Release; toml preferred=Release; FindByExePath path-strict → false-down + twin Start. Ship: `gui_host=orphan` / `path_orphans` · Start refuse twin (cabin-family only) · dogfood Debug orphan→refuse→kill→Release pid=25892 · PNG `tmp-glass-shots/window-20260804-cabin-path-orphan-fix.png`. SoftFL invent still REJECT.
 - **2026-08-04 Intercom HUD v0** — flat Korry AUTOI/HILD/VAD + HDG/CRS from `ignite-LATEST` (`autonomous`/`hild`/`course`); Glass→`ignite-cmd-LATEST` toggle bridge; model picker at Composer. GlassCore `GlassIntercomHud` 3/3 · MCP latch/cmd 4/4 · Glass Release build green. **Eyes dogfood CLOSED** — PrintWindow `tmp-glass-shots/window-20260804-063729-852.png` (AUTOI lit · HDG/CRS · Glass Done course).
 - **2026-08-04 cabin-up Hold** — wake dig: `cockpit_host · down · agent-only` (real product gap; SoftFL invent REJECT). `op=start` → pid=31992 latches=32 · PNG `tmp-glass-shots/window-20260804-cabin-up-31992.png` (AUTOI lit · HDG/CRS · Glass Done). Hold continues invent-only.
 - **2026-08-04 cabin-up Hold #2** — again `down · agent-only` after remount/Autoi thrash. `op=start` → pid=24088 · PNG `tmp-glass-shots/window-20260804-cabin-up-24088.png` (AUTOI+HILD lit · HDG/CRS). SoftFL invent REJECT. Densest next if recurs: dig why Glass process dies.
