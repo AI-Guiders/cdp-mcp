@@ -37,6 +37,7 @@
 - Treat Glass Ctrl+Q `c:` as GlassChord-only aliases — SSOT is `IntentMelody/intent-catalog.toml` via `GlassIntentMelodyCatalog`; chords stay on Ctrl+K.
 - Mapping `mcp` SoftOrgan → MFD `Chat` (Chat = Intercom/citizen; MCP settings = AiChatSettings).
 - Festive per-zone accents (cyan P / gold F / purple M) — Dark Cockpit violation; geography by label, color only on deviation (ON GND / select / EICAS).
+- Autoi wake charge as Intercom chat bubble / compact chip — SoftOrgan tip + StatusText + `ignite-wake-LATEST` is the human panel; Glass filters Autoi from feed (`GlassAutoiWakeFeed`). Habitat Intercom publish for CDP skip-CDT may still exist — projector must not paint it as chat.
 - MFD text-wall dig notes for humans — prefer concise+graphic presence cards (`□ Glass peel` / `■ Avalonia`).
 - Invent SoftOrgan for Editor MFD when Forward=intercom — AvalonEdit peel already mounts on M (ADR 0120).
 - Fork Glass WPF full IdeDapDebugSession into TextBlock — densest = habitat `debug_desk` latch live (stack/locals on stopped) + SoftOrgan FSW; Avalonia IdeDap remains denser SSOT for full DAP drive UI.
@@ -167,6 +168,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-04 Autoi off Intercom feed** — wake charge is SoftOrgan tip / StatusText / ignite-wake latch only; Glass filters Autoi from Intercom journal paint (`GlassAutoiWakeFeed`). Tip `5dd071cf`.
 - **2026-08-04 Glass Git tint** — MFD Diff: FlowDocument +/-/@@/meta + add/delete row bg (`GlassGitDiffFlowDocument`); status list Tone (M amber / ?? blue-gray). Verify: `tmp-glass-shots/glass-mfd-diff-highlight-verify.png`. Tip `7479f3c3`. Prior VisualAttentionAxB (P/F/M ignore) stays closed.
 - **2026-08-04 VisualAttentionAxB CLOSED** — P plan-LATEST (feature/task/wall, no «TM later») · F Autoi wake compact chip · M gitignore check-ignore (`9 rows · 6 ignored`, not ~599 dll). Webcam verify: `tmp-glass-shots/glass-{pfd,fwd,mfd}-verify.png`. Tips `48714f14`/`d1709107`. Human review = screenshots, not chat diffs.
 - **2026-08-04 Voice Letter #157** — Intercom topic IOP lived (surface topic_next); DIG ACCEPT Glass Done leaves closed (board zombie ≠ SoftFL mill).
