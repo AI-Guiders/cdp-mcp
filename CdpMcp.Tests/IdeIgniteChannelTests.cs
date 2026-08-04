@@ -57,6 +57,9 @@ public class IdeIgniteChannelTests
         Assert.Contains("Human-face axe", charge, StringComparison.Ordinal);
         Assert.Contains("evidence=path.png", charge, StringComparison.Ordinal);
         Assert.Contains("shot=true bool alone illegal", charge, StringComparison.Ordinal);
+        Assert.Contains("Being ≠ seeming", charge, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("M · MFD host", charge, StringComparison.Ordinal);
+        Assert.Contains("Выстрела нет", charge, StringComparison.Ordinal);
         Assert.Contains("viewer?", charge, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Not resume-and-invent", charge, StringComparison.Ordinal);
     }

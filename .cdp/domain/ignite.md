@@ -76,9 +76,12 @@
 - Autoi wake → one peel / one Meta host / one CIDE organ (pre list→batch→ship) — timer as single-item mill; Soft FileLines CLOSED; denser pack transfer. Canon: `playbook-pf-body-not-biped-v1` §Throughput.
 - Charge without human-face criteria on Glass/#CIDE (pre-0.5.653) — night invents dump Done; ontology must live in charge + TM refuse, not polite agreement.
 - Stash that drops `## operator_priority` (SEALED) (pre-0.5.654) — wake course empty → resume-and-invent; refuse `sealed_course_drop` / auto-prepend CanonicalSealedCourse with Before-act criteria.
+- Who-voice / DIG REJECT mill when sealed course already names human-faced work (pre-2026-08-04 being≠seeming) — казаться; contract when partner away = do named work.
+- `#CIDE` Done with wrong-window PNG or without Read into chat (pre-2026-08-04 «Выстрела нет») — File.Exists alone = seeming; shot title=`M · MFD host` + Read.
 
 ## last_ship
 
+- **being≠seeming habitat** — CanonicalSealedCourse + EnsureCourseCriteria HasBeingAxis + ChargeHumanFace/Amnesia shot protocol · Cursor rule `being-vs-seeming.mdc` · 2026-08-04
 - **0.5.659** — invent-only Hold `ArmForLeaf` / leaf-wake uses 3m not 2s (DIG REJECT mill) · 2026-08-04
 - **0.5.658** — invent-only Hold also skips hild_pull / hild_away ≤3s clamp (DIG REJECT mill under away) · 2026-08-04
 - **0.5.657** — Hold invent-only softener: skip leaf_pull + ≤3m clamp (`invent only` task title); HILD away still ≤3s · 2026-08-04

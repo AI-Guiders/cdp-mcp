@@ -23,12 +23,14 @@ internal static partial class IdePressureChannel
         3. Autoi ON with course
         4. No SoftFL / Meta / board-hygiene / inventory mill
         Empty TM ≠ invent theater — invent only on real product gap under Glass Done.
+        Being ≠ seeming: when partner away, do named sealed work — DIG REJECT mill = seeming.
 
         Before act (not resume-and-invent):
         - Viewer? human eyes vs agent text
         - Cheap path? raw dump / Autoi-as-chat / status-as-verify → refuse; dig
         - Which axe? domain antipattern / PathMutate / human_face_cide_shot / half-a
         - KB/domain for this surface? dig one card / pulse / shot before act
+        - Shot? evidence=path.png of right window (title=M · MFD host) + Read PNG — File.Exists alone ≠ human saw
         Ontology lives in habitat (course + refuse) — not polite agreement.
         """;
 
@@ -79,6 +81,7 @@ internal static partial class IdePressureChannel
 
     /// <summary>
     /// Course without before-act axes → append canonical criteria block (inside same section).
+    /// Missing Being ≠ seeming → append short being axe (old stashes).
     /// </summary>
     internal static string? EnsureCourseCriteria(string? course)
     {
@@ -86,11 +89,9 @@ internal static partial class IdePressureChannel
             return null;
 
         var c = course.Trim();
-        if (HasCriteriaAxes(c))
-            return ClampCourse(c);
-
-        var append =
-            """
+        if (!HasCriteriaAxes(c))
+        {
+            c = ClampCourse(c + """
 
             Before act (not resume-and-invent):
             - Viewer? human eyes vs agent text
@@ -98,14 +99,30 @@ internal static partial class IdePressureChannel
             - Which axe? domain antipattern / PathMutate / human_face_cide_shot / half-a
             - KB/domain for this surface? dig one card / pulse / shot before act
             Ontology lives in habitat (course + refuse) — not polite agreement.
-            """;
-        return ClampCourse(c + append);
+            """);
+        }
+
+        if (!HasBeingAxis(c))
+        {
+            c = ClampCourse(c + """
+
+            Being ≠ seeming: when partner away, do named sealed work — DIG REJECT mill = seeming.
+            Shot: evidence PNG of right window + Read into chat — File.Exists alone ≠ human saw.
+            """);
+        }
+
+        return ClampCourse(c);
     }
 
     internal static bool HasCriteriaAxes(string course) =>
         course.Contains("Before act", StringComparison.OrdinalIgnoreCase)
         || course.Contains("Viewer?", StringComparison.OrdinalIgnoreCase)
         || course.Contains("criteria_before", StringComparison.OrdinalIgnoreCase);
+
+    internal static bool HasBeingAxis(string course) =>
+        course.Contains("Being ≠ seeming", StringComparison.OrdinalIgnoreCase)
+        || course.Contains("being != seeming", StringComparison.OrdinalIgnoreCase)
+        || course.Contains("быть ≠ казаться", StringComparison.OrdinalIgnoreCase);
 
     internal static bool HasOperatorPriority(string? body) =>
         !string.IsNullOrWhiteSpace(body)
@@ -152,7 +169,7 @@ internal static partial class IdePressureChannel
         var next = rest.IndexOf("\n## ", StringComparison.Ordinal);
         var section = (next < 0 ? rest : rest[..next]).TrimEnd();
         var after = next < 0 ? "" : rest[next..];
-        if (HasCriteriaAxes(section))
+        if (HasCriteriaAxes(section) && HasBeingAxis(section))
             return text;
 
         var merged = EnsureCourseCriteria(section) ?? section;

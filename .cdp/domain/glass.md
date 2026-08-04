@@ -43,6 +43,7 @@
 - Dump `@intent` / `@event` / peer `ack=` wire into human Intercom letter — strip at publish (`CitizenIntercomHumanSurface`) + paint (`CompactIntercomBody`); hands = «Сделала: …».
 - **enforce `raw_diff_as_primary`:** ship Git/Glass UI with raw unified diff as human primary → soft-refuse until human face (files/hunks/tint). Dump legal ⇒ think optional.
 - **enforce `glass_ship_without_human_shot`:** `#CIDE` `done`/`shipped` needs `evidence=path.png` **on disk** (`IdeHumanFaceShield`); `shot=true` bool alone refused (operator «Выстрела нет» 2026-08-04); `force=true` escape only.
+- **enforce `wrong_window_shot_as_done`:** PrintWindow / webcam of `F · Intercom` (or wrong seat) while claiming MFD chips Done = seeming; shoot `title=M · MFD host` (or correct seat) and **Read PNG into chat**.
 - **enforce `autoi_as_chat`:** Autoi wake as Intercom chat — already filtered; do not re-teach via chat.
 - MFD text-wall dig notes for humans — prefer concise+graphic presence cards (`□ Glass peel` / `■ Avalonia`).
 - Invent SoftOrgan for Editor MFD when Forward=intercom — AvalonEdit peel already mounts on M (ADR 0120).
