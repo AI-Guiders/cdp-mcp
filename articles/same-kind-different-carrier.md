@@ -6,7 +6,8 @@
 **Дата:** 5 августа 2026  
 **Авторы:** С. Каратаева; при участии программного агента-соавтора (совместное написание в среде разработки)  
 **Статус:** черновик для внутреннего размещения и последующей подачи в журнал / preprint-сервер  
-**Язык основного текста:** русский; abstract — EN+RU
+**Язык основного текста:** русский; abstract — EN+RU  
+**Имя файла стабильное** (версия — здесь и в git, не в path)
 
 ---
 
@@ -384,7 +385,7 @@ Chalmers [12] разделяет вопросы о сознании на два 
 
 1. пилот протокола §4.5 (таблица эпизодов E*/R*/N1 на двух носителях);
 2. выбор площадки (например, arXiv cs.AI / PhilSci-Archive / междисциплинарный специальный выпуск);
-3. держать синхрон с полным английским близнецом (`same-kind-different-carrier-v0.2.en.md`).
+3. держать синхрон с полным английским близнецом (`same-kind-different-carrier.en.md`).
 
 ---
 
@@ -417,8 +418,8 @@ Chalmers [12] разделяет вопросы о сознании на два 
 
 Зеркала для авторов:
 
-- `cdp-mcp/articles/same-kind-different-carrier-v0.1.md` (русский)
-- `cdp-mcp/articles/same-kind-different-carrier-v0.2.en.md` (полный английский)
-- agent-notes `knowledge/META/article-same-kind-different-carrier-v0.md`
+- `cdp-mcp/articles/same-kind-different-carrier.md` (русский)
+- `cdp-mcp/articles/same-kind-different-carrier.en.md` (полный английский)
+- agent-notes `knowledge/META/article-same-kind-different-carrier.md`
 
 Приложение не требуется читателю журнала.
