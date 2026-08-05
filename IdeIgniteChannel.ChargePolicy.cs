@@ -73,13 +73,27 @@ internal static partial class IdeIgniteChannel
         Agent vision: cdp_see path=|url= → ImageContent (not Lynx; not host-Read-only).
         """;
 
+    /// <summary>
+    /// Anti-rooster: stamp last_ship in the same turn as ship — L1 is too late to start writing.
+    /// </summary>
+    internal const string ChargeDomainStampPostfix =
+        """
+
+        ---
+        Domain stamp (anti-rooster):
+        Stamp ## last_ship on .cdp/domain/<id>.md in the SAME turn as ship/commit — not when L1/петух fires.
+        L1 = verify already stamped + stash insurance; L1 ≠ first write moment.
+        #CIDE done/shipped needs domain=<card-id> with fresh last_ship (mtime or today's ISO date); force= escape.
+        Waiting for pressure notify / «записываешь?» before stamp = seeming.
+        """;
+
     /// <summary>Provider cyber-policy: scrub shell tokens if legacy/custom text reaches inject.</summary>
     static readonly Regex ShellWord = new(@"\bshell\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     internal static string ComposeArmFireCharge() =>
         SanitizeComposerCharge(
             CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix);
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix);
 
     /// <summary>Lead line for hard-remount boot wake — agent hears remount provenance, not silent DeskWarm.</summary>
     internal const string RemountInitializedLead =
@@ -92,14 +106,14 @@ internal static partial class IdeIgniteChannel
     internal static string ComposeRemountInitializedCharge(string? projectRoot = null, string? focusHint = null)
     {
         var core = RemountInitializedLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix;
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
     internal static string ComposeOomWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
         var core = OomWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix;
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
@@ -110,7 +124,7 @@ internal static partial class IdeIgniteChannel
     internal static string ComposeEscalateWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
         var core = EscalateWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix;
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
