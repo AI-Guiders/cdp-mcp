@@ -7,7 +7,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Soft organ <c>go=fdr</c> / Meta <c>cdp_fdr</c> — Black-box FDR desk (incident tape, not chat).
-/// Ops: scene|tail|stats|slow|open|suggest|apply|clear_overlay. VDR (cabin voice) deferred.
+/// Ops: scene|tail|stats|slow|open|trace|suggest|apply|clear_overlay. VDR (cabin voice) deferred.
 /// </summary>
 internal static class IdeFdrChannel
 {
@@ -40,10 +40,11 @@ internal static class IdeFdrChannel
             "stats" or "summary" => Stats(args),
             "slow" or "incidents" => Slow(args),
             "open" or "inflight" or "ghost" => Open(args),
+            "trace" or "flight" or "call" => Trace(args),
             "suggest" or "thresholds" or "timeout_wake" => Suggest(args),
             "apply" => Apply(args),
             "clear_overlay" or "clear" => IdeFdrThresholdPolicy.ClearOverlay(),
-            _ => Fail("unknown_op", "op=scene|tail|stats|slow|open|suggest|apply|clear_overlay")
+            _ => Fail("unknown_op", "op=scene|tail|stats|slow|open|trace|suggest|apply|clear_overlay")
         };
     }
 
@@ -76,20 +77,21 @@ internal static class IdeFdrChannel
         tool = ToolName,
         tape = IdeFlightDataRecorder.TapePath,
         max_lines = IdeFlightDataRecorder.DefaultMaxLines,
-        ops = new[] { "scene", "tail", "stats", "slow", "open", "suggest", "apply", "clear_overlay" },
+        ops = new[] { "scene", "tail", "stats", "slow", "open", "trace", "suggest", "apply", "clear_overlay" },
         pulse = PulseLine(),
         next = new object[]
         {
             new { go = "fdr", label = "Stats", why = "op=stats — p50/p95 + timeout_wake candidates" },
             new { go = "fdr", label = "Open", why = "op=open — tool_start without close (ghost hang dig)" },
+            new { go = "fdr", label = "Trace", why = "op=trace call= — start+ticks+close dynamics" },
             new { go = "fdr", label = "Suggest", why = "op=suggest — raise|hang|async from tape" },
             new { go = "fdr", label = "Apply", why = "op=apply — arm overlay from raise candidates" },
             new { go = "fdr", label = "Slow", why = "op=slow — top latency events" },
             new { go = "fdr", label = "Tail", why = "op=tail limit=40" }
         },
         hint =
-            "Black-box FDR: tool_start at begin + closed tool_call at finally. " +
-            "Ghost hang dig: op=open (start without matching close). " +
+            "Black-box FDR: tool_start → tool_tick (dynamics) → closed tool_call. " +
+            "Ghost hang dig: op=open / op=trace call=. " +
             "timeout_wake: op=suggest → op=apply overlay (evidence, not hand guess)."
     };
 
@@ -160,7 +162,22 @@ internal static class IdeFdrChannel
             open,
             hint =
                 "tool_start without later closed tool_call for same call_id. " +
-                "Host abort / hung ScriptHost without finally → ghost dig here."
+                "last_tick_ms / ticks = mid-flight dynamics when present. " +
+                "Host abort / hung ScriptHost without finally → ghost dig here; op=trace call= for full trail."
+        };
+    }
+
+    static object Trace(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var call = Opt(args, "call") ?? Opt(args, "call_id") ?? Opt(args, "id") ?? "";
+        var lookback = OptInt(args, "limit") ?? OptInt(args, "lookback") ?? 500;
+        var trace = IdeFlightDataRecorder.TraceFlight(call, lookback);
+        return new
+        {
+            schema = SchemaVersion,
+            go = GoName,
+            op = "trace",
+            result = trace
         };
     }
 
@@ -184,7 +201,7 @@ internal static class IdeFdrChannel
             min_ms = minMs,
             count = events.Length,
             events,
-            hint = "Incidents = slow / wake / error / cancel closed flights — not tool_start."
+            hint = "Incidents = slow / wake / error / cancel closed flights — not tool_start/tool_tick."
         };
     }
 

@@ -74,6 +74,7 @@ internal static partial class CitizenIntentRouter
         ("fdr_stats", "stats"),
         ("fdr_slow", "slow"),
         ("fdr_open", "open"),
+        ("fdr_trace", "trace"),
         ("fdr_suggest", "suggest"),
         ("fdr_apply", "apply"),
         ("fdr_clear_overlay", "clear_overlay"),
@@ -82,6 +83,7 @@ internal static partial class CitizenIntentRouter
         ("cdp_fdr_stats", "stats"),
         ("cdp_fdr_slow", "slow"),
         ("cdp_fdr_open", "open"),
+        ("cdp_fdr_trace", "trace"),
         ("cdp_fdr_suggest", "suggest"),
         ("cdp_fdr_apply", "apply"),
         ("cdp_fdr_clear_overlay", "clear_overlay")
@@ -100,13 +102,14 @@ internal static partial class CitizenIntentRouter
             "summary" => "stats",
             "incidents" => "slow",
             "inflight" or "ghost" => "open",
+            "flight" or "call" => "trace",
             "thresholds" or "timeout_wake" => "suggest",
             "clear" => "clear_overlay",
             _ => op
         };
 
     static bool IsFdrOp(string? op) =>
-        op is "scene" or "tail" or "stats" or "slow" or "open" or "suggest" or "apply" or "clear_overlay";
+        op is "scene" or "tail" or "stats" or "slow" or "open" or "trace" or "suggest" or "apply" or "clear_overlay";
 
     static bool IsFdrIntent(string raw)
     {

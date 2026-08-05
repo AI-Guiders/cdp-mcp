@@ -224,4 +224,103 @@ public sealed class IdeFdrChannelTests
             try { Directory.Delete(iso, recursive: true); } catch { /* best-effort */ }
         }
     }
+
+    [Fact]
+    public async Task Mid_flight_ticks_on_tape_and_excluded_from_stats()
+    {
+        var iso = Path.Combine(Path.GetTempPath(), "cdp-fdr-tick-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(iso);
+        IdeFlightDataRecorder.PathOverrideForTests = Path.Combine(iso, "fdr-tape.jsonl");
+        IdeFlightDataRecorder.SuppressWriteForTests = false;
+        IdeToolCallWatch.SuppressArmForTests = true;
+        IdeToolCallWatch.TickSecondsForTests = 1;
+        try
+        {
+            var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["timeout_wake"] = JsonSerializer.SerializeToElement(false)
+            };
+
+            var text = await IdeToolCallWatch.RunAsync(
+                "cdp_health",
+                args,
+                async ct =>
+                {
+                    await Task.Delay(2300, ct);
+                    return "{\"ok\":true}";
+                },
+                CancellationToken.None);
+
+            Assert.Contains("ok", text, StringComparison.Ordinal);
+
+            var tail = IdeFlightDataRecorder.ReadTail(40);
+            Assert.Contains(tail, e => e.Kind == IdeFlightDataRecorder.KindToolStart);
+            Assert.Contains(tail, e => e.Kind == IdeFlightDataRecorder.KindToolTick
+                && e.Outcome == IdeFlightDataRecorder.OutcomeRunning
+                && e.ElapsedMs >= 900);
+            Assert.Contains(tail, e => e.Kind == IdeFlightDataRecorder.KindToolCall && e.Outcome == "ok");
+
+            var ticks = tail.Count(e => e.Kind == IdeFlightDataRecorder.KindToolTick);
+            Assert.True(ticks >= 1, $"expected ≥1 tool_tick, got {ticks}");
+
+            var session = new SessionContext { ProjectRoot = iso };
+            var stats = IdeFdrChannel.Handle(session, new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["op"] = JsonSerializer.SerializeToElement("stats")
+            });
+            using var statsDoc = JsonDocument.Parse(JsonSerializer.Serialize(stats));
+            Assert.Equal(1, statsDoc.RootElement.GetProperty("stats").GetProperty("count").GetInt32());
+
+            var callId = tail.First(e => e.Kind == IdeFlightDataRecorder.KindToolStart).CallId;
+            var trace = IdeFdrChannel.Handle(session, new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["op"] = JsonSerializer.SerializeToElement("trace"),
+                ["call"] = JsonSerializer.SerializeToElement(callId)
+            });
+            using var traceDoc = JsonDocument.Parse(JsonSerializer.Serialize(trace));
+            Assert.Equal("trace", traceDoc.RootElement.GetProperty("op").GetString());
+            Assert.True(traceDoc.RootElement.GetProperty("result").GetProperty("count").GetInt32() >= 3);
+        }
+        finally
+        {
+            IdeFlightDataRecorder.PathOverrideForTests = null;
+            IdeToolCallWatch.SuppressArmForTests = false;
+            IdeToolCallWatch.TickSecondsForTests = 0;
+            try { Directory.Delete(iso, recursive: true); } catch { /* best-effort */ }
+        }
+    }
+
+    [Fact]
+    public void Open_includes_last_tick_when_present()
+    {
+        var iso = Path.Combine(Path.GetTempPath(), "cdp-fdr-open-tick-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(iso);
+        IdeFlightDataRecorder.PathOverrideForTests = Path.Combine(iso, "fdr-tape.jsonl");
+        IdeFlightDataRecorder.SuppressWriteForTests = false;
+        try
+        {
+            var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["op"] = JsonSerializer.SerializeToElement("run")
+            };
+            IdeFlightDataRecorder.RecordToolStart("cdp_csx_run", "tickghost01", args, thresholdSeconds: 45);
+            IdeFlightDataRecorder.RecordToolTick(
+                "cdp_csx_run", "tickghost01", args, 45, elapsedMs: 12_000, wakeExceeded: false);
+
+            var open = IdeFlightDataRecorder.ListOpenFlights(20);
+            Assert.Contains(open, o =>
+            {
+                var json = JsonSerializer.Serialize(o);
+                using var doc = JsonDocument.Parse(json);
+                return doc.RootElement.GetProperty("call").GetString() == "tickghost01"
+                    && doc.RootElement.GetProperty("last_tick_ms").GetInt32() == 12_000
+                    && doc.RootElement.GetProperty("ticks").GetInt32() == 1;
+            });
+        }
+        finally
+        {
+            IdeFlightDataRecorder.PathOverrideForTests = null;
+            try { Directory.Delete(iso, recursive: true); } catch { /* best-effort */ }
+        }
+    }
 }

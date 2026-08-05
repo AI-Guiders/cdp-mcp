@@ -62,10 +62,11 @@ internal static partial class IdeFlightDataRecorder
 
     public const string KindToolCall = "tool_call";
     public const string KindToolStart = "tool_start";
+    public const string KindToolTick = "tool_tick";
     public const string OutcomeRunning = "running";
 
     /// <summary>
-    /// Closed flight row only (latency/outcome). <see cref="KindToolStart"/> is in-flight — excluded.
+    /// Closed flight row only (latency/outcome). Starts/ticks are dynamics — excluded from p50/p95.
     /// </summary>
     public static bool IsClosedToolCall(FdrEvent e)
     {
@@ -76,6 +77,13 @@ internal static partial class IdeFlightDataRecorder
         if (string.Equals(e.Outcome, OutcomeRunning, StringComparison.OrdinalIgnoreCase))
             return false;
         return !string.IsNullOrWhiteSpace(e.Tool);
+    }
+
+    public static bool IsDynamicsEvent(FdrEvent e)
+    {
+        var kind = e.Kind?.Trim() ?? "";
+        return string.Equals(kind, KindToolStart, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(kind, KindToolTick, StringComparison.OrdinalIgnoreCase);
     }
 
     static bool IsSelfDeskTool(string? tool) =>
@@ -115,6 +123,46 @@ internal static partial class IdeFlightDataRecorder
             ThresholdS = thresholdSeconds,
             ElapsedMs = 0,
             Outcome = OutcomeRunning,
+            Phase = snap?.Phase,
+            Object = snap?.Object,
+            Language = snap?.Language,
+            Project = snap?.ProjectLeaf,
+            AtUtc = DateTimeOffset.UtcNow.ToString("o", CultureInfo.InvariantCulture)
+        });
+    }
+
+    /// <summary>
+    /// Mid-flight dynamics sample (real FDR path) — elapsed while still running.
+    /// Crash dig reads the tick trail even when close never lands.
+    /// </summary>
+    public static void RecordToolTick(
+        string tool,
+        string callId,
+        IReadOnlyDictionary<string, JsonElement> args,
+        int thresholdSeconds,
+        int elapsedMs,
+        bool wakeExceeded)
+    {
+        if (SuppressWriteForTests || IsSelfDeskTool(tool))
+            return;
+
+        FdrContextSnap? snap = null;
+        try { snap = s_context?.Invoke(); } catch { /* best-effort */ }
+
+        Append(new FdrEvent
+        {
+            Kind = KindToolTick,
+            CallId = callId,
+            Tool = tool ?? "",
+            Op = OptArg(args, "op") ?? OptArg(args, "cmd"),
+            Go = OptArg(args, "go"),
+            ArgKeys = args.Count == 0
+                ? null
+                : args.Keys.OrderBy(k => k, StringComparer.Ordinal).Take(24).ToArray(),
+            ThresholdS = thresholdSeconds,
+            ElapsedMs = Math.Max(0, elapsedMs),
+            Outcome = OutcomeRunning,
+            WakeExceeded = wakeExceeded,
             Phase = snap?.Phase,
             Object = snap?.Object,
             Language = snap?.Language,
@@ -192,6 +240,7 @@ internal static partial class IdeFlightDataRecorder
     /// <summary>
     /// Starts without a later closed <see cref="KindToolCall"/> for the same call_id —
     /// ghost hang when host aborts without finally.
+    /// Includes last mid-flight tick when present (dynamics trail).
     /// </summary>
     public static IReadOnlyList<object> ListOpenFlights(int lookback = 500)
     {
@@ -202,6 +251,18 @@ internal static partial class IdeFlightDataRecorder
             if (!IsClosedToolCall(e) || string.IsNullOrWhiteSpace(e.CallId))
                 continue;
             closedIds.Add(e.CallId);
+        }
+
+        var lastTickByCall = new Dictionary<string, FdrEvent>(StringComparer.Ordinal);
+        var tickCountByCall = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var e in events)
+        {
+            if (!string.Equals(e.Kind, KindToolTick, StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (string.IsNullOrWhiteSpace(e.CallId))
+                continue;
+            lastTickByCall[e.CallId] = e;
+            tickCountByCall[e.CallId] = tickCountByCall.GetValueOrDefault(e.CallId) + 1;
         }
 
         var now = DateTimeOffset.UtcNow;
@@ -218,6 +279,9 @@ internal static partial class IdeFlightDataRecorder
                     DateTimeStyles.RoundtripKind, out var started))
                 ageMs = (int)Math.Max(0, (now - started).TotalMilliseconds);
 
+            lastTickByCall.TryGetValue(e.CallId, out var lastTick);
+            tickCountByCall.TryGetValue(e.CallId, out var ticks);
+
             open.Add(new
             {
                 at = e.AtUtc,
@@ -227,6 +291,10 @@ internal static partial class IdeFlightDataRecorder
                 call = e.CallId,
                 threshold_s = e.ThresholdS,
                 age_ms = ageMs,
+                last_tick_ms = lastTick?.ElapsedMs,
+                last_tick_at = lastTick?.AtUtc,
+                ticks,
+                wake = lastTick?.WakeExceeded ?? false,
                 phase = e.Phase,
                 @object = e.Object,
                 outcome = e.Outcome,
@@ -235,6 +303,39 @@ internal static partial class IdeFlightDataRecorder
         }
 
         return open;
+    }
+
+    /// <summary>
+    /// Full dynamics trail for one call_id — start + ticks + close (crash dig).
+    /// </summary>
+    public static object TraceFlight(string callId, int lookback = 500)
+    {
+        callId = (callId ?? "").Trim();
+        if (callId.Length == 0)
+        {
+            return new
+            {
+                ok = false,
+                reason = "call_required",
+                hint = "op=trace call=<call_id>"
+            };
+        }
+
+        var events = ReadTail(Math.Clamp(lookback, 10, DefaultMaxLines))
+            .Where(e => string.Equals(e.CallId, callId, StringComparison.Ordinal))
+            .ToArray();
+
+        return new
+        {
+            ok = true,
+            call = callId,
+            lookback,
+            count = events.Length,
+            events = events.Select(Slim).ToArray(),
+            open = events.Any(e => string.Equals(e.Kind, KindToolStart, StringComparison.OrdinalIgnoreCase))
+                && !events.Any(IsClosedToolCall),
+            hint = "Chronological dynamics for one flight. Ghost = start±ticks without closed tool_call."
+        };
     }
 
     public static object BuildStats(int lookback = 500)
