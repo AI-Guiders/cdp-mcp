@@ -93,6 +93,16 @@ Parity note: Glass XAML / CabinGlass use page string **SemanticMap** (`arch_desk
 
 **Presence DoD: CLOSED**. **Full-host v1 DoD: CLOSED** (2026-08-03 batch `77035101`+`f7de96e9`) — CascadeChord = Ctrl+K overlay (not MFD). **Depth DoD: CLOSED** — full CRS resolver (Peel15 GlassCore). **Terminal VT: CLOSED** · **WebView2 WebAi: CLOSED** · **SemanticMap Skia: CLOSED** · **DebugStack live DAP: CLOSED** · **Correspondence full CRS: CLOSED**. **CIDE-Glass-residual wave (14): CLOSED** (2026-08-04 densest overnight — md-rich/rf/git-depth/dap/sm/chord/aichat/se/build/test/hci/msg-code/problems-roslyn/ide-mcp; Avalonia still denser for IdeDap/WNM full; design polish later).
 
+## PreCondition (operator SSOT — restore 2026-08-05)
+
+**Glass Done human-flight ≠ substitute for:** `All CIDE surfaces adopted` on Glass — **CIDE/Avalonia cabin is EOL** for the standalone path.
+
+What closed under the name Glass Done was a **narrower DoD** (presence / SoftOrgan / latch peels / P0–P3 lived UX slices — e.g. Topics **P0b** = strip+gap, not ADR 0072 overview). That is **half-a vs operator PreCondition** when a needed CIDE surface still only lives on Avalonia or as stub/strip.
+
+- **Do not** re-stamp Glass Done while needed Intercom/CIDE surfaces remain unadopted (topic overview 0072, spine/summary 0096, …) unless operator explicitly shrinks PreCondition.
+- **Adopt** = lived Glass WPF face (or explicit DIG REJECT + named external SSOT) — not agent-only, not File.Exists, not Avalonia-still-primary.
+- NorthStar messenger (`#crew`/DM/Radio) may **supersede** some CIDE Intercom chrome — supersede must be **named**, not silent undership of overview.
+
 ## DoD matrix — SoftOrgan chrome beyond MFD (2026-08-01 dig)
 
 Chrome DoD = SoftOrgan latch → Glass SoftOrganBand · Avalonia Cdp*Projector · CabinGlass pin. SoftOrganBand is **latch-first** (`SoftOrganLatchCatalog` only).
