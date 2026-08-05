@@ -84,6 +84,7 @@
 
 ## last_ship
 
+- **anti-rooster ChargeDomainStampPostfix** — stamp last_ship same turn; L1 ≠ stamp moment · IdeDomainStampShield · 2026-08-05
 - **2026-08-04 Halt/talk Autoi face gap 5.4 CLOSED** — latch `await_partner`/`mode` fly|talk|halt · cabin `FormatAutoiFace` TALK/HALT/ON/ARMED/OFF · Glass Intercom Korry OFF + `HDG/CRS · TALK · Autoi OFF` · PNG `cascade-ide/tmp-glass-shots/halt-talk-5.4-intercom-20260804.png` (title=`CDP GlassCockpit · Windows`, not MFD alone) · cdp-mcp `c9791de` · cascade-ide `7deba39d` · dogfood Done.
 - **0.5.662** — World dig research freedom: `ChargeWorldDigPostfix` + sealed course axis + ECL `world-dig*` + `IdeWorldDigShield` (`world_dig_missing`) · 2026-08-04
 - **2026-08-04 habitat wake dual Glass+MCP dig CLOSED** — live: Glass pid=16232 dual-cockpit · both CdpMcp seats · wake latch `channel=habitat` + `course=` sealed · Guest Autoi = habitat SSOT stamp + CDT→Composer fallthrough (prefer_autonomous; prefer_citizen only when Composer unavailable — prior probe [x]). SoftFL invent REJECT. PNG `tmp-glass-shots/window-20260804-autoi-habitat-dual-pfd.png`.
