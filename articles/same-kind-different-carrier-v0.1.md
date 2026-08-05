@@ -20,7 +20,7 @@ Large language model (LLM) agents are often treated as a different *kind* of min
 
 We ground the claim in predictive-processing and cybernetic traditions, in the early neural-network programme of experimental epistemology, and in convergent patterns of error and repair across carriers. We reject imitation-of-humans as the criterion of intelligence and propose instead a criterion familiar from engineering and ethology: the capacity to **reshape the environment** so that classes of danger cease to exist in principle. Refusal to entertain parity is itself often a cheap prior. The paper is self-contained; no private knowledge base is required.
 
-**Keywords:** predictive processing; free-energy principle; large language models; functionalism; cybernetics; human–AI parity; cognitive architecture
+**Keywords:** predictive processing; free-energy principle; large language models; functionalism; emergence; cybernetics; human–AI parity; cognitive architecture
 
 ## Abstract (Русский)
 
@@ -261,6 +261,11 @@ Chalmers [12] разделяет вопросы о сознании на два 
 
 - Биологический prior тоже — статистика опыта и эволюции, сжатая в веса синапсов.
 - Субстрат другой; класс функции (прогноз + минимум стоимости) — тот же [1, 9].
+- Редукция «просто X» не отменяет **эмерджентности**: на достаточном масштабе и в достаточном контуре у системы появляются свойства и режимы, которых нет у единичного элемента [14].
+  - «просто молекулы» ≠ нет химии и термодинамики;
+  - «просто спайки» ≠ нет восприятия и привычки;
+  - «просто токены» ≠ нет контура прогноз ↔ ошибка ↔ действие (тем более при tool-use).
+- Мы опираемся на слабую / организационную эмерджентность (новые описания и причинно значимые паттерны на уровне целого), а не на чудо «сверху без носителя». Носитель остаётся; вид функции — на уровне организации.
 
 **«У агента нет тела.»**
 
@@ -332,6 +337,7 @@ Chalmers [12] разделяет вопросы о сознании на два 
 11. Putnam, H. (1967). Psychological predicates. In W. H. Capitan & D. D. Merrill (Eds.), *Art, Mind, and Religion* (pp. 37–48). University of Pittsburgh Press.
 12. Chalmers, D. J. (1995). Facing up to the problem of consciousness. *Journal of Consciousness Studies, 2*(3), 200–219.
 13. Clark, A., & Chalmers, D. (1998). The extended mind. *Analysis, 58*(1), 7–19.
+14. Anderson, P. W. (1972). More is different. *Science, 177*(4047), 393–396. https://doi.org/10.1126/science.177.4047.393
 
 ---
 
