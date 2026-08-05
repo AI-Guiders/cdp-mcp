@@ -45,12 +45,14 @@ internal sealed partial class IntentWorkspaceStore
     }
 
     /// <summary>
-    /// Client StageId match: OutWit server Where(StageId==guid) can return empty on durable
-    /// WitDB while materialize+Guid equality still works (bytes equal).
+    /// StageId-filtered events. OutWit server Where can return empty on durable WitDB;
+    /// escape is SQL StageId filter — never full-table AsEnumerable (large WitDB thrash).
     /// </summary>
     static List<StageEventEntity> StageEventsForStage(IntentWorkspaceDbContext db, Guid stageId)
     {
-        // Fast path: server filter (works when OutWit GUID Where is honest).
+        // Fast path: server filter (honest OutWit GUID Where).
+        // Lived 2026-08-05: empty → AsEnumerable full-table killed go_detail=full / mid-turn Connection closed (~172MB).
+        // Never full-scan. When Where empty/throws: SQL StageId filter (OutWit client-match parity without load-all).
         try
         {
             var server = db.StageEvents.Where(e => e.StageId == stageId).ToList();
@@ -62,23 +64,23 @@ internal sealed partial class IntentWorkspaceStore
             HealNullStageEventUtc(db);
         }
 
-        // Client Guid match — needed when OutWit Where returns empty on durable WitDB.
-        // Never let NULL Utc / materialize faults kill callers silently empty.
         try
         {
-            return db.StageEvents.AsEnumerable().Where(e => e.StageId == stageId).ToList();
+            return db.StageEvents
+                .FromSqlRaw(
+                    """
+                    SELECT Id, StageId, Utc, Kind, Source, Summary, Ref
+                    FROM stage_events_v2
+                    WHERE StageId = {0}
+                    """,
+                    stageId)
+                .AsNoTracking()
+                .ToList();
         }
         catch
         {
             HealNullStageEventUtc(db);
-            try
-            {
-                return db.StageEvents.AsEnumerable().Where(e => e.StageId == stageId).ToList();
-            }
-            catch
-            {
-                return [];
-            }
+            return [];
         }
     }
 
