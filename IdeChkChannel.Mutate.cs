@@ -69,6 +69,17 @@ internal static partial class IdeChkChannel
         return new { ok = true, op = unack ? "unack" : "ack", checklist, item, key };
     }
 
+    /// <summary>Glass EICAS SoftKey bridge — ack without full desk ProbeCtx.</summary>
+    public static object AckFromGlass(string checklist, string item)
+    {
+        var merged = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["checklist"] = JsonSerializer.SerializeToElement(checklist),
+            ["item"] = JsonSerializer.SerializeToElement(item)
+        };
+        return DoAck(merged);
+    }
+
     static object DoReset(Dictionary<string, JsonElement> args)
     {
         var what = (Opt(args, "what") ?? Opt(args, "scope") ?? "overlay").Trim().ToLowerInvariant();
