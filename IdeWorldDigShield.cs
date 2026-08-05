@@ -19,6 +19,7 @@ internal static class IdeWorldDigShield
         "soft filelines",
         "invent theater",
         "invent only",
+        "invent-only",
         "board-hygiene",
         "board hygiene",
         "dig reject",

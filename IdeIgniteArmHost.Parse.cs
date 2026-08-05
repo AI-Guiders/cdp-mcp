@@ -164,10 +164,12 @@ internal static partial class IdeIgniteArmHost
     /// <summary>While HILD away_latched / on human_away edge — last_once work timers ≤3s (habit), not ≤3m.</summary>
     internal static readonly TimeSpan HildAwayContinuityMax = TimeSpan.FromSeconds(3);
 
-    /// <summary>Hold invent-only leaf — DIG REJECT mill must not be forced by ≤3s leaf_pull / hild_pull (VL#47 park police stays for active work leaves).</summary>
+    /// <summary>Hold invent-only leaf — DIG REJECT mill must not be forced by ≤3s leaf_pull / hild_pull (VL#47 park police stays for active work leaves).
+    /// Match both "invent only" and hyphenated "invent-only" (lived Hold title 2026-08-05).</summary>
     internal static bool IsInventOnlyHoldTask(string? task) =>
         !string.IsNullOrWhiteSpace(task)
-        && task.Contains("invent only", StringComparison.OrdinalIgnoreCase);
+        && (task.Contains("invent only", StringComparison.OrdinalIgnoreCase)
+            || task.Contains("invent-only", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Clamp long last_once timers under autonomous unless force=true.
     /// Partner-away or TM leaf Fly tightens to 3s (habit); invent-only Hold keeps ≤3m (both paths); else ≤3m.</summary>

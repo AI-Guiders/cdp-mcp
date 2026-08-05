@@ -359,6 +359,8 @@ public partial class IdeIgniteAutonomousTests
     {
         Assert.True(IdeIgniteArmHost.IsInventOnlyHoldTask(
             "Hold Citizen Done stable to 15.08 — invent only on real product gap"));
+        Assert.True(IdeIgniteArmHost.IsInventOnlyHoldTask(
+            "Hold invent-only to 15.08 — SoftFL REJECT; dig only on lived product residual"));
         Assert.False(IdeIgniteArmHost.IsInventOnlyHoldTask("Ship cabin detach survival"));
         Assert.False(IdeIgniteArmHost.IsInventOnlyHoldTask(null));
     }
