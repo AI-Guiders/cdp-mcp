@@ -66,6 +66,7 @@
 
 ## last_ship
 
+- **2026-08-05 DialogNamedIntentSteer SHIPPED** — `CitizenPersona.DialogSystemPrompt`: Named organs HARD/required + teach-set health/sys/inventory/elicit (bias mcp/shell/kb removed). Lived dual hard `build_utc=2026-08-05T15:55:58Z`: dialog named verbs **ack=4/4** · wire forced **ack=4/4**. SoftFL REJECT. Wave DialogNamedIntentSteer.
 - **2026-08-05 DIG peer-ack residual** — lived: wire forced health/sys/inventory/elicit **ack=4/4** (dry+live FM). Dialog freeform → FM invents mcp/shell/kb → partial ack (3/4; kb `definition_not_found`). Glass E2E ack=2/4 = FM route quality under dialog, **not** PeerAck/host pipe. SoftFL/Meta REJECT. densest invent only if persona steer for named organs — Hold invent-only until clear DoD.
 - **2026-08-05 post-cursor models SEALED** — DIG ACCEPT pick+burn (operator 2026-08-04 dual-use): default **`zai-org/GLM-5.1`** · second slot `Qwen/Qwen3-Coder-Next` · one citizen not zoo. Live burn both dialog «Пинг…»→«Жив.» · `ai-keys.toml` + `CitizenAiKeys.DefaultOpenAiModel` flipped · DIG REJECT SoftFL invent / multi-citizen for models.
 - **2026-08-05 full-chain verify CLOSED** — `@verify` leaf: cdp_citizen history 4/2 pairs · last_append_error=null · tests **27/27** (bridge+domain+intercom) · PNG Read `citizen-full-ready-e2e-20260805.png` + `citizen-multiturn-post-fix-20260805.png` (#crew · multiturn sierra). Pipe re-prove DIG REJECT.
