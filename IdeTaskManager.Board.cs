@@ -57,14 +57,13 @@ internal static partial class IdeTaskManager
                 return;
             }
 
-            var snap = store.TaskManagerSnapshot(state);
             var board = BuildBoard(store, state, sessionPhase);
             var pulse = board.Pulse;
             // Dark Cockpit: silent when no active feature.
-            var active = snap.ActiveFeatureTitle is { Length: > 0 };
+            var active = board.ActiveFeatureTitle is { Length: > 0 };
             // Shared-SSOT: WHY from sealed course on same latch as NEXT (feature/task).
             var why = IdePressureChannel.CompactWhyLine(IdePressureChannel.TryPeekSealedCourse());
-            CidePlanLatch.Publish(active, pulse, snap.ActiveFeatureTitle, snap.ActiveStageTitle, why, board.Lines);
+            CidePlanLatch.Publish(active, pulse, board.ActiveFeatureTitle, board.ActiveStageTitle, why, board.Lines);
         }
         catch
         {
@@ -188,7 +187,9 @@ internal static partial class IdeTaskManager
                 local = IdeLocalClock.PulseCard(localNow),
                 deadlines = IdeLocalClock.Deadlines(localNow)
             },
-            Lines: lines);
+            Lines: lines,
+            ActiveFeatureTitle: snap.ActiveFeatureTitle,
+            ActiveStageTitle: snap.ActiveStageTitle);
         s_boardCache = board;
         s_cacheIntentId = state.ActiveIntentId;
         s_cacheStageId = state.ActiveStageId;
