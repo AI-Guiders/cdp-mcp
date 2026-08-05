@@ -124,7 +124,7 @@ internal static partial class MetaToolCatalog
                 max_chars = new { type = "integer", description = "expand/export body cap in response" }
             }
         }),
-    Meta("cdp_fdr", "Black-box FDR — tool_start → tool_tick dynamics → closed tool_call (organ/op/latency/outcome/phase). Ghost dig: op=open / op=trace call=. Incident analysis, not chat dump. op=scene|tail|stats|slow|open|trace|suggest|apply|clear_overlay. Alias go=fdr. VDR deferred. timeout_wake: suggest from p95/wake → apply overlay (per-call override still wins).",
+    Meta("cdp_fdr", "Black-box FDR — tool_start → tool_tick dynamics → closed tool_call (organ/op/latency/outcome/phase). Ghost: watchdog cancel + orphan reconcile (op=cancel_open). Dig: op=open / op=trace call=. Incident analysis, not chat dump. op=scene|tail|stats|slow|open|cancel_open|trace|suggest|apply|clear_overlay. Alias go=fdr. VDR deferred. timeout_wake: suggest from p95/wake → apply overlay (per-call override still wins).",
         new
         {
             type = "object",

@@ -306,6 +306,97 @@ internal static partial class IdeFlightDataRecorder
     }
 
     /// <summary>
+    /// Write closed <c>outcome=cancel</c> for tape ghosts (tool_start without close) older than
+    /// <paramref name="minAgeSeconds"/> and not in <paramref name="liveCallIds"/> (still in-process).
+    /// Host kill / abandon leaves eternal opens — next CallTool reconciles.
+    /// </summary>
+    public static object CancelOrphanOpenFlights(
+        IEnumerable<string>? liveCallIds = null,
+        int minAgeSeconds = 90,
+        int lookback = 500)
+    {
+        if (SuppressWriteForTests)
+            return new { ok = true, cancelled = 0, skipped_live = 0, hint = "suppressed" };
+
+        minAgeSeconds = Math.Clamp(minAgeSeconds, 0, 3600);
+        var live = new HashSet<string>(
+            (liveCallIds ?? []).Where(s => !string.IsNullOrWhiteSpace(s)),
+            StringComparer.Ordinal);
+        var events = ReadTail(Math.Clamp(lookback, 10, DefaultMaxLines));
+        var closedIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var e in events)
+        {
+            if (!IsClosedToolCall(e) || string.IsNullOrWhiteSpace(e.CallId))
+                continue;
+            closedIds.Add(e.CallId);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var cancelled = new List<object>();
+        var skippedLive = 0;
+
+        foreach (var e in events)
+        {
+            if (!string.Equals(e.Kind, KindToolStart, StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (string.IsNullOrWhiteSpace(e.CallId) || closedIds.Contains(e.CallId))
+                continue;
+            if (live.Contains(e.CallId))
+            {
+                skippedLive++;
+                continue;
+            }
+
+            if (!DateTimeOffset.TryParse(e.AtUtc, CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind, out var started))
+                continue;
+            var age = now - started;
+            if (age.TotalSeconds < minAgeSeconds)
+                continue;
+
+            var ageMs = (int)Math.Max(0, age.TotalMilliseconds);
+            var wake = e.ThresholdS > 0 && ageMs >= e.ThresholdS * 1000;
+            var closeArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+            if (!string.IsNullOrWhiteSpace(e.Op))
+                closeArgs["op"] = JsonSerializer.SerializeToElement(e.Op);
+            if (!string.IsNullOrWhiteSpace(e.Go))
+                closeArgs["go"] = JsonSerializer.SerializeToElement(e.Go);
+            RecordToolCall(
+                e.Tool,
+                e.CallId,
+                closeArgs,
+                e.ThresholdS,
+                ageMs,
+                outcome: "cancel",
+                wakeExceeded: wake,
+                error: "ghost_cancel · orphan",
+                resultChars: 0);
+            closedIds.Add(e.CallId);
+            cancelled.Add(new
+            {
+                call = e.CallId,
+                tool = e.Tool,
+                go = e.Go,
+                op = e.Op,
+                age_ms = ageMs,
+                at = e.AtUtc
+            });
+        }
+
+        return new
+        {
+            ok = true,
+            cancelled = cancelled.Count,
+            skipped_live = skippedLive,
+            min_age_s = minAgeSeconds,
+            flights = cancelled,
+            hint = cancelled.Count == 0
+                ? "No orphan ghosts older than min_age_s (or still live in-process)."
+                : "Closed orphan tool_start rows with outcome=cancel · ghost_cancel · orphan."
+        };
+    }
+
+    /// <summary>
     /// Full dynamics trail for one call_id — start + ticks + close (crash dig).
     /// </summary>
     public static object TraceFlight(string callId, int lookback = 500)

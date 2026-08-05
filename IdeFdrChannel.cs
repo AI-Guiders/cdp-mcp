@@ -40,11 +40,12 @@ internal static class IdeFdrChannel
             "stats" or "summary" => Stats(args),
             "slow" or "incidents" => Slow(args),
             "open" or "inflight" or "ghost" => Open(args),
+            "cancel_open" or "reconcile" or "cancel_ghosts" => CancelOpen(args),
             "trace" or "flight" or "call" => Trace(args),
             "suggest" or "thresholds" or "timeout_wake" => Suggest(args),
             "apply" => Apply(args),
             "clear_overlay" or "clear" => IdeFdrThresholdPolicy.ClearOverlay(),
-            _ => Fail("unknown_op", "op=scene|tail|stats|slow|open|trace|suggest|apply|clear_overlay")
+            _ => Fail("unknown_op", "op=scene|tail|stats|slow|open|cancel_open|trace|suggest|apply|clear_overlay")
         };
     }
 
@@ -77,12 +78,13 @@ internal static class IdeFdrChannel
         tool = ToolName,
         tape = IdeFlightDataRecorder.TapePath,
         max_lines = IdeFlightDataRecorder.DefaultMaxLines,
-        ops = new[] { "scene", "tail", "stats", "slow", "open", "trace", "suggest", "apply", "clear_overlay" },
+        ops = new[] { "scene", "tail", "stats", "slow", "open", "cancel_open", "trace", "suggest", "apply", "clear_overlay" },
         pulse = PulseLine(),
         next = new object[]
         {
             new { go = "fdr", label = "Stats", why = "op=stats — p50/p95 + timeout_wake candidates" },
             new { go = "fdr", label = "Open", why = "op=open — tool_start without close (ghost hang dig)" },
+            new { go = "fdr", label = "Cancel open", why = "op=cancel_open — close orphan ghosts (skip live)" },
             new { go = "fdr", label = "Trace", why = "op=trace call= — start+ticks+close dynamics" },
             new { go = "fdr", label = "Suggest", why = "op=suggest — raise|hang|async from tape" },
             new { go = "fdr", label = "Apply", why = "op=apply — arm overlay from raise candidates" },
@@ -91,7 +93,8 @@ internal static class IdeFdrChannel
         },
         hint =
             "Black-box FDR: tool_start → tool_tick (dynamics) → closed tool_call. " +
-            "Ghost hang dig: op=open / op=trace call=. " +
+            "Ghost: watchdog cancel (in-flight) + orphan reconcile (host kill). " +
+            "Dig: op=open / op=trace; close orphans: op=cancel_open. " +
             "timeout_wake: op=suggest → op=apply overlay (evidence, not hand guess)."
     };
 
@@ -163,7 +166,30 @@ internal static class IdeFdrChannel
             hint =
                 "tool_start without later closed tool_call for same call_id. " +
                 "last_tick_ms / ticks = mid-flight dynamics when present. " +
-                "Host abort / hung ScriptHost without finally → ghost dig here; op=trace call= for full trail."
+                "Host abort / hung ScriptHost without finally → ghost dig here; " +
+                "op=cancel_open to close orphans; op=trace call= for full trail."
+        };
+    }
+
+    static object CancelOpen(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var lookback = OptInt(args, "limit") ?? OptInt(args, "lookback") ?? 500;
+        var minAge = OptInt(args, "age_s") ?? OptInt(args, "min_age_s")
+            ?? IdeToolCallWatch.DefaultGhostCancelSeconds;
+        var force = OptBool(args, "force") == true;
+        IEnumerable<string>? live = force ? null : IdeToolCallWatch.LiveCallIds;
+        var result = IdeFlightDataRecorder.CancelOrphanOpenFlights(live, minAge, lookback);
+        return new
+        {
+            schema = SchemaVersion,
+            ok = true,
+            op = "cancel_open",
+            go = GoName,
+            force,
+            result,
+            hint = force
+                ? "force=true closed tape orphans ignoring in-process live set."
+                : "Skipped live CallTool ids; use force=true only if sure."
         };
     }
 

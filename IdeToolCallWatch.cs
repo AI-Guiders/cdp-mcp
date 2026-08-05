@@ -17,6 +17,10 @@ internal static partial class IdeToolCallWatch
     public const string Schema = "tool_call_watch/v1";
     public const int DefaultThresholdSeconds = 45;
     public const int DefaultTickSeconds = 5;
+    /// <summary>Floor for ghost watchdog when organ has no timeout_wake (seconds).</summary>
+    public const int DefaultGhostCancelSeconds = 90;
+    public const int MinGhostCancelSeconds = 45;
+    public const int MaxGhostCancelSeconds = 600;
 
     /// <summary>Test hook — invoked when threshold fires (before latch/arm).</summary>
     internal static Action<ThresholdHit>? ThresholdHookForTests { get; set; }
@@ -27,7 +31,14 @@ internal static partial class IdeToolCallWatch
     /// <summary>Test hook — override tick period (seconds). 0 = use <see cref="DefaultTickSeconds"/>.</summary>
     internal static int TickSecondsForTests { get; set; }
 
+    /// <summary>Test hook — override ghost watchdog seconds. 0 = use <see cref="ResolveGhostCancelSeconds"/>.</summary>
+    internal static int GhostCancelSecondsForTests { get; set; }
+
     static readonly ConcurrentDictionary<string, byte> ArmedForCall = new(StringComparer.Ordinal);
+    static readonly ConcurrentDictionary<string, byte> LiveFlights = new(StringComparer.Ordinal);
+
+    /// <summary>In-process call_ids still inside <see cref="RunAsync"/> (not tape orphans).</summary>
+    internal static IReadOnlyCollection<string> LiveCallIds => LiveFlights.Keys.ToArray();
 
     public readonly record struct ThresholdHit(
         string Tool,
@@ -38,6 +49,19 @@ internal static partial class IdeToolCallWatch
     static int ResolveTickSeconds() =>
         TickSecondsForTests > 0 ? TickSecondsForTests : DefaultTickSeconds;
 
+    /// <summary>
+    /// Wall budget after which we force-cancel a hung CallTool so FDR finally lands
+    /// (host interrupt often abandons the client wait without cancelling the server CT).
+    /// </summary>
+    public static int ResolveGhostCancelSeconds(int thresholdSeconds)
+    {
+        if (GhostCancelSecondsForTests > 0)
+            return GhostCancelSecondsForTests;
+        if (thresholdSeconds <= 0)
+            return DefaultGhostCancelSeconds;
+        return Math.Clamp(thresholdSeconds * 3, MinGhostCancelSeconds, MaxGhostCancelSeconds);
+    }
+
     public static async Task<string> RunAsync(
         string toolName,
         IReadOnlyDictionary<string, JsonElement> args,
@@ -45,13 +69,19 @@ internal static partial class IdeToolCallWatch
         CancellationToken cancellationToken)
     {
         var threshold = ResolveThresholdSeconds(toolName, args);
+        var ghostCancelS = ResolveGhostCancelSeconds(threshold);
         var callId = Guid.NewGuid().ToString("N")[..12];
         var started = DateTimeOffset.UtcNow;
         var exceededFlag = 0;
+        var ghostCancelFlag = 0;
         string outcome = "ok";
         string? error = null;
         string text = "";
 
+        // Prior process kill / host abort left tool_start without close — reconcile before takeoff.
+        _ = IdeFlightDataRecorder.CancelOrphanOpenFlights(LiveCallIds, minAgeSeconds: DefaultGhostCancelSeconds);
+
+        LiveFlights[callId] = 0;
         IdeFlightDataRecorder.RecordToolStart(toolName, callId, args, threshold);
 
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -73,6 +103,14 @@ internal static partial class IdeToolCallWatch
                         && (Volatile.Read(ref exceededFlag) == 1 || elapsedMs >= threshold * 1000);
                     IdeFlightDataRecorder.RecordToolTick(
                         toolName, callId, args, threshold, elapsedMs, wakeExceeded);
+
+                    // Ghost cancel: force CT so finally writes closed tool_call (no eternal open).
+                    if (elapsedMs >= ghostCancelS * 1000
+                        && Interlocked.Exchange(ref ghostCancelFlag, 1) == 0)
+                    {
+                        try { linked.Cancel(); }
+                        catch { /* ignore */ }
+                    }
                 }
             }
             catch (OperationCanceledException)
@@ -115,6 +153,8 @@ internal static partial class IdeToolCallWatch
         catch (OperationCanceledException)
         {
             outcome = "cancel";
+            if (Volatile.Read(ref ghostCancelFlag) == 1)
+                error = "ghost_cancel · watchdog";
             throw;
         }
         catch (Exception ex)
@@ -126,6 +166,7 @@ internal static partial class IdeToolCallWatch
         finally
         {
             ArmedForCall.TryRemove(callId, out _);
+            LiveFlights.TryRemove(callId, out _);
             linked.Cancel();
             try { await tick.ConfigureAwait(false); } catch { /* ignore */ }
             if (watch is not null)

@@ -323,4 +323,96 @@ public sealed class IdeFdrChannelTests
             try { Directory.Delete(iso, recursive: true); } catch { /* best-effort */ }
         }
     }
+
+    [Fact]
+    public async Task Watchdog_ghost_cancel_closes_hung_call()
+    {
+        var iso = Path.Combine(Path.GetTempPath(), "cdp-fdr-watchdog-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(iso);
+        IdeFlightDataRecorder.PathOverrideForTests = Path.Combine(iso, "fdr-tape.jsonl");
+        IdeToolCallWatch.SuppressArmForTests = true;
+        IdeToolCallWatch.TickSecondsForTests = 1;
+        IdeToolCallWatch.GhostCancelSecondsForTests = 2;
+        try
+        {
+            var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["timeout_wake"] = JsonSerializer.SerializeToElement(false)
+            };
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                await IdeToolCallWatch.RunAsync(
+                    "cdp_health",
+                    args,
+                    async ct =>
+                    {
+                        await Task.Delay(Timeout.Infinite, ct);
+                        return "{}";
+                    },
+                    CancellationToken.None));
+
+            var tail = IdeFlightDataRecorder.ReadTail(20);
+            Assert.Contains(tail, e => e.Tool == "cdp_health" && e.Kind == IdeFlightDataRecorder.KindToolStart);
+            Assert.Contains(tail, e => e.Tool == "cdp_health"
+                && e.Kind == IdeFlightDataRecorder.KindToolCall
+                && e.Outcome == "cancel"
+                && (e.Error?.Contains("ghost_cancel", StringComparison.Ordinal) ?? false));
+            Assert.Empty(IdeFlightDataRecorder.ListOpenFlights(40));
+        }
+        finally
+        {
+            IdeFlightDataRecorder.PathOverrideForTests = null;
+            IdeToolCallWatch.SuppressArmForTests = false;
+            IdeToolCallWatch.TickSecondsForTests = 0;
+            IdeToolCallWatch.GhostCancelSecondsForTests = 0;
+            try { Directory.Delete(iso, recursive: true); } catch { /* best-effort */ }
+        }
+    }
+
+    [Fact]
+    public void CancelOrphan_closes_tape_ghost_skips_live()
+    {
+        var iso = Path.Combine(Path.GetTempPath(), "cdp-fdr-orphan-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(iso);
+        IdeFlightDataRecorder.PathOverrideForTests = Path.Combine(iso, "fdr-tape.jsonl");
+        try
+        {
+            var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["op"] = JsonSerializer.SerializeToElement("run")
+            };
+            IdeFlightDataRecorder.RecordToolStart("cdp_csx_run", "orphan01", args, thresholdSeconds: 45);
+            IdeFlightDataRecorder.RecordToolStart("cdp_cockpit", "live01", args, thresholdSeconds: 20);
+
+            var result = IdeFlightDataRecorder.CancelOrphanOpenFlights(
+                liveCallIds: ["live01"],
+                minAgeSeconds: 0,
+                lookback: 40);
+            var json = JsonSerializer.Serialize(result);
+            using var doc = JsonDocument.Parse(json);
+            Assert.Equal(1, doc.RootElement.GetProperty("cancelled").GetInt32());
+            Assert.Equal(1, doc.RootElement.GetProperty("skipped_live").GetInt32());
+
+            var open = IdeFlightDataRecorder.ListOpenFlights(40);
+            Assert.DoesNotContain(open, o =>
+            {
+                using var d = JsonDocument.Parse(JsonSerializer.Serialize(o));
+                return d.RootElement.GetProperty("call").GetString() == "orphan01";
+            });
+            Assert.Contains(open, o =>
+            {
+                using var d = JsonDocument.Parse(JsonSerializer.Serialize(o));
+                return d.RootElement.GetProperty("call").GetString() == "live01";
+            });
+
+            var close = IdeFlightDataRecorder.ReadTail(20)
+                .First(e => e.CallId == "orphan01" && e.Kind == IdeFlightDataRecorder.KindToolCall);
+            Assert.Equal("cancel", close.Outcome);
+            Assert.Contains("orphan", close.Error ?? "", StringComparison.Ordinal);
+        }
+        finally
+        {
+            IdeFlightDataRecorder.PathOverrideForTests = null;
+            try { Directory.Delete(iso, recursive: true); } catch { /* best-effort */ }
+        }
+    }
 }
