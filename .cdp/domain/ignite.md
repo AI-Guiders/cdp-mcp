@@ -30,7 +30,7 @@
 - Wake charge SSOT: `%LocalAppData%/cdp-mcp/ignite-wake-LATEST.json` (`composer`|`habitat`) — Composer is not the only spine for charge body. **`course=`** stamps sealed operator_priority (0.5.651).
 - CDT page pick must be Cursor Agents composer (`ComposerScoped`), not md/editor tab.
 - HILD (default ARMED): Composer text idle **30s** on Voice → `human_away` **once** (latch until Composer text); wake → autonomous; on edge/escalate **pull-forward** armed last_once work timers ≤3s (`PullForwardLongWorkTimersOnHildAway`); arm under `away_latched` clamps ≤3s; after wake continuity **1–3s** not 45m; suppress under `await_partner` / halt. DefaultIdle=30s since 0.5.359 (meta tip 0.5.363).
-- **last_once arm clamp under autonomous:** ≤3m by default; **≤3s** when HILD `away_latched` **or** TM `ContinuityFlight.Fly` (`3s(hild_away)` / `3s(leaf_started)` · `force=true` escape). **Exception:** task title contains `invent only` (Hold invent-only) — keep ≤3m / skip leaf_pull **and** hild_pull (`3m(invent_only_hold)`).
+- **last_once arm clamp under autonomous:** ≤3m by default; **≤3s** when HILD `away_latched` **or** TM `ContinuityFlight.Fly` (`3s(hild_away)` / `3s(leaf_started)` · `force=true` escape). **Exception:** task title contains `invent only` **or** `invent-only` (Hold invent-only) — keep ≤3m / skip leaf_pull **and** hild_pull (`3m(invent_only_hold)`).
 - **Already-armed last_once:** HILD away edge/escalate pull-forward ≤3s; under autonomous + leaf Fly, TimerLoop also pull-forwards (`3s(leaf_pull)`) — both skip invent-only Hold tasks.
 - **leaf-wake (`ArmForLeaf`):** default **2s**; invent-only Hold title → **3m** (DIG REJECT mill ≠ 2s thrash; 0.5.659).
 - After successful fire: watch Cursor for "Connection Problems" / Try again|Retry overlay until next fire; auto-click (not Idle-only).
@@ -85,6 +85,8 @@
 - `#CIDE` Done with wrong-window PNG or without Read into chat (pre-2026-08-04 «Выстрела нет») — File.Exists alone = seeming; shot title=`M · MFD host` + Read.
 
 ## last_ship
+
+- **2026-08-05 InventOnlyHyphenHold SHIPPED** — lived DIG ACCEPT: TM Hold title `invent-only` (hyphen) missed `IsInventOnlyHoldTask` (`invent only` space-only) → leaf-wake stayed **2s** / leaf_pull ≤3s → DIG REJECT wake mill under sealed Hold. Fix: match `invent-only` too · WorldDigShield marker · test current Hold title. SoftFL/Meta REJECT.
 
 - **anti-rooster ChargeDomainStampPostfix** — stamp last_ship same turn; L1 ≠ stamp moment · IdeDomainStampShield · 2026-08-05
 - **2026-08-04 Halt/talk Autoi face gap 5.4 CLOSED** — latch `await_partner`/`mode` fly|talk|halt · cabin `FormatAutoiFace` TALK/HALT/ON/ARMED/OFF · Glass Intercom Korry OFF + `HDG/CRS · TALK · Autoi OFF` · PNG `cascade-ide/tmp-glass-shots/halt-talk-5.4-intercom-20260804.png` (title=`CDP GlassCockpit · Windows`, not MFD alone) · cdp-mcp `c9791de` · cascade-ide `7deba39d` · dogfood Done.
