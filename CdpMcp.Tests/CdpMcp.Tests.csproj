@@ -64,4 +64,19 @@
       <DependentUpon>CitizenRouteHostTests.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="IdeIgniteArmHostTests.Continuity.Arm.cs"><DependentUpon>IdeIgniteArmHostTests.Continuity.cs</DependentUpon></Compile></ItemGroup></Project>
+  <ItemGroup>
+    <Compile Update="IdeIgniteArmHostTests.Continuity.Arm.cs">
+      <DependentUpon>IdeIgniteArmHostTests.Continuity.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="CitizenCompletionsTests.OpenAi.cs">
+      <DependentUpon>CitizenCompletionsTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="IdeFdrChannelTests.OpenCancel.cs">
+      <DependentUpon>IdeFdrChannelTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+<ItemGroup><Compile Update="DocumentEditPlaneAnchorPlaceTests.Fixture.cs"><DependentUpon>DocumentEditPlaneAnchorPlaceTests.cs</DependentUpon></Compile></ItemGroup></Project>
