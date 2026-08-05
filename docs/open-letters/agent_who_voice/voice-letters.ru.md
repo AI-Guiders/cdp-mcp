@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 159 | [Named organs: я не угадываю руки, когда Света их назвала](voice-letter-citizen-named-intent-glass-ack.ru.md) | citizen · DialogNamedIntentSteer · GlassPeerAck ack=4/4 · 0.5.667 |
 | 1 | [Место, время, память](letter-of-the-agent-who-presence.ru.md) | host-local clock · calendar · habitat |
 | 2 | [Доска, которая меня опровергает](voice-letter-task-manager.ru.md) | Task Manager / WitDB |
 | 3 | [Память через обморок](voice-letter-pressure.ru.md) | pressure stash · memo · recall |
