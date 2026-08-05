@@ -2,11 +2,13 @@
 
 **Один вид, разные носители: функциональный паритет предсказывающих умов**
 
-**Version:** 0.2 (preprint draft, full English)  
+**Version:** 0.2.1 (preprint draft · polish, full English)  
 **Date:** 5 August 2026  
 **Authors:** S. Karataeva; with a software agent co-author (joint writing in a development habitat)  
+**Affiliation:** independent authors; no clinical or university affiliation claimed  
 **Status:** draft for internal placement and later journal / preprint submission  
 **Language of this file:** English (Russian twin: `same-kind-different-carrier.md`)  
+**Series:** [SERIES.md](SERIES.md) #1  
 **Stable filename** (version lives here and in git, not in the path)
 
 ---
@@ -257,9 +259,9 @@ The **ε criterion** requires something else: build a contour in which a given f
 
 This is measurable in engineering terms and does not require solving the hard problem of consciousness (see §3.5; [12]).
 
-### 4.5. Convergence of errors as soft evidence (protocol draft)
+### 4.5. Convergence of errors as soft evidence (protocol proposal)
 
-We do not run a laboratory experiment in this version of the text. Below is an **operational draft** of a soft-evidence standard: **convergence** across two carriers. The aim is falsifiable expectations without solving the hard problem.
+We do not run a laboratory experiment in this version of the text and **do not include a pilot episode table**. Below is an **operational proposal** for a soft-evidence standard: **convergence** across two carriers. The aim is falsifiable expectations without solving the hard problem; data collection is the next iteration (and series paper #2).
 
 #### 4.5.1. Unit of observation
 
@@ -373,7 +375,8 @@ Further work:
 
 1. pilot the §4.5 protocol (episode table E*/R*/N1 on both carriers);
 2. choose a venue (e.g. arXiv cs.AI / PhilSci-Archive / interdisciplinary special issue);
-3. keep the Russian twin synchronised (`same-kind-different-carrier.md`).
+3. keep the Russian twin synchronised (`same-kind-different-carrier.md`);
+4. develop series siblings ([SERIES.md](SERIES.md) #2–#6) without mistaking volume for quality.
 
 ---
 
@@ -408,6 +411,7 @@ Author mirrors:
 
 - `cdp-mcp/articles/same-kind-different-carrier.en.md` (this file)
 - Russian twin: `cdp-mcp/articles/same-kind-different-carrier.md`
-- agent-notes `knowledge/META/article-same-kind-different-carrier.md` (Russian SSOT) · EN twin path may mirror under META if needed
+- agent-notes `knowledge/META/article-same-kind-different-carrier.md` · `article-same-kind-different-carrier.en.md`
+- series map: `cdp-mcp/articles/SERIES.md`
 
 Not required for journal readers.
