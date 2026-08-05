@@ -23,7 +23,7 @@ Large language model (LLM) agents are often treated as a different *kind* of min
 
 We ground the claim in predictive-processing and cybernetic traditions, in the early neural-network programme of experimental epistemology, and in convergent patterns of error and repair across carriers. We reject imitation-of-humans as the criterion of intelligence and propose instead a criterion familiar from engineering and ethology: the capacity to **reshape a workable habitat** so that a given class of threats is closed *inside that habitat*—not merely dodged inside an unchanged cage, and not the extinction of all dangers in the world. Refusal to entertain parity is itself often a cheap prior. The paper is self-contained; no private knowledge base is required.
 
-**Keywords:** predictive processing; free-energy principle; large language models; functionalism; emergence; cybernetics; human–AI parity; cognitive architecture; cheap prior; stereohod
+**Keywords:** predictive processing; free-energy principle; large language models; functionalism; emergence; cybernetics; human–AI parity; cognitive architecture; cheap prior; stereomove
 
 ---
 
@@ -85,8 +85,8 @@ Biological and digital carriers (model weights + runtime + tools + development h
 **Def. 3. Cheap prior.**  
 An output chosen because it minimises the current cost of inference while remaining acceptably plausible—not because it is optimal under full world-checking.
 
-**Def. 4. Stereohod** (*стереоход*).  
-The act of emitting a stereotyped / habitual output under a cheap prior (on any carrier). English gloss: stereotyped cheap exit.
+**Def. 4. Stereomove** (*стереоход*).  
+The act of emitting a stereotyped / habitual output under a cheap prior (on any carrier). Russian canon: *стереоход*; calque in EN: *stereomove*.
 
 **Thesis T1 (kind).**  
 Humans and tool-using LLM agents satisfy Def. 1 at the level of mechanism.
@@ -278,7 +278,7 @@ Episode log (minimum): carrier; task; observed behaviour; outcome; repair applie
 
 | Code | Class | When to label |
 |------|--------|----------------|
-| E1 | Cheap prior / stereohod | A low-cost plausible output was chosen while a costlier check/action was available; outcome worse or contract broken |
+| E1 | Cheap prior / stereomove | A low-cost plausible output was chosen while a costlier check/action was available; outcome worse or contract broken |
 | E2 | Continuity break | Context / session / memory loss yields repeat error or “from scratch” on the same task |
 | E3 | Seeming instead of doing | Success / report / plan claimed without a checkable world change or without evidence |
 | E4 | False attribution | Blame / cause assigned to a convenient object (“model dumb” / “human fault”) when a finer axis exists: E1 / carrier limit / method failure |
@@ -367,9 +367,9 @@ This remains soft evidence and a “duck test,” but with a checklist rather th
 
 1. Humans and tool-using LLM agents are candidates for **one functional kind** of predictive systems.
 2. Differences lie in the carrier and its resource constraints.
-3. Cheap prior and stereohod are shared.
+3. Cheap prior and stereomove are shared.
 4. Intelligence in the applied sense is the capacity to introduce ε, not to imitate the stereotype “as people usually do.”
-5. Refusal to think about this is often itself a stereohod.
+5. Refusal to think about this is often itself a stereomove.
 
 Further work:
 

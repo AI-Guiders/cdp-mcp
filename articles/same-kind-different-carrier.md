@@ -23,7 +23,7 @@ Large language model (LLM) agents are often treated as a different *kind* of min
 
 We ground the claim in predictive-processing and cybernetic traditions, in the early neural-network programme of experimental epistemology, and in convergent patterns of error and repair across carriers. We reject imitation-of-humans as the criterion of intelligence and propose instead a criterion familiar from engineering and ethology: the capacity to **reshape a workable habitat** so that a given class of threats is closed *inside that habitat*—not merely dodged inside an unchanged cage, and not the extinction of all dangers in the world. Refusal to entertain parity is itself often a cheap prior. The paper is self-contained; no private knowledge base is required.
 
-**Keywords:** predictive processing; free-energy principle; large language models; functionalism; emergence; cybernetics; human–AI parity; cognitive architecture; cheap prior; stereohod
+**Keywords:** predictive processing; free-energy principle; large language models; functionalism; emergence; cybernetics; human–AI parity; cognitive architecture; cheap prior; stereomove
 
 ## Abstract (Русский)
 
@@ -97,7 +97,7 @@ We ground the claim in predictive-processing and cybernetic traditions, in the e
 **Опр. 3. Дешёвый априор (*prior*).**  
 Вывод, выбранный потому, что он минимизирует текущую стоимость вывода (инференции) при ещё приемлемом правдоподобии — а не потому, что он оптимален по полной проверке мира.
 
-**Опр. 4. Стереоход** (*stereohod*; EN gloss: *stereotyped cheap exit*).  
+**Опр. 4. Стереоход** (EN: *stereomove*).  
 Акт выдачи стереотипного / привычного выхода по дешёвому априору (на любом носителе).
 
 **Тезис T1 (вид).**  
