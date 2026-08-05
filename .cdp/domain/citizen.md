@@ -66,6 +66,7 @@
 
 ## last_ship
 
+- **2026-08-05 Glass CIT multi-turn persist** — `PersistOperatorDialog` after bridge (human prose, appendHistory:false on Turn) · Append file lock · tests 6/6 Glass+Autoi. Live: turn1 `codeword hold-1141 zebra` → turn2 reply `zebra` · journal b75d109cddfc · evidence `cascade-ide/tmp-glass-shots/citizen-multiturn-fix-20260805.png`. Builds on Autoi history:false isolate (fbb4244).
 - **2026-08-05 Autoi dialog isolate** — `TryDeliverAutoiWake` uses `history:false` so remount/leaf wakes do not read/append shared `citizen-dialog.jsonl` (Glass CIT multi-turn). Test CitizenAutoiWakeDialogHistoryTests 1/1. Live gap dig: turn2 was `reason=remount`/`domain` when Autoi polluted history; re-verify after deploy still needs turn1 persist audit.
 - **2026-08-05 live full-ready E2E** — Glass CIT lane → `citizen-dialog-request` latch `e9d09c30d20b` status=done · FM peer ack=2/4 · Intercom citizen reply `4b23f71af89f` · topic chip `full-ready-e2e-1105 ping` · evidence `cascade-ide/tmp-glass-shots/citizen-full-ready-e2e-20260805.png`. 15.08 readiness dogfood (pipe GREEN ≠ Done; usable-peer evidence).
 - **2026-08-04 operator steer** — 15.08 DoD = **full-ready**, not full-chain. full-chain observe→act→verify / Glass latch already GREEN/CLOSED — invent densest toward readiness, not pipe re-mill.
