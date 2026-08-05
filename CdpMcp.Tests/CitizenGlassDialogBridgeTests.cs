@@ -15,6 +15,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         CitizenGlassDialogBridge.RootOverrideForTests = _root;
         CideIntercomVoiceLatch.RootOverrideForTests = _root;
         CitizenGlassDialogBridge.TurnOverrideForTests = body => EchoTurn(body);
+        IdeIgniteArmHost.BindPrimaryAutoiSeat(true);
         CitizenGlassDialogBridge.Stop();
         CitizenGlassDialogBridge.ResetProcessedForTests();
         CitizenPeerAck.ResetForTests();
@@ -26,6 +27,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         CitizenGlassDialogBridge.TurnOverrideForTests = null;
         CitizenGlassDialogBridge.RootOverrideForTests = null;
         CideIntercomVoiceLatch.RootOverrideForTests = null;
+        IdeIgniteArmHost.BindPrimaryAutoiSeat(null);
         CitizenPeerAck.ResetForTests();
         CitizenDialogHistory.ResetForTests();
         try
@@ -150,6 +152,56 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         Assert.Equal("codeword alpha", msgs[0].Content);
         Assert.Contains("citizen-echo:codeword alpha", msgs[1].Content, StringComparison.Ordinal);
         Assert.Equal("what codeword?", msgs[2].Content);
+    }
+
+    [Fact]
+    public void TryProcessOnce_skips_on_non_primary_seat()
+    {
+        IdeIgniteArmHost.BindPrimaryAutoiSeat(false);
+        WritePending("nonprimary01", "skip me");
+        Assert.False(CitizenGlassDialogBridge.TryProcessOnce());
+        IdeIgniteArmHost.BindPrimaryAutoiSeat(true);
+    }
+
+    [Fact]
+    public void TryProcessOnce_journals_crew_channel_from_request()
+    {
+        var id = "crewchan0001";
+        var req = new
+        {
+            schema = CitizenGlassDialogBridge.Schema,
+            id,
+            body = "crew tagged",
+            channel = "crew",
+            status = "pending",
+            stamped_utc = DateTimeOffset.UtcNow
+        };
+        File.WriteAllText(
+            CitizenGlassDialogBridge.RequestPath,
+            JsonSerializer.Serialize(req, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }));
+
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        var lines = File.ReadAllLines(CideIntercomVoiceLatch.JournalPath);
+        Assert.NotEmpty(lines);
+        using var journal = JsonDocument.Parse(lines[^1]);
+        Assert.Equal("crew", journal.RootElement.GetProperty("channel").GetString());
+    }
+
+    [Fact]
+    public void TryProcessOnce_keeps_long_dialog_prose_not_radio_collapse()
+    {
+        var longBody = new string('x', 520);
+        CitizenGlassDialogBridge.TurnOverrideForTests = _ => EchoTurn(longBody);
+        WritePending("longprose001", "long please");
+
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        using var latch = JsonDocument.Parse(File.ReadAllText(CideIntercomVoiceLatch.LatchPath));
+        var body = latch.RootElement.GetProperty("body").GetString();
+        Assert.StartsWith("citizen-echo:", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("Autoi ·", body!, StringComparison.Ordinal);
+        Assert.DoesNotContain("→ PFD.NEXT", body!, StringComparison.Ordinal);
     }
 
     void WritePending(string id, string body, bool resetProcessed = true)

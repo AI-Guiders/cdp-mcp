@@ -98,10 +98,15 @@ internal static class CitizenGlassDialogBridge
     /// <summary>Process pending request if any (also used by tests).</summary>
     public static bool TryProcessOnce()
     {
+        if (!IdeIgniteArmHost.IsPrimaryAutoiSeat())
+            return false;
+
         var req = TryReadPending();
         if (req is null)
             return false;
         if (string.Equals(LastProcessedId, req.Id, StringComparison.OrdinalIgnoreCase))
+            return false;
+        if (!IdeIgniteArmHost.TryClaimSharedWakeMirror("citizen-bridge:" + req.Id))
             return false;
 
         LastProcessedId = req.Id;
@@ -153,7 +158,8 @@ internal static class CitizenGlassDialogBridge
                 origin: CideIntercomVoiceLatch.OriginAgent,
                 id: null,
                 name: CideIntercomVoiceLatch.DefaultNameCitizen,
-                kind: CideIntercomVoiceLatch.KindCitizen);
+                kind: CideIntercomVoiceLatch.KindCitizen,
+                channel: ResolveRequestChannel(req));
             MarkStatus(
                 req,
                 published is null ? "error" : "done",
@@ -185,8 +191,8 @@ internal static class CitizenGlassDialogBridge
     static string SurfacePublishBody(string prose, IReadOnlyList<CitizenRouteHost.Applied>? executed)
     {
         var body = CitizenIntercomHumanSurface.Publish(prose, executed);
-        // Dialog SA walls → Radio leaf pointer (I6), not @frame desk dump on Glass.
-        if (CitizenIntercomHumanSurface.LooksLikeSaInstrumentWall(body) || body.Length > 480)
+        // @frame desk SA walls → Radio leaf pointer (I6). Dialog prose stays on operator channel (#crew).
+        if (CitizenIntercomHumanSurface.LooksLikeSaInstrumentWall(body))
         {
             return IdeIgniteArmHost.FormatHabitatIntercomRadio(
                 arm: null,
@@ -194,6 +200,20 @@ internal static class CitizenGlassDialogBridge
         }
 
         return body;
+    }
+
+    static string ResolveRequestChannel(RequestDoc req)
+    {
+        var raw = req.Channel?.Trim();
+        if (string.IsNullOrWhiteSpace(raw))
+            return "crew";
+        return raw.ToLowerInvariant() switch
+        {
+            "crew" or "#crew" => "crew",
+            "radio" => "radio",
+            "dm" or "direct" or "1:1" => "dm",
+            _ => "crew"
+        };
     }
 
     static RequestDoc? TryReadPending()
@@ -245,6 +265,8 @@ internal static class CitizenGlassDialogBridge
         public string Schema { get; set; } = CitizenGlassDialogBridge.Schema;
         public string Id { get; set; } = "";
         public string Body { get; set; } = "";
+        /// <summary>NorthStar feed tag from Glass Send (crew | radio | dm).</summary>
+        public string? Channel { get; set; }
         public string? Status { get; set; } = "pending";
         public string? Error { get; set; }
         public string? Peer { get; set; }
