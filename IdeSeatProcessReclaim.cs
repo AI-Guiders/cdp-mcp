@@ -60,7 +60,9 @@ internal static class IdeSeatProcessReclaim
 
         if (_lastKilled > 0)
         {
-            try { Thread.Sleep(150); }
+            // FileShare.None WitDB (hundreds of MB) needs OS handle release after Kill —
+            // 150ms was too short → FDR "being used by another process" on next WithDb.
+            try { Thread.Sleep(800); }
             catch { /* ignore */ }
         }
 

@@ -4,8 +4,12 @@
 # + remount-wake pending (default; -NoStampRemountPending to skip). Human Reload is last fallback.
 # Never match by StartsWith(Target): D:\cdp-mcp-debug starts with D:\cdp-mcp → sibling kill thrash.
 #
+# Soft path (FDR 2026-08-05): hung wire often leaves process alive — try -SoftFirst (nudge only, no kill)
+# first; escalate to full Recover if still Not connected after remount.
+#
 # Examples:
 #   pwsh -File Recover-CdpSeatRemount.ps1 -Seat cdp
+#   pwsh -File Recover-CdpSeatRemount.ps1 -Seat cdp -SoftFirst
 #   pwsh -File Recover-CdpSeatRemount.ps1 -Target D:\cdp-mcp-debug -WhatIf
 
 [CmdletBinding(SupportsShouldProcess)]
@@ -19,6 +23,9 @@ param(
 
     [switch] $NoKill,
 
+    # Nudge + remount pending only — do not KillRunning (prefer when process may still be healthy).
+    [switch] $SoftFirst,
+
     [switch] $NoStampRemountPending,
 
     # Escape: bump every CDP_RELOAD_NUDGE (pre-0.5.661 global thrash — avoid).
@@ -28,6 +35,10 @@ param(
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'CdpReloadNudge.ps1')
+
+if ($SoftFirst) {
+    $NoKill = $true
+}
 
 if (-not $Target) {
     $Target = if ($Seat -eq 'cdp-debug') { 'D:\cdp-mcp-debug' } else { 'D:\cdp-mcp' }
@@ -40,6 +51,7 @@ Write-Host "Recover seat remount"
 Write-Host "  Seat:   $Seat"
 Write-Host "  Target: $Target"
 Write-Host "  Exe:    $exePath"
+if ($SoftFirst) { Write-Host '  Mode:   SoftFirst (nudge only — no kill)' }
 
 $killed = @()
 if (-not $NoKill) {
@@ -63,9 +75,12 @@ if (-not $NoKill) {
         Write-Host 'No matching CdpMcp.exe under Target (already dead or different seat).'
     }
 }
+elseif ($SoftFirst) {
+    Write-Host 'SoftFirst: skipped KillRunning (process left alive).'
+}
 
 if (-not $NoStampRemountPending) {
-    $pending = Write-CdpRemountWakePending -TargetRoot $Target -Reason 'recover_seat'
+    $pending = Write-CdpRemountWakePending -TargetRoot $Target -Reason $(if ($SoftFirst) { 'recover_soft' } else { 'recover_seat' })
     if ($pending.Ok) {
         Write-Host "Remount pending: $($pending.Path) seat=$($pending.Seat)"
     }
@@ -90,3 +105,6 @@ if (-not $NoNudgeMcp) {
 
 Write-Host ''
 Write-Host 'Next: wait for Cursor MCP remount (or human Reload). Then cdp_health + cdp_pressure op=recall.'
+if ($SoftFirst) {
+    Write-Host 'If still Not connected after SoftFirst: re-run without -SoftFirst (kill + nudge).'
+}
