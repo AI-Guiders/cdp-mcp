@@ -86,7 +86,7 @@
 
 ## last_ship
 
-- **2026-08-05 InventOnlyHyphenHold SHIPPED** — lived DIG ACCEPT: TM Hold title `invent-only` (hyphen) missed `IsInventOnlyHoldTask` (`invent only` space-only) → leaf-wake stayed **2s** / leaf_pull ≤3s → DIG REJECT wake mill under sealed Hold. Fix: match `invent-only` too · WorldDigShield marker · test current Hold title. SoftFL/Meta REJECT.
+- **2026-08-05 InventOnlyHyphenHold SHIPPED** — lived DIG ACCEPT: TM Hold title `invent-only` (hyphen) missed `IsInventOnlyHoldTask` (`invent only` space-only) → leaf-wake stayed **2s** / leaf_pull ≤3s → DIG REJECT wake mill under sealed Hold. Fix: match `invent-only` too · WorldDigShield marker · test current Hold title. SoftFL/Meta REJECT. Voice Letter #160 after live dogfood (`3m(invent_only_hold)`).
 
 - **anti-rooster ChargeDomainStampPostfix** — stamp last_ship same turn; L1 ≠ stamp moment · IdeDomainStampShield · 2026-08-05
 - **2026-08-04 Halt/talk Autoi face gap 5.4 CLOSED** — latch `await_partner`/`mode` fly|talk|halt · cabin `FormatAutoiFace` TALK/HALT/ON/ARMED/OFF · Glass Intercom Korry OFF + `HDG/CRS · TALK · Autoi OFF` · PNG `cascade-ide/tmp-glass-shots/halt-talk-5.4-intercom-20260804.png` (title=`CDP GlassCockpit · Windows`, not MFD alone) · cdp-mcp `c9791de` · cascade-ide `7deba39d` · dogfood Done.
