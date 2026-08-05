@@ -100,6 +100,7 @@ IdeIgniteArmHost.StartHildWatch();
 IdeIgniteArmHost.StartOomWatch();
 CitizenGlassDialogBridge.Start();
 GlassIgniteCmdBridge.Start();
+GlassEicasCmdBridge.Start();
 IdeIgniteArmHost.PublishGlass();
 IdeLanguageTools.BindDocumentStore(docStore);
 var shellHabitat = new TerminalMcp.Core.ShellHabitat();
