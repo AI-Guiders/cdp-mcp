@@ -43,6 +43,7 @@
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
 
 ## last_ship
+- **2026-08-05 SoftFLOrderAxb SHIPPED** — real file-order axb (not drop-task). Disk WARN×10→0 (<350): GlassSurface.Peek · FDR.Query · Wave.Persist · Habitat.Composer · SoftOrganMeta9.Tables · OrgansB.Meta · CompletionsTests.OpenAi · FdrTests.OpenCancel · SeedFire.Timer · AnchorPlace.Fixture. Build 0 err; peel-related tests 73/74 (1 prose-persona unrelated). Mill ≠ this — this was one list→batch→ship.
 - **2026-08-05 SoftFLStruckAxb (board hygiene)** — dropped Hold SoftFL-REJECT + stamped «STRUCK»; **did not** run SoftFL file-order axb. Operator: mill = serial tiny peels where one axb fits; ban = wrong method, not work ban. SoftFL when needed = list→batch→ship files.
 - **2026-08-05 DIG ACCEPT CitizenFullReadyAxb** — after plan-pulse tax CLOSED: inventory sole real gap=`throughput-wave` idle · SoftFL/Meta CLOSED · flight-durable already [x]. densest product residual=`Glass CIT peer ack 2/4` (citizen.md full-ready E2E). SoftFL BuildBoard REJECT. Wave seeded 6 items.
 - **0.5.661** — per-seat remount nudge + orphan remount pending (sibling hard ≠ kill survivor seat) · 2026-08-04
