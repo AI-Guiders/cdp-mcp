@@ -10,7 +10,7 @@
 - Live invite needs `open_ai_api_key` **or** `anthropic_api_key` in `%LocalAppData%/CascadeIDE/ai-keys.toml`.
 - Prefer **OpenAI-compat** when `open_ai` key set (Cloud.ru FM); else Anthropic.
 - Vision: `image_path=` (or prior `cdp_see` latch) → multimodal `image_url`; auto-model `Qwen/Qwen3.6-35B-A3B` when default/non-vision; thinking off on vision turns. Not in dialog jsonl.
-- Defaults when keys omit URL/model: `https://foundation-models.api.cloud.ru/v1` · `ai-sage/GigaChat3-10B-A1.8B`.
+- Defaults when keys omit URL/model: `https://foundation-models.api.cloud.ru/v1` · **`zai-org/GLM-5.1`** (post-Cursor sealed pick). Second slot: `Qwen/Qwen3-Coder-Next`. Vision auto: `Qwen/Qwen3.6-35B-A3B`.
 - Turn `mode=wire` (default) = HARD @intent contract + OAI `temperature=0`. `mode=dialog` = prose peer persona + `temperature=0.6`; optional @intent after prose. Aliases: prose|chat|talk|peer.
 - Dialog multi-turn: `StateRoot/{seat}/citizen-dialog.jsonl` (op=history|clear; turn `history=`/`reset=`). Wire ignores history. Window = **40** msgs (20 pairs).
 - Sticky pins: `StateRoot/{seat}/citizen-sticky.json` — op=`sticky` action=get|set|clear; turn `sticky_key=`/`sticky_value=`. Injected as `sticky | k=v` on dialog afferents.
@@ -66,6 +66,7 @@
 
 ## last_ship
 
+- **2026-08-05 post-cursor models SEALED** — DIG ACCEPT pick+burn (operator 2026-08-04 dual-use): default **`zai-org/GLM-5.1`** · second slot `Qwen/Qwen3-Coder-Next` · one citizen not zoo. Live burn both dialog «Пинг…»→«Жив.» · `ai-keys.toml` + `CitizenAiKeys.DefaultOpenAiModel` flipped · DIG REJECT SoftFL invent / multi-citizen for models.
 - **2026-08-05 full-chain verify CLOSED** — `@verify` leaf: cdp_citizen history 4/2 pairs · last_append_error=null · tests **27/27** (bridge+domain+intercom) · PNG Read `citizen-full-ready-e2e-20260805.png` + `citizen-multiturn-post-fix-20260805.png` (#crew · multiturn sierra). Pipe re-prove DIG REJECT.
 - **2026-08-05 Glass CIT turn2+ jsonl persist fix** — root: dual-seat bridge poll + `Clear()` outside Gate could drop mid-append pairs; `PersistOperatorDialog` now mirrors publishBody · Append retry + pulse `last_append_error` · bridge Start primary-only · LastProcessedId after publish OK. Live: turn1/turn2 `hold-1221 mocha` → jsonl **4 lines** · journal `3287412477b5` channel=crew body=mocha. Tests 11/11 bridge.
 - **2026-08-05 Glass CIT crew channel + dual-seat claim** — `channel=crew` on voice/journal from request latch · primary-seat + mirror claim on bridge · drop prose>480 Radio collapse (SA walls only) · tests 8/8 bridge. Live: journal `9be07d9a2076`/`0ead23a6b9b0` channel=crew · no Radio ghost duplicate · evidence `cascade-ide/tmp-glass-shots/citizen-crew-channel-fix-20260805.png`. Glass: skip duplicate citizen journal in feed watcher (restart to live).
