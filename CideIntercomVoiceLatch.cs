@@ -49,7 +49,8 @@ internal static partial class CideIntercomVoiceLatch
         string origin,
         string? id = null,
         string? name = null,
-        string? kind = null)
+        string? kind = null,
+        string? channel = null)
     {
         var from = NormalizeSeat(fromSeat);
         var to = NormalizeSeat(toSeat);
@@ -74,6 +75,7 @@ internal static partial class CideIntercomVoiceLatch
             Origin = originNorm,
             Name = resolvedName,
             Kind = resolvedKind,
+            Channel = NormalizeIntercomChannel(channel),
             StampedUtc = DateTimeOffset.UtcNow,
             Acked = false
         };
@@ -193,7 +195,22 @@ internal static partial class CideIntercomVoiceLatch
         public string? Name { get; set; }
         /// <summary>guest | citizen | operator</summary>
         public string? Kind { get; set; }
+        /// <summary>NorthStar feed tag: crew | radio | dm</summary>
+        public string? Channel { get; set; }
         public DateTimeOffset StampedUtc { get; set; }
         public bool Acked { get; set; }
+    }
+
+    static string? NormalizeIntercomChannel(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+        return raw.Trim().ToLowerInvariant() switch
+        {
+            "crew" or "#crew" => "crew",
+            "radio" => "radio",
+            "dm" or "direct" or "1:1" => "dm",
+            _ => null
+        };
     }
 }

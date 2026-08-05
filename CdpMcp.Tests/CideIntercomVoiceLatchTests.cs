@@ -198,7 +198,8 @@ public class CideIntercomVoiceLatchTests : IDisposable
     public void Publish_appends_journal_and_history_reads_tail()
     {
         var a = CideIntercomVoiceLatch.Publish("pm", "pf", "vh-one", CideIntercomVoiceLatch.OriginHuman);
-        var b = CideIntercomVoiceLatch.Publish("pf", "pm", "vh-two", CideIntercomVoiceLatch.OriginAgent);
+        var b = CideIntercomVoiceLatch.Publish(
+            "pf", "pm", "vh-two", CideIntercomVoiceLatch.OriginAgent, channel: "crew");
         Assert.NotNull(a);
         Assert.NotNull(b);
         Assert.True(File.Exists(CideIntercomVoiceLatch.JournalPath));
@@ -207,6 +208,9 @@ public class CideIntercomVoiceLatchTests : IDisposable
         // dedupe same id
         CideIntercomVoiceLatch.AppendJournal(a!);
         Assert.Equal(2, CideIntercomVoiceLatch.JournalCount());
+
+        var tail = CideIntercomVoiceLatch.LoadJournalTail(2);
+        Assert.Equal("crew", tail[^1].Channel);
 
         var hist = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
         {
