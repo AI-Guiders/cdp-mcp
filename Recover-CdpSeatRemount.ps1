@@ -1,7 +1,8 @@
 # Recover Cursor MCP seat when tools say "Not connected" but CdpMcp.exe still runs.
 # Escape hatch: run from terminal_* / external shell — never from in-proc cdp_shell_* while targeting self.
-# Pattern: KillRunning seat exe + per-seat CDP_RELOAD_NUDGE (kj-1349 / 0.5.661) + remount-wake pending
-# (default; -NoStampRemountPending to skip). Human Reload is last fallback.
+# Pattern: kill THAT seat's CdpMcp.exe (exact exe path) + per-seat CDP_RELOAD_NUDGE (kj-1349 / 0.5.661)
+# + remount-wake pending (default; -NoStampRemountPending to skip). Human Reload is last fallback.
+# Never match by StartsWith(Target): D:\cdp-mcp-debug starts with D:\cdp-mcp → sibling kill thrash.
 #
 # Examples:
 #   pwsh -File Recover-CdpSeatRemount.ps1 -Seat cdp
@@ -45,7 +46,11 @@ if (-not $NoKill) {
     $procs = Get-CimInstance Win32_Process -Filter "Name = '$exeName'" -ErrorAction SilentlyContinue |
         Where-Object {
             $_.ExecutablePath -and
-            ([System.IO.Path]::GetFullPath($_.ExecutablePath)).StartsWith($Target, [StringComparison]::OrdinalIgnoreCase)
+            # Exact exe path — NOT StartsWith($Target): D:\cdp-mcp-debug starts with D:\cdp-mcp (sibling kill thrash).
+            [string]::Equals(
+                [System.IO.Path]::GetFullPath($_.ExecutablePath),
+                $exePath,
+                [StringComparison]::OrdinalIgnoreCase)
         }
     foreach ($p in $procs) {
         if ($PSCmdlet.ShouldProcess("$($p.ExecutablePath) pid=$($p.ProcessId)", 'Stop-Process')) {

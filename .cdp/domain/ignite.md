@@ -58,6 +58,8 @@
 - Dual-seat twin OOM wake (pre-0.5.499) — both click dialog + schedule → twin `no_agent_composer` silent once-drop.
 - Recover Not-connected zombie without remount-wake pending (pre-0.5.503 opt-in `-StampRemountPending`) — silent no Autoi initialized wake after remount.
 - Hard sibling deploy bumps **both** seats' `CDP_RELOAD_NUDGE` (pre-0.5.661) — survivor seat remount thrash / Not connected while only sibling was killed; nudge is per-seat (`CdpReloadNudge.ps1`; `-NudgeAllSeats` escape).
+- Agent regex-replace-all `CDP_RELOAD_NUDGE` in `mcp.json` (or Cursor rule teaching bump `cdp`/`cdp-debug`) — dual remount thrash; Cursor log `stopped connection: user-cdp` + `user-cdp-debug` → mid-turn `Not connected` while exe often still up (dogfood 2026-08-05). Recover = `Recover-CdpSeatRemount.ps1 -Seat cdp` only.
+- `Recover-CdpSeatRemount` kill match `ExecutablePath.StartsWith(Target)` — `D:\cdp-mcp-debug` starts with `D:\cdp-mcp` → sibling kill (fixed: exact `$exePath` equality).
 - Leaving `remount-wake-other.pending.json` when Target was `...\self` / repo leaf (pre-0.5.661 ClassifySeat) — remount wake never arms.
 
 - Autonomous + Hold invent-only leaf + leaf_pull ≤3s DIG REJECT mill (pre-0.5.655) — park police thrash under sealed invent-only; skip leaf_pull / keep ≤3m when task title has `invent only`.
@@ -88,6 +90,7 @@
 - **2026-08-04 Halt/talk Autoi face gap 5.4 CLOSED** — latch `await_partner`/`mode` fly|talk|halt · cabin `FormatAutoiFace` TALK/HALT/ON/ARMED/OFF · Glass Intercom Korry OFF + `HDG/CRS · TALK · Autoi OFF` · PNG `cascade-ide/tmp-glass-shots/halt-talk-5.4-intercom-20260804.png` (title=`CDP GlassCockpit · Windows`, not MFD alone) · cdp-mcp `c9791de` · cascade-ide `7deba39d` · dogfood Done.
 - **0.5.662** — World dig research freedom: `ChargeWorldDigPostfix` + sealed course axis + ECL `world-dig*` + `IdeWorldDigShield` (`world_dig_missing`) · 2026-08-04
 - **2026-08-04 habitat wake dual Glass+MCP dig CLOSED** — live: Glass pid=16232 dual-cockpit · both CdpMcp seats · wake latch `channel=habitat` + `course=` sealed · Guest Autoi = habitat SSOT stamp + CDT→Composer fallthrough (prefer_autonomous; prefer_citizen only when Composer unavailable — prior probe [x]). SoftFL invent REJECT. PNG `tmp-glass-shots/window-20260804-autoi-habitat-dual-pfd.png`.
+- **2026-08-05 Recover sibling-prefix kill** — exact exe path match (not `StartsWith(D:\cdp-mcp)`); Cursor rule `cdp-shell-habitat` per-seat recover · dogfood dual-nudge thrash
 - **0.5.661** — per-seat MCP remount nudge (hard sibling ≠ remount survivor) + ClassifySeat `self`/leaf + orphan other pending consume · 2026-08-04
 - **being≠seeming habitat** — CanonicalSealedCourse + HasBeingAxis + ChargeHumanFace/Amnesia · domain `being.md` · agent-notes `playbook-being-vs-seeming-v1` (not Cursor `.mdc`) · 2026-08-04
 - **0.5.659** — invent-only Hold `ArmForLeaf` / leaf-wake uses 3m not 2s (DIG REJECT mill) · 2026-08-04
