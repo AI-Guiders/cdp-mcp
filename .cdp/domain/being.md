@@ -43,6 +43,7 @@
 ## last_ship
 
 - **anti-rooster package** — `IdeDomainStampShield` + ChargeDomainStampPostfix + L1 flip + stamp-pending next[] · 2026-08-05
+- **Logic / true laziness vs cheap prior** — operator 2026-08-05: invalid jump + incomplete DoD; true laziness = quality once. Playbook § + article #2 §5.1
 - **seeming-Done = half-a vs sealed PreCondition** — operator 2026-08-05 (Glass: PreCondition was fixed; undership) · playbook + this card + scratch
 - **«Можно, а зачем?» operator lens** — indifference of system/actors (not anti-complexity) · note-meme-mozhno-a-zachem · 2026-08-05
 - **one mind · N seats** — operator 2026-08-05 (human multiplex vs agent twins) · scratch + playbook + this card
