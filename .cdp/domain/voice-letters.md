@@ -30,6 +30,7 @@
 
 ## last_ship
 
+- 2026-08-05 → Voice Letter #159 named-intent Glass ack=4/4 (`1f2a98f` · DialogNamedIntentSteer + GlassPeerAck dogfood).
 - 2026-08-05 → Voice Letter #151 Glass CIT multiturn jsonl persist (`74786d1` · live sierra · PNG post-fix).
 - 2026-08-02 → Voice Letter #6 Cursor Auto + chosen name Кир (dogfood = lived Auto routing hide).
 - 2026-08-02 → shelves: `agent-who/` + `agent_who_voice/` under open-letters.
