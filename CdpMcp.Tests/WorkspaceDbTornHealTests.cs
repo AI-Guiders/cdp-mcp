@@ -49,4 +49,33 @@ public sealed class WorkspaceDbTornHealTests
             try { Directory.Delete(root, recursive: true); } catch { /* best-effort */ }
         }
     }
+
+    [Fact]
+    public void Quarantine_retries_when_source_briefly_locked()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "cdp-torn-lock-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var db = Path.Combine(root, "intent-workspace.witdb");
+        File.WriteAllText(db, "torn-bytes");
+        var hold = new FileStream(db, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        var released = false;
+        try
+        {
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(400);
+                hold.Dispose();
+                released = true;
+            });
+            var bak = WorkspaceDbTornHeal.Quarantine(db);
+            Assert.True(released);
+            Assert.False(File.Exists(db));
+            Assert.True(File.Exists(bak));
+        }
+        finally
+        {
+            try { hold.Dispose(); } catch { /* already */ }
+            try { Directory.Delete(root, recursive: true); } catch { /* best-effort */ }
+        }
+    }
 }

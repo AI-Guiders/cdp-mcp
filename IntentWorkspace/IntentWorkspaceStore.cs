@@ -73,7 +73,8 @@ internal sealed partial class IntentWorkspaceStore(
             }
             catch (Exception ex) when (!tornHealed && WorkspaceDbTornHeal.IsTornPageException(ex))
             {
-                // Seat free-list torn (pageNumber OOR) — quarantine under Mutex, fresh EnsureCreated, retry once.
+                // Seat free-list torn (pageNumber OOR). Failed Open often keeps FileShare.None;
+                // quarantine must retry Move or heal never lands and callers see "being used…".
                 tornHealed = true;
                 WorkspaceDbTornHeal.QuarantineAndRecreate(options, _databasePath);
             }

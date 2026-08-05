@@ -40,7 +40,7 @@ internal static class WorkspaceDbTornHeal
             bak = databasePath + $".torn-{stamp}-{n}.bak";
 
         if (File.Exists(databasePath))
-            File.Move(databasePath, bak);
+            MoveWithRetry(databasePath, bak);
 
         QuarantineSidecar(databasePath + "_indexes", stamp);
         return bak;
@@ -50,11 +50,40 @@ internal static class WorkspaceDbTornHeal
         DbContextOptions<IntentWorkspaceDbContext> options,
         string databasePath)
     {
+        // Failed WitDB Open (torn free-list) often leaves FileShare.None sticky after Dispose —
+        // Move then throws "being used by another process" and cockpit dies in ~50ms with no heal.
+        ReleaseLeakedOsHandlesHint();
         var bak = Quarantine(databasePath);
         Directory.CreateDirectory(Path.GetDirectoryName(databasePath)!);
         using var boot = new IntentWorkspaceDbContext(options);
         boot.Database.EnsureCreated();
         return bak;
+    }
+
+    /// <summary>Hint OS to drop leaked exclusive handles from a failed WitDB Open before Move.</summary>
+    public static void ReleaseLeakedOsHandlesHint()
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        Thread.Sleep(200);
+    }
+
+    static void MoveWithRetry(string source, string dest)
+    {
+        for (var i = 0; ; i++)
+        {
+            try
+            {
+                File.Move(source, dest);
+                return;
+            }
+            catch (IOException) when (i < 16)
+            {
+                ReleaseLeakedOsHandlesHint();
+                Thread.Sleep(Math.Min(1200, 80 * (i + 1)));
+            }
+        }
     }
 
     static void QuarantineSidecar(string sidecarPath, string stamp)
@@ -67,8 +96,22 @@ internal static class WorkspaceDbTornHeal
             bak = sidecarPath + $".torn-{stamp}-{n}.bak";
 
         if (File.Exists(sidecarPath))
-            File.Move(sidecarPath, bak);
+            MoveWithRetry(sidecarPath, bak);
         else
-            Directory.Move(sidecarPath, bak);
+        {
+            for (var i = 0; ; i++)
+            {
+                try
+                {
+                    Directory.Move(sidecarPath, bak);
+                    return;
+                }
+                catch (IOException) when (i < 16)
+                {
+                    ReleaseLeakedOsHandlesHint();
+                    Thread.Sleep(Math.Min(1200, 80 * (i + 1)));
+                }
+            }
+        }
     }
 }
