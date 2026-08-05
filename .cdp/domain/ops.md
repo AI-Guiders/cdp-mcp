@@ -26,6 +26,7 @@
 
 ## last_ship
 
+- **2026-08-05 SoftFirst dual-seat dogfood** — mid-turn dual `Not connected` with both exes alive (debug=50876 kept; primary remounted 5344→31708 by Cursor nudge). Recover `-SoftFirst` ×2 (no agent KillRunning / no NudgeAllSeats). Health GREEN 0.5.667 both · cabin Glass pid=57780 survived. DIG REJECT invent thrash chrome — path already shipped; wave flight-durable = soak verify.
 - **2026-08-05** — OutWit.Database.EntityFramework **12.2.0** (was 1.0.3); author confirmed tear/leak fixes. Stay on WitDB seat files.
 - **2026-08-05** — FDR cockpit 50ms lock: live WitDB torn (`pageNumber` OOR) → failed Open leaks FileShare.None → quarantine Move failed → heal never landed. Fix: GC settle + MoveWithRetry on torn quarantine. Dig: AdoNet open probe.
 - **2026-08-05** — FDR dig: dual-seat root tape + remount kill tax → seat FDR tape · reclaim sleep 800ms · WitDB remount backoff · Recover `-SoftFirst`
