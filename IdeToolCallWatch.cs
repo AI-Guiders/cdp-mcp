@@ -44,6 +44,8 @@ internal static partial class IdeToolCallWatch
         string? error = null;
         string text = "";
 
+        IdeFlightDataRecorder.RecordToolStart(toolName, callId, args, threshold);
+
         if (threshold <= 0)
         {
             try

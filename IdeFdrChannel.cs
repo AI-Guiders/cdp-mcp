@@ -7,7 +7,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Soft organ <c>go=fdr</c> / Meta <c>cdp_fdr</c> — Black-box FDR desk (incident tape, not chat).
-/// Ops: scene|tail|stats|slow|suggest|apply|clear_overlay. VDR (cabin voice) deferred.
+/// Ops: scene|tail|stats|slow|open|suggest|apply|clear_overlay. VDR (cabin voice) deferred.
 /// </summary>
 internal static class IdeFdrChannel
 {
@@ -39,10 +39,11 @@ internal static class IdeFdrChannel
             "tail" or "list" or "recent" => Tail(args),
             "stats" or "summary" => Stats(args),
             "slow" or "incidents" => Slow(args),
+            "open" or "inflight" or "ghost" => Open(args),
             "suggest" or "thresholds" or "timeout_wake" => Suggest(args),
             "apply" => Apply(args),
             "clear_overlay" or "clear" => IdeFdrThresholdPolicy.ClearOverlay(),
-            _ => Fail("unknown_op", "op=scene|tail|stats|slow|suggest|apply|clear_overlay")
+            _ => Fail("unknown_op", "op=scene|tail|stats|slow|open|suggest|apply|clear_overlay")
         };
     }
 
@@ -75,19 +76,21 @@ internal static class IdeFdrChannel
         tool = ToolName,
         tape = IdeFlightDataRecorder.TapePath,
         max_lines = IdeFlightDataRecorder.DefaultMaxLines,
-        ops = new[] { "scene", "tail", "stats", "slow", "suggest", "apply", "clear_overlay" },
+        ops = new[] { "scene", "tail", "stats", "slow", "open", "suggest", "apply", "clear_overlay" },
         pulse = PulseLine(),
         next = new object[]
         {
             new { go = "fdr", label = "Stats", why = "op=stats — p50/p95 + timeout_wake candidates" },
+            new { go = "fdr", label = "Open", why = "op=open — tool_start without close (ghost hang dig)" },
             new { go = "fdr", label = "Suggest", why = "op=suggest — raise|hang|async from tape" },
             new { go = "fdr", label = "Apply", why = "op=apply — arm overlay from raise candidates" },
             new { go = "fdr", label = "Slow", why = "op=slow — top latency events" },
             new { go = "fdr", label = "Tail", why = "op=tail limit=40" }
         },
         hint =
-            "Black-box FDR: dense tool-call tape (organ/op/latency/outcome/phase). " +
-            "Not chat transcript. timeout_wake: op=suggest → op=apply overlay (evidence, not hand guess)."
+            "Black-box FDR: tool_start at begin + closed tool_call at finally. " +
+            "Ghost hang dig: op=open (start without matching close). " +
+            "timeout_wake: op=suggest → op=apply overlay (evidence, not hand guess)."
     };
 
     static object Tail(IReadOnlyDictionary<string, JsonElement> args)
@@ -142,11 +145,31 @@ internal static class IdeFdrChannel
         return IdeFdrThresholdPolicy.Apply(lookback, dry);
     }
 
+    static object Open(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var lookback = OptInt(args, "limit") ?? OptInt(args, "lookback") ?? 500;
+        var open = IdeFlightDataRecorder.ListOpenFlights(lookback);
+        return new
+        {
+            schema = SchemaVersion,
+            ok = true,
+            op = "open",
+            go = GoName,
+            lookback,
+            count = open.Count,
+            open,
+            hint =
+                "tool_start without later closed tool_call for same call_id. " +
+                "Host abort / hung ScriptHost without finally → ghost dig here."
+        };
+    }
+
     static object Slow(IReadOnlyDictionary<string, JsonElement> args)
     {
         var lookback = OptInt(args, "limit") ?? OptInt(args, "lookback") ?? 500;
         var minMs = OptInt(args, "min_ms") ?? 1000;
         var events = IdeFlightDataRecorder.ReadTail(Math.Clamp(lookback, 10, IdeFlightDataRecorder.DefaultMaxLines))
+            .Where(IdeFlightDataRecorder.IsClosedToolCall)
             .Where(e => e.ElapsedMs >= minMs || e.WakeExceeded || e.Outcome is "error" or "cancel")
             .OrderByDescending(e => e.ElapsedMs)
             .Take(40)
@@ -161,7 +184,7 @@ internal static class IdeFdrChannel
             min_ms = minMs,
             count = events.Length,
             events,
-            hint = "Incidents = slow / wake / error / cancel — not full chat."
+            hint = "Incidents = slow / wake / error / cancel closed flights — not tool_start."
         };
     }
 
