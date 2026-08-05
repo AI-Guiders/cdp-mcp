@@ -6,17 +6,19 @@
 
 ## Invariants
 
+- **STANDARD (operator 2026-08-06):** generalized **nested [axb]** — default work geometry. Atom = one-turn a×b list→batch→ship; when DoD unknown = nested series Explore→DoD/AC→Act.
+- **PREMISE — layer completeness (full-a):** without a **closed full `a`** on each layer, the nested-intervals transfer **does not apply**. Half-a / mill / holey Explore = open end → nonempty ∩ **not guaranteed**. Not a style tip — the completeness hypothesis of the lemma.
 - **list → batch → ship** — not Autoi single-item mill.
 - **Mill (operator 2026-08-05):** going one tiny piece per turn **where the work fits one axb**. Ban was on **wrong method**, not «SoftFL work forbidden». SoftFLStruckAxb that only dropped Hold / stamped CLOSED without file-order axb = board hygiene ≠ SoftFL ship. Real SoftFL = list FileLines gaps → one wave → ship.
 - **Turn = rectangle a×b** (operator 2026-08-04): vertical **a** = full work list for this turn; horizontal **b** = duration of this turn; **t = b = ship**.
   - **Phase 1 (list):** research + full markup — determine **a** and partition into points. No densest overnight cut of a residual pack.
   - **Phase 2 (batch→ship):** take **all** x ∈ a and move them **simultaneously** toward ship (parallel batch). Not finish one strip and leave the rest for the next Autoi.
   - **Teeth (0.5.652):** focused `feature_done` under autonomous with no active wave → refuse (half-a). Escape: `force=true` or `wave seed` first.
-- **Nested [axb] = nested intervals** (operator 2026-08-06): unknown DoD → series of nested compact layers, each a full axb:
+- **Nested [axb] ≈ nested intervals** (operator 2026-08-06): unknown DoD → series of nested compact layers, each a full axb:
   1. **[axb] Explore** — gather all sources/HCI/perception/…, analyze, conclude (full a of explore, not serial peek).
   2. **DoD/AC** — derive from Explore compact (bounds shrink).
   3. **[axb] Act** — ship inside the nested residual.
-  Bounds are not numbers on ℝ — they are the task/possibility set. Lemma: nested closed compacts have non-empty intersection; + diam→0 ⇒ ∃!. In the world: **∃ at least one** solution (not ∃!); uniqueness may fail — claim **non-empty intersection**, not metric convergence to one point unless diam→0 and course picks one. Mill / half-a = leave the compact open or skip residual shrink.
+  Bounds are not numbers on ℝ — they are the task/possibility set. Lemma: nested closed compacts have non-empty intersection; + diam→0 ⇒ ∃!. In the world: **∃ at least one** solution (not ∃!); uniqueness may fail — claim **non-empty intersection**, not metric convergence to one point unless diam→0 and course picks one.
 - Active wave is durable (seat `active-wave.json`): `wave seed|scene|start|item done|shipped|clear`. Wave items = a; open→shipping→shipped = phases already — no extra TM stage organ.
 - Prefer `wave seed title=Name items=a;b;c` — bare `title=` + free words without separators must not invent fake items.
 - Prefer short `items=` labels without spaces, or quoted blobs; `items=` with spaces must not invent one item per whitespace token (0.5.650).
@@ -38,7 +40,7 @@
 
 - **Teeth naming (lie):** AutoI / FeatureDone half-a refuse is a **shield** (holds blow, seals course, latch/armor) — not «зубы». «Teeth» sounds like aggression and rhymes with «рубить дерево зубами» (imitation instead of axe). Prefer future rename shield|latch|course-guard; until then hold: щит ≠ зубы-имитация.
 - One peel / one Meta / one organ per Autoi wake while FileLines CLOSED.
-- **Half-a residual:** ship densest subset (e.g. Git+RelatedFiles) and defer rest of same inventory (e.g. Markdown) to next Autoi — serial strips, not one integral over a.
+- **Half-a residual:** ship densest subset (e.g. Git+RelatedFiles) and defer rest of same inventory (e.g. Markdown) to next Autoi — serial strips, not one integral over a. **Also breaks nested-[axb] PREMISE** (open compact → lemma off).
 - **Domain-sliced CIDE port:** treat SoftOrgan / MFD / glass.md rows as separate waves — wrong. For Avalonia→Glass, **a** = весь остаток переноса CIDE (что ещё надо перенести), one wave to ship; not «сначала Git-домен, потом MD-домен».
 - Treating soft-staged `.next` as remounted live seat.
 - In-proc `cdp_shell` hard deploy (kills self).
@@ -48,7 +50,7 @@
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
 
 ## last_ship
-- **2026-08-05 SoftFLOrderAxb SHIPPED** — real file-order axb (not drop-task). Disk WARN×10→0 (<350): GlassSurface.Peek · FDR.Query · Wave.Persist · Habitat.Composer · SoftOrganMeta9.Tables · OrgansB.Meta · CompletionsTests.OpenAi · FdrTests.OpenCancel · SeedFire.Timer · AnchorPlace.Fixture. Build 0 err; peel-related tests 73/74 (1 prose-persona unrelated). Mill ≠ this — this was one list→batch→ship.
+- **2026-08-06 NestedAxb STANDARD** — operator: generalized nested [axb] = default geometry; **PREMISE full-a/completeness** elevated (half-a breaks lemma). World claim = nonempty ∩ (∃), not ∃!. Canon: playbook-pf-body-not-biped §Throughput + this card.
 - **2026-08-05 SoftFLStruckAxb (board hygiene)** — dropped Hold SoftFL-REJECT + stamped «STRUCK»; **did not** run SoftFL file-order axb. Operator: mill = serial tiny peels where one axb fits; ban = wrong method, not work ban. SoftFL when needed = list→batch→ship files.
 - **2026-08-05 DIG ACCEPT CitizenFullReadyAxb** — after plan-pulse tax CLOSED: inventory sole real gap=`throughput-wave` idle · SoftFL/Meta CLOSED · flight-durable already [x]. densest product residual=`Glass CIT peer ack 2/4` (citizen.md full-ready E2E). SoftFL BuildBoard REJECT. Wave seeded 6 items.
 - **0.5.661** — per-seat remount nudge + orphan remount pending (sibling hard ≠ kill survivor seat) · 2026-08-04
