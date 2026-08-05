@@ -63,6 +63,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.Run => RunProject(route),
             CitizenIntentRouter.Verb.Mcp => RunMcp(route),
             CitizenIntentRouter.Verb.Kb => RunKb(route),
+            CitizenIntentRouter.Verb.Hci => RunHci(route),
             CitizenIntentRouter.Verb.Shell => RunShell(route),
             CitizenIntentRouter.Verb.Debug => RunDebug(route),
             CitizenIntentRouter.Verb.Git => RunGit(route),

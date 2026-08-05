@@ -19,6 +19,7 @@ internal static partial class CitizenIntentRouter
         Append,
         Delete,
         Kb,
+        Hci,
         Build,
         Test,
         Run,
