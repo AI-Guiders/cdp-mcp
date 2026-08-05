@@ -27,8 +27,17 @@ internal static partial class IdeFlightDataRecorder
     internal static string? PathOverrideForTests { get; set; }
     internal static bool SuppressWriteForTests { get; set; }
 
+    /// <summary>
+    /// Seat-local tape (ADR dual-seat): <c>StateRoot/{seat}/fdr-tape.jsonl</c>.
+    /// Legacy workspace-root path migrates once on primary (see Tape.cs).
+    /// </summary>
     public static string TapePath =>
-        PathOverrideForTests ?? Path.Combine(CdpProfile.StateRoot, "fdr-tape.jsonl");
+        PathOverrideForTests
+        ?? Path.Combine(CdpProfile.StateRoot, IdeIgniteArmHost.Seat, "fdr-tape.jsonl");
+
+    /// <summary>Pre-seat-layout path (workspace StateRoot only).</summary>
+    public static string LegacyTapePath =>
+        Path.Combine(CdpProfile.StateRoot, "fdr-tape.jsonl");
 
     public static void BindContext(Func<FdrContextSnap>? snap) => s_context = snap;
 

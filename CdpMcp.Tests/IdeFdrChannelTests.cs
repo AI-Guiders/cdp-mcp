@@ -118,6 +118,60 @@ public sealed class IdeFdrChannelTests
     }
 
     [Fact]
+    public void Seat_tape_path_under_state_seat_dir()
+    {
+        var iso = Path.Combine(Path.GetTempPath(), "cdp-fdr-seat-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(iso);
+        CdpProfile.ApplyClientRoots([iso]);
+        IdeFlightDataRecorder.PathOverrideForTests = null;
+        try
+        {
+            var path = IdeFlightDataRecorder.TapePath;
+            Assert.Contains(Path.DirectorySeparatorChar + IdeIgniteArmHost.Seat + Path.DirectorySeparatorChar,
+                path,
+                StringComparison.OrdinalIgnoreCase);
+            Assert.EndsWith("fdr-tape.jsonl", path, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(
+                Path.Combine(CdpProfile.StateRoot, "fdr-tape.jsonl"),
+                IdeFlightDataRecorder.LegacyTapePath);
+        }
+        finally
+        {
+            IdeFlightDataRecorder.PathOverrideForTests = null;
+            CdpProfile.ApplyClientRoots([Path.Combine(Path.GetTempPath(), "cdp-fdr-cleanup")]);
+            try { Directory.Delete(iso, recursive: true); } catch { /* best-effort */ }
+        }
+    }
+
+    [Fact]
+    public void Migrate_legacy_tape_to_primary_seat_once()
+    {
+        if (!string.Equals(IdeIgniteArmHost.Seat, "cdp", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var iso = Path.Combine(Path.GetTempPath(), "cdp-fdr-mig-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(iso);
+        CdpProfile.ApplyClientRoots([iso]);
+        IdeFlightDataRecorder.PathOverrideForTests = null;
+        try
+        {
+            var legacy = IdeFlightDataRecorder.LegacyTapePath;
+            Directory.CreateDirectory(Path.GetDirectoryName(legacy)!);
+            File.WriteAllText(legacy, "{\"schema\":\"fdr_event/v1\",\"kind\":\"tool_call\",\"tool\":\"x\"}\n");
+            var seatPath = IdeFlightDataRecorder.TapePath;
+            IdeFlightDataRecorder.TryMigrateLegacyTape(seatPath);
+            Assert.True(File.Exists(seatPath));
+            Assert.False(File.Exists(legacy));
+        }
+        finally
+        {
+            IdeFlightDataRecorder.PathOverrideForTests = null;
+            CdpProfile.ApplyClientRoots([Path.Combine(Path.GetTempPath(), "cdp-fdr-cleanup")]);
+            try { Directory.Delete(iso, recursive: true); } catch { /* best-effort */ }
+        }
+    }
+
+    [Fact]
     public void RecordWake_appends_kind_on_tape()
     {
         var iso = Path.Combine(Path.GetTempPath(), "cdp-fdr-wake-" + Guid.NewGuid().ToString("N"));
