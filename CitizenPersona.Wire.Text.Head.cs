@@ -56,6 +56,11 @@ internal static partial class CitizenPersona
           @intent kb get_process process_id=bug-radius-shrink
           @intent kb facet=skill list_pack
           @intent kb read_knowledge_file file_path=META/integrity-core.md
+          @intent hci
+          @intent hci status
+          @intent hci search query=CitizenRouteHost
+          @intent codebase_index search query=IdeFindChannel
+          @intent hybrid_index reindex
           @intent git
           @intent git scene
           @intent git status

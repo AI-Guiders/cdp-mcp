@@ -22,6 +22,7 @@ internal static partial class CitizenRouteHost
         ByDomainResolver = null;
         DebugDispatchOverride = null;
         KbCallOverride = null;
+        HciCallOverride = null;
         GitCallOverride = null;
         FindCallOverride = null;
         IdeCallOverride = null;

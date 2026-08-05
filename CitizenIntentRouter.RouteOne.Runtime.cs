@@ -42,6 +42,19 @@ internal static partial class CitizenIntentRouter
             return RouteKb(raw);
         }
 
+        if (raw.Equals("hci", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("hci ", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("hci tool=", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("codebase_index", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("codebase_index ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("hybrid_index", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("hybrid_index ", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_hci", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("cdp_hci ", StringComparison.OrdinalIgnoreCase))
+        {
+            return RouteHci(raw);
+        }
+
         if (raw.Equals("shell", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("shell ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("shell command=", StringComparison.OrdinalIgnoreCase))
