@@ -20,6 +20,7 @@ internal static partial class IdeTaskManager
         }
 
         IdeHumanFaceShield.RefuseCideDoneWithoutShot(store, id.Value, args);
+        IdeDomainStampShield.RefuseCideDoneWithoutFreshStamp(store, id.Value, args);
         IdeWorldDigShield.RefuseInventMillDoneWithoutDig(store, id.Value, args);
         IdeReviewShield.RefuseDoneWithOpenReviews(store, id.Value, args);
 
@@ -123,6 +124,7 @@ internal static partial class IdeTaskManager
         }
 
         IdeHumanFaceShield.RefuseCideDoneWithoutShot(store, id.Value, args);
+        IdeDomainStampShield.RefuseCideDoneWithoutFreshStamp(store, id.Value, args);
         IdeWorldDigShield.RefuseInventMillDoneWithoutDig(store, id.Value, args);
         IdeReviewShield.RefuseDoneWithOpenReviews(store, id.Value, args);
 

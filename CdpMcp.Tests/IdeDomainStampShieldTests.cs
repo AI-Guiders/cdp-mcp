@@ -8,14 +8,16 @@ using Xunit;
 namespace CdpMcp.Tests;
 
 [Collection("IdeWaveStore")]
-public sealed class IdeHumanFaceShieldTests
+public sealed class IdeDomainStampShieldTests
 {
     [Fact]
-    public void Cide_done_refuses_without_shot_evidence()
+    public void Cide_done_refuses_without_domain_arg()
     {
-        var dir = Path.Combine(Path.GetTempPath(), "cdp-hf-refuse-" + Guid.NewGuid().ToString("n"));
+        var dir = Path.Combine(Path.GetTempPath(), "cdp-ds-refuse-" + Guid.NewGuid().ToString("n"));
         Directory.CreateDirectory(dir);
         var dbPath = Path.Combine(dir, "tm.witdb");
+        var png = Path.Combine(dir, "shot.png");
+        File.WriteAllBytes(png, [0x89, 0x50, 0x4E, 0x47]);
         try
         {
             var store = BootStore(dbPath);
@@ -25,10 +27,10 @@ public sealed class IdeHumanFaceShieldTests
             store.StageSetProduct(state, leaf, "CIDE");
             store.FocusStage(state, leaf);
 
-            var result = IdeTaskManager.Handle(store, state, Args(new { tm_op = "done" }));
+            var result = IdeTaskManager.Handle(store, state, Args(new { tm_op = "done", evidence = png }));
             using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
             Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
-            Assert.Contains("human_face_cide_shot", doc.RootElement.GetProperty("error").GetString()!, StringComparison.Ordinal);
+            Assert.Contains("domain_stamp_missing", doc.RootElement.GetProperty("error").GetString()!, StringComparison.Ordinal);
         }
         finally
         {
@@ -37,17 +39,28 @@ public sealed class IdeHumanFaceShieldTests
     }
 
     [Fact]
-    public void Cide_done_allows_with_evidence_png()
+    public void Cide_done_allows_with_fresh_domain_stamp()
     {
-        var dir = Path.Combine(Path.GetTempPath(), "cdp-hf-ok-" + Guid.NewGuid().ToString("n"));
+        var dir = Path.Combine(Path.GetTempPath(), "cdp-ds-ok-" + Guid.NewGuid().ToString("n"));
         var domainDir = Path.Combine(dir, ".cdp", "domain");
         Directory.CreateDirectory(domainDir);
         var dbPath = Path.Combine(dir, "tm.witdb");
-        var png = Path.Combine(dir, "glass-verify.png");
+        var png = Path.Combine(dir, "shot.png");
         File.WriteAllBytes(png, [0x89, 0x50, 0x4E, 0x47]);
         var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
         File.WriteAllText(Path.Combine(domainDir, "glass.md"),
-            $"# glass\n- id: `glass`\n## Invariants\n- x\n## Entry\n- x\n## Antipatterns\n- x\n## last_ship\n- {today} test\n");
+            $"""
+            # Domain card: glass
+            - id: `glass`
+            ## Invariants
+            - test
+            ## Entry
+            - test
+            ## Antipatterns
+            - test
+            ## last_ship
+            - **{today}** anti-rooster stamp shield dogfood
+            """);
         var prev = IdeDomainPulse.DirOverrideForTests;
         IdeDomainPulse.DirOverrideForTests = domainDir;
         try
@@ -77,11 +90,13 @@ public sealed class IdeHumanFaceShieldTests
     }
 
     [Fact]
-    public void Cide_done_refuses_shot_true_bool_alone()
+    public void Cide_done_force_escapes_stamp_shield()
     {
-        var dir = Path.Combine(Path.GetTempPath(), "cdp-hf-shotbool-" + Guid.NewGuid().ToString("n"));
+        var dir = Path.Combine(Path.GetTempPath(), "cdp-ds-force-" + Guid.NewGuid().ToString("n"));
         Directory.CreateDirectory(dir);
         var dbPath = Path.Combine(dir, "tm.witdb");
+        var png = Path.Combine(dir, "shot.png");
+        File.WriteAllBytes(png, [0x89, 0x50, 0x4E, 0x47]);
         try
         {
             var store = BootStore(dbPath);
@@ -91,10 +106,14 @@ public sealed class IdeHumanFaceShieldTests
             store.StageSetProduct(state, leaf, "CIDE");
             store.FocusStage(state, leaf);
 
-            var result = IdeTaskManager.Handle(store, state, Args(new { tm_op = "done", shot = true }));
+            var result = IdeTaskManager.Handle(store, state, Args(new
+            {
+                tm_op = "done",
+                evidence = png,
+                force = true
+            }));
             using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
-            Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
-            Assert.Contains("human_face_cide_shot", doc.RootElement.GetProperty("error").GetString()!, StringComparison.Ordinal);
+            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
         }
         finally
         {
@@ -103,28 +122,34 @@ public sealed class IdeHumanFaceShieldTests
     }
 
     [Fact]
-    public void Cdp_product_done_not_gated()
+    public void Stamp_pending_mark_clear_roundtrip()
     {
-        var dir = Path.Combine(Path.GetTempPath(), "cdp-hf-cdp-" + Guid.NewGuid().ToString("n"));
-        Directory.CreateDirectory(dir);
-        var dbPath = Path.Combine(dir, "tm.witdb");
+        var path = Path.Combine(Path.GetTempPath(), "cdp-ds-pending-" + Guid.NewGuid().ToString("n") + ".json");
+        var prev = IdeDomainStampPending.PathOverrideForTests;
+        IdeDomainStampPending.PathOverrideForTests = path;
         try
         {
-            var store = BootStore(dbPath);
-            var state = new IntentWorkspaceState { DatabasePath = dbPath };
-            store.IntentUpsert(state, "cdp-feat", null);
-            var leaf = store.StageUpsert(state, "cdp-leaf", null, null, null).stage_id;
-            store.StageSetProduct(state, leaf, "CDP");
-            store.FocusStage(state, leaf);
-
-            var result = IdeTaskManager.Handle(store, state, Args(new { tm_op = "done" }));
-            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
-            Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+            IdeDomainStampPending.Clear();
+            Assert.False(IdeDomainStampPending.IsSet());
+            IdeDomainStampPending.Mark("test");
+            Assert.True(IdeDomainStampPending.IsSet());
+            IdeDomainStampPending.Clear();
+            Assert.False(IdeDomainStampPending.IsSet());
         }
         finally
         {
-            try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
+            IdeDomainStampPending.PathOverrideForTests = prev;
+            try { File.Delete(path); } catch { /* best-effort */ }
         }
+    }
+
+    [Fact]
+    public void ComposeArmFireCharge_includes_domain_stamp_postfix()
+    {
+        var charge = IdeIgniteChannel.ComposeArmFireCharge();
+        Assert.Contains(IdeIgniteChannel.ChargeDomainStampPostfix.Trim(), charge, StringComparison.Ordinal);
+        Assert.Contains("anti-rooster", charge, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("SAME turn", charge, StringComparison.Ordinal);
     }
 
     static Dictionary<string, JsonElement> Args(object anon)
