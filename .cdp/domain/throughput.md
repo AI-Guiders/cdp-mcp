@@ -16,7 +16,7 @@
   1. **[axb] Explore** — gather all sources/HCI/perception/…, analyze, conclude (full a of explore, not serial peek).
   2. **DoD/AC** — derive from Explore compact (bounds shrink).
   3. **[axb] Act** — ship inside the nested residual.
-  Bounds are not numbers on ℝ — they are the task/possibility set. Lemma: nested closed compacts with diam→0 have a common point. In the world: **∃ at least one** solution (not ∃!); uniqueness may fail, existence/convergence still holds. Mill / half-a = leave the compact open or skip diam→0.
+  Bounds are not numbers on ℝ — they are the task/possibility set. Lemma: nested closed compacts have non-empty intersection; + diam→0 ⇒ ∃!. In the world: **∃ at least one** solution (not ∃!); uniqueness may fail — claim **non-empty intersection**, not metric convergence to one point unless diam→0 and course picks one. Mill / half-a = leave the compact open or skip residual shrink.
 - Active wave is durable (seat `active-wave.json`): `wave seed|scene|start|item done|shipped|clear`. Wave items = a; open→shipping→shipped = phases already — no extra TM stage organ.
 - Prefer `wave seed title=Name items=a;b;c` — bare `title=` + free words without separators must not invent fake items.
 - Prefer short `items=` labels without spaces, or quoted blobs; `items=` with spaces must not invent one item per whitespace token (0.5.650).
