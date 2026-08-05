@@ -50,7 +50,8 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
         bool GitDirty,
         int TestFailed,
         bool DebugStopped,
-        int ShellRunning);
+        int ShellRunning,
+        bool StampPending);
 
     public NextCard[] Build(in Input input)
     {
@@ -78,6 +79,9 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
 
         if (input.AlertBeeping)
             Add("n-alert", "alert", "SA board", input.AlertWhy ?? input.AlertPulse ?? "alert");
+        if (input.StampPending)
+            Add("n-stamp", "domain", "Stamp last_ship",
+                "after commit — same turn; L1 ≠ stamp moment (петух = already late)");
         if (input.PressureArmed)
             Add("n-pressure", "pressure", "Pressure prep", input.PressureWhy ?? input.PressurePulse ?? "pressure");
         if (input.ChkOpenRequired > 0)

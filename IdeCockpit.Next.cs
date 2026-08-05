@@ -76,7 +76,8 @@ internal static partial class IdeCockpit
             GitDirty: gitRoot is { } g && GitIsDirty(g),
             TestFailed: test.Failed,
             DebugStopped: debug.Stopped,
-            ShellRunning: shell.Running));
+            ShellRunning: shell.Running,
+            StampPending: IdeDomainStampPending.IsSet()));
 
         return cards
             .Select(c => (object)new { id = c.Id, go = c.Go, label = c.Label, why = c.Why })

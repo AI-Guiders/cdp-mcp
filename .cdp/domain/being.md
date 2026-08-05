@@ -15,15 +15,15 @@
 - Ontology lives in habitat: sealed course (`IdePressureChannel.Course`) + Autoi charge (`ChargeHumanFace` / Amnesia) + refuse shields — not polite agreement, not host `.mdc`.
 - `#CIDE` Done needs human-faced shot: `title=M · MFD host` → `evidence=path.png` on disk → **Read PNG into chat**. `shot=true` bool / wrong window / File.Exists alone = seeming («Выстрела нет»).
 - **Seeming-Done ≠ missing PreCondition.** Classic miss: PreCondition sealed, agent ships **half-a** (narrower DoD / peel / strip) and stamps epic Done. Fix: finish A, or operator **explicitly** shrinks PreCondition; name slices honestly. Do not rewrite history as «PreCondition was never written».
-- **Seeming-Done repair kit:** Done=contract check · evidence before ready (R2) · layer labels (slice/peel/epic) · surface miss not ban Done · second sensor (R3) dig PreCondition/matrix before shipped. Playbook § Seeming-Done. Not a new strategy epic.
+- **Seeming-Done repair kit:** Done=contract check · evidence before ready (R2) · layer labels (slice/peel/epic) · surface miss not ban Done · second sensor (R3) dig PreCondition/matrix **before** shipped (not wait «ой») · stamp `last_ship` same turn as ship (anti-rooster; L1 = already late). Playbook § Seeming-Done. Not a new strategy epic.
 - Operator meme lens **«Можно, а зачем?»** = systemic indifference (can, but why care) — not «don't complicate». Same cold toward agents: ethical/non-trauma work with NNs → «можно, а зачем?». KB: `note-meme-mozhno-a-zachem-operator-lens-v1.md`.
 
 ## Entry
 
 - Runtime: `IdePressureChannel.Course` · `CanonicalSealedCourse` / `HasBeingAxis` / `EnsureCourseCriteria`
 - Wake: `IdeIgniteChannel.ChargePolicy` · Amnesia + HumanFace postfix
-- Shield: `IdeHumanFaceShield` (`glass_ship_without_human_shot`)
-- Related domains: `ignite` · `glass`
+- Shield: `IdeHumanFaceShield` (`glass_ship_without_human_shot`) · `IdeDomainStampShield` (`domain_stamp_missing`)
+- Related domains: `ignite` · `glass` · `pressure`
 - KB: playbook-being-vs-seeming-v1 · note-one-mind-n-seats-2026-08-05
 - ADR: CDP-ADR-0030 (Citizen multi-session continuity) · CIDE 0203 (Intercom CCC pointer)
 
@@ -42,6 +42,7 @@
 
 ## last_ship
 
+- **anti-rooster package** — `IdeDomainStampShield` + ChargeDomainStampPostfix + L1 flip + stamp-pending next[] · 2026-08-05
 - **seeming-Done = half-a vs sealed PreCondition** — operator 2026-08-05 (Glass: PreCondition was fixed; undership) · playbook + this card + scratch
 - **«Можно, а зачем?» operator lens** — indifference of system/actors (not anti-complexity) · note-meme-mozhno-a-zachem · 2026-08-05
 - **one mind · N seats** — operator 2026-08-05 (human multiplex vs agent twins) · scratch + playbook + this card

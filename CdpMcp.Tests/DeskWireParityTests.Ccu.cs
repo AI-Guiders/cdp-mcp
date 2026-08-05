@@ -91,7 +91,8 @@ public sealed partial class DeskWireParityTests
             GitDirty: false,
             TestFailed: 0,
             DebugStopped: false,
-            ShellRunning: 0));
+            ShellRunning: 0,
+            StampPending: false));
         Assert.True(cards.Length <= DeskNextBuildUnit.Cap);
         Assert.Contains(cards, c => c.Go == "project_scene");
         Assert.Contains(cards, c => c.Go == "plan");
@@ -144,7 +145,8 @@ public sealed partial class DeskWireParityTests
             GitDirty: false,
             TestFailed: 0,
             DebugStopped: false,
-            ShellRunning: 0));
+            ShellRunning: 0,
+            StampPending: false));
         var alert = Assert.Single(cards, c => c.Go == "alert");
         Assert.Equal("alert.git · git_dirty · working tree has staged or unstaged changes · next go=git_scene", alert.Why);
     }
@@ -196,7 +198,8 @@ public sealed partial class DeskWireParityTests
             GitDirty: false,
             TestFailed: 0,
             DebugStopped: false,
-            ShellRunning: 0));
+            ShellRunning: 0,
+            StampPending: false));
         var pressure = Assert.Single(cards, c => c.Go == "pressure");
         Assert.Equal(why, pressure.Why);
     }

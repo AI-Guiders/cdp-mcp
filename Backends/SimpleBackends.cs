@@ -154,8 +154,37 @@ internal sealed class GitBackend(CdpSettings settings) : ICdpBackendModule
     public IReadOnlyList<ToolAffordance> Affordances =>
         Wave1AffordanceSeed.Build().Where(a => a.Domain == Domain).ToArray();
 
-    public ValueTask<string> CallAsync(string underlyingName, IReadOnlyDictionary<string, JsonElement> args) =>
-        ValueTask.FromResult(GitMcp.ToolHandlers.Handle(underlyingName, args));
+    public ValueTask<string> CallAsync(string underlyingName, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var json = GitMcp.ToolHandlers.Handle(underlyingName, args);
+        if (LooksLikeSuccessfulCommit(underlyingName, json))
+            CdpMcp.IdeDomainStampPending.Mark("git_commit");
+        return ValueTask.FromResult(json);
+    }
+
+    static bool LooksLikeSuccessfulCommit(string underlyingName, string json)
+    {
+        if (!underlyingName.Contains("commit", StringComparison.OrdinalIgnoreCase))
+            return false;
+        var trimmed = json.TrimStart();
+        if (trimmed.StartsWith('{'))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("ok", out var ok)
+                    && ok.ValueKind == JsonValueKind.False)
+                    return false;
+            }
+            catch
+            {
+                /* treat as text success below */
+            }
+        }
+
+        return trimmed.Length > 0
+               && !trimmed.StartsWith("git_", StringComparison.Ordinal);
+    }
 }
 
 internal sealed class CodebaseIndexBackend(CdpSettings settings) : ICdpBackendModule
