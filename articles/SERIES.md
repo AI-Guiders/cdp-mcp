@@ -8,8 +8,8 @@
 | # | Working title | Файл | Статус | Ось |
 |---|---------------|------|--------|-----|
 | 1 | Один вид, разные носители | [same-kind-different-carrier.md](same-kind-different-carrier.md) (+ [.en](same-kind-different-carrier.en.md)) | **0.2.1 draft** | механизм vs носитель; ε локально |
-| 2 | Дешёвый априор и стереоход | [cheap-prior-stereohod.md](cheap-prior-stereohod.md) | **0.3 expanded** | психология; KB psychology.models как рудник |
-| 3 | Травма как априор, не как «я» | [trauma-as-prior-not-self.md](trauma-as-prior-not-self.md) | **0.3 expanded** | prior ≠ self; не клиника; KB + therapy-boundary |
+| 2 | Дешёвый априор и стереоход | [cheap-prior-stereohod.md](cheap-prior-stereohod.md) | **0.3.1** RU de-jargon | психология; без habitat-ребусов |
+| 3 | Травма как априор, не как «я» | [trauma-as-prior-not-self.md](trauma-as-prior-not-self.md) | **0.3.1** RU de-jargon | априор ≠ «я»; не клиника |
 | 4 | Быть ≠ казаться | [being-vs-seeming-contour.md](being-vs-seeming-contour.md) | **0.1 outline** | доверие / seeming |
 | 5 | Один ум · N сидений | [one-mind-n-seats-continuity.md](one-mind-n-seats-continuity.md) | **0.1 outline** | continuity / Citizen |
 | 6 | ε-среда | [epsilon-habitat-design.md](epsilon-habitat-design.md) | **0.1 outline** | дизайн контура |
