@@ -49,6 +49,8 @@ internal static class CitizenGlassDialogBridge
 
     public static void Start()
     {
+        if (!IdeIgniteArmHost.IsPrimaryAutoiSeat())
+            return;
         Stop();
         var cts = new CancellationTokenSource();
         Volatile.Write(ref Cts, cts);
@@ -109,7 +111,6 @@ internal static class CitizenGlassDialogBridge
         if (!IdeIgniteArmHost.TryClaimSharedWakeMirror("citizen-bridge:" + req.Id))
             return false;
 
-        LastProcessedId = req.Id;
         MarkStatus(req, "running");
 
         try
@@ -146,10 +147,9 @@ internal static class CitizenGlassDialogBridge
                 peerAck = CitizenPeerAck.FromExecuted(executed);
             }
 
-            PersistOperatorDialog(req.Body, turn.Text!, executed);
-
             // Human Intercom: strip wire; harness → «Сделала: …» (not peer tip dump).
             var publishBody = SurfacePublishBody(turn.Text!, executed);
+            PersistOperatorDialog(req.Body, turn.Text!, publishBody, executed);
 
             var published = CideIntercomVoiceLatch.Publish(
                 fromSeat: CideIntercomVoiceLatch.SeatPf,
@@ -165,6 +165,8 @@ internal static class CitizenGlassDialogBridge
                 published is null ? "error" : "done",
                 published is null ? "publish_failed" : null,
                 peer: peerAck?.Peer);
+            if (published is not null)
+                LastProcessedId = req.Id;
             return true;
         }
         catch (Exception ex)
@@ -178,11 +180,16 @@ internal static class CitizenGlassDialogBridge
     internal static void PersistOperatorDialog(
         string userBody,
         string prose,
+        string publishBody,
         IReadOnlyList<CitizenRouteHost.Applied>? executed)
     {
-        var assistant = CitizenIntercomHumanSurface.Publish(prose, executed);
+        var assistant = publishBody.Trim();
+        if (string.IsNullOrWhiteSpace(assistant))
+            assistant = CitizenIntercomHumanSurface.Publish(prose, executed);
         if (string.IsNullOrWhiteSpace(assistant))
             assistant = CitizenIntercomHumanSurface.StripWire(prose);
+        if (string.IsNullOrWhiteSpace(assistant))
+            assistant = prose.Trim();
         if (string.IsNullOrWhiteSpace(assistant))
             return;
         CitizenDialogHistory.Append(userBody, assistant);

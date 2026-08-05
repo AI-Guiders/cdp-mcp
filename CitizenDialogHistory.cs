@@ -15,6 +15,7 @@ internal static class CitizenDialogHistory
     static readonly object Gate = new();
     static string? PathOverrideForTests;
     static List<CitizenCompletions.ChatMessage>? MemoryOverrideForTests;
+    static string? LastAppendErrorForTests;
 
     public static string SeatDir =>
         Path.Combine(CdpProfile.StateRoot, IdeIgniteArmHost.Seat);
@@ -37,6 +38,16 @@ internal static class CitizenDialogHistory
         {
             PathOverrideForTests = null;
             MemoryOverrideForTests = null;
+            LastAppendErrorForTests = null;
+        }
+    }
+
+    internal static string? LastAppendError
+    {
+        get
+        {
+            lock (Gate)
+                return LastAppendErrorForTests;
         }
     }
 
@@ -100,30 +111,38 @@ internal static class CitizenDialogHistory
                 return;
             }
 
-            try
+            LastAppendErrorForTests = null;
+            for (var attempt = 0; attempt < 2; attempt++)
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-                var lines =
-                    JsonSerializer.Serialize(new { role = "user", content = userText.Trim(), at_utc = DateTimeOffset.UtcNow })
-                    + Environment.NewLine
-                    + JsonSerializer.Serialize(new { role = "assistant", content = assistantText.Trim(), at_utc = DateTimeOffset.UtcNow })
-                    + Environment.NewLine;
-                File.AppendAllText(FilePath, lines);
-
-                // Trim file if oversized (rewrite last N) — under Gate to avoid interleaved Appends losing pairs.
-                var loaded = LoadUnlocked(maxMessages * 4);
-                if (loaded.Count > maxMessages)
+                try
                 {
-                    var keep = loaded.TakeLast(maxMessages).ToArray();
-                    var sb = new System.Text.StringBuilder();
-                    foreach (var m in keep)
-                        sb.AppendLine(JsonSerializer.Serialize(new { role = m.Role, content = m.Content, at_utc = DateTimeOffset.UtcNow }));
-                    File.WriteAllText(FilePath, sb.ToString());
+                    Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+                    var lines =
+                        JsonSerializer.Serialize(new { role = "user", content = userText.Trim(), at_utc = DateTimeOffset.UtcNow })
+                        + Environment.NewLine
+                        + JsonSerializer.Serialize(new { role = "assistant", content = assistantText.Trim(), at_utc = DateTimeOffset.UtcNow })
+                        + Environment.NewLine;
+                    File.AppendAllText(FilePath, lines);
+
+                    // Trim file if oversized (rewrite last N) — under Gate to avoid interleaved Appends losing pairs.
+                    var loaded = LoadUnlocked(maxMessages * 4);
+                    if (loaded.Count > maxMessages)
+                    {
+                        var keep = loaded.TakeLast(maxMessages).ToArray();
+                        var sb = new System.Text.StringBuilder();
+                        foreach (var m in keep)
+                            sb.AppendLine(JsonSerializer.Serialize(new { role = m.Role, content = m.Content, at_utc = DateTimeOffset.UtcNow }));
+                        File.WriteAllText(FilePath, sb.ToString());
+                    }
+
+                    return;
                 }
-            }
-            catch
-            {
-                // Dialog history is best-effort — never fail the turn.
+                catch (Exception ex)
+                {
+                    LastAppendErrorForTests = ex.GetType().Name;
+                    if (attempt == 0)
+                        Thread.Sleep(15);
+                }
             }
         }
     }
@@ -133,16 +152,17 @@ internal static class CitizenDialogHistory
         lock (Gate)
         {
             MemoryOverrideForTests?.Clear();
-        }
+            LastAppendErrorForTests = null;
 
-        try
-        {
-            if (File.Exists(FilePath))
-                File.Delete(FilePath);
-        }
-        catch
-        {
-            // ignore
+            try
+            {
+                if (File.Exists(FilePath))
+                    File.Delete(FilePath);
+            }
+            catch
+            {
+                // ignore
+            }
         }
     }
 
@@ -168,7 +188,8 @@ internal static class CitizenDialogHistory
             pairs = msgs.Count / 2,
             last_role = msgs.Count > 0 ? msgs[^1].Role : null,
             last_user = lastUser,
-            last_assistant = lastAssistant
+            last_assistant = lastAssistant,
+            last_append_error = LastAppendErrorForTests
         };
     }
 
