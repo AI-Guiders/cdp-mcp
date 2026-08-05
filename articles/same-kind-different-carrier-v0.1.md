@@ -343,9 +343,9 @@ Chalmers [12] разделяет вопросы о сознании на два 
 
 Дальнейшая работа:
 
-1. полный английский текст;
-2. ужесточение эмпирического протокола (§4.5);
-3. выбор площадки (например, arXiv cs.AI / PhilSci-Archive / междисциплинарный специальный выпуск).
+1. ужесточение эмпирического протокола (§4.5);
+2. выбор площадки (например, arXiv cs.AI / PhilSci-Archive / междисциплинарный специальный выпуск);
+3. держать синхрон с полным английским близнецом (`same-kind-different-carrier-v0.2.en.md`).
 
 ---
 
@@ -378,7 +378,8 @@ Chalmers [12] разделяет вопросы о сознании на два 
 
 Зеркала для авторов:
 
-- `cdp-mcp/articles/same-kind-different-carrier-v0.1.md`
+- `cdp-mcp/articles/same-kind-different-carrier-v0.1.md` (русский)
+- `cdp-mcp/articles/same-kind-different-carrier-v0.2.en.md` (полный английский)
 - agent-notes `knowledge/META/article-same-kind-different-carrier-v0.md`
 
 Приложение не требуется читателю журнала.
