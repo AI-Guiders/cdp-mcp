@@ -26,6 +26,7 @@
 
 ## last_ship
 
+- **2026-08-05** — FDR cockpit 50ms lock: live WitDB torn (`pageNumber` OOR) → failed Open leaks FileShare.None → quarantine Move failed → heal never landed. Fix: GC settle + MoveWithRetry on torn quarantine. Dig: AdoNet open probe.
 - **2026-08-05** — FDR dig: dual-seat root tape + remount kill tax → seat FDR tape · reclaim sleep 800ms · WitDB remount backoff · Recover `-SoftFirst`
 - **0.5.626** — `cdp_health` default `detail=pulse`: skip LSP `resolved_probe` path resolve + compact JSON; `detail=full|lsp` = prior fat card. Why: every health CallTool paid Resolve×presets and looked "all MCP slow". Lived: agent ops dig.
 - 0.5.569: citizen `@intent deploy` → `IdeDeploy.Run` (peer remount without Cursor) · 2026-08-03
