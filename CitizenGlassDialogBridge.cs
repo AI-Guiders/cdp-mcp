@@ -123,7 +123,8 @@ internal static class CitizenGlassDialogBridge
                     tm: live.TmPulse,
                     inject: true,
                     mode: CitizenTurnMode.Dialog,
-                    history: true);
+                    history: true,
+                    appendHistory: false);
             }
 
             if (!turn.Ok || string.IsNullOrWhiteSpace(turn.Text))
@@ -139,6 +140,8 @@ internal static class CitizenGlassDialogBridge
                 executed = CitizenRouteHost.Execute(turn.Routes);
                 peerAck = CitizenPeerAck.FromExecuted(executed);
             }
+
+            PersistOperatorDialog(req.Body, turn.Text!, executed);
 
             // Human Intercom: strip wire; harness → «Сделала: …» (not peer tip dump).
             var publishBody = SurfacePublishBody(turn.Text!, executed);
@@ -163,6 +166,20 @@ internal static class CitizenGlassDialogBridge
             MarkStatus(req, "error", ex.GetType().Name);
             return true;
         }
+    }
+
+    /// <summary>Glass CIT operator thread — human prose (+ hands) for multi-turn memory, not raw wire.</summary>
+    internal static void PersistOperatorDialog(
+        string userBody,
+        string prose,
+        IReadOnlyList<CitizenRouteHost.Applied>? executed)
+    {
+        var assistant = CitizenIntercomHumanSurface.Publish(prose, executed);
+        if (string.IsNullOrWhiteSpace(assistant))
+            assistant = CitizenIntercomHumanSurface.StripWire(prose);
+        if (string.IsNullOrWhiteSpace(assistant))
+            return;
+        CitizenDialogHistory.Append(userBody, assistant);
     }
 
     static string SurfacePublishBody(string prose, IReadOnlyList<CitizenRouteHost.Applied>? executed)

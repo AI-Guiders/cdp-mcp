@@ -46,8 +46,12 @@ internal static class CitizenDialogHistory
         {
             if (MemoryOverrideForTests is not null)
                 return MemoryOverrideForTests.TakeLast(Math.Max(0, maxMessages)).ToArray();
+            return LoadUnlocked(maxMessages);
         }
+    }
 
+    static IReadOnlyList<CitizenCompletions.ChatMessage> LoadUnlocked(int maxMessages = DefaultMaxMessages)
+    {
         var path = FilePath;
         if (!File.Exists(path))
             return [];
@@ -95,32 +99,32 @@ internal static class CitizenDialogHistory
                     MemoryOverrideForTests.RemoveAt(0);
                 return;
             }
-        }
 
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-            var lines =
-                JsonSerializer.Serialize(new { role = "user", content = userText.Trim(), at_utc = DateTimeOffset.UtcNow })
-                + Environment.NewLine
-                + JsonSerializer.Serialize(new { role = "assistant", content = assistantText.Trim(), at_utc = DateTimeOffset.UtcNow })
-                + Environment.NewLine;
-            File.AppendAllText(FilePath, lines);
-
-            // Trim file if oversized (rewrite last N).
-            var loaded = Load(maxMessages * 4); // read raw-ish then rewrite capped
-            if (loaded.Count > maxMessages)
+            try
             {
-                var keep = loaded.TakeLast(maxMessages).ToArray();
-                var sb = new System.Text.StringBuilder();
-                foreach (var m in keep)
-                    sb.AppendLine(JsonSerializer.Serialize(new { role = m.Role, content = m.Content, at_utc = DateTimeOffset.UtcNow }));
-                File.WriteAllText(FilePath, sb.ToString());
+                Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+                var lines =
+                    JsonSerializer.Serialize(new { role = "user", content = userText.Trim(), at_utc = DateTimeOffset.UtcNow })
+                    + Environment.NewLine
+                    + JsonSerializer.Serialize(new { role = "assistant", content = assistantText.Trim(), at_utc = DateTimeOffset.UtcNow })
+                    + Environment.NewLine;
+                File.AppendAllText(FilePath, lines);
+
+                // Trim file if oversized (rewrite last N) — under Gate to avoid interleaved Appends losing pairs.
+                var loaded = LoadUnlocked(maxMessages * 4);
+                if (loaded.Count > maxMessages)
+                {
+                    var keep = loaded.TakeLast(maxMessages).ToArray();
+                    var sb = new System.Text.StringBuilder();
+                    foreach (var m in keep)
+                        sb.AppendLine(JsonSerializer.Serialize(new { role = m.Role, content = m.Content, at_utc = DateTimeOffset.UtcNow }));
+                    File.WriteAllText(FilePath, sb.ToString());
+                }
             }
-        }
-        catch
-        {
-            // Dialog history is best-effort — never fail the turn.
+            catch
+            {
+                // Dialog history is best-effort — never fail the turn.
+            }
         }
     }
 
