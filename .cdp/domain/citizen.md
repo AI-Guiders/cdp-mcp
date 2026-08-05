@@ -66,6 +66,7 @@
 
 ## last_ship
 
+- **2026-08-05 DIG freeform post-steer** — after DialogNamedIntentSteer: freeform desk-pulse (no named organs) → prose + `@intent pressure` **ack=1/1**; no mcp/shell/kb invent. Inventory idle-wave alone ≠ invent. SoftFL/Meta REJECT. Hold invent-only stands — dig=domain+live turn.
 - **2026-08-05 GlassPeerAckReverify SHIPPED** — Glass CIT latch path after DialogNamedIntentSteer: request `0e261a8ea1db` channel=crew named organs → **peer ack=4/4** (seat=cdp · build 0.5.667 @15:55:58Z) · status=done. Human-face: window_list → `CDP GlassCockpit · Windows` (F · Intercom) → evidence `cascade-ide/tmp-glass-shots/citizen-glass-peer-ack-4of4-20260805.png` + `cdp_see`. SoftFL REJECT. Wave GlassPeerAckReverify.
 - **2026-08-05 DialogNamedIntentSteer SHIPPED** — `CitizenPersona.DialogSystemPrompt`: Named organs HARD/required + teach-set health/sys/inventory/elicit (bias mcp/shell/kb removed). Lived dual hard `build_utc=2026-08-05T15:55:58Z`: dialog named verbs **ack=4/4** · wire forced **ack=4/4**. SoftFL REJECT. Wave DialogNamedIntentSteer.
 - **2026-08-05 DIG peer-ack residual** — lived: wire forced health/sys/inventory/elicit **ack=4/4** (dry+live FM). Dialog freeform → FM invents mcp/shell/kb → partial ack (3/4; kb `definition_not_found`). Glass E2E ack=2/4 = FM route quality under dialog, **not** PeerAck/host pipe. SoftFL/Meta REJECT. densest invent only if persona steer for named organs — Hold invent-only until clear DoD.
