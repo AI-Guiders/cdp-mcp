@@ -140,4 +140,27 @@ public sealed class IdeGlassSurfaceChannelTests
         var diff = situ.GetProperty("diff_intent");
         Assert.Equal("DIFF · on demand", diff.GetProperty("line").GetString());
     }
+    [Fact]
+    public void Role_in_graph_uses_human_face_not_packed_rebus()
+    {
+        var tmp = Path.Combine(Path.GetTempPath(), "cdp-role-face-" + Guid.NewGuid().ToString("N")[..8] + ".cs");
+        File.WriteAllText(tmp, "// role face dogfood\n");
+        try
+        {
+            var role = IdeGlassSurfaceChannel.BuildRoleInGraphForTests(Path.GetDirectoryName(tmp), tmp);
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(role));
+            var root = doc.RootElement;
+            Assert.Equal("сирота", root.GetProperty("line").GetString());
+            Assert.Equal("сирота", root.GetProperty("role").GetString());
+            Assert.Equal("карта → MFD", root.GetProperty("look").GetString());
+            Assert.DoesNotContain("ORPHAN", root.GetProperty("line").GetString(), StringComparison.Ordinal);
+            Assert.DoesNotContain("map on MFD", root.GetProperty("line").GetString(), StringComparison.Ordinal);
+            Assert.DoesNotContain("IN-MAP", root.GetProperty("line").GetString(), StringComparison.Ordinal);
+        }
+        finally
+        {
+            try { File.Delete(tmp); } catch { /* ignore */ }
+        }
+    }
+
 }
