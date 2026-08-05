@@ -66,6 +66,7 @@
 
 ## last_ship
 
+- **2026-08-05 DIG peer-ack residual** — lived: wire forced health/sys/inventory/elicit **ack=4/4** (dry+live FM). Dialog freeform → FM invents mcp/shell/kb → partial ack (3/4; kb `definition_not_found`). Glass E2E ack=2/4 = FM route quality under dialog, **not** PeerAck/host pipe. SoftFL/Meta REJECT. densest invent only if persona steer for named organs — Hold invent-only until clear DoD.
 - **2026-08-05 post-cursor models SEALED** — DIG ACCEPT pick+burn (operator 2026-08-04 dual-use): default **`zai-org/GLM-5.1`** · second slot `Qwen/Qwen3-Coder-Next` · one citizen not zoo. Live burn both dialog «Пинг…»→«Жив.» · `ai-keys.toml` + `CitizenAiKeys.DefaultOpenAiModel` flipped · DIG REJECT SoftFL invent / multi-citizen for models.
 - **2026-08-05 full-chain verify CLOSED** — `@verify` leaf: cdp_citizen history 4/2 pairs · last_append_error=null · tests **27/27** (bridge+domain+intercom) · PNG Read `citizen-full-ready-e2e-20260805.png` + `citizen-multiturn-post-fix-20260805.png` (#crew · multiturn sierra). Pipe re-prove DIG REJECT.
 - **2026-08-05 Glass CIT turn2+ jsonl persist fix** — root: dual-seat bridge poll + `Clear()` outside Gate could drop mid-append pairs; `PersistOperatorDialog` now mirrors publishBody · Append retry + pulse `last_append_error` · bridge Start primary-only · LastProcessedId after publish OK. Live: turn1/turn2 `hold-1221 mocha` → jsonl **4 lines** · journal `3287412477b5` channel=crew body=mocha. Tests 11/11 bridge.

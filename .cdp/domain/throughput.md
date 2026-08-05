@@ -42,6 +42,7 @@
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
 
 ## last_ship
+- **2026-08-05 DIG ACCEPT CitizenFullReadyAxb** — after plan-pulse tax CLOSED: inventory sole real gap=`throughput-wave` idle · SoftFL/Meta CLOSED · flight-durable already [x]. densest product residual=`Glass CIT peer ack 2/4` (citizen.md full-ready E2E). SoftFL BuildBoard REJECT. Wave seeded 6 items.
 - **0.5.661** — per-seat remount nudge + orphan remount pending (sibling hard ≠ kill survivor seat) · 2026-08-04
 - **2026-08-04 ProductDigCitizen15** — wave a×b: glass-done-close · dig-verdict · voice-letter-intercom-iop · citizen-hold · (bogus CCL `wave start` noop). DIG REJECT SoftFL mill; DIG ACCEPT invent=Voice Letter after cabin + hold to 15.08.
 - **2026-08-04 cabin** — Intercom IOP live dogfood: Glass host rebuilt; surface `run action=topic_next` → `glass · topic next · …` (stale Release exe was unknown). Wave item glass-cabin-iop-dogfood.
