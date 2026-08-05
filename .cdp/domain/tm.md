@@ -25,6 +25,7 @@
 
 ## Antipatterns
 
+- `StageEventsForStage` empty → `AsEnumerable()` full-table on large WitDB (lived 2026-08-05: `go_detail=full` / mid-turn Connection closed ~172MB). Prefer server Where; escape = SQL `StageId` filter — never load-all.
 - Glass form roundtrip for operator remarks when dialog + TM stamp already carry the remark.
 - Treating SoftOrgan `go=review` (code-review desk) as Review Results — TM is `review <remark>` / `review list`.
 - `feature` with `@phase/#Product` must not dedupe onto a bare-title twin (chrome query → create tagged or match chrome-bearing only) @ 0.5.553+.
@@ -36,6 +37,7 @@
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
+- **2026-08-05 StageEvents dig-safe** — `StageEventsForStage` never `AsEnumerable` full-scan: server Where → SQL `StageId` filter (OutWit empty-Where parity). Lived: dig leaf / `go_detail=full` → Connection closed on ~172MB WitDB. Tests StageEventLedger 3/3. Dig path parity with ship-safe StageClock.
 - **2026-08-05 StageEvents ship-safe** — `StageClockShipped` never full-scans events (server Where only + catch); `HealNullStageEventUtc` DELETE NULL Utc; `StageEventsForStage` server-first then client match with heal. Lived: Kill text-hell wall `shipped` blocked by NULL→DateTimeOffset / 172MB AsEnumerable; `done`+force closed leaf; this unblocks wall `shipped`.
 - **2026-08-05** — WitDB EF provider **1.0.3 → 12.2.0** (author: fixes for torn free-list / handle leak / GUID filter). Kept Wit seat path `intent-workspace.witdb`. SQLite cutover aborted. Upstream #121–#123 filed; dogfood on 12.2.0.
 - **2026-08-05 Review dig fix** — OutWit server `Where(StageId==guid)` empty on durable WitDB; dig/list/review via client StageId match (`StageEventsForStage`). No DROP-heal (Utc corruption). Live dogfood: open≥1, done refuse, ack N-id.
