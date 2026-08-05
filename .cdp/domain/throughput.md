@@ -7,6 +7,7 @@
 ## Invariants
 
 - **STANDARD (operator 2026-08-06):** generalized **nested [axb]** — default work geometry. Atom = one-turn a×b list→batch→ship; when DoD unknown = nested series Explore→DoD/AC→Act.
+- **Complexity (operator teach 2026-08-06):** ЛВО → дихотомия / binary search. On N unit-cost tasks: **serial[a,b] = O(N)** (one-by-one / biped mill) · **nested[axb] = O(log N)** (nested compact shrink + full-a batch per layer). Mill is a **different complexity class**, not a style preference. Question «how else to explain?» closed by this pair.
 - **PREMISE — layer completeness (full-a):** without a **closed full `a`** on each layer, the nested-intervals transfer **does not apply**. Half-a / mill / holey Explore = open end → nonempty ∩ **not guaranteed**. Not a style tip — the completeness hypothesis of the lemma.
 - **PREMISE — task bounds ideally const:** bounds of the task compact are ideally fixed for the nested series. If bounds **change** (scope creep / new axis / reframed DoD), the method still yields nonempty ∩ when layers stay closed full-a — but **step count may change** (more nested [axb] if Explore found the task **wider**; fewer if **narrower**). Re-seal course when bounds move; do not pretend the old diameter schedule still holds.
 - **list → batch → ship** — not Autoi single-item mill.
@@ -51,6 +52,7 @@
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
 
 ## last_ship
+- **2026-08-06 Complexity seal** — operator teach: ЛВО→дихотомия · **serial[a,b]=O(N)** · **nested[axb]=O(log N)** · mill = other complexity class (not style). Canon: lemma note + playbook-pf-body-not-biped §Throughput + this card.
 - **2026-08-06 NestedAxb STANDARD** — operator: generalized nested [axb] = default geometry; **PREMISE full-a/completeness** + **bounds ideally const** (bounds move ⇒ step count may change, nonempty ∩ still under closed layers). World claim = nonempty ∩ (∃), not ∃!. Canon: playbook-pf-body-not-biped §Throughput + this card.
 - **2026-08-05 SoftFLStruckAxb (board hygiene)** — dropped Hold SoftFL-REJECT + stamped «STRUCK»; **did not** run SoftFL file-order axb. Operator: mill = serial tiny peels where one axb fits; ban = wrong method, not work ban. SoftFL when needed = list→batch→ship files.
 - **2026-08-05 DIG ACCEPT CitizenFullReadyAxb** — after plan-pulse tax CLOSED: inventory sole real gap=`throughput-wave` idle · SoftFL/Meta CLOSED · flight-durable already [x]. densest product residual=`Glass CIT peer ack 2/4` (citizen.md full-ready E2E). SoftFL BuildBoard REJECT. Wave seeded 6 items.
