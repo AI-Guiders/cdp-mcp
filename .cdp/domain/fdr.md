@@ -20,8 +20,10 @@
 - Counting `tool_start` / `tool_tick` in p50/p95 latency.
 - Treating takeoff+landing alone as FDR — without ticks there is no trajectory for crash investigation.
 - Shared workspace-root tape under dual MCP seats (File.AppendAllText race + rotate ReadAllLines).
+- Treating FDR `being used by another process` on cockpit (~50ms) as remount race only — dig WitDB open: torn `pageNumber` OOR can leak FileShare.None so quarantine Move never heals.
 
 ## last_ship
+- **2026-08-05 · WitDB torn→lock** — quarantine MoveWithRetry + GC settle after failed Open leak; FDR cockpit/work 50ms locks were torn free-list not dual-seat share
 - **2026-08-05 · FDR dual-seat tape** — seat-local path + Mutex + FileShare.ReadWrite append/rotate · reclaim sleep 800ms · WitDB remount backoff · Recover `-SoftFirst` · dig: FDR remount_intercom×40 + file-lock×18
 - **2026-08-05 · 0.5.666** — Ghost cancel: in-flight watchdog (`ghost_cancel · watchdog`) + orphan tape reconcile on next CallTool / `op=cancel_open` (`ghost_cancel · orphan`). Live call_ids skipped.
 - **2026-08-05 · 0.5.665** — Mid-flight `tool_tick` dynamics + `op=trace`; open carries last tick; stats still closed-only.
