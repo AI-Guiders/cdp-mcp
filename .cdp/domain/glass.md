@@ -103,6 +103,50 @@ What closed under the name Glass Done was a **narrower DoD** (presence / SoftOrg
 - **Adopt** = lived Glass WPF face (or explicit DIG REJECT + named external SSOT) — not agent-only, not File.Exists, not Avalonia-still-primary.
 - NorthStar messenger (`#crew`/DM/Radio) may **supersede** some CIDE Intercom chrome — supersede must be **named**, not silent undership of overview.
 
+### PreCondition gap inventory (2026-08-05 dig — operator: **not only Intercom Overview**)
+
+Scope = **all** CIDE surfaces still Avalonia-primary / half-a on Glass. Presence/peel CLOSED ≠ Adopted. Port **ready mechanics** only (no invent). NorthStar supersede must be named per row.
+
+#### A. Intercom / Chat (Avalonia Skia still mechanic SSOT)
+
+| # | Surface | CIDE ready SSOT | Glass now | Verdict |
+|---|---------|-----------------|-----------|---------|
+| A1 | **0072** overview ↔ detail ↔ back + adaptive default | `ChatTopicOverviewPolicy` · Skia `CardPanel`/`OverviewHeader` · `ato`/`atb` | P0b horizontal strip + feed filter | **OPEN adopt** |
+| A2 | **0096** topic-card **summary** + product **spine** | `ChatThreadOverviewPresentation` · `SpineStrip` · `ChatProductSpine*` | title-only chips · no spine | **OPEN adopt** |
+| A3 | **0172** worklines / session-graph (`ThreadNode`) | Avalonia compositor + tree | 30m quiet-gap clusters only | **OPEN** or **named NorthStar supersede** |
+| A4 | Message↔code depth | Skia attach/reveal fuller | `/open` + chips (P2 shipped) | **residual denser** |
+| A5 | Topic intents parity (`enter`/`return` overview) | Avalonia melody `ato`/`atb` | `topic_next`/`prev` only | **OPEN adopt** (with A1) |
+
+#### B. Instruments — presence DONE, Avalonia still denser
+
+| # | Surface | CIDE denser SSOT | Glass now | Verdict |
+|---|---------|------------------|-----------|---------|
+| B1 | IdeDap full DAP drive UI | `IdeDapDebugSession` | latch stack/locals + Continue/Step bridge | **residual denser** |
+| B2 | WNM / PFD navigation map full | `WorkspaceNavigationMapView` | `GlassSemanticMap` Skia multi-hop | **residual denser** |
+| B3 | Full Intent Melody catalog discoverability | Avalonia full catalog | Ctrl+Q `c:` allowlist peel | **residual denser** |
+| B4 | CascadeChord AwaitMelodyTail | Avalonia | Glass Ctrl+K overlay (residual wave CLOSED) | **CLOSED densest** |
+
+#### C. Already adopted / CLOSED (not PreCondition gaps)
+
+MFD presence · SoftOrgan chrome · land/shared/disk · Terminal VT · WebAi WebView2 · Markdown FlowDocument · CRS full · Problems Roslyn · Git porcelain depth · most densest overnight peels — see matrices above.
+
+#### D. DIG REJECT / deferred (do not invent)
+
+| Item | Note |
+|------|------|
+| SoftOrgan for Ps1Desk/MdAuthor | presence = Terminal / MarkdownPreview MFD |
+| Design polish / graphic language | operator: hosts first, design later |
+| `#humans`/`#agents` rooms | NorthStar reject — lens 0143 |
+| Session-graph day-1 suffering | glass-intercom antipattern — prefer named supersede over blind port of A3 |
+
+#### Port wave (a×b — ready first)
+
+1. **A1+A5** — Glass WPF overview mode (card grid / drill-in / back / adaptive) reusing `ChatTopicOverviewPolicy` + presentation strings; keep Glass 30m cluster ids until A3 decided.
+2. **A2** — summary on cards + spine strip peel from `ChatProductSpine*` presentation.
+3. **A3** — dig: port ThreadNode worklines **or** stamp named NorthStar supersede (`#crew`/DM/Radio index).
+4. **B1→B3** — denser peels only where Avalonia mechanic is clear and Glass host already exists; no invent SoftOrgan.
+5. **A4** — only if residual blocks human flight after A1–A2.
+
 ## DoD matrix — SoftOrgan chrome beyond MFD (2026-08-01 dig)
 
 Chrome DoD = SoftOrgan latch → Glass SoftOrganBand · Avalonia Cdp*Projector · CabinGlass pin. SoftOrganBand is **latch-first** (`SoftOrganLatchCatalog` only).
