@@ -6,7 +6,8 @@
 
 ## Invariants
 
-- **list → batch → ship** — not Autoi single-item mill. Soft FileLines CLOSED.
+- **list → batch → ship** — not Autoi single-item mill.
+- **Mill (operator 2026-08-05):** going one tiny piece per turn **where the work fits one axb**. Ban was on **wrong method**, not «SoftFL work forbidden». SoftFLStruckAxb that only dropped Hold / stamped CLOSED without file-order axb = board hygiene ≠ SoftFL ship. Real SoftFL = list FileLines gaps → one wave → ship.
 - **Turn = rectangle a×b** (operator 2026-08-04): vertical **a** = full work list for this turn; horizontal **b** = duration of this turn; **t = b = ship**.
   - **Phase 1 (list):** research + full markup — determine **a** and partition into points. No densest overnight cut of a residual pack.
   - **Phase 2 (batch→ship):** take **all** x ∈ a and move them **simultaneously** toward ship (parallel batch). Not finish one strip and leave the rest for the next Autoi.
@@ -42,7 +43,7 @@
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
 
 ## last_ship
-- **2026-08-05 SoftFLStruckAxb SHIPPED** — operator: SoftFL = one axb, strike totem. Inventory `soft-filelines=CLOSED` (no reopen peel). Hold SoftFL-REJECT leaf done. Course resealed FullReady→15.08. SoftFL ≠ religion.
+- **2026-08-05 SoftFLStruckAxb (board hygiene)** — dropped Hold SoftFL-REJECT + stamped «STRUCK»; **did not** run SoftFL file-order axb. Operator: mill = serial tiny peels where one axb fits; ban = wrong method, not work ban. SoftFL when needed = list→batch→ship files.
 - **2026-08-05 DIG ACCEPT CitizenFullReadyAxb** — after plan-pulse tax CLOSED: inventory sole real gap=`throughput-wave` idle · SoftFL/Meta CLOSED · flight-durable already [x]. densest product residual=`Glass CIT peer ack 2/4` (citizen.md full-ready E2E). SoftFL BuildBoard REJECT. Wave seeded 6 items.
 - **0.5.661** — per-seat remount nudge + orphan remount pending (sibling hard ≠ kill survivor seat) · 2026-08-04
 - **2026-08-04 ProductDigCitizen15** — wave a×b: glass-done-close · dig-verdict · voice-letter-intercom-iop · citizen-hold · (bogus CCL `wave start` noop). DIG REJECT SoftFL mill; DIG ACCEPT invent=Voice Letter after cabin + hold to 15.08.
