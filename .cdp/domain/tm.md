@@ -36,6 +36,7 @@
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
+- **2026-08-05 StageEvents ship-safe** — `StageClockShipped` never full-scans events (server Where only + catch); `HealNullStageEventUtc` DELETE NULL Utc; `StageEventsForStage` server-first then client match with heal. Lived: Kill text-hell wall `shipped` blocked by NULL→DateTimeOffset / 172MB AsEnumerable; `done`+force closed leaf; this unblocks wall `shipped`.
 - **2026-08-05** — WitDB EF provider **1.0.3 → 12.2.0** (author: fixes for torn free-list / handle leak / GUID filter). Kept Wit seat path `intent-workspace.witdb`. SQLite cutover aborted. Upstream #121–#123 filed; dogfood on 12.2.0.
 - **2026-08-05 Review dig fix** — OutWit server `Where(StageId==guid)` empty on durable WitDB; dig/list/review via client StageId match (`StageEventsForStage`). No DROP-heal (Utc corruption). Live dogfood: open≥1, done refuse, ack N-id.
 - **2026-08-05 Review Results MLP** — operator remarks on leaf (`review`/`remark`/`rr`) · open dig · ack · done refuse `open_operator_reviews` · SoftOrgan `review files` narrowed · tests IdeTaskManagerReviewTests

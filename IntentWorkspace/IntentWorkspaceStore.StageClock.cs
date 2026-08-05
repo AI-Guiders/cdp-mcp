@@ -46,16 +46,35 @@ internal sealed partial class IntentWorkspaceStore
             entity.UpdatedUtc = now;
             db.SaveChanges();
             var elapsed = IdeTaskManager.FormatWallElapsed(entity.StartedUtc.Value, entity.CompletedUtc.Value);
-            var stageEvents = StageEventsForStage(db, entity.Id);
-            var counts = CountKinds(stageEvents.Select(e => e.Kind));
-            var events = IdeTaskManager.FormatEventCountsSuffix(counts.Wait, counts.Fail, counts.Note);
-            var phaseRows = stageEvents
-                .Where(e => e.Kind == "phase.start" || e.Kind == "phase.complete")
-                .OrderBy(e => e.Utc)
-                .Select(e => (e.Kind, e.Summary, e.Utc))
-                .ToList();
-            var phases = IdeTaskManager.FormatPhaseSegmentsSuffix(phaseRows, entity.CompletedUtc.Value);
-            var suffix = phases + events;
+            // Ship must not die on stage_events materialize (NULL Utc / full-table AsEnumerable on large WitDB).
+            // Prefer server StageId filter; empty ⇒ skip suffix — never full-scan.
+            int wait = 0, fail = 0, note = 0;
+            string? eventsSuffix = null;
+            try
+            {
+                var stageEvents = db.StageEvents.Where(e => e.StageId == entity.Id).ToList();
+                if (stageEvents.Count > 0)
+                {
+                    var counts = CountKinds(stageEvents.Select(e => e.Kind));
+                    wait = counts.Wait;
+                    fail = counts.Fail;
+                    note = counts.Note;
+                    var events = IdeTaskManager.FormatEventCountsSuffix(counts.Wait, counts.Fail, counts.Note);
+                    var phaseRows = stageEvents
+                        .Where(e => e.Kind == "phase.start" || e.Kind == "phase.complete")
+                        .OrderBy(e => e.Utc)
+                        .Select(e => (e.Kind, e.Summary, e.Utc))
+                        .ToList();
+                    var phases = IdeTaskManager.FormatPhaseSegmentsSuffix(phaseRows, entity.CompletedUtc.Value);
+                    var suffix = phases + events;
+                    eventsSuffix = suffix.Length == 0 ? null : suffix.TrimStart(' ', '·').Trim();
+                }
+            }
+            catch
+            {
+                /* diagnostic only — wall close already durable */
+            }
+
             return new
             {
                 op = "shipped",
@@ -63,10 +82,10 @@ internal sealed partial class IntentWorkspaceStore
                 started_utc = entity.StartedUtc,
                 completed_utc = entity.CompletedUtc,
                 elapsed,
-                wait = counts.Wait,
-                fail = counts.Fail,
-                note = counts.Note,
-                events_suffix = suffix.Length == 0 ? null : suffix.TrimStart(' ', '·').Trim(),
+                wait,
+                fail,
+                note,
+                events_suffix = eventsSuffix,
                 kind = "wall",
                 hint = "SA tempo (wall) — not a score; events=pointers not reward"
             };

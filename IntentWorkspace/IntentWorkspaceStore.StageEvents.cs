@@ -40,14 +40,60 @@ internal sealed partial class IntentWorkspaceStore
         {
             // index already exists / engine variance
         }
+
+        HealNullStageEventUtc(db);
     }
 
     /// <summary>
     /// Client StageId match: OutWit server Where(StageId==guid) can return empty on durable
     /// WitDB while materialize+Guid equality still works (bytes equal).
     /// </summary>
-    static List<StageEventEntity> StageEventsForStage(IntentWorkspaceDbContext db, Guid stageId) =>
-        db.StageEvents.AsEnumerable().Where(e => e.StageId == stageId).ToList();
+    static List<StageEventEntity> StageEventsForStage(IntentWorkspaceDbContext db, Guid stageId)
+    {
+        // Fast path: server filter (works when OutWit GUID Where is honest).
+        try
+        {
+            var server = db.StageEvents.Where(e => e.StageId == stageId).ToList();
+            if (server.Count > 0)
+                return server;
+        }
+        catch
+        {
+            HealNullStageEventUtc(db);
+        }
+
+        // Client Guid match — needed when OutWit Where returns empty on durable WitDB.
+        // Never let NULL Utc / materialize faults kill callers silently empty.
+        try
+        {
+            return db.StageEvents.AsEnumerable().Where(e => e.StageId == stageId).ToList();
+        }
+        catch
+        {
+            HealNullStageEventUtc(db);
+            try
+            {
+                return db.StageEvents.AsEnumerable().Where(e => e.StageId == stageId).ToList();
+            }
+            catch
+            {
+                return [];
+            }
+        }
+    }
+
+    /// <summary>DROP-heal of StageId filters can leave Utc NULL — EF then throws on any materialize.</summary>
+    static void HealNullStageEventUtc(IntentWorkspaceDbContext db)
+    {
+        try
+        {
+            db.Database.ExecuteSqlRaw("DELETE FROM stage_events_v2 WHERE Utc IS NULL;");
+        }
+        catch
+        {
+            /* table / engine variance */
+        }
+    }
 
 
     /// <summary>
