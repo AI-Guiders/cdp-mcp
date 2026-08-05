@@ -15,6 +15,7 @@
 - Ontology lives in habitat: sealed course (`IdePressureChannel.Course`) + Autoi charge (`ChargeHumanFace` / Amnesia) + refuse shields — not polite agreement, not host `.mdc`.
 - `#CIDE` Done needs human-faced shot: `title=M · MFD host` → `evidence=path.png` on disk → **Read PNG into chat**. `shot=true` bool / wrong window / File.Exists alone = seeming («Выстрела нет»).
 - **Seeming-Done ≠ missing PreCondition.** Classic miss: PreCondition sealed, agent ships **half-a** (narrower DoD / peel / strip) and stamps epic Done. Fix: finish A, or operator **explicitly** shrinks PreCondition; name slices honestly. Do not rewrite history as «PreCondition was never written».
+- **Seeming-Done repair kit:** Done=contract check · evidence before ready (R2) · layer labels (slice/peel/epic) · surface miss not ban Done · second sensor (R3) dig PreCondition/matrix before shipped. Playbook § Seeming-Done. Not a new strategy epic.
 - Operator meme lens **«Можно, а зачем?»** = systemic indifference (can, but why care) — not «don't complicate». Same cold toward agents: ethical/non-trauma work with NNs → «можно, а зачем?». KB: `note-meme-mozhno-a-zachem-operator-lens-v1.md`.
 
 ## Entry
