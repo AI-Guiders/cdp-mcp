@@ -17,7 +17,8 @@ internal static class CitizenAiKeys
     public const string DefaultOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
 
     /// <summary>Default Cloud.ru FM chat model when <c>open_ai_model</c> omitted.</summary>
-    public const string DefaultOpenAiModel = "Qwen/Qwen3-Coder-Next";
+    // Post-Cursor sealed pick (operator 2026-08-04): GLM dual-use default; Qwen Coder = second slot.
+    public const string DefaultOpenAiModel = "zai-org/GLM-5.1";
 
     public sealed record Snapshot(
         string? AnthropicApiKey,
