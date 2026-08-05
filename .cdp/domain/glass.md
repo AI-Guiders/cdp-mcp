@@ -22,6 +22,7 @@
 
 ## Entry
 
+- WPF UiKit: `CDP.GlassCockpit.Windows/UiKit` · `GlassSoftKeyBar` · `GlassDeckCard` · tokens in `GlassDarkCockpit.xaml` (unified modern language / edit-locus — not SoftFL invent, not Avalonia ECAM clone)
 - WPF: `LatchHub` · `MainWindow.IntercomHud` (Korry AUTOI/HILD/VAD + HDG/CRS) · `EicasBandAggregator` · `LatchPaint` (seats+land+shared+disk+ignite-wake) · `MainWindow.SeatsSurface` · `MainWindow.LandSurface` · `MainWindow.SharedSurface` · `MainWindow.DiskSurface` · `MainWindow.IgniteWakeSurface`
 - Avalonia: `CdpEclProjector` · alert/qrh projectors
 - CDP: `Cide*Latch` · `CabinGlassProjectionCatalog` · `CockpitHostLatchHydration`
@@ -235,6 +236,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-06 glass-uikit SoftKeyBar+DeckCard CLOSED** — WPF UiKit edit-locus: `GlassSoftKeyBar` + `GlassDeckCard` + SoftKey/Deck tokens in `GlassDarkCockpit.xaml`. HybridIndex hand remounted onto SoftKeys; glance deck via `GlassDeckCard.FromChip`. Live dogfood: UIA SoftKey `search` → `GlassHybridIndexStatusProbe` **9 hits**; DeckCards HCI READY / docs 4308; shot `tmp-glass-shots/uikit-softkey-deck-hybridindex-20260806.png` (title=`M · MFD host`) + `cdp_see`. Cascade tip `318e9476`. SoftFL invent REJECT · not Avalonia ECAM clone.
 - **2026-08-06 HCI/HybridIndex Ready-to-Interact CLOSED** — Glass hand: search box + `search`/`reindex`/`refresh` on `MfdHybridIndexHost`; probe `TrySearch`/`TryReindex` (in-proc Core). Live dogfood: UIA set query `GlassHybridIndexStatusProbe` → 9 hits; reindex MISSING/docs0 → READY/docs4308; shot `tmp-glass-shots/hci-hand-after-search-20260806.png`. Cascade tip `8b0af796`. SoftFL REJECT. Avalonia still denser SSOT for ECAM softkeys.
 - **2026-08-06 HCI/HybridIndex 4a STRUCK (seeming Closed)** — operator: **Closed = Page Ready to Interact/use**, not «agent saw window». Prior glance-only shot struck; leaf closed by hand above.
 - **2026-08-05 flight-durable remount survive VERIFY** — lived SoftFirst dual-seat Not connected → Recover `-Seat cdp` then `cdp-debug` (ops; not SoftFL) · cabin **still up** pid=57780 detach · health 0.5.667 lag=false · window_list → title=`CDP GlassCockpit · Windows` → PrintWindow + `cdp_see` · evidence `cascade-ide/tmp-glass-shots/flight-durable-remount-survive-20260805.png` (AUTOI·HILD lit · HDG/CRS Glass Done (human flight) · #crew · PreCondition banner). SoftFL/Meta REJECT. Hold invent-only stands — dig only next lived residual.
