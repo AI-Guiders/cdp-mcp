@@ -6,6 +6,26 @@ namespace CdpMcp;
 /// <summary>Task Manager board view — partials: Tree (format), Models (DTOs).</summary>
 internal static partial class IdeTaskManager
 {
+    // Lived 2026-08-05: go=plan pulse ~20s — Handle + CollectWork + PublishGlass each called BuildBoard
+    // (3× TaskManagerSnapshot / WithDb). Same CallTool: reuse one board until focus/phase mutates.
+    [ThreadStatic] static Board? s_boardCache;
+    [ThreadStatic] static Guid? s_cacheIntentId;
+    [ThreadStatic] static Guid? s_cacheStageId;
+    [ThreadStatic] static string? s_cachePhase;
+    [ThreadStatic] static int s_boardCacheHits;
+
+    /// <summary>Test seam: cache hits since last InvalidateBoardCache.</summary>
+    internal static int BoardCacheHits => s_boardCacheHits;
+
+    public static void InvalidateBoardCache()
+    {
+        s_boardCache = null;
+        s_cacheIntentId = null;
+        s_cacheStageId = null;
+        s_cachePhase = null;
+        s_boardCacheHits = 0;
+    }
+
     public static string PulseLine(
         IntentWorkspaceStore? store,
         IntentWorkspaceState state,
@@ -57,6 +77,16 @@ internal static partial class IdeTaskManager
         IntentWorkspaceState state,
         string? sessionPhase = null)
     {
+        var phaseKey = sessionPhase ?? "";
+        if (s_boardCache is Board hit
+            && s_cacheIntentId == state.ActiveIntentId
+            && s_cacheStageId == state.ActiveStageId
+            && string.Equals(s_cachePhase, phaseKey, StringComparison.Ordinal))
+        {
+            s_boardCacheHits++;
+            return hit;
+        }
+
         var snap = store.TaskManagerSnapshot(state);
         var lines = new List<string>();
         foreach (var feature in snap.Features)
@@ -120,7 +150,7 @@ internal static partial class IdeTaskManager
             banner = $"| wave:{Trim($"{waveActive.Status} {wDone}/{waveActive.Items.Count}", 18)} " + banner[1..];
         }
 
-        return new Board(
+        var board = new Board(
             Pulse: pulse,
             View: new
             {
@@ -159,5 +189,10 @@ internal static partial class IdeTaskManager
                 deadlines = IdeLocalClock.Deadlines(localNow)
             },
             Lines: lines);
+        s_boardCache = board;
+        s_cacheIntentId = state.ActiveIntentId;
+        s_cacheStageId = state.ActiveStageId;
+        s_cachePhase = phaseKey;
+        return board;
     }
 }
