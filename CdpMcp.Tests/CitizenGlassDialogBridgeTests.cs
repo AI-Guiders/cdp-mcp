@@ -155,6 +155,52 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     }
 
     [Fact]
+    public void TryProcessOnce_persists_short_codeword_turn2()
+    {
+        var seatRoot = Path.Combine(_root, "cdp");
+        Directory.CreateDirectory(seatRoot);
+        CitizenDialogHistory.SetTestPath(Path.Combine(seatRoot, CitizenDialogHistory.FileName));
+
+        WritePending("turn1id00002", "codeword hold-1201 tango");
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        CitizenGlassDialogBridge.TurnOverrideForTests = body =>
+            body.Contains("turn2", StringComparison.OrdinalIgnoreCase)
+                ? new CitizenCompletions.TurnResult(
+                    Ok: true,
+                    Error: null,
+                    Hint: null,
+                    Text: "hold-1201",
+                    Model: "test",
+                    Provider: "mock",
+                    Built: null,
+                    WireIntents: null,
+                    Routes: null,
+                    DryRun: false)
+                : EchoTurn(body);
+        WritePending("turn2id00002", "turn2-only: reply ONLY one word tango");
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        var msgs = CitizenDialogHistory.Load();
+        Assert.Equal(4, msgs.Count);
+        Assert.Equal("turn2-only: reply ONLY one word tango", msgs[2].Content);
+        Assert.Equal("hold-1201", msgs[3].Content);
+    }
+
+    [Fact]
+    public void Start_skips_bridge_loop_on_non_primary_seat()
+    {
+        IdeIgniteArmHost.BindPrimaryAutoiSeat(false);
+        CitizenGlassDialogBridge.Stop();
+        CitizenGlassDialogBridge.Start();
+        Assert.False(CitizenGlassDialogBridge.IsRunning);
+        IdeIgniteArmHost.BindPrimaryAutoiSeat(true);
+        CitizenGlassDialogBridge.Start();
+        Assert.True(CitizenGlassDialogBridge.IsRunning);
+        CitizenGlassDialogBridge.Stop();
+    }
+
+    [Fact]
     public void TryProcessOnce_skips_on_non_primary_seat()
     {
         IdeIgniteArmHost.BindPrimaryAutoiSeat(false);
