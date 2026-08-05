@@ -1,21 +1,24 @@
 ﻿#nullable enable
-using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace CdpMcp;
+
 internal static partial class IdeFlightDataRecorder
 {
     public static IReadOnlyList<FdrEvent> ReadTail(int limit = 40)
     {
         limit = Math.Clamp(limit, 1, 500);
+        using var tapeGate = EnterTapeGate();
         lock (Gate)
         {
             var path = TapePath;
+            TryMigrateLegacyTape(path);
             if (!File.Exists(path))
-                return[];
-            var lines = File.ReadAllLines(path);
+                return [];
+
+            var lines = ReadAllLinesShared(path);
             var list = new List<FdrEvent>(Math.Min(limit, lines.Length));
             for (var i = lines.Length - 1; i >= 0 && list.Count < limit; i--)
             {
@@ -30,7 +33,7 @@ internal static partial class IdeFlightDataRecorder
                 }
                 catch
                 {
-                /* skip corrupt */
+                    /* skip corrupt */
                 }
             }
 
@@ -54,23 +57,29 @@ internal static partial class IdeFlightDataRecorder
         err = e.Error,
         call = e.CallId
     };
+
     static void Append(FdrEvent ev)
     {
+        if (SuppressWriteForTests)
+            return;
+
+        using var tapeGate = EnterTapeGate();
         lock (Gate)
         {
             try
             {
                 var path = TapePath;
+                TryMigrateLegacyTape(path);
                 var dir = Path.GetDirectoryName(path);
                 if (!string.IsNullOrWhiteSpace(dir))
                     Directory.CreateDirectory(dir);
-                var line = JsonSerializer.Serialize(ev, JsonOpts);
-                File.AppendAllText(path, line + "\n", Encoding.UTF8);
+                var line = JsonSerializer.Serialize(ev, JsonOpts) + "\n";
+                AppendLineShared(path, line);
                 RotateIfNeeded(path, DefaultMaxLines);
             }
             catch
             {
-            /* never break CallTool on FDR I/O */
+                /* never break CallTool on FDR I/O */
             }
         }
     }
@@ -79,15 +88,113 @@ internal static partial class IdeFlightDataRecorder
     {
         try
         {
-            var lines = File.ReadAllLines(path);
+            var lines = ReadAllLinesShared(path);
             if (lines.Length <= maxLines)
                 return;
             var keep = lines.AsSpan(lines.Length - maxLines).ToArray();
-            File.WriteAllLines(path, keep, Encoding.UTF8);
+            WriteAllLinesShared(path, keep);
         }
         catch
         {
-        /* best-effort */
+            /* best-effort */
+        }
+    }
+
+    /// <summary>
+    /// Dual seats must not fight one FileShare.None tape — seat-local under StateRoot/{seat}/.
+    /// Primary once inherits legacy workspace-root tape via Move (same pattern as WitDB).
+    /// </summary>
+    internal static void TryMigrateLegacyTape(string seatPath)
+    {
+        if (PathOverrideForTests is not null)
+            return;
+        if (File.Exists(seatPath))
+            return;
+        if (!File.Exists(LegacyTapePath))
+            return;
+        if (!string.Equals(IdeIgniteArmHost.Seat, "cdp", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        try
+        {
+            var dir = Path.GetDirectoryName(seatPath);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir);
+            File.Move(LegacyTapePath, seatPath);
+        }
+        catch
+        {
+            /* race / lock — next append creates seat file fresh */
+        }
+    }
+
+    static void AppendLineShared(string path, string line)
+    {
+        using var fs = new FileStream(
+            path,
+            FileMode.Append,
+            FileAccess.Write,
+            FileShare.ReadWrite);
+        using var sw = new StreamWriter(fs, Encoding.UTF8);
+        sw.Write(line);
+        sw.Flush();
+    }
+
+    static string[] ReadAllLinesShared(string path)
+    {
+        using var fs = new FileStream(
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.ReadWrite);
+        using var sr = new StreamReader(fs, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+        var list = new List<string>();
+        while (sr.ReadLine() is { } line)
+            list.Add(line);
+        return list.ToArray();
+    }
+
+    static void WriteAllLinesShared(string path, string[] lines)
+    {
+        var tmp = path + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
+        File.WriteAllLines(tmp, lines, Encoding.UTF8);
+        File.Move(tmp, path, overwrite: true);
+    }
+
+    /// <summary>Cross-process gate for seat tape rotate/append (in-proc Gate alone is not enough).</summary>
+    static IDisposable EnterTapeGate() => new FdrTapeGate(TapePath);
+
+    sealed class FdrTapeGate : IDisposable
+    {
+        readonly Mutex _mutex;
+        readonly bool _owned;
+
+        public FdrTapeGate(string tapePath)
+        {
+            var key = string.IsNullOrWhiteSpace(tapePath)
+                ? "default"
+                : Path.GetFullPath(tapePath).ToLowerInvariant();
+            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(key)))[..16];
+            _mutex = new Mutex(initiallyOwned: false, name: $@"Local\CdpMcp.Fdr.{hash}");
+            try
+            {
+                _owned = _mutex.WaitOne(TimeSpan.FromSeconds(5));
+            }
+            catch (AbandonedMutexException)
+            {
+                _owned = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_owned)
+            {
+                try { _mutex.ReleaseMutex(); }
+                catch (ApplicationException) { /* not owner */ }
+            }
+
+            _mutex.Dispose();
         }
     }
 
