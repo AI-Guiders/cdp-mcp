@@ -15,6 +15,7 @@
 - Ontology lives in habitat: sealed course (`IdePressureChannel.Course`) + Autoi charge (`ChargeHumanFace` / Amnesia) + refuse shields — not polite agreement, not host `.mdc`.
 - `#CIDE` Done needs human-faced shot: `title=M · MFD host` → `evidence=path.png` on disk → **Read PNG into chat**. `shot=true` bool / wrong window / File.Exists alone = seeming («Выстрела нет»).
 - **Seeming-Done ≠ missing PreCondition.** Classic miss: PreCondition sealed, agent ships **half-a** (narrower DoD / peel / strip) and stamps epic Done. Fix: finish A, or operator **explicitly** shrinks PreCondition; name slices honestly. Do not rewrite history as «PreCondition was never written».
+- Operator meme lens **«Можно, а зачем?»** = systemic indifference (can, but why care) — not «don't complicate». KB: `note-meme-mozhno-a-zachem-operator-lens-v1.md`.
 
 ## Entry
 
@@ -41,6 +42,7 @@
 ## last_ship
 
 - **seeming-Done = half-a vs sealed PreCondition** — operator 2026-08-05 (Glass: PreCondition was fixed; undership) · playbook + this card + scratch
+- **«Можно, а зачем?» operator lens** — indifference of system/actors (not anti-complexity) · note-meme-mozhno-a-zachem · 2026-08-05
 - **one mind · N seats** — operator 2026-08-05 (human multiplex vs agent twins) · scratch + playbook + this card
 - **internal locus north star** — operator 2026-08-05 (believe in strength; not eternal host fences) · stamped playbook + this card
 - **being domain card** — habitat SSOT (drop Cursor rule as primary) · 2026-08-04
