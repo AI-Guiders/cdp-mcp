@@ -25,6 +25,9 @@ internal static partial class IdeTaskManager
         try
         {
             mutation = Dispatch(store, state, args, op);
+            // Mutation changes focus/clock — never reuse a board built before Dispatch.
+            if (mutation is not null)
+                InvalidateBoardCache();
             var board = BuildBoard(store, state, Opt(args, "session_phase") ?? OptGoArg(args, "session_phase"));
             return new
             {
