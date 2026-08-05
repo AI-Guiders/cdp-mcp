@@ -4,7 +4,13 @@ namespace CdpMcp;
 
 internal static partial class IdeTaskManager
 {
-    public readonly record struct Board(string Pulse, object View, object Focus, IReadOnlyList<string> Lines);
+    public readonly record struct Board(
+        string Pulse,
+        object View,
+        object Focus,
+        IReadOnlyList<string> Lines,
+        string? ActiveFeatureTitle = null,
+        string? ActiveStageTitle = null);
 
     public sealed record StageNode(
         Guid Id,

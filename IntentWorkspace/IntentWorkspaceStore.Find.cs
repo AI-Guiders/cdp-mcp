@@ -141,7 +141,10 @@ internal sealed partial class IntentWorkspaceStore
         return WithDb(db =>
         {
             var intents = db.Intents.AsNoTracking().OrderByDescending(x => x.UpdatedUtc).ToList();
-            var stages = db.Stages.AsNoTracking().ToList();
+            // Board lists all feature titles but only expands the active tree — skip loading every Stage row.
+            var stages = state.ActiveIntentId is Guid focusIntent
+                ? db.Stages.AsNoTracking().Where(s => s.IntentId == focusIntent).ToList()
+                : [];
             string? activeFeatureTitle = null;
             string? activeStageTitle = null;
             string? activeStagePhase = null;

@@ -25,13 +25,19 @@ public sealed class IdeTaskManagerBoardCacheTests
 
             var a = IdeTaskManager.BuildBoard(store, state, "explore");
             Assert.Equal(0, IdeTaskManager.BoardCacheHits);
+            Assert.Equal("cache-feature", a.ActiveFeatureTitle);
+            Assert.Equal("cache-leaf", a.ActiveStageTitle);
             var b = IdeTaskManager.BuildBoard(store, state, "explore");
             Assert.Equal(1, IdeTaskManager.BoardCacheHits);
             Assert.Equal(a.Pulse, b.Pulse);
 
+            IdeTaskManager.PublishGlass(store, state, "explore");
+            Assert.Equal(2, IdeTaskManager.BoardCacheHits);
+
             IdeTaskManager.Handle(store, state, Args(new { tm_op = "start" }));
             var c = IdeTaskManager.BuildBoard(store, state, "explore");
             Assert.Equal(0, IdeTaskManager.BoardCacheHits);
+            Assert.Equal("cache-feature", c.ActiveFeatureTitle);
         }
         finally
         {
