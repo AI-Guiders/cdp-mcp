@@ -198,6 +198,7 @@ internal static partial class CitizenCompletions
         bool inject = true,
         CitizenTurnMode mode = CitizenTurnMode.Wire,
         bool history = true,
+        bool appendHistory = true,
         int? maxTokens = null,
         string? imagePath = null,
         bool consumeVisionLatch = true,
@@ -290,7 +291,8 @@ internal static partial class CitizenCompletions
             var result = resolved.Provider == ProviderOpenAiCompat
                 ? TurnOpenAiCompat(built, resolved, tokens, cancellationToken)
                 : TurnAnthropic(built, resolved, tokens, cancellationToken);
-            if (result.Ok && mode == CitizenTurnMode.Dialog && history && !string.IsNullOrWhiteSpace(result.Text))
+            if (result.Ok && mode == CitizenTurnMode.Dialog && history && appendHistory
+                && !string.IsNullOrWhiteSpace(result.Text))
                 CitizenDialogHistory.Append(userText, result.Text!);
             return result;
         }

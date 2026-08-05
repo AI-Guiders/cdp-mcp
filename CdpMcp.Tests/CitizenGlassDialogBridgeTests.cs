@@ -27,6 +27,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         CitizenGlassDialogBridge.RootOverrideForTests = null;
         CideIntercomVoiceLatch.RootOverrideForTests = null;
         CitizenPeerAck.ResetForTests();
+        CitizenDialogHistory.ResetForTests();
         try
         {
             if (Directory.Exists(_root))
@@ -129,6 +130,26 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         using var status = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("done", status.RootElement.GetProperty("status").GetString());
         Assert.Contains("ack=1/1", status.RootElement.GetProperty("peer").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TryProcessOnce_persists_operator_dialog_for_multiturn()
+    {
+        var seatRoot = Path.Combine(_root, "cdp");
+        Directory.CreateDirectory(seatRoot);
+        CitizenDialogHistory.SetTestPath(Path.Combine(seatRoot, CitizenDialogHistory.FileName));
+
+        WritePending("turn1id00001", "codeword alpha");
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        WritePending("turn2id00001", "what codeword?");
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        var msgs = CitizenDialogHistory.Load();
+        Assert.Equal(4, msgs.Count);
+        Assert.Equal("codeword alpha", msgs[0].Content);
+        Assert.Contains("citizen-echo:codeword alpha", msgs[1].Content, StringComparison.Ordinal);
+        Assert.Equal("what codeword?", msgs[2].Content);
     }
 
     void WritePending(string id, string body, bool resetProcessed = true)
