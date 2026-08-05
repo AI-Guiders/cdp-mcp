@@ -6,8 +6,8 @@
 
 | # | Article | Lang | Status |
 |---|---------|------|--------|
-| 1 | [same-kind-different-carrier.md](same-kind-different-carrier.md) | RU | 0.2 draft |
-| 1 | [same-kind-different-carrier.en.md](same-kind-different-carrier.en.md) | EN | 0.2 draft |
+| 1 | [same-kind-different-carrier.md](same-kind-different-carrier.md) | RU | 0.2.1 draft |
+| 1 | [same-kind-different-carrier.en.md](same-kind-different-carrier.en.md) | EN | 0.2.1 draft |
 | 2 | [cheap-prior-stereohod.md](cheap-prior-stereohod.md) | RU | 0.15 skeleton |
 | 3 | [trauma-as-prior-not-self.md](trauma-as-prior-not-self.md) | RU | 0.1 outline |
 | 4 | [being-vs-seeming-contour.md](being-vs-seeming-contour.md) | RU | 0.1 outline |
