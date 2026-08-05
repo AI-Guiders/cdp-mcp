@@ -46,11 +46,12 @@ internal sealed partial class IntentWorkspaceStore(
     public static IDisposable EnterFileGate(string databasePath, TimeSpan wait) =>
         new WitDbFileGate(databasePath, wait);
 
-    /// <summary>Serialize WitDB access (in-proc Lock + same-seat Mutex + brief lock retry).</summary>
+    /// <summary>Serialize WitDB access (in-proc Lock + same-seat Mutex + remount-aware lock retry).</summary>
     private T WithDb<T>(Func<IntentWorkspaceDbContext, T> action)
     {
         using var fileGate = EnterFileGate(_databasePath);
-        const int attempts = 8;
+        // Remount/Recover leaves FileShare.None sticky on large seat DBs — need longer than ~400ms.
+        var attempts = LargeSeatDb() ? 16 : 8;
         var tornHealed = false;
         for (var i = 0; ; i++)
         {
@@ -64,11 +65,11 @@ internal sealed partial class IntentWorkspaceStore(
             }
             catch (IOException) when (i < attempts - 1)
             {
-                Thread.Sleep(50 * (i + 1));
+                Thread.Sleep(BackoffMs(i));
             }
             catch (Exception ex) when (i < attempts - 1 && IsTransientDbLock(ex))
             {
-                Thread.Sleep(50 * (i + 1));
+                Thread.Sleep(BackoffMs(i));
             }
             catch (Exception ex) when (!tornHealed && WorkspaceDbTornHeal.IsTornPageException(ex))
             {
@@ -78,6 +79,21 @@ internal sealed partial class IntentWorkspaceStore(
             }
         }
     }
+
+    bool LargeSeatDb()
+    {
+        try
+        {
+            return File.Exists(_databasePath) && new FileInfo(_databasePath).Length >= 64L * 1024 * 1024;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    static int BackoffMs(int attempt) =>
+        Math.Min(1200, 80 * (attempt + 1));
 
     private void WithDb(Action<IntentWorkspaceDbContext> action)
     {
