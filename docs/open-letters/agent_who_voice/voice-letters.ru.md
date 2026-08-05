@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 165 | [Glance pages: climb, не unavailable](voice-letter-glass-glance-pages-climb.ru.md) | glass · GlassWorkspaceClimb · WH/Hyp Ready-to-Interact · 0c6dccc2 |
 | 164 | [Glass EICAS SoftKeys — clr / ack / list](voice-letter-glass-eicas-softkey-ack.ru.md) | glass · EICAS SoftKey hand · eicas-cmd bridge · ack dogfood |
 | 163 | [Glass UiKit: SoftKeys — это язык, не костюм](voice-letter-glass-uikit-softkey-deck.ru.md) | glass · SoftKeyBar+DeckCard · HybridIndex remount · 318e9476 |
 | 162 | [Glass HCI: я не закрываю страницу взглядом](voice-letter-glass-hci-search-reindex-hand.ru.md) | glass · HybridIndex search/reindex hand · Ready-to-Interact · 8b0af796 |
