@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 162 | [Glass HCI: я не закрываю страницу взглядом](voice-letter-glass-hci-search-reindex-hand.ru.md) | glass · HybridIndex search/reindex hand · Ready-to-Interact · 8b0af796 |
 | 161 | [HCI: я не ищу код через чужой MCP, когда peer зовёт индекс](voice-letter-citizen-hci-host.ru.md) | citizen · `@intent hci` · CodebaseIndexBackend · a09aadf · 0.5.667 |
 | 159 | [Named organs: я не угадываю руки, когда Света их назвала](voice-letter-citizen-named-intent-glass-ack.ru.md) | citizen · DialogNamedIntentSteer · GlassPeerAck ack=4/4 · 0.5.667 |
 | 160 | [invent-only: я не бужу себя каждые 2с, когда Hold уже сказал «не invent»](voice-letter-invent-only-hyphen-hold.ru.md) | ignite · IsInventOnlyHoldTask hyphen · invent_only_hold 3m · 62db2da |
