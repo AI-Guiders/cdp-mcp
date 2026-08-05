@@ -32,21 +32,22 @@ internal static partial class IdePressureChannel
             next = SceneNext(armed, doc, memoCount),
             hint = armed
                 ? SceneArmedHint(IdeIgniteArmHost.IsAutonomousArmed())
-                : "On L1 pressure notify: op=arm → checklist → op=stash body= (also appends memo line). Habitat=CDP, not Cursor Write."
+                : "On L1 pressure notify: if stamp/memo/domain last_ship still missing — already late; finish now. "
+                  + "op=arm → checklist → op=stash body= (also appends memo line). Habitat=CDP, not Cursor Write."
         };
     }
 
-    /// <summary>Scene hint when L1 armed — ACC: re-ARM ≠ end-turn nap.</summary>
+    /// <summary>Scene hint when L1 armed — ACC: re-ARM ≠ end-turn nap. Anti-rooster: L1 ≠ first stamp.</summary>
     internal static string SceneArmedHint(bool autonomous) =>
         autonomous
-            ? "L1 armed — fill stash (body=) then keep flying in CDP; re-ARM ignite as insurance (not a nap). Do not offer export ritual."
-            : "L1 armed — fill stash (body=) then keep flying in CDP; re-ARM ignite before end turn. Do not offer export ritual.";
+            ? "L1 armed — if stamp/memo missing you are already late; fill stash then keep flying; re-ARM ignite as insurance (not a nap). Do not offer export ritual."
+            : "L1 armed — if stamp/memo missing you are already late; fill stash then keep flying; re-ARM ignite before end turn. Do not offer export ritual.";
 
     /// <summary>Stash hint — ACC: insurance re-ARM, do not park on timer.</summary>
     internal static string StashHint(bool autonomous) =>
         autonomous
-            ? "Stashed durable + appended memo line. Keep work in CDP; re-ARM AutoIgnition as insurance — do not park on timer."
-            : "Stashed durable + appended memo line. Keep work in CDP; re-ARM AutoIgnition before ending turn.";
+            ? "Stashed durable + appended memo line. Keep work in CDP; re-ARM AutoIgnition as insurance — do not park on timer. Domain last_ship belongs in ship turn, not only here."
+            : "Stashed durable + appended memo line. Keep work in CDP; re-ARM AutoIgnition before ending turn. Domain last_ship belongs in ship turn, not only here.";
 
     static object Arm(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {

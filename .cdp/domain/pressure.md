@@ -7,6 +7,7 @@
 ## Invariants
 
 - L1 notify → `op=arm` → checklist → `op=stash body=` (no export ritual to operator).
+- **Anti-rooster:** if stamp/memo/domain `last_ship` still missing at L1 — **already late**; L1 = finish + insurance, not first write cue.
 - `op=stash` also appends **memo line** (`pressure-memo.jsonl`) — anti-compaction archive.
 - `op=memo` / `op=line` — write/read agent konspekt history (not raw transcript).
 - Must axes: AutoIgnition re-ARM as **insurance** (under autonomous: keep flying — not «before end turn» park), Task Manager, Habitat=CDP, **Domain** (`.cdp/domain`).
@@ -36,6 +37,7 @@
 
 ## last_ship
 
+- **anti-rooster L1 flip** — notify = already late if stamp/memo missing; SceneArmedHint / AGENT_REMINDER · 2026-08-05
 - 0.5.645: stash/recall `wave` field · SA biped_mill · organs inventory/verify_wave · 2026-08-03
 - 0.5.636: Autoi `ChargeAmnesiaPostfix` body≠biped recall (pipe/CDP dig·parallel) · playbook-pf-body-not-biped-v1 · 2026-08-03
 - 0.5.567: citizen `@intent pressure` host-execute → `IdePressureChannel.Handle` (peer L1 stash/recall without Cursor MCP) · VL #74 · 2026-08-03

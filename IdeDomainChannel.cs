@@ -87,13 +87,14 @@ internal static class IdeDomainChannel
             ops = new[] { "scene", "pulse", "list", "card" },
             next = new object[]
             {
+                new { go = "domain", label = "Stamp last_ship", why = "same turn as ship/commit — L1 ≠ stamp moment" },
                 new { go = "domain", label = "Pulse [A]", why = "op=pulse focus=" },
                 new { go = "domain", label = "One card [C]", why = "op=card id=tm" },
                 new { go = "pressure_desk", label = "Pressure Domain axis", why = "stash Domain chains" }
             },
             hint =
                 "Domain ownership [A]: reconstruction chains (name→edges→entry→≠). " +
-                "Dig here before asking operator. Stamp .cdp/domain after ship. " +
+                "Dig here before asking operator. Stamp .cdp/domain last_ship SAME turn as ship (not at L1). " +
                 "op=card id= for one-card [C]; W dump forbidden as default."
         };
     }

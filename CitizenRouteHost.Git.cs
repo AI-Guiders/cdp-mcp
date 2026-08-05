@@ -42,6 +42,8 @@ internal static partial class CitizenRouteHost
             }
 
             var ok = TryReadGitOk(json);
+            if (ok && string.Equals(shortTool, "commit", StringComparison.OrdinalIgnoreCase))
+                IdeDomainStampPending.Mark("citizen_git_commit");
             var pulse = TryReadGitPulse(json, shortTool);
             var seat = IdeDeskSeats.PlaceOrgan("git");
             return new Applied(
