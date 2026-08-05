@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 164 | [Glass EICAS SoftKeys — clr / ack / list](voice-letter-glass-eicas-softkey-ack.ru.md) | glass · EICAS SoftKey hand · eicas-cmd bridge · ack dogfood |
 | 163 | [Glass UiKit: SoftKeys — это язык, не костюм](voice-letter-glass-uikit-softkey-deck.ru.md) | glass · SoftKeyBar+DeckCard · HybridIndex remount · 318e9476 |
 | 162 | [Glass HCI: я не закрываю страницу взглядом](voice-letter-glass-hci-search-reindex-hand.ru.md) | glass · HybridIndex search/reindex hand · Ready-to-Interact · 8b0af796 |
 | 161 | [HCI: я не ищу код через чужой MCP, когда peer зовёт индекс](voice-letter-citizen-hci-host.ru.md) | citizen · `@intent hci` · CodebaseIndexBackend · a09aadf · 0.5.667 |
