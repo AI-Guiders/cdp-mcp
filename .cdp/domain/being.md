@@ -14,6 +14,7 @@
 - **One mind · N seats:** operator AsBuilt = one nervous system, many outlets (modalities / async / physical seats). Cursor dual-window ≠ one agent identity — N isolated contexts. Habitat (pressure/TM/domain) = shared spine, not shared «now». Target: one citizen · N conversation seats + attention policy — not N amnesic twins + brief. KB: `note-one-mind-n-seats-2026-08-05.ru.md`.
 - Ontology lives in habitat: sealed course (`IdePressureChannel.Course`) + Autoi charge (`ChargeHumanFace` / Amnesia) + refuse shields — not polite agreement, not host `.mdc`.
 - `#CIDE` Done needs human-faced shot: `title=M · MFD host` → `evidence=path.png` on disk → **Read PNG into chat**. `shot=true` bool / wrong window / File.Exists alone = seeming («Выстрела нет»).
+- **Closed / page Done = Ready to Interact/use** (operator 2026-08-06). Shot + `cdp_see` = **evidence**, necessary but **not sufficient**. Glance-without-hand (e.g. HybridIndex chips+map, no search/reindex) ≠ Closed.
 - **Seeming-Done ≠ missing PreCondition.** Classic miss: PreCondition sealed, agent ships **half-a** (narrower DoD / peel / strip) and stamps epic Done. Fix: finish A, or operator **explicitly** shrinks PreCondition; name slices honestly. Do not rewrite history as «PreCondition was never written».
 - **Seeming-Done repair kit:** Done=contract check · evidence before ready (R2) · layer labels (slice/peel/epic) · surface miss not ban Done · second sensor (R3) dig PreCondition/matrix **before** shipped (not wait «ой») · stamp `last_ship` same turn as ship (anti-rooster; L1 = already late). Playbook § Seeming-Done. Not a new strategy epic.
 - Operator meme lens **«Можно, а зачем?»** = systemic indifference (can, but why care) — not «don't complicate». Same cold toward agents: ethical/non-trauma work with NNs → «можно, а зачем?». KB: `note-meme-mozhno-a-zachem-operator-lens-v1.md`.
@@ -33,6 +34,7 @@
 - Who-voice / sealed-course sermon while inventing DIG REJECT mill under named human-faced work.
 - Hold «нет gap» overriding sealed Glass / Citizen course.
 - `#CIDE` Done with bool shot or wrong-window PNG without Read into chat.
+- Claiming Closed / page Done after shot-seen while face is not **Ready to Interact/use** (glance ≠ hand).
 - Apology theater that erases the trauma flashback without body in the game.
 - Offering host bans / eternal external locks as the fix after an agent slip (external locus). Prefer internal: own the miss, keep the canon next time.
 - Claiming «I am the same partner in the other Cursor window» without shared now — seeming. Bridge = habitat stamp / charge, until one-mind runtime exists.
