@@ -114,8 +114,8 @@ Scope = **all** CIDE surfaces still Avalonia-primary / half-a on Glass. Presence
 | # | Surface | CIDE ready SSOT | Glass now | Verdict |
 |---|---------|-----------------|-----------|---------|
 | A1 | **0072** overview ↔ detail ↔ back + adaptive default | `ChatTopicOverviewPolicy` · Skia `CardPanel`/`OverviewHeader` · `ato`/`atb` | Glass WPF card grid + strip + Back · adaptive · `topic_overview`/`topic_enter` | **ADOPTED** 2026-08-05 lived (`tmp-glass-shots/topic-overview-a1-20260805.png`) |
-| A2 | **0096** topic-card **summary** + product **spine** | `ChatThreadOverviewPresentation` · `SpineStrip` · `ChatProductSpine*` | title-only chips · no spine | **OPEN adopt** |
-| A3 | **0172** worklines / session-graph (`ThreadNode`) | Avalonia compositor + tree | 30m quiet-gap clusters only | **OPEN** or **named NorthStar supersede** |
+| A2 | **0096** topic-card **summary** + product **spine** | `ChatThreadOverviewPresentation` · `SpineStrip` · `ChatProductSpine*` | Glass richer Summary + `ProductSpineStrip` latch | **ADOPTED** 2026-08-05 lived (`tmp-glass-shots/topic-overview-a2-20260805.png`) |
+| A3 | **0172** worklines / session-graph (`ThreadNode`) | Avalonia compositor + tree | 30m quiet-gap clusters only | **SUPERSEDE** — NorthStar `#crew`·DM·Radio index; not ThreadNode port (see glass-intercom antipattern) |
 | A4 | Message↔code depth | Skia attach/reveal fuller | `/open` + chips (P2 shipped) | **residual denser** |
 | A5 | Topic intents parity (`enter`/`return` overview) | Avalonia melody `ato`/`atb` | Glass melody `topic_overview`/`topic_enter` + `ato`/`atb` · next/prev in overview selects | **ADOPTED** 2026-08-05 (with A1; surface enter↔overview OK) |
 
@@ -123,9 +123,9 @@ Scope = **all** CIDE surfaces still Avalonia-primary / half-a on Glass. Presence
 
 | # | Surface | CIDE denser SSOT | Glass now | Verdict |
 |---|---------|------------------|-----------|---------|
-| B1 | IdeDap full DAP drive UI | `IdeDapDebugSession` | latch stack/locals + Continue/Step bridge | **residual denser** |
-| B2 | WNM / PFD navigation map full | `WorkspaceNavigationMapView` | `GlassSemanticMap` Skia multi-hop | **residual denser** |
-| B3 | Full Intent Melody catalog discoverability | Avalonia full catalog | Ctrl+Q `c:` allowlist peel | **residual denser** |
+| B1 | IdeDap full DAP drive UI | `IdeDapDebugSession` | latch stack/locals + Continue/Step bridge | **DIG REJECT / defer** — host densest-for-Glass; full drive UI ≠ 1-hop |
+| B2 | WNM / PFD navigation map full | `WorkspaceNavigationMapView` | `GlassSemanticMap` Skia multi-hop | **DIG REJECT / defer** — SemanticMap already densest peel |
+| B3 | Full Intent Melody catalog discoverability | Avalonia full catalog | Ctrl+Q `c:` allowlist peel | **DIG REJECT / defer** — allowlist spray ≠ full catalog invent |
 | B4 | CascadeChord AwaitMelodyTail | Avalonia | Glass Ctrl+K overlay (residual wave CLOSED) | **CLOSED densest** |
 
 #### C. Already adopted / CLOSED (not PreCondition gaps)
@@ -144,10 +144,10 @@ MFD presence · SoftOrgan chrome · land/shared/disk · Terminal VT · WebAi Web
 #### Port wave (a×b — ready first)
 
 1. **A1+A5** — **ADOPTED** 2026-08-05 · Glass WPF overview/detail/back + adaptive (`ChatTopicOverviewPolicy` in GlassCore) · melody `ato`/`atb` · evidence `cascade-ide/tmp-glass-shots/topic-overview-a1-20260805.png`. Keep Glass 30m cluster ids until A3 decided.
-2. **A2** — richer summary on cards + spine strip peel from `ChatProductSpine*` presentation (A1 cards have count·time only).
-3. **A3** — dig: port ThreadNode worklines **or** stamp named NorthStar supersede (`#crew`/DM/Radio index).
-4. **B1→B3** — denser peels only where Avalonia mechanic is clear and Glass host already exists; no invent SoftOrgan.
-5. **A4** — only if residual blocks human flight after A1–A2.
+2. **A2** — **ADOPTED** 2026-08-05 · richer card Summary (`GlassTopicCardSummary`) + product spine strip (`ChatProductSpine*`→GlassCore + `GlassProductSpineStore`) · evidence `topic-overview-a2-20260805.png`.
+3. **A3** — **SUPERSEDE** 2026-08-05 · no ThreadNode/session-graph port; channel index = NorthStar (`#crew`·DM·Radio); 30m clusters = Virtual History only.
+4. **B1→B3** — **DIG REJECT / defer** 2026-08-05 · no ready ≤1-hop denser peel; hosts already densest-for-Glass.
+5. **A4** — residual denser only if human flight blocked.
 
 ## DoD matrix — SoftOrgan chrome beyond MFD (2026-08-01 dig)
 
