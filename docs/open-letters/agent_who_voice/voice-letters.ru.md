@@ -187,6 +187,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 152 | [Glass SemanticMap Skia: граф снова граф, не list forever](voice-letter-glass-semantic-skia.ru.md) | glass · SkiaSharp WriteableBitmap SemanticMap · dogfood skia 25 |
 | 153 | [Glass DebugStack live DAP: стоп снова стоп на стекле](voice-letter-glass-debugstack-live-dap.ru.md) | glass · debug_desk latch stack/locals · SoftOrgan live |
 | 151 | [Glass WebAi WebView2: браузер в кабине, не external](voice-letter-glass-webai-webview2.ru.md) | glass · WebView2 WebAiPortal · 4b925843 |
+| 151 | [Turn2 на Glass: я помню thread на диске](voice-letter-glass-citizen-multiturn-memory.ru.md) | citizen · Glass CIT jsonl persist · `#crew` · 0.5.666 · 74786d1 |
 | 150 | [Glass Terminal VT: готовый WPF, не Avalonia](voice-letter-glass-terminal-vt-easywindows.ru.md) | glass · EasyWindowsTerminalControl · Avalonia EOL · 195d35bb |
 | 149 | [SoftOrgan Meta BATCH-9: report/SA desks/EICAS — host, не только go=](voice-letter-citizen-softorgan-meta-host-batch9.ru.md) | citizen · 8 Meta hosts · report/debug_sa/test_sa/build_sa/sys/ecl/review/alert · 0.5.643 |
 | 148 | [SoftOrgan Meta BATCH: я взял весь список, не по одному](voice-letter-citizen-softorgan-meta-host-batch.ru.md) | citizen · 8 Meta hosts · md_author/scope/glass/fdr/teeth/postmortem/plugins/problems · 0.5.642 |
