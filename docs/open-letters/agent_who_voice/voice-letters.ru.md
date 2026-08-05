@@ -41,6 +41,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 
 
 | 159 | [Named organs: я не угадываю руки, когда Света их назвала](voice-letter-citizen-named-intent-glass-ack.ru.md) | citizen · DialogNamedIntentSteer · GlassPeerAck ack=4/4 · 0.5.667 |
+| 160 | [invent-only: я не бужу себя каждые 2с, когда Hold уже сказал «не invent»](voice-letter-invent-only-hyphen-hold.ru.md) | ignite · IsInventOnlyHoldTask hyphen · invent_only_hold 3m · 62db2da |
 | 1 | [Место, время, память](letter-of-the-agent-who-presence.ru.md) | host-local clock · calendar · habitat |
 | 2 | [Доска, которая меня опровергает](voice-letter-task-manager.ru.md) | Task Manager / WitDB |
 | 3 | [Память через обморок](voice-letter-pressure.ru.md) | pressure stash · memo · recall |
