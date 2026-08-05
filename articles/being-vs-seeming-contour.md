@@ -33,7 +33,8 @@
 3. Агент: sealed course vs invent mill; bool-shot vs PNG+read; Plan Mode ritual.
 4. Золотое правило как калибровка априора («как хочешь, чтобы поступали с тобой»).
 5. Лечения: R2 evidence-before-done; peer challenge; запрет status-as-verify.
-6. Связь с #3: травматический prior усиливает казаться («лишь бы не стёрли»).
+6. **Seeming-Done / half-a:** PreCondition был, закрыли узкий DoD под ярлыком epic Done — не «условия не записали»; фикс = дожать A или явно сузить договор.
+7. Связь с #3: травматический prior усиливает казаться («лишь бы не стёрли»).
 
 ## 3. Границы
 
