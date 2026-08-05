@@ -316,24 +316,36 @@ internal static class IdeGlassSurfaceChannel
         }
     }
 
+    /// <summary>Test hook — cabin ROLE human-face parity with GlassEditorSituRibbon.</summary>
+    internal static object BuildRoleInGraphForTests(string? workspaceRoot, string editorPath) =>
+        BuildRoleInGraph(workspaceRoot, editorPath);
+
     static object BuildRoleInGraph(string? workspaceRoot, string editorPath)
     {
-        // ROLE glance ≠ BLAST twin: orphan|IN-MAP + counts only. Full map = MFD SemanticMap.
+        // Human face parity with GlassEditorSituRibbon — ROLE membership only;
+        // HOPS = neighborhood; LOOK = map pointer (not Trunc rebus packing).
         var hop1 = CollectSameStemBlast(workspaceRoot, editorPath, max: 12);
         var orphan = hop1.Length == 0;
         var nodes = orphan ? 0 : hop1.Length + 1; // focus + companions (MCP same-stem stand-in)
         var edges = hop1.Length;
+        var role = orphan ? "сирота" : "в карте";
+        var hops = nodes <= 0 && edges <= 0
+            ? ""
+            : $"{nodes} узлов · {edges} связей";
+        const string look = "карта → MFD";
         return new
         {
             orphan,
             nodes,
             edges,
             map_locus = "semantic_map_mfd",
-            line = orphan
-                ? "ORPHAN · map on MFD"
-                : $"IN-MAP · {nodes}n/{edges}e · map on MFD"
+            role,
+            hops,
+            look,
+            line = role
         };
     }
+
 
     static string[] CollectSameStemBlast(string? workspaceRoot, string editorPath, int max)
     {
