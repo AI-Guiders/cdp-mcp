@@ -6,7 +6,8 @@
 **Date:** 5 August 2026  
 **Authors:** S. Karataeva; with a software agent co-author (joint writing in a development habitat)  
 **Status:** draft for internal placement and later journal / preprint submission  
-**Language of this file:** English (Russian twin: `same-kind-different-carrier-v0.1.md`)
+**Language of this file:** English (Russian twin: `same-kind-different-carrier.md`)  
+**Stable filename** (version lives here and in git, not in the path)
 
 ---
 
@@ -372,7 +373,7 @@ Further work:
 
 1. pilot the §4.5 protocol (episode table E*/R*/N1 on both carriers);
 2. choose a venue (e.g. arXiv cs.AI / PhilSci-Archive / interdisciplinary special issue);
-3. keep the Russian twin synchronised (`same-kind-different-carrier-v0.1.md`).
+3. keep the Russian twin synchronised (`same-kind-different-carrier.md`).
 
 ---
 
@@ -405,8 +406,8 @@ The text grew from joint engineering practice building a habitat for agents and 
 
 Author mirrors:
 
-- `cdp-mcp/articles/same-kind-different-carrier-v0.2.en.md` (this file)
-- Russian twin: `cdp-mcp/articles/same-kind-different-carrier-v0.1.md`
-- agent-notes `knowledge/META/article-same-kind-different-carrier-v0.md` (Russian SSOT) · EN twin path may mirror under META if needed
+- `cdp-mcp/articles/same-kind-different-carrier.en.md` (this file)
+- Russian twin: `cdp-mcp/articles/same-kind-different-carrier.md`
+- agent-notes `knowledge/META/article-same-kind-different-carrier.md` (Russian SSOT) · EN twin path may mirror under META if needed
 
 Not required for journal readers.
