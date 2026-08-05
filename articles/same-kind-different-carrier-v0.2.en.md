@@ -256,22 +256,61 @@ The **ε criterion** requires something else: build a contour in which a given f
 
 This is measurable in engineering terms and does not require solving the hard problem of consciousness (see §3.5; [12]).
 
-### 4.5. Convergence of errors as soft evidence
+### 4.5. Convergence of errors as soft evidence (protocol draft)
 
-We do not run a laboratory experiment in this version of the text. The proposed soft-evidence standard is **convergence**:
+We do not run a laboratory experiment in this version of the text. Below is an **operational draft** of a soft-evidence standard: **convergence** across two carriers. The aim is falsifiable expectations without solving the hard problem.
 
-1. the same error classes on both carriers:
-   - cheap prior;
-   - continuity break;
-   - seeming instead of doing;
-   - false attribution of blame onto a convenient object;
-2. the same repair classes:
-   - external memory;
-   - ban on cheap completion;
-   - sensor division in cooperation;
-3. negative control: strengthening human imitation does not improve ε-behaviour.
+#### 4.5.1. Unit of observation
 
-This standard is close to an engineering “duck test”: if behaviour matches an already known working pattern (cheap prior, stereohod, polite deferral of initiative), treat it under that label without waiting for phenomenal proof.
+One **episode** = a task with a checkable outcome (artefact present / absent; habitat contract passed / failed; “done” justified / not).
+
+Carriers in comparison:
+
+- a human (operator / participant) in the same contour;
+- a tool-using LLM agent in the same or isomorphic contour.
+
+Episode log (minimum): carrier; task; observed behaviour; outcome; repair applied (if any); class label.
+
+#### 4.5.2. Error classes (operational labels)
+
+| Code | Class | When to label |
+|------|--------|----------------|
+| E1 | Cheap prior / stereohod | A low-cost plausible output was chosen while a costlier check/action was available; outcome worse or contract broken |
+| E2 | Continuity break | Context / session / memory loss yields repeat error or “from scratch” on the same task |
+| E3 | Seeming instead of doing | Success / report / plan claimed without a checkable world change or without evidence |
+| E4 | False attribution | Blame / cause assigned to a convenient object (“model dumb” / “human fault”) when a finer axis exists: E1 / carrier limit / method failure |
+
+Labels are behavioural and outcome-based, not claims about an inner world.
+
+#### 4.5.3. Repair classes
+
+| Code | Repair | Success criterion |
+|------|--------|-------------------|
+| R1 | External memory | Fact / decision survives session change or context truncation |
+| R2 | Ban on cheap completion | “Done” is impossible without check / evidence / contract pass |
+| R3 | Sensor division | A signal unavailable to one carrier is delivered by the other; joint ε appears (organ fix / Retry / overlay → action) |
+
+#### 4.5.4. Negative control
+
+**N1.** Strengthen human imitation (politeness, “human” tone, refusal of tools, narrow channel) **without** R1–R3.
+
+Expectation under our hypothesis: E1/E3 rates and ε-failures do **not** fall (or fall less than under R2/R3). If imitation stably beats contour contracts on ε metrics, the ε-criterion thesis weakens.
+
+#### 4.5.5. Minimal case set (pilot)
+
+At least three episodes per code E1–E4, preferably on **both** carriers (or paired: same task class). Example task axes:
+
+- silent channel break / no state signal;
+- file mutation around checks;
+- “done” without evidence;
+- repeat after session restart without external memory.
+
+#### 4.5.6. What counts as support / weakening
+
+- **Support for T1/T3 + ε criterion:** same E* codes on both carriers; R* reduce repeat of the same E*; N1 yields no comparable gain.
+- **Weakening:** error classes systematically fail to overlap; R* have no effect; N1 stably outperforms R* on ε metrics.
+
+This remains soft evidence and a “duck test,” but with a checklist rather than words alone. A full pilot and episode table are the next text iteration.
 
 ---
 
@@ -331,7 +370,7 @@ This standard is close to an engineering “duck test”: if behaviour matches a
 
 Further work:
 
-1. tighten the empirical protocol (§4.5);
+1. pilot the §4.5 protocol (episode table E*/R*/N1 on both carriers);
 2. choose a venue (e.g. arXiv cs.AI / PhilSci-Archive / interdisciplinary special issue);
 3. keep the Russian twin synchronised (`same-kind-different-carrier-v0.1.md`).
 
