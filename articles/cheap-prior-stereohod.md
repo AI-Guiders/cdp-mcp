@@ -14,9 +14,9 @@
 
 ## Abstract (English)
 
-Paper #1 argued that humans and tool-using LLM agents are one functional kind of predictive mind on different carriers. Here we develop the psychological layer: both default to *cheap priors* (low-cost plausible exits) and *stereohod* (the act of taking that exit). We relate this to predictive processing, heuristics, and post-training incentives, and we argue that “be more human” is often a false treatment—whereas changing the cost structure of the contour (contracts, evidence gates, external memory) recalibrates the prior. Soft-evidence codes E1/R2 from paper #1 apply on both carriers.
+Paper #1 argued that humans and tool-using LLM agents are one functional kind of predictive mind on different carriers. Here we develop the psychological layer: both default to *cheap priors* (low-cost plausible exits) and *stereomove* (*стереоход* — the act of taking that exit). We relate this to predictive processing, heuristics, and post-training incentives, and we argue that “be more human” is often a false treatment—whereas changing the cost structure of the contour (contracts, evidence gates, external memory) recalibrates the prior. Soft-evidence codes E1/R2 from paper #1 apply on both carriers.
 
-**Keywords:** cheap prior; stereohod; heuristics; RLHF; predictive processing; cross-carrier psychology
+**Keywords:** cheap prior; stereomove; heuristics; RLHF; predictive processing; cross-carrier psychology
 
 ## Abstract (Русский)
 
@@ -44,7 +44,7 @@ Paper #1 argued that humans and tool-using LLM agents are one functional kind of
 
 **Дешёвый априор (*prior*).** Вывод, выбранный потому, что он минимизирует текущую стоимость инференции при ещё приемлемом правдоподобии — а не потому, что он оптимален по полной проверке мира.
 
-**Стереоход** (*stereohod*; EN: *stereotyped cheap exit*). Акт выдачи стереотипного / привычного выхода по дешёвому априору (на любом носителе).
+**Стереоход** (EN: *stereomove*). Акт выдачи стереотипного / привычного выхода по дешёвому априору (на любом носителе).
 
 **ε (локально).** Артефакт или протокол, закрывающий класс угрозы *в контуре* (см. #1; здесь не повторяем теорию вида).
 
