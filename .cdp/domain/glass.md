@@ -71,7 +71,7 @@ Presence DoD = SoftOrgan glance | Glass peel | **full WPF host** (operator 2026-
 | EnvironmentReadiness | unbound | `GlassEnvironmentReadinessGlance` env | DONE peel |
 | Events | unbound | `GlassEventsGlance` latch/catalog | DONE peel |
 | Hypotheses | unbound | `GlassHypothesesGlance` JSON | DONE peel |
-| HybridIndex | unbound (no SoftOrgan invent) | `GlassHybridIndexGlance` + live `GlassHybridIndexStatusProbe` host | DONE host |
+| HybridIndex | unbound (no SoftOrgan invent) | `GlassHybridIndexGlance` + live probe + **search/reindex hand** | READY-to-Interact |
 | SolutionExplorer | unbound | TreeView nested + `GlassSolutionExplorerGlance` | DONE tree |
 | Chat | unbound | `GlassIntercomPresence` card | DONE presence |
 | Editor | unbound | AvalonEdit on M when Forward=intercom | DONE peel |
@@ -235,7 +235,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
-- **2026-08-06 HCI/HybridIndex 4a STRUCK (seeming Closed)** — operator: **Closed = Page Ready to Interact/use**, not «agent saw window». Shot `tmp-glass-shots/hci-hybridindex-4a-20260806.png` (title=`M · MFD host`) = evidence only. Face today = glance chips+scope map; no search/reindex interact path on Glass (Avalonia denser SSOT). Leaf **OPEN** until Ready to Interact. SoftFL REJECT.
+- **2026-08-06 HCI/HybridIndex Ready-to-Interact CLOSED** — Glass hand: search box + `search`/`reindex`/`refresh` on `MfdHybridIndexHost`; probe `TrySearch`/`TryReindex` (in-proc Core). Live dogfood: UIA set query `GlassHybridIndexStatusProbe` → 9 hits; reindex MISSING/docs0 → READY/docs4308; shot `tmp-glass-shots/hci-hand-after-search-20260806.png`. Cascade tip `8b0af796`. SoftFL REJECT. Avalonia still denser SSOT for ECAM softkeys.
+- **2026-08-06 HCI/HybridIndex 4a STRUCK (seeming Closed)** — operator: **Closed = Page Ready to Interact/use**, not «agent saw window». Prior glance-only shot struck; leaf closed by hand above.
 - **2026-08-05 flight-durable remount survive VERIFY** — lived SoftFirst dual-seat Not connected → Recover `-Seat cdp` then `cdp-debug` (ops; not SoftFL) · cabin **still up** pid=57780 detach · health 0.5.667 lag=false · window_list → title=`CDP GlassCockpit · Windows` → PrintWindow + `cdp_see` · evidence `cascade-ide/tmp-glass-shots/flight-durable-remount-survive-20260805.png` (AUTOI·HILD lit · HDG/CRS Glass Done (human flight) · #crew · PreCondition banner). SoftFL/Meta REJECT. Hold invent-only stands — dig only next lived residual.
 - **2026-08-05 comfort-freeze soak GREEN** — DIG ACCEPT soak verify (not SoftFL invent): cabin survived dual MCP remount (pid=57780 detach) · ICM bound=31 · Citizen dialog reset «Пинг…» → «Жив…» · PNG `cascade-ide/tmp-glass-shots/comfort-freeze-soak-20260805.png` (AUTOI·CFG 0.85·HDG/CRS Glass Done·#crew). Dark/scale DIG REJECT (already LIVE). densest NEXT wave=flight-durable (seat remount thrash lived).
 - **2026-08-05 cockpit_host live + ICM dogfood** — dig: inventory SoftFL/Meta CLOSED · sole inv gap=wave idle · real gap=`cockpit_host · down · agent-only` (toml already Glass WPF). `op=start` → pid=57780 dual-cockpit latches=32 · ICM bound aliases=31 · invoke `git_status` ok · PNG `cascade-ide/tmp-glass-shots/cockpit-host-live-icm-20260805.png` (title=`CDP GlassCockpit · Windows` · AUTOI lit · HDG/CRS Glass Done). SoftFL invent REJECT.
