@@ -182,13 +182,15 @@ internal static partial class IdeCitizenChannel
         else
         {
             var live = CitizenLiveDesk.TryCaptureLive();
+            // Autoi charges (remount/leaf wake) must not read/append shared operator dialog memory —
+            // Glass CIT multi-turn uses the same citizen-dialog.jsonl via CitizenGlassDialogBridge.
             turn = CitizenCompletions.Turn(
                 body,
                 boardLines: live.BoardLines.Length > 0 ? live.BoardLines : null,
                 tm: live.TmPulse,
                 inject: true,
                 mode: CitizenTurnMode.Dialog,
-                history: true);
+                history: false);
         }
 
         if (!turn.Ok || string.IsNullOrWhiteSpace(turn.Text))
