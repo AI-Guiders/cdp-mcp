@@ -66,6 +66,7 @@
 
 ## last_ship
 
+- **2026-08-06 CitizenHciHostAct** — `@intent hci|codebase_index|hybrid_index|cdp_hci` → in-proc `CodebaseIndexBackend` (Kb-host pattern). Commit `a09aadf` · tests `CitizenHciHostTests` 7/7. Open: live-dogfood after dual hard. SoftFL REJECT. densest FullReady axis-2.
 - **2026-08-05 DIG freeform post-steer** — after DialogNamedIntentSteer: freeform desk-pulse (no named organs) → prose + `@intent pressure` **ack=1/1**; no mcp/shell/kb invent. Inventory idle-wave alone ≠ invent. SoftFL/Meta REJECT. Hold invent-only stands — dig=domain+live turn.
 - **2026-08-05 GlassPeerAckReverify SHIPPED** — Glass CIT latch path after DialogNamedIntentSteer: request `0e261a8ea1db` channel=crew named organs → **peer ack=4/4** (seat=cdp · build 0.5.667 @15:55:58Z) · status=done. Human-face: window_list → `CDP GlassCockpit · Windows` (F · Intercom) → evidence `cascade-ide/tmp-glass-shots/citizen-glass-peer-ack-4of4-20260805.png` + `cdp_see`. SoftFL REJECT. Wave GlassPeerAckReverify.
 - **2026-08-05 DialogNamedIntentSteer SHIPPED** — `CitizenPersona.DialogSystemPrompt`: Named organs HARD/required + teach-set health/sys/inventory/elicit (bias mcp/shell/kb removed). Lived dual hard `build_utc=2026-08-05T15:55:58Z`: dialog named verbs **ack=4/4** · wire forced **ack=4/4**. SoftFL REJECT. Wave DialogNamedIntentSteer.
