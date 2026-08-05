@@ -8,6 +8,7 @@
 
 - **STANDARD (operator 2026-08-06):** generalized **nested [axb]** — default work geometry. Atom = one-turn a×b list→batch→ship; when DoD unknown = nested series Explore→DoD/AC→Act.
 - **PREMISE — layer completeness (full-a):** without a **closed full `a`** on each layer, the nested-intervals transfer **does not apply**. Half-a / mill / holey Explore = open end → nonempty ∩ **not guaranteed**. Not a style tip — the completeness hypothesis of the lemma.
+- **PREMISE — task bounds ideally const:** bounds of the task compact are ideally fixed for the nested series. If bounds **change** (scope creep / new axis / reframed DoD), the method still yields nonempty ∩ when layers stay closed full-a — but **step count may change** (more/fewer nested [axb] until residual shrinks). Re-seal course when bounds move; do not pretend the old diameter schedule still holds.
 - **list → batch → ship** — not Autoi single-item mill.
 - **Mill (operator 2026-08-05):** going one tiny piece per turn **where the work fits one axb**. Ban was on **wrong method**, not «SoftFL work forbidden». SoftFLStruckAxb that only dropped Hold / stamped CLOSED without file-order axb = board hygiene ≠ SoftFL ship. Real SoftFL = list FileLines gaps → one wave → ship.
 - **Turn = rectangle a×b** (operator 2026-08-04): vertical **a** = full work list for this turn; horizontal **b** = duration of this turn; **t = b = ship**.
@@ -50,7 +51,7 @@
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
 
 ## last_ship
-- **2026-08-06 NestedAxb STANDARD** — operator: generalized nested [axb] = default geometry; **PREMISE full-a/completeness** elevated (half-a breaks lemma). World claim = nonempty ∩ (∃), not ∃!. Canon: playbook-pf-body-not-biped §Throughput + this card.
+- **2026-08-06 NestedAxb STANDARD** — operator: generalized nested [axb] = default geometry; **PREMISE full-a/completeness** + **bounds ideally const** (bounds move ⇒ step count may change, nonempty ∩ still under closed layers). World claim = nonempty ∩ (∃), not ∃!. Canon: playbook-pf-body-not-biped §Throughput + this card.
 - **2026-08-05 SoftFLStruckAxb (board hygiene)** — dropped Hold SoftFL-REJECT + stamped «STRUCK»; **did not** run SoftFL file-order axb. Operator: mill = serial tiny peels where one axb fits; ban = wrong method, not work ban. SoftFL when needed = list→batch→ship files.
 - **2026-08-05 DIG ACCEPT CitizenFullReadyAxb** — after plan-pulse tax CLOSED: inventory sole real gap=`throughput-wave` idle · SoftFL/Meta CLOSED · flight-durable already [x]. densest product residual=`Glass CIT peer ack 2/4` (citizen.md full-ready E2E). SoftFL BuildBoard REJECT. Wave seeded 6 items.
 - **0.5.661** — per-seat remount nudge + orphan remount pending (sibling hard ≠ kill survivor seat) · 2026-08-04
