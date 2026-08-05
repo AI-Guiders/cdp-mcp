@@ -42,6 +42,7 @@ internal static partial class IdeFlightDataRecorder
     public static object Slim(FdrEvent e) => new
     {
         at = e.AtUtc,
+        kind = e.Kind,
         tool = e.Tool,
         op = e.Op,
         go = e.Go,

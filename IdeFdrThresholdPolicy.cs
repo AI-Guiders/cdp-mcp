@@ -131,12 +131,8 @@ internal static partial class IdeFdrThresholdPolicy
     }
 
 
-    static bool IsToolCall(IdeFlightDataRecorder.FdrEvent e)
-    {
-        var kind = e.Kind?.Trim() ?? "";
-        return kind.Length == 0
-            || string.Equals(kind, "tool_call", StringComparison.OrdinalIgnoreCase);
-    }
+    static bool IsToolCall(IdeFlightDataRecorder.FdrEvent e) =>
+        IdeFlightDataRecorder.IsClosedToolCall(e);
 
     static bool IsLongOrgan(string tool) =>
         tool is "cdp_build" or "cdp_test" or "cdp_deploy" or "cdp_shell_run";

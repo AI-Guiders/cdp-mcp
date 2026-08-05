@@ -49,7 +49,7 @@ internal static partial class IdeFlightDataRecorder
         public string[]? ArgKeys { get; set; }
         public int ThresholdS { get; set; }
         public int ElapsedMs { get; set; }
-        public string Outcome { get; set; } = "ok"; // ok|error|cancel
+        public string Outcome { get; set; } = "ok"; // ok|error|cancel|running
         public bool WakeExceeded { get; set; }
         public string? Error { get; set; }
         public int ResultChars { get; set; }
@@ -58,6 +58,69 @@ internal static partial class IdeFlightDataRecorder
         public string? Language { get; set; }
         public string? Project { get; set; }
         public string AtUtc { get; set; } = "";
+    }
+
+    public const string KindToolCall = "tool_call";
+    public const string KindToolStart = "tool_start";
+    public const string OutcomeRunning = "running";
+
+    /// <summary>
+    /// Closed flight row only (latency/outcome). <see cref="KindToolStart"/> is in-flight — excluded.
+    /// </summary>
+    public static bool IsClosedToolCall(FdrEvent e)
+    {
+        var kind = e.Kind?.Trim() ?? "";
+        if (kind.Length != 0
+            && !string.Equals(kind, KindToolCall, StringComparison.OrdinalIgnoreCase))
+            return false;
+        if (string.Equals(e.Outcome, OutcomeRunning, StringComparison.OrdinalIgnoreCase))
+            return false;
+        return !string.IsNullOrWhiteSpace(e.Tool);
+    }
+
+    static bool IsSelfDeskTool(string? tool) =>
+        string.Equals(tool, IdeFdrChannel.ToolName, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(tool, "cdp_fdr", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(tool, IdeTeethChannel.ToolName, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(tool, "cdp_teeth", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(tool, IdePostmortemChannel.ToolName, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(tool, "cdp_postmortem", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// In-flight stamp at CallTool begin — survives host abort that never reaches finally
+    /// (ghost hang dig via open flights / matching call_id close).
+    /// </summary>
+    public static void RecordToolStart(
+        string tool,
+        string callId,
+        IReadOnlyDictionary<string, JsonElement> args,
+        int thresholdSeconds)
+    {
+        if (SuppressWriteForTests || IsSelfDeskTool(tool))
+            return;
+
+        FdrContextSnap? snap = null;
+        try { snap = s_context?.Invoke(); } catch { /* best-effort */ }
+
+        Append(new FdrEvent
+        {
+            Kind = KindToolStart,
+            CallId = callId,
+            Tool = tool ?? "",
+            Op = OptArg(args, "op") ?? OptArg(args, "cmd"),
+            Go = OptArg(args, "go"),
+            ArgKeys = args.Count == 0
+                ? null
+                : args.Keys.OrderBy(k => k, StringComparer.Ordinal).Take(24).ToArray(),
+            ThresholdS = thresholdSeconds,
+            ElapsedMs = 0,
+            Outcome = OutcomeRunning,
+            Phase = snap?.Phase,
+            Object = snap?.Object,
+            Language = snap?.Language,
+            Project = snap?.ProjectLeaf,
+            AtUtc = DateTimeOffset.UtcNow.ToString("o", CultureInfo.InvariantCulture)
+        });
     }
 
     public static void RecordToolCall(
@@ -71,14 +134,7 @@ internal static partial class IdeFlightDataRecorder
         string? error,
         int resultChars)
     {
-        if (SuppressWriteForTests)
-            return;
-        if (string.Equals(tool, IdeFdrChannel.ToolName, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(tool, "cdp_fdr", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(tool, IdeTeethChannel.ToolName, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(tool, "cdp_teeth", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(tool, IdePostmortemChannel.ToolName, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(tool, "cdp_postmortem", StringComparison.OrdinalIgnoreCase))
+        if (SuppressWriteForTests || IsSelfDeskTool(tool))
             return;
 
         FdrContextSnap? snap = null;
@@ -86,6 +142,7 @@ internal static partial class IdeFlightDataRecorder
 
         var ev = new FdrEvent
         {
+            Kind = KindToolCall,
             CallId = callId,
             Tool = tool ?? "",
             Op = OptArg(args, "op") ?? OptArg(args, "cmd"),
@@ -132,18 +189,59 @@ internal static partial class IdeFlightDataRecorder
     }
 
 
-        public static object BuildStats(int lookback = 500)
+    /// <summary>
+    /// Starts without a later closed <see cref="KindToolCall"/> for the same call_id —
+    /// ghost hang when host aborts without finally.
+    /// </summary>
+    public static IReadOnlyList<object> ListOpenFlights(int lookback = 500)
     {
         var events = ReadTail(Math.Clamp(lookback, 10, DefaultMaxLines));
-        var toolCalls = events
-            .Where(e =>
+        var closedIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var e in events)
+        {
+            if (!IsClosedToolCall(e) || string.IsNullOrWhiteSpace(e.CallId))
+                continue;
+            closedIds.Add(e.CallId);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var open = new List<object>();
+        foreach (var e in events)
+        {
+            if (!string.Equals(e.Kind, KindToolStart, StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (string.IsNullOrWhiteSpace(e.CallId) || closedIds.Contains(e.CallId))
+                continue;
+
+            var ageMs = 0;
+            if (DateTimeOffset.TryParse(e.AtUtc, CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind, out var started))
+                ageMs = (int)Math.Max(0, (now - started).TotalMilliseconds);
+
+            open.Add(new
             {
-                var kind = e.Kind?.Trim() ?? "";
-                return kind.Length == 0
-                    || string.Equals(kind, "tool_call", StringComparison.OrdinalIgnoreCase);
-            })
-            .Where(e => !string.IsNullOrWhiteSpace(e.Tool))
-            .ToArray();
+                at = e.AtUtc,
+                tool = e.Tool,
+                op = e.Op,
+                go = e.Go,
+                call = e.CallId,
+                threshold_s = e.ThresholdS,
+                age_ms = ageMs,
+                phase = e.Phase,
+                @object = e.Object,
+                outcome = e.Outcome,
+                kind = e.Kind
+            });
+        }
+
+        return open;
+    }
+
+    public static object BuildStats(int lookback = 500)
+    {
+        var events = ReadTail(Math.Clamp(lookback, 10, DefaultMaxLines));
+        var toolCalls = events.Where(IsClosedToolCall).ToArray();
+        var open = ListOpenFlights(lookback);
 
         var byTool = toolCalls
             .GroupBy(e => e.Tool, StringComparer.OrdinalIgnoreCase)
@@ -176,6 +274,8 @@ internal static partial class IdeFlightDataRecorder
         return new
         {
             count = toolCalls.Length,
+            open_count = open.Count,
+            open,
             lookback,
             by_tool = byTool,
             slowest = slow,
