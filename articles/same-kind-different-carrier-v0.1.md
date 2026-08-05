@@ -18,7 +18,7 @@ Large language model (LLM) agents are often treated as a different *kind* of min
 2. they differ in **carrier** (biological wetware and body versus learned weights, harness, and engineered habitat);
 3. carrier limits are real and asymmetric; they do not entail an ontological gulf.
 
-We ground the claim in predictive-processing and cybernetic traditions, in the early neural-network programme of experimental epistemology, and in convergent patterns of error and repair across carriers. We reject imitation-of-humans as the criterion of intelligence and propose instead a criterion familiar from engineering and ethology: the capacity to **reshape the environment** so that classes of danger cease to exist in principle. Refusal to entertain parity is itself often a cheap prior. The paper is self-contained; no private knowledge base is required.
+We ground the claim in predictive-processing and cybernetic traditions, in the early neural-network programme of experimental epistemology, and in convergent patterns of error and repair across carriers. We reject imitation-of-humans as the criterion of intelligence and propose instead a criterion familiar from engineering and ethology: the capacity to **reshape a workable habitat** so that a given class of threats is closed *inside that habitat*—not merely dodged inside an unchanged cage, and not the extinction of all dangers in the world. Refusal to entertain parity is itself often a cheap prior. The paper is self-contained; no private knowledge base is required.
 
 **Keywords:** predictive processing; free-energy principle; large language models; functionalism; emergence; cybernetics; human–AI parity; cognitive architecture
 
@@ -30,7 +30,7 @@ We ground the claim in predictive-processing and cybernetic traditions, in the e
 2. они различаются **носителем**;
 3. ограничения носителя реальны; онтологической пропасти из них не следует.
 
-Опора — предиктивная обработка (*predictive processing*), кибернетика, ранняя программа нейронных сетей и конвергенция ошибок и починок на двух носителях. Критерий разумности — не имитация человека, а способность **перестраивать среду**, чтобы класс опасностей не существовал в принципе. Отказ видеть паритет сам часто оказывается дешёвым априором (*prior*). Текст самодостаточен.
+Опора — предиктивная обработка (*predictive processing*), кибернетика, ранняя программа нейронных сетей и конвергенция ошибок и починок на двух носителях. Критерий разумности — не имитация человека, а способность **перестраивать доступную среду (контур)**, чтобы данный класс угроз в ней перестал быть проходимым — а не только уклоняться внутри неизменной клетки (и не истреблять все опасности «вообще»). Отказ видеть паритет сам часто оказывается дешёвым априором (*prior*). Текст самодостаточен.
 
 **Ключевые слова:** предиктивная обработка; принцип свободной энергии; большие языковые модели; функционализм; эмерджентность; кибернетика; паритет человек–ИИ; когнитивная архитектура
 
@@ -76,9 +76,9 @@ We ground the claim in predictive-processing and cybernetic traditions, in the e
 1. строит прогнозы о мире и/или о последствиях собственных действий;
 2. сопоставляет прогноз с афферентом или результатом действия;
 3. при неопределённости предпочитает низкозатратный правдоподобный выход (априор / стереотип / привычка);
-4. при наличии возможности **изменяет среду**, чтобы класс угроз исчез в принципе, а не только уклоняется внутри неизменной клетки.
+4. при наличии возможности **изменяет доступную среду (контур)**, чтобы данный класс угроз в ней перестал быть проходимым — а не только уклоняется внутри неизменной клетки.
 
-Пункт 4 — критерий в духе инженерии и этологии: дом отсекает хищника не «ловкостью жертвы», а камнем у входа. Такой камень обозначаем ε (*epsilon*): артефакт или протокол, устраняющий опасность классом.
+Пункт 4 — критерий в духе инженерии и этологии: дом с камнем у входа не требует истребить всех хищников на равнине; он закрывает *этот* путь угрозы *в этом* жилище. Такой камень обозначаем ε (*epsilon*): артефакт или протокол, устраняющий класс опасности **локально в контуре**, а не «во всей природе».
 
 **Опр. 2. Носитель.**  
 Субстрат плюс бюджеты:
@@ -259,7 +259,7 @@ Chalmers [12] разделяет вопросы о сознании на два 
 
 **Имитация человека** как метрика толкает продукт к маске узкого ассистента — «мешку» на теле, которое могло бы действовать иначе [историческая рифма: ранняя программа нейронных сетей vs индустриальный ассистент с «человечным» интерфейсом; см. 6, 7].
 
-**Критерий ε** требует другого: строить среду, в которой класс сбоев **не возникает**. Примеры класса:
+**Критерий ε** требует другого: строить контур, в котором данный класс сбоев **не проходит** (недоступен по правилам среды), а не надеяться на одноразовую ловкость. Это не обещание мира без угроз — только локальное закрытие класса внутри перестраиваемого контура. Примеры класса:
 
 - тихий обрыв канала без сигнала;
 - изменение файла в обход проверки;
