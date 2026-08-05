@@ -113,11 +113,11 @@ Scope = **all** CIDE surfaces still Avalonia-primary / half-a on Glass. Presence
 
 | # | Surface | CIDE ready SSOT | Glass now | Verdict |
 |---|---------|-----------------|-----------|---------|
-| A1 | **0072** overview ↔ detail ↔ back + adaptive default | `ChatTopicOverviewPolicy` · Skia `CardPanel`/`OverviewHeader` · `ato`/`atb` | P0b horizontal strip + feed filter | **OPEN adopt** |
+| A1 | **0072** overview ↔ detail ↔ back + adaptive default | `ChatTopicOverviewPolicy` · Skia `CardPanel`/`OverviewHeader` · `ato`/`atb` | Glass WPF card grid + strip + Back · adaptive · `topic_overview`/`topic_enter` | **ADOPTED** 2026-08-05 lived (`tmp-glass-shots/topic-overview-a1-20260805.png`) |
 | A2 | **0096** topic-card **summary** + product **spine** | `ChatThreadOverviewPresentation` · `SpineStrip` · `ChatProductSpine*` | title-only chips · no spine | **OPEN adopt** |
 | A3 | **0172** worklines / session-graph (`ThreadNode`) | Avalonia compositor + tree | 30m quiet-gap clusters only | **OPEN** or **named NorthStar supersede** |
 | A4 | Message↔code depth | Skia attach/reveal fuller | `/open` + chips (P2 shipped) | **residual denser** |
-| A5 | Topic intents parity (`enter`/`return` overview) | Avalonia melody `ato`/`atb` | `topic_next`/`prev` only | **OPEN adopt** (with A1) |
+| A5 | Topic intents parity (`enter`/`return` overview) | Avalonia melody `ato`/`atb` | Glass melody `topic_overview`/`topic_enter` + `ato`/`atb` · next/prev in overview selects | **ADOPTED** 2026-08-05 (with A1; surface enter↔overview OK) |
 
 #### B. Instruments — presence DONE, Avalonia still denser
 
@@ -143,8 +143,8 @@ MFD presence · SoftOrgan chrome · land/shared/disk · Terminal VT · WebAi Web
 
 #### Port wave (a×b — ready first)
 
-1. **A1+A5** — Glass WPF overview mode (card grid / drill-in / back / adaptive) reusing `ChatTopicOverviewPolicy` + presentation strings; keep Glass 30m cluster ids until A3 decided.
-2. **A2** — summary on cards + spine strip peel from `ChatProductSpine*` presentation.
+1. **A1+A5** — **ADOPTED** 2026-08-05 · Glass WPF overview/detail/back + adaptive (`ChatTopicOverviewPolicy` in GlassCore) · melody `ato`/`atb` · evidence `cascade-ide/tmp-glass-shots/topic-overview-a1-20260805.png`. Keep Glass 30m cluster ids until A3 decided.
+2. **A2** — richer summary on cards + spine strip peel from `ChatProductSpine*` presentation (A1 cards have count·time only).
 3. **A3** — dig: port ThreadNode worklines **or** stamp named NorthStar supersede (`#crew`/DM/Radio index).
 4. **B1→B3** — denser peels only where Avalonia mechanic is clear and Glass host already exists; no invent SoftOrgan.
 5. **A4** — only if residual blocks human flight after A1–A2.
