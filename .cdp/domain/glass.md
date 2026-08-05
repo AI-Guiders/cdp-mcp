@@ -99,6 +99,8 @@ Parity note: Glass XAML / CabinGlass use page string **SemanticMap** (`arch_desk
 
 What closed under the name Glass Done was a **narrower DoD** (presence / SoftOrgan / latch peels / P0–P3 lived UX slices — e.g. Topics **P0b** = strip+gap, not ADR 0072 overview). That is **half-a vs operator PreCondition** when a needed CIDE surface still only lives on Avalonia or as stub/strip.
 
+**Operator clarify 2026-08-05:** PreCondition **was** stamped; failure mode = **half-a instead of A** (did not finish), not «forgot PreCondition». Being axis: playbook-being-vs-seeming § Seeming-Done. Sibling seat owns inventory+port; do not invent competing leaf from discussion seat.
+
 - **Do not** re-stamp Glass Done while needed Intercom/CIDE surfaces remain unadopted (topic overview 0072, spine/summary 0096, …) unless operator explicitly shrinks PreCondition.
 - **Adopt** = lived Glass WPF face (or explicit DIG REJECT + named external SSOT) — not agent-only, not File.Exists, not Avalonia-still-primary.
 - NorthStar messenger (`#crew`/DM/Radio) may **supersede** some CIDE Intercom chrome — supersede must be **named**, not silent undership of overview.
