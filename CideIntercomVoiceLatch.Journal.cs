@@ -12,6 +12,7 @@ namespace CdpMcp;
 internal static partial class CideIntercomVoiceLatch
 {
     static readonly object JournalGate = new();
+    static readonly Mutex JournalMutex = new(false, @"Local\cdp-mcp-intercom-journal-v1");
 
     static readonly JsonSerializerOptions JournalJsonOpts = new()
     {
@@ -23,6 +24,10 @@ internal static partial class CideIntercomVoiceLatch
     public static string JournalPath => Path.Combine(StateRoot, "intercom-journal.jsonl");
 
     /// <summary>Append voice doc to journal (dedupe by id). Best-effort.</summary>
+    /// <remarks>
+    /// Cross-process (Glass + dual Autoi seats): named Mutex — lived lost Citizen letters
+    /// when AppendAllText raced remount guest writes.
+    /// </remarks>
     public static void AppendJournal(IntercomVoiceDoc doc)
     {
         if (doc is null || string.IsNullOrWhiteSpace(doc.Id) || string.IsNullOrWhiteSpace(doc.Body))
@@ -30,8 +35,10 @@ internal static partial class CideIntercomVoiceLatch
 
         lock (JournalGate)
         {
+            var locked = false;
             try
             {
+                locked = JournalMutex.WaitOne(TimeSpan.FromSeconds(5));
                 Directory.CreateDirectory(StateRoot);
                 if (File.Exists(JournalPath))
                 {
@@ -59,6 +66,14 @@ internal static partial class CideIntercomVoiceLatch
             catch
             {
                 /* best-effort */
+            }
+            finally
+            {
+                if (locked)
+                {
+                    try { JournalMutex.ReleaseMutex(); }
+                    catch { /* ignore */ }
+                }
             }
         }
     }

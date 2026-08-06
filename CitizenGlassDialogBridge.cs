@@ -149,16 +149,18 @@ internal static class CitizenGlassDialogBridge
 
             // Human Intercom: strip wire; harness → «Сделала: …» (not peer tip dump).
             var publishBody = SurfacePublishBody(turn.Text!, executed);
+            // Dialog memory wants human prose — not Autoi Radio collapse of SA walls.
             PersistOperatorDialog(req.Body, turn.Text!, publishBody, executed);
 
+            var radioPointer = IdeIgniteArmHost.LooksLikeHabitatRadioPointer(publishBody);
             var published = CideIntercomVoiceLatch.Publish(
                 fromSeat: CideIntercomVoiceLatch.SeatPf,
                 toSeat: CideIntercomVoiceLatch.SeatPm,
                 body: publishBody,
                 origin: CideIntercomVoiceLatch.OriginAgent,
                 id: null,
-                name: CideIntercomVoiceLatch.DefaultNameCitizen,
-                kind: CideIntercomVoiceLatch.KindCitizen,
+                name: radioPointer ? "AutoI" : CideIntercomVoiceLatch.DefaultNameCitizen,
+                kind: radioPointer ? "guest" : CideIntercomVoiceLatch.KindCitizen,
                 channel: ResolveRequestChannel(req));
             MarkStatus(
                 req,
@@ -184,6 +186,8 @@ internal static class CitizenGlassDialogBridge
         IReadOnlyList<CitizenRouteHost.Applied>? executed)
     {
         var assistant = publishBody.Trim();
+        if (IdeIgniteArmHost.LooksLikeHabitatRadioPointer(assistant))
+            assistant = "";
         if (string.IsNullOrWhiteSpace(assistant))
             assistant = CitizenIntercomHumanSurface.Publish(prose, executed);
         if (string.IsNullOrWhiteSpace(assistant))
