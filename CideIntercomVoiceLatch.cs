@@ -209,7 +209,7 @@ internal static partial class CideIntercomVoiceLatch
         public bool Acked { get; set; }
     }
 
-    static string? NormalizeIntercomChannel(string? raw)
+    public static string? NormalizeIntercomChannel(string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw))
             return null;

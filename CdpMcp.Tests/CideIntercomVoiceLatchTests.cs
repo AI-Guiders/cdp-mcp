@@ -218,6 +218,41 @@ public class CideIntercomVoiceLatchTests : IDisposable
     }
 
     [Fact]
+    public void Channel_send_dm_lands_in_journal_and_card()
+    {
+        var sendJson = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("send"),
+            ["to"] = JsonSerializer.SerializeToElement("@PM"),
+            ["body"] = JsonSerializer.SerializeToElement("dm-nested-axb"),
+            ["channel"] = JsonSerializer.SerializeToElement("dm")
+        });
+        using var send = JsonDocument.Parse(sendJson);
+        Assert.True(send.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal("dm", send.RootElement.GetProperty("message").GetProperty("channel").GetString());
+
+        var tail = CideIntercomVoiceLatch.LoadJournalTail(1);
+        Assert.Equal("dm", tail[^1].Channel);
+        Assert.Equal("dm-nested-axb", tail[^1].Body);
+    }
+
+    [Fact]
+    public void Channel_send_invalid_refuses()
+    {
+        var sendJson = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("send"),
+            ["to"] = JsonSerializer.SerializeToElement("pm"),
+            ["body"] = JsonSerializer.SerializeToElement("nope"),
+            ["channel"] = JsonSerializer.SerializeToElement("irc")
+        });
+        using var send = JsonDocument.Parse(sendJson);
+        Assert.False(send.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal("channel_invalid", send.RootElement.GetProperty("error").GetString());
+    }
+
+
+    [Fact]
     public void Publish_appends_journal_and_history_reads_tail()
     {
         var a = CideIntercomVoiceLatch.Publish("pm", "pf", "vh-one", CideIntercomVoiceLatch.OriginHuman);

@@ -67,6 +67,9 @@ internal static partial class CitizenRouteHost
         PutIfPresent(args, "kind",
             CitizenIntentRouter.ExtractKeyedValue(route.Raw, "kind")
             ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "role"));
+        PutIfPresent(args, "channel",
+            CitizenIntentRouter.ExtractKeyedValue(route.Raw, "channel")
+            ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "feed"));
         PutIfPresent(args, "origin", CitizenIntentRouter.ExtractKeyedValue(route.Raw, "origin"));
         PutIfPresent(args, "id", CitizenIntentRouter.ExtractKeyedValue(route.Raw, "id"));
         PutIfPresent(args, "seat",
