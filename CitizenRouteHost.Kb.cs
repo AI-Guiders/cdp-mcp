@@ -166,27 +166,45 @@ internal static partial class CitizenRouteHost
             return "need cdp_open";
         }
 
+        // "task_id is required." / "content is required." / "path is required when…"
+        if (TryTipRequiredArg(ex.Message) is { Length: > 0 } need)
+            return need;
+
         if (ex.Message.Contains("query", StringComparison.OrdinalIgnoreCase))
             return "need query=";
 
-        if (ex.Message.Contains("relative_path", StringComparison.OrdinalIgnoreCase))
-            return "need relative_path=";
-
-        if (ex.Message.Contains("analytics_id", StringComparison.OrdinalIgnoreCase))
-            return "need analytics_id=";
-
-        if (ex.Message.Contains("section_id", StringComparison.OrdinalIgnoreCase))
-            return "need section_id=";
-
-        // finding_check / finding_record — "path is required" (not relative_path / workspace_path).
-        if (ex.Message.Contains("path is required", StringComparison.OrdinalIgnoreCase))
-            return "need path=";
-
-        // failure_record — "tool is required".
-        if (ex.Message.Contains("tool is required", StringComparison.OrdinalIgnoreCase))
-            return "need tool=";
-
         return "failed";
+    }
+
+    /// <summary>Parse <c>{name} is required</c> → <c>need {name}=</c> so FM does not SoftFL-invent after bare failed.</summary>
+    static string? TryTipRequiredArg(string message)
+    {
+        const string marker = " is required";
+        var idx = message.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (idx <= 0)
+            return null;
+
+        var head = message[..idx].Trim();
+        var orIdx = head.IndexOf(" or ", StringComparison.OrdinalIgnoreCase);
+        if (orIdx > 0)
+            head = head[..orIdx].Trim();
+        else
+        {
+            var sp = head.LastIndexOf(' ');
+            if (sp >= 0)
+                head = head[(sp + 1)..].Trim();
+        }
+
+        if (head.Length is 0 or > 40)
+            return null;
+        foreach (var c in head)
+        {
+            if (char.IsLetterOrDigit(c) || c is '_' or '-')
+                continue;
+            return null;
+        }
+
+        return "need " + head + "=";
     }
 
 
@@ -303,6 +321,7 @@ internal static partial class CitizenRouteHost
             AppendKbReadCardBits(root, bits);
             AppendKbValidateBits(root, bits);
             AppendKbNormalizeBits(root, bits);
+            AppendKbFindingCheckBits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -696,6 +715,31 @@ internal static partial class CitizenRouteHost
         if (root.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String
             && content.GetString() is { } body)
             bits.Add("chars=" + body.Length);
+    }
+
+    /// <summary>Findings finding_check freshness — surface advice + path so FM does not SoftFL-invent after bare tool pulse.</summary>
+    static void AppendKbFindingCheckBits(JsonElement root, List<string> bits)
+    {
+        if (!root.TryGetProperty("advice", out var advice) || advice.ValueKind != JsonValueKind.String
+            || advice.GetString() is not { Length: > 0 } a)
+            return;
+
+        bits.Add("advice=" + (a.Length > 24 ? a[..24] + "…" : a));
+        if (root.TryGetProperty("path", out var path) && path.ValueKind == JsonValueKind.String
+            && path.GetString() is { Length: > 0 } p)
+        {
+            var one = p.Replace('\\', '/');
+            if (one.Length > 40)
+                one = "…" + one[^39..];
+            bits.Add("path=" + one);
+        }
+
+        if (root.TryGetProperty("hashMatch", out var hm)
+            && (hm.ValueKind is JsonValueKind.True or JsonValueKind.False))
+            bits.Add(hm.GetBoolean() ? "hash_ok" : "hash_miss");
+        if (root.TryGetProperty("depsOk", out var deps)
+            && deps.ValueKind == JsonValueKind.False)
+            bits.Add("deps_stale");
     }
 
 }

@@ -734,6 +734,94 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Route_kb_failure_record_tool_arg_keeps_failure_record_op()
+    {
+        var r = CitizenIntentRouter.RouteOne("kb facet=failure failure_record tool=cdp_test");
+        Assert.True(r.Ok, r.Reason);
+        Assert.Equal("failure_record", r.Op);
+        Assert.Equal(Cdp.Core.CdpDomains.MemorySelfFailure, r.Server);
+    }
+
+    [Fact]
+    public void Execute_kb_task_upsert_without_id_tips_task_id()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.SessionResolver = () => new SessionContext
+        {
+            ProjectRoot = @"D:\Experiments\agent-notes",
+        };
+        CitizenRouteHost.ByDomainResolver = () => new Dictionary<string, ICdpBackendModule>(StringComparer.Ordinal)
+        {
+            [Cdp.Core.CdpDomains.MemoryTask] = new ThrowingArgKbModule(
+                Cdp.Core.CdpDomains.MemoryTask, "task_id is required."),
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=task task_upsert")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Contains("need task_id=", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_kb_write_card_without_content_tips_content()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.SessionResolver = () => new SessionContext
+        {
+            ProjectRoot = @"D:\Experiments\agent-notes",
+        };
+        CitizenRouteHost.ByDomainResolver = () => new Dictionary<string, ICdpBackendModule>(StringComparer.Ordinal)
+        {
+            [Cdp.Core.CdpDomains.MemoryTask] = new ThrowingArgKbModule(
+                Cdp.Core.CdpDomains.MemoryTask, "content is required."),
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=task write_card relative_path=tasks/x.md")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Contains("need content=", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_kb_finding_check_pulse_includes_advice()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("finding_check", tool);
+            return Task.FromResult(
+                "{\"path\":\"CitizenRouteHost.Kb.cs\",\"currentHash\":\"abc\",\"memo\":null,\"hashMatch\":false,\"depsOk\":null,\"staleDeps\":null,\"advice\":\"reread_file\"}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=finding finding_check path=CitizenRouteHost.Kb.cs")]);
+            Assert.Single(applied);
+            Assert.Contains("advice=reread_file", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("path=CitizenRouteHost.Kb.cs", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("hash_miss", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;
