@@ -102,6 +102,9 @@ internal static partial class CitizenRouteHost
                     : "epistemic-scene");
         }
 
+        if (!args.ContainsKey("query") && args.TryGetValue("q", out var qEl))
+            args["query"] = qEl;
+
         return args;
     }
 
