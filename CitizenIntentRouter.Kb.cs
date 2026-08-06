@@ -8,20 +8,22 @@ internal static partial class CitizenIntentRouter
     static Route RouteKb(string raw)
     {
         var work = StripKbHead(raw);
-        var tool = ExtractKeyedValue(work, "tool") ?? ExtractKeyedValue(work, "op");
-        if (string.IsNullOrWhiteSpace(tool))
+        // Prefer positional known tool — keyed tool=/op= is often an ARG
+        // (e.g. failure_record tool=cdp_test; man tool=findings). SoftFL invent when arg steals Op.
+        string? positional = null;
+        foreach (var token in work.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
-            foreach (var token in work.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            if (token.Contains('=', StringComparison.Ordinal))
+                continue;
+            if (IsAnyKbToolToken(token))
             {
-                if (token.Contains('=', StringComparison.Ordinal))
-                    continue;
-                if (IsAnyKbToolToken(token))
-                {
-                    tool = token;
-                    break;
-                }
+                positional = token;
+                break;
             }
         }
+
+        var keyed = ExtractKeyedValue(work, "tool") ?? ExtractKeyedValue(work, "op");
+        var tool = !string.IsNullOrWhiteSpace(positional) ? positional : keyed;
 
         var facetHint = ExtractKeyedValue(work, "facet") ?? ExtractKeyedValue(work, "server");
         var facet = ResolveKbFacet(facetHint);
