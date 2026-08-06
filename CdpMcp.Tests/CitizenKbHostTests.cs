@@ -108,4 +108,27 @@ public sealed class CitizenKbHostTests
             CitizenRouteHost.UnbindLifecycle();
         }
     }
+
+    [Fact]
+    public void Execute_kb_read_raw_markdown_body_is_ok()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("read_knowledge_file", tool);
+            return Task.FromResult("# SHOWCASE\n\nHub map for agent-notes.");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb read_knowledge_file file_path=SHOWCASE.md")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.Contains("SHOWCASE", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
 }

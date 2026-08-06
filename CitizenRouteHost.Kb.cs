@@ -49,7 +49,7 @@ internal static partial class CitizenRouteHost
                     .GetResult();
             }
 
-            var ok = TryReadLifecycleOk(json);
+            var ok = TryReadKbOk(json, tool);
             var pulse = TryReadKbPulse(json, facet, tool);
             return new Applied(
                 route.Raw,
@@ -70,6 +70,28 @@ internal static partial class CitizenRouteHost
                 Go: "kb",
                 Reason: ex.GetType().Name + ": " + ex.Message);
         }
+    }
+
+    /// <summary>
+    /// AN <c>read_knowledge_file</c> returns raw markdown (not lifecycle JSON).
+    /// Missing file → empty string → fail; non-empty body → ok.
+    /// </summary>
+    static bool TryReadKbOk(string json, string tool)
+    {
+        if (TryReadLifecycleOk(json))
+            return true;
+
+        if (tool is not ("read_knowledge_file" or "list_knowledge_files"))
+            return false;
+
+        if (string.IsNullOrWhiteSpace(json))
+            return false;
+
+        var trim = json.AsSpan().TrimStart();
+        if (trim.StartsWith('{'))
+            return false; // structured outline/error already failed lifecycle
+
+        return true;
     }
 
     static Dictionary<string, JsonElement> BuildKbArgs(string raw, string tool, string facet)
@@ -154,6 +176,15 @@ internal static partial class CitizenRouteHost
         }
         catch
         {
+            // Raw markdown from read_knowledge_file — short preview, not silent parse fail.
+            if (tool is "read_knowledge_file" && !string.IsNullOrWhiteSpace(json))
+            {
+                var one = json.Replace('\r', ' ').Replace('\n', ' ').Trim();
+                if (one.Length > 72)
+                    one = one[..72] + "…";
+                return TruncPulse("kb " + facet + " " + tool + " body " + one);
+            }
+
             return TruncPulse("kb " + facet + " " + tool);
         }
     }
