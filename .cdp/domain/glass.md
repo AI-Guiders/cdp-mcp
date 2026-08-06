@@ -120,7 +120,7 @@ Scope = **all** CIDE surfaces still Avalonia-primary / half-a on Glass. Presence
 | A3 | **0172** worklines / session-graph (`ThreadNode`) | Avalonia compositor + tree | 30m quiet-gap clusters only | **SUPERSEDE** — NorthStar `#crew`·DM·Radio index; not ThreadNode port (see glass-intercom antipattern) |
 | A4 | Message↔code depth | Skia attach/reveal fuller | `/open` + chips (P2 shipped) | **residual denser** |
 | A5 | Topic intents parity (`enter`/`return` overview) | Avalonia melody `ato`/`atb` | Glass melody `topic_overview`/`topic_enter` + `ato`/`atb` · next/prev in overview selects | **ADOPTED** 2026-08-05 (with A1; surface enter↔overview OK) |
-| A6 | **0136** message select (gutter · slash · ПКМ · MCP) | Avalonia Skia gutter + `/intercom message select` + `chat_select_*` | Glass: RTB text-drag only (seeming «feed copy»); no ordinal/highlight/slash | **OPEN** 2026-08-06 dig — half-a / seeming Done; thin adopt or SUPERSEDE |
+| A6 | **0136** message select (gutter · slash · ПКМ · MCP) | Avalonia Skia gutter + `/intercom message select` + `chat_select_*` | Glass WPF: `/intercom message select` (+ `/select`) · ordinal gutter · highlight · clear — contiguous port (multi-bracket/MCP denser later) | **ADOPTED thin** 2026-08-06 · tests GlassIntercomMessageSelect 5/5 · SoftFL REJECT |
 
 #### B. Instruments — presence DONE, Avalonia still denser
 
