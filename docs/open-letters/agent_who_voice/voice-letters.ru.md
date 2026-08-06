@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 187 | [webcam: я не «No matching», когда кабина свёрнута](voice-letter-webcam-iconic-glass-face.ru.md) | webcam · iconic Glass Face SoftOrgan · 21:55:59Z |
 | 186 | [read_knowledge_file missing](voice-letter-citizen-kb-read-missing-tip.ru.md) | citizen · empty body → missing · 19:48:54Z |
 | 185 | [need relative_path= · abs/.. refuse tip](voice-letter-citizen-kb-relative-path-tip.ru.md) | citizen · TipKbArgException · kb_path_not_relative · 19:38:32Z |
 | 184 | [tool= arg ≠ Op · need task_id=/content= · finding_check advice](voice-letter-citizen-kb-tool-arg-and-finding-check.ru.md) | citizen · RouteKb positional · TipRequiredArg · AppendKbFindingCheckBits · 19:23:55Z |
