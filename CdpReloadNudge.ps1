@@ -1,6 +1,15 @@
 # Shared MCP remount nudge — bump CDP_RELOAD_NUDGE only for named Cursor servers.
 # Global replace of every nudge key remounted BOTH seats on every hard sibling deploy (pre-0.5.661).
 # Dot-source from publish-and-deploy.ps1 / Recover-CdpSeatRemount.ps1.
+# Direct: pwsh -File CdpReloadNudge.ps1 -Server cdp|cdp-debug  (or -AllSeats escape).
+# Lived 2026-08-06: -File alone was a silent no-op (functions only) → Not connected until Invoke-.
+
+param(
+    [Alias('Seat')]
+    [string[]] $Server = @(),
+    [Alias('NudgeAllSeats')]
+    [switch] $AllSeats
+)
 
 function Resolve-CdpMcpServerName {
     param(
@@ -127,4 +136,16 @@ function Write-CdpRemountWakePending {
     }
     ($doc | ConvertTo-Json -Depth 4) | Set-Content -LiteralPath $path -Encoding utf8
     return @{ Ok = $true; Path = $path; Seat = $seatName }
+}
+
+# Entry when executed as -File (not when Recover/publish dot-source this library).
+if ($PSCommandPath -and $MyInvocation.MyCommand.Path -and
+    ([System.IO.Path]::GetFullPath($PSCommandPath) -eq [System.IO.Path]::GetFullPath($MyInvocation.MyCommand.Path))) {
+    $r = Invoke-CdpReloadNudge -Server $Server -AllSeats:$AllSeats
+    if (-not $r.Ok) {
+        Write-Error ($r.Error ?? 'nudge failed')
+        exit 1
+    }
+    Write-Output ("nudge ok · servers={0} · CDP_RELOAD_NUDGE={1}" -f (($r.Servers -join ','), $r.Value))
+    exit 0
 }
