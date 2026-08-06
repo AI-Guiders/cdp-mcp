@@ -132,11 +132,66 @@ public sealed class IdeWaveShipShieldTests
     }
 
     [Fact]
+    public void Repl_wave_shipped_joins_unquoted_evidence_path_with_spaces()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "cdp-wv-space-" + Guid.NewGuid().ToString("n"));
+        var domainDir = Path.Combine(dir, ".cdp", "domain");
+        Directory.CreateDirectory(domainDir);
+        var path = Path.Combine(dir, "active-wave.json");
+        var shotDir = Path.Combine(dir, "Personal Cursor Folder", "shots");
+        Directory.CreateDirectory(shotDir);
+        var png = Path.Combine(shotDir, "glass-wave.png");
+        File.WriteAllBytes(png, [0x89, 0x50, 0x4E, 0x47]);
+        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        File.WriteAllText(Path.Combine(domainDir, "glass.md"),
+            $"""
+            # glass
+            - id: `glass`
+            ## Invariants
+            - x
+            ## Entry
+            - x
+            ## Antipatterns
+            - x
+            ## last_ship
+            - {today} evidence path spaces
+            """);
+        var prev = IdeDomainPulse.DirOverrideForTests;
+        IdeDomainPulse.DirOverrideForTests = domainDir;
+        IdeWaveChannel.FilePathOverride = () => path;
+        try
+        {
+            SeedWave("share-glass-spaced-evidence", "a;b");
+            MarkDone("a");
+            MarkDone("b");
+
+            var applied = IdeRepl.Apply(
+                $"wave shipped evidence={png} domain=glass project_root={dir}",
+                new Dictionary<string, JsonElement>(StringComparer.Ordinal));
+            Assert.NotNull(applied);
+            var json = JsonSerializer.Serialize(applied!.Value.Direct);
+            Assert.DoesNotContain("human_face_cide_shot", json, StringComparison.Ordinal);
+            Assert.Contains("shipped", json, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("\"ok\":true", json.Replace(" ", ""), StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            IdeDomainPulse.DirOverrideForTests = prev;
+            IdeWaveChannel.FilePathOverride = null;
+            try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
+        }
+    }
+
+    [Fact]
     public void Feature_done_cide_refuses_without_teeth()
     {
         var dir = Path.Combine(Path.GetTempPath(), "cdp-wv-feat-" + Guid.NewGuid().ToString("n"));
         Directory.CreateDirectory(dir);
         var dbPath = Path.Combine(dir, "tm.witdb");
+        var wavePath = Path.Combine(dir, "active-wave.json");
+        // Isolate from live Autoi / peer BindAutonomous(true) — else half-a masks human_face.
+        IdeIgniteArmHost.BindAutonomous(false);
+        IdeWaveChannel.FilePathOverride = () => wavePath;
         try
         {
             var store = BootStore(dbPath);
@@ -154,6 +209,8 @@ public sealed class IdeWaveShipShieldTests
         }
         finally
         {
+            IdeIgniteArmHost.BindAutonomous(null);
+            IdeWaveChannel.FilePathOverride = null;
             try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
         }
     }

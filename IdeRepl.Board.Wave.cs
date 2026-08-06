@@ -151,7 +151,9 @@ internal static partial class IdeRepl
             args["title"] = JsonSerializer.SerializeToElement(title);
     }
 
-    /// <summary>Preserve cockpit evidence=/domain=/force= for wave shipped human-face teeth.</summary>
+    /// <summary>Preserve cockpit evidence=/domain=/force= for wave shipped human-face teeth.
+    /// Lived 2026-08-06: unquoted evidence path with spaces (Personal Cursor Folder) splits
+    /// into broken path then shield refuse. Join pathish values until next ship-key=.</summary>
     static void MergeWaveShipArgs(
         IReadOnlyList<string> tokens,
         int skip,
@@ -174,13 +176,46 @@ internal static partial class IdeRepl
                 args[key] = top.Clone();
         }
 
-        for (var i = skip; i < tokens.Count; i++)
+        for (var i = skip; i < tokens.Count;)
         {
             var t = tokens[i];
             var eq = t.IndexOf('=');
             if (eq <= 0)
+            {
+                i++;
                 continue;
-            args[t[..eq]] = JsonSerializer.SerializeToElement(t[(eq + 1)..].Trim().Trim('"'));
+            }
+
+            var key = t[..eq];
+            var value = t[(eq + 1)..].Trim().Trim('"').Trim('\'');
+            i++;
+            if (IsPathishWaveShipKey(key))
+            {
+                while (i < tokens.Count && !IsWaveShipKeyToken(tokens[i]))
+                {
+                    value = (value + " " + tokens[i]).Trim();
+                    i++;
+                }
+
+                value = value.Trim().Trim('"').Trim('\'');
+            }
+
+            args[key] = JsonSerializer.SerializeToElement(value);
         }
+    }
+
+    static bool IsPathishWaveShipKey(string key) =>
+        key is "evidence" or "shot_path" or "png" or "screenshot_path"
+            or "project_root" or "workspace_path";
+
+    static bool IsWaveShipKeyToken(string tok)
+    {
+        var eq = tok.IndexOf('=');
+        if (eq <= 0)
+            return false;
+        var key = tok[..eq];
+        return key is "evidence" or "shot_path" or "png" or "screenshot_path"
+            or "domain" or "stamp" or "domain_id" or "force"
+            or "project_root" or "workspace_path";
     }
 }
