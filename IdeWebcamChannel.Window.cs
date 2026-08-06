@@ -45,7 +45,14 @@ internal static partial class IdeWebcamChannel
         }
 
         if (!string.IsNullOrWhiteSpace(hwndArg) && TryParseHwnd(hwndArg, out var hwndFilter))
+        {
             windows = windows.Where(w => w.Hwnd == hwndFilter).ToList();
+            if (windows.Count == 0 && TryDescribeHwnd(hwndFilter, knownTitle: null, out var direct))
+                windows = [direct];
+        }
+
+        if (windows.Count == 0 && !string.IsNullOrWhiteSpace(processFilter))
+            windows = AppendProcessMainWindowMatches(windows, processFilter, titleFilter);
 
         if (listOnly)
         {

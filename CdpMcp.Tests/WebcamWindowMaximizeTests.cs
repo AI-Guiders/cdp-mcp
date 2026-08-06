@@ -34,6 +34,14 @@ public sealed class WebcamWindowMaximizeTests
     }
 
     [Fact]
+    public void Opt_coerces_json_number_hwnd()
+    {
+        // Face SoftOrgan: go_args hwnd=1510166 as Number must survive Opt → TryParseHwnd.
+        var args = Args(("hwnd", 1510166), ("op", "window_list"));
+        Assert.Equal("1510166", IdeWebcamChannel.OptForTests(args, "hwnd"));
+    }
+
+    [Fact]
     public void Scene_hint_mentions_maximize_peel()
     {
         var json = IdeWebcamChannel.HandleJson(
