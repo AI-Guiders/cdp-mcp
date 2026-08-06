@@ -36,10 +36,11 @@ internal static class IdeCidePresentationChannel
             mfd_page = latch?.MfdPage,
             origin = latch?.Origin,
             stamped_utc = latch?.StampedUtc,
-            hint = "set topology=(P)(F)(M) | tier=cockpit|compact|auto | pfd_primary=workspace_map | mfd_primary=solution_explorer_tree | mfd_page=SolutionExplorer. Not agent cdp_settings; no repo workspace.toml.",
+            hint = "set topology=(F/P/M) OneOf single window | topology=(P)(F)(M) three dedicated | tier=cockpit|compact|auto | pfd_primary=workspace_map | mfd_primary=solution_explorer_tree | mfd_page=SolutionExplorer. Not agent cdp_settings; no repo workspace.toml.",
             next = new object[]
             {
-                new { go = "cide_presentation_set", label = "Set topology", why = "topology=(P)(F)(M)" },
+                new { go = "cide_presentation_set", label = "OneOf All(/)", why = "topology=(F/P/M)" },
+                new { go = "cide_presentation_set", label = "Three dedicated", why = "topology=(P)(F)(M)" },
                 new { go = "cide_presentation_set", label = "Map on P", why = "pfd_primary=workspace_map" },
                 new { go = "cide_presentation_set", label = "SE on M", why = "mfd_primary=solution_explorer_tree mfd_page=SolutionExplorer" },
                 new { go = "cide_presentation", label = "Scene", why = "op=scene" }
