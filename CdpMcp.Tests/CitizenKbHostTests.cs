@@ -552,6 +552,29 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_man_wrong_facet_tips_unknown_with_homes()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        try
+        {
+            var route = CitizenIntentRouter.RouteOne("kb facet=world man");
+            Assert.False(route.Ok);
+            Assert.Equal("kb_tool_unknown", route.Reason);
+            Assert.Equal("man", route.Op);
+            Assert.Equal(Cdp.Core.CdpDomains.MemoryWorld, route.Server);
+            var applied = CitizenRouteHost.Execute([route]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Contains("man unknown", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("facet=task|finding|failure", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;

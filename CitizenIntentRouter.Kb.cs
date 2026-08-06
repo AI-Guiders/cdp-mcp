@@ -54,7 +54,8 @@ internal static partial class CitizenIntentRouter
             facet = Cdp.Core.CdpDomains.MemoryTask;
 
         if (!IsKbToolForFacet(tool, facet))
-            return new Route(Verb.Unknown, raw, Ok: false, Reason: "kb_tool_unknown");
+            // Keep Op/Server so host can tip pulse (pulse=null → SoftFL invent "missing tool").
+            return new Route(Verb.Unknown, raw, Ok: false, Op: tool, Server: facet, Go: "kb", Reason: "kb_tool_unknown");
 
         if (tool is "get_process" && string.IsNullOrWhiteSpace(ExtractKeyedValue(work, "process_id")))
             return new Route(Verb.Kb, raw, Ok: false, Op: tool, Server: facet, Go: "kb", Reason: "kb_process_id_required");
