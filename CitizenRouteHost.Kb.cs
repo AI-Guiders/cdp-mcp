@@ -210,6 +210,7 @@ internal static partial class CitizenRouteHost
             AppendKbHealthBits(root, bits);
             AppendKbFileListHits(root, bits);
             AppendKbTagHits(root, bits);
+            AppendKbHotContextBits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -424,6 +425,38 @@ internal static partial class CitizenRouteHost
             pathN++;
         }
     }
+
+    /// <summary>AN read_hot_context JSON — surface scope + loaded section ids + content chars (not body dump) so FM does not SoftFL-invent after bare tool pulse.</summary>
+    static void AppendKbHotContextBits(JsonElement root, List<string> bits)
+    {
+        if (root.TryGetProperty("active_scope", out var scope) && scope.ValueKind == JsonValueKind.String
+            && scope.GetString() is { Length: > 0 } s)
+        {
+            var one = s.Length > 32 ? s[..32] + "…" : s;
+            bits.Add("scope=" + one);
+        }
+
+        if (root.TryGetProperty("loaded_sections", out var loaded) && loaded.ValueKind == JsonValueKind.Array)
+        {
+            bits.Add(loaded.GetArrayLength() + " section(s)");
+            var hitN = 0;
+            foreach (var m in loaded.EnumerateArray())
+            {
+                if (hitN >= 2)
+                    break;
+                if (m.ValueKind != JsonValueKind.String || m.GetString() is not { Length: > 0 } id)
+                    continue;
+                var one = id.Length > 40 ? id[..40] + "…" : id;
+                bits.Add("#" + (hitN + 1) + " " + one);
+                hitN++;
+            }
+        }
+
+        if (root.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String
+            && content.GetString() is { } body)
+            bits.Add("chars=" + body.Length);
+    }
+
 
 
 }
