@@ -51,8 +51,8 @@ internal static partial class CitizenRouteHost
                         Ok: false,
                         Action: "kb",
                         Go: "kb",
-                        Pulse: TruncPulse("kb " + facet + " " + tool + " need cdp_open"),
-                        Reason: "kb_workspace_required · cdp_open");
+                        Pulse: TruncPulse("kb " + facet + " " + tool + " need project path="),
+                        Reason: "kb_workspace_required · project");
                 }
 
                 if (tool is "route_context" && !HasKbStringArg(callArgs, "query"))
@@ -110,12 +110,11 @@ internal static partial class CitizenRouteHost
         }
     }
 
+    /// <summary>Act/mutate tools need project workspace. Dig (search/findings/failures*) — no gate (Sierra dialog 2026-08-06).</summary>
     static bool NeedsKbWorkspace(string tool) =>
         tool is "route_next" or "route_context" or "ensure_store" or "tasks" or "task_upsert"
             or "read_card" or "write_card" or "upsert_section" or "analytics_upsert"
-            or "search_agent_notes" or "upsert_agent_notes_section"
-            or "findings" or "finding_record" or "finding_check"
-            or "failures" or "failure_record";
+            or "upsert_agent_notes_section";
 
     static bool HasKbWorkspace(IReadOnlyDictionary<string, JsonElement> args) =>
         args.TryGetValue("workspace_path", out var el)
@@ -153,7 +152,7 @@ internal static partial class CitizenRouteHost
         };
     }
 
-    /// <summary>Honest fail tip — do not SoftFL-invent <c>need cdp_open</c> for every ArgumentException.</summary>
+    /// <summary>Honest fail tip — do not SoftFL-invent <c>need project path=</c> for every ArgumentException.</summary>
     static string TipKbArgException(Exception ex, out string reason)
     {
         reason = ex.GetType().Name + ": " + ex.Message;
@@ -164,8 +163,8 @@ internal static partial class CitizenRouteHost
 
         if (ex.Message.Contains("workspace_path", StringComparison.OrdinalIgnoreCase))
         {
-            reason = "kb_workspace_required · cdp_open";
-            return "need cdp_open";
+            reason = "kb_workspace_required · project";
+            return "need project path=";
         }
 
         // "task_id is required." / "content is required." / "path is required when…"
@@ -337,7 +336,7 @@ internal static partial class CitizenRouteHost
         }
         catch
         {
-            // Missing knowledge file → empty body (not SoftFL-invent content / need cdp_open).
+            // Missing knowledge file → empty body (not SoftFL-invent content / need project path=).
             if (tool is "read_knowledge_file" && string.IsNullOrWhiteSpace(json))
                 return TruncPulse("kb " + facet + " " + tool + " missing");
 

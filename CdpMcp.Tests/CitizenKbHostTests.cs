@@ -194,7 +194,7 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
-    public void Execute_kb_route_next_without_workspace_tips_cdp_open()
+    public void Execute_kb_route_next_without_workspace_tips_project()
     {
         CitizenRouteHost.UnbindLifecycle();
         CitizenRouteHost.SessionResolver = () => new SessionContext();
@@ -208,8 +208,33 @@ public sealed class CitizenKbHostTests
                 [CitizenIntentRouter.RouteOne("kb facet=task route_next")]);
             Assert.Single(applied);
             Assert.False(applied[0].Ok);
-            Assert.Equal("kb_workspace_required · cdp_open", applied[0].Reason);
-            Assert.Contains("need cdp_open", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Equal("kb_workspace_required · project", applied[0].Reason);
+            Assert.Contains("need project path=", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_kb_search_without_workspace_does_not_gate_project()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.SessionResolver = () => new SessionContext();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("search_agent_notes", tool);
+            return Task.FromResult("{\"ok\":true,\"query\":\"SoftFL\",\"matches\":[]}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=session search_agent_notes q=SoftFL")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.DoesNotContain("need project path=", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("search_agent_notes", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
         {
@@ -392,7 +417,7 @@ public sealed class CitizenKbHostTests
             Assert.False(applied[0].Ok);
             Assert.Equal("query is required", applied[0].Reason);
             Assert.Contains("need query=", applied[0].Pulse, StringComparison.Ordinal);
-            Assert.DoesNotContain("need cdp_open", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.DoesNotContain("need project path=", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
         {
