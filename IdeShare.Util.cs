@@ -12,6 +12,70 @@ internal static partial class IdeShare
     /// <summary>
     /// Operator inbox: <c>.cdp/share</c>. Agent shelf: <c>.cdp/share-self</c>.
     /// </summary>
+    /// <summary>
+    /// Operator delivery inboxes: habitat <c>%LocalAppData%/cdp-mcp/share</c> always
+    /// (Glass FDS / human face), plus project <c>.cdp/share</c> when bound.
+    /// <paramref name="dirOverride"/> collapses to a single explicit inbox (tests).
+    /// </summary>
+    public static IReadOnlyList<string> ResolveOperatorInboxes(string? projectRoot, string? dirOverride = null)
+    {
+        if (!string.IsNullOrWhiteSpace(dirOverride))
+            return new[] { Path.GetFullPath(dirOverride) };
+
+        var habitat = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "cdp-mcp",
+            "share");
+        if (string.IsNullOrWhiteSpace(projectRoot))
+            return new[] { habitat };
+
+        var project = Path.GetFullPath(Path.Combine(projectRoot.Trim(), ".cdp", "share"));
+        if (string.Equals(project, habitat, StringComparison.OrdinalIgnoreCase))
+            return new[] { habitat };
+        return new[] { habitat, project };
+    }
+
+    /// <summary>Write body + LATEST.md + LATEST.json into every operator inbox. Primary = habitat (Glass face).</summary>
+    public static (string Path, string LatestMd, string LatestJson, string Inbox) WriteOperatorShareFiles(
+        string? projectRoot,
+        string? dirOverride,
+        string fileName,
+        string body,
+        Func<string, object> metaForPath,
+        string? latestExt = null)
+    {
+        string? primaryPath = null;
+        string? latestMd = null;
+        string? latestJson = null;
+        string? inbox = null;
+
+        foreach (var dir in ResolveOperatorInboxes(projectRoot, dirOverride))
+        {
+            Directory.CreateDirectory(dir);
+            var path = Path.Combine(dir, fileName);
+            File.WriteAllText(path, body, Encoding.UTF8);
+
+            var md = Path.Combine(dir, "LATEST.md");
+            File.Copy(path, md, overwrite: true);
+            if (!string.IsNullOrEmpty(latestExt)
+                && !string.Equals(latestExt, ".md", StringComparison.OrdinalIgnoreCase))
+            {
+                var typed = Path.Combine(dir, "LATEST" + latestExt);
+                File.Copy(path, typed, overwrite: true);
+            }
+
+            var json = Path.Combine(dir, "LATEST.json");
+            File.WriteAllText(json, JsonSerializer.Serialize(metaForPath(path), Pretty), Encoding.UTF8);
+
+            primaryPath ??= path;
+            latestMd ??= md;
+            latestJson ??= json;
+            inbox ??= dir;
+        }
+
+        return (primaryPath!, latestMd!, latestJson!, inbox!);
+    }
+
     public static string ResolveShareInbox(string? projectRoot, string? dirOverride, string? with = null)
     {
         if (!string.IsNullOrWhiteSpace(dirOverride))

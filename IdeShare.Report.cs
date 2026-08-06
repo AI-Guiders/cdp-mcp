@@ -26,33 +26,32 @@ internal static partial class IdeShare
                       ?? "(no feature)";
         var bodyMd = RenderReportMarkdown(feature, snap, board, notes, projectRoot, sessionPhase);
 
-        var dir = ResolveShareInbox(projectRoot, dirOverride);
-        Directory.CreateDirectory(dir);
-
         var stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
         var shareId = Guid.NewGuid().ToString("N")[..12];
         var fileName = $"report-{stamp}-{Slug(feature)}.md";
-        var path = Path.Combine(dir, fileName);
-        File.WriteAllText(path, bodyMd, Encoding.UTF8);
-
-        var latest = Path.Combine(dir, "LATEST.md");
-        File.Copy(path, latest, overwrite: true);
-        var latestJson = Path.Combine(dir, "LATEST.json");
-        var meta = new
-        {
-            schema = SchemaVersion,
-            share_id = shareId,
-            with = "operator",
-            what = "report",
-            ask = "none",
-            status = "shared",
-            path,
-            feature,
-            lines = CountLines(bodyMd),
-            chars = bodyMd.Length,
-            shared_utc = DateTime.UtcNow
-        };
-        File.WriteAllText(latestJson, JsonSerializer.Serialize(meta, Pretty), Encoding.UTF8);
+        var written = WriteOperatorShareFiles(
+            projectRoot,
+            dirOverride,
+            fileName,
+            bodyMd,
+            p => new
+            {
+                schema = SchemaVersion,
+                share_id = shareId,
+                with = "operator",
+                what = "report",
+                ask = "none",
+                status = "shared",
+                path = p,
+                feature,
+                lines = CountLines(bodyMd),
+                chars = bodyMd.Length,
+                shared_utc = DateTime.UtcNow
+            });
+        var path = written.Path;
+        var latest = written.LatestMd;
+        var latestJson = written.LatestJson;
+        var dir = written.Inbox;
 
         return new
         {

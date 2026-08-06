@@ -142,4 +142,60 @@ public sealed class IdeShareTests
         Assert.True(applied.Value.Args.TryGetValue("tm_op", out var tm));
         Assert.Equal("report", tm.GetString());
     }
+
+    [Fact]
+    public void ResolveOperatorInboxes_habitat_then_project()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "cdp-op-inboxes-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(root);
+            var list = IdeShare.ResolveOperatorInboxes(root);
+            Assert.Equal(2, list.Count);
+            Assert.Contains(Path.Combine("cdp-mcp", "share"), list[0], StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(Path.Combine(root, ".cdp", "share"), list[1]);
+        }
+        finally
+        {
+            try { Directory.Delete(root, recursive: true); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
+    public void WriteOperatorShareFiles_mirrors_project_inbox()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "cdp-op-write-" + Guid.NewGuid().ToString("N"));
+        var stampName = "note-axb-" + Guid.NewGuid().ToString("N")[..8] + ".md";
+        try
+        {
+            Directory.CreateDirectory(root);
+            var written = IdeShare.WriteOperatorShareFiles(
+                root,
+                dirOverride: null,
+                fileName: stampName,
+                body: "# hello operator\n",
+                metaForPath: p => new { schema = "share/v1", path = p, with = "operator", status = "shared" });
+            Assert.True(File.Exists(written.Path));
+            Assert.True(File.Exists(written.LatestJson));
+            Assert.Contains("cdp-mcp", written.Inbox, StringComparison.OrdinalIgnoreCase);
+            var projectLatest = Path.Combine(root, ".cdp", "share", "LATEST.json");
+            Assert.True(File.Exists(projectLatest), "project .cdp/share must mirror");
+            using var doc = JsonDocument.Parse(File.ReadAllText(projectLatest));
+            Assert.Equal("share/v1", doc.RootElement.GetProperty("schema").GetString());
+        }
+        finally
+        {
+            try { Directory.Delete(root, recursive: true); } catch { /* ignore */ }
+            try
+            {
+                var habitatShare = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "cdp-mcp", "share");
+                var junk = Path.Combine(habitatShare, stampName);
+                if (File.Exists(junk)) File.Delete(junk);
+                // leave LATEST.* — live dogfood may overwrite next
+            }
+            catch { /* ignore */ }
+        }
+    }
 }
