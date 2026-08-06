@@ -26,6 +26,7 @@
 ## Antipatterns
 
 - `StageEventsForStage` empty → `AsEnumerable()` full-table on large WitDB (lived 2026-08-05: `go_detail=full` / mid-turn Connection closed ~172MB). Prefer server Where; escape = SQL `StageId` filter — never load-all.
+- `IntentHasStageProduct` → `AsEnumerable()` after IntentId filter (same lived thrash class; #CIDE `feature_done` shield path). Keep `Any` in SQL — never materialize stages for case-fold.
 - **BuildBoard ×3 per CallTool** — Handle + CollectWork/PulseLine + PublishGlass each rebuilt board (3× TaskManagerSnapshot / WithDb on ~165MB WitDB → ~20–36s `timeout_wake`). ThreadStatic board cache + Invalidate on mutation (lived 2026-08-05).
 - **PublishGlass extra snapshot + all-Stages load** — after board-cache, PublishGlass still called `TaskManagerSnapshot` again; snapshot loaded every Stage row. Fix: glass uses Board titles; stages filtered to ActiveIntentId (lived 2026-08-05 residual).
 - Glass form roundtrip for operator remarks when dialog + TM stamp already carry the remark.
@@ -40,6 +41,7 @@
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
+- **2026-08-06 StageProduct dig-safe** — `IntentHasStageProduct` never `AsEnumerable`: SQL `Any` + `ToUpper` (NormalizeProduct want). Same lived thrash class as StageEvents Connection closed. Dig: StageProduct.cs leftover after StageEvents fix; #CIDE feature_done shield path. Tests StageProductTests (IntentHasStageProduct_matches_without_materialize). Wave FullReady-product-dig-next.
 - **2026-08-06 wave shipped teeth** — `IdeWaveShipShield` + `IdeSeemingDoneShield`: pending items refuse; human-faced wave/feature needs evidence PNG + fresh domain stamp; REPL preserves evidence=/domain=. Tests IdeWaveShipShieldTests. Being ≠ seeming habitat enforce.
 - **2026-08-05 residual first-snapshot** — PublishGlass no second `TaskManagerSnapshot` (Board.ActiveFeature/StageTitle); `TaskManagerSnapshot` loads Stages only for ActiveIntentId. Test PublishGlass cache-hit. SoftFL BuildBoard lines REJECT.
 - **2026-08-05 Board cache pulse-tax** — ThreadStatic `BuildBoard` reuse (intent/stage/phase keys) + `InvalidateBoardCache` on mutation; Handle/PulseLine/PublishGlass share one WitDB snapshot. Test IdeTaskManagerBoardCacheTests. Dogfood: `go=plan` pulse no `timeout_wake` (was ~20–36s). Dual hard deploy build_utc=15:34:18Z. SoftFL method_lines BuildBoard REJECT.
