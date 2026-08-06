@@ -175,9 +175,16 @@ internal static partial class CitizenRouteHost
         if (ex.Message.Contains("analytics_id", StringComparison.OrdinalIgnoreCase))
             return "need analytics_id=";
 
-        // finding_check — "path is required" (not relative_path / workspace_path).
+        if (ex.Message.Contains("section_id", StringComparison.OrdinalIgnoreCase))
+            return "need section_id=";
+
+        // finding_check / finding_record — "path is required" (not relative_path / workspace_path).
         if (ex.Message.Contains("path is required", StringComparison.OrdinalIgnoreCase))
             return "need path=";
+
+        // failure_record — "tool is required".
+        if (ex.Message.Contains("tool is required", StringComparison.OrdinalIgnoreCase))
+            return "need tool=";
 
         return "failed";
     }

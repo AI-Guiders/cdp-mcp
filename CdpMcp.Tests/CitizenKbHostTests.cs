@@ -680,6 +680,60 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_upsert_section_notes_without_id_tips_section_id()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.SessionResolver = () => new SessionContext
+        {
+            ProjectRoot = @"D:\Experiments\agent-notes",
+        };
+        CitizenRouteHost.ByDomainResolver = () => new Dictionary<string, ICdpBackendModule>(StringComparer.Ordinal)
+        {
+            [Cdp.Core.CdpDomains.MemorySession] = new ThrowingArgKbModule(
+                Cdp.Core.CdpDomains.MemorySession, "section_id is required."),
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=session upsert_agent_notes_section")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Contains("need section_id=", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_kb_failure_record_without_tool_tips_tool()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.SessionResolver = () => new SessionContext
+        {
+            ProjectRoot = @"D:\Experiments\agent-notes",
+        };
+        CitizenRouteHost.ByDomainResolver = () => new Dictionary<string, ICdpBackendModule>(StringComparer.Ordinal)
+        {
+            [Cdp.Core.CdpDomains.MemorySelfFailure] = new ThrowingArgKbModule(
+                Cdp.Core.CdpDomains.MemorySelfFailure, "tool is required."),
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=failure failure_record")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Contains("need tool=", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;
