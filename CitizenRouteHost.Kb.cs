@@ -43,6 +43,18 @@ internal static partial class CitizenRouteHost
                 if (session is not null && MemorySessionDefaults.IsMemoryDomain(facet))
                     callArgs = MemorySessionDefaults.WithWorkspace(args, session);
 
+                if (NeedsKbWorkspace(tool) && !HasKbWorkspace(callArgs))
+                {
+                    return new Applied(
+                        route.Raw,
+                        route.Verb.ToString(),
+                        Ok: false,
+                        Action: "kb",
+                        Go: "kb",
+                        Pulse: TruncPulse("kb " + facet + " " + tool + " need cdp_open"),
+                        Reason: "kb_workspace_required · cdp_open");
+                }
+
                 json = backend.CallAsync(tool, callArgs)
                     .ConfigureAwait(false)
                     .GetAwaiter()
@@ -62,15 +74,35 @@ internal static partial class CitizenRouteHost
         }
         catch (Exception ex)
         {
+            var reason = ex.GetType().Name + ": " + ex.Message;
+            if (ex is ArgumentException
+                && ex.Message.Contains("workspace_path", StringComparison.OrdinalIgnoreCase))
+            {
+                reason = "kb_workspace_required · cdp_open";
+            }
+
             return new Applied(
                 route.Raw,
                 route.Verb.ToString(),
                 Ok: false,
                 Action: "kb",
                 Go: "kb",
-                Reason: ex.GetType().Name + ": " + ex.Message);
+                Pulse: TruncPulse("kb " + facet + " " + tool + " need cdp_open"),
+                Reason: reason);
         }
     }
+
+    static bool NeedsKbWorkspace(string tool) =>
+        tool is "route_next" or "ensure_store" or "tasks" or "task_upsert"
+            or "read_card" or "write_card" or "upsert_section" or "analytics_upsert"
+            or "search_agent_notes" or "upsert_agent_notes_section"
+            or "findings" or "finding_record" or "finding_check"
+            or "failures" or "failure_record";
+
+    static bool HasKbWorkspace(IReadOnlyDictionary<string, JsonElement> args) =>
+        args.TryGetValue("workspace_path", out var el)
+        && el.ValueKind == JsonValueKind.String
+        && el.GetString() is { Length: > 0 };
 
     /// <summary>
     /// AN <c>read_knowledge_file</c> returns raw markdown (not lifecycle JSON).
@@ -173,6 +205,7 @@ internal static partial class CitizenRouteHost
                 && err.GetString() is { Length: > 0 } e)
                 bits.Add(TruncPulse(e) ?? e);
             AppendKbSearchHits(root, bits);
+            AppendKbNextHits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -215,6 +248,34 @@ internal static partial class CitizenRouteHost
                 hit = hitTitle.GetString();
             else if (m.TryGetProperty("path", out var hitPath) && hitPath.ValueKind == JsonValueKind.String)
                 hit = hitPath.GetString();
+            if (hit is not { Length: > 0 })
+                continue;
+            var one = hit.Replace('\r', ' ').Replace('\n', ' ').Trim();
+            if (one.Length > 40)
+                one = one[..40] + "…";
+            bits.Add("#" + (hitN + 1) + " " + one);
+            hitN++;
+        }
+    }
+
+    /// <summary>TaskKnowledge route_next JSON — surface top toBe/title so FM does not SoftFL-invent after thin count pulse.</summary>
+    static void AppendKbNextHits(JsonElement root, List<string> bits)
+    {
+        if (!root.TryGetProperty("next", out var next) || next.ValueKind != JsonValueKind.Array)
+            return;
+
+        var hitN = 0;
+        foreach (var m in next.EnumerateArray())
+        {
+            if (hitN >= 2)
+                break;
+            string? hit = null;
+            if (m.TryGetProperty("toBe", out var toBe) && toBe.ValueKind == JsonValueKind.String)
+                hit = toBe.GetString();
+            else if (m.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String)
+                hit = title.GetString();
+            else if (m.TryGetProperty("taskId", out var id) && id.ValueKind == JsonValueKind.String)
+                hit = id.GetString();
             if (hit is not { Length: > 0 })
                 continue;
             var one = hit.Replace('\r', ' ').Replace('\n', ' ').Trim();

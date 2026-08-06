@@ -1,5 +1,6 @@
 #nullable enable
 using System.Text.Json;
+using Cdp.Core;
 using Xunit;
 
 namespace CdpMcp.Tests;
@@ -165,5 +166,65 @@ public sealed class CitizenKbHostTests
         {
             CitizenRouteHost.UnbindLifecycle();
         }
+    }
+
+    [Fact]
+    public void Execute_kb_route_next_pulse_includes_toBe()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("route_next", tool);
+            return Task.FromResult(
+                "{\"count\":2,\"next\":[{\"taskId\":\"t1\",\"title\":\"Thin\",\"toBe\":\"Surface next toBe in pulse\"},{\"taskId\":\"t2\",\"title\":\"Also\",\"toBe\":\"Keep SoftFL invent REJECT\"}]}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=task route_next")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("2 hit(s)", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("Surface next toBe", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_kb_route_next_without_workspace_tips_cdp_open()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.SessionResolver = () => new SessionContext();
+        CitizenRouteHost.ByDomainResolver = () => new Dictionary<string, ICdpBackendModule>(StringComparer.Ordinal)
+        {
+            [Cdp.Core.CdpDomains.MemoryTask] = new FakeKbModule(),
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=task route_next")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Equal("kb_workspace_required · cdp_open", applied[0].Reason);
+            Assert.Contains("need cdp_open", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    sealed class FakeKbModule : ICdpBackendModule
+    {
+        public string Domain => Cdp.Core.CdpDomains.MemoryTask;
+        public bool IsEnabled => true;
+        public string HealthSummary => "fake-kb";
+        public IReadOnlyList<ToolAffordance> Affordances => [];
+
+        public ValueTask<string> CallAsync(string tool, IReadOnlyDictionary<string, JsonElement> args) =>
+            throw new InvalidOperationException("backend should not run without workspace");
     }
 }

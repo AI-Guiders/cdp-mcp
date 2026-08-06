@@ -71,6 +71,7 @@ internal static partial class CitizenPersona
           @intent pressure
           @intent ignite
           @intent kb list_pack pack_id=epistemic-scene
+          @intent kb list_pack pack_id=agent-operations-cdp
           @intent kb read_knowledge_file file_path=META/integrity-core.md
           @intent kb read_knowledge_file file_path=SHOWCASE.md
           @intent kb facet=skill list_pack
@@ -80,6 +81,7 @@ internal static partial class CitizenPersona
           @intent memory_self_failure failures
           @intent memory_task route_next
           @intent domain card=id=citizen
+        pack_id=epistemic-scene|agent-operations-cdp; hub "." = knowledge files (SHOWCASE), not a pack.
         Prefer SoftOrgan verbs the operator named over mcp/shell teach-set leftovers; kb/memory_* are first-class when knowledge dig is named.
         Do not invent Russian stand-ins for intents.
 
