@@ -92,7 +92,8 @@ internal static partial class CideIntercomVoiceLatch
             if (!AppendJournal(doc))
                 return null;
             // Explicit name= / as= claims sticky Who (agent-line). Bootstrap defaults do not.
-            if (explicitName)
+            // Autoi remount/wake Publishes name=AutoI — must NOT stomp citizen Who (Sierra).
+            if (explicitName && !IsSystemVoiceWho(resolvedName))
                 _ = CideIntercomIdentityLatch.Claim(
                     from,
                     resolvedName,
