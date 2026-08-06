@@ -294,6 +294,31 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_list_knowledge_files_pulse_includes_paths()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("list_knowledge_files", tool);
+            return Task.FromResult(
+                "{\"path\":\"/kb\",\"total\":2,\"files\":[{\"path\":\"projects/a.md\",\"size_bytes\":10},{\"path\":\"META/b.md\",\"size_bytes\":20}]}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=project list_knowledge_files")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("2 file(s)", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("projects/a.md", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;
