@@ -28,6 +28,7 @@
 
 ## last_ship
 
+- **2026-08-06 Dig Flight durable SoftFirst DIG REJECT** — dig-lived: SoftFirst Recover + flight-durable remount survive already SHIPPED/VERIFY (ops SoftFirst dual-seat dogfood · glass flight-durable 2026-08-05 · CdpReloadNudge -File entry). Cabin Glass **pid=37464** still up since 11:58 through SoftFirst remounts this epic · health 0.5.675 lag=false. Reopen SoftFirst invent = thrash chrome. Evidence `cascade-ide/tmp-glass-shots/softfirst-flight-digreject-20260806-1630.png` + `cdp_see`. SoftFL REJECT.
 - **2026-08-06 CdpReloadNudge -File entry** — lived: mid-turn Not connected after Recover; `pwsh -File CdpReloadNudge.ps1 -Server cdp` did nothing (functions only) until `.` + `Invoke-`. Entry now bumps named seat. SoftFL REJECT.
 - **2026-08-06b dotsource gate** — Path-equality aborted Recover (empty Server + exit); `InvocationName -ne '.'` + SoftFirst Recover dogfood.
 - **2026-08-06 dual-seat real hard 0.5.675** — lived: `-Target debug` seeming ship left `D:\cdp-mcp-debug` on **0.5.674** · hard absolute Target → lag=false self+sib **0.5.675** · wave FullReady-dualagent-sibling · SoftFL REJECT.
