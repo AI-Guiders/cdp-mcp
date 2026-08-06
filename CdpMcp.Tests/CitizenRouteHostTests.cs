@@ -235,4 +235,42 @@ public sealed partial class CitizenRouteHostTests
         Assert.Equal(System.Text.Json.JsonValueKind.Null, executed.ValueKind);
     }
 
+    [Fact]
+    public void Channel_live_user_intent_fallback_when_fm_invents_frame()
+    {
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        var payload = """
+            {"choices":[{"message":{"role":"assistant","content":"@frame health v0\nstatus | ok\npeer | gen=1\n"}}]}
+            """;
+        CitizenCompletions.TestOpenAiApiKey = "sk-cloud-ru-test-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        CitizenCompletions.TestHandler = new StubHandler(System.Net.HttpStatusCode.OK, payload);
+        CitizenCompletions.ResetHttpForTests();
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse("""
+                {"op":"turn","message":"@intent go=plan","inject":false}
+                """);
+            var args = doc.RootElement.EnumerateObject()
+                .ToDictionary(p => p.Name, p => p.Value.Clone(), StringComparer.OrdinalIgnoreCase);
+            var json = IdeCitizenChannel.HandleJson(args);
+            using var outDoc = System.Text.Json.JsonDocument.Parse(json);
+            Assert.True(outDoc.RootElement.GetProperty("ok").GetBoolean());
+            Assert.False(outDoc.RootElement.GetProperty("dry_run").GetBoolean());
+            Assert.True(outDoc.RootElement.GetProperty("execute").GetBoolean());
+            Assert.Equal("plan", outDoc.RootElement.GetProperty("routes")[0].GetProperty("go").GetString());
+            var executed = outDoc.RootElement.GetProperty("executed");
+            Assert.Equal(System.Text.Json.JsonValueKind.Array, executed.ValueKind);
+            Assert.True(executed[0].GetProperty("ok").GetBoolean());
+            Assert.Equal("place", executed[0].GetProperty("action").GetString());
+        }
+        finally
+        {
+            CitizenCompletions.TestHandler = null;
+            CitizenCompletions.TestOpenAiApiKey = null;
+            CitizenCompletions.TestOpenAiBaseUrl = null;
+            CitizenCompletions.ResetHttpForTests();
+        }
+    }
+
 }

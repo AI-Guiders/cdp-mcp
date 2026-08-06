@@ -289,9 +289,13 @@ internal static partial class IdeCitizenChannel
         IReadOnlyList<CitizenIntentRouter.Route>? routes = result.Routes;
         if (execute && result.Ok)
         {
-            // dry_run has no provider text — allow host dogfood from user @intent lines.
-            if ((routes is null || routes.Count == 0) && dryRun)
-                routes = CitizenIntentRouter.RouteAll(CitizenWireParser.Parse(message!));
+            // Provider may invent @frame instead of @intent (Sierra seeming) — host-execute user @intent when model routes empty.
+            if (routes is null || routes.Count == 0)
+            {
+                var userRoutes = CitizenIntentRouter.RouteAll(CitizenWireParser.Parse(message!));
+                if (userRoutes.Count > 0)
+                    routes = userRoutes;
+            }
             if (routes is { Count: > 0 })
             {
                 executed = CitizenRouteHost.Execute(routes);
