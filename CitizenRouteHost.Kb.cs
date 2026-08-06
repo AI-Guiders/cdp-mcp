@@ -151,15 +151,15 @@ internal static partial class CitizenRouteHost
 
 
     /// <summary>
-    /// AN <c>read_knowledge_file</c> returns raw markdown (not lifecycle JSON).
-    /// Missing file → empty string → fail; non-empty body → ok.
+    /// AN <c>read_knowledge_file</c> / facet <c>man</c> return raw text (not lifecycle JSON).
+    /// Missing → empty string → fail; non-empty body → ok.
     /// </summary>
     static bool TryReadKbOk(string json, string tool)
     {
         if (TryReadLifecycleOk(json))
             return true;
 
-        if (tool is not ("read_knowledge_file" or "list_knowledge_files"))
+        if (tool is not ("read_knowledge_file" or "list_knowledge_files" or "man"))
             return false;
 
         if (string.IsNullOrWhiteSpace(json))
@@ -265,8 +265,8 @@ internal static partial class CitizenRouteHost
         }
         catch
         {
-            // Raw markdown from read_knowledge_file — short preview, not silent parse fail.
-            if (tool is "read_knowledge_file" && !string.IsNullOrWhiteSpace(json))
+            // Raw text from read_knowledge_file / facet man — short preview, not silent parse fail.
+            if ((tool is "read_knowledge_file" or "man") && !string.IsNullOrWhiteSpace(json))
             {
                 var one = json.Replace('\r', ' ').Replace('\n', ' ').Trim();
                 if (one.Length > 72)
