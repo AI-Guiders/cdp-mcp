@@ -42,6 +42,9 @@ internal static partial class CitizenIntentRouter
             return RouteKb(raw);
         }
 
+        if (TryRewriteMemoryDomainAlias(raw, out var memoryKb))
+            return RouteKb(memoryKb);
+
         if (raw.Equals("hci", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("hci ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("hci tool=", StringComparison.OrdinalIgnoreCase)

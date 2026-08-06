@@ -4,7 +4,7 @@ using Cdp.Core;
 
 namespace CdpMcp;
 
-/// <summary>Citizen @intent kb — sync CallAsync on memory_world|memory_skill (agent-notes in-proc).</summary>
+/// <summary>Citizen @intent kb|memory_* — sync CallAsync on memory facets (agent-notes / findings / failures / task).</summary>
 internal static partial class CitizenRouteHost
 {
     /// <summary>Tests: inject fake backend JSON; live uses <see cref="ByDomainResolver"/>.</summary>
@@ -38,7 +38,12 @@ internal static partial class CitizenRouteHost
                         Reason: "kb_facet_disabled:" + facet);
                 }
 
-                json = backend.CallAsync(tool, args)
+                IReadOnlyDictionary<string, JsonElement> callArgs = args;
+                var session = SessionResolver?.Invoke();
+                if (session is not null && MemorySessionDefaults.IsMemoryDomain(facet))
+                    callArgs = MemorySessionDefaults.WithWorkspace(args, session);
+
+                json = backend.CallAsync(tool, callArgs)
                     .ConfigureAwait(false)
                     .GetAwaiter()
                     .GetResult();
@@ -87,7 +92,8 @@ internal static partial class CitizenRouteHost
         if (tool is "get_definition" && !args.ContainsKey("definition_id"))
             args["definition_id"] = JsonSerializer.SerializeToElement("debug-radius");
 
-        if ((tool is "get_definition" or "list_pack" or "get_process" or "get_procedure" or "radius_gate_check")
+        if (IsNotesFacet(facet)
+            && (tool is "get_definition" or "list_pack" or "get_process" or "get_procedure" or "radius_gate_check")
             && !args.ContainsKey("pack_id") && !args.ContainsKey("pack_path"))
         {
             args["pack_id"] = JsonSerializer.SerializeToElement(
@@ -99,11 +105,17 @@ internal static partial class CitizenRouteHost
         return args;
     }
 
+    static bool IsNotesFacet(string facet) =>
+        // Project roots rarely share world pack ids — do not silent-inject epistemic-scene.
+        facet is CdpDomains.MemoryWorld or CdpDomains.MemorySkill;
+
     static readonly string[] KbArgKeys =
     [
         "pack_id", "pack_path", "definition_id", "process_id", "procedure_id",
         "file_path", "subdir", "path", "claim", "delta_radius",
-        "radius_before", "radius_after"
+        "radius_before", "radius_after", "workspace_path", "query", "q",
+        "task_id", "relative_path", "section_id", "content", "status",
+        "limit", "title", "summary", "tool", "error_or_miss"
     ];
 
     static string? TryReadKbPulse(string json, string facet, string tool)
@@ -118,23 +130,23 @@ internal static partial class CitizenRouteHost
             if (root.TryGetProperty("definition_id", out var d) && d.ValueKind == JsonValueKind.String
                 && d.GetString() is { Length: > 0 } def)
                 bits.Add(def);
-            if (root.TryGetProperty("process_id", out var p) && p.ValueKind == JsonValueKind.String
-                && p.GetString() is { Length: > 0 } proc)
-                bits.Add(proc);
-            else if (root.TryGetProperty("process", out var procObj)
-                && procObj.ValueKind == JsonValueKind.Object
-                && procObj.TryGetProperty("id", out var pid)
-                && pid.GetString() is { Length: > 0 } processId)
-                bits.Add(processId);
-            if (root.TryGetProperty("pack_id", out var pack) && pack.ValueKind == JsonValueKind.String
-                && pack.GetString() is { Length: > 0 } packId)
-                bits.Add(packId);
+            if (root.TryGetProperty("pack_id", out var p) && p.ValueKind == JsonValueKind.String
+                && p.GetString() is { Length: > 0 } pack)
+                bits.Add(pack);
+            if (root.TryGetProperty("count", out var c) && c.TryGetInt32(out var n))
+                bits.Add(n + " hit(s)");
+            if (root.TryGetProperty("pulse", out var pulseEl) && pulseEl.ValueKind == JsonValueKind.String
+                && pulseEl.GetString() is { Length: > 0 } pulse)
+                bits.Add(TruncPulse(pulse) ?? pulse);
             if (root.TryGetProperty("llm_cue", out var cue) && cue.ValueKind == JsonValueKind.String
                 && cue.GetString() is { Length: > 0 } cueText)
                 bits.Add(TruncPulse(cueText) ?? cueText);
             if (root.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String
                 && title.GetString() is { Length: > 0 } t)
                 bits.Add(TruncPulse(t) ?? t);
+            if (root.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String
+                && err.GetString() is { Length: > 0 } e)
+                bits.Add(TruncPulse(e) ?? e);
             return TruncPulse(string.Join(' ', bits));
         }
         catch

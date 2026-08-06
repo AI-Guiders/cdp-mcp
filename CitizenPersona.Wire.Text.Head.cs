@@ -55,7 +55,18 @@ internal static partial class CitizenPersona
           @intent kb list_pack pack_id=epistemic-scene
           @intent kb get_process process_id=bug-radius-shrink
           @intent kb facet=skill list_pack
+          @intent kb facet=project list_knowledge_files
+          @intent kb facet=session memory_health
+          @intent kb facet=finding findings
+          @intent kb facet=failure failures
+          @intent kb facet=task route_next
           @intent kb read_knowledge_file file_path=META/integrity-core.md
+          @intent memory_world list_pack
+          @intent memory_project list_knowledge_files
+          @intent memory_session memory_health
+          @intent memory_self_finding findings
+          @intent memory_self_failure failures
+          @intent memory_task route_next
           @intent hci
           @intent hci status
           @intent hci search query=CitizenRouteHost

@@ -44,6 +44,26 @@ public sealed class CitizenKbHostTests
         Assert.Equal("memory_skill", r.Server);
     }
 
+    [Theory]
+    [InlineData("kb facet=project", "list_knowledge_files", "memory_project")]
+    [InlineData("kb facet=session", "memory_health", "memory_session")]
+    [InlineData("kb facet=finding", "findings", "memory_self_finding")]
+    [InlineData("kb facet=failure", "failures", "memory_self_failure")]
+    [InlineData("kb facet=task", "route_next", "memory_task")]
+    [InlineData("memory_project list_knowledge_files", "list_knowledge_files", "memory_project")]
+    [InlineData("memory_session memory_health", "memory_health", "memory_session")]
+    [InlineData("memory_self_finding findings", "findings", "memory_self_finding")]
+    [InlineData("memory_self_failure failures", "failures", "memory_self_failure")]
+    [InlineData("memory_task route_next", "route_next", "memory_task")]
+    public void Route_kb_memory_facets_and_aliases(string raw, string op, string facet)
+    {
+        var r = CitizenIntentRouter.RouteOne(raw);
+        Assert.True(r.Ok);
+        Assert.Equal(CitizenIntentRouter.Verb.Kb, r.Verb);
+        Assert.Equal(op, r.Op);
+        Assert.Equal(facet, r.Server);
+    }
+
     [Fact]
     public void Execute_kb_without_backend_fails_disabled()
     {
