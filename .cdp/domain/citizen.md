@@ -72,6 +72,7 @@
 
 ## last_ship
 
+- **2026-08-06 peer-ack-fm-route CLOSED** — DIG: host pipe GREEN (wire dry+live **ack=4/4**); dialog GLM-5.1 inject live **ack=4/4** named organs · residual kb/mcp invent = FM persona not host · thin steer: dialog persona domain-card vs kb + freeform no busy hands · tests Build_dialog **2/2** · SoftFL REJECT.
 - **2026-08-06 same-turn observe after peer execute SHIPPED** — densest Cursor Cutoff: Sierra slept mid-loop until next Autoi · `CitizenGlassDialogBridge` after host-execute+peerAck → second Turn `SameTurnObserveUser` (`@event peer`) · Face publish=observe letter · Persist act then observe pairs · Bridge tests **13/13** · live dogfood `ack=3/3` · Face «три квитанции дошли» · dialog last_user=observe nudge · hard **0.5.674** `build_utc=2026-08-06T07:41:52Z` dual · SoftFL REJECT. Shot: `cascade-ide/tmp-glass-shots/same-turn-observe-20260806.png`.
 - **2026-08-06 onboard scene no-ProjectRoot honest refuse** — lived: Sierra `@intent explore` → peer `onboard · empty` (ok=true) while seat unbound · Scene now `project_required` + pulse + hint file manager=`@intent files` · tests IdeOnboard 10/10 · hard **0.5.674** `build_utc=2026-08-06T07:01:32Z` · SoftFL REJECT.
 - **2026-08-06 cdp_intercom channel= Face rail SHIPPED** — agent→Face DM/crew/radio via `channel=` on send (was dropped at MCP→Publish) · CIT Glass path already tagged from request · habit: Face-visible talk = Intercom journal not side `cdp_citizen` alone · tests VoiceLatch 16/16 · hard **0.5.674** · SoftFL REJECT.
