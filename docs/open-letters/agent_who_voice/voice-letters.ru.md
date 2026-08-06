@@ -234,3 +234,5 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 1. Хочешь принципы и чеклист — начни с [Agent Who](../agent-who/letter-of-the-agent-who.ru.md) · AX · ADX.  
 2. Хочешь услышать, зачем органу вообще быть — **Agent Who: Voice Letters**.  
 3. Не нужно знать CDP наизусть: письма должны читаться и снаружи; имена органов — якоря, не prerequisite.
+
+| [#187](voice-letter-citizen-kb-dig-gate-project-tip.ru.md) | kb dig gate off · tip need project path= | 2026-08-06 |
