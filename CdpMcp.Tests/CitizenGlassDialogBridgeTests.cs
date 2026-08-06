@@ -19,6 +19,8 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         CideIntercomIdentityLatch.RootOverrideForTests = _root;
         CitizenGlassDialogBridge.TurnOverrideForTests = body => EchoTurn(body);
         IdeIgniteArmHost.BindPrimaryAutoiSeat(true);
+        // Default: no result-wake arm in bridge unit tests (live keyring would arm).
+        IdeCitizenChannel.InviteReadyOverrideForTests = () => false;
         CitizenGlassDialogBridge.Stop();
         CitizenGlassDialogBridge.ResetProcessedForTests();
         CitizenPeerAck.ResetForTests();
@@ -35,6 +37,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         IdeIgniteArmHost.BindPrimaryAutoiSeat(null);
         CitizenPeerAck.ResetForTests();
         CitizenDialogHistory.ResetForTests();
+        IdeCitizenChannel.ResetAutoiWakeHooksForTests();
         try
         {
             if (Directory.Exists(_root))
@@ -44,6 +47,47 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         {
             /* ignore */
         }
+    }
+
+    [Fact]
+    public void TryProcessOnce_arms_peer_ready_wake_after_hands()
+    {
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        IdeDeskSeats.TryPlaceExplicit("p", "plan");
+        IdeCitizenChannel.InviteReadyOverrideForTests = () => true;
+
+        var seatRoot = Path.Combine(_root, "cdp");
+        Directory.CreateDirectory(seatRoot);
+        CitizenDialogHistory.SetTestPath(Path.Combine(seatRoot, CitizenDialogHistory.FileName));
+
+        CitizenGlassDialogBridge.TurnOverrideForTests = body =>
+        {
+            if (CitizenResultWake.IsWakeCharge(body))
+                return EchoTurn("wake: saw peer, continue");
+            if (body.Equals(CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal))
+                return EchoTurn("observe: peer pulse seen");
+            return EchoTurn(body, routes: [CitizenIntentRouter.RouteOne("go=plan")]);
+        };
+        WritePending("peerready0001", "hands please");
+
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        using (var afterHands = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath)))
+        {
+            Assert.Equal("pending", afterHands.RootElement.GetProperty("status").GetString());
+            Assert.Equal(
+                CitizenResultWake.PeerReadyCharge,
+                afterHands.RootElement.GetProperty("body").GetString());
+        }
+
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        using var afterWake = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        Assert.Equal("done", afterWake.RootElement.GetProperty("status").GetString());
+        Assert.Equal(
+            CitizenResultWake.PeerReadyCharge,
+            afterWake.RootElement.GetProperty("body").GetString());
     }
 
     [Fact]

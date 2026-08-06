@@ -198,7 +198,13 @@ internal static partial class IdeCitizenChannel
 
         replyText = turn.Text;
         if (turn.Routes is { Count: > 0 })
-            _ = CitizenRouteHost.Execute(turn.Routes);
+        {
+            var executed = CitizenRouteHost.Execute(turn.Routes);
+            var peerAck = CitizenPeerAck.FromExecuted(executed);
+            // Composer-gone Autoi path: arm Glass result-ready wake so Face continues without human Send.
+            if (peerAck is not null)
+                CitizenResultWake.TryArmAfterHands();
+        }
         return true;
     }
 

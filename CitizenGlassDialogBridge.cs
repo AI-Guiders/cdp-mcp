@@ -253,7 +253,13 @@ internal static class CitizenGlassDialogBridge
                 published is null ? "publish_failed" : null,
                 peer: peerAck?.Peer);
             if (published is not null)
+            {
                 LastProcessedId = req.Id;
+                // Autoi-parity: result-ready wake (reason=peer_ready) — do not sleep until operator Send.
+                // Depth-1: skip when this turn was already a wake charge.
+                if (peerAck is not null && !CitizenResultWake.IsWakeCharge(req.Body))
+                    CitizenResultWake.TryArmAfterHands(req.Channel);
+            }
             return true;
         }
         catch (Exception ex)
