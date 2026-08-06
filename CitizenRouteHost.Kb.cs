@@ -172,6 +172,13 @@ internal static partial class CitizenRouteHost
         if (ex.Message.Contains("relative_path", StringComparison.OrdinalIgnoreCase))
             return "need relative_path=";
 
+        if (ex.Message.Contains("analytics_id", StringComparison.OrdinalIgnoreCase))
+            return "need analytics_id=";
+
+        // finding_check — "path is required" (not relative_path / workspace_path).
+        if (ex.Message.Contains("path is required", StringComparison.OrdinalIgnoreCase))
+            return "need path=";
+
         return "failed";
     }
 
@@ -288,6 +295,7 @@ internal static partial class CitizenRouteHost
             AppendKbStoreMetaBits(root, bits);
             AppendKbReadCardBits(root, bits);
             AppendKbValidateBits(root, bits);
+            AppendKbNormalizeBits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -557,9 +565,13 @@ internal static partial class CitizenRouteHost
             }
         }
 
-        if (root.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String
-            && content.GetString() is { } body)
-            bits.Add("chars=" + body.Length);
+        // Only when this is hot-context (not normalize_sections preview which also has content=).
+        if (root.TryGetProperty("active_scope", out _) || root.TryGetProperty("loaded_sections", out _))
+        {
+            if (root.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String
+                && content.GetString() is { } body)
+                bits.Add("chars=" + body.Length);
+        }
     }
 
     /// <summary>AN route_context JSON — surface selected hits so FM does not SoftFL-invent after thin pulse.</summary>
@@ -664,6 +676,19 @@ internal static partial class CitizenRouteHost
             if (n >= 2)
                 break;
         }
+    }
+
+    /// <summary>AN normalize_sections preview — surface changed= + content chars so FM does not SoftFL-invent after leaked chars-only pulse.</summary>
+    static void AppendKbNormalizeBits(JsonElement root, List<string> bits)
+    {
+        if (!root.TryGetProperty("changed", out var ch)
+            || (ch.ValueKind != JsonValueKind.True && ch.ValueKind != JsonValueKind.False))
+            return;
+
+        bits.Add(ch.GetBoolean() ? "changed" : "unchanged");
+        if (root.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String
+            && content.GetString() is { } body)
+            bits.Add("chars=" + body.Length);
     }
 
 }
