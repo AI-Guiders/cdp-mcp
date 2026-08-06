@@ -320,6 +320,33 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
+    public void Execute_kb_read_hot_context_pulse_includes_sections()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("read_hot_context", tool);
+            return Task.FromResult(
+                "{\"active_scope\":\"door-to-singularity\",\"loaded_sections\":[\"META/integrity-core\",\"domains/agent-operations\"],\"content\":\"<!-- section:META/integrity-core -->\\nbody\\n\"}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=session read_hot_context")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("scope=door-to-singularity", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("2 section(s)", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("META/integrity-core", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("chars=", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
     public void Execute_kb_knowledge_tags_pulse_includes_tags()
     {
         CitizenRouteHost.UnbindLifecycle();
