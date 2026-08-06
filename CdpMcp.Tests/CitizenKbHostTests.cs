@@ -452,6 +452,61 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_ensure_store_wrong_facet_remaps_to_task()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (facet, tool, _) =>
+        {
+            Assert.Equal(Cdp.Core.CdpDomains.MemoryTask, facet);
+            Assert.Equal("ensure_store", tool);
+            return Task.FromResult(
+                "{\"ok\":true,\"meta\":{\"storeDir\":\"D:\\\\Experiments\\\\agent-notes\\\\.task-knowledge\",\"resolvedScope\":\"default\"}}");
+        };
+        try
+        {
+            var route = CitizenIntentRouter.RouteOne("kb facet=session ensure_store");
+            Assert.True(route.Ok, route.Reason);
+            Assert.Equal(Cdp.Core.CdpDomains.MemoryTask, route.Server);
+            var applied = CitizenRouteHost.Execute([route]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("store=", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.DoesNotContain("kb_tool_unknown", applied[0].Reason ?? "", StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_kb_read_card_without_path_tips_relative_path()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.SessionResolver = () => new SessionContext
+        {
+            ProjectRoot = @"D:\Experiments\agent-notes",
+        };
+        CitizenRouteHost.ByDomainResolver = () => new Dictionary<string, ICdpBackendModule>(StringComparer.Ordinal)
+        {
+            [Cdp.Core.CdpDomains.MemoryTask] = new FakeKbModule(),
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=task read_card")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Equal("relative_path is required", applied[0].Reason);
+            Assert.Contains("need relative_path=", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;

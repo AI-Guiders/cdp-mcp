@@ -67,6 +67,18 @@ internal static partial class CitizenRouteHost
                         Reason: "query is required");
                 }
 
+                if (tool is "read_card" && !HasKbStringArg(callArgs, "relative_path"))
+                {
+                    return new Applied(
+                        route.Raw,
+                        route.Verb.ToString(),
+                        Ok: false,
+                        Action: "kb",
+                        Go: "kb",
+                        Pulse: TruncPulse("kb " + facet + " " + tool + " need relative_path="),
+                        Reason: "relative_path is required");
+                }
+
                 json = backend.CallAsync(tool, callArgs)
                     .ConfigureAwait(false)
                     .GetAwaiter()
@@ -130,6 +142,9 @@ internal static partial class CitizenRouteHost
 
         if (ex.Message.Contains("query", StringComparison.OrdinalIgnoreCase))
             return "need query=";
+
+        if (ex.Message.Contains("relative_path", StringComparison.OrdinalIgnoreCase))
+            return "need relative_path=";
 
         return "failed";
     }
@@ -244,6 +259,8 @@ internal static partial class CitizenRouteHost
             AppendKbTagHits(root, bits);
             AppendKbHotContextBits(root, bits);
             AppendKbRouteContextBits(root, bits);
+            AppendKbStoreMetaBits(root, bits);
+            AppendKbReadCardBits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -557,6 +574,42 @@ internal static partial class CitizenRouteHost
 
         if (root.TryGetProperty("assembled_context", out var assembled) && assembled.ValueKind == JsonValueKind.String
             && assembled.GetString() is { } body)
+            bits.Add("chars=" + body.Length);
+    }
+
+    /// <summary>TaskKnowledge ensure_store / cards meta — surface storeDir so FM does not SoftFL-invent after bare ok pulse.</summary>
+    static void AppendKbStoreMetaBits(JsonElement root, List<string> bits)
+    {
+        if (!root.TryGetProperty("meta", out var meta) || meta.ValueKind != JsonValueKind.Object)
+            return;
+        if (meta.TryGetProperty("storeDir", out var dir) && dir.ValueKind == JsonValueKind.String
+            && dir.GetString() is { Length: > 0 } storeDir)
+        {
+            var one = storeDir.Replace('\\', '/');
+            if (one.Length > 48)
+                one = "…" + one[^47..];
+            bits.Add("store=" + one);
+        }
+
+        if (meta.TryGetProperty("resolvedScope", out var scope) && scope.ValueKind == JsonValueKind.String
+            && scope.GetString() is { Length: > 0 } s)
+        {
+            var one = s.Length > 24 ? s[..24] + "…" : s;
+            bits.Add("scope=" + one);
+        }
+    }
+
+    /// <summary>TaskKnowledge read_card JSON — surface path + content chars (not body dump).</summary>
+    static void AppendKbReadCardBits(JsonElement root, List<string> bits)
+    {
+        if (!root.TryGetProperty("relativePath", out var path) || path.ValueKind != JsonValueKind.String
+            || path.GetString() is not { Length: > 0 } rel)
+            return;
+
+        var one = rel.Length > 40 ? rel[..40] + "…" : rel;
+        bits.Add("path=" + one);
+        if (root.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String
+            && content.GetString() is { } body)
             bits.Add("chars=" + body.Length);
     }
 

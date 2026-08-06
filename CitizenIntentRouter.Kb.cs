@@ -47,6 +47,12 @@ internal static partial class CitizenIntentRouter
             or "validate_sections" or "normalize_sections")
             facet = Cdp.Core.CdpDomains.MemorySession;
 
+        // TaskKnowledge exclusive tools live on memory_task — wrong facet → SoftFL invent "unknown".
+        // Do not remap ambiguous "tasks"/"man" (also findings).
+        if (tool is "ensure_store" or "route_next" or "task_upsert"
+            or "read_card" or "write_card" or "upsert_section" or "analytics_upsert")
+            facet = Cdp.Core.CdpDomains.MemoryTask;
+
         if (!IsKbToolForFacet(tool, facet))
             return new Route(Verb.Unknown, raw, Ok: false, Reason: "kb_tool_unknown");
 
