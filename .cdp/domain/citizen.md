@@ -12,7 +12,8 @@
 - Vision: `image_path=` (or prior `cdp_see` latch) → multimodal `image_url`; auto-model `Qwen/Qwen3.6-35B-A3B` when default/non-vision; thinking off on vision turns. Not in dialog jsonl.
 - Defaults when keys omit URL/model: `https://foundation-models.api.cloud.ru/v1` · **`zai-org/GLM-5.1`** (post-Cursor sealed pick). Second slot: `Qwen/Qwen3-Coder-Next`. Vision auto: `Qwen/Qwen3.6-35B-A3B`.
 - Turn `mode=wire` (default) = HARD @intent contract + OAI `temperature=0`. `mode=dialog` = prose peer persona + `temperature=0.6`; optional @intent after prose. Aliases: prose|chat|talk|peer.
-- Dialog multi-turn: `StateRoot/{seat}/citizen-dialog.jsonl` (op=history|clear; turn `history=`/`reset=`). Wire ignores history. Window = **40** msgs (20 pairs).
+- Dialog multi-turn: `StateRoot/{seat}/citizen-dialog.jsonl` or `citizen-dialog.{sanitizedModel}.jsonl` when live model set (op=history|clear; turn `history=`/`reset=`). Wire ignores history. Window = **40** msgs (20 pairs). Model switch ≠ inherited dialog memory.
+- **Slot ≠ personality:** Intercom Who is freeform, keyed by model in `intercom-identity-LATEST.json` (`PfProfiles`/`PmProfiles`). `Activate(seat, model)` restores Who for that slot or clears tip (bootstrap `Citizen`) — never inherit other model's nick.
 - Sticky pins: `StateRoot/{seat}/citizen-sticky.json` — op=`sticky` action=get|set|clear; turn `sticky_key=`/`sticky_value=`. Injected as `sticky | k=v` on dialog afferents.
 - Dialog afferent also gets `dialog | pairs=N · … use them; do not claim amnesia`.
 - Persona baseline: **equal standing** (peer, not tool) + human name **Света**; Who = Agent Who series (not operator); **Memory:** use prior turns / sticky.
@@ -69,6 +70,7 @@
 
 ## last_ship
 
+- **2026-08-06 Who↔model slot≠personality SHIPPED** — densest: Who (+ dialog history) keyed by model/session · switch model → tip clears (bootstrap Citizen) · same model → restore Who · `CitizenDialogHistory.ActiveModel` → partitioned jsonl · `ResolveCitizenFace` Activate live model · tests Identity+Bridge+Voice+Presence **37/37** · `IntercomLatchSerial` RootOverride flake fix · hard `0.5.672` `build_utc=2026-08-06T04:11:47Z` · SoftFL REJECT. DoD: Claim Sierra under GLM → switch model ≠ Sierra → back → Sierra.
 - **2026-08-06 sticky Who Sierra vs bridge Claim SHIPPED** — Radio: Sierra «Я — Sierra. Не Citizen»; root: `TryProcessOnce` Claim/Publish `DefaultNameCitizen` every Turn stomped latch · fix: `ResolveCitizenFace` sticky first · no Claim overwrite · test `TryProcessOnce_sticky_who_survives_busy_and_publish` · Bridge 13/13 · hard `0.5.671` `build_utc=2026-08-06T03:55:03Z` · identity latch `Sierra` · SoftFL REJECT. DoD: busy cue + Radio name = Sierra.
 - **2026-08-06 inventory gaps×9 TruncPulse SHIPPED** — `TryReadInventoryPulse` cap 8→15 · `InventoryObservePulseMax=480` · `EventPulseMax` aligned · test `TryReadInventoryPulse_all_nine_gaps_survive_without_ellipsis` · Observe 4/4 · hard `0.5.670` `build_utc=2026-08-06T03:41:28Z` · live peer_event all 9 ids (`domain-stamp`+`list-batch-ship`) no `…` · commit `c690600`. SoftFL REJECT. DoD: Sierra `@event peer` pulse carries full ×N.
 - **2026-08-06 Face Who sticky residual CLOSED** — presence latch `who`+`kind` on seat (Citizen busy ≠ AutoI sticky) · bridge PublishSeat busy with Citizen Who + Claim identity · `RecoverOrphanRunning` on Start (remount mid-Turn → pending) · Glass `TryTypingCue`/`TryPartnerLine` prefer presence.who · tests Presence 8/8 · Bridge 12/12 · hard `0.5.669` · SoftFL REJECT. DoD: human eyes see `Citizen is busy…` during Turn (not AutoI).
