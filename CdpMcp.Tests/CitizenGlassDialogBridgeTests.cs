@@ -15,6 +15,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         CitizenGlassDialogBridge.RootOverrideForTests = _root;
         CideIntercomVoiceLatch.RootOverrideForTests = _root;
         CideIntercomPresenceLatch.RootOverrideForTests = _root;
+        CideIntercomIdentityLatch.RootOverrideForTests = _root;
         CitizenGlassDialogBridge.TurnOverrideForTests = body => EchoTurn(body);
         IdeIgniteArmHost.BindPrimaryAutoiSeat(true);
         CitizenGlassDialogBridge.Stop();
@@ -29,6 +30,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         CitizenGlassDialogBridge.RootOverrideForTests = null;
         CideIntercomVoiceLatch.RootOverrideForTests = null;
         CideIntercomPresenceLatch.RootOverrideForTests = null;
+        CideIntercomIdentityLatch.RootOverrideForTests = null;
         IdeIgniteArmHost.BindPrimaryAutoiSeat(null);
         CitizenPeerAck.ResetForTests();
         CitizenDialogHistory.ResetForTests();
@@ -93,6 +95,27 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         var after = CideIntercomPresenceLatch.TryReadEffective();
         Assert.Equal(CideIntercomPresenceLatch.StateIdle, after?.Pf?.State);
         Assert.Null(after?.Pf?.Who);
+    }
+
+    [Fact]
+    public void TryProcessOnce_sticky_who_survives_busy_and_publish()
+    {
+        Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Sierra", "citizen"));
+
+        string? midWho = null;
+        CitizenGlassDialogBridge.TurnOverrideForTests = body =>
+        {
+            midWho = CideIntercomPresenceLatch.TryReadEffective()?.Pf?.Who;
+            return EchoTurn(body);
+        };
+
+        WritePending("sierrawho0001", "hey");
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+        Assert.Equal("Sierra", midWho);
+        Assert.Equal("Sierra", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
+
+        using var latch = JsonDocument.Parse(File.ReadAllText(CideIntercomVoiceLatch.LatchPath));
+        Assert.Equal("Sierra", latch.RootElement.GetProperty("name").GetString());
     }
 
     [Fact]

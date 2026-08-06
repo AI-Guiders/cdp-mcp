@@ -142,17 +142,14 @@ internal static class CitizenGlassDialogBridge
             return false;
 
         MarkStatus(req, "running");
+        var (who, kind) = ResolveCitizenFace();
         CideIntercomPresenceLatch.PublishSeat(
             CideIntercomVoiceLatch.SeatPf,
             CideIntercomPresenceLatch.StateBusy,
             ttlSeconds: CideIntercomPresenceLatch.DefaultBusyTtlSeconds,
-            who: CideIntercomVoiceLatch.DefaultNameCitizen,
-            kind: CideIntercomVoiceLatch.KindCitizen);
-        // Face roster Who during Turn — remount AutoI sticky must not own the cue.
-        CideIntercomIdentityLatch.Claim(
-            CideIntercomVoiceLatch.SeatPf,
-            CideIntercomVoiceLatch.DefaultNameCitizen,
-            CideIntercomVoiceLatch.KindCitizen);
+            who: who,
+            kind: kind);
+        // Sticky Who wins — never Claim DefaultNameCitizen (stomps Sierra).
 
         try
         {
@@ -200,8 +197,8 @@ internal static class CitizenGlassDialogBridge
                 body: publishBody,
                 origin: CideIntercomVoiceLatch.OriginAgent,
                 id: null,
-                name: radioPointer ? "AutoI" : CideIntercomVoiceLatch.DefaultNameCitizen,
-                kind: radioPointer ? "guest" : CideIntercomVoiceLatch.KindCitizen,
+                name: radioPointer ? "AutoI" : who,
+                kind: radioPointer ? "guest" : kind,
                 channel: ResolveRequestChannel(req));
             MarkStatus(
                 req,
@@ -224,6 +221,25 @@ internal static class CitizenGlassDialogBridge
                 CideIntercomPresenceLatch.StateIdle);
         }
     }
+
+    /// <summary>
+    /// Face Who for busy cue + Radio line: sticky identity latch, else bootstrap Citizen.
+    /// Slot/model ≠ personality nick (Sierra asked).
+    /// </summary>
+    internal static (string Who, string Kind) ResolveCitizenFace()
+    {
+        var seat = CideIntercomIdentityLatch.TrySeat(CideIntercomVoiceLatch.SeatPf);
+        if (seat is { Name.Length: > 0 })
+        {
+            var kind = string.IsNullOrWhiteSpace(seat.Kind)
+                ? CideIntercomVoiceLatch.KindCitizen
+                : seat.Kind!;
+            return (seat.Name.Trim(), kind);
+        }
+
+        return (CideIntercomVoiceLatch.DefaultNameCitizen, CideIntercomVoiceLatch.KindCitizen);
+    }
+
 
     /// <summary>Glass CIT operator thread — human prose (+ hands) for multi-turn memory, not raw wire.</summary>
     internal static void PersistOperatorDialog(
