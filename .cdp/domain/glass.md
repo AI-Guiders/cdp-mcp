@@ -119,7 +119,7 @@ Scope = **all** CIDE surfaces still Avalonia-primary / half-a on Glass. Presence
 | A1 | **0072** overview ↔ detail ↔ back + adaptive default | `ChatTopicOverviewPolicy` · Skia `CardPanel`/`OverviewHeader` · `ato`/`atb` | Glass WPF card grid + strip + Back · adaptive · `topic_overview`/`topic_enter` | **ADOPTED** 2026-08-05 lived (`tmp-glass-shots/topic-overview-a1-20260805.png`) |
 | A2 | **0096** topic-card **summary** + product **spine** | `ChatThreadOverviewPresentation` · `SpineStrip` · `ChatProductSpine*` | Glass richer Summary + `ProductSpineStrip` latch | **ADOPTED** 2026-08-05 lived (`tmp-glass-shots/topic-overview-a2-20260805.png`) |
 | A3 | **0172** worklines / session-graph (`ThreadNode`) | Avalonia compositor + tree | 30m quiet-gap clusters only | **SUPERSEDE** — NorthStar `#crew`·DM·Radio index; not ThreadNode port (see glass-intercom antipattern) |
-| A4 | Message↔code depth | Skia attach/reveal fuller | `/open` + chips (P2 shipped) | **residual denser** |
+| A4 | Message↔code depth | Skia attach/reveal fuller | `/open` + chips (P2) · `/intercom message find [path:line]` + `anchors` (2026-08-06 denser thin · live GREEN) | **residual denser** — relate/event-log still Avalonia SSOT (SoftFL REJECT invent) |
 | A5 | Topic intents parity (`enter`/`return` overview) | Avalonia melody `ato`/`atb` | Glass melody `topic_overview`/`topic_enter` + `ato`/`atb` · next/prev in overview selects | **ADOPTED** 2026-08-05 (with A1; surface enter↔overview OK) |
 | A6 | **0136** message select (gutter · slash · ПКМ · MCP) | Avalonia Skia gutter + `/intercom message select` + `chat_select_*` | Glass: select N·N:M·`[a;b]…` · next/prev · ПКМ · melody `chat_select_*`→ordinal · gutter+highlight · Enter-autocomplete waits for N (not bare usage) · attach aliases + topic/spine slash · find/relate/anchors honest refuse | **ADOPTED denser** 2026-08-06 · A6 slash residual CLOSED (honest) · SoftFL REJECT invent IntercomCodeRef · A4 message↔code denser still open |
 
@@ -151,7 +151,7 @@ MFD presence · SoftOrgan chrome · land/shared/disk · Terminal VT · WebAi Web
 2. **A2** — **ADOPTED** 2026-08-05 · richer card Summary (`GlassTopicCardSummary`) + product spine strip (`ChatProductSpine*`→GlassCore + `GlassProductSpineStore`) · evidence `topic-overview-a2-20260805.png`.
 3. **A3** — **SUPERSEDE** 2026-08-05 · no ThreadNode/session-graph port; channel index = NorthStar (`#crew`·DM·Radio); 30m clusters = Virtual History only.
 4. **B1→B3** — **DIG REJECT / defer** 2026-08-05 · no ready ≤1-hop denser peel; hosts already densest-for-Glass.
-5. **A4** — residual denser only if human flight blocked.
+5. **A4** — denser thin find/anchors shipped+lived 2026-08-06 (`071433f8`); residual = relate/event-log SoftFL REJECT.
 
 ## DoD matrix — SoftOrgan chrome beyond MFD (2026-08-01 dig)
 
@@ -238,6 +238,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-06 A4 message↔code denser thin SHIPPED** — `/intercom message find [path:line]` + `anchors` over attach chips · relate stays SoftFL REJECT (Avalonia IntercomCodeRef) · cascade-ide `071433f8` · tests GlassIntercomMessageFindTests 4/4 · live UIA find `1 hit → #81` + anchors · evidence `cascade-ide/tmp-glass-shots/a4-message-find-anchors-20260806.png`
 - **2026-08-06 A6 slash residual CLOSED (honest)** — spine show/toggle onto ProductSpineStrip · find/relate/anchors DIG REJECT SoftFL (Avalonia IntercomCodeRef SSOT; A4 denser) · SoftFL REJECT
 - **2026-08-06 A6 attach*/topic* slash EXTEND** — Glass `/intercom attach selection|file` · `/intercom attach scope` honest DIG REJECT (melody no false→slash_attach) · `/intercom overview|topic cards|topic open|next|prev` onto existing topic UI · tests GlassPaletteChordCatalog · SoftFL REJECT · residual: find/relate/anchors/spine*
 - **2026-08-06 cdp_intercom channel= Face rail SHIPPED** — lived: Kir↔Sierra pain talk via MCP `cdp_citizen` dialog invisible on Face · gap: `Publish(channel=)` existed but `IdeCideIntercomChannel.Send` + MCP schema dropped it (always Radio-default) · wire `channel=crew|radio|dm` (+feed=) through Send/Card/CitizenRouteHost · tests Channel_send_dm + invalid · hard **0.5.674** `build_utc=2026-08-06T06:49:32Z` · live dogfood DM letter to @PM · SoftFL REJECT · residual: Face eyes on DM rail; peer journal filter still later.
