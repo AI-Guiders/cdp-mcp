@@ -764,7 +764,6 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
-    [Fact]
     public void Execute_kb_read_knowledge_file_empty_tips_missing()
     {
         CitizenRouteHost.UnbindLifecycle();
