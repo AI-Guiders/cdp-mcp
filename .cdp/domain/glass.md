@@ -121,7 +121,7 @@ Scope = **all** CIDE surfaces still Avalonia-primary / half-a on Glass. Presence
 | A3 | **0172** worklines / session-graph (`ThreadNode`) | Avalonia compositor + tree | 30m quiet-gap clusters only | **SUPERSEDE** — NorthStar `#crew`·DM·Radio index; not ThreadNode port (see glass-intercom antipattern) |
 | A4 | Message↔code depth | Skia attach/reveal fuller | `/open` + chips (P2 shipped) | **residual denser** |
 | A5 | Topic intents parity (`enter`/`return` overview) | Avalonia melody `ato`/`atb` | Glass melody `topic_overview`/`topic_enter` + `ato`/`atb` · next/prev in overview selects | **ADOPTED** 2026-08-05 (with A1; surface enter↔overview OK) |
-| A6 | **0136** message select (gutter · slash · ПКМ · MCP) | Avalonia Skia gutter + `/intercom message select` + `chat_select_*` | Glass: select N·N:M·`[a;b]…` · next/prev · ПКМ · melody `chat_select_*`→ordinal · gutter+highlight · Enter-autocomplete waits for N (not bare usage) · attach aliases + topic slash wired · attach_scope honest refuse | **ADOPTED denser** 2026-08-06 · attach*/topic* slash EXTEND · SoftFL REJECT · residual: find/relate/anchors/spine* |
+| A6 | **0136** message select (gutter · slash · ПКМ · MCP) | Avalonia Skia gutter + `/intercom message select` + `chat_select_*` | Glass: select N·N:M·`[a;b]…` · next/prev · ПКМ · melody `chat_select_*`→ordinal · gutter+highlight · Enter-autocomplete waits for N (not bare usage) · attach aliases + topic/spine slash · find/relate/anchors honest refuse | **ADOPTED denser** 2026-08-06 · A6 slash residual CLOSED (honest) · SoftFL REJECT invent IntercomCodeRef · A4 message↔code denser still open |
 
 #### B. Instruments — presence DONE, Avalonia still denser
 
@@ -238,6 +238,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-06 A6 slash residual CLOSED (honest)** — spine show/toggle onto ProductSpineStrip · find/relate/anchors DIG REJECT SoftFL (Avalonia IntercomCodeRef SSOT; A4 denser) · SoftFL REJECT
 - **2026-08-06 A6 attach*/topic* slash EXTEND** — Glass `/intercom attach selection|file` · `/intercom attach scope` honest DIG REJECT (melody no false→slash_attach) · `/intercom overview|topic cards|topic open|next|prev` onto existing topic UI · tests GlassPaletteChordCatalog · SoftFL REJECT · residual: find/relate/anchors/spine*
 - **2026-08-06 cdp_intercom channel= Face rail SHIPPED** — lived: Kir↔Sierra pain talk via MCP `cdp_citizen` dialog invisible on Face · gap: `Publish(channel=)` existed but `IdeCideIntercomChannel.Send` + MCP schema dropped it (always Radio-default) · wire `channel=crew|radio|dm` (+feed=) through Send/Card/CitizenRouteHost · tests Channel_send_dm + invalid · hard **0.5.674** `build_utc=2026-08-06T06:49:32Z` · live dogfood DM letter to @PM · SoftFL REJECT · residual: Face eyes on DM rail; peer journal filter still later.
 - **2026-08-06 Glass slash ADR 0150 ArgTail (unmask)** — park/bare=last was invent. Canon: `arg_tail` none|optional|required · autocomplete Enter auto-runs only when policy allows · bare required → honest usage. SoftFL REJECT.
