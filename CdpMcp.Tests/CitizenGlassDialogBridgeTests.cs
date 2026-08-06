@@ -228,6 +228,35 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     }
 
     [Fact]
+    public void TryProcessOnce_thin_observe_falls_back_to_act_face_letter()
+    {
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        IdeDeskSeats.TryPlaceExplicit("p", "plan");
+
+        var seatRoot = Path.Combine(_root, "cdp");
+        Directory.CreateDirectory(seatRoot);
+        CitizenDialogHistory.SetTestPath(Path.Combine(seatRoot, CitizenDialogHistory.FileName));
+
+        CitizenGlassDialogBridge.TurnOverrideForTests = body =>
+        {
+            if (body.Equals(CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal))
+                return EchoTurn("R"); // lived FM collapse — too thin for Face
+            return EchoTurn(body, routes: [CitizenIntentRouter.RouteOne("go=plan")]);
+        };
+        WritePending("thinobs00001", "hands please");
+
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        using var latch = JsonDocument.Parse(File.ReadAllText(CideIntercomVoiceLatch.LatchPath));
+        var face = latch.RootElement.GetProperty("body").GetString();
+        Assert.Contains("citizen-echo:hands please", face, StringComparison.Ordinal);
+        Assert.DoesNotContain("\nR\n", "\n" + face + "\n", StringComparison.Ordinal);
+        Assert.False(CitizenGlassDialogBridge.IsUsableFaceLetter("R"));
+        Assert.True(CitizenGlassDialogBridge.IsUsableFaceLetter("observe: peer pulse seen and hands ok"));
+    }
+
+    [Fact]
     public void TryProcessOnce_persists_operator_dialog_for_multiturn()
     {
         var seatRoot = Path.Combine(_root, "cdp");
