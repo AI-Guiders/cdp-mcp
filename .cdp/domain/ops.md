@@ -21,11 +21,13 @@
 
 - Shell FileVersionInfo on both installs as first dig.
 - Hard-deploy self from inside `cdp_shell_*`.
+- `-Target debug` (relative) → lands in repo `cdp-mcp\debug\`, not seat `D:\cdp-mcp-debug` — health still lag; use absolute `D:\cdp-mcp-debug` or `cdp_deploy target=sibling|debug`.
 - Manual `Stop-Process` of same-seat pile while live MCP is among them (prefer remount after `IdeSeatProcessReclaim`; skip via `CDP_SKIP_SEAT_RECLAIM=1` only for intentional multi).
 - Immediate KillRunning on every `Not connected` when process may still be healthy — prefer `Recover-CdpSeatRemount.ps1 -SoftFirst` (nudge only), escalate to kill if still dead.
 
 ## last_ship
 
+- **2026-08-06 dual-seat real hard 0.5.675** — lived: `-Target debug` seeming ship left `D:\cdp-mcp-debug` on **0.5.674** · hard absolute Target → lag=false self+sib **0.5.675** · wave FullReady-dualagent-sibling · SoftFL REJECT.
 - **2026-08-05 SoftFirst dual-seat dogfood** — mid-turn dual `Not connected` with both exes alive (debug=50876 kept; primary remounted 5344→31708 by Cursor nudge). Recover `-SoftFirst` ×2 (no agent KillRunning / no NudgeAllSeats). Health GREEN 0.5.667 both · cabin Glass pid=57780 survived. DIG REJECT invent thrash chrome — path already shipped; wave flight-durable = soak verify.
 - **2026-08-05** — OutWit.Database.EntityFramework **12.2.0** (was 1.0.3); author confirmed tear/leak fixes. Stay on WitDB seat files.
 - **2026-08-05** — FDR cockpit 50ms lock: live WitDB torn (`pageNumber` OOR) → failed Open leaks FileShare.None → quarantine Move failed → heal never landed. Fix: GC settle + MoveWithRetry on torn quarantine. Dig: AdoNet open probe.
