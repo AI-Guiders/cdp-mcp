@@ -66,7 +66,7 @@
 - Committing real API keys.
 - Forcing ONLY `@intent` for every dogfood when unforced multi-intent already works with live_desk.
 - **One Meta host / one peel / one CIDE organ per Autoi wake** — biped serial. Canon: **list → batch → ship** (Soft FileLines CLOSED · Meta BATCH-8/9 · CIDE pack). See `playbook-pf-body-not-biped-v1.md` §Throughput.
-- Inventory/observe `pulse | inventory scene` alone — discarded JSON; Sierra cannot verify gaps. PeerAck in-memory only → remount wipes `@event peer` mid-dialog.
+- Inventory/observe `pulse | inventory scene` alone — discarded JSON; Sierra cannot verify gaps. (PeerAck durable latch `%LocalAppData%/cdp-mcp/citizen-peer-LATEST.json` shipped 2026-08-06 — remount no longer wipes `@event peer`; stale «in-memory only» claim STRUCK.)
 - Inventory observe TruncPulse 240 / `n>=8` / EventPulseMax 280 — silent-drop last gaps under ×9 (ellipsis); Sierra+operator ask full list. Budget must cover full gap ids.
 - **jsonl Radio journal under named Mutex + full-file JSON scan** — lived `publish_failed` after KillRunning (AbandonedMutex swallowed) / Autoi thrash. SSOT = `intercom.witdb` (not TM seat WitDB).
 
