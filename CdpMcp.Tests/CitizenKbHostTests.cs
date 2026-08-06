@@ -372,6 +372,61 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_route_context_without_query_tips_query()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.SessionResolver = () => new SessionContext
+        {
+            ProjectRoot = @"D:\Experiments\agent-notes",
+        };
+        CitizenRouteHost.ByDomainResolver = () => new Dictionary<string, ICdpBackendModule>(StringComparer.Ordinal)
+        {
+            [Cdp.Core.CdpDomains.MemorySession] = new FakeSessionKbModule(),
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=session route_context")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Equal("query is required", applied[0].Reason);
+            Assert.Contains("need query=", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.DoesNotContain("need cdp_open", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_kb_route_context_pulse_includes_selected()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("route_context", tool);
+            return Task.FromResult(
+                "{\"query\":\"integrity\",\"resolved_scope\":\"door-to-singularity\",\"selected_count\":2,\"selected\":[{\"id\":\"META/integrity-core\",\"score\":40,\"match_count\":2,\"chars\":100,\"lines\":5,\"preview\":\"harm\"},{\"id\":\"domains/agent-operations\",\"score\":20,\"match_count\":1,\"chars\":50,\"lines\":2,\"preview\":\"dig\"}],\"assembled_context\":\"<!-- section:META/integrity-core -->\\nbody\\n\"}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=session route_context query=integrity")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("2 selected", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("META/integrity-core", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("scope=door-to-singularity", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("chars=", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;
@@ -381,5 +436,16 @@ public sealed class CitizenKbHostTests
 
         public ValueTask<string> CallAsync(string tool, IReadOnlyDictionary<string, JsonElement> args) =>
             throw new InvalidOperationException("backend should not run without workspace");
+    }
+
+    sealed class FakeSessionKbModule : ICdpBackendModule
+    {
+        public string Domain => Cdp.Core.CdpDomains.MemorySession;
+        public bool IsEnabled => true;
+        public string HealthSummary => "fake-session-kb";
+        public IReadOnlyList<ToolAffordance> Affordances => [];
+
+        public ValueTask<string> CallAsync(string tool, IReadOnlyDictionary<string, JsonElement> args) =>
+            throw new InvalidOperationException("backend should not run without query");
     }
 }

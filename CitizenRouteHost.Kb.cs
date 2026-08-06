@@ -55,6 +55,18 @@ internal static partial class CitizenRouteHost
                         Reason: "kb_workspace_required · cdp_open");
                 }
 
+                if (tool is "route_context" && !HasKbStringArg(callArgs, "query"))
+                {
+                    return new Applied(
+                        route.Raw,
+                        route.Verb.ToString(),
+                        Ok: false,
+                        Action: "kb",
+                        Go: "kb",
+                        Pulse: TruncPulse("kb " + facet + " " + tool + " need query="),
+                        Reason: "query is required");
+                }
+
                 json = backend.CallAsync(tool, callArgs)
                     .ConfigureAwait(false)
                     .GetAwaiter()
@@ -74,26 +86,20 @@ internal static partial class CitizenRouteHost
         }
         catch (Exception ex)
         {
-            var reason = ex.GetType().Name + ": " + ex.Message;
-            if (ex is ArgumentException
-                && ex.Message.Contains("workspace_path", StringComparison.OrdinalIgnoreCase))
-            {
-                reason = "kb_workspace_required · cdp_open";
-            }
-
+            var tip = TipKbArgException(ex, out var reason);
             return new Applied(
                 route.Raw,
                 route.Verb.ToString(),
                 Ok: false,
                 Action: "kb",
                 Go: "kb",
-                Pulse: TruncPulse("kb " + facet + " " + tool + " need cdp_open"),
+                Pulse: TruncPulse("kb " + facet + " " + tool + " " + tip),
                 Reason: reason);
         }
     }
 
     static bool NeedsKbWorkspace(string tool) =>
-        tool is "route_next" or "ensure_store" or "tasks" or "task_upsert"
+        tool is "route_next" or "route_context" or "ensure_store" or "tasks" or "task_upsert"
             or "read_card" or "write_card" or "upsert_section" or "analytics_upsert"
             or "search_agent_notes" or "upsert_agent_notes_section"
             or "findings" or "finding_record" or "finding_check"
@@ -103,6 +109,31 @@ internal static partial class CitizenRouteHost
         args.TryGetValue("workspace_path", out var el)
         && el.ValueKind == JsonValueKind.String
         && el.GetString() is { Length: > 0 };
+
+    static bool HasKbStringArg(IReadOnlyDictionary<string, JsonElement> args, string name) =>
+        args.TryGetValue(name, out var el)
+        && el.ValueKind == JsonValueKind.String
+        && el.GetString() is { Length: > 0 };
+
+    /// <summary>Honest fail tip — do not SoftFL-invent <c>need cdp_open</c> for every ArgumentException.</summary>
+    static string TipKbArgException(Exception ex, out string reason)
+    {
+        reason = ex.GetType().Name + ": " + ex.Message;
+        if (ex is not ArgumentException)
+            return "failed";
+
+        if (ex.Message.Contains("workspace_path", StringComparison.OrdinalIgnoreCase))
+        {
+            reason = "kb_workspace_required · cdp_open";
+            return "need cdp_open";
+        }
+
+        if (ex.Message.Contains("query", StringComparison.OrdinalIgnoreCase))
+            return "need query=";
+
+        return "failed";
+    }
+
 
     /// <summary>
     /// AN <c>read_knowledge_file</c> returns raw markdown (not lifecycle JSON).
@@ -211,6 +242,7 @@ internal static partial class CitizenRouteHost
             AppendKbFileListHits(root, bits);
             AppendKbTagHits(root, bits);
             AppendKbHotContextBits(root, bits);
+            AppendKbRouteContextBits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -457,6 +489,46 @@ internal static partial class CitizenRouteHost
             bits.Add("chars=" + body.Length);
     }
 
+    /// <summary>AN route_context JSON — surface selected hits so FM does not SoftFL-invent after thin pulse.</summary>
+    static void AppendKbRouteContextBits(JsonElement root, List<string> bits)
+    {
+        // Discriminator vs read_hot_context (content) / search (matches).
+        if (!root.TryGetProperty("selected_count", out var sc) && !root.TryGetProperty("selected", out _))
+            return;
 
+        if (sc.ValueKind != JsonValueKind.Undefined && sc.TryGetInt32(out var n))
+            bits.Add(n + " selected");
+        else if (root.TryGetProperty("selected", out var selArr) && selArr.ValueKind == JsonValueKind.Array)
+            bits.Add(selArr.GetArrayLength() + " selected");
+
+        if (root.TryGetProperty("resolved_scope", out var scope) && scope.ValueKind == JsonValueKind.String
+            && scope.GetString() is { Length: > 0 } s)
+        {
+            var one = s.Length > 32 ? s[..32] + "…" : s;
+            bits.Add("scope=" + one);
+        }
+
+        if (root.TryGetProperty("selected", out var selected) && selected.ValueKind == JsonValueKind.Array)
+        {
+            var hitN = 0;
+            foreach (var m in selected.EnumerateArray())
+            {
+                if (hitN >= 2)
+                    break;
+                if (m.ValueKind != JsonValueKind.Object
+                    || !m.TryGetProperty("id", out var idEl)
+                    || idEl.ValueKind != JsonValueKind.String
+                    || idEl.GetString() is not { Length: > 0 } id)
+                    continue;
+                var one = id.Length > 40 ? id[..40] + "…" : id;
+                bits.Add("#" + (hitN + 1) + " " + one);
+                hitN++;
+            }
+        }
+
+        if (root.TryGetProperty("assembled_context", out var assembled) && assembled.ValueKind == JsonValueKind.String
+            && assembled.GetString() is { } body)
+            bits.Add("chars=" + body.Length);
+    }
 
 }
