@@ -87,7 +87,10 @@ internal static partial class CideIntercomVoiceLatch
             var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
             File.WriteAllText(tmp, json);
             File.Move(tmp, LatchPath, overwrite: true);
-            AppendJournal(doc);
+            // Journal is Glass Radio SSOT — LATEST alone ≠ durable letter.
+            // Lived: status=done with stomped/missing journal → operator "ей не пришло".
+            if (!AppendJournal(doc))
+                return null;
             // Explicit name= / as= claims sticky Who (agent-line). Bootstrap defaults do not.
             if (explicitName)
                 _ = CideIntercomIdentityLatch.Claim(from, resolvedName, resolvedKind);

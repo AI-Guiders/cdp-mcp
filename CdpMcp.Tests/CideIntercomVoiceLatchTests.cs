@@ -222,4 +222,16 @@ public class CideIntercomVoiceLatchTests : IDisposable
         Assert.Equal(2, doc.RootElement.GetProperty("count").GetInt32());
         Assert.Equal("vh-two", doc.RootElement.GetProperty("entries")[1].GetProperty("body").GetString());
     }
+    [Fact]
+    public void Publish_requires_durable_journal_not_latest_alone()
+    {
+        var doc = CideIntercomVoiceLatch.Publish(
+            "pf", "pm", "journal-hard letter", CideIntercomVoiceLatch.OriginAgent,
+            name: "Citizen", kind: "citizen", channel: "radio");
+        Assert.NotNull(doc);
+        Assert.True(CideIntercomVoiceLatch.AppendJournal(doc!)); // already appended; dedupe true
+        var lines = File.ReadAllLines(CideIntercomVoiceLatch.JournalPath);
+        Assert.Contains(lines, l => l.Contains(doc!.Id, StringComparison.Ordinal)
+            && l.Contains("journal-hard letter", StringComparison.Ordinal));
+    }
 }
