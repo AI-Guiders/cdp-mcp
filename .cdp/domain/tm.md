@@ -42,6 +42,7 @@
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
+- **2026-08-06 done dig= title footgun** — REPL Clock swallowed inline dig=/evidence=/domain= as task title (`task not found: dig=…`). `MergeClockDoneShipArgs` + pathish join; parity with wave shipped. Domain=`iderepl`. SoftFL REJECT.
 - **2026-08-06 evidence-path spaces** — REPL `MergeWaveShipArgs` joins pathish keys across spaces (lived Personal Cursor Folder). Tests IdeWaveShipShieldTests (+ Feature_done human_face isolated from live Autoi half-a). Domain=`throughput`.
 - **2026-08-06 StageProduct dig-safe** — `IntentHasStageProduct` never `AsEnumerable`: SQL `Any` + `ToUpper` (NormalizeProduct want). Same lived thrash class as StageEvents Connection closed. Dig: StageProduct.cs leftover after StageEvents fix; #CIDE feature_done shield path. Tests StageProductTests (IntentHasStageProduct_matches_without_materialize). Wave FullReady-product-dig-next.
 - **2026-08-06 wave shipped teeth** — `IdeWaveShipShield` + `IdeSeemingDoneShield`: pending items refuse; human-faced wave/feature needs evidence PNG + fresh domain stamp; REPL preserves evidence=/domain=. Tests IdeWaveShipShieldTests. Being ≠ seeming habitat enforce.

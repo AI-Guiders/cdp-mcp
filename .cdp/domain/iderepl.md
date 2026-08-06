@@ -21,9 +21,11 @@
 - Peel that rewrites `return (merged, X)` into always-`true`/`direct=` — breaks multi-line `Err(...)` and brace-less `if`.
 - Treating Helpers residual as free room — stay ≤400 (plugins parsers still live there).
 - Agent multi-cmd with `;` between board verbs — refuse early; do not "support" silent chain.
+- **`done dig=path` as title** — pre-fix: Clock joined all tokens after `done` into `title=` → `task not found: dig=…` when focus thin. Strip shield kwargs (`MergeClockDoneShipArgs`).
 
 ## last_ship
 
+- **2026-08-06 done/shipped inline kwargs** — `MergeClockDoneShipArgs`: dig=/evidence=/domain=/force= → go_args; remainder title; pathish join (Personal Cursor Folder). Lived: Dig densest leaf + `task not found: dig=.cdp/domain/…`. Tests Done_inline_dig / title_plus_shield / pathish_evidence / Shipped_inline. Hard live build_utc=13:23:35Z. SoftFL REJECT.
 - 0.5.521: `RefuseChainedBoardCmd` before Tokenize + `ChainedTitleHint` on seed · VL #27 · 2026-08-02
 - Board peel: Seed/Clock/Criteria under `IdeRepl.Board.cs` thin router (~17L) @ 0.5.456
 - prior: soft-warn near-miss Helpers.Title165 · Helpers237 @ 0.5.404; Desk/Organs/Board/Ops/Share/Crm/Helpers + Apply router @ 0.5.393

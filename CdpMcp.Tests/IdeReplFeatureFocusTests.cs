@@ -183,4 +183,65 @@ public class IdeReplFeatureFocusTests
         Assert.Equal("omit-tiles", title);
         Assert.Equal("act", phase);
     }
+
+    [Fact]
+    public void Done_inline_dig_is_go_arg_not_title()
+    {
+        var applied = IdeRepl.Apply("done dig=.cdp/domain/glass.md", Empty);
+        Assert.NotNull(applied);
+        Assert.Null(applied.Value.Direct);
+        Assert.True(applied.Value.Args.TryGetValue("tm_op", out var tm));
+        Assert.Equal("done", tm.GetString());
+        Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
+        using var doc = JsonDocument.Parse(ga.GetRawText());
+        Assert.Equal("done", doc.RootElement.GetProperty("op").GetString());
+        Assert.Equal(".cdp/domain/glass.md", doc.RootElement.GetProperty("dig").GetString());
+        Assert.False(doc.RootElement.TryGetProperty("title", out _));
+    }
+
+    [Fact]
+    public void Done_title_plus_shield_kwargs_split()
+    {
+        var applied = IdeRepl.Apply(
+            "done Leaf Title dig=.cdp/domain/tm.md evidence=D:/shots/x.png domain=tm force=true",
+            Empty);
+        Assert.NotNull(applied);
+        Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
+        using var doc = JsonDocument.Parse(ga.GetRawText());
+        Assert.Equal("Leaf Title", doc.RootElement.GetProperty("title").GetString());
+        Assert.Equal(".cdp/domain/tm.md", doc.RootElement.GetProperty("dig").GetString());
+        Assert.Equal("D:/shots/x.png", doc.RootElement.GetProperty("evidence").GetString());
+        Assert.Equal("tm", doc.RootElement.GetProperty("domain").GetString());
+        Assert.Equal("true", doc.RootElement.GetProperty("force").GetString());
+    }
+
+    [Fact]
+    public void Done_pathish_evidence_joins_spaces()
+    {
+        var applied = IdeRepl.Apply(
+            "done evidence=D:/Experiments/Personal Cursor Folder/shot.png domain=iderepl",
+            Empty);
+        Assert.NotNull(applied);
+        Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
+        using var doc = JsonDocument.Parse(ga.GetRawText());
+        Assert.Equal(
+            "D:/Experiments/Personal Cursor Folder/shot.png",
+            doc.RootElement.GetProperty("evidence").GetString());
+        Assert.Equal("iderepl", doc.RootElement.GetProperty("domain").GetString());
+        Assert.False(doc.RootElement.TryGetProperty("title", out _));
+    }
+
+    [Fact]
+    public void Shipped_inline_dig_is_go_arg_not_title()
+    {
+        var applied = IdeRepl.Apply("shipped dig=.cdp/domain/tm.md", Empty);
+        Assert.NotNull(applied);
+        Assert.True(applied.Value.Args.TryGetValue("tm_op", out var tm));
+        Assert.Equal("shipped", tm.GetString());
+        Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
+        using var doc = JsonDocument.Parse(ga.GetRawText());
+        Assert.Equal("shipped", doc.RootElement.GetProperty("op").GetString());
+        Assert.Equal(".cdp/domain/tm.md", doc.RootElement.GetProperty("dig").GetString());
+        Assert.False(doc.RootElement.TryGetProperty("title", out _));
+    }
 }

@@ -48,13 +48,8 @@ internal static partial class IdeRepl
             merged["go"] = JsonSerializer.SerializeToElement("plan");
             merged["tm_op"] = JsonSerializer.SerializeToElement("done");
             // Merge — do not wipe cockpit go_args.evidence / force (human_face_cide_shot).
-            if (tokens.Count >= 2)
-            {
-                var title = string.Join(' ', tokens.Skip(1));
-                MergeGoArgs(merged, new { title, op = "done" });
-            }
-            else
-                MergeGoArgs(merged, new { op = "done" });
+            // Lived 2026-08-06: inline dig=/evidence=/domain= were swallowed as title → task not found.
+            MergeClockDoneShipArgs(tokens, skip: 1, merged, op: "done");
             return (merged, null);
         }
 
@@ -109,13 +104,7 @@ internal static partial class IdeRepl
         {
             merged["go"] = JsonSerializer.SerializeToElement("plan");
             merged["tm_op"] = JsonSerializer.SerializeToElement("shipped");
-            if (tokens.Count >= 2)
-            {
-                var title = string.Join(' ', tokens.Skip(1));
-                merged["go_args"] = JsonSerializer.SerializeToElement(new { title, op = "shipped" });
-            }
-            else
-                merged["go_args"] = JsonSerializer.SerializeToElement(new { op = "shipped" });
+            MergeClockDoneShipArgs(tokens, skip: 1, merged, op: "shipped");
             return (merged, null);
         }
 
@@ -150,5 +139,86 @@ internal static partial class IdeRepl
         }
 
         return null;
+    }
+
+    /// <summary>Lived 2026-08-06: <c>cmd=done dig=.cdp/domain/x.md</c> swallowed dig= as task title
+    /// when focus thin → <c>task not found: dig=…</c>. Strip shield kwargs into go_args; remainder = title.
+    /// Pathish join mirrors <see cref="MergeWaveShipArgs"/> (Personal Cursor Folder spaces).</summary>
+    static void MergeClockDoneShipArgs(
+        IReadOnlyList<string> tokens,
+        int skip,
+        Dictionary<string, JsonElement> merged,
+        string op)
+    {
+        var titleParts = new List<string>();
+        var kwargs = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+
+        for (var i = skip; i < tokens.Count;)
+        {
+            var t = tokens[i];
+            var eq = t.IndexOf('=');
+            if (eq <= 0 || !IsClockDoneShipKey(t[..eq]))
+            {
+                titleParts.Add(t);
+                i++;
+                continue;
+            }
+
+            var key = t[..eq];
+            var value = t[(eq + 1)..].Trim().Trim('"').Trim('\'');
+            i++;
+            if (IsPathishClockDoneKey(key))
+            {
+                while (i < tokens.Count && !IsClockDoneShipKeyToken(tokens[i]))
+                {
+                    value = (value + " " + tokens[i]).Trim();
+                    i++;
+                }
+
+                value = value.Trim().Trim('"').Trim('\'');
+            }
+
+            kwargs[key] = JsonSerializer.SerializeToElement(value);
+        }
+
+        var title = string.Join(' ', titleParts).Trim();
+        if (title.Length > 0)
+            MergeGoArgs(merged, new { title, op });
+        else
+            MergeGoArgs(merged, new { op });
+
+        if (kwargs.Count == 0)
+            return;
+
+        var ga = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        if (merged.TryGetValue("go_args", out var existing) && existing.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var p in existing.EnumerateObject())
+                ga[p.Name] = p.Value.Clone();
+        }
+
+        foreach (var kv in kwargs)
+            ga[kv.Key] = kv.Value;
+
+        merged["go_args"] = JsonSerializer.SerializeToElement(ga);
+    }
+
+    static bool IsClockDoneShipKey(string key) =>
+        key is "evidence" or "shot_path" or "png" or "screenshot_path"
+            or "domain" or "stamp" or "domain_id" or "card" or "force"
+            or "project_root" or "workspace_path" or "dig" or "dig_path"
+            or "kb" or "pack" or "source" or "source_url" or "browser";
+
+    static bool IsPathishClockDoneKey(string key) =>
+        key is "evidence" or "shot_path" or "png" or "screenshot_path"
+            or "project_root" or "workspace_path" or "dig" or "dig_path"
+            or "kb" or "source" or "source_url";
+
+    static bool IsClockDoneShipKeyToken(string tok)
+    {
+        var eq = tok.IndexOf('=');
+        if (eq <= 0)
+            return false;
+        return IsClockDoneShipKey(tok[..eq]);
     }
 }
