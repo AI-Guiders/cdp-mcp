@@ -15,8 +15,8 @@ internal static class CitizenPeerAck
 {
     public const string Schema = "citizen_peer_ack_latch/v0";
     public const int LatchTtlMinutes = 30;
-    /// <summary>Observe pulse budget in @event peer (was 160 — inventory gaps need room).</summary>
-    public const int EventPulseMax = 280;
+    /// <summary>Observe pulse budget in @event peer (align ≥ InventoryObservePulseMax — gaps×9+).</summary>
+    public const int EventPulseMax = CitizenRouteHost.InventoryObservePulseMax;
     public const int PeerTipMax = 72;
 
     static readonly object Gate = new();

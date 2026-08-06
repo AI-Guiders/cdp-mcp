@@ -55,6 +55,35 @@ public sealed class CitizenObservePeerPulseTests : IDisposable
         Assert.DoesNotContain("inventory scene", pulse, StringComparison.Ordinal);
     }
 
+        [Fact]
+    public void TryReadInventoryPulse_all_nine_gaps_survive_without_ellipsis()
+    {
+        var ids = new[]
+        {
+            "soft-filelines", "citizen-sse", "meta-host-softorgans", "throughput-wave",
+            "pressure-wave-field", "sa-biped", "verify-wave", "domain-stamp", "list-batch-ship"
+        };
+        var gapJson = string.Join(",\n",
+            ids.Select((id, i) =>
+                "{ \"id\": \"" + id + "\", \"status\": \"s" + i + "\", \"note\": \"n\" }"));
+        var json =
+            "{\n" +
+            "  \"ok\": true,\n" +
+            "  \"op\": \"scene\",\n" +
+            "  \"pulse\": \"inventory · gaps×9 · meta-host CLOSED 32/32 · wave · shipping · 3/4 · wave\",\n" +
+            "  \"gaps\": [\n" + gapJson + "\n  ]\n" +
+            "}";
+
+        var pulse = CitizenRouteHost.TryReadInventoryPulse(json, "scene");
+        Assert.False(string.IsNullOrWhiteSpace(pulse));
+        Assert.DoesNotContain("…", pulse, StringComparison.Ordinal);
+        Assert.Contains("gaps×9", pulse, StringComparison.Ordinal);
+        foreach (var id in ids)
+            Assert.Contains(id + ":", pulse, StringComparison.Ordinal);
+        Assert.True(pulse!.Length <= CitizenRouteHost.InventoryObservePulseMax);
+        Assert.True(CitizenPeerAck.EventPulseMax >= CitizenRouteHost.InventoryObservePulseMax);
+    }
+
     [Fact]
     public void Execute_inventory_surfaces_observe_pulse_not_bare_op()
     {

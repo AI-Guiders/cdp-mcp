@@ -208,12 +208,18 @@ internal static partial class CitizenRouteHost
         }
     }
 
-    static string? TruncPulse(string? s)
+    /// <summary>Observe inventory gaps×N — must fit full list (was 240/280; ×9 ≈277+).</summary>
+    internal const int InventoryObservePulseMax = 480;
+
+    static string? TruncPulse(string? s, int max = 240)
     {
         if (string.IsNullOrWhiteSpace(s))
             return null;
         s = s.Trim().Replace('\r', ' ').Replace('\n', ' ');
-        // Observe organs (inventory gaps) need more than 120; PeerAck EventPulseMax=280.
-        return s.Length <= 240 ? s : s[..237] + "…";
+        // Default 240 for build/git; inventory observe passes InventoryObservePulseMax.
+        // PeerAck EventPulseMax must stay ≥ inventory budget.
+        if (max < 8)
+            max = 8;
+        return s.Length <= max ? s : s[..(max - 1)] + "…";
     }
 }
