@@ -427,6 +427,31 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_tasks_pulse_includes_toBe()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("tasks", tool);
+            return Task.FromResult(
+                "{\"count\":2,\"tasks\":[{\"taskId\":\"t1\",\"title\":\"Thin\",\"toBe\":\"Surface tasks toBe in pulse\"},{\"taskId\":\"t2\",\"title\":\"Also\",\"toBe\":\"Keep SoftFL invent REJECT\"}]}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=task tasks")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("2 hit(s)", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("Surface tasks toBe", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;
