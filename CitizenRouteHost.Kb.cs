@@ -206,6 +206,7 @@ internal static partial class CitizenRouteHost
                 bits.Add(TruncPulse(e) ?? e);
             AppendKbSearchHits(root, bits);
             AppendKbNextHits(root, bits);
+            AppendKbEntryHits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -275,6 +276,40 @@ internal static partial class CitizenRouteHost
             else if (m.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String)
                 hit = title.GetString();
             else if (m.TryGetProperty("taskId", out var id) && id.ValueKind == JsonValueKind.String)
+                hit = id.GetString();
+            if (hit is not { Length: > 0 })
+                continue;
+            var one = hit.Replace('\r', ' ').Replace('\n', ' ').Trim();
+            if (one.Length > 40)
+                one = one[..40] + "…";
+            bits.Add("#" + (hitN + 1) + " " + one);
+            hitN++;
+        }
+    }
+
+    /// <summary>Findings/failures list JSON — surface top entry summary/path/error so FM does not SoftFL-invent after thin count pulse.</summary>
+    static void AppendKbEntryHits(JsonElement root, List<string> bits)
+    {
+        if (!root.TryGetProperty("entries", out var entries) || entries.ValueKind != JsonValueKind.Array)
+            return;
+
+        var hitN = 0;
+        foreach (var m in entries.EnumerateArray())
+        {
+            if (hitN >= 2)
+                break;
+            string? hit = null;
+            if (m.TryGetProperty("summary", out var summary) && summary.ValueKind == JsonValueKind.String)
+                hit = summary.GetString();
+            else if (m.TryGetProperty("errorOrMiss", out var err) && err.ValueKind == JsonValueKind.String)
+                hit = err.GetString();
+            else if (m.TryGetProperty("why", out var why) && why.ValueKind == JsonValueKind.String)
+                hit = why.GetString();
+            else if (m.TryGetProperty("path", out var path) && path.ValueKind == JsonValueKind.String)
+                hit = path.GetString();
+            else if (m.TryGetProperty("tool", out var tool) && tool.ValueKind == JsonValueKind.String)
+                hit = tool.GetString();
+            else if (m.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String)
                 hit = id.GetString();
             if (hit is not { Length: > 0 })
                 continue;
