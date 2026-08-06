@@ -13,9 +13,23 @@ internal static partial class CitizenRouteHost
     static Applied RunGit(CitizenIntentRouter.Route route)
     {
         var shortTool = string.IsNullOrWhiteSpace(route.Op) ? "scene" : route.Op!;
-        var tool = CdpDomains.ExpandUnderlying(CdpDomains.Git, shortTool);
         var args = BuildGitArgs(route.Raw);
 
+        // SoftFL-safe: bare commit → git add -A (sibling.next / bin junk). Equal hands ≠ silent mega-commit.
+        if (string.Equals(shortTool, "commit", StringComparison.OrdinalIgnoreCase)
+            && !args.ContainsKey("paths"))
+        {
+            return new Applied(
+                route.Raw,
+                route.Verb.ToString(),
+                Ok: false,
+                Action: "git",
+                Go: "git",
+                Pulse: "git commit need paths=",
+                Reason: "need paths=");
+        }
+
+        var tool = CdpDomains.ExpandUnderlying(CdpDomains.Git, shortTool);
         try
         {
             var json = CallGitBackend(tool, args);
