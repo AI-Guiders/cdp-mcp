@@ -54,6 +54,7 @@
 - Unquoted `evidence=` / `project_root=` with spaces (`Personal Cursor Folder`) space-tokenized into a broken path → shield miss / silent fail. Join pathish keys until next ship-key= (`MergeWaveShipArgs`).
 
 ## last_ship
+- **2026-08-06 wave go_args.label** — Direct `wave item done` ignored nested `go_args.label` (tokens-only). `WaveLabelFromGoArgs` + Merge whitelist `label|item|title|q|dig`. Lived: cockpit `cmd=wave item done` + `go_args.label=dig-lived` → 1/6. Test `Repl_wave_item_done_from_go_args_label`. Also: `CdpReloadNudge.ps1` PS5.1-safe coalesce (publish-and-deploy host has no `??`). SoftFL REJECT.
 - **2026-08-06 evidence-path spaces** — `MergeWaveShipArgs` joins pathish REPL values (`evidence`/`shot_path`/`png`/`screenshot_path`/`project_root`/`workspace_path`) until next ship-key=. Lived: `wave shipped evidence=…\Personal Cursor Folder\…` split → shield miss. Test `Repl_wave_shipped_joins_unquoted_evidence_path_with_spaces`. SoftFL REJECT.
 - **2026-08-06 Complexity seal** — operator teach: ЛВО→дихотомия · **serial[a,b]=O(N)** · **nested[axb]=O(log N)** · mill = other complexity class (not style). Canon: lemma note + playbook-pf-body-not-biped §Throughput + this card.
 - **2026-08-06 NestedAxb STANDARD** — operator: generalized nested [axb] = default geometry; **PREMISE full-a/completeness** + **bounds ideally const** (bounds move ⇒ step count may change, nonempty ∩ still under closed layers). World claim = nonempty ∩ (∃), not ∃!. Canon: playbook-pf-body-not-biped §Throughput + this card.
