@@ -16,7 +16,7 @@
 - **`disarm all` under autonomous:** clears work arms only (keeps `autonomous-seed-wake`, `leaf-wake`, `hild-away-*`, `remount-wake-*`, `tool-wake-*`, mid-flight event wakes). If wake path empty → auto seed. `force=true` clears store too but still re-seeds while autonomous latch is on. HILD is a separate latch (`op=hild`) — not cleared by disarm.
 - **`op=halt`:** stop-world until partner — not `disarm all`. Turns autonomous+HILD off, clears every arm, plants awaiting_partner latch. Resume does not auto-restore autonomous/HILD.
 - **`disarm` under autonomous:** work-arm remove that empties wake path → seed (`removed > 0`); noop missing-id (`removed=0`) does **not** plant Guest Autoi CDT seed (0.5.535). Re-ARM `last_once` via `arm` supersede — do not disarm→arm ritual.
-- **`autonomous-seed-wake` fire:** if TM already has an incomplete leaf mid-window, suppress Guest Autoi CDT and redirect to `leaf-wake` (`TrySuppressAutonomousSeedBeforeDelivery` · `board_has_incomplete_leaf` · 0.5.536) — LeafPlateau race after `done` before next leaf lands.
+- **`autonomous-seed-wake` fire:** if TM already has an incomplete leaf mid-window, suppress Guest Autoi CDT and redirect to `leaf-wake` (`TrySuppressAutonomousSeedBeforeDelivery` · `board_has_incomplete_leaf` · 0.5.536) — LeafPlateau race after `done` before next leaf lands. **`ResolveWakeLeafId` (0.5.676):** prefer `ActiveStageId` incomplete leaf over DFS-first (`FindFirstIncompleteLeaf`) — invent-only Hold focus must not lose to an earlier pending Monday DoD sibling.
 - Guest Autoi remains CDT→Composer adapter (ADR-0025) for system wakes **and** for autonomous plain timers when PF is not duplex-live: `prefer_autonomous` stamps habitat SSOT then CDT fallthrough (0.5.532). **Cursor host dogfood (0.5.554):** invite ready must **not** steal this path — Composer is the gun while the agent sits in Cursor.
 - **Citizen Autoi consume (0.5.551→0.5.554):** only when Composer unavailable (`TryDeliverHabitatWhenComposerUnavailableAsync` · gone/down) + `invite_ready` → `TryDeliverAutoiWake` · `detail=prefer_citizen` · Intercom `kind=citizen`. Idle PF + invite while Composer present → Guest CDT→Composer.
 - **Habitat prefer skip-CDT** on plain timer work arms when PF duplex busy|composing (`ShouldPreferHabitatDelivery` duplex · `detail=prefer_duplex`).
@@ -62,6 +62,7 @@
 - Agent regex-replace-all `CDP_RELOAD_NUDGE` in `mcp.json` (or Cursor rule teaching bump `cdp`/`cdp-debug`) — dual remount thrash; Cursor log `stopped connection: user-cdp` + `user-cdp-debug` → mid-turn `Not connected` while exe often still up (dogfood 2026-08-05). Recover = `Recover-CdpSeatRemount.ps1 -Seat cdp` only.
 - `Recover-CdpSeatRemount` kill match `ExecutablePath.StartsWith(Target)` — `D:\cdp-mcp-debug` starts with `D:\cdp-mcp` → sibling kill (fixed: exact `$exePath` equality).
 - Leaving `remount-wake-other.pending.json` when Target was `...\self` / repo leaf (pre-0.5.661 ClassifySeat) — remount wake never arms.
+- Autonomous seed→leaf-wake via DFS-first incomplete leaf while `[>]` invent-only Hold is focused (pre-0.5.676) — remount planted `Monday DoD` 2s thrash; `ResolveWakeLeafId` prefers `ActiveStageId`.
 
 - Autonomous + Hold invent-only leaf + leaf_pull ≤3s DIG REJECT mill (pre-0.5.655) — park police thrash under sealed invent-only; skip leaf_pull / keep ≤3m when task title has `invent only`.
 - Hold invent-only + `ArmForLeaf` 2s leaf-wake DIG REJECT mill (pre-0.5.659) — ContinuityFlight plants 2s after last_once fire; invent-only → 3m.
@@ -87,6 +88,7 @@
 
 ## last_ship
 
+- **2026-08-07 ResolveWakeLeafId focus-first (0.5.676)** — lived: remount/seed → leaf-wake `Monday DoD` (DFS-first incomplete) while TM `[>]` invent-only Hold → 2s thrash. Fix: `ResolveWakeLeafId` prefers `ActiveStageId` · test `ResolveWakeLeafId_prefers_active_focus_over_dfs_first`. SoftFL REJECT. Dual hard `D:\cdp-mcp` + `D:\cdp-mcp-debug`.
 - **2026-08-06 CdpReloadNudge -File entry** — lived: Recover remount stalled; `pwsh -File CdpReloadNudge.ps1 -Server cdp` silent no-op (library-only) until `.` + `Invoke-`. Entry now bumps named seat; dogfood `-Server cdp-debug` stamp `20260806-143907`. SoftFL REJECT.
 - **2026-08-06b dotsource gate** — Path-equality entry fired on Recover `.` → empty Server + `exit` aborted remount. Gate = `InvocationName -ne '.'`; SoftFirst Recover + `-File` dogfood green.
 - **2026-08-06 Folded AutoI consume CLOSED (0.5.674)** — Glass Autoi Korry ON while talk/halt: `glass_ignite_cmd` `autonomous_on` now `Resume` + `SetAutonomous(true)` (was SetAutonomous alone → latch stuck · TALK/HALT face). Test `TryProcessOnce_autonomous_on_clears_folded_await_partner`. SoftFL REJECT. Residual: Glass eyes on Korry fly-after-fold (operator); VAD still unwired; lane→channel longer arc.
