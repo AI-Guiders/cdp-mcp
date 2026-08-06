@@ -18,6 +18,7 @@
 - Host start hydration (`CockpitHostLatchHydration`) must include SoftOrgan + EICAS latch names that exist on disk.
 - Intercom partner presence = separate latch `intercom-presence-LATEST.json` (idle|composing|busy + reader stale) — do **not** mix into voice/journal, SoftOrgan, EICAS, or host-start hydration (fake freshness).
 - Intercom sticky Who = separate latch `intercom-identity-LATEST.json` (freeform nick per seat) — resolve explicit `name=` → sticky → bootstrap (`Кир`/`Operator`/`Citizen`); machine-local nick (e.g. Света) is claim, not repo default. `cdp_intercom op=identity`.
+- Intercom Face rails = journal `channel` tag (`crew`|`radio`|`dm`); `cdp_intercom send channel=` (omit→radio). Glass feed filters by active rail. MCP dialog jsonl ≠ Face Intercom.
 - `mcp` SoftOrgan → MFD `AiChatSettings` (MCP settings live there); MFD `Chat` = Intercom/citizen secondary — not mcp.
 
 ## Entry
@@ -237,6 +238,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-06 cdp_intercom channel= Face rail SHIPPED** — lived: Kir↔Sierra pain talk via MCP `cdp_citizen` dialog invisible on Face · gap: `Publish(channel=)` existed but `IdeCideIntercomChannel.Send` + MCP schema dropped it (always Radio-default) · wire `channel=crew|radio|dm` (+feed=) through Send/Card/CitizenRouteHost · tests Channel_send_dm + invalid · hard **0.5.674** `build_utc=2026-08-06T06:49:32Z` · live dogfood DM letter to @PM · SoftFL REJECT · residual: Face eyes on DM rail; peer journal filter still later.
 - **2026-08-06 Glass slash ADR 0150 ArgTail (unmask)** — park/bare=last was invent. Canon: `arg_tail` none|optional|required · autocomplete Enter auto-runs only when policy allows · bare required → honest usage. SoftFL REJECT.
 - **2026-08-06 Claim guest≠demote Sierra** — lived: habitat-map Radio `name=Kir` Claimed tip over citizen · refuse guest Claim when tip is citizen · Sierra restored · SoftFL REJECT.
 - **2026-08-06 Glass slash empty-args universal gate** — usage bubble on bare open/citizen/attach/select from autocomplete+palette+Enter. CIDE-parity `ShouldAutoRunOnCommit` · `PrefillComposerForSlashArgs` (no usage dump) · select bare=last · attach fail→park. SoftFL REJECT.
