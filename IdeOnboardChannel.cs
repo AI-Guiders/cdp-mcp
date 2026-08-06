@@ -88,9 +88,14 @@ internal static partial class IdeOnboardChannel
 
     static object Scene(SessionContext session)
     {
+        var root = session.ProjectRoot ?? session.ScmRoot;
+        if (root is null or { Length: 0 })
+            return Err(
+                "project_required",
+                "cdp_open / project first — onboard maps ProjectRoot. File manager = @intent files (files_desk), not onboard.");
+
         var doc = Load(session);
-        if (doc.Entrypoints.Count == 0 && doc.Verticals.Count == 0 &&
-            (session.ProjectRoot ?? session.ScmRoot) is { Length: > 0 })
+        if (doc.Entrypoints.Count == 0 && doc.Verticals.Count == 0)
             return Scan(session);
         return OkCard(session, doc, "scene");
     }

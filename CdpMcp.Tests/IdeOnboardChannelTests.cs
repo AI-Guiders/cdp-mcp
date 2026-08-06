@@ -11,6 +11,22 @@ public class IdeOnboardChannelTests
         Assert.Equal("cdp_onboard", IdeOnboardChannel.ToolName);
 
     [Fact]
+    public void Scene_without_project_refuses_empty_ok()
+    {
+        var session = new SessionContext();
+        var scene = IdeOnboardChannel.Handle(session, new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("scene")
+        });
+        using var doc = JsonDocument.Parse(JsonSerializer.Serialize(scene));
+        Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal("project_required", doc.RootElement.GetProperty("error").GetString());
+        Assert.Equal("onboard · project_required", doc.RootElement.GetProperty("pulse").GetString());
+        Assert.Contains("files", doc.RootElement.GetProperty("hint").GetString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+
+    [Fact]
     public void Scan_finds_Program_and_verticals()
     {
         var tmp = Directory.CreateTempSubdirectory("cdp-onboard-");

@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Cdp.Core;
@@ -141,6 +141,8 @@ internal static partial class IdeOnboardChannel
         schema = SchemaVersion,
         go = GoName,
         tool = ToolName,
+        op = "scene",
+        pulse = "onboard · " + error,
         error,
         hint
     };
