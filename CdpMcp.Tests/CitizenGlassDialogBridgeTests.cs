@@ -228,6 +228,37 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     }
 
     [Fact]
+    public void TryProcessOnce_user_intent_fallback_when_fm_routes_empty()
+    {
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        IdeDeskSeats.TryPlaceExplicit("p", "plan");
+
+        var seatRoot = Path.Combine(_root, "cdp");
+        Directory.CreateDirectory(seatRoot);
+        CitizenDialogHistory.SetTestPath(Path.Combine(seatRoot, CitizenDialogHistory.FileName));
+
+        // Lived: Glass latch body has @intent but FM replies prose/@frame → routes=[] → peer latch stale.
+        CitizenGlassDialogBridge.TurnOverrideForTests = body =>
+        {
+            if (body.Equals(CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal))
+                return EchoTurn("observe: peer pulse seen");
+            return EchoTurn("@frame health v0\nstatus | ok"); // empty Routes — FM invent
+        };
+        WritePending("userfb000001", "@intent go=plan");
+
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        Assert.False(string.IsNullOrWhiteSpace(CitizenPeerAck.LastPeer));
+        Assert.Contains("ack=1/1", CitizenPeerAck.LastPeer!, StringComparison.Ordinal);
+        Assert.Contains("go=plan", CitizenPeerAck.LastEvent!, StringComparison.OrdinalIgnoreCase);
+
+        using var status = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        Assert.Equal("done", status.RootElement.GetProperty("status").GetString());
+        Assert.Contains("ack=1/1", status.RootElement.GetProperty("peer").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TryProcessOnce_thin_observe_falls_back_to_act_face_letter()
     {
         IdeDeskSeats.EnsureDefaultsFromSettings();

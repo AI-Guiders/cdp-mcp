@@ -184,11 +184,21 @@ internal static class CitizenGlassDialogBridge
                 return true;
             }
 
+            // Provider may invent @frame/prose without @intent (Glass Face seeming) —
+            // host-execute user @intent when model routes empty (parity with IdeCitizenChannel).
+            IReadOnlyList<CitizenIntentRouter.Route>? routes = turn.Routes;
+            if (routes is null || routes.Count == 0)
+            {
+                var userRoutes = CitizenIntentRouter.RouteAll(CitizenWireParser.Parse(req.Body));
+                if (userRoutes.Count > 0)
+                    routes = userRoutes;
+            }
+
             IReadOnlyList<CitizenRouteHost.Applied>? executed = null;
             CitizenPeerAck.Result? peerAck = null;
-            if (turn.Routes is { Count: > 0 })
+            if (routes is { Count: > 0 })
             {
-                executed = CitizenRouteHost.Execute(turn.Routes);
+                executed = CitizenRouteHost.Execute(routes);
                 peerAck = CitizenPeerAck.FromExecuted(executed);
             }
 
