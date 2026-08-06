@@ -120,7 +120,7 @@ Scope = **all** CIDE surfaces still Avalonia-primary / half-a on Glass. Presence
 | A3 | **0172** worklines / session-graph (`ThreadNode`) | Avalonia compositor + tree | 30m quiet-gap clusters only | **SUPERSEDE** — NorthStar `#crew`·DM·Radio index; not ThreadNode port (see glass-intercom antipattern) |
 | A4 | Message↔code depth | Skia attach/reveal fuller | `/open` + chips (P2 shipped) | **residual denser** |
 | A5 | Topic intents parity (`enter`/`return` overview) | Avalonia melody `ato`/`atb` | Glass melody `topic_overview`/`topic_enter` + `ato`/`atb` · next/prev in overview selects | **ADOPTED** 2026-08-05 (with A1; surface enter↔overview OK) |
-| A6 | **0136** message select (gutter · slash · ПКМ · MCP) | Avalonia Skia gutter + `/intercom message select` + `chat_select_*` | Glass: select N·N:M·`[a;b]…` · next/prev · ПКМ · melody `chat_select_*`→ordinal · gutter+highlight | **ADOPTED denser** 2026-08-06 · SoftFL REJECT · residual slash find/relate/anchors/attach*/topic*/spine* |
+| A6 | **0136** message select (gutter · slash · ПКМ · MCP) | Avalonia Skia gutter + `/intercom message select` + `chat_select_*` | Glass: select N·N:M·`[a;b]…` · next/prev · ПКМ · melody `chat_select_*`→ordinal · gutter+highlight · Enter-autocomplete waits for N (not bare usage) | **ADOPTED denser** 2026-08-06 · fix usage-without-highlight · SoftFL REJECT · residual slash find/relate/anchors/attach*/topic*/spine* |
 
 #### B. Instruments — presence DONE, Avalonia still denser
 
@@ -237,6 +237,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-06 A6 select usage-without-highlight FIX** — Enter on autocomplete ran bare `/intercom message select` → usage bubble, no highlight. Fix: `RequiresArgs` + CommitSlash waits for N · bare `/select`→last · brighter left-bar highlight · ПКМ DataContext `??`/`is` precedence. Tests 7/7 · SoftFL REJECT.
 - **2026-08-06 Folded AutoI consume CLOSED** — `GlassIgniteCmdBridge` `autonomous_on` → `Resume`+`SetAutonomous` (0.5.674) · pairs cascade-ide glass-intercom · SoftFL REJECT · residual Glass eyes.
 - **2026-08-06 standalone-launch Ready-to-Interact VERIFY** · `cdp_cockpit_host` stop→start cycle · pid=29908 dual-cockpit · latches=32 · Release exe toml · parent≠CdpMcp (detach) · evidence `cascade-ide/tmp-glass-shots/standalone-launch-cycle-20260806.png` + `cdp_see` · SoftFL invent REJECT
 - **2026-08-06 ecl-qrh-alert-hand CLOSED** — EICAS SoftKeys `clr`/`ack`/`list` on MFD health band · `eicas-cmd-LATEST.json` → `GlassEicasCmdBridge` → `IdeChkChannel.AckFromGlass` · CLR local suppress until latch pulse changes. Live dogfood: UIA SoftKey `ack` → cmd `done` ship/git-known · ECL open cleared (`ecl · 1 clear`) · shot `tmp-glass-shots/uikit-eicas-softkey-ack-20260806.png` + `cdp_see`. SoftFL invent REJECT · pattern mirror ignite-cmd.
