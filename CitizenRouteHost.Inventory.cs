@@ -63,6 +63,10 @@ internal static partial class CitizenRouteHost
     /// <summary>
     /// Observe feed for next afferent — real inventory pulse/gaps, not bare <c>inventory scene</c>.
     /// </summary>
+        /// <summary>
+    /// Observe feed for next afferent — real inventory pulse/gaps, not bare <c>inventory scene</c>.
+    /// All gap ids (canon list ≤15) must survive TruncPulse/EventPulseMax — Sierra asks for full ×N.
+    /// </summary>
     internal static string? TryReadInventoryPulse(string json, string op)
     {
         try
@@ -87,7 +91,8 @@ internal static partial class CitizenRouteHost
                 var n = 0;
                 foreach (var g in gaps.EnumerateArray())
                 {
-                    if (n >= 8)
+                    // Match batch_size_recommend ceiling — never silent-drop last gaps under ×9.
+                    if (n >= 15)
                         break;
                     var id = g.TryGetProperty("id", out var idEl) && idEl.ValueKind == JsonValueKind.String
                         ? idEl.GetString()
@@ -105,11 +110,11 @@ internal static partial class CitizenRouteHost
                 }
             }
 
-            return TruncPulse(sb.ToString());
+            return TruncPulse(sb.ToString(), InventoryObservePulseMax);
         }
         catch
         {
-            return TruncPulse("inventory " + op);
+            return TruncPulse("inventory " + op, InventoryObservePulseMax);
         }
     }
 }
