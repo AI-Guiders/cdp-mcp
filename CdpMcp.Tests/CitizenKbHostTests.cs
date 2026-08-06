@@ -507,6 +507,32 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_man_raw_text_pulses_body_ok()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("man", tool);
+            return Task.FromResult(
+                "TaskKnowledge man\nTools: ensure_store, route_next, tasks, read_card, write_card\nUse relative_path= for cards.");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=task man")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("body", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("TaskKnowledge man", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("ensure_store", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;
