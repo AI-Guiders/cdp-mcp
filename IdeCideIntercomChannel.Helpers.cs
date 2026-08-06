@@ -62,6 +62,7 @@ internal static partial class IdeCideIntercomChannel
         origin = d.Origin,
         name = d.Name,
         kind = d.Kind,
+        channel = d.Channel,
         role_label = d.Name is { Length: > 0 } && d.Kind is { Length: > 0 }
             ? CideIntercomVoiceLatch.FormatRoleLabel(d.FromSeat, d.ToSeat, d.Name, d.Kind)
             : null,

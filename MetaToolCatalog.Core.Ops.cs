@@ -81,7 +81,7 @@ internal static partial class MetaToolCatalog
             page = new { type = "string", description = "alias of mfd_page" }
         }
     }),
-    Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack|history|presence|identity. send to=pm body= [name=] → latch+journal; name= claims sticky Who. op=identity action=set|get|clear seat= name= — freeform sticky nick (agent-line). presence seat= state=. Alias go=intercom.", new
+    Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack|history|presence|identity. send to=pm body= [channel=crew|radio|dm] [name=] → latch+journal (Face rail filter); name= claims sticky Who. NorthStar: #crew · Radio · DM. Alias go=intercom.", new
     {
         type = "object",
         properties = new
@@ -92,6 +92,8 @@ internal static partial class MetaToolCatalog
             body = new { type = "string", description = "send: message text" },
             message = new { type = "string", description = "send: alias of body" },
             text = new { type = "string", description = "send: alias of body" },
+            channel = new { type = "string", description = "send: crew|radio|dm (aliases #crew|direct|1:1); Face feed filter; omit→radio" },
+            feed = new { type = "string", description = "send: alias of channel" },
             name = new { type = "string", description = "send/identity: freeform Who / nick (claims sticky on send)" },
             display_name = new { type = "string", description = "alias of name" },
             nick = new { type = "string", description = "alias of name (also send as=)" },

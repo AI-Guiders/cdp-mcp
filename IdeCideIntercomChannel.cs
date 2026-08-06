@@ -67,12 +67,13 @@ internal static partial class IdeCideIntercomChannel
             unread = unread is null ? null : Card(unread),
             latest = latch is null ? null : Card(latch),
             hint =
-                "send to=pm body=… [name=…] [kind=guest|citizen] → @PM on Glass. " +
-                "op=identity seat=pf|pm name=… — sticky Who (freeform nick); send name= also claims. " +
-                "Bootstrap defaults Guest/Operator — not personal names in repo. " +
+                "send to=pm body=… [channel=crew|radio|dm] [name=…] [kind=guest|citizen] → @PM on Glass. " +
+                "NorthStar rails: #crew · Radio · DM — Face filters by channel (blank→radio). " +
+                "op=identity seat=pf|pm name=… — sticky Who; send name= also claims. " +
                 "presence seat= state=idle|composing|busy. history limit=. ack id= after you read.",
             next = new object[]
             {
+                new { go = "intercom_send", label = "@PM DM", why = "to=pm body=… channel=dm" },
                 new { go = "intercom_send", label = "@PM say", why = "to=pm body=…" },
                 new { go = "intercom", label = "Identity", why = "op=identity seat=pf name=…" },
                 new { go = "intercom_presence", label = "Presence", why = "op=presence seat=pf state=busy" },
@@ -109,13 +110,23 @@ internal static partial class IdeCideIntercomChannel
         if (kind is not null && CideIntercomVoiceLatch.NormalizeKind(kind) is null)
             return Fail("kind_invalid", "kind=guest|citizen|operator");
 
+        var channelRaw = Arg(args, "channel") ?? Arg(args, "feed");
+        string? channel = null;
+        if (!string.IsNullOrWhiteSpace(channelRaw))
+        {
+            channel = CideIntercomVoiceLatch.NormalizeIntercomChannel(channelRaw);
+            if (channel is null)
+                return Fail("channel_invalid", "channel=crew|radio|dm (#crew|direct|1:1 ok)");
+        }
+
         var published = CideIntercomVoiceLatch.Publish(
             from,
             to,
             body!,
             origin,
             name: name,
-            kind: kind);
+            kind: kind,
+            channel: channel);
         if (published is null)
             return Fail("publish_failed", "could not write intercom latch");
 
@@ -128,7 +139,7 @@ internal static partial class IdeCideIntercomChannel
             latch_path = CideIntercomVoiceLatch.LatchPath,
             journal_path = CideIntercomVoiceLatch.JournalPath,
             chat = $"{published.Name ?? "@" + to.ToUpperInvariant()}: {TrimChat(published.Body)}",
-            hint = "Latch + journal published — Glass shows name · kind (not model id)."
+            hint = "Latch + journal published — Glass feed = channel (crew|radio|dm; blank→radio). Face: pick matching rail."
         });
     }
 
