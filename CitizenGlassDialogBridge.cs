@@ -196,19 +196,34 @@ internal static class CitizenGlassDialogBridge
             var actPublished = SurfacePublishBody(turn.Text!, executed);
             PersistOperatorDialog(req.Body, turn.Text!, actPublished, executed);
 
+            // Face letter prefers same-turn observe; thin observe ("R" / 1-token) falls back to act.
             var publishBody = actPublished;
             if (peerAck is not null)
             {
                 var observe = TrySameTurnObserve(peerAck, executed);
                 if (observe is { } obs)
                 {
-                    publishBody = obs.PublishBody;
-                    peerAck = obs.PeerAck;
-                    PersistOperatorDialog(
-                        SameTurnObserveUser,
-                        obs.Text,
-                        obs.PublishBody,
-                        obs.Executed);
+                    if (IsUsableFaceLetter(obs.PublishBody))
+                    {
+                        publishBody = obs.PublishBody;
+                        peerAck = obs.PeerAck;
+                        PersistOperatorDialog(
+                            SameTurnObserveUser,
+                            obs.Text,
+                            obs.PublishBody,
+                            obs.Executed);
+                    }
+                    else
+                    {
+                        // Keep act letter on Face; still persist observe dig for dialog memory.
+                        PersistOperatorDialog(
+                            SameTurnObserveUser,
+                            obs.Text,
+                            actPublished,
+                            obs.Executed ?? executed);
+                        if (obs.PeerAck is not null)
+                            peerAck = obs.PeerAck;
+                    }
                 }
             }
 
@@ -249,6 +264,23 @@ internal static class CitizenGlassDialogBridge
         string PublishBody,
         CitizenPeerAck.Result PeerAck,
         IReadOnlyList<CitizenRouteHost.Applied>? Executed);
+
+    /// <summary>
+    /// Lived 2026-08-06: FM observe collapsed to "R" after StripWire — Face useless.
+    /// Prefer act letter when observe publish is thinner than a short Radio sentence.
+    /// </summary>
+    internal static bool IsUsableFaceLetter(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return false;
+        var t = body.Trim();
+        if (t.Length < 24)
+            return false;
+        // Single token / glyph ("R", "ok") ≠ human-faced observe letter.
+        if (t.IndexOfAny([' ', '\n', '\t', '·', '.', ',', '—', '-']) < 0 && t.Length < 40)
+            return false;
+        return true;
+    }
 
     /// <summary>
     /// After host-execute: second Turn so Completions injects @event peer (LastEvent).
