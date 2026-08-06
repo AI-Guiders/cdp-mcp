@@ -131,4 +131,39 @@ public sealed class CitizenKbHostTests
             CitizenRouteHost.UnbindLifecycle();
         }
     }
+
+    [Fact]
+    public void Route_kb_search_token_binds_session()
+    {
+        var r = CitizenIntentRouter.RouteOne("kb search query=SoftFL");
+        Assert.True(r.Ok);
+        Assert.Equal("search_agent_notes", r.Op);
+        Assert.Equal("memory_session", r.Server);
+    }
+
+    [Fact]
+    public void Execute_kb_search_pulse_includes_match_hits()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("search_agent_notes", tool);
+            return Task.FromResult(
+                "{\"query\":\"SoftFL\",\"total_matches\":2,\"returned_matches\":2,\"matches\":[{\"line\":10,\"text\":\"## SoftFL invent REJECT - dig before invent\"},{\"line\":40,\"text\":\"Face Done = operator Glass eyes only\"}]}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb search query=SoftFL")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("2 match(es)", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("SoftFL invent REJECT", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("q=SoftFL", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
 }
