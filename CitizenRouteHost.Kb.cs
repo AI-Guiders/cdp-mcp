@@ -154,6 +154,7 @@ internal static partial class CitizenRouteHost
     }
 
     /// <summary>Honest fail tip — do not SoftFL-invent <c>need cdp_open</c> for every ArgumentException.</summary>
+    /// <summary>Honest fail tip — do not SoftFL-invent <c>need cdp_open</c> for every ArgumentException.</summary>
     static string TipKbArgException(Exception ex, out string reason)
     {
         reason = ex.GetType().Name + ": " + ex.Message;
@@ -169,6 +170,15 @@ internal static partial class CitizenRouteHost
         // "task_id is required." / "content is required." / "path is required when…"
         if (TryTipRequiredArg(ex.Message) is { Length: > 0 } need)
             return need;
+
+        // MemoryScopeGateway: Path '…' is invalid (no absolute paths or '..' segments).
+        if (ex.Message.Contains("is invalid", StringComparison.OrdinalIgnoreCase)
+            && (ex.Message.Contains("absolute", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("..", StringComparison.Ordinal)))
+        {
+            reason = "kb_path_not_relative";
+            return "need relative_path=";
+        }
 
         if (ex.Message.Contains("query", StringComparison.OrdinalIgnoreCase))
             return "need query=";
