@@ -63,9 +63,11 @@
 - Committing real API keys.
 - Forcing ONLY `@intent` for every dogfood when unforced multi-intent already works with live_desk.
 - **One Meta host / one peel / one CIDE organ per Autoi wake** — biped serial. Canon: **list → batch → ship** (Soft FileLines CLOSED · Meta BATCH-8/9 · CIDE pack). See `playbook-pf-body-not-biped-v1.md` §Throughput.
+- Inventory/observe `pulse | inventory scene` alone — discarded JSON; Sierra cannot verify gaps. PeerAck in-memory only → remount wipes `@event peer` mid-dialog.
 
 ## last_ship
 
+- **2026-08-06 Glass Radio observe pulse SHIPPED** — inventory `TryReadInventoryPulse` (real `pulse` + gap ids) · `CitizenPeerAck` durable latch `%LocalAppData%/cdp-mcp/citizen-peer-LATEST.json` (30m TTL) survives remount · TruncPulse 240 / EventPulseMax 280 · tests `CitizenObservePeerPulseTests`+`CitizenPeerAckHostTests` 6/6 · hard `build_utc=2026-08-06T02:46:11Z`. SoftFL REJECT. DoD: Sierra next afferent sees readable inventory gaps after intent.
 - **2026-08-06 Face typing presence (Citizen half)** — `CitizenGlassDialogBridge.TryProcessOnce` PublishSeat `pf` busy for Turn TTL → idle in finally · test `TryProcessOnce_marks_pf_busy_during_turn_then_idle` · pairs Glass `TypingCue` · SoftFL REJECT
 - **2026-08-06 journal-hard Publish** — Lived again: Sierra «вопрос был настоящий…» (`d7fa10b3c1d5`) in dialog but missing journal until recover `e4f2043803dd`. Root: `AppendJournal` swallowed fail → Publish returned OK → status=done without Radio feed. Fix: `AppendJournal`→bool · Mutex timeout=false · Publish returns null unless journal durable. Tests CideIntercomVoiceLatch 12/12. Human-face: window_list → `CDP GlassCockpit · Windows` → evidence `cascade-ide/tmp-glass-shots/radio-observe-sierra-letter-20260806.png` + `cdp_see` (Radio lit · Хитрая… + Знаешь что… visible). SoftFL REJECT.
 - **2026-08-06 Glass Radio duplex DIG+fix** — Lived: Sierra «Хитрая система…» in `citizen-dialog.jsonl` but **missing from intercom-journal** (operator `6be27a2fa1a4` only); Autoi remount painted as `kind=citizen` (stomped Who + LATEST). Fix: system wake → guest Radio only · Radio pointer never Citizen · journal Mutex cross-process · Glass `LooksLikeRadioPointer` tip-only. AutoI Composer wake ≠ forward Glass letter (truth). SoftFL REJECT.

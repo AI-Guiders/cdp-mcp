@@ -4,8 +4,32 @@ using Xunit;
 namespace CdpMcp.Tests;
 
 /// <summary>Wave32: peer intent_ack after host execute (desk partner duplex).</summary>
-public sealed class CitizenPeerAckHostTests
+public sealed class CitizenPeerAckHostTests : IDisposable
 {
+    readonly string _root = Path.Combine(Path.GetTempPath(), "cdp-peer-ack-" + Guid.NewGuid().ToString("N"));
+
+    public CitizenPeerAckHostTests()
+    {
+        Directory.CreateDirectory(_root);
+        CitizenPeerAck.RootOverrideForTests = _root;
+        CitizenPeerAck.ResetForTests();
+    }
+
+    public void Dispose()
+    {
+        CitizenPeerAck.ResetForTests();
+        CitizenPeerAck.RootOverrideForTests = null;
+        try
+        {
+            if (Directory.Exists(_root))
+                Directory.Delete(_root, recursive: true);
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
     [Fact]
     public void FromExecuted_formats_ack_and_latches_peer()
     {

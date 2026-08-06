@@ -213,6 +213,7 @@ internal static partial class CitizenRouteHost
         if (string.IsNullOrWhiteSpace(s))
             return null;
         s = s.Trim().Replace('\r', ' ').Replace('\n', ' ');
-        return s.Length <= 120 ? s : s[..117] + "…";
+        // Observe organs (inventory gaps) need more than 120; PeerAck EventPulseMax=280.
+        return s.Length <= 240 ? s : s[..237] + "…";
     }
 }

@@ -1,4 +1,5 @@
 #nullable enable
+using System.Text;
 using System.Text.Json;
 using Cdp.Core;
 
@@ -44,7 +45,7 @@ internal static partial class CitizenRouteHost
                 Action: "inventory",
                 Seat: seat,
                 Go: "inventory",
-                Pulse: TruncPulse("inventory " + op),
+                Pulse: TryReadInventoryPulse(json, op),
                 Reason: ok ? null : "inventory_failed");
         }
         catch (Exception ex)
@@ -56,6 +57,59 @@ internal static partial class CitizenRouteHost
                 Action: "inventory",
                 Go: "inventory",
                 Reason: ex.GetType().Name + ": " + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Observe feed for next afferent — real inventory pulse/gaps, not bare <c>inventory scene</c>.
+    /// </summary>
+    internal static string? TryReadInventoryPulse(string json, string op)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(ContextJsonBody(json));
+            var root = doc.RootElement;
+            var sb = new StringBuilder();
+
+            if (root.TryGetProperty("pulse", out var p)
+                && p.ValueKind == JsonValueKind.String
+                && p.GetString() is { Length: > 0 } pulse)
+            {
+                sb.Append(pulse.Trim());
+            }
+            else
+            {
+                sb.Append("inventory ").Append(op);
+            }
+
+            if (root.TryGetProperty("gaps", out var gaps) && gaps.ValueKind == JsonValueKind.Array)
+            {
+                var n = 0;
+                foreach (var g in gaps.EnumerateArray())
+                {
+                    if (n >= 8)
+                        break;
+                    var id = g.TryGetProperty("id", out var idEl) && idEl.ValueKind == JsonValueKind.String
+                        ? idEl.GetString()
+                        : null;
+                    var status = g.TryGetProperty("status", out var stEl) && stEl.ValueKind == JsonValueKind.String
+                        ? stEl.GetString()
+                        : null;
+                    if (string.IsNullOrWhiteSpace(id))
+                        continue;
+                    sb.Append(n == 0 ? " · gaps " : " ");
+                    sb.Append(id.Trim());
+                    if (!string.IsNullOrWhiteSpace(status))
+                        sb.Append(':').Append(status.Trim());
+                    n++;
+                }
+            }
+
+            return TruncPulse(sb.ToString());
+        }
+        catch
+        {
+            return TruncPulse("inventory " + op);
         }
     }
 }
