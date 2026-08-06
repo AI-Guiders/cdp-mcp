@@ -24,8 +24,11 @@
 - Parking sense ops back into external MCP guest as default habitat.
 - Using `op=screen` when the need is a specific top-level window (Telegram bleed).
 - New maximize/shot product organ — peel stays on webcam.
+- Dropping iconic/minimized HWNDs on tiny off-screen rect (`h<40`) while Process.MainWindowTitle still names Glass — Face SoftOrgan shot protocol dies overnight.
+- `Opt` String-only on `hwnd=` JSON Number — numeric go_args silently ignored → ambiguous.
 
 ## last_ship
 
+- **2026-08-07 webcam iconic Face SoftOrgan** — lived: Glass minimized (IsIconic, 159×27 @ -25600) dropped from window_list; process=/title= → No matching; numeric hwnd Opt String-only → ambiguous. Ship: placement normal rect for iconic · hwnd direct TryDescribeHwnd · process MainWindowHandle fallback · Opt Number coerce. Tests WebcamWindowMaximizeTests 3/3. Dual hard build_utc=2026-08-06T21:55:59Z. Dogfood maximize PrintWindow title=`CDP GlassCockpit · Windows` + `cdp_see` evidence `cascade-ide/tmp-glass-shots/sat-eve-webcam-iconic-face-20260807-0057.png`. SoftFL-safe (Face residual ≠ SoftFL invent).
 - 0.5.560: `op=window maximize=true` — max→shot→restore peel; live Glass dogfood; VL #65
 - 0.5.444: `IdeWebcamChannel.Window` — PrintWindow HWND snap + window_list
