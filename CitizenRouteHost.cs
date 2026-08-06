@@ -42,7 +42,9 @@ internal static partial class CitizenRouteHost
                 route.Verb.ToString(),
                 Ok: false,
                 Action: route.Verb == CitizenIntentRouter.Verb.Refuse ? "refuse" : "skip",
+                Go: route.Go,
                 Cmd: route.Cmd,
+                Pulse: TipKbRouteNotOk(route),
                 Reason: route.Reason ?? "route_not_ok");
         }
 

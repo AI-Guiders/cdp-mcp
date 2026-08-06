@@ -533,6 +533,25 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_get_process_without_id_tips_process_id()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=world get_process")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Equal("kb_process_id_required", applied[0].Reason);
+            Assert.Contains("need process_id=", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;
