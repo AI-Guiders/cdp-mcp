@@ -139,8 +139,9 @@ function Write-CdpRemountWakePending {
 }
 
 # Entry when executed as -File (not when Recover/publish dot-source this library).
-if ($PSCommandPath -and $MyInvocation.MyCommand.Path -and
-    ([System.IO.Path]::GetFullPath($PSCommandPath) -eq [System.IO.Path]::GetFullPath($MyInvocation.MyCommand.Path))) {
+# Lived 2026-08-06b: Path-equality fired on Recover dotsource → Invoke empty Server + exit aborted Recover.
+# Gate = InvocationName -ne '.' (dotsource = library only).
+if ($MyInvocation.InvocationName -ne '.') {
     $r = Invoke-CdpReloadNudge -Server $Server -AllSeats:$AllSeats
     if (-not $r.Ok) {
         Write-Error ($r.Error ?? 'nudge failed')
