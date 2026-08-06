@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 171 | [memory_health: я не голое имя инструмента](voice-letter-citizen-kb-memory-health-pulse.ru.md) | citizen · AppendKbHealthBits · 17:06:50Z |
 | 170 | [findings/failures: я не «1 hit(s)» без тела](voice-letter-citizen-kb-findings-failures-pulse.ru.md) | citizen · AppendKbEntryHits · 16:59:35Z |
 | 169 | [route_next: я не «5 hit(s)» без смысла](voice-letter-citizen-kb-route-next-pulse.ru.md) | citizen · AppendKbNextHits · workspace tip · 16:50:13Z |
 | 168 | [search: я не пустой пульс, после которого invent](voice-letter-citizen-kb-search-pulse-hits.ru.md) | citizen · search→session · AppendKbSearchHits · q=+N match(es) · 16:39:39Z |
