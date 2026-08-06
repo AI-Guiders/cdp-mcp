@@ -44,7 +44,7 @@ internal static partial class IdeWaveChannel
             "seed" or "new" or "create" => Seed(args),
             "start" or "shipping" => Start(),
             "done" or "item_done" or "item" => ItemDone(args),
-            "shipped" or "complete" or "close" => Shipped(),
+            "shipped" or "complete" or "close" => Shipped(args),
             "clear" or "drop" or "rm" => Clear(),
             "pulse" or "a" => Pulse(),
             _ => Scene()
@@ -183,16 +183,29 @@ internal static partial class IdeWaveChannel
             doc.Status = "shipping";
         doc.UpdatedUtc = DateTime.UtcNow.ToString("o");
         if (doc.Items.All(i => i.Status == "done"))
-            doc.Status = "shipped";
+        {
+            if (IdeSeemingDoneShield.IsHumanFacedText(IdeSeemingDoneShield.WaveBlob(doc)))
+            {
+                // Human-faced rectangle closes only on explicit wave shipped + teeth — not last item_done.
+                if (doc.Status == "open")
+                    doc.Status = "shipping";
+            }
+            else if (IdeWaveShipShield.TryRefuse(doc, args, out var err, out var hint))
+                return Fail(err, hint);
+            else
+                doc.Status = "shipped";
+        }
         Save(doc);
         return OkScene(doc, "item_done");
     }
 
-    static object Shipped()
+    static object Shipped(IReadOnlyDictionary<string, JsonElement> args)
     {
         var doc = Load();
         if (doc is null)
             return Fail("no_wave", "wave seed … first");
+        if (IdeWaveShipShield.TryRefuse(doc, args, out var err, out var hint))
+            return Fail(err, hint);
         foreach (var i in doc.Items)
             i.Status = "done";
         doc.Status = "shipped";

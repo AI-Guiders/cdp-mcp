@@ -45,6 +45,18 @@ internal sealed partial class IntentWorkspaceStore
             return e is null ? ((string Title, string? Product)?)null : (e.Title, e.Product);
         });
 
+    public bool IntentHasStageProduct(Guid intentId, string product)
+    {
+        var want = product.Trim().ToUpperInvariant();
+        return WithDb(db => db.Stages.AsNoTracking()
+            .Where(x => x.IntentId == intentId && x.Product != null)
+            .AsEnumerable()
+            .Any(x => x.Product!.ToUpperInvariant() == want));
+    }
+
+    public string? IntentTitlePeek(Guid intentId) =>
+        WithDb(db => db.Intents.AsNoTracking().FirstOrDefault(x => x.Id == intentId)?.Title);
+
     /// <summary>Normalize freeform product/category tags. Known: Cursor|CDP|CIDE. clear/- → null.</summary>
     internal static string? NormalizeProduct(string? raw)
     {

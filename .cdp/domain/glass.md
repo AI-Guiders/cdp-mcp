@@ -47,6 +47,7 @@
 - Dump `@intent` / `@event` / peer `ack=` wire into human Intercom letter — strip at publish (`CitizenIntercomHumanSurface`) + paint (`CompactIntercomBody`); hands = «Сделала: …».
 - **enforce `raw_diff_as_primary`:** ship Git/Glass UI with raw unified diff as human primary → soft-refuse until human face (files/hunks/tint). Dump legal ⇒ think optional.
 - **enforce `glass_ship_without_human_shot`:** `#CIDE` `done`/`shipped` needs `evidence=path.png` **on disk** (`IdeHumanFaceShield`); `shot=true` bool alone refused (operator «Выстрела нет» 2026-08-04); `force=true` escape only.
+- **enforce `wave_ship_without_teeth`:** `wave shipped` refuses pending items (no auto-complete rectangle) + human-faced waves need PNG + fresh `domain=` stamp (`IdeWaveShipShield` / `IdeSeemingDoneShield`); `feature_done` on #CIDE/human-faced feature same teeth.
 - **enforce `wrong_window_shot_as_done`:** PrintWindow / webcam of `F · Intercom` (or wrong seat) while claiming MFD chips Done = seeming; shoot `title=M · MFD host` (or correct seat) and **Read PNG into chat**.
 - **enforce `shot_seen_as_closed`:** Closed = **Page Ready to Interact/use**. Shot + `cdp_see` alone ≠ Closed (HCI HybridIndex glance 2026-08-06).
 - **enforce `role_blast_twin_as_done`:** Editor ROLE that lists the same companion names as BLAST (or mini-Skia clone under Editor) = seeming; ROLE glance = orphan|IN-MAP · Nn/Ee · map on MFD; hop map stays SemanticMap MFD.

@@ -43,6 +43,7 @@ internal static partial class IdeRepl
         else if (sub is "shipped" or "complete" or "close")
         {
             args["op"] = JsonSerializer.SerializeToElement("shipped");
+            MergeWaveShipArgs(tokens, skip: 2, merged, args);
         }
         else if (sub is "clear" or "drop" or "rm")
         {
@@ -56,10 +57,20 @@ internal static partial class IdeRepl
                 && tokens[2].Equals("done", StringComparison.OrdinalIgnoreCase)
                 ? 3
                 : 2;
-            var label = string.Join(' ', tokens.Skip(skip)).Trim();
+            var labelParts = new List<string>();
+            for (var i = skip; i < tokens.Count; i++)
+            {
+                var t = tokens[i];
+                if (t.IndexOf('=') > 0)
+                    break;
+                labelParts.Add(t);
+            }
+
+            var label = string.Join(' ', labelParts).Trim();
             if (label.Length == 0)
                 return (merged, Err("wave item done needs label", "wave item done <label>"));
             args["label"] = JsonSerializer.SerializeToElement(label);
+            MergeWaveShipArgs(tokens, skip, merged, args);
         }
         else
         {
@@ -138,5 +149,38 @@ internal static partial class IdeRepl
             args["items"] = JsonSerializer.SerializeToElement(joined);
         if (title is { Length: > 0 })
             args["title"] = JsonSerializer.SerializeToElement(title);
+    }
+
+    /// <summary>Preserve cockpit evidence=/domain=/force= for wave shipped human-face teeth.</summary>
+    static void MergeWaveShipArgs(
+        IReadOnlyList<string> tokens,
+        int skip,
+        Dictionary<string, JsonElement> merged,
+        Dictionary<string, JsonElement> args)
+    {
+        if (merged.TryGetValue("go_args", out var ga) && ga.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var p in ga.EnumerateObject())
+            {
+                if (p.Name is "evidence" or "shot_path" or "png" or "screenshot_path"
+                    or "domain" or "stamp" or "domain_id" or "force" or "project_root" or "workspace_path")
+                    args[p.Name] = p.Value.Clone();
+            }
+        }
+
+        foreach (var key in new[] { "evidence", "domain", "force", "project_root" })
+        {
+            if (merged.TryGetValue(key, out var top) && !args.ContainsKey(key))
+                args[key] = top.Clone();
+        }
+
+        for (var i = skip; i < tokens.Count; i++)
+        {
+            var t = tokens[i];
+            var eq = t.IndexOf('=');
+            if (eq <= 0)
+                continue;
+            args[t[..eq]] = JsonSerializer.SerializeToElement(t[(eq + 1)..].Trim().Trim('"'));
+        }
     }
 }
