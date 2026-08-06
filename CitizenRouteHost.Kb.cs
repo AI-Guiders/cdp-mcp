@@ -208,6 +208,7 @@ internal static partial class CitizenRouteHost
             AppendKbNextHits(root, bits);
             AppendKbEntryHits(root, bits);
             AppendKbHealthBits(root, bits);
+            AppendKbFileListHits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -342,6 +343,31 @@ internal static partial class CitizenRouteHost
                 var one = warn.Length > 32 ? warn[..32] + "…" : warn;
                 bits.Add(one);
                 break;
+            }
+        }
+    }
+
+    /// <summary>AN list_knowledge_files JSON — surface total + top paths so FM does not SoftFL-invent after bare tool pulse.</summary>
+    static void AppendKbFileListHits(JsonElement root, List<string> bits)
+    {
+        if (root.TryGetProperty("total", out var totalEl) && totalEl.TryGetInt32(out var total))
+            bits.Add(total + " file(s)");
+        if (!root.TryGetProperty("files", out var files) || files.ValueKind != JsonValueKind.Array)
+            return;
+
+        var hitN = 0;
+        foreach (var m in files.EnumerateArray())
+        {
+            if (hitN >= 2)
+                break;
+            if (m.TryGetProperty("path", out var path) && path.ValueKind == JsonValueKind.String
+                && path.GetString() is { Length: > 0 } p)
+            {
+                var one = p.Replace('\\', '/');
+                if (one.Length > 40)
+                    one = "…" + one[^39..];
+                bits.Add("#" + (hitN + 1) + " " + one);
+                hitN++;
             }
         }
     }
