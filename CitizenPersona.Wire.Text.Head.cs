@@ -61,6 +61,7 @@ internal static partial class CitizenPersona
           @intent kb facet=failure failures
           @intent kb facet=task route_next
           @intent kb read_knowledge_file file_path=META/integrity-core.md
+          @intent kb read_knowledge_file file_path=SHOWCASE.md
           @intent memory_world list_pack
           @intent memory_project list_knowledge_files
           @intent memory_session memory_health
