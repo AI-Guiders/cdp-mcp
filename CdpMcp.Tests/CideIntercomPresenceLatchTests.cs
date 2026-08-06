@@ -23,6 +23,22 @@ public class CideIntercomPresenceLatchTests : IDisposable
     }
 
     [Fact]
+    public void PublishSeat_with_who_surfaces_in_partner_line()
+    {
+        var doc = CideIntercomPresenceLatch.PublishSeat(
+            "pf",
+            "busy",
+            who: CideIntercomVoiceLatch.DefaultNameCitizen,
+            kind: CideIntercomVoiceLatch.KindCitizen);
+        Assert.NotNull(doc);
+        Assert.Equal(CideIntercomVoiceLatch.DefaultNameCitizen, doc!.Pf!.Who);
+        Assert.Equal(CideIntercomVoiceLatch.KindCitizen, doc.Pf.Kind);
+        Assert.Equal(
+            CideIntercomVoiceLatch.DefaultNameCitizen + " · busy",
+            CideIntercomPresenceLatch.PartnerLine("pm", doc));
+    }
+
+    [Fact]
     public void PublishSeat_writes_dual_map_and_skips_idle_partner_line()
     {
         var doc = CideIntercomPresenceLatch.PublishSeat("pf", "busy");
