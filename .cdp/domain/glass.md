@@ -237,6 +237,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-06 Glass slash ADR 0150 ArgTail (unmask)** — park/bare=last was invent. Canon: `arg_tail` none|optional|required · autocomplete Enter auto-runs only when policy allows · bare required → honest usage. SoftFL REJECT.
+- **2026-08-06 Claim guest≠demote Sierra** — lived: habitat-map Radio `name=Kir` Claimed tip over citizen · refuse guest Claim when tip is citizen · Sierra restored · SoftFL REJECT.
 - **2026-08-06 Glass slash empty-args universal gate** — usage bubble on bare open/citizen/attach/select from autocomplete+palette+Enter. CIDE-parity `ShouldAutoRunOnCommit` · `PrefillComposerForSlashArgs` (no usage dump) · select bare=last · attach fail→park. SoftFL REJECT.
 - **2026-08-06 A6 select usage-without-highlight FIX** — Enter on autocomplete ran bare `/intercom message select` → usage bubble, no highlight. Fix: `RequiresArgs` + CommitSlash waits for N · bare `/select`→last · brighter left-bar highlight · ПКМ DataContext `??`/`is` precedence. Tests 7/7 · SoftFL REJECT.
 - **2026-08-06 Folded AutoI consume CLOSED** — `GlassIgniteCmdBridge` `autonomous_on` → `Resume`+`SetAutonomous` (0.5.674) · pairs cascade-ide glass-intercom · SoftFL REJECT · residual Glass eyes.
