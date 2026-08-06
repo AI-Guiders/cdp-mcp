@@ -735,6 +735,35 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
+    public void Execute_kb_list_files_abs_path_tips_relative_path()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.SessionResolver = () => new SessionContext
+        {
+            ProjectRoot = @"D:\Experiments\agent-notes",
+        };
+        CitizenRouteHost.ByDomainResolver = () => new Dictionary<string, ICdpBackendModule>(StringComparer.Ordinal)
+        {
+            [Cdp.Core.CdpDomains.MemoryWorld] = new ThrowingArgKbModule(
+                Cdp.Core.CdpDomains.MemoryWorld,
+                "Path '../outside' is invalid (no absolute paths or '..' segments). Use a relative knowledge/ path."),
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=world list_knowledge_files path=../outside")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Contains("need relative_path=", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.DoesNotContain(" failed", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
     public void Route_kb_failure_record_tool_arg_keeps_failure_record_op()
     {
         var r = CitizenIntentRouter.RouteOne("kb facet=failure failure_record tool=cdp_test");
