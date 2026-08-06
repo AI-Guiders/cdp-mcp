@@ -10,7 +10,7 @@ internal static partial class IdeIgniteArmHost
     /// <summary>
     /// Continuity arm for the current TM leaf. Stable id so the next leaf supersedes the prior.
     /// Short timer so the shot lands after the agent ends the take/done turn (not mid-Stop).
-    /// Invent-only Hold uses 3m — DIG REJECT mill ≠ 2s thrash (same family as last_once softener).
+    /// Invent-only Hold uses 15m — DIG REJECT mill ≠ 2s/3m Recover thrash (same family as last_once softener).
     /// </summary>
     public static object ArmForLeaf(string taskTitle, string reason)
     {
@@ -22,7 +22,7 @@ internal static partial class IdeIgniteArmHost
 
         var title = taskTitle.Trim();
         var inventOnlyHold = IsInventOnlyHoldTask(title);
-        var inRaw = inventOnlyHold ? "3m" : "2s";
+        var inRaw = inventOnlyHold ? "15m" : "2s";
 
         var args = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
         {
@@ -57,8 +57,8 @@ internal static partial class IdeIgniteArmHost
         if (inventOnlyHold)
         {
             return autonomous
-                ? "Leaf continuity armed (3m invent-only Hold). DIG REJECT mill ≠ 2s thrash — AutoI is insurance if the thread dies, not a license to park."
-                : "Leaf continuity armed (3m invent-only Hold). End turn — AutoI fires wake for this leaf.";
+                ? "Leaf continuity armed (15m invent-only Hold). DIG REJECT mill ≠ 2s/3m Recover thrash — AutoI is insurance if the thread dies, not a license to park."
+                : "Leaf continuity armed (15m invent-only Hold). End turn — AutoI fires wake for this leaf.";
         }
 
         return autonomous
