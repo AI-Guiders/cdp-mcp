@@ -575,6 +575,32 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_validate_sections_pulse_includes_section_ids()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("validate_sections", tool);
+            return Task.FromResult(
+                "{\"ok\":true,\"summary\":\"clean\",\"section_ids\":[\"baseline-integrity\",\"agent-equal-standing\",\"hot-context\"],\"open_marker_count\":3,\"close_marker_count\":3,\"complete_block_count\":3,\"duplicates\":[],\"problems\":[]}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=session validate_sections")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("3 section(s)", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("baseline-integrity", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("agent-equal-standing", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;

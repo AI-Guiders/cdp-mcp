@@ -287,6 +287,7 @@ internal static partial class CitizenRouteHost
             AppendKbRouteContextBits(root, bits);
             AppendKbStoreMetaBits(root, bits);
             AppendKbReadCardBits(root, bits);
+            AppendKbValidateBits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -637,6 +638,32 @@ internal static partial class CitizenRouteHost
         if (root.TryGetProperty("content", out var content) && content.ValueKind == JsonValueKind.String
             && content.GetString() is { } body)
             bits.Add("chars=" + body.Length);
+    }
+
+    /// <summary>AN validate_sections report — surface section/dup counts so FM does not SoftFL-invent after bare ok.</summary>
+    static void AppendKbValidateBits(JsonElement root, List<string> bits)
+    {
+        if (!root.TryGetProperty("section_ids", out var ids) || ids.ValueKind != JsonValueKind.Array)
+            return;
+
+        bits.Add(ids.GetArrayLength() + " section(s)");
+        if (root.TryGetProperty("duplicates", out var dups) && dups.ValueKind == JsonValueKind.Array
+            && dups.GetArrayLength() > 0)
+            bits.Add("dup=" + dups.GetArrayLength());
+        if (root.TryGetProperty("problems", out var probs) && probs.ValueKind == JsonValueKind.Array
+            && probs.GetArrayLength() > 0)
+            bits.Add("problems=" + probs.GetArrayLength());
+
+        var n = 0;
+        foreach (var el in ids.EnumerateArray())
+        {
+            if (el.ValueKind != JsonValueKind.String || el.GetString() is not { Length: > 0 } id)
+                continue;
+            var one = id.Length > 28 ? id[..28] + "…" : id;
+            bits.Add("#" + (++n) + " " + one);
+            if (n >= 2)
+                break;
+        }
     }
 
 }
