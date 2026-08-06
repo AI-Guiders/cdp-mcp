@@ -121,6 +121,35 @@ public sealed class IdeWaveChannelTests
     }
 
     [Fact]
+    public void Repl_wave_item_done_from_go_args_label()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "cdp-wave-goargs-" + Guid.NewGuid().ToString("n"));
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, "active-wave.json");
+        IdeWaveChannel.FilePathOverride = () => path;
+        try
+        {
+            IdeRepl.Apply("wave seed title=go-args-label items=alpha;beta", new Dictionary<string, JsonElement>());
+            var applied = IdeRepl.Apply(
+                "wave item done",
+                new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["go_args"] = JsonSerializer.SerializeToElement(new { label = "alpha" })
+                });
+            Assert.NotNull(applied);
+            Assert.NotNull(applied!.Value.Direct);
+            var json = JsonSerializer.Serialize(applied.Value.Direct);
+            Assert.DoesNotContain("needs label", json, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("1/2", IdeWaveChannel.PulseLine(), StringComparison.Ordinal);
+        }
+        finally
+        {
+            IdeWaveChannel.FilePathOverride = null;
+            try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
+        }
+    }
+
+    [Fact]
     public void Repl_wave_seed_items_with_spaces_does_not_invent_word_items()
     {
         var dir = Path.Combine(Path.GetTempPath(), "cdp-wave-items-space-" + Guid.NewGuid().ToString("n"));

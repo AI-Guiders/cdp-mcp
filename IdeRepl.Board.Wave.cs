@@ -68,7 +68,9 @@ internal static partial class IdeRepl
 
             var label = string.Join(' ', labelParts).Trim();
             if (label.Length == 0)
-                return (merged, Err("wave item done needs label", "wave item done <label>"));
+                label = WaveLabelFromGoArgs(merged);
+            if (label.Length == 0)
+                return (merged, Err("wave item done needs label", "wave item done <label> | go_args.label="));
             args["label"] = JsonSerializer.SerializeToElement(label);
             MergeWaveShipArgs(tokens, skip, merged, args);
         }
@@ -165,7 +167,8 @@ internal static partial class IdeRepl
             foreach (var p in ga.EnumerateObject())
             {
                 if (p.Name is "evidence" or "shot_path" or "png" or "screenshot_path"
-                    or "domain" or "stamp" or "domain_id" or "force" or "project_root" or "workspace_path")
+                    or "domain" or "stamp" or "domain_id" or "force" or "project_root" or "workspace_path"
+                    or "label" or "item" or "title" or "q" or "dig")
                     args[p.Name] = p.Value.Clone();
             }
         }
@@ -216,6 +219,36 @@ internal static partial class IdeRepl
         var key = tok[..eq];
         return key is "evidence" or "shot_path" or "png" or "screenshot_path"
             or "domain" or "stamp" or "domain_id" or "force"
-            or "project_root" or "workspace_path";
+            or "project_root" or "workspace_path" or "dig" or "label";
+    }
+
+    /// <summary>Lived 2026-08-06: cmd=wave item done + go_args.label= muted — Direct Handle
+    /// ignored nested label until tokens carried it. Cockpit agents pass label via go_args.</summary>
+    static string WaveLabelFromGoArgs(Dictionary<string, JsonElement> merged)
+    {
+        if (merged.TryGetValue("go_args", out var ga) && ga.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var key in new[] { "label", "item", "title", "q" })
+            {
+                if (ga.TryGetProperty(key, out var el) && el.ValueKind == JsonValueKind.String)
+                {
+                    var s = el.GetString()?.Trim();
+                    if (!string.IsNullOrEmpty(s))
+                        return s;
+                }
+            }
+        }
+
+        foreach (var key in new[] { "label", "item", "title", "q" })
+        {
+            if (merged.TryGetValue(key, out var top) && top.ValueKind == JsonValueKind.String)
+            {
+                var s = top.GetString()?.Trim();
+                if (!string.IsNullOrEmpty(s))
+                    return s;
+            }
+        }
+
+        return "";
     }
 }
