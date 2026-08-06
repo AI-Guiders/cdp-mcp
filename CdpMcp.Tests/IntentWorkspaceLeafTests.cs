@@ -89,6 +89,31 @@ public class IntentWorkspaceLeafTests
         }
     }
 
+    [Fact]
+    public void ResolveWakeLeafId_prefers_active_focus_over_dfs_first()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-leaf-wake-" + Guid.NewGuid().ToString("N") + ".db");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "Wake Focus Prefer", null);
+            var monday = store.StageUpsert(state, "Monday DoD: Sierra replaces agent hands", null, null, null).stage_id;
+            var inventOnly = store.StageUpsert(state,
+                "Sat-eve DoD invent-only Hold — Sierra KB+net+SA SoftOrgan+IDE lived",
+                null, null, null).stage_id;
+
+            Assert.Equal(monday, store.FindFirstIncompleteLeaf(state));
+
+            state.ActiveStageId = inventOnly;
+            Assert.Equal(inventOnly, IdeIgniteArmHost.ResolveWakeLeafId(store, state));
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
     static IntentWorkspaceStore BootStore(string path)
     {
         var opts = new DbContextOptionsBuilder<IntentWorkspaceDbContext>()

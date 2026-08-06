@@ -77,7 +77,9 @@ internal static partial class IdeIgniteArmHost
             if (!IdeStageCycle.TryWorkspace(out var store, out var state, out _))
                 return false;
 
-            var id = store.FindFirstIncompleteLeaf(state);
+            // Prefer focused incomplete leaf over DFS-first (lived: Monday DoD pending
+            // above [>] invent-only Hold → leaf-wake 2s thrash after remount/seed).
+            var id = ResolveWakeLeafId(store, state);
             if (id is null)
                 return false;
 
@@ -92,5 +94,19 @@ internal static partial class IdeIgniteArmHost
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// Leaf id for autonomous seed→leaf-wake redirect: ActiveStageId incomplete leaf first,
+    /// else <see cref="IntentWorkspaceStore.FindFirstIncompleteLeaf"/>.
+    /// </summary>
+    internal static Guid? ResolveWakeLeafId(
+        IntentWorkspace.IntentWorkspaceStore store,
+        IntentWorkspace.IntentWorkspaceState state)
+    {
+        Guid? id = null;
+        if (state.ActiveStageId is { } cur)
+            id = store.ResolveIncompleteLeaf(state, cur);
+        return id ?? store.FindFirstIncompleteLeaf(state);
     }
 }
