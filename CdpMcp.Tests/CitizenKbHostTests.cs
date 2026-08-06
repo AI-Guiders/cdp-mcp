@@ -217,6 +217,56 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_findings_pulse_includes_entry_summary()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("findings", tool);
+            return Task.FromResult(
+                "{\"count\":2,\"entries\":[{\"id\":\"f1\",\"path\":\"CitizenRouteHost.Kb.cs\",\"summary\":\"Thin findings pulse SoftFL invent risk\"},{\"id\":\"f2\",\"path\":\"x.cs\",\"summary\":\"Also surface path when summary missing\"}]}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=finding findings")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("2 hit(s)", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("Thin findings pulse SoftFL", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_kb_failures_pulse_includes_errorOrMiss()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("failures", tool);
+            return Task.FromResult(
+                "{\"count\":1,\"entries\":[{\"id\":\"e1\",\"tool\":\"findings\",\"errorOrMiss\":\"workspace_path is required\",\"why\":\"preflight missing\"}]}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=failure failures")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("1 hit(s)", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("workspace_path is required", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;
