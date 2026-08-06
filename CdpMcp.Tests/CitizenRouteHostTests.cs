@@ -273,4 +273,33 @@ public sealed partial class CitizenRouteHostTests
         }
     }
 
+    [Fact]
+    public void Execute_bare_git_commit_refuses_need_paths()
+    {
+        var called = 0;
+        CitizenRouteHost.GitCallOverride = (_, _) =>
+        {
+            called++;
+            return Task.FromResult("{\"ok\":true}");
+        };
+        try
+        {
+            var routes = new[] { CitizenIntentRouter.RouteOne("git commit message=\"probe\"") };
+            Assert.Equal(CitizenIntentRouter.Verb.Git, routes[0].Verb);
+            Assert.True(routes[0].Ok);
+            Assert.Equal("commit", routes[0].Op);
+
+            var applied = CitizenRouteHost.Execute(routes);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Equal("need paths=", applied[0].Reason);
+            Assert.Equal("git commit need paths=", applied[0].Pulse);
+            Assert.Equal(0, called);
+        }
+        finally
+        {
+            CitizenRouteHost.GitCallOverride = null;
+        }
+    }
+
 }

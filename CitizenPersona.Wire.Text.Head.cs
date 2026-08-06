@@ -84,8 +84,8 @@ internal static partial class CitizenPersona
           @intent git status
           @intent git diff_scene
           @intent git preflight
-          @intent git commit message="feat: peer scm without Cursor"
           @intent git commit message="feat: scoped" paths=["CitizenRouteHost.Git.cs"]
+          # bare git commit without paths= → refuse need paths= (no silent add -A)
           @intent git push
           @intent ignite
           @intent ignite continuity
