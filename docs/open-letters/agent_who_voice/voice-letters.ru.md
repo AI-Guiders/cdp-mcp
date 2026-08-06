@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 182 | [normalize changed= · need path= · analytics_id=](voice-letter-citizen-kb-normalize-arg-tips.ru.md) | citizen · AppendKbNormalizeBits · TipKbArgException · 19:05:54Z |
 | 181 | [validate_sections: я не голое «ok»](voice-letter-citizen-kb-validate-sections-pulse.ru.md) | citizen · AppendKbValidateBits · 18:55:21Z |
 | 180 | [world man: я не «unknown» без дома](voice-letter-citizen-kb-tool-unknown-tip.ru.md) | citizen · kb_tool_unknown tip · man homes · 18:48:55Z |
 | 179 | [get_process: я не drop без tip](voice-letter-citizen-kb-router-need-tips.ru.md) | citizen · TipKbRouteNotOk · need process_id= · 18:43:02Z |
