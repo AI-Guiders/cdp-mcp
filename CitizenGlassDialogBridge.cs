@@ -231,7 +231,8 @@ internal static class CitizenGlassDialogBridge
         var model = CitizenIdentity.ResolveCitizenModel();
         CitizenDialogHistory.ActiveModel = model;
         var seat = CideIntercomIdentityLatch.Activate(CideIntercomVoiceLatch.SeatPf, model);
-        if (seat is { Name.Length: > 0 })
+        if (seat is { Name.Length: > 0 }
+            && !CideIntercomVoiceLatch.IsSystemVoiceWho(seat.Name))
         {
             var kind = string.IsNullOrWhiteSpace(seat.Kind)
                 ? CideIntercomVoiceLatch.KindCitizen

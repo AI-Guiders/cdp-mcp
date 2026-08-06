@@ -172,6 +172,28 @@ public class CideIntercomVoiceLatchTests : IDisposable
     }
 
     [Fact]
+    public void Publish_AutoI_does_not_stomp_sticky_who()
+    {
+        Assert.NotNull(CideIntercomIdentityLatch.Claim(
+            "pf", "Sierra", "citizen", "zai-org/GLM-5.1"));
+
+        var voice = CideIntercomVoiceLatch.Publish(
+            fromSeat: CideIntercomVoiceLatch.SeatPf,
+            toSeat: CideIntercomVoiceLatch.SeatPm,
+            body: "Autoi · remount\n→ PFD.NEXT",
+            origin: CideIntercomVoiceLatch.OriginAgent,
+            name: "AutoI",
+            kind: "guest");
+        Assert.NotNull(voice);
+        Assert.Equal("AutoI", voice!.Name);
+
+        var slot = CideIntercomIdentityLatch.TrySeat("pf");
+        Assert.NotNull(slot);
+        Assert.Equal("Sierra", slot!.Name);
+        Assert.Equal(CideIntercomVoiceLatch.KindCitizen, slot.Kind);
+    }
+
+    [Fact]
     public void Channel_send_and_scene_roundtrip()
     {
         var sendJson = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)

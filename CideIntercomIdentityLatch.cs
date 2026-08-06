@@ -113,6 +113,9 @@ internal static class CideIntercomIdentityLatch
         var trimmed = name.Trim();
         if (seat is null || trimmed.Length == 0)
             return null;
+        // Autoi remount Publish(name=AutoI) must not overwrite Sierra / citizen Who.
+        if (CideIntercomVoiceLatch.IsSystemVoiceWho(trimmed))
+            return null;
 
         var kindNorm = CideIntercomVoiceLatch.NormalizeKind(kind);
         if (kindNorm is null)

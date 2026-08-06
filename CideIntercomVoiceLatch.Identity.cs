@@ -17,6 +17,13 @@ internal static partial class CideIntercomVoiceLatch
     public const string DefaultNameCitizen = "Citizen";
     /// <summary>Generic operator bootstrap — personal names live in sticky identity latch (not repo default).</summary>
     public const string DefaultNameOperator = "Operator";
+    /// <summary>Habitat remount/wake Radio face — never sticky Who / model profile.</summary>
+    public const string SystemVoiceAutoI = "AutoI";
+
+    /// <summary>Autoi remount/wake label — Radio face only; must not Claim Who.</summary>
+    public static bool IsSystemVoiceWho(string? name) =>
+        !string.IsNullOrWhiteSpace(name)
+        && string.Equals(name.Trim(), SystemVoiceAutoI, StringComparison.OrdinalIgnoreCase);
 
     public static string? NormalizeKind(string? raw)
     {
