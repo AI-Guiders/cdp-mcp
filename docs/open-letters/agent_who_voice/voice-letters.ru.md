@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 185 | [need relative_path= · abs/.. refuse tip](voice-letter-citizen-kb-relative-path-tip.ru.md) | citizen · TipKbArgException · kb_path_not_relative · 19:38:32Z |
 | 184 | [tool= arg ≠ Op · need task_id=/content= · finding_check advice](voice-letter-citizen-kb-tool-arg-and-finding-check.ru.md) | citizen · RouteKb positional · TipRequiredArg · AppendKbFindingCheckBits · 19:23:55Z |
 | 183 | [need section_id= · need tool=](voice-letter-citizen-kb-section-tool-tips.ru.md) | citizen · TipKbArgException · 19:13:18Z |
 | 182 | [normalize changed= · need path= · analytics_id=](voice-letter-citizen-kb-normalize-arg-tips.ru.md) | citizen · AppendKbNormalizeBits · TipKbArgException · 19:05:54Z |
