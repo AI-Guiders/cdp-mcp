@@ -66,6 +66,7 @@
 
 ## last_ship
 
+- **2026-08-06 Glass Radio duplex DIG+fix** — Lived: Sierra «Хитрая система…» in `citizen-dialog.jsonl` but **missing from intercom-journal** (operator `6be27a2fa1a4` only); Autoi remount painted as `kind=citizen` (stomped Who + LATEST). Fix: system wake → guest Radio only · Radio pointer never Citizen · journal Mutex cross-process · Glass `LooksLikeRadioPointer` tip-only. AutoI Composer wake ≠ forward Glass letter (truth). SoftFL REJECT.
 - **2026-08-06 CabinReadyToInteract 6/6 CLOSED** — Ready-to-Interact cabin wave: hci-hand · ecl · glance · messenger · standalone · mode-picker. Mode-picker XOR CIT/HOST live + evidence `cascade-ide/tmp-glass-shots/mode-picker-cit-axes-20260806.png`. SoftFL REJECT. FullReady residual: **axis4 = operator Glass eyes** (refuse agent Done).
 - **2026-08-06 HCI 4a Ready-to-Interact CLOSED** — after seeming-struck glance-only: Glass hand search/reindex/refresh dogfood · evidence `cascade-ide/tmp-glass-shots/hci-hand-after-search-20260806.png` · glass.md stamp. SoftFL REJECT.
 - **2026-08-06 CitizenHciHostAct SHIPPED** — `@intent hci|codebase_index|hybrid_index|cdp_hci` → in-proc `CodebaseIndexBackend` (Kb-host pattern). Commit `a09aadf` · tests `CitizenHciHostTests` 7/7 · dual hard `build_utc=2026-08-05T21:52:16Z` · live wire dry_run+execute **ack=1/1** (`hci status` · `hci search` backend pulse). SoftFL REJECT. densest FullReady axis-2 closed (host); viz = nested cabin 4a Ready-to-Interact / 4b preference — not «only operator Glass eyes».

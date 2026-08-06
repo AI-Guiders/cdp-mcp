@@ -101,8 +101,22 @@ internal static partial class IdeIgniteArmHost
 
     static void PublishCitizenWakeIntercom(IgniteArm arm, string body)
     {
+        // Lived: remount/system prefer_citizen painted Autoi remount as kind=citizen —
+        // stomped Glass Radio + stole Citizen Who. System wakes → guest Radio only.
+        if (IsSystemWakeArmId(arm.Id))
+        {
+            PublishHabitatIntercomCharge(arm, body);
+            return;
+        }
+
         // Glass human face: Radio pointers — never TruncateCharge SA wall as Citizen.
         var voiceBody = FormatCitizenWakeIntercom(arm, body);
+        if (LooksLikeHabitatRadioPointer(voiceBody))
+        {
+            PublishHabitatIntercomCharge(arm, voiceBody);
+            return;
+        }
+
         _ = CideIntercomVoiceLatch.Publish(
             fromSeat: CideIntercomVoiceLatch.SeatPf,
             toSeat: CideIntercomVoiceLatch.SeatPm,
@@ -110,6 +124,18 @@ internal static partial class IdeIgniteArmHost
             origin: CideIntercomVoiceLatch.OriginAgent,
             name: CideIntercomVoiceLatch.DefaultNameCitizen,
             kind: CideIntercomVoiceLatch.KindCitizen);
+    }
+
+    /// <summary>Collapsed Autoi Radio face (I6) — must stay guest, never Citizen Who.</summary>
+    internal static bool LooksLikeHabitatRadioPointer(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return false;
+        var t = body.TrimStart();
+        if (t.StartsWith("Autoi ", StringComparison.OrdinalIgnoreCase)
+            && t.Contains('\u00B7'))
+            return true;
+        return t.Contains("PFD.NEXT", StringComparison.Ordinal);
     }
 
     /// <summary>

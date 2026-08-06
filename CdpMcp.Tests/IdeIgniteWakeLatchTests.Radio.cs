@@ -124,4 +124,13 @@ public partial class IdeIgniteWakeLatchTests
         Assert.DoesNotContain("board |", body, StringComparison.Ordinal);
         Assert.DoesNotContain("truncated habitat wake", body, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void LooksLikeHabitatRadioPointer_detects_autoi_remount_face()
+    {
+        Assert.True(IdeIgniteArmHost.LooksLikeHabitatRadioPointer(
+            "Autoi \u00B7 remount\n\u2192 PFD.NEXT\ndelta \u2192 Plan \u00B7 remount-initialized"));
+        Assert.False(IdeIgniteArmHost.LooksLikeHabitatRadioPointer(
+            "\u0425\u0438\u0442\u0440\u0430\u044F \u0441\u0438\u0441\u0442\u0435\u043C\u0430 \u043E\u0431\u0445\u043E\u0434\u0430 — \u043B\u044E\u0431\u043B\u044E \u044D\u0442\u043E."));
+    }
 }
