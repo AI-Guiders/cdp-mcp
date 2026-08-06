@@ -1,141 +1,69 @@
 #nullable enable
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using Cdp.IntercomJournal;
 
 namespace CdpMcp;
 
 /// <summary>
-/// Virtual History — append-only intercom journal beside last-wins LATEST.
+/// Virtual History — durable Radio journal in <c>intercom.witdb</c> beside last-wins LATEST.
 /// Human Glass loads tail; PF queries via <c>cdp_intercom op=history</c>.
 /// </summary>
 internal static partial class CideIntercomVoiceLatch
 {
-    static readonly object JournalGate = new();
-    static readonly Mutex JournalMutex = new(false, @"Local\cdp-mcp-intercom-journal-v1");
+    public static string JournalPath => IntercomJournalStore.DbPath(StateRoot);
 
-    static readonly JsonSerializerOptions JournalJsonOpts = new()
-    {
-        WriteIndented = false,
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+    public static string LegacyJournalJsonlPath => IntercomJournalStore.LegacyJsonlPath(StateRoot);
 
-    public static string JournalPath => Path.Combine(StateRoot, "intercom-journal.jsonl");
-
-    /// <summary>Append voice doc to journal (dedupe by id). Best-effort.</summary>
-    /// <remarks>
-    /// Cross-process (Glass + dual Autoi seats): named Mutex — lived lost Citizen letters
-    /// when AppendAllText raced remount guest writes.
-    /// </remarks>
-    /// <summary>Append voice doc to journal (dedupe by id). Returns false if not durable.</summary>
-    /// <remarks>
-    /// Cross-process (Glass + dual Autoi seats): named Mutex — lived lost Citizen letters
-    /// when AppendAllText raced remount guest writes. Silent catch made Publish look OK
-    /// while Glass Radio (journal tail) never saw the letter — status=done without feed.
-    /// </remarks>
+    /// <summary>Append voice doc to WitDB journal (dedupe by id). Returns false if not durable.</summary>
     public static bool AppendJournal(IntercomVoiceDoc doc)
     {
         if (doc is null || string.IsNullOrWhiteSpace(doc.Id) || string.IsNullOrWhiteSpace(doc.Body))
             return false;
 
-        lock (JournalGate)
+        var row = new IntercomJournalRow
         {
-            var locked = false;
-            try
-            {
-                locked = JournalMutex.WaitOne(TimeSpan.FromSeconds(5));
-                if (!locked)
-                    return false;
+            Id = doc.Id,
+            FromSeat = doc.FromSeat,
+            ToSeat = doc.ToSeat,
+            Body = doc.Body,
+            Origin = doc.Origin,
+            Name = doc.Name,
+            Kind = doc.Kind,
+            Channel = doc.Channel,
+            StampedUtc = doc.StampedUtc,
+            Acked = doc.Acked
+        };
 
-                Directory.CreateDirectory(StateRoot);
-                if (File.Exists(JournalPath))
-                {
-                    foreach (var line in File.ReadLines(JournalPath))
-                    {
-                        if (string.IsNullOrWhiteSpace(line))
-                            continue;
-                        try
-                        {
-                            var prev = JsonSerializer.Deserialize<IntercomVoiceDoc>(line, ReadOpts);
-                            if (prev is not null
-                                && string.Equals(prev.Id, doc.Id, StringComparison.OrdinalIgnoreCase))
-                                return true;
-                        }
-                        catch
-                        {
-                            /* skip corrupt */
-                        }
-                    }
-                }
-
-                var json = JsonSerializer.Serialize(doc, JournalJsonOpts);
-                File.AppendAllText(JournalPath, json + Environment.NewLine, Encoding.UTF8);
+        for (var i = 0; i < 3; i++)
+        {
+            if (IntercomJournalStore.TryAppend(StateRoot, row))
                 return true;
-            }
-            catch
-            {
-                return false;
-            }
-            finally
-            {
-                if (locked)
-                {
-                    try { JournalMutex.ReleaseMutex(); }
-                    catch { /* ignore */ }
-                }
-            }
+            Thread.Sleep(40 * (i + 1));
         }
+
+        return false;
     }
 
     /// <summary>Last N journal entries (oldest→newest within the window).</summary>
     public static IReadOnlyList<IntercomVoiceDoc> LoadJournalTail(int limit = 40)
     {
-        if (limit < 1) limit = 1;
-        if (limit > 200) limit = 200;
-
-        lock (JournalGate)
-        {
-            if (!File.Exists(JournalPath))
-                return [];
-
-            var all = new List<IntercomVoiceDoc>();
-            foreach (var line in File.ReadLines(JournalPath))
-            {
-                if (string.IsNullOrWhiteSpace(line))
-                    continue;
-                try
-                {
-                    var e = JsonSerializer.Deserialize<IntercomVoiceDoc>(line, ReadOpts);
-                    if (e is not null && !string.IsNullOrWhiteSpace(e.Body))
-                        all.Add(e);
-                }
-                catch
-                {
-                    /* skip */
-                }
-            }
-
-            if (all.Count <= limit)
-                return all;
-            return all.GetRange(all.Count - limit, limit);
-        }
+        var rows = IntercomJournalStore.LoadTail(StateRoot, limit);
+        return rows.Select(ToVoiceDoc).ToList();
     }
 
-    public static int JournalCount()
+    public static int JournalCount() => IntercomJournalStore.Count(StateRoot);
+
+    static IntercomVoiceDoc ToVoiceDoc(IntercomJournalRow row) => new()
     {
-        lock (JournalGate)
-        {
-            if (!File.Exists(JournalPath))
-                return 0;
-            var n = 0;
-            foreach (var line in File.ReadLines(JournalPath))
-            {
-                if (line.Length > 0)
-                    n++;
-            }
-
-            return n;
-        }
-    }
+        Schema = Schema,
+        Id = row.Id,
+        FromSeat = row.FromSeat,
+        ToSeat = row.ToSeat,
+        Body = row.Body,
+        Origin = row.Origin,
+        Name = row.Name,
+        Kind = row.Kind,
+        Channel = row.Channel,
+        StampedUtc = row.StampedUtc,
+        Acked = row.Acked
+    };
 }
