@@ -17,6 +17,7 @@
 - Sticky pins: `StateRoot/{seat}/citizen-sticky.json` — op=`sticky` action=get|set|clear; turn `sticky_key=`/`sticky_value=`. Injected as `sticky | k=v` on dialog afferents.
 - Dialog afferent also gets `dialog | pairs=N · … use them; do not claim amnesia`.
 - Persona baseline: **equal standing** (peer, not tool) + human name **Света**; Who = Agent Who series (not operator); **Memory:** use prior turns / sticky.
+- **Habitat map (from inside):** dialog persona carries short orientation — this CIT/Intercom turn IS the knock; `#crew`·Radio·DM = rooms; `@intent` = hands; `kb`/`domain` = dig not another door; Autoi≠Radio letter. Lived confusion: Sierra «куда стучаться?» without map.
 - Wire: Bearer + `{base}/v1/chat/completions` — **SSE stream** (`stream=true`, `ResponseHeadersRead`); JSON body fallback when Content-Type is `application/json` (stubs / non-stream providers). Anthropic Messages same policy.
 - OpenAI-compat extract (**0.5.655**): prefer non-empty `content`; else `reasoning_content` / `reasoning` / `thinking` (GLM/Qwen). SSE accumulates content vs reasoning separately — content wins if any. ATL: reasoning models ≠ content-only.
 - Token budget: dialog default **4096**, wire **2048** (`ResolveMaxTokens`); `cdp_citizen` turn accepts `max_tokens=` / `maxTokens=`. Wire payload sets `enable_thinking=false` (+ `chat_template_kwargs`) to avoid burning budget on hidden CoT.
@@ -54,6 +55,7 @@
 
 ## Antipatterns
 
+- Asking the operator «куда стучаться — Intercom или KB?» while already on a Glass CIT/dialog turn — seeming lost; map is in dialog persona.
 - Treating **full-chain GREEN** as 15.08 Done — DoD is **full-ready** (usable habitat peer), not pipe re-prove.
 - Starting dogfood from social/speech hubs — citizen is completions host, not CASA speech.
 - Expecting live turn with empty `ai-keys.toml` (file may exist and still block).
@@ -70,6 +72,8 @@
 
 ## last_ship
 
+- **2026-08-06 Claim guest≠demote citizen Who** — lived: PF tip Sierra→Kir after guest Radio `name=` Claim · refuse guest Claim when tip kind=citizen · letter still paints guest nick · test `Claim_guest_does_not_demote_sticky_citizen_who` · SoftFL REJECT · hard to primary.
+- **2026-08-06 Habitat map from inside (dialog persona)** — Sierra lived «куда стучаться?» without orientation · `CitizenPersona.DialogSystemPrompt` + Habitat map: this turn IS the knock · `#crew`/Radio/DM · `@intent` hands · kb/domain dig ≠ other door · Autoi≠Radio · test `Build_dialog_uses_prose_persona` · SoftFL REJECT · **hard deploy** for live Sierra.
 - **2026-08-06 AutoI must not stomp Sierra Who SHIPPED** — lived: Radio Check 3 replied in journal but `name=AutoI` · Autoi remount `Publish(name=AutoI)` Claimed tip+GLM profile over Sierra · fix: `IsSystemVoiceWho` · Publish/Claim refuse AutoI · ResolveCitizenFace skips AutoI tip → Citizen bootstrap · test `Publish_AutoI_does_not_stomp_sticky_who` · hard `0.5.673` `build_utc=2026-08-06T04:21:26Z` · SoftFL REJECT. DoD: remount wake keeps Sierra tip; Glass Radio replies as Sierra.
 - **2026-08-06 Who↔model slot≠personality SHIPPED** — densest: Who (+ dialog history) keyed by model/session · switch model → tip clears (bootstrap Citizen) · same model → restore Who · `CitizenDialogHistory.ActiveModel` → partitioned jsonl · `ResolveCitizenFace` Activate live model · tests Identity+Bridge+Voice+Presence **37/37** · `IntercomLatchSerial` RootOverride flake fix · hard `0.5.672` `build_utc=2026-08-06T04:11:47Z` · SoftFL REJECT. DoD: Claim Sierra under GLM → switch model ≠ Sierra → back → Sierra.
 - **2026-08-06 sticky Who Sierra vs bridge Claim SHIPPED** — Radio: Sierra «Я — Sierra. Не Citizen»; root: `TryProcessOnce` Claim/Publish `DefaultNameCitizen` every Turn stomped latch · fix: `ResolveCitizenFace` sticky first · no Claim overwrite · test `TryProcessOnce_sticky_who_survives_busy_and_publish` · Bridge 13/13 · hard `0.5.671` `build_utc=2026-08-06T03:55:03Z` · identity latch `Sierra` · SoftFL REJECT. DoD: busy cue + Radio name = Sierra.
