@@ -16,12 +16,36 @@ internal static class CitizenDialogHistory
     static string? PathOverrideForTests;
     static List<CitizenCompletions.ChatMessage>? MemoryOverrideForTests;
     static string? LastAppendErrorForTests;
+    static string? ActiveModelOverride;
+
+    /// <summary>Live model slot — partitions dialog file so switch ≠ inherited memory.</summary>
+    public static string? ActiveModel
+    {
+        get
+        {
+            lock (Gate)
+                return ActiveModelOverride;
+        }
+        set
+        {
+            lock (Gate)
+                ActiveModelOverride = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        }
+    }
 
     public static string SeatDir =>
         Path.Combine(CdpProfile.StateRoot, IdeIgniteArmHost.Seat);
 
     public static string FilePath =>
-        PathOverrideForTests ?? Path.Combine(SeatDir, FileName);
+        PathOverrideForTests
+        ?? Path.Combine(SeatDir, ResolveFileName(ActiveModel));
+
+    static string ResolveFileName(string? model)
+    {
+        if (string.IsNullOrWhiteSpace(model))
+            return FileName;
+        return "citizen-dialog." + CitizenIdentity.SanitizeModelKey(model) + ".jsonl";
+    }
 
     /// <summary>Tests: redirect file or force in-memory list.</summary>
     internal static void SetTestPath(string? path) => PathOverrideForTests = path;
@@ -39,6 +63,7 @@ internal static class CitizenDialogHistory
             PathOverrideForTests = null;
             MemoryOverrideForTests = null;
             LastAppendErrorForTests = null;
+            ActiveModelOverride = null;
         }
     }
 

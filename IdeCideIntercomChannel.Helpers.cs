@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Text.Json;
 
 namespace CdpMcp;
@@ -18,7 +18,7 @@ internal static partial class IdeCideIntercomChannel
 
     static object? IdentitySeatCard(CideIntercomIdentityLatch.IdentitySeat? s) => s is null || string.IsNullOrWhiteSpace(s.Name)
         ? null
-        : new { name = s.Name, kind = s.Kind, stamped_utc = s.StampedUtc };
+        : new { name = s.Name, kind = s.Kind, model = s.Model, stamped_utc = s.StampedUtc };
 
     static object? PresenceCard(CideIntercomPresenceLatch.PresenceDoc? doc)
     {

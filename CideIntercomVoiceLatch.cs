@@ -93,7 +93,11 @@ internal static partial class CideIntercomVoiceLatch
                 return null;
             // Explicit name= / as= claims sticky Who (agent-line). Bootstrap defaults do not.
             if (explicitName)
-                _ = CideIntercomIdentityLatch.Claim(from, resolvedName, resolvedKind);
+                _ = CideIntercomIdentityLatch.Claim(
+                    from,
+                    resolvedName,
+                    resolvedKind,
+                    CitizenIdentity.ResolveCitizenModel());
             return doc;
         }
         catch

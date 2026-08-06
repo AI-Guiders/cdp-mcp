@@ -4,6 +4,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection(nameof(IntercomLatchSerial))]
 public sealed class CitizenGlassDialogBridgeTests : IDisposable
 {
     readonly string _root;
@@ -100,7 +101,11 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     [Fact]
     public void TryProcessOnce_sticky_who_survives_busy_and_publish()
     {
-        Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Sierra", "citizen"));
+        Assert.NotNull(CideIntercomIdentityLatch.Claim(
+            "pf",
+            "Sierra",
+            "citizen",
+            CitizenAiKeys.DefaultOpenAiModel));
 
         string? midWho = null;
         CitizenGlassDialogBridge.TurnOverrideForTests = body =>

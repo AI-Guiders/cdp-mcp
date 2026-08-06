@@ -3,6 +3,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection(nameof(IntercomLatchSerial))]
 public class CideIntercomVoiceLatchTests : IDisposable
 {
     readonly string _root;

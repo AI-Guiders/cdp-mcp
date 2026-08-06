@@ -223,12 +223,14 @@ internal static class CitizenGlassDialogBridge
     }
 
     /// <summary>
-    /// Face Who for busy cue + Radio line: sticky identity latch, else bootstrap Citizen.
-    /// Slot/model ≠ personality nick (Sierra asked).
+    /// Face Who for busy cue + Radio: Activate tip for live model slot.
+    /// Missing profile → bootstrap Citizen (do not inherit other model's Who).
     /// </summary>
     internal static (string Who, string Kind) ResolveCitizenFace()
     {
-        var seat = CideIntercomIdentityLatch.TrySeat(CideIntercomVoiceLatch.SeatPf);
+        var model = CitizenIdentity.ResolveCitizenModel();
+        CitizenDialogHistory.ActiveModel = model;
+        var seat = CideIntercomIdentityLatch.Activate(CideIntercomVoiceLatch.SeatPf, model);
         if (seat is { Name.Length: > 0 })
         {
             var kind = string.IsNullOrWhiteSpace(seat.Kind)
