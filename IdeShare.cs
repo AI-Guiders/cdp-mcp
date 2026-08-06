@@ -42,9 +42,6 @@ internal static partial class IdeShare
         var body = span.Body;
         EditorComfort.RememberFile(buf.Path);
 
-        var dir = ResolveShareInbox(session.ProjectRoot, Opt(args, "dir") ?? Opt(args, "inbox"), with);
-        Directory.CreateDirectory(dir);
-
         var stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
         var baseName = Path.GetFileNameWithoutExtension(buf.Path);
         if (string.IsNullOrWhiteSpace(baseName))
@@ -54,33 +51,72 @@ internal static partial class IdeShare
             ext = ".md";
         var shareId = Guid.NewGuid().ToString("N")[..12];
         var fileName = $"share-{stamp}-{Slug(baseName)}{ext}";
-        var path = Path.Combine(dir, fileName);
-        File.WriteAllText(path, body, Encoding.UTF8);
-
-        var latest = Path.Combine(dir, "LATEST" + ext);
-        File.Copy(path, latest, overwrite: true);
-        // Prefer LATEST.md for from= consumers even when source was .txt/.cs
-        var latestMd = Path.Combine(dir, "LATEST.md");
-        if (!string.Equals(latest, latestMd, StringComparison.OrdinalIgnoreCase))
-            File.Copy(path, latestMd, overwrite: true);
-        var latestJson = Path.Combine(dir, "LATEST.json");
         var status = with == WithSelf ? "shelved" : ask == "confirm" ? "awaiting_confirm" : "shared";
-        var meta = new
+
+        string path;
+        string latestMd;
+        string latestJson;
+        string dir;
+        if (with == WithOperator)
         {
-            schema = SchemaVersion,
-            share_id = shareId,
-            with,
-            what = "buffer",
-            ask,
-            status,
-            path,
-            source = buf.Path,
-            from_span = span.From,
-            lines = CountLines(body),
-            chars = body.Length,
-            shared_utc = DateTime.UtcNow
-        };
-        File.WriteAllText(latestJson, JsonSerializer.Serialize(meta, Pretty), Encoding.UTF8);
+            // Habitat + project — Glass FDS SHARE probes habitat IdeShare inbox.
+            var written = WriteOperatorShareFiles(
+                session.ProjectRoot,
+                Opt(args, "dir") ?? Opt(args, "inbox"),
+                fileName,
+                body,
+                p => new
+                {
+                    schema = SchemaVersion,
+                    share_id = shareId,
+                    with,
+                    what = "buffer",
+                    ask,
+                    status,
+                    path = p,
+                    source = buf.Path,
+                    from_span = span.From,
+                    lines = CountLines(body),
+                    chars = body.Length,
+                    shared_utc = DateTime.UtcNow
+                },
+                latestExt: ext);
+            path = written.Path;
+            latestMd = written.LatestMd;
+            latestJson = written.LatestJson;
+            dir = written.Inbox;
+        }
+        else
+        {
+            dir = ResolveShareInbox(session.ProjectRoot, Opt(args, "dir") ?? Opt(args, "inbox"), with);
+            Directory.CreateDirectory(dir);
+            path = Path.Combine(dir, fileName);
+            File.WriteAllText(path, body, Encoding.UTF8);
+            var latest = Path.Combine(dir, "LATEST" + ext);
+            File.Copy(path, latest, overwrite: true);
+            latestMd = Path.Combine(dir, "LATEST.md");
+            if (!string.Equals(latest, latestMd, StringComparison.OrdinalIgnoreCase))
+                File.Copy(path, latestMd, overwrite: true);
+            latestJson = Path.Combine(dir, "LATEST.json");
+            File.WriteAllText(
+                latestJson,
+                JsonSerializer.Serialize(new
+                {
+                    schema = SchemaVersion,
+                    share_id = shareId,
+                    with,
+                    what = "buffer",
+                    ask,
+                    status,
+                    path,
+                    source = buf.Path,
+                    from_span = span.From,
+                    lines = CountLines(body),
+                    chars = body.Length,
+                    shared_utc = DateTime.UtcNow
+                }, Pretty),
+                Encoding.UTF8);
+        }
 
         var chat = with == WithSelf
             ? $"Shelved (self): {path}"

@@ -238,6 +238,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+- **2026-08-06 share-glass-axb** — IdeShare `with=operator` mirrors habitat `%LocalAppData%/cdp-mcp/share` + project `.cdp/share` (`WriteOperatorShareFiles`) · tests IdeShare 10/10 · Glass FDS SHARE prefers `share/v1` via `GlassIdeShareGlance` (cascade-ide) · sibling hard deploy
 - **2026-08-06 A4 message↔code denser thin wave CLOSED** — find/anchors lived · evidence `cascade-ide/tmp-glass-shots/a4-message-find-anchors-20260806.png` · relate SoftFL REJECT
 - **2026-08-06 A4 message↔code denser thin SHIPPED** — `/intercom message find [path:line]` + `anchors` over attach chips · relate stays SoftFL REJECT (Avalonia IntercomCodeRef) · cascade-ide `071433f8` · tests GlassIntercomMessageFindTests 4/4 · live UIA find `1 hit → #81` + anchors · evidence `cascade-ide/tmp-glass-shots/a4-message-find-anchors-20260806.png`
 - **2026-08-06 A6 slash residual CLOSED (honest)** — spine show/toggle onto ProductSpineStrip · find/relate/anchors DIG REJECT SoftFL (Avalonia IntercomCodeRef SSOT; A4 denser) · SoftFL REJECT
