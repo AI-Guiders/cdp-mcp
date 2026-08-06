@@ -161,6 +161,9 @@ internal static partial class IdeIgniteArmHost
     /// <summary>Under autonomous, last_once insurance must be short — 45m park looks like "working".</summary>
     internal static readonly TimeSpan AutonomousLastOnceInsuranceMax = TimeSpan.FromMinutes(3);
 
+    /// <summary>Invent-only Hold insurance — longer than work last_once ≤3m. Lived: ≤3m → Recover/DIG REJECT mill every wake under overnight Hold (zombie MCP + Hold invent). SoftFL REJECT.</summary>
+    internal static readonly TimeSpan InventOnlyHoldInsuranceMax = TimeSpan.FromMinutes(15);
+
     /// <summary>While HILD away_latched / on human_away edge — last_once work timers ≤3s (habit), not ≤3m.</summary>
     internal static readonly TimeSpan HildAwayContinuityMax = TimeSpan.FromSeconds(3);
 
@@ -172,7 +175,7 @@ internal static partial class IdeIgniteArmHost
             || task.Contains("invent-only", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Clamp long last_once timers under autonomous unless force=true.
-    /// Partner-away or TM leaf Fly tightens to 3s (habit); invent-only Hold keeps ≤3m (both paths); else ≤3m.</summary>
+    /// Partner-away or TM leaf Fly tightens to 3s (habit); invent-only Hold keeps ≤15m; else ≤3m.</summary>
     internal static TimeSpan ClampAutonomousLastOnceInsurance(
         TimeSpan requested,
         bool lastOnce,
@@ -190,8 +193,8 @@ internal static partial class IdeIgniteArmHost
         string note;
         if (inventOnlyHold)
         {
-            max = AutonomousLastOnceInsuranceMax;
-            note = "3m(invent_only_hold)";
+            max = InventOnlyHoldInsuranceMax;
+            note = "15m(invent_only_hold)";
         }
         else if (partnerAway)
         {

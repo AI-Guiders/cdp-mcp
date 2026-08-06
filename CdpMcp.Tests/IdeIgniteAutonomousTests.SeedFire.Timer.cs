@@ -22,18 +22,18 @@ public partial class IdeIgniteAutonomousTests
         var leaf = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(TimeSpan.FromMinutes(45), lastOnce: true, autonomous: true, force: false, out var leafNote, partnerAway: false, leafFlying: true);
         Assert.Equal(TimeSpan.FromSeconds(3), leaf);
         Assert.Equal("3s(leaf_started)", leafNote);
-        var inventHold = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(TimeSpan.FromMinutes(3), lastOnce: true, autonomous: true, force: false, out var inventHoldNote, partnerAway: false, leafFlying: true, inventOnlyHold: true);
-        Assert.Equal(TimeSpan.FromMinutes(3), inventHold);
+        var inventHold = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(TimeSpan.FromMinutes(15), lastOnce: true, autonomous: true, force: false, out var inventHoldNote, partnerAway: false, leafFlying: true, inventOnlyHold: true);
+        Assert.Equal(TimeSpan.FromMinutes(15), inventHold);
         Assert.Null(inventHoldNote);
         var inventHoldLong = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(TimeSpan.FromMinutes(45), lastOnce: true, autonomous: true, force: false, out var inventHoldLongNote, partnerAway: false, leafFlying: true, inventOnlyHold: true);
-        Assert.Equal(TimeSpan.FromMinutes(3), inventHoldLong);
-        Assert.Equal("3m(invent_only_hold)", inventHoldLongNote);
-        // Partner-away wins over leaf-fly for the note tag — except invent-only Hold (≤3m).
+        Assert.Equal(TimeSpan.FromMinutes(15), inventHoldLong);
+        Assert.Equal("15m(invent_only_hold)", inventHoldLongNote);
+        // Partner-away wins over leaf-fly for the note tag — except invent-only Hold (≤15m).
         var awayWins = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(TimeSpan.FromMinutes(45), lastOnce: true, autonomous: true, force: false, out var awayWinsNote, partnerAway: true, leafFlying: true);
         Assert.Equal(TimeSpan.FromSeconds(3), awayWins);
         Assert.Equal("3s(hild_away)", awayWinsNote);
-        var inventHoldAway = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(TimeSpan.FromMinutes(3), lastOnce: true, autonomous: true, force: false, out var inventHoldAwayNote, partnerAway: true, leafFlying: true, inventOnlyHold: true);
-        Assert.Equal(TimeSpan.FromMinutes(3), inventHoldAway);
+        var inventHoldAway = IdeIgniteArmHost.ClampAutonomousLastOnceInsurance(TimeSpan.FromMinutes(15), lastOnce: true, autonomous: true, force: false, out var inventHoldAwayNote, partnerAway: true, leafFlying: true, inventOnlyHold: true);
+        Assert.Equal(TimeSpan.FromMinutes(15), inventHoldAway);
         Assert.Null(inventHoldAwayNote);
     }
 
