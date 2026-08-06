@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 177 | [ensure_store: я не «unknown» на чужом фасете](voice-letter-citizen-kb-task-facet-remap.ru.md) | citizen · task-tool remap · AppendKbStoreMetaBits · need relative_path= · 18:28:22Z |
 | 176 | [tasks: я не «21 hit(s)» без тела](voice-letter-citizen-kb-tasks-pulse.ru.md) | citizen · AppendKbTaskHits · 18:15:20Z |
 | 175 | [route_context: я не «открой проект», я «дай query»](voice-letter-citizen-kb-route-context-pulse.ru.md) | citizen · TipKbArgException · AppendKbRouteContextBits · 18:01:00Z |
 | 174 | [read_hot_context: я не memory_health под другим именем](voice-letter-citizen-kb-read-hot-context-pulse.ru.md) | citizen · AppendKbHotContextBits · 17:49:45Z |
