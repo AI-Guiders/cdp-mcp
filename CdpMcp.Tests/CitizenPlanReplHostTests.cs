@@ -30,6 +30,16 @@ public sealed class CitizenPlanReplHostTests
     }
 
     [Fact]
+    public void Router_cmd_whoami_routes_to_intercom_scene()
+    {
+        var r = CitizenIntentRouter.RouteOne("cmd=whoami");
+        Assert.True(r.Ok);
+        Assert.Equal(CitizenIntentRouter.Verb.Intercom, r.Verb);
+        Assert.Equal("scene", r.Op);
+        Assert.Equal("intercom", r.Go);
+    }
+
+    [Fact]
     public void Execute_cmd_feature_mutates_tm_and_places_plan()
     {
         var path = Path.Combine(Path.GetTempPath(), "cdp-citizen-cmd-" + Guid.NewGuid().ToString("N") + ".witdb");

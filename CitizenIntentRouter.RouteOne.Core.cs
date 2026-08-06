@@ -16,6 +16,12 @@ internal static partial class CitizenIntentRouter
             cmd = cmd.Trim().Trim('"');
             if (cmd.Length == 0)
                 return new Route(Verb.Unknown, raw, Ok: false, Reason: "cmd_empty");
+            if (IsWhoamiCmd(cmd))
+            {
+                // Who lives on intercom identity/scene — not TM board. Lived: Sierra cmd=whoami → refuse_non_plan_repl.
+                return new Route(Verb.Intercom, raw, Ok: true, Cmd: cmd, Op: "scene", Go: "intercom");
+            }
+
             if (!IsPlanReplCmd(cmd))
             {
                 return new Route(
