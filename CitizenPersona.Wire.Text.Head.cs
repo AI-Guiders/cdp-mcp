@@ -53,6 +53,7 @@ internal static partial class CitizenPersona
           @intent kb
           @intent kb get_definition definition_id=debug-radius
           @intent kb list_pack pack_id=epistemic-scene
+          @intent kb list_pack pack_id=agent-operations-cdp
           @intent kb get_process process_id=bug-radius-shrink
           @intent kb facet=skill list_pack
           @intent kb facet=project list_knowledge_files
@@ -62,6 +63,7 @@ internal static partial class CitizenPersona
           @intent kb facet=task route_next
           @intent kb read_knowledge_file file_path=META/integrity-core.md
           @intent kb read_knowledge_file file_path=SHOWCASE.md
+          Note: pack_id=epistemic-scene|agent-operations-cdp — hub root "." is knowledge files (SHOWCASE), not a pack.
           @intent memory_world list_pack
           @intent memory_project list_knowledge_files
           @intent memory_session memory_health
