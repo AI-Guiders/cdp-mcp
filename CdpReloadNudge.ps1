@@ -144,7 +144,9 @@ function Write-CdpRemountWakePending {
 if ($MyInvocation.InvocationName -ne '.') {
     $r = Invoke-CdpReloadNudge -Server $Server -AllSeats:$AllSeats
     if (-not $r.Ok) {
-        Write-Error ($r.Error ?? 'nudge failed')
+        # Windows PowerShell 5.1 (publish-and-deploy host) has no ?? — lived 2026-08-06 deploy hard fail.
+        $err = if ($null -ne $r.Error -and $r.Error -ne '') { $r.Error } else { 'nudge failed' }
+        Write-Error $err
         exit 1
     }
     Write-Output ("nudge ok · servers={0} · CDP_RELOAD_NUDGE={1}" -f (($r.Servers -join ','), $r.Value))
