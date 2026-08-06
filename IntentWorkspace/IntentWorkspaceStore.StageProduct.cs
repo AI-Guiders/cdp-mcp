@@ -47,11 +47,15 @@ internal sealed partial class IntentWorkspaceStore
 
     public bool IntentHasStageProduct(Guid intentId, string product)
     {
-        var want = product.Trim().ToUpperInvariant();
+        var want = NormalizeProduct(product) ?? product.Trim();
+        if (string.IsNullOrEmpty(want))
+            return false;
+        var wantUpper = want.ToUpperInvariant();
+        // Never AsEnumerable — same lived class as StageEvents full-scan thrash
+        // (2026-08-05 Connection closed ~172MB). Keep Any in SQL.
         return WithDb(db => db.Stages.AsNoTracking()
-            .Where(x => x.IntentId == intentId && x.Product != null)
-            .AsEnumerable()
-            .Any(x => x.Product!.ToUpperInvariant() == want));
+            .Any(x => x.IntentId == intentId && x.Product != null
+                && x.Product.ToUpper() == wantUpper));
     }
 
     public string? IntentTitlePeek(Guid intentId) =>

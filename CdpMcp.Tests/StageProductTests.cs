@@ -51,6 +51,29 @@ public sealed class StageProductTests
     }
 
     [Fact]
+    public void IntentHasStageProduct_matches_without_materialize()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "cdp-prod-has-" + Guid.NewGuid().ToString("N") + ".witdb");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "has-product-feature", null);
+            var featureId = state.ActiveIntentId ?? throw new InvalidOperationException("no intent");
+            var stageId = store.StageUpsert(state, "has-product-task", null, null, null, "act").stage_id;
+            store.StageSetProduct(state, stageId, "cide");
+
+            Assert.True(store.IntentHasStageProduct(featureId, "CIDE"));
+            Assert.True(store.IntentHasStageProduct(featureId, "cide"));
+            Assert.False(store.IntentHasStageProduct(featureId, "CDP"));
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
     public void Repl_product_and_hash_tag_parse()
     {
         var empty = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
