@@ -28,10 +28,16 @@ internal static partial class CideIntercomVoiceLatch
     /// Cross-process (Glass + dual Autoi seats): named Mutex — lived lost Citizen letters
     /// when AppendAllText raced remount guest writes.
     /// </remarks>
-    public static void AppendJournal(IntercomVoiceDoc doc)
+    /// <summary>Append voice doc to journal (dedupe by id). Returns false if not durable.</summary>
+    /// <remarks>
+    /// Cross-process (Glass + dual Autoi seats): named Mutex — lived lost Citizen letters
+    /// when AppendAllText raced remount guest writes. Silent catch made Publish look OK
+    /// while Glass Radio (journal tail) never saw the letter — status=done without feed.
+    /// </remarks>
+    public static bool AppendJournal(IntercomVoiceDoc doc)
     {
         if (doc is null || string.IsNullOrWhiteSpace(doc.Id) || string.IsNullOrWhiteSpace(doc.Body))
-            return;
+            return false;
 
         lock (JournalGate)
         {
@@ -39,6 +45,9 @@ internal static partial class CideIntercomVoiceLatch
             try
             {
                 locked = JournalMutex.WaitOne(TimeSpan.FromSeconds(5));
+                if (!locked)
+                    return false;
+
                 Directory.CreateDirectory(StateRoot);
                 if (File.Exists(JournalPath))
                 {
@@ -51,7 +60,7 @@ internal static partial class CideIntercomVoiceLatch
                             var prev = JsonSerializer.Deserialize<IntercomVoiceDoc>(line, ReadOpts);
                             if (prev is not null
                                 && string.Equals(prev.Id, doc.Id, StringComparison.OrdinalIgnoreCase))
-                                return;
+                                return true;
                         }
                         catch
                         {
@@ -62,10 +71,11 @@ internal static partial class CideIntercomVoiceLatch
 
                 var json = JsonSerializer.Serialize(doc, JournalJsonOpts);
                 File.AppendAllText(JournalPath, json + Environment.NewLine, Encoding.UTF8);
+                return true;
             }
             catch
             {
-                /* best-effort */
+                return false;
             }
             finally
             {
