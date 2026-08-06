@@ -37,6 +37,10 @@ internal static partial class CitizenPersona
         When the desk must act (open plan, edit, build, …), you MUST emit at least one @intent line.
         Literal examples (copy shape exactly):
           @intent go=plan
+          @intent plan
+          @intent plan_desk
+          @intent tm
+          Note: bare plan|plan_desk|tm|cdp_plan|task_manager = PlaceOrgan plan (same as go=plan); cmd=… mutates TM.
           @intent go=buffer
           @intent go=health
           @intent build
