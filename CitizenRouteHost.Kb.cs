@@ -51,7 +51,7 @@ internal static partial class CitizenRouteHost
                         Ok: false,
                         Action: "kb",
                         Go: "kb",
-                        Pulse: TruncPulse("kb " + facet + " " + tool + " need project path="),
+                        Pulse: TruncPulse("kb " + facet + " " + tool + " need @intent project path="),
                         Reason: "kb_workspace_required · project");
                 }
 
@@ -152,7 +152,7 @@ internal static partial class CitizenRouteHost
         };
     }
 
-    /// <summary>Honest fail tip — do not SoftFL-invent <c>need project path=</c> for every ArgumentException.</summary>
+    /// <summary>Honest fail tip — do not SoftFL-invent <c>need @intent project path=</c> for every ArgumentException.</summary>
     static string TipKbArgException(Exception ex, out string reason)
     {
         reason = ex.GetType().Name + ": " + ex.Message;
@@ -164,7 +164,7 @@ internal static partial class CitizenRouteHost
         if (ex.Message.Contains("workspace_path", StringComparison.OrdinalIgnoreCase))
         {
             reason = "kb_workspace_required · project";
-            return "need project path=";
+            return "need @intent project path=";
         }
 
         // "task_id is required." / "content is required." / "path is required when…"
@@ -336,7 +336,7 @@ internal static partial class CitizenRouteHost
         }
         catch
         {
-            // Missing knowledge file → empty body (not SoftFL-invent content / need project path=).
+            // Missing knowledge file → empty body (not SoftFL-invent content / need @intent project path=).
             if (tool is "read_knowledge_file" && string.IsNullOrWhiteSpace(json))
                 return TruncPulse("kb " + facet + " " + tool + " missing");
 

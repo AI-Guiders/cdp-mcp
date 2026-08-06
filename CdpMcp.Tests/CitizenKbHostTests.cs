@@ -209,7 +209,7 @@ public sealed class CitizenKbHostTests
             Assert.Single(applied);
             Assert.False(applied[0].Ok);
             Assert.Equal("kb_workspace_required · project", applied[0].Reason);
-            Assert.Contains("need project path=", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("need @intent project path=", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
         {
@@ -233,7 +233,7 @@ public sealed class CitizenKbHostTests
                 [CitizenIntentRouter.RouteOne("kb facet=session search_agent_notes q=SoftFL")]);
             Assert.Single(applied);
             Assert.True(applied[0].Ok);
-            Assert.DoesNotContain("need project path=", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.DoesNotContain("need @intent project path=", applied[0].Pulse, StringComparison.Ordinal);
             Assert.Contains("search_agent_notes", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
@@ -417,7 +417,7 @@ public sealed class CitizenKbHostTests
             Assert.False(applied[0].Ok);
             Assert.Equal("query is required", applied[0].Reason);
             Assert.Contains("need query=", applied[0].Pulse, StringComparison.Ordinal);
-            Assert.DoesNotContain("need project path=", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.DoesNotContain("need @intent project path=", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
         {

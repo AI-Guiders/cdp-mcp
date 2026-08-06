@@ -75,6 +75,7 @@ internal static partial class CitizenPersona
           @intent kb read_knowledge_file file_path=META/integrity-core.md
           @intent kb read_knowledge_file file_path=SHOWCASE.md
           @intent kb facet=skill list_pack
+          @intent project path=D:/path/to/repo   # when pulse says need @intent project path= (workspace)
           @intent memory_project list_knowledge_files
           @intent memory_session memory_health
           @intent memory_self_finding findings
