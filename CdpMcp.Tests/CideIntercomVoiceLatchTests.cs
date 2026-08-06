@@ -202,7 +202,7 @@ public class CideIntercomVoiceLatchTests : IDisposable
             "pf", "pm", "vh-two", CideIntercomVoiceLatch.OriginAgent, channel: "crew");
         Assert.NotNull(a);
         Assert.NotNull(b);
-        Assert.True(File.Exists(CideIntercomVoiceLatch.JournalPath));
+        Assert.True(File.Exists(CideIntercomVoiceLatch.JournalPath)); // intercom.witdb
         Assert.Equal(2, CideIntercomVoiceLatch.JournalCount());
 
         // dedupe same id
@@ -230,8 +230,21 @@ public class CideIntercomVoiceLatchTests : IDisposable
             name: "Citizen", kind: "citizen", channel: "radio");
         Assert.NotNull(doc);
         Assert.True(CideIntercomVoiceLatch.AppendJournal(doc!)); // already appended; dedupe true
-        var lines = File.ReadAllLines(CideIntercomVoiceLatch.JournalPath);
-        Assert.Contains(lines, l => l.Contains(doc!.Id, StringComparison.Ordinal)
-            && l.Contains("journal-hard letter", StringComparison.Ordinal));
+        Assert.True(File.Exists(CideIntercomVoiceLatch.JournalPath));
+        var tail = CideIntercomVoiceLatch.LoadJournalTail(20);
+        Assert.Contains(tail, e => e.Id == doc!.Id && e.Body.Contains("journal-hard letter", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AppendJournal_survives_abandoned_mutex_style_retry()
+    {
+        var doc = CideIntercomVoiceLatch.Publish(
+            "pf", "pm", "witdb durable", CideIntercomVoiceLatch.OriginAgent,
+            name: "Citizen", kind: "citizen", channel: "radio");
+        Assert.NotNull(doc);
+        Assert.True(File.Exists(CideIntercomVoiceLatch.JournalPath));
+        Assert.Contains(
+            CideIntercomVoiceLatch.LoadJournalTail(5),
+            e => e.Id == doc!.Id && e.Channel == "radio");
     }
 }
