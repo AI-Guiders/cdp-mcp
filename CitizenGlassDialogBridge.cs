@@ -112,6 +112,10 @@ internal static class CitizenGlassDialogBridge
             return false;
 
         MarkStatus(req, "running");
+        CideIntercomPresenceLatch.PublishSeat(
+            CideIntercomVoiceLatch.SeatPf,
+            CideIntercomPresenceLatch.StateBusy,
+            ttlSeconds: CideIntercomPresenceLatch.DefaultBusyTtlSeconds);
 
         try
         {
@@ -175,6 +179,12 @@ internal static class CitizenGlassDialogBridge
         {
             MarkStatus(req, "error", ex.GetType().Name);
             return true;
+        }
+        finally
+        {
+            CideIntercomPresenceLatch.PublishSeat(
+                CideIntercomVoiceLatch.SeatPf,
+                CideIntercomPresenceLatch.StateIdle);
         }
     }
 
