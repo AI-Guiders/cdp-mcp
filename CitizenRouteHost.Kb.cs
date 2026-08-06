@@ -207,6 +207,7 @@ internal static partial class CitizenRouteHost
             AppendKbSearchHits(root, bits);
             AppendKbNextHits(root, bits);
             AppendKbEntryHits(root, bits);
+            AppendKbHealthBits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -318,6 +319,30 @@ internal static partial class CitizenRouteHost
                 one = one[..40] + "…";
             bits.Add("#" + (hitN + 1) + " " + one);
             hitN++;
+        }
+    }
+
+    /// <summary>AN memory_health JSON — surface health_level/hot chars so FM does not SoftFL-invent after bare tool pulse.</summary>
+    static void AppendKbHealthBits(JsonElement root, List<string> bits)
+    {
+        if (root.TryGetProperty("health_level", out var level) && level.ValueKind == JsonValueKind.String
+            && level.GetString() is { Length: > 0 } hl)
+            bits.Add(hl);
+        if (root.TryGetProperty("hot_context", out var hot) && hot.ValueKind == JsonValueKind.Object
+            && hot.TryGetProperty("chars", out var chars) && chars.TryGetInt32(out var hotChars))
+            bits.Add("hot=" + hotChars);
+        if (root.TryGetProperty("recommend_compaction", out var rc) && rc.ValueKind == JsonValueKind.True)
+            bits.Add("compact?");
+        if (root.TryGetProperty("warnings", out var warns) && warns.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var w in warns.EnumerateArray())
+            {
+                if (w.ValueKind != JsonValueKind.String || w.GetString() is not { Length: > 0 } warn)
+                    continue;
+                var one = warn.Length > 32 ? warn[..32] + "…" : warn;
+                bits.Add(one);
+                break;
+            }
         }
     }
 

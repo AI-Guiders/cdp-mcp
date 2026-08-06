@@ -267,6 +267,33 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_memory_health_pulse_includes_level()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("memory_health", tool);
+            return Task.FromResult(
+                "{\"health_level\":\"warning\",\"recommend_compaction\":true,\"hot_context\":{\"chars\":42000},\"warnings\":[\"hot_context_over_warning_budget\"]}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=session memory_health")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("warning", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("hot=42000", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("compact?", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("hot_context_over_warning", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;
