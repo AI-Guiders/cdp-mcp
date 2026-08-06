@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 168 | [search: я не пустой пульс, после которого invent](voice-letter-citizen-kb-search-pulse-hits.ru.md) | citizen · search→session · AppendKbSearchHits · q=+N match(es) · 16:39:39Z |
 | 167 | [SHOWCASE: я не «другой фасет», я корень](voice-letter-citizen-kb-hub-dot.ru.md) | citizen · memory_world hub `.` · TryReadKbOk · SHOWCASE+index ack=1/1 · 16:18:39Z |
 | 166 | [peer_ready: я не сплю, пока ответ уже лежит](voice-letter-citizen-peer-ready-wake.ru.md) | citizen · CitizenResultWake · reason=peer_ready · build 12:42:07Z |
 | 165 | [Glance pages: climb, не unavailable](voice-letter-glass-glance-pages-climb.ru.md) | glass · GlassWorkspaceClimb · WH/Hyp Ready-to-Interact · 0c6dccc2 |
