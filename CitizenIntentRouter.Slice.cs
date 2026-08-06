@@ -3,6 +3,18 @@
 namespace CdpMcp;
 internal static partial class CitizenIntentRouter
 {
+    /// <summary>Self Who query — maps to intercom scene (identity latch), not plan REPL.</summary>
+    internal static bool IsWhoamiCmd(string cmd)
+    {
+        var head = cmd.Trim();
+        if (head.Length == 0)
+            return false;
+        var sp = head.IndexOf(' ');
+        if (sp > 0)
+            head = head[..sp];
+        return head.Equals("whoami", StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>TM/plan CCL heads only — not shell/run/build (citizen host-execute gate).</summary>
     internal static bool IsPlanReplCmd(string cmd)
     {

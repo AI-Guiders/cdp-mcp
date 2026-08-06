@@ -180,7 +180,8 @@ internal static class CideIntercomPresenceLatch
     }
 
     /// <summary>
-    /// Citizen @frame line — both seats, coarse states (incl. idle). Null when latch missing.
+    /// Citizen @frame line — both seats, coarse states (incl. idle) + sticky Who when known.
+    /// Null when latch missing.
     /// </summary>
     public static string? AfferentLine(DateTimeOffset? nowUtc = null)
     {
@@ -188,12 +189,23 @@ internal static class CideIntercomPresenceLatch
         if (doc is null)
             return null;
 
-        static string Label(PresenceSeat? seat) =>
+        static string StateLabel(PresenceSeat? seat) =>
             seat is null || string.IsNullOrWhiteSpace(seat.State)
                 ? StateIdle
                 : seat.State.Trim().ToLowerInvariant();
 
-        return "presence | @PF " + Label(doc.Pf) + " · @PM " + Label(doc.Pm);
+        static string SeatPart(string seatKey, PresenceSeat? seat)
+        {
+            var state = StateLabel(seat);
+            var who = seat?.Who;
+            if (string.IsNullOrWhiteSpace(who))
+                who = CideIntercomIdentityLatch.TrySeat(seatKey)?.Name;
+            if (!string.IsNullOrWhiteSpace(who))
+                return "@" + seatKey.ToUpperInvariant() + " " + who.Trim() + " " + state;
+            return "@" + seatKey.ToUpperInvariant() + " " + state;
+        }
+
+        return "presence | " + SeatPart("pf", doc.Pf) + " · " + SeatPart("pm", doc.Pm);
     }
 
     /// <summary>Glass (PM) watches partner PF; agent desk watches partner PM.</summary>
