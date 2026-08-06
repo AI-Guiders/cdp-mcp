@@ -76,19 +76,49 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     public void TryProcessOnce_marks_pf_busy_during_turn_then_idle()
     {
         string? midState = null;
+        string? midWho = null;
         CitizenGlassDialogBridge.TurnOverrideForTests = body =>
         {
             var doc = CideIntercomPresenceLatch.TryReadEffective();
             midState = doc?.Pf?.State;
+            midWho = doc?.Pf?.Who;
             return EchoTurn(body);
         };
 
         WritePending("busyid000001", "typing please");
         Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
         Assert.Equal(CideIntercomPresenceLatch.StateBusy, midState);
+        Assert.Equal(CideIntercomVoiceLatch.DefaultNameCitizen, midWho);
 
         var after = CideIntercomPresenceLatch.TryReadEffective();
         Assert.Equal(CideIntercomPresenceLatch.StateIdle, after?.Pf?.State);
+        Assert.Null(after?.Pf?.Who);
+    }
+
+    [Fact]
+    public void RecoverOrphanRunning_resets_running_to_pending_and_clears_busy()
+    {
+        var forced = new
+        {
+            schema = CitizenGlassDialogBridge.Schema,
+            id = "orphan000001",
+            body = "stuck mid remount",
+            status = "running",
+            stamped_utc = DateTimeOffset.UtcNow.AddMinutes(-2),
+            processed_utc = DateTimeOffset.UtcNow.AddMinutes(-2)
+        };
+        File.WriteAllText(
+            CitizenGlassDialogBridge.RequestPath,
+            JsonSerializer.Serialize(forced, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower }));
+        Assert.NotNull(CideIntercomPresenceLatch.PublishSeat("pf", "busy", who: "Citizen", kind: "citizen"));
+
+        CitizenGlassDialogBridge.RecoverOrphanRunning();
+
+        using var status = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        Assert.Equal("pending", status.RootElement.GetProperty("status").GetString());
+        Assert.Equal(
+            CideIntercomPresenceLatch.StateIdle,
+            CideIntercomPresenceLatch.TryReadEffective()?.Pf?.State);
     }
 
     [Fact]
@@ -249,10 +279,9 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
 
         Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
 
-        var lines = File.ReadAllLines(CideIntercomVoiceLatch.JournalPath);
-        Assert.NotEmpty(lines);
-        using var journal = JsonDocument.Parse(lines[^1]);
-        Assert.Equal("crew", journal.RootElement.GetProperty("channel").GetString());
+        var tail = CideIntercomVoiceLatch.LoadJournalTail(5);
+        Assert.NotEmpty(tail);
+        Assert.Equal("crew", tail[^1].Channel);
     }
 
     [Fact]

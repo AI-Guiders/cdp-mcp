@@ -52,9 +52,39 @@ internal static class CitizenGlassDialogBridge
         if (!IdeIgniteArmHost.IsPrimaryAutoiSeat())
             return;
         Stop();
+        RecoverOrphanRunning();
         var cts = new CancellationTokenSource();
         Volatile.Write(ref Cts, cts);
         _ = Task.Run(() => LoopAsync(cts.Token));
+    }
+
+    /// <summary>
+    /// Remount/KillRunning mid-Turn leaves status=running forever (TryReadPending skips it).
+    /// On bridge Start, orphan running → pending and clear stuck pf busy.
+    /// </summary>
+    internal static void RecoverOrphanRunning()
+    {
+        try
+        {
+            if (!File.Exists(RequestPath))
+                return;
+            var raw = File.ReadAllText(RequestPath);
+            var doc = JsonSerializer.Deserialize<RequestDoc>(raw, ReadOpts);
+            if (doc is null || !string.Equals(doc.Schema, Schema, StringComparison.OrdinalIgnoreCase))
+                return;
+            var status = doc.Status?.Trim().ToLowerInvariant() ?? "";
+            if (status is not "running")
+                return;
+
+            MarkStatus(doc, "pending");
+            CideIntercomPresenceLatch.PublishSeat(
+                CideIntercomVoiceLatch.SeatPf,
+                CideIntercomPresenceLatch.StateIdle);
+        }
+        catch
+        {
+            /* best-effort */
+        }
     }
 
     public static void Stop()
@@ -115,7 +145,14 @@ internal static class CitizenGlassDialogBridge
         CideIntercomPresenceLatch.PublishSeat(
             CideIntercomVoiceLatch.SeatPf,
             CideIntercomPresenceLatch.StateBusy,
-            ttlSeconds: CideIntercomPresenceLatch.DefaultBusyTtlSeconds);
+            ttlSeconds: CideIntercomPresenceLatch.DefaultBusyTtlSeconds,
+            who: CideIntercomVoiceLatch.DefaultNameCitizen,
+            kind: CideIntercomVoiceLatch.KindCitizen);
+        // Face roster Who during Turn — remount AutoI sticky must not own the cue.
+        CideIntercomIdentityLatch.Claim(
+            CideIntercomVoiceLatch.SeatPf,
+            CideIntercomVoiceLatch.DefaultNameCitizen,
+            CideIntercomVoiceLatch.KindCitizen);
 
         try
         {

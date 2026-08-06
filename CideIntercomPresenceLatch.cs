@@ -66,8 +66,17 @@ internal static class CideIntercomPresenceLatch
         _ => 0
     };
 
-    /// <summary>Merge one seat into dual-seat map. Skips rewrite when state unchanged and stamp fresh (&lt;2s).</summary>
-    public static PresenceDoc? PublishSeat(string seatRaw, string stateRaw, int? ttlSeconds = null)
+    /// <summary>
+    /// Merge one seat into dual-seat map. Skips rewrite when state+who+kind unchanged and stamp fresh (&lt;2s).
+    /// <paramref name="who"/>/<paramref name="kind"/> paint Face TypingCue without relying on identity sticky
+    /// (AutoI remount vs Citizen Turn share @PF). Idle clears who/kind.
+    /// </summary>
+    public static PresenceDoc? PublishSeat(
+        string seatRaw,
+        string stateRaw,
+        int? ttlSeconds = null,
+        string? who = null,
+        string? kind = null)
     {
         var seat = CideIntercomVoiceLatch.NormalizeSeat(seatRaw);
         var state = NormalizeState(stateRaw);
@@ -82,9 +91,19 @@ internal static class CideIntercomPresenceLatch
         var doc = TryReadRaw() ?? new PresenceDoc { Schema = Schema };
         doc.Schema = Schema;
 
+        var whoTrim = string.IsNullOrWhiteSpace(who) ? null : who.Trim();
+        var kindTrim = string.IsNullOrWhiteSpace(kind) ? null : kind.Trim().ToLowerInvariant();
+        if (state == StateIdle)
+        {
+            whoTrim = null;
+            kindTrim = null;
+        }
+
         var existing = GetSeat(doc, seat);
         if (existing is not null
             && string.Equals(existing.State, state, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(existing.Who, whoTrim, StringComparison.Ordinal)
+            && string.Equals(existing.Kind, kindTrim, StringComparison.OrdinalIgnoreCase)
             && (now - existing.StampedUtc).TotalSeconds < 2)
         {
             return doc;
@@ -94,7 +113,9 @@ internal static class CideIntercomPresenceLatch
         {
             State = state,
             StampedUtc = now,
-            TtlSeconds = ttl > 0 ? ttl : null
+            TtlSeconds = ttl > 0 ? ttl : null,
+            Who = whoTrim,
+            Kind = kindTrim
         };
         SetSeat(doc, seat, slot);
 
@@ -191,6 +212,9 @@ internal static class CideIntercomPresenceLatch
         if (string.Equals(slot.State, StateIdle, StringComparison.OrdinalIgnoreCase))
             return null;
 
+        if (!string.IsNullOrWhiteSpace(slot.Who))
+            return $"{slot.Who.Trim()} · {slot.State}";
+
         return $"@{partnerSeat.ToUpperInvariant()} · {slot.State}";
     }
 
@@ -223,5 +247,9 @@ internal static class CideIntercomPresenceLatch
         public string State { get; set; } = StateIdle;
         public DateTimeOffset StampedUtc { get; set; }
         public int? TtlSeconds { get; set; }
+        /// <summary>Face display Who for this stamp (Citizen vs AutoI) — independent of identity sticky.</summary>
+        public string? Who { get; set; }
+        /// <summary>Optional kind paint: citizen|guest|operator.</summary>
+        public string? Kind { get; set; }
     }
 }
