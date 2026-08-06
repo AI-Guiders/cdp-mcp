@@ -58,6 +58,7 @@
 - Dual-seat twin OOM wake (pre-0.5.499) — both click dialog + schedule → twin `no_agent_composer` silent once-drop.
 - Recover Not-connected zombie without remount-wake pending (pre-0.5.503 opt-in `-StampRemountPending`) — silent no Autoi initialized wake after remount.
 - Hard sibling deploy bumps **both** seats' `CDP_RELOAD_NUDGE` (pre-0.5.661) — survivor seat remount thrash / Not connected while only sibling was killed; nudge is per-seat (`CdpReloadNudge.ps1`; `-NudgeAllSeats` escape).
+- `pwsh -File CdpReloadNudge.ps1 -Server …` silent no-op (library-only, pre-2026-08-06 entry) — remount stuck until `.` + `Invoke-CdpReloadNudge`; `-File` now invokes.
 - Agent regex-replace-all `CDP_RELOAD_NUDGE` in `mcp.json` (or Cursor rule teaching bump `cdp`/`cdp-debug`) — dual remount thrash; Cursor log `stopped connection: user-cdp` + `user-cdp-debug` → mid-turn `Not connected` while exe often still up (dogfood 2026-08-05). Recover = `Recover-CdpSeatRemount.ps1 -Seat cdp` only.
 - `Recover-CdpSeatRemount` kill match `ExecutablePath.StartsWith(Target)` — `D:\cdp-mcp-debug` starts with `D:\cdp-mcp` → sibling kill (fixed: exact `$exePath` equality).
 - Leaving `remount-wake-other.pending.json` when Target was `...\self` / repo leaf (pre-0.5.661 ClassifySeat) — remount wake never arms.
@@ -86,6 +87,7 @@
 
 ## last_ship
 
+- **2026-08-06 CdpReloadNudge -File entry** — lived: Recover remount stalled; `pwsh -File CdpReloadNudge.ps1 -Server cdp` silent no-op (library-only) until `.` + `Invoke-`. Entry now bumps named seat; dogfood `-Server cdp-debug` stamp `20260806-143907`. SoftFL REJECT.
 - **2026-08-06 Folded AutoI consume CLOSED (0.5.674)** — Glass Autoi Korry ON while talk/halt: `glass_ignite_cmd` `autonomous_on` now `Resume` + `SetAutonomous(true)` (was SetAutonomous alone → latch stuck · TALK/HALT face). Test `TryProcessOnce_autonomous_on_clears_folded_await_partner`. SoftFL REJECT. Residual: Glass eyes on Korry fly-after-fold (operator); VAD still unwired; lane→channel longer arc.
 - **2026-08-05 InventOnlyHyphenHold SHIPPED** — lived DIG ACCEPT: TM Hold title `invent-only` (hyphen) missed `IsInventOnlyHoldTask` (`invent only` space-only) → leaf-wake stayed **2s** / leaf_pull ≤3s → DIG REJECT wake mill under sealed Hold. Fix: match `invent-only` too · WorldDigShield marker · test current Hold title. SoftFL/Meta REJECT. Voice Letter #160 after live dogfood (`3m(invent_only_hold)`).
 
