@@ -127,6 +127,23 @@ internal static partial class CitizenRouteHost
         && el.ValueKind == JsonValueKind.String
         && el.GetString() is { Length: > 0 };
 
+    /// <summary>Router-level kb preflight refuses — surface need tip so FM does not SoftFL-invent after pulse=null.</summary>
+    static string? TipKbRouteNotOk(CitizenIntentRouter.Route route)
+    {
+        if (route.Verb is not CitizenIntentRouter.Verb.Kb)
+            return null;
+
+        var facet = string.IsNullOrWhiteSpace(route.Server) ? "kb" : route.Server!;
+        var tool = string.IsNullOrWhiteSpace(route.Op) ? "?" : route.Op!;
+        return route.Reason switch
+        {
+            "kb_process_id_required" => TruncPulse("kb " + facet + " " + tool + " need process_id="),
+            "kb_procedure_id_required" => TruncPulse("kb " + facet + " " + tool + " need procedure_id="),
+            "kb_file_path_required" => TruncPulse("kb " + facet + " " + tool + " need file_path="),
+            _ => null
+        };
+    }
+
     /// <summary>Honest fail tip — do not SoftFL-invent <c>need cdp_open</c> for every ArgumentException.</summary>
     static string TipKbArgException(Exception ex, out string reason)
     {
