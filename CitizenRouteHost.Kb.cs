@@ -130,11 +130,20 @@ internal static partial class CitizenRouteHost
     /// <summary>Router-level kb preflight refuses — surface need tip so FM does not SoftFL-invent after pulse=null.</summary>
     static string? TipKbRouteNotOk(CitizenIntentRouter.Route route)
     {
+        var facet = string.IsNullOrWhiteSpace(route.Server) ? "kb" : route.Server!;
+        var tool = string.IsNullOrWhiteSpace(route.Op) ? "?" : route.Op!;
+
+        if (route.Reason is "kb_tool_unknown")
+        {
+            // man lives on task/finding/failure — wrong facet must not SoftFL-invent "missing".
+            if (tool is "man")
+                return TruncPulse("kb " + facet + " man unknown · try facet=task|finding|failure");
+            return TruncPulse("kb " + facet + " " + tool + " unknown");
+        }
+
         if (route.Verb is not CitizenIntentRouter.Verb.Kb)
             return null;
 
-        var facet = string.IsNullOrWhiteSpace(route.Server) ? "kb" : route.Server!;
-        var tool = string.IsNullOrWhiteSpace(route.Op) ? "?" : route.Op!;
         return route.Reason switch
         {
             "kb_process_id_required" => TruncPulse("kb " + facet + " " + tool + " need process_id="),
