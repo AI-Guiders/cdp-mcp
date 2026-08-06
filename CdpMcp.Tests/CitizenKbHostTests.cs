@@ -601,6 +601,85 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_normalize_sections_pulse_includes_changed()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("normalize_sections", tool);
+            return Task.FromResult(
+                "{\"changed\":true,\"before\":{\"section_ids\":[\"a\"]},\"after\":{\"section_ids\":[\"a\"]},\"content\":\"## a\\nbody\"}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=session normalize_sections")]);
+            Assert.Single(applied);
+            Assert.Contains("changed", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("chars=", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.DoesNotContain("section(s)", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_kb_finding_check_without_path_tips_path()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.SessionResolver = () => new SessionContext
+        {
+            ProjectRoot = @"D:\Experiments\agent-notes",
+        };
+        CitizenRouteHost.ByDomainResolver = () => new Dictionary<string, ICdpBackendModule>(StringComparer.Ordinal)
+        {
+            [Cdp.Core.CdpDomains.MemorySelfFinding] = new ThrowingArgKbModule(
+                Cdp.Core.CdpDomains.MemorySelfFinding, "path is required."),
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=finding finding_check")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Contains("need path=", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_kb_analytics_upsert_without_id_tips_analytics_id()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.SessionResolver = () => new SessionContext
+        {
+            ProjectRoot = @"D:\Experiments\agent-notes",
+        };
+        CitizenRouteHost.ByDomainResolver = () => new Dictionary<string, ICdpBackendModule>(StringComparer.Ordinal)
+        {
+            [Cdp.Core.CdpDomains.MemoryTask] = new ThrowingArgKbModule(
+                Cdp.Core.CdpDomains.MemoryTask, "analytics_id is required."),
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=task analytics_upsert")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Contains("need analytics_id=", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;
@@ -610,6 +689,17 @@ public sealed class CitizenKbHostTests
 
         public ValueTask<string> CallAsync(string tool, IReadOnlyDictionary<string, JsonElement> args) =>
             throw new InvalidOperationException("backend should not run without workspace");
+    }
+
+    sealed class ThrowingArgKbModule(string domain, string message) : ICdpBackendModule
+    {
+        public string Domain => domain;
+        public bool IsEnabled => true;
+        public string HealthSummary => "fake-throw-arg";
+        public IReadOnlyList<ToolAffordance> Affordances => [];
+
+        public ValueTask<string> CallAsync(string tool, IReadOnlyDictionary<string, JsonElement> args) =>
+            throw new ArgumentException(message);
     }
 
     sealed class FakeSessionKbModule : ICdpBackendModule
