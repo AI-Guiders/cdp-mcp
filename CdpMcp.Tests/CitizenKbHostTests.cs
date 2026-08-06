@@ -36,6 +36,15 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
+    public void Route_kb_world_query_is_search_session()
+    {
+        var r = CitizenIntentRouter.RouteOne("kb facet=world query=SoftFL invent REJECT");
+        Assert.True(r.Ok);
+        Assert.Equal("search_agent_notes", r.Op);
+        Assert.Equal("memory_session", r.Server);
+    }
+
+    [Fact]
     public void Route_kb_facet_skill()
     {
         var r = CitizenIntentRouter.RouteOne("kb facet=skill list_pack");

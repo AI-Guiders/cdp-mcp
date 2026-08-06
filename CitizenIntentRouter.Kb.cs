@@ -28,9 +28,19 @@ internal static partial class CitizenIntentRouter
         if (facet is null)
             return new Route(Verb.Kb, raw, Ok: false, Op: tool, Go: "kb", Reason: "kb_facet_unknown");
 
-        tool = string.IsNullOrWhiteSpace(tool)
-            ? DefaultToolForFacet(facet)
-            : NormalizeKbTool(tool.Trim().ToLowerInvariant());
+        var freeQuery = ExtractKeyedValue(work, "query") ?? ExtractKeyedValue(work, "q");
+        if (string.IsNullOrWhiteSpace(tool) && !string.IsNullOrWhiteSpace(freeQuery))
+        {
+            // Free-text dig → agent-notes search (not silent list_pack / epistemic-scene dump).
+            tool = "search_agent_notes";
+            facet = Cdp.Core.CdpDomains.MemorySession;
+        }
+        else
+        {
+            tool = string.IsNullOrWhiteSpace(tool)
+                ? DefaultToolForFacet(facet)
+                : NormalizeKbTool(tool.Trim().ToLowerInvariant());
+        }
 
         if (!IsKbToolForFacet(tool, facet))
             return new Route(Verb.Unknown, raw, Ok: false, Reason: "kb_tool_unknown");
