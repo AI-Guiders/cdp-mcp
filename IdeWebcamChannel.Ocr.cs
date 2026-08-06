@@ -243,8 +243,22 @@ internal static partial class IdeWebcamChannel
         return Path.GetFullPath(Environment.CurrentDirectory);
     }
 
-    static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key) =>
-        args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String
-            ? el.GetString()
-            : null;
+    static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)
+    {
+        if (!args.TryGetValue(key, out var el))
+            return null;
+        return el.ValueKind switch
+        {
+            JsonValueKind.String => el.GetString(),
+            // Wire often sends hwnd= as JSON number; String-only Opt dropped Face SoftOrgan shots.
+            JsonValueKind.Number => el.GetRawText(),
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            _ => null
+        };
+    }
+
+    /// <summary>Test hook — Opt coerces JSON Number (hwnd=) for Face SoftOrgan shots.</summary>
+    internal static string? OptForTests(IReadOnlyDictionary<string, JsonElement> args, string key) =>
+        Opt(args, key);
 }

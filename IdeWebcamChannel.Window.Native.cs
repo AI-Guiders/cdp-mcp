@@ -69,30 +69,102 @@ internal static partial class IdeWebcamChannel
             var title = GetWindowTitle(hWnd);
             if (string.IsNullOrWhiteSpace(title))
                 return true;
-            if (!NativeGetWindowRect(hWnd, out var rect))
+            if (!TryDescribeHwnd(hWnd, title, out var info))
                 return true;
-            var w = rect.Right - rect.Left;
-            var h = rect.Bottom - rect.Top;
-            if (w < 80 || h < 40)
-                return true;
-            uint pid = 0;
-            NativeGetWindowThreadProcessId(hWnd, out pid);
-            var processName = "?";
-            try
-            {
-                using var p = Process.GetProcessById(unchecked((int)pid));
-                processName = p.ProcessName;
-            }
-            catch
-            {
-            /* gone */
-            }
 
-            list.Add(new WinInfo(hWnd, pid, processName, title, rect.Left, rect.Top, w, h));
+            list.Add(info);
             return true;
         }, IntPtr.Zero);
         return list;
     }
+
+    /// <summary>
+    /// Build WinInfo from HWND. Iconic (minimized) windows report tiny off-screen rects
+    /// (e.g. Glass 159x27 @ -25600) — use placement normal size so Face SoftOrgan list/shot still hit.
+    /// </summary>
+    static bool TryDescribeHwnd(IntPtr hWnd, string? knownTitle, out WinInfo info)
+    {
+        info = default;
+        if (hWnd == IntPtr.Zero)
+            return false;
+        var title = knownTitle ?? GetWindowTitle(hWnd);
+        if (string.IsNullOrWhiteSpace(title))
+            return false;
+        if (!NativeGetWindowRect(hWnd, out var rect))
+            return false;
+        var x = rect.Left;
+        var y = rect.Top;
+        var w = rect.Right - rect.Left;
+        var h = rect.Bottom - rect.Top;
+        if (NativeIsIconic(hWnd))
+        {
+            var placement = new WindowPlacement { length = Marshal.SizeOf<WindowPlacement>() };
+            if (NativeGetWindowPlacement(hWnd, ref placement))
+            {
+                var nr = placement.rcNormalPosition;
+                x = nr.Left;
+                y = nr.Top;
+                w = Math.Max(1, nr.Right - nr.Left);
+                h = Math.Max(1, nr.Bottom - nr.Top);
+            }
+        }
+
+        if (w < 80 || h < 40)
+            return false;
+        uint pid = 0;
+        NativeGetWindowThreadProcessId(hWnd, out pid);
+        var processName = "?";
+        try
+        {
+            using var p = Process.GetProcessById(unchecked((int)pid));
+            processName = p.ProcessName;
+        }
+        catch
+        {
+            /* gone */
+        }
+
+        info = new WinInfo(hWnd, pid, processName, title, x, y, w, h);
+        return true;
+    }
+
+    static List<WinInfo> AppendProcessMainWindowMatches(
+        List<WinInfo> windows,
+        string processFilter,
+        string? titleFilter)
+    {
+        // Enum size/visibility miss (iconic Glass) — Process.MainWindowHandle still has title.
+        foreach (var p in Process.GetProcesses())
+        {
+            try
+            {
+                if (!p.ProcessName.Contains(processFilter.Trim(), StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (p.MainWindowHandle == IntPtr.Zero)
+                    continue;
+                if (TryDescribeHwnd(p.MainWindowHandle, knownTitle: null, out var fromProcess))
+                    windows.Add(fromProcess);
+            }
+            catch
+            {
+                /* access denied / exited */
+            }
+            finally
+            {
+                p.Dispose();
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(titleFilter))
+        {
+            windows = windows
+                .Where(w => w.Title.Contains(titleFilter.Trim(), StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        return windows;
+    }
+
 
     static string GetWindowTitle(IntPtr hWnd)
     {
@@ -189,6 +261,8 @@ internal static partial class IdeWebcamChannel
     static extern bool NativeShowWindow(IntPtr hWnd, int nCmdShow);
     [DllImport("user32.dll", EntryPoint = "IsZoomed")]
     static extern bool NativeIsZoomed(IntPtr hWnd);
+    [DllImport("user32.dll", EntryPoint = "IsIconic")]
+    static extern bool NativeIsIconic(IntPtr hWnd);
     [DllImport("user32.dll", EntryPoint = "GetWindowPlacement")]
     static extern bool NativeGetWindowPlacement(IntPtr hWnd, ref WindowPlacement lpwndpl);
     [DllImport("user32.dll", EntryPoint = "SetWindowPlacement")]
