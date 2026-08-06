@@ -319,6 +319,32 @@ public sealed class CitizenKbHostTests
         }
     }
 
+    [Fact]
+    public void Execute_kb_knowledge_tags_pulse_includes_tags()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("knowledge_tags", tool);
+            return Task.FromResult(
+                "{\"mode\":\"inventory\",\"total_tags\":3,\"tagged_files\":10,\"tags\":[{\"tag\":\"#ssot\",\"file_count\":5},{\"tag\":\"#integrity\",\"file_count\":2}]}");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=world knowledge_tags")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok, applied[0].Reason);
+            Assert.Contains("3 tag(s)", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("files=10", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("#ssot", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
     sealed class FakeKbModule : ICdpBackendModule
     {
         public string Domain => Cdp.Core.CdpDomains.MemoryTask;
