@@ -258,6 +258,40 @@ public partial class IdeIgniteArmHostTests
         IdeIgniteArmHost.Disarm(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase) { ["id"] = JsonSerializer.SerializeToElement(IdeIgniteArmHost.HildEscalateArmId) });
     }
 
+    [Fact]
+    public void HasArmedInventOnlyHoldInsurance_true_when_invent_only_timer_armed()
+    {
+        IdeIgniteArmHost.BindAutonomous(true);
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["all"] = JsonSerializer.SerializeToElement(true),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+        Assert.False(IdeIgniteArmHost.HasArmedInventOnlyHoldInsurance());
+
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("arm"),
+            ["when"] = JsonSerializer.SerializeToElement("timer"),
+            ["in"] = JsonSerializer.SerializeToElement("15m"),
+            ["last_once"] = JsonSerializer.SerializeToElement(true),
+            ["task"] = JsonSerializer.SerializeToElement(
+                "Sat-eve DoD invent-only Hold — Sierra KB+net+SA SoftOrgan+IDE lived"),
+            ["charge"] = JsonSerializer.SerializeToElement("minimal")
+        });
+        Assert.True(IdeIgniteArmHost.HasArmedInventOnlyHoldInsurance());
+        Assert.Null(IdeIgniteArmHost.TryScheduleHildEscalateWake());
+
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["all"] = JsonSerializer.SerializeToElement(true),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+        Assert.False(IdeIgniteArmHost.HasArmedInventOnlyHoldInsurance());
+    }
+
     [Theory]
     [InlineData("build_finished", true)]
     [InlineData("build", true)]

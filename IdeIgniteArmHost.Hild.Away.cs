@@ -58,6 +58,15 @@ internal static partial class IdeIgniteArmHost
             return;
         }
 
+        // Invent-only Hold insurance already covers continuity — HILD away CDT = DIG REJECT thrash
+        // (lived 2026-08-07: invent-only 15m armed → hild-away wake ~1m later).
+        if (HasArmedInventOnlyHoldInsurance())
+        {
+            IdeTeethTape.Record("wake_suppress", armId: HildAwayArmId, reason: "hild", detail: "invent_only_hold_insurance");
+            Console.Error.WriteLine("[ide_ignite] hild wake suppressed — invent-only Hold insurance armed");
+            return;
+        }
+
         SeedHildWake(out var hildArmId);
         IdeTeethTape.Record("wake_schedule", armId: hildArmId, reason: "hild", detail: "human_away");
     }
@@ -97,7 +106,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Pull armed last_once work timers with DueUtc &gt; 3s forward — HILD away ≠ license for 45m park.
-    /// Skip invent-only Hold arms (≤3m insurance; DIG REJECT mill ≠ park).</summary>
+    /// Skip invent-only Hold arms (≤15m insurance; DIG REJECT mill ≠ park).</summary>
     static void PullForwardLongWorkTimersOnHildAway() =>
         PullForwardLongWorkTimers(
             compute: TryComputeHildAwayPullForwardDue,
@@ -107,7 +116,7 @@ internal static partial class IdeIgniteArmHost
             skip: static a => IsInventOnlyHoldTask(a.Task));
 
     /// <summary>Pull long last_once while TM ContinuityFlight.Fly under autonomous — agent-park police.
-    /// Skip invent-only Hold arms (≤3m insurance; DIG REJECT mill ≠ park).</summary>
+    /// Skip invent-only Hold arms (≤15m insurance; DIG REJECT mill ≠ park).</summary>
     static void PullForwardLongWorkTimersOnLeafFly() =>
         PullForwardLongWorkTimers(
             compute: TryComputeLeafFlyPullForwardDue,
@@ -172,11 +181,20 @@ internal static partial class IdeIgniteArmHost
             $"[ide_ignite] {log} pull-forward · {pulled} last_once work timer(s) → ≤{HildAwayContinuityMax.TotalSeconds:0}s");
     }
 
-    /// <summary>One-shot timer charge_mode=escalate (system wake — not superseded).</summary>
+    /// <summary>One-shot timer charge_mode=escalate (system wake — not superseded).
+    /// Skip when invent-only Hold insurance already armed (DIG REJECT thrash; autonomy still latched above).</summary>
     internal static object? TryScheduleHildEscalateWake()
     {
         EnsureLoaded();
         EnsureStarted();
+        if (HasArmedInventOnlyHoldInsurance())
+        {
+            IdeTeethTape.Record(
+                "wake_suppress", armId: HildEscalateArmId, reason: HildEscalateReason, detail: "invent_only_hold_insurance");
+            Console.Error.WriteLine("[ide_ignite] hild escalate wake suppressed — invent-only Hold insurance armed");
+            return null;
+        }
+
         var dueSec = 2;
         var now = DateTimeOffset.UtcNow;
 
@@ -235,6 +253,17 @@ internal static partial class IdeIgniteArmHost
             return Arms.Any(a =>
                 a.Id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
                 && a.Status is "armed" or "firing");
+    }
+
+    /// <summary>Invent-only Hold continuity timer armed/firing — HILD away/escalate Composer wake is DIG REJECT thrash.</summary>
+    internal static bool HasArmedInventOnlyHoldInsurance()
+    {
+        EnsureLoaded();
+        lock (Gate)
+            return Arms.Any(a =>
+                a.Status is "armed" or "firing"
+                && string.Equals(a.Event, "timer", StringComparison.OrdinalIgnoreCase)
+                && IsInventOnlyHoldTask(a.Task));
     }
 
     static bool HasAwaitingOperatorLatch()
