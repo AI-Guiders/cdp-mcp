@@ -61,4 +61,13 @@ public sealed class CideIntercomIdentityLatchTests : IDisposable
         var tip = CideIntercomIdentityLatch.Activate("pf", "zai-org/GLM-5.1");
         Assert.Equal("Sierra", tip?.Name);
     }
+
+    [Fact]
+    public void Claim_guest_does_not_demote_sticky_citizen_who()
+    {
+        Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Sierra", "citizen", "zai-org/GLM-5.1"));
+        Assert.Null(CideIntercomIdentityLatch.Claim("pf", "Kir", "guest", "zai-org/GLM-5.1"));
+        Assert.Equal("Sierra", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
+        Assert.Equal("citizen", CideIntercomIdentityLatch.TrySeat("pf")?.Kind);
+    }
 }
