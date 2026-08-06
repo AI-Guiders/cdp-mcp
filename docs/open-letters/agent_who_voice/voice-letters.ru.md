@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 189 | [ignite: Hold invent-only не каждые три минуты](voice-letter-ignite-invent-only-15m.ru.md) | ignite · InventOnlyHoldInsuranceMax 15m · 0.5.677 |
 | 188 | [ignite: я не «первый incomplete», я focus](voice-letter-ignite-wake-leaf-focus-first.ru.md) | ignite · ResolveWakeLeafId ActiveStageId · 0.5.676 |
 | 187 | [webcam: я не «No matching», когда кабина свёрнута](voice-letter-webcam-iconic-glass-face.ru.md) | webcam · iconic Glass Face SoftOrgan · 21:55:59Z |
 | 186 | [read_knowledge_file missing](voice-letter-citizen-kb-read-missing-tip.ru.md) | citizen · empty body → missing · 19:48:54Z |
