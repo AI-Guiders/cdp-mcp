@@ -136,6 +136,9 @@ internal static class GlassIgniteCmdBridge
         switch (op.ToLowerInvariant())
         {
             case "autonomous_on":
+                // Folded/talk/halt: Glass Autoi Korry paints OFF while await_partner latch still holds.
+                // Click ON must clear that latch (resume) — SetAutonomous alone leaves TALK/HALT face.
+                IdeIgniteArmHost.Resume(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase));
                 IdeIgniteArmHost.SetAutonomous(true, "glass_hud");
                 break;
             case "autonomous_off":
