@@ -43,6 +43,16 @@ internal static partial class CitizenIntentRouter
                 : new Route(Verb.Go, raw, Ok: true, Go: go);
         }
 
+        // Bare SoftOrgan place — Sierra equal hands (lived: bare plan unrecognized; go=plan works).
+        if (raw.Equals("plan", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("plan_desk", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("cdp_plan", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("tm", StringComparison.OrdinalIgnoreCase)
+            || raw.Equals("task_manager", StringComparison.OrdinalIgnoreCase))
+        {
+            return new Route(Verb.Go, raw, Ok: true, Go: "plan");
+        }
+
         if (raw.StartsWith("drill ", StringComparison.OrdinalIgnoreCase)
             || raw.Equals("drill", StringComparison.OrdinalIgnoreCase))
         {

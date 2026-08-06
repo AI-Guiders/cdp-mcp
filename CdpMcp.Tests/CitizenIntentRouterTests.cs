@@ -16,6 +16,20 @@ public sealed class CitizenIntentRouterTests
         Assert.Equal("plan", r.Go);
     }
 
+    [Theory]
+    [InlineData("plan")]
+    [InlineData("plan_desk")]
+    [InlineData("cdp_plan")]
+    [InlineData("tm")]
+    [InlineData("task_manager")]
+    public void Bare_plan_aliases_place_plan_organ(string raw)
+    {
+        var r = CitizenIntentRouter.RouteOne(raw);
+        Assert.True(r.Ok);
+        Assert.Equal(CitizenIntentRouter.Verb.Go, r.Verb);
+        Assert.Equal("plan", r.Go);
+    }
+
     [Fact]
     public void Drill_editor_maps_go_editor_scene()
     {
