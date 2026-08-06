@@ -143,7 +143,7 @@ internal static partial class CitizenRouteHost
         "limit", "title", "summary", "tool", "error_or_miss"
     ];
 
-    static string? TryReadKbPulse(string json, string facet, string tool)
+        static string? TryReadKbPulse(string json, string facet, string tool)
     {
         try
         {
@@ -172,6 +172,7 @@ internal static partial class CitizenRouteHost
             if (root.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String
                 && err.GetString() is { Length: > 0 } e)
                 bits.Add(TruncPulse(e) ?? e);
+            AppendKbSearchHits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -188,4 +189,40 @@ internal static partial class CitizenRouteHost
             return TruncPulse("kb " + facet + " " + tool);
         }
     }
+
+    /// <summary>AN search_agent_notes JSON — surface top hits so FM does not SoftFL-invent after thin pulse.</summary>
+    static void AppendKbSearchHits(JsonElement root, List<string> bits)
+    {
+        if (root.TryGetProperty("query", out var qEl) && qEl.ValueKind == JsonValueKind.String
+            && qEl.GetString() is { Length: > 0 } q)
+            bits.Add("q=" + (q.Length > 32 ? q[..32] + "…" : q));
+        if (root.TryGetProperty("total_matches", out var tm) && tm.TryGetInt32(out var total))
+            bits.Add(total + " match(es)");
+        else if (root.TryGetProperty("returned_matches", out var rm) && rm.TryGetInt32(out var ret))
+            bits.Add(ret + " returned");
+        if (!root.TryGetProperty("matches", out var matches) || matches.ValueKind != JsonValueKind.Array)
+            return;
+
+        var hitN = 0;
+        foreach (var m in matches.EnumerateArray())
+        {
+            if (hitN >= 2)
+                break;
+            string? hit = null;
+            if (m.TryGetProperty("text", out var hitText) && hitText.ValueKind == JsonValueKind.String)
+                hit = hitText.GetString();
+            else if (m.TryGetProperty("title", out var hitTitle) && hitTitle.ValueKind == JsonValueKind.String)
+                hit = hitTitle.GetString();
+            else if (m.TryGetProperty("path", out var hitPath) && hitPath.ValueKind == JsonValueKind.String)
+                hit = hitPath.GetString();
+            if (hit is not { Length: > 0 })
+                continue;
+            var one = hit.Replace('\r', ' ').Replace('\n', ' ').Trim();
+            if (one.Length > 40)
+                one = one[..40] + "…";
+            bits.Add("#" + (hitN + 1) + " " + one);
+            hitN++;
+        }
+    }
+
 }

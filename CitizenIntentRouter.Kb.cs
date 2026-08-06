@@ -42,6 +42,11 @@ internal static partial class CitizenIntentRouter
                 : NormalizeKbTool(tool.Trim().ToLowerInvariant());
         }
 
+        // search_* lives on memory_session — not world/skill pack tools (thin refuse → SoftFL invent).
+        if (tool is "search_agent_notes" or "upsert_agent_notes_section"
+            or "validate_sections" or "normalize_sections")
+            facet = Cdp.Core.CdpDomains.MemorySession;
+
         if (!IsKbToolForFacet(tool, facet))
             return new Route(Verb.Unknown, raw, Ok: false, Reason: "kb_tool_unknown");
 
