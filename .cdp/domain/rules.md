@@ -24,5 +24,6 @@
 
 ## last_ship
 
+- **2026-08-06 human-gate theater antipattern** — standing `healthy-agent.md`: human-gate when agreements fulfilled, not TM board paint; dig domain before reopen CLOSED rows; operator steer vs parrot axis4
 - 0.5.638: Citizen `@intent rules` host-execute (Domain pattern) · tests 6/6 · dual lag=false · dry_run ack=6/6 · VL#144 · 2026-08-03
 - 0.5.637: IdeStandingPulse + IdeRulesChannel soft organ + remount Standing appendix · seed healthy-agent · 2026-08-03

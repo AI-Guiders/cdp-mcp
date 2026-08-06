@@ -23,3 +23,5 @@
 - Cursor alwaysApply dump as CDP SSOT (host-only; habitat needs `.cdp/rules` + organ).
 - eQRH abnormal shelf for standing ε (use rules; QRH = abnormal/emergency).
 - Pasting fifty rules into every Composer charge (thin remount appendix only).
+- **Human-gate theater** — parking on «operator eyes» / axis4 while PreCondition or named product gaps remain open = parrot, not gate. Human-gate is when agreements are fulfilled, not when the TM board still has rows.
+- **Stale board paint** — reopening CLOSED domain rows (MFD depth, Avalonia residual) without dig = seeming. Dig `.cdp/domain` + inventory before act.
