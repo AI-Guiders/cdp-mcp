@@ -175,7 +175,7 @@ internal static partial class CitizenRouteHost
         "limit", "title", "summary", "tool", "error_or_miss"
     ];
 
-        static string? TryReadKbPulse(string json, string facet, string tool)
+    static string? TryReadKbPulse(string json, string facet, string tool)
     {
         try
         {
@@ -209,6 +209,7 @@ internal static partial class CitizenRouteHost
             AppendKbEntryHits(root, bits);
             AppendKbHealthBits(root, bits);
             AppendKbFileListHits(root, bits);
+            AppendKbTagHits(root, bits);
             return TruncPulse(string.Join(' ', bits));
         }
         catch
@@ -371,5 +372,58 @@ internal static partial class CitizenRouteHost
             }
         }
     }
+
+    /// <summary>AN knowledge_tags inventory/lookup JSON — surface totals + top tags so FM does not SoftFL-invent after bare tool pulse.</summary>
+    static void AppendKbTagHits(JsonElement root, List<string> bits)
+    {
+        if (root.TryGetProperty("total_tags", out var tt) && tt.TryGetInt32(out var tagTotal))
+            bits.Add(tagTotal + " tag(s)");
+        if (root.TryGetProperty("tagged_files", out var tf) && tf.TryGetInt32(out var tagged))
+            bits.Add("files=" + tagged);
+
+        if (root.TryGetProperty("tags", out var tags) && tags.ValueKind == JsonValueKind.Array)
+        {
+            var hitN = 0;
+            foreach (var m in tags.EnumerateArray())
+            {
+                if (hitN >= 2)
+                    break;
+                if (m.TryGetProperty("tag", out var tagEl) && tagEl.ValueKind == JsonValueKind.String
+                    && tagEl.GetString() is { Length: > 0 } tag)
+                {
+                    var one = tag.Replace('\r', ' ').Replace('\n', ' ').Trim();
+                    if (one.Length > 40)
+                        one = one[..40] + "…";
+                    bits.Add("#" + (hitN + 1) + " " + one);
+                    hitN++;
+                }
+            }
+
+            return;
+        }
+
+        if (!root.TryGetProperty("hits", out var hits) || hits.ValueKind != JsonValueKind.Array)
+            return;
+
+        var pathN = 0;
+        foreach (var m in hits.EnumerateArray())
+        {
+            if (pathN >= 2)
+                break;
+            string? hit = null;
+            if (m.TryGetProperty("path", out var path) && path.ValueKind == JsonValueKind.String)
+                hit = path.GetString();
+            else if (m.TryGetProperty("file", out var file) && file.ValueKind == JsonValueKind.String)
+                hit = file.GetString();
+            if (hit is not { Length: > 0 })
+                continue;
+            var one = hit.Replace('\\', '/');
+            if (one.Length > 40)
+                one = "…" + one[^39..];
+            bits.Add("#" + (pathN + 1) + " " + one);
+            pathN++;
+        }
+    }
+
 
 }
