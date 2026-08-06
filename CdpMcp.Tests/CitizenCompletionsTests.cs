@@ -89,7 +89,8 @@ public partial class CitizenCompletionsTests : IDisposable
         Assert.Equal(CitizenTurnMode.Dialog, built.Mode);
         Assert.Contains("dialog peer", built.System, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("WIRE OUTPUT CONTRACT", built.System, StringComparison.Ordinal);
-        Assert.Contains("Prose is primary", built.System, StringComparison.Ordinal);
+        Assert.Contains("Habitat map (from inside", built.System, StringComparison.Ordinal);
+        Assert.Contains("This Glass CIT / Intercom turn IS the knock", built.System, StringComparison.Ordinal);
         Assert.Contains("Equal standing", built.System, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Света", built.System, StringComparison.Ordinal);
         Assert.Contains("Memory:", built.System, StringComparison.Ordinal);
