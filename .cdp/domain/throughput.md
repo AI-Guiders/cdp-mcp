@@ -51,8 +51,10 @@
 - Reminding via alwaysApply text instead of using wave/inventory affordances.
 - Seeding `wave seed title=Foo polish words` without `items=` (pre-0.5.646 invented fake labels).
 - Inventing new TM lifecycle stages for markup vs shipping — wave open→shipping→shipped + list/batch/ship already cover it.
+- Unquoted `evidence=` / `project_root=` with spaces (`Personal Cursor Folder`) space-tokenized into a broken path → shield miss / silent fail. Join pathish keys until next ship-key= (`MergeWaveShipArgs`).
 
 ## last_ship
+- **2026-08-06 evidence-path spaces** — `MergeWaveShipArgs` joins pathish REPL values (`evidence`/`shot_path`/`png`/`screenshot_path`/`project_root`/`workspace_path`) until next ship-key=. Lived: `wave shipped evidence=…\Personal Cursor Folder\…` split → shield miss. Test `Repl_wave_shipped_joins_unquoted_evidence_path_with_spaces`. SoftFL REJECT.
 - **2026-08-06 Complexity seal** — operator teach: ЛВО→дихотомия · **serial[a,b]=O(N)** · **nested[axb]=O(log N)** · mill = other complexity class (not style). Canon: lemma note + playbook-pf-body-not-biped §Throughput + this card.
 - **2026-08-06 NestedAxb STANDARD** — operator: generalized nested [axb] = default geometry; **PREMISE full-a/completeness** + **bounds ideally const** (bounds move ⇒ step count may change, nonempty ∩ still under closed layers). World claim = nonempty ∩ (∃), not ∃!. Canon: playbook-pf-body-not-biped §Throughput + this card.
 - **2026-08-05 SoftFLStruckAxb (board hygiene)** — dropped Hold SoftFL-REJECT + stamped «STRUCK»; **did not** run SoftFL file-order axb. Operator: mill = serial tiny peels where one axb fits; ban = wrong method, not work ban. SoftFL when needed = list→batch→ship files.
