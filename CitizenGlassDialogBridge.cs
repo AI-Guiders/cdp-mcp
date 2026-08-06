@@ -34,6 +34,13 @@ internal static class CitizenGlassDialogBridge
     /// <summary>Test hook — when set, skips live CitizenCompletions.</summary>
     internal static Func<string, CitizenCompletions.TurnResult>? TurnOverrideForTests { get; set; }
 
+    /// <summary>
+    /// Same-turn observe nudge after host-execute — Sierra must see @event peer pulse
+    /// in-loop (Cursor Cutoff densest), not sleep until next Autoi.
+    /// </summary>
+    internal const string SameTurnObserveUser =
+        "@event peer — verify hands from pulse; do not invent refuse. One short Radio letter.";
+
     internal static void ResetProcessedForTests() => LastProcessedId = null;
 
     public static string StateRoot =>
@@ -185,10 +192,25 @@ internal static class CitizenGlassDialogBridge
                 peerAck = CitizenPeerAck.FromExecuted(executed);
             }
 
-            // Human Intercom: strip wire; harness → «Сделала: …» (not peer tip dump).
-            var publishBody = SurfacePublishBody(turn.Text!, executed);
-            // Dialog memory wants human prose — not Autoi Radio collapse of SA walls.
-            PersistOperatorDialog(req.Body, turn.Text!, publishBody, executed);
+            // Act letter first (dialog memory), then same-turn observe if hands ran.
+            var actPublished = SurfacePublishBody(turn.Text!, executed);
+            PersistOperatorDialog(req.Body, turn.Text!, actPublished, executed);
+
+            var publishBody = actPublished;
+            if (peerAck is not null)
+            {
+                var observe = TrySameTurnObserve(peerAck, executed);
+                if (observe is { } obs)
+                {
+                    publishBody = obs.PublishBody;
+                    peerAck = obs.PeerAck;
+                    PersistOperatorDialog(
+                        SameTurnObserveUser,
+                        obs.Text,
+                        obs.PublishBody,
+                        obs.Executed);
+                }
+            }
 
             var radioPointer = IdeIgniteArmHost.LooksLikeHabitatRadioPointer(publishBody);
             var published = CideIntercomVoiceLatch.Publish(
@@ -220,6 +242,52 @@ internal static class CitizenGlassDialogBridge
                 CideIntercomVoiceLatch.SeatPf,
                 CideIntercomPresenceLatch.StateIdle);
         }
+    }
+
+    sealed record SameTurnObserve(
+        string Text,
+        string PublishBody,
+        CitizenPeerAck.Result PeerAck,
+        IReadOnlyList<CitizenRouteHost.Applied>? Executed);
+
+    /// <summary>
+    /// After host-execute: second Turn so Completions injects @event peer (LastEvent).
+    /// Face letter = observe reply. Observe routes execute at most once (no third turn).
+    /// </summary>
+    static SameTurnObserve? TrySameTurnObserve(
+        CitizenPeerAck.Result peerAck,
+        IReadOnlyList<CitizenRouteHost.Applied>? priorExecuted)
+    {
+        CitizenCompletions.TurnResult observeTurn;
+        try
+        {
+            observeTurn = TurnOverrideForTests is { } obsOv
+                ? obsOv(SameTurnObserveUser)
+                : CitizenCompletions.Turn(SameTurnObserveUser);
+        }
+        catch
+        {
+            return null;
+        }
+
+        if (!observeTurn.Ok || string.IsNullOrWhiteSpace(observeTurn.Text))
+            return null;
+
+        IReadOnlyList<CitizenRouteHost.Applied>? observeExecuted = null;
+        var observeAck = peerAck;
+        if (observeTurn.Routes is { Count: > 0 })
+        {
+            observeExecuted = CitizenRouteHost.Execute(observeTurn.Routes);
+            observeAck = CitizenPeerAck.FromExecuted(observeExecuted) ?? peerAck;
+        }
+        else
+        {
+            // Keep act-turn peer latch; Completions already saw LastEvent for this Turn.
+            _ = priorExecuted;
+        }
+
+        var publish = SurfacePublishBody(observeTurn.Text!, observeExecuted);
+        return new SameTurnObserve(observeTurn.Text!, publish, observeAck, observeExecuted);
     }
 
     /// <summary>

@@ -191,9 +191,16 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         IdeDeskSeats.Clear();
         IdeDeskSeats.TryPlaceExplicit("p", "plan");
 
-        CitizenGlassDialogBridge.TurnOverrideForTests = body => EchoTurn(
-            body,
-            routes: [CitizenIntentRouter.RouteOne("go=plan")]);
+        var seatRoot = Path.Combine(_root, "cdp");
+        Directory.CreateDirectory(seatRoot);
+        CitizenDialogHistory.SetTestPath(Path.Combine(seatRoot, CitizenDialogHistory.FileName));
+
+        CitizenGlassDialogBridge.TurnOverrideForTests = body =>
+        {
+            if (body.Equals(CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal))
+                return EchoTurn("observe: peer pulse seen");
+            return EchoTurn(body, routes: [CitizenIntentRouter.RouteOne("go=plan")]);
+        };
         WritePending("routeid00001", "hands please");
 
         Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
@@ -205,8 +212,15 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
 
         using var latch = JsonDocument.Parse(File.ReadAllText(CideIntercomVoiceLatch.LatchPath));
         var body = latch.RootElement.GetProperty("body").GetString();
-        Assert.Contains("citizen-echo:hands please", body, StringComparison.Ordinal);
-        
+        Assert.Contains("citizen-echo:observe: peer pulse seen", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("citizen-echo:hands please", body, StringComparison.Ordinal);
+
+        var msgs = CitizenDialogHistory.Load();
+        Assert.Equal(4, msgs.Count);
+        Assert.Equal("hands please", msgs[0].Content);
+        Assert.Contains("citizen-echo:hands please", msgs[1].Content, StringComparison.Ordinal);
+        Assert.Equal(CitizenGlassDialogBridge.SameTurnObserveUser, msgs[2].Content);
+        Assert.Contains("citizen-echo:observe: peer pulse seen", msgs[3].Content, StringComparison.Ordinal);
 
         using var status = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("done", status.RootElement.GetProperty("status").GetString());
