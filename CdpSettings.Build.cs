@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Cdp.Core;
 using Cdp.Lsp;
 using Cdp.ScriptableIde;
@@ -52,11 +52,22 @@ internal sealed partial class CdpSettings
         return new LanguageRegistry(ids, aliases, rules);
     }
 
-    private static MemoryFacetSettings Facet(CdpTomlFacet? src, string[] defaults) => new()
+    private static MemoryFacetSettings Facet(CdpTomlFacet? src, string[] defaults, bool ensureKnowledgeHubDot = false)
     {
-        Enabled = src?.Enabled ?? true,
-        Roots = src?.Roots is { Length: > 0 } roots ? roots : defaults
-    };
+        var roots = src?.Roots is { Length: > 0 } listed ? listed : defaults;
+        // Live toml restore can drop "."; hub files (SHOWCASE.md) must stay reachable on world.
+        if (ensureKnowledgeHubDot
+            && !roots.Any(static r => string.Equals(r, ".", StringComparison.Ordinal)))
+        {
+            roots = [.. roots, "."];
+        }
+
+        return new()
+        {
+            Enabled = src?.Enabled ?? true,
+            Roots = roots
+        };
+    }
     private static MemoryToggleSettings Enabled(CdpTomlToggle? src) => new()
     {
         Enabled = src?.Enabled ?? true

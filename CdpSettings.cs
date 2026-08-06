@@ -18,7 +18,8 @@ internal sealed partial class CdpSettings
     public CockpitHostSettings CockpitHost { get; init; } = new();
     public VendorCatalogOptions Vendor { get; init; } = VendorCatalog.CreateBuiltInDefaults();
 
-    public static readonly string[] DefaultWorldRoots = ["worlds", "META"];
+    /// <summary>worlds + META + "." knowledge-root hub (SHOWCASE.md, index-*.md).</summary>
+    public static readonly string[] DefaultWorldRoots = ["worlds", "META", "."];
     /// <summary>Project cards + personal Kolb/free-theme parks (interim; no separate memory_personal domain).</summary>
     public static readonly string[] DefaultProjectRoots = ["work/projects", "personal"];
     public static readonly string[] DefaultSkillRoots = ["domains", "templates"];
@@ -48,7 +49,7 @@ internal sealed partial class CdpSettings
             {
                 NotesConfig = memory.NotesConfig,
                 TaskConfig = memory.TaskConfig,
-                World = Facet(memory.World, DefaultWorldRoots),
+                World = Facet(memory.World, DefaultWorldRoots, ensureKnowledgeHubDot: true),
                 Project = Facet(memory.Project, DefaultProjectRoots),
                 Task = Enabled(memory.Task),
                 Session = Enabled(memory.Session),

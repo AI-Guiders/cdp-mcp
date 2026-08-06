@@ -114,7 +114,11 @@ internal sealed class MemoryScopeGateway
         {
             if (!injectIfEmpty)
                 return;
-            SetString(dict, key, _roots[0]);
+            // Prefer real subdir roots; "." is hub-only and not a list inject default.
+            var inject = _roots.FirstOrDefault(static r => r is not ".") ?? _roots[0];
+            if (inject is ".")
+                return;
+            SetString(dict, key, inject);
             return;
         }
 
@@ -132,15 +136,25 @@ internal sealed class MemoryScopeGateway
             return;
 
         var roots = string.Join(", ", _roots);
+        var tip = !relative.Contains('/')
+            ? $"knowledge-root hub files need {_domain} root '.' (e.g. SHOWCASE.md, index-*.md) — not project/skill subdirs."
+            : $"use another memory_* facet (e.g. {CdpDomains.MemoryWorld}, {CdpDomains.MemoryProject}, {CdpDomains.MemorySkill}).";
         throw new ArgumentException(
-            $"Path '{relative}' is outside {_domain} roots [{roots}]; " +
-            $"use another memory_* facet (e.g. {CdpDomains.MemoryWorld}, {CdpDomains.MemoryProject}, {CdpDomains.MemorySkill}).");
+            $"Path '{relative}' is outside {_domain} roots [{roots}]; {tip}");
     }
 
     private bool IsUnderAnyRoot(string relative)
     {
         foreach (var root in _roots)
         {
+            // "." = knowledge-root hub only (SHOWCASE.md, index-*.md) — no subdirectory.
+            if (root is ".")
+            {
+                if (relative.Length > 0 && !relative.Contains('/'))
+                    return true;
+                continue;
+            }
+
             if (relative.Equals(root, StringComparison.OrdinalIgnoreCase)
                 || relative.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase))
                 return true;
