@@ -14,6 +14,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         Directory.CreateDirectory(_root);
         CitizenGlassDialogBridge.RootOverrideForTests = _root;
         CideIntercomVoiceLatch.RootOverrideForTests = _root;
+        CideIntercomPresenceLatch.RootOverrideForTests = _root;
         CitizenGlassDialogBridge.TurnOverrideForTests = body => EchoTurn(body);
         IdeIgniteArmHost.BindPrimaryAutoiSeat(true);
         CitizenGlassDialogBridge.Stop();
@@ -27,6 +28,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         CitizenGlassDialogBridge.TurnOverrideForTests = null;
         CitizenGlassDialogBridge.RootOverrideForTests = null;
         CideIntercomVoiceLatch.RootOverrideForTests = null;
+        CideIntercomPresenceLatch.RootOverrideForTests = null;
         IdeIgniteArmHost.BindPrimaryAutoiSeat(null);
         CitizenPeerAck.ResetForTests();
         CitizenDialogHistory.ResetForTests();
@@ -68,6 +70,25 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
 
         using var status = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("done", status.RootElement.GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public void TryProcessOnce_marks_pf_busy_during_turn_then_idle()
+    {
+        string? midState = null;
+        CitizenGlassDialogBridge.TurnOverrideForTests = body =>
+        {
+            var doc = CideIntercomPresenceLatch.TryReadEffective();
+            midState = doc?.Pf?.State;
+            return EchoTurn(body);
+        };
+
+        WritePending("busyid000001", "typing please");
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+        Assert.Equal(CideIntercomPresenceLatch.StateBusy, midState);
+
+        var after = CideIntercomPresenceLatch.TryReadEffective();
+        Assert.Equal(CideIntercomPresenceLatch.StateIdle, after?.Pf?.State);
     }
 
     [Fact]
