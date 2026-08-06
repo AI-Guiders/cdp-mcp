@@ -764,6 +764,30 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
+    [Fact]
+    public void Execute_kb_read_knowledge_file_empty_tips_missing()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.KbCallOverride = (_, tool, _) =>
+        {
+            Assert.Equal("read_knowledge_file", tool);
+            return Task.FromResult("");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+                [CitizenIntentRouter.RouteOne("kb facet=world read_knowledge_file file_path=no-such.md")]);
+            Assert.Single(applied);
+            Assert.False(applied[0].Ok);
+            Assert.Contains("missing", applied[0].Pulse, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
     public void Route_kb_failure_record_tool_arg_keeps_failure_record_op()
     {
         var r = CitizenIntentRouter.RouteOne("kb facet=failure failure_record tool=cdp_test");

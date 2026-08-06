@@ -154,10 +154,11 @@ internal static partial class CitizenRouteHost
     }
 
     /// <summary>Honest fail tip — do not SoftFL-invent <c>need cdp_open</c> for every ArgumentException.</summary>
-    /// <summary>Honest fail tip — do not SoftFL-invent <c>need cdp_open</c> for every ArgumentException.</summary>
     static string TipKbArgException(Exception ex, out string reason)
     {
         reason = ex.GetType().Name + ": " + ex.Message;
+        if (ex is FileNotFoundException)
+            return "missing";
         if (ex is not ArgumentException)
             return "failed";
 
@@ -336,6 +337,10 @@ internal static partial class CitizenRouteHost
         }
         catch
         {
+            // Missing knowledge file → empty body (not SoftFL-invent content / need cdp_open).
+            if (tool is "read_knowledge_file" && string.IsNullOrWhiteSpace(json))
+                return TruncPulse("kb " + facet + " " + tool + " missing");
+
             // Raw text from read_knowledge_file / facet man — short preview, not silent parse fail.
             if ((tool is "read_knowledge_file" or "man") && !string.IsNullOrWhiteSpace(json))
             {
