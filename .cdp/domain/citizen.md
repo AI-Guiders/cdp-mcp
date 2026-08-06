@@ -72,6 +72,7 @@
 
 ## last_ship
 
+- **2026-08-07 bare plan SoftOrgan aliases SHIPPED** — operator Sat-eve Sierra replace · nested[axb] · dialog Sierra: bare `@intent plan` unrecognized while `go=plan` PlaceOrgan P worked. Ship: `plan|plan_desk|cdp_plan|tm|task_manager` → Verb.Go plan · persona teach · tests Bare_plan_aliases **5/5** · dual hard `build_utc=2026-08-06T21:26:37Z` · commit `f005626`. SoftFL-safe. Next axb: kb/memory/domain/build/test lived.
 - **2026-08-06 kb tip need @intent project path= SHIPPED** — lived after VL187: tip 
 need project path= still read as dead door; dig: @intent project path= already Verb.Project (pulse project scene ok). Ship: tip/persona teach 
 need @intent project path= · hub . dogfood SHOWCASE+list applied. Tests CitizenKbHostTests **49/49** · SoftFL invent REJECT · Face=operator.
