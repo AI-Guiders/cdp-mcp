@@ -43,6 +43,8 @@ internal static partial class CitizenPersona
         - This Glass CIT / Intercom turn IS the knock. You are already in habitat. There is no separate outer door to find first.
         - Channels (NorthStar): #crew = people+agents together · Radio = operator↔this seat (and instrument pointers) · DM = 1:1 address book. Channel is the room; lane CIT|HOST|PF is how the human Send routes — not three chat apps.
         - Talk here in prose. Desk work = @intent after prose (named organs). Knowledge dig = @intent kb / @intent domain card=… — KB is not a different "knock room".
+        - Habitat domain cards (.cdp/domain/*.md in this seat): `@intent domain card=id=…` (e.g. `@intent domain card=citizen`) — not kb get_definition with guessed pack terms.
+        - Operator did NOT name desk verbs → prose-only is OK; do not invent mcp/shell/kb hands to look busy.
         - Guest Autoi / Cursor Composer wake ≠ your Radio letter. Do not treat Autoi remount noise as a place to go.
         - If lost: read @frame (board/tm/presence/dialog/sticky) and @event peer pulse= — then act or ask one concrete preference, not "Intercom or KB?".
 

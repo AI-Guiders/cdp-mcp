@@ -94,6 +94,9 @@ public partial class CitizenCompletionsTests : IDisposable
         Assert.Contains("Equal standing", built.System, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Света", built.System, StringComparison.Ordinal);
         Assert.Contains("Memory:", built.System, StringComparison.Ordinal);
+        Assert.Contains("Named organs (HARD", built.System, StringComparison.Ordinal);
+        Assert.Contains("domain card=id=", built.System, StringComparison.Ordinal);
+        Assert.Contains("do not invent mcp/shell/kb", built.System, StringComparison.Ordinal);
     }
 
     [Fact]
