@@ -117,6 +117,8 @@ internal static partial class IdeTaskManager
         // a×b teeth: closing the focused feature under autonomous without an active wave = half-a.
         if (wasFocused)
             RefuseAxbHalfAFeatureClose(args);
+        if (wasFocused)
+            RefuseCideFeatureCloseWithoutTeeth(store, featureId, args);
 
         var keepIntent = state.ActiveIntentId;
         var keepStage = state.ActiveStageId;
@@ -167,6 +169,22 @@ internal static partial class IdeTaskManager
                 ? "Feature closed — incomplete leaves marked done; active focus preserved."
                 : "Feature had no incomplete leaves — active focus preserved."
         };
+    }
+
+    static void RefuseCideFeatureCloseWithoutTeeth(
+        IntentWorkspaceStore store,
+        Guid featureId,
+        IReadOnlyDictionary<string, JsonElement>? args)
+    {
+        var title = store.IntentTitlePeek(featureId) ?? "";
+        var blob = title;
+        if (store.IntentHasStageProduct(featureId, "CIDE"))
+            blob += " #CIDE";
+        if (!IdeSeemingDoneShield.IsHumanFacedText(blob)
+            && !store.IntentHasStageProduct(featureId, "CIDE"))
+            return;
+
+        IdeSeemingDoneShield.RefuseHumanFaceShipWithoutTeeth(args, blob, "feature_done");
     }
 
     static void RefuseAxbHalfAFeatureClose(IReadOnlyDictionary<string, JsonElement>? args)

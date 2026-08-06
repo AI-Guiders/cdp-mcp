@@ -41,6 +41,17 @@ public sealed class IdeWaveChannelTests
             });
             Assert.Contains("1/3", IdeWaveChannel.PulseLine(), StringComparison.Ordinal);
 
+            IdeWaveChannel.Handle(new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["op"] = JsonSerializer.SerializeToElement("item_done"),
+                ["label"] = JsonSerializer.SerializeToElement("a")
+            });
+            IdeWaveChannel.Handle(new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["op"] = JsonSerializer.SerializeToElement("item_done"),
+                ["label"] = JsonSerializer.SerializeToElement("c")
+            });
+
             var shipped = JsonSerializer.Serialize(IdeWaveChannel.Handle(new Dictionary<string, JsonElement>(StringComparer.Ordinal)
             {
                 ["op"] = JsonSerializer.SerializeToElement("shipped")

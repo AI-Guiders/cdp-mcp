@@ -36,9 +36,11 @@
 - Seeding task titles that contain REPL verbs (`|focus|start`).
 - Chaining board verbs with `;` in one `cmd=` (`feature X; task Y; start`) — junk titles; refuse `multi_cmd` @ 0.5.521.
 - Re-inlining Intent/Stage/Scene/Persist/Find into one mega-file past soft-warn.
+- Treating `wave shipped` as auto-complete rectangle or seeming Done without PNG/domain (`IdeWaveShipShield` @ 0.5.675+).
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
+- **2026-08-06 wave shipped teeth** — `IdeWaveShipShield` + `IdeSeemingDoneShield`: pending items refuse; human-faced wave/feature needs evidence PNG + fresh domain stamp; REPL preserves evidence=/domain=. Tests IdeWaveShipShieldTests. Being ≠ seeming habitat enforce.
 - **2026-08-05 residual first-snapshot** — PublishGlass no second `TaskManagerSnapshot` (Board.ActiveFeature/StageTitle); `TaskManagerSnapshot` loads Stages only for ActiveIntentId. Test PublishGlass cache-hit. SoftFL BuildBoard lines REJECT.
 - **2026-08-05 Board cache pulse-tax** — ThreadStatic `BuildBoard` reuse (intent/stage/phase keys) + `InvalidateBoardCache` on mutation; Handle/PulseLine/PublishGlass share one WitDB snapshot. Test IdeTaskManagerBoardCacheTests. Dogfood: `go=plan` pulse no `timeout_wake` (was ~20–36s). Dual hard deploy build_utc=15:34:18Z. SoftFL method_lines BuildBoard REJECT.
 - **2026-08-05 StageEvents dig-safe** — `StageEventsForStage` never `AsEnumerable` full-scan: server Where → SQL `StageId` filter (OutWit empty-Where parity). Lived: dig leaf / `go_detail=full` → Connection closed on ~172MB WitDB. Tests StageEventLedger 3/3. Dig path parity with ship-safe StageClock.
