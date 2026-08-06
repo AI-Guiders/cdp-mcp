@@ -237,6 +237,7 @@ internal static partial class CitizenRouteHost
                 bits.Add(TruncPulse(e) ?? e);
             AppendKbSearchHits(root, bits);
             AppendKbNextHits(root, bits);
+            AppendKbTaskHits(root, bits);
             AppendKbEntryHits(root, bits);
             AppendKbHealthBits(root, bits);
             AppendKbFileListHits(root, bits);
@@ -303,6 +304,34 @@ internal static partial class CitizenRouteHost
 
         var hitN = 0;
         foreach (var m in next.EnumerateArray())
+        {
+            if (hitN >= 2)
+                break;
+            string? hit = null;
+            if (m.TryGetProperty("toBe", out var toBe) && toBe.ValueKind == JsonValueKind.String)
+                hit = toBe.GetString();
+            else if (m.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String)
+                hit = title.GetString();
+            else if (m.TryGetProperty("taskId", out var id) && id.ValueKind == JsonValueKind.String)
+                hit = id.GetString();
+            if (hit is not { Length: > 0 })
+                continue;
+            var one = hit.Replace('\r', ' ').Replace('\n', ' ').Trim();
+            if (one.Length > 40)
+                one = one[..40] + "…";
+            bits.Add("#" + (hitN + 1) + " " + one);
+            hitN++;
+        }
+    }
+
+    /// <summary>TaskKnowledge tasks JSON — surface top toBe/title so FM does not SoftFL-invent after thin count pulse.</summary>
+    static void AppendKbTaskHits(JsonElement root, List<string> bits)
+    {
+        if (!root.TryGetProperty("tasks", out var tasks) || tasks.ValueKind != JsonValueKind.Array)
+            return;
+
+        var hitN = 0;
+        foreach (var m in tasks.EnumerateArray())
         {
             if (hitN >= 2)
                 break;
