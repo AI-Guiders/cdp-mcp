@@ -30,6 +30,12 @@ internal static partial class IdeIgniteArmHost
     /// Consume remount-wake pending for this seat and arm a one-shot timer with charge_mode=remount.
     /// Called on process boot (EnsureStarted). Returns null when no pending.
     /// </summary>
+        /// <summary>
+    /// Consume remount-wake pending for this seat and arm a one-shot timer with charge_mode=remount.
+    /// Called on process boot (EnsureStarted). Returns null when no pending.
+    /// Suppress when invent-only Hold insurance already armed — Recover mid-turn remount CDT = DIG REJECT thrash
+    /// (lived 2026-08-07: Not connected → Recover → remount-wake CDT → Not connected again).
+    /// </summary>
     internal static object? TryScheduleRemountInitializedWake(string? seatOverride = null)
     {
         var seat = IdeRemountWake.NormalizeSeat(seatOverride ?? Seat);
@@ -37,6 +43,20 @@ internal static partial class IdeIgniteArmHost
             return null;
 
         EnsureLoaded();
+
+        // Invent-only Hold insurance already covers continuity — remount Composer wake after Recover
+        // while Hold is live = DIG REJECT (mid-turn disconnect / second CDT).
+        if (HasArmedInventOnlyHoldInsurance())
+        {
+            IdeTeethTape.Record(
+                "wake_suppress",
+                armId: IdeRemountWake.ArmIdPrefix + "suppressed",
+                reason: IdeRemountWake.Reason,
+                detail: "invent_only_hold_insurance");
+            Console.Error.WriteLine("[ide_ignite] remount wake suppressed — invent-only Hold insurance armed");
+            return null;
+        }
+
         var dueSec = Math.Clamp(IdeRemountWake.DefaultDueSeconds, 1, 60);
         var now = DateTimeOffset.UtcNow;
         var id = IdeRemountWake.ArmIdPrefix
@@ -85,6 +105,7 @@ internal static partial class IdeIgniteArmHost
             detail: pending?.Reason);
         return Slim(arm);
     }
+
 
     /// <summary>
     /// Reclaim timer arms that are overdue or stuck in firing (killed mid-CDT).
