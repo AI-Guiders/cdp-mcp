@@ -72,6 +72,7 @@
 
 ## last_ship
 
+- **2026-08-06 onboard scene no-ProjectRoot honest refuse** — lived: Sierra `@intent explore` → peer `onboard · empty` (ok=true) while seat unbound · Scene now `project_required` + pulse + hint file manager=`@intent files` · tests IdeOnboard 10/10 · hard **0.5.674** `build_utc=2026-08-06T07:01:32Z` · SoftFL REJECT.
 - **2026-08-06 cdp_intercom channel= Face rail SHIPPED** — agent→Face DM/crew/radio via `channel=` on send (was dropped at MCP→Publish) · CIT Glass path already tagged from request · habit: Face-visible talk = Intercom journal not side `cdp_citizen` alone · tests VoiceLatch 16/16 · hard **0.5.674** · SoftFL REJECT.
 - **2026-08-06 Claim guest≠demote citizen Who** — lived: PF tip Sierra→Kir after guest Radio `name=` Claim · refuse guest Claim when tip kind=citizen · letter still paints guest nick · test `Claim_guest_does_not_demote_sticky_citizen_who` · SoftFL REJECT · hard to primary.
 - **2026-08-06 Habitat map from inside (dialog persona)** — Sierra lived «куда стучаться?» without orientation · `CitizenPersona.DialogSystemPrompt` + Habitat map: this turn IS the knock · `#crew`/Radio/DM · `@intent` hands · kb/domain dig ≠ other door · Autoi≠Radio · test `Build_dialog_uses_prose_persona` · SoftFL REJECT · **hard deploy** for live Sierra.
