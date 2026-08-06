@@ -72,6 +72,9 @@
 
 ## last_ship
 
+- **2026-08-06 kb tip need @intent project path= SHIPPED** — lived after VL187: tip 
+eed project path= still read as dead door; dig: @intent project path= already Verb.Project (pulse project scene ok). Ship: tip/persona teach 
+eed @intent project path= · hub . dogfood SHOWCASE+list applied. Tests CitizenKbHostTests **49/49** · SoftFL invent REJECT · Face=operator.
 - **2026-08-06 kb dig gate off + tip need project path= SHIPPED** — lived: Sierra stuck on pulse `need cdp_open` (no citizen hand) → refuse dig. Dialog AGREED: dig (search/findings/failures*) leave NeedsKbWorkspace · act tip `need cdp_open`→`need project path=` · no `cdp_open` alias invent. Tests CitizenKbHostTests **49/49** · dual hard **0.5.675** `build_utc=2026-08-06T20:13:14Z` · SoftFL invent REJECT · Face=operator.
 - **2026-08-06 kb read_knowledge_file missing tip SHIPPED** — lived dig after VL185: missing `file_path=` pulsed bare `kb memory_world read_knowledge_file` (empty AN body) → SoftFL invent content. Ship: empty → pulse `missing` · `FileNotFoundException` → tip `missing`. Tests CitizenKbHostTests **48/48** · dual hard **0.5.675** `build_utc=2026-08-06T19:48:54Z` lag=false · SoftFL invent REJECT · Face=operator.
 - **2026-08-06 kb tip need relative_path= for abs/.. SHIPPED** — lived dig after VL184: `list_knowledge_files path=../outside|/abs` and `read_knowledge_file file_path=../…` pulsed bare `failed` (MemoryScopeGateway ArgumentException not `X is required`) → SoftFL invent. Ship: `TipKbArgException` → `need relative_path=` / reason `kb_path_not_relative`. Tests CitizenKbHostTests **47/47** · dual hard **0.5.675** `build_utc=2026-08-06T19:38:32Z` lag=false · live wire tips **ack=0/3**. SoftFL invent REJECT · Face=operator.
