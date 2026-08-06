@@ -86,6 +86,7 @@
 
 ## last_ship
 
+- **2026-08-06 Folded AutoI consume CLOSED (0.5.674)** — Glass Autoi Korry ON while talk/halt: `glass_ignite_cmd` `autonomous_on` now `Resume` + `SetAutonomous(true)` (was SetAutonomous alone → latch stuck · TALK/HALT face). Test `TryProcessOnce_autonomous_on_clears_folded_await_partner`. SoftFL REJECT. Residual: Glass eyes on Korry fly-after-fold (operator); VAD still unwired; lane→channel longer arc.
 - **2026-08-05 InventOnlyHyphenHold SHIPPED** — lived DIG ACCEPT: TM Hold title `invent-only` (hyphen) missed `IsInventOnlyHoldTask` (`invent only` space-only) → leaf-wake stayed **2s** / leaf_pull ≤3s → DIG REJECT wake mill under sealed Hold. Fix: match `invent-only` too · WorldDigShield marker · test current Hold title. SoftFL/Meta REJECT. Voice Letter #160 after live dogfood (`3m(invent_only_hold)`).
 
 - **anti-rooster ChargeDomainStampPostfix** — stamp last_ship same turn; L1 ≠ stamp moment · IdeDomainStampShield · 2026-08-05
