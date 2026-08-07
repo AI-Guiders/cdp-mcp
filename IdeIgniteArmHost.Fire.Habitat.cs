@@ -22,6 +22,47 @@ internal static partial class IdeIgniteArmHost
     internal static bool IsIntercomVoiceCannonArmId(string? id) =>
         !string.IsNullOrWhiteSpace(id)
         && id.StartsWith(IntercomVoiceCannonState.ArmIdPrefix, StringComparison.OrdinalIgnoreCase);
+    static string? VoiceCannonMsgIdFromArmId(string? armId)
+    {
+        if (string.IsNullOrWhiteSpace(armId))
+            return null;
+        if (!armId.StartsWith(IntercomVoiceCannonState.ArmIdPrefix, StringComparison.OrdinalIgnoreCase))
+            return null;
+        var id = armId[IntercomVoiceCannonState.ArmIdPrefix.Length..].Trim();
+        return id.Length == 0 ? null : id;
+    }
+
+    static void ClearVoiceCannonFiredClaim(string armId)
+    {
+        var msgId = VoiceCannonMsgIdFromArmId(armId);
+        if (msgId is null)
+            return;
+        _ = IntercomVoiceCannonState.TryClearFired(msgId);
+    }
+
+    /// <summary>Glass Face Radio — Composer Stop/busy must not look like @Kir swallowed.</summary>
+    static void PublishVoiceCannonDeliveryFailFace(IgniteArm arm, string err)
+    {
+        if (!IsPrimaryAutoiSeat())
+            return;
+        var tip = string.Equals(err, "busy_timeout", StringComparison.Ordinal)
+            ? "Radio · Composer Stop · @Kir wake pending (пушка ждёт Voice)"
+            : $"Radio · @Kir wake fail · {err}";
+        _ = CideIntercomVoiceLatch.Publish(
+            fromSeat: CideIntercomVoiceLatch.SeatPf,
+            toSeat: CideIntercomVoiceLatch.SeatPm,
+            body: tip,
+            origin: CideIntercomVoiceLatch.OriginAgent,
+            name: "AutoI",
+            kind: "guest",
+            channel: "radio");
+        IdeFlightDataRecorder.RecordWake(
+            "wake_cannon_face",
+            arm.Id,
+            tool: null,
+            detail: err);
+    }
+
 
     /// <summary>
     /// Duplex partner (PF) actively in habitat — busy|composing after effective stale.
