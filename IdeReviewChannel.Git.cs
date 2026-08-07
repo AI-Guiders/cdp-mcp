@@ -5,7 +5,7 @@ namespace CdpMcp;
 
 internal static partial class IdeReviewChannel
 {
-    public static IReadOnlyList<FileCard> ListDirtyFiles(string? projectRoot)
+    public static IReadOnlyList<FileCard> ListDirtyFiles(string? projectRoot, bool untrackedAll = true)
     {
         if (projectRoot is not { Length: > 0 } || !Directory.Exists(projectRoot))
             return [];
@@ -13,7 +13,7 @@ internal static partial class IdeReviewChannel
         string porcelain;
         try
         {
-            porcelain = TryGitPorcelain(projectRoot, untrackedAll: true) ?? "";
+            porcelain = TryGitPorcelain(projectRoot, untrackedAll) ?? "";
         }
         catch
         {

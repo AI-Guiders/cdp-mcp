@@ -72,6 +72,7 @@
 
 ## last_ship
 
+- **2026-08-07 sa_desk MetaDispatch hang SoftFL SHIPPED** — lived dig: post-locus-fix `@intent sa` execute MCP timeout (−32001). Tip ≠ PlaceOrgan — RunSa sync MetaDispatch(`cdp_sa`) first; bare default `depth=slim` → `ListDirtyFiles(-uall)` on thrash trees. Ship: bare sa → `depth=pulse` · slim dirty `-uno` · full keeps `-uall`. Tests SaHost+IdeSa+Bare_sa **15/15**. SoftFL invent REJECT · Face=operator.
 - **2026-08-07 bare sa locus SoftFL SHIPPED** — lived dig: `@intent sa` → `path=sa` pulse `sa_desk · leave · 0w/0f` (ExtractSaPositionalToken treated bare `sa` as locus). Ship: bare `sa` → null positional. CitizenIntentRouterTests **16/16**. SoftFL invent REJECT.
 - **2026-08-07 kb exclusive-tool facet SoftFL SHIPPED** — lived dig: `@intent kb findings|failures|health|memory_health` → `kb_tool_unknown` pulse `kb memory_world … unknown` (tool head skips bare-facet; facet defaulted world). Ship: exclusive tools remap → self_finding / self_failure / session (same class as search_* / task). CitizenKbHostTests **56/56**. SoftFL invent REJECT.
 - **2026-08-07 kb bare memory_session facet SoftFL SHIPPED** — lived dig: `@intent kb memory_session memory_health` → `kb_tool_unknown` pulse `kb memory_world memory_health unknown` (bare `memory_session` ignored; facet defaulted world). Ship: `TryConsumeBareFacetToken` before tool scan · `kb memory_session` / `kb session health` → session+memory_health. CitizenKbHostTests facet theory **13/13** · suite **52/52**. SoftFL invent REJECT.

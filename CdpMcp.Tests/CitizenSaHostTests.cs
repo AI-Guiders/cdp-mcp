@@ -7,12 +7,12 @@ namespace CdpMcp.Tests;
 public sealed class CitizenSaHostTests
 {
     [Fact]
-    public void Route_sa_defaults_slim()
+    public void Route_sa_defaults_pulse()
     {
         var r = CitizenIntentRouter.RouteOne("sa");
         Assert.True(r.Ok);
         Assert.Equal(CitizenIntentRouter.Verb.Sa, r.Verb);
-        Assert.Equal("slim", r.Op);
+        Assert.Equal("pulse", r.Op);
         Assert.Equal("sa_desk", r.Go);
     }
 

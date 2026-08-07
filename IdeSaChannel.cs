@@ -36,7 +36,8 @@ internal static partial class IdeSaChannel
             return PulseOnly(store, session, locus, scope);
 
         var gates = RunGates(store, session, locus, scope);
-        var dirty = IdeReviewChannel.ListDirtyFiles(session.ProjectRoot);
+        // slim: -uno (tracked). full: -uall. Bare thrash trees hang MetaDispatch on -uall.
+        var dirty = IdeReviewChannel.ListDirtyFiles(session.ProjectRoot, untrackedAll: depth == "full");
         var dirtyHit = FindDirtyForLocus(dirty, locus.Path, session.ProjectRoot);
         ClonesSnap? clones = depth == "full" ? TryClones(store, session, locus, scope, depth) : null;
         var (verdict, why) = Decide(gates, dirtyHit, clones);

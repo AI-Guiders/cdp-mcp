@@ -41,7 +41,7 @@ public sealed class CitizenIntentRouterTests
         Assert.True(r.Ok);
         Assert.Equal(CitizenIntentRouter.Verb.Sa, r.Verb);
         Assert.Equal("sa_desk", r.Go);
-        Assert.Equal("slim", r.Op);
+        Assert.Equal("pulse", r.Op);
         Assert.Null(r.Path);
     }
 

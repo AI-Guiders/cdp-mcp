@@ -73,7 +73,7 @@ internal static partial class CitizenRouteHost
         var depth = route.Op
             ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "depth")
             ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "shape")
-            ?? "slim";
+            ?? "pulse";
         args["depth"] = JsonSerializer.SerializeToElement(depth.Trim().ToLowerInvariant());
 
         PutIfPresent(args, "path", route.Path
