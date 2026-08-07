@@ -40,6 +40,18 @@ public class IdeSaChannelTests
     }
 
     [Fact]
+    public void Missing_depth_defaults_to_pulse()
+    {
+        var store = new DocumentBufferStore();
+        var session = new SessionContext { ProjectRoot = Path.GetTempPath() };
+        var board = IdeSaChannel.Handle(store, session, new Dictionary<string, JsonElement>());
+        var json = JsonSerializer.Serialize(board);
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal("pulse", doc.RootElement.GetProperty("detail").GetString());
+        Assert.False(doc.RootElement.TryGetProperty("quality", out _), json);
+    }
+
+    [Fact]
     public void Pulse_is_thin_and_skips_quality_block()
     {
         var store = new DocumentBufferStore();

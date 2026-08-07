@@ -28,7 +28,9 @@ internal static partial class IdeSaChannel
     {
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
 
-        var depth = NormDepth(Opt(args, "depth") ?? Opt(args, "shape") ?? "slim");
+        // Missing depth → pulse (PlaceOrgan / SoftOrganBoard TileArgs often empty).
+        // Lived SoftFL: default slim → RunGates/EvaluateStore hangs desk refresh.
+        var depth = NormDepth(Opt(args, "depth") ?? Opt(args, "shape") ?? "pulse");
         var locus = ResolveLocus(store, session, args);
         var scope = NormScope(Opt(args, "scope"), locus);
 
