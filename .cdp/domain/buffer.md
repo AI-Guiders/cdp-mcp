@@ -24,9 +24,11 @@
 - `replace_range` with only `new_string=` and silent `text??""` — ate spans (bridge incident). Body = `text|new_string`; missing both must refuse (empty `text=""` = intentional delete).
 - `edit_op=replace` with only `text=` while code reads `new_string??""` — deleted PublishGlass (2026-08-04). Body = `new_string|text`; missing both must refuse (empty `new_string=""` = intentional delete).
 - Cold `set_text` on missing path ≠ create — OpenUnlocked FileNotFound; bootstrap via `op=create text=`.
+- Bare `place=replace` on large `M:` without `old_string=` / `T:` / `force=true` — wiped UnbindLifecycle (lived 2026-08-07). SoftFL ADX-HX-002 refuses shrink; `old_string=` → in-locus patch (`place=in_locus`). Prefer `edit_op=replace` for string patches when not targeting a member rewrite.
 
 ## last_ship
 
+- 0.5.680: SoftFL ADX-HX-002 — `old_string=` + anchor M: patches in-locus; large M: `place=replace` tiny body refuses without force (UnbindLifecycle wipe) · AnchorPlace 16/16 · live dogfood refuse+in_locus · 2026-08-07
 - 0.5.664: `edit_op=replace` accepts `text=` alias + refuses missing body (PublishGlass wipe) · DocumentEditPlaneReplaceTests 4/4 · 2026-08-04
 - 0.5.580: citizen `@intent read|close|buffers|doc_diagnostics` → DocumentEditPlane core (peer without Cursor buffer) · 2026-08-03
 - 0.5.576: citizen `@intent take` → TakeShip verify-then-ship (peer) · 2026-08-03

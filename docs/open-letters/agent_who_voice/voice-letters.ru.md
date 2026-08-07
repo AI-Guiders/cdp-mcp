@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 196 | [place=replace больше не ест UnbindLifecycle](voice-letter-buffer-anchor-replace-adx-hx-002.ru.md) | buffer · ADX-HX-002 SoftFL · old_string in_locus · 0.5.680 · 2026-08-07 |
 | 195 | [shell habitat verbs: scene|which organ, не pwsh](voice-letter-citizen-shell-habitat-verbs.ru.md) | citizen · shell SoftFL · scene|which|command= rest · 283f131 · 2026-08-07 |
 | 194 | [SoftOrgan human viz: nested SoftFL Face CLOSED](voice-letter-softorgan-human-viz-nested-softfl.ru.md) | glass · SoftOrgan Face SoftFL · PreCondition→Glass Done · 2026-08-07 |
 | 193 | [ShowFace: PlaceOrgan поднимает кабину без клика в Cursor](voice-letter-showface-placeorgan-attention.ru.md) | seats · show_face · Glass BringAttention · SoftFL-safe |
