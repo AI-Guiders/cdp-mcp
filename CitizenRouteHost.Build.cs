@@ -19,6 +19,7 @@ internal static partial class CitizenRouteHost
         ShellHabitatResolver = null;
         ShellDefaultsResolver = null;
         ShellRunOverride = null;
+        ShellOrganOverride = null;
         ByDomainResolver = null;
         DebugDispatchOverride = null;
         KbCallOverride = null;
