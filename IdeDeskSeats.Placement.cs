@@ -41,7 +41,7 @@ internal static partial class IdeDeskSeats
         lock (Gate)
         {
             PlaceUnlocked(seat, pin);
-            PersistUnlocked();
+            PersistUnlocked(showFace: true, faceSeat: seat);
         }
 
         return seat;
@@ -55,7 +55,7 @@ internal static partial class IdeDeskSeats
         lock (Gate)
         {
             PlaceUnlocked(seat, CanonicalOrganPin(organPin));
-            PersistUnlocked();
+            PersistUnlocked(showFace: false);
         }
 
         return true;
@@ -102,7 +102,7 @@ internal static partial class IdeDeskSeats
         }
     }
 
-    static void PersistUnlocked()
+    static void PersistUnlocked(bool showFace = false, string? faceSeat = null)
     {
         if (Store is not null)
         {
@@ -119,7 +119,10 @@ internal static partial class IdeDeskSeats
         // Dual-cockpit glass: publish even when WitDB store is unbound (tests / early boot).
         try
         {
-            CideSeatsLatch.Publish(Order.ToDictionary(s => s, s => Sticky[s], StringComparer.OrdinalIgnoreCase));
+            CideSeatsLatch.Publish(
+                Order.ToDictionary(s => s, s => Sticky[s], StringComparer.OrdinalIgnoreCase),
+                showFace,
+                faceSeat);
         }
         catch
         {

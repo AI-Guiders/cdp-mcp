@@ -67,12 +67,53 @@ public class CideSeatsLatchTests : IDisposable
     }
 
     [Fact]
-    public void TryRead_roundtrips()
+    public void Publish_show_face_projects_face_seat_only()
+    {
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?>
+            {
+                ["p"] = "plan",
+                ["forward"] = "editor_scene",
+                ["m"] = "browser"
+            },
+            showFace: true,
+            faceSeat: "p");
+
+        var latch = CideSeatsLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.True(latch!.ShowFace);
+        Assert.Equal("p", latch.FaceSeat);
+        Assert.Null(latch.MfdPage); // plan = chrome-only; must not steal WebAiPortal from M
+        Assert.Equal("agent · P: plan", latch.ChromeHint);
+    }
+
+    [Fact]
+    public void Publish_show_face_git_writes_mfd()
+    {
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?>
+            {
+                ["p"] = "plan",
+                ["m"] = "git"
+            },
+            showFace: true,
+            faceSeat: "m");
+
+        var latch = CideSeatsLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.True(latch!.ShowFace);
+        Assert.Equal("Git", latch.MfdPage);
+        Assert.Equal("m", latch.FaceSeat);
+    }
+
+    [Fact]
+    public void Publish_quiet_default_no_show_face()
     {
         CideSeatsLatch.Publish(new Dictionary<string, string?> { ["m"] = "browser" });
         var latch = CideSeatsLatch.TryRead();
         Assert.NotNull(latch);
-        Assert.Equal("WebAiPortal", latch!.MfdPage);
-        Assert.Equal("browser", latch.Seats!["m"]);
+        Assert.False(latch!.ShowFace);
+        Assert.Null(latch.FaceSeat);
+        Assert.Equal("WebAiPortal", latch.MfdPage);
     }
 }

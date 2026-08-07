@@ -8,6 +8,7 @@ namespace CdpMcp;
 /// <summary>
 /// Agent desk seats → CIDE cabin tool map (instant).
 /// Writes %LocalAppData%/cdp-mcp/seats-LATEST.json; CIDE projector applies mappable mfd_page.
+/// <c>show_face</c> = PlaceOrgan human attention (BringCabin + SelectMfd/Prefer P) — not quiet layout pin.
 /// Internal transport — agent looks desk, not JSON.
 /// </summary>
 internal static class CideSeatsLatch
@@ -39,7 +40,10 @@ internal static class CideSeatsLatch
 
     public static string LatchPath => Path.Combine(StateRoot, "seats-LATEST.json");
 
-    public static void Publish(IReadOnlyDictionary<string, string?> seats)
+    public static void Publish(
+        IReadOnlyDictionary<string, string?> seats,
+        bool showFace = false,
+        string? faceSeat = null)
     {
         if (seats is null || seats.Count == 0)
             return;
@@ -60,20 +64,37 @@ internal static class CideSeatsLatch
 
             string? mfdPage = null;
             string? chromeHint = null;
-            // Prefer M (primary tool surface), then forward, then P.
-            foreach (var seat in new[] { "m", "forward", "p" })
+            var faceKey = string.IsNullOrWhiteSpace(faceSeat)
+                ? null
+                : faceSeat.Trim().ToLowerInvariant();
+
+            // ShowFace: project the placed seat only (do not steal MFD from sibling pins).
+            if (showFace
+                && faceKey is not null
+                && map.TryGetValue(faceKey, out var facePin)
+                && facePin is { Length: > 0 }
+                && CabinGlassProjectionCatalog.TryResolve(facePin) is { } faceProj)
             {
-                if (!map.TryGetValue(seat, out var pin) || pin is null)
-                    continue;
-                var proj = CabinGlassProjectionCatalog.TryResolve(pin);
-                if (proj is null)
-                    continue;
-                if (mfdPage is null && proj.Value.MfdPage is { Length: > 0 })
-                    mfdPage = proj.Value.MfdPage;
-                if (chromeHint is null && proj.Value.ChromeHint is { Length: > 0 })
-                    chromeHint = proj.Value.ChromeHint;
-                if (mfdPage is not null && chromeHint is not null)
-                    break;
+                mfdPage = faceProj.MfdPage;
+                chromeHint = faceProj.ChromeHint;
+            }
+            else
+            {
+                // Quiet republish: Prefer M (primary tool surface), then forward, then P.
+                foreach (var seat in new[] { "m", "forward", "p" })
+                {
+                    if (!map.TryGetValue(seat, out var pin) || pin is null)
+                        continue;
+                    var proj = CabinGlassProjectionCatalog.TryResolve(pin);
+                    if (proj is null)
+                        continue;
+                    if (mfdPage is null && proj.Value.MfdPage is { Length: > 0 })
+                        mfdPage = proj.Value.MfdPage;
+                    if (chromeHint is null && proj.Value.ChromeHint is { Length: > 0 })
+                        chromeHint = proj.Value.ChromeHint;
+                    if (mfdPage is not null && chromeHint is not null)
+                        break;
+                }
             }
 
             // Unmapped M pin still gets a chrome hint so glass "knows the name".
@@ -85,6 +106,8 @@ internal static class CideSeatsLatch
                 chromeHint = "agent · M: " + mPin;
             }
 
+            var face = showFace ? faceKey : null;
+
             Directory.CreateDirectory(StateRoot);
             var doc = new SeatsLatchDoc
             {
@@ -92,6 +115,8 @@ internal static class CideSeatsLatch
                 Seats = map,
                 MfdPage = mfdPage,
                 ChromeHint = chromeHint,
+                ShowFace = showFace,
+                FaceSeat = face,
                 Origin = OriginAgent,
                 StampedUtc = DateTimeOffset.UtcNow
             };
@@ -130,6 +155,8 @@ internal static class CideSeatsLatch
         public Dictionary<string, string?>? Seats { get; set; }
         public string? MfdPage { get; set; }
         public string? ChromeHint { get; set; }
+        public bool ShowFace { get; set; }
+        public string? FaceSeat { get; set; }
         public string Origin { get; set; } = OriginAgent;
         public DateTimeOffset StampedUtc { get; set; }
     }

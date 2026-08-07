@@ -9,6 +9,7 @@
 
 - Topology compose inside `(…)`: `+` = spatial **split** (both visible); `/` = **OneOf** XOR (full TopLevel, role switches). Example `(P/M)(F)` ≠ `(P+M)(F)`. OneOf DoD = chord **and** auto-switch. Canon: cascade-ide `docs/design/topology-oneof-slash-v0.md`. **Shipped:** parser+flags+Glass `pm_oneof_host` · chord `po` · auto M←MFD/seats · P←plan latch.
 - CDP habitat = SSOT; Glass = projector (ADR-0021 Windows-first WPF).
+- Quiet SoftOrgan seats republish = chrome tip only; `show_face` (PlaceOrgan / Citizen go) = human attention — BringCabin + SelectMfd when mfd_page, Prefer P when face_seat=p.
 - SoftOrgan chrome band ≠ EICAS: alert/qrh/ecl stay EICAS (not SoftOrganLatchCatalog).
 - `sa_desk` SoftOrgan → quiet chrome (`sa-desk-LATEST` / WorkspaceChromeBand) — not MFD `Problems`, not EICAS `go=sa`.
 - Quiet-chrome SoftOrgans (dedicated latch/projector): `sa_desk`, `crm`, `plugins`, `webcam` — presence = WorkspaceChromeBand, not force-MFD.
@@ -239,6 +240,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+
+- **2026-08-07 ShowFace PlaceOrgan attention SoftFL-safe** — Place≠attention: `PlaceOrgan`/`Citizen` go → seats `show_face`+`face_seat` (quiet `TryPlaceExplicit` no). Glass BringCabinAttention + SelectMfd(mfd) or Prefer P. Face seat projects alone (no sibling MFD steal). Tests CideSeatsLatch **6/6** · PresentationPmOneOfPolicy **12/12**. Dual hard `build_utc=2026-08-07T08:16:47Z` · Glass restart. Dogfood latch show_face → Face `P · Plan` + `M · Git` PNG `tmp-glass-shots/showface-git-live-20260807.png` (+ force Plan). SoftFL invent stubs DIG REJECT. Autonomy OFF.
 - **2026-08-07 webcam iconic Face SoftOrgan path VERIFY** — overnight Face residual: cabin up pid=37464 minimized → webcam Enum dropped (tiny iconic rect) so SoftOrgan/#CIDE shot protocol could not list `CDP GlassCockpit · Windows`. SoftFL-safe webcam ship (placement+hwnd+Opt) dual hard; lived maximize PrintWindow + `cdp_see` evidence `cascade-ide/tmp-glass-shots/sat-eve-webcam-iconic-face-20260807-0057.png`. **Not** Glass Done claim — Face axis4 remains operator eyes for SoftOrgan human viz Done.
 - **2026-08-06 Dig densest ≤1-hop Cursor-cliff DIG REJECT** — dig glass+citizen+ops last_ship: SoftFirst/Citizen residual/FullReady SoftFL STRUCK/Kill text-hell/peer-journal/PathMutate duplex already CLOSED·SHIPPED · B1–B3 DIG REJECT · Face axis4=operator · residual=SoftFL invent or human page. No ≤1-hop Cursor-cliff under SoftFL invent REJECT. Evidence `cursorcliff-1hop-digreject-20260806-1635.png` + `cdp_see`. SoftFL REJECT.
 - **2026-08-06 Dig Flight durable SoftFirst DIG REJECT** — SoftFirst/flight-durable already VERIFY CLOSED (ops+glass 2026-08-05/06); cabin pid=37464 survived SoftFirst remounts · densest NEXT ≠ SoftFirst invent · Face axis4=operator. Evidence `softfirst-flight-digreject-20260806-1630.png` + `cdp_see`. SoftFL REJECT.

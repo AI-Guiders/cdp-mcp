@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 193 | [ShowFace: PlaceOrgan поднимает кабину без клика в Cursor](voice-letter-showface-placeorgan-attention.ru.md) | seats · show_face · Glass BringAttention · SoftFL-safe |
 | 192 | [ignite: leaf-wake invent-only несёт last_once](voice-letter-ignite-armforleaf-invent-only-last-once.ru.md) | ignite · ArmForLeaf invent-only last_once · 0.5.680 |
 | 191 | [ignite: Recover remount не рвёт invent-only ход](voice-letter-ignite-remount-suppress-invent-only.ru.md) | ignite · remount suppress invent-only · 0.5.679 |
 | 190 | [ignite: HILD не будит Hold invent-only](voice-letter-ignite-hild-suppress-invent-only.ru.md) | ignite · HasArmedInventOnlyHoldInsurance · 0.5.678 |
