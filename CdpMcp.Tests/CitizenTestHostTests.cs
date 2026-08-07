@@ -8,7 +8,19 @@ namespace CdpMcp.Tests;
 [Collection("CitizenRouteHostLifecycle")]
 public sealed class CitizenTestHostTests
 {
-    [Fact]
+[Fact]
+    public void PreferSiblingTestProject_maps_product_csproj_to_Tests()
+    {
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var product = Path.Combine(root, "CdpMcp.csproj");
+        var tests = Path.Combine(root, "CdpMcp.Tests", "CdpMcp.Tests.csproj");
+        Assert.True(File.Exists(product), product);
+        Assert.True(File.Exists(tests), tests);
+        var got = IdeSessionLifecycle.PreferSiblingTestProject(product);
+        Assert.Equal(Path.GetFullPath(tests), got);
+    }
+
+        [Fact]
     public void Route_test_alone()
     {
         var r = CitizenIntentRouter.RouteOne("test");
