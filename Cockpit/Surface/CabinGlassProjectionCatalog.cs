@@ -71,8 +71,9 @@ public static class CabinGlassProjectionCatalog
             "refactor" or "refactor_plan" or "debt"
                 => new Projection("RelatedFiles", "agent · M: refactor"),
             "sys" => new Projection(null, "agent · M: sys"),
-            "ecl" => new Projection(null, "agent · M: ecl"),
-            "qrh" => new Projection(null, "agent · M: qrh"),
+            // Lived SoftFL: null MfdPage = chrome tip only — Glass Face needs MarkdownPreview.
+            "ecl" => new Projection("MarkdownPreview", "agent · M: ecl · Face"),
+            "qrh" => new Projection("MarkdownPreview", "agent · M: qrh · Face"),
             "review" => new Projection("Problems", "agent · M: review"),
             "learn" => new Projection("MarkdownPreview", "agent · M: learn"),
             "domain" or "cdp_domain" or "ownership"
