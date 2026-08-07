@@ -253,6 +253,22 @@ public partial class IdeIgniteWakeLatchTests : IDisposable
     }
 
     [Fact]
+    public void MayPreferHabitatOverComposer_rejects_intercom_voice_cannon()
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = IntercomVoiceCannonState.ArmIdFor("deadbeef"),
+            Event = "timer",
+            Status = "armed",
+            Once = true,
+            Port = 9222,
+            WaitSeconds = 30
+        };
+        Assert.True(IdeIgniteArmHost.IsIntercomVoiceCannonArmId(arm.Id));
+        Assert.False(IdeIgniteArmHost.MayPreferHabitatOverComposer(arm));
+    }
+
+    [Fact]
     public void MirrorTimerWakeToIntercom_when_pf_idle_publishes_voice()
     {
         Assert.False(IdeIgniteArmHost.IsHabitatPartnerLive());

@@ -15,6 +15,7 @@ namespace CdpMcp;
 internal static class IntercomVoiceCannonState
 {
     public const string Schema = "intercom_cannon_fired/v0";
+    public const string ArmIdPrefix = "intercom-pf-";
     public const int MaxIds = 64;
     const string MutexName = @"Local\CdpMcp.IntercomCannon";
 
@@ -41,7 +42,7 @@ internal static class IntercomVoiceCannonState
     public static string StatePath =>
         Path.Combine(CideIntercomVoiceLatch.StateRoot, "intercom-cannon-fired.json");
 
-    public static string ArmIdFor(string msgId) => "intercom-pf-" + msgId;
+    public static string ArmIdFor(string msgId) => ArmIdPrefix + msgId;
 
     /// <summary>True if this msgId already armed/fired the cannon (memory or disk).</summary>
         public static bool WasFired(string msgId)
