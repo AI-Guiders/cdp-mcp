@@ -30,6 +30,30 @@ public sealed class CitizenIntentRouterTests
         Assert.Equal("plan", r.Go);
     }
 
+    // Lived SoftFL: bare sa → Path=sa → pulse leave. Aliases normalize to sa without locus.
+    [Theory]
+    [InlineData("sa")]
+    [InlineData("sa_desk")]
+    [InlineData("cdp_sa")]
+    public void Bare_sa_aliases_have_no_locus_path(string raw)
+    {
+        var r = CitizenIntentRouter.RouteOne(raw);
+        Assert.True(r.Ok);
+        Assert.Equal(CitizenIntentRouter.Verb.Sa, r.Verb);
+        Assert.Equal("sa_desk", r.Go);
+        Assert.Equal("slim", r.Op);
+        Assert.Null(r.Path);
+    }
+
+    [Fact]
+    public void Sa_positional_locus_kept()
+    {
+        var r = CitizenIntentRouter.RouteOne("sa CitizenIntentRouter.Sa.cs");
+        Assert.True(r.Ok);
+        Assert.Equal(CitizenIntentRouter.Verb.Sa, r.Verb);
+        Assert.Equal("CitizenIntentRouter.Sa.cs", r.Path);
+    }
+
     [Fact]
     public void Drill_editor_maps_go_editor_scene()
     {

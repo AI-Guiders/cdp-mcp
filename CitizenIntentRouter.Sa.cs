@@ -53,6 +53,11 @@ internal static partial class CitizenIntentRouter
 
     static string? ExtractSaPositionalToken(string work)
     {
+        // Lived SoftFL: bare "sa" / NormalizeSaCompound → "sa" then rest="sa"
+        // became locus path=sa → pulse leave. Bare head ≠ positional.
+        if (work.Equals("sa", StringComparison.OrdinalIgnoreCase))
+            return null;
+
         var rest = work.StartsWith("sa ", StringComparison.OrdinalIgnoreCase)
             ? work["sa ".Length..].Trim()
             : work;
