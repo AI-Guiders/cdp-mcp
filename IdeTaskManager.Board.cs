@@ -58,12 +58,13 @@ internal static partial class IdeTaskManager
             }
 
             var board = BuildBoard(store, state, sessionPhase);
-            var pulse = board.Pulse;
+            var pulse = IdeHumanFacePlan.PulseLine(board.Pulse);
             // Dark Cockpit: silent when no active feature.
             var active = board.ActiveFeatureTitle is { Length: > 0 };
-            // Shared-SSOT: WHY from sealed course on same latch as NEXT (feature/task).
-            var why = IdePressureChannel.CompactWhyLine(IdePressureChannel.TryPeekSealedCourse());
-            CidePlanLatch.Publish(active, pulse, board.ActiveFeatureTitle, board.ActiveStageTitle, why, board.Lines);
+            // Shared-SSOT: sealed course stays agent SSOT; Face WHY/board = human projection.
+            var why = IdeHumanFacePlan.WhyLine(IdePressureChannel.TryPeekSealedCourse());
+            var boardLines = board.Lines.Select(IdeHumanFacePlan.BoardLine).ToList();
+            CidePlanLatch.Publish(active, pulse, board.ActiveFeatureTitle, board.ActiveStageTitle, why, boardLines);
         }
         catch
         {
