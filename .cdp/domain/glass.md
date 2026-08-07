@@ -241,6 +241,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 ## last_ship
 
+- **2026-08-07 mention axes Seat+Kind+Who → WakeSink** — `@PF`/`@PM` seats · `@guest`/`@citizen`/`@operator` · Who (`@Sierra`/`@Света`/`@Kir`) · wake=f(kind): guest→external cannon (Cursor AutoI), citizen|operator→Glass Face · seat follows occupant kind (Sierra·citizen `@PF` → Face not Cursor) · `GlassIntercomMention.ResolveWakes` · tests **20/20**. SoftFL REJECT invent.
 - **2026-08-07 @PM seat mention + Who cues** — `@PF`/`@PM` = seats (meta-roles); Who sticky for cues (`@PM→Света`); Face BringCabinAttention on @PM; SoftFL REJECT person-tag invent.
 - **2026-08-07 @PF mention any lane → PF wake** — messenger semantics: CIT/HOST/`/citizen` keep lane message; `GlassIntercomMention` + `TryNotifyPf` writes human→PF latch (no journal/share dup) for AutoI cannon. Tests GlassIntercomMention **11/11**. SoftFL REJECT invent full mention UX.
 - **2026-08-07 ShowFace PlaceOrgan attention SoftFL-safe** — Place≠attention: `PlaceOrgan`/`Citizen` go → seats `show_face`+`face_seat` (quiet `TryPlaceExplicit` no). Glass BringCabinAttention + SelectMfd(mfd) or Prefer P. Face seat projects alone (no sibling MFD steal). Tests CideSeatsLatch **6/6** · PresentationPmOneOfPolicy **12/12**. Dual hard `build_utc=2026-08-07T08:16:47Z` · Glass restart. Dogfood latch show_face → Face `P · Plan` + `M · Git` PNG `tmp-glass-shots/showface-git-live-20260807.png` (+ force Plan). SoftFL invent stubs DIG REJECT. Autonomy OFF.
