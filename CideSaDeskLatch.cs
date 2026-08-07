@@ -55,14 +55,57 @@ internal static class CideSaDeskLatch
                 ChromeHint = active ? pulseLine : null
             };
             var json = JsonSerializer.Serialize(doc, JsonOpts);
-            var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
-            File.WriteAllText(tmp, json);
-            File.Move(tmp, LatchPath, overwrite: true);
+            // SoftFL: File.Move(overwrite) can block forever when Glass holds the latch open.
+            // Bounded replace + drop orphan tmp — never hang citizen/cockpit MCP.
+            TryWriteLatchAtomic(json);
         }
         catch
         {
             /* best-effort */
         }
+    }
+
+    static void TryWriteLatchAtomic(string json)
+    {
+        // Prefer shared overwrite — Glass readers with FileShare.Read must not stall agent MCP.
+        try
+        {
+            using var fs = new FileStream(
+                LatchPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.ReadWrite | FileShare.Delete);
+            using var writer = new StreamWriter(fs);
+            writer.Write(json);
+            return;
+        }
+        catch
+        {
+            /* fall through to bounded tmp replace */
+        }
+
+        var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
+        File.WriteAllText(tmp, json);
+        const int maxAttempts = 8;
+        for (var i = 0; i < maxAttempts; i++)
+        {
+            try
+            {
+                File.Copy(tmp, LatchPath, overwrite: true);
+                try { File.Delete(tmp); } catch { /* orphan ok */ }
+                return;
+            }
+            catch (IOException) when (i < maxAttempts - 1)
+            {
+                Thread.Sleep(15 + i * 10);
+            }
+            catch (UnauthorizedAccessException) when (i < maxAttempts - 1)
+            {
+                Thread.Sleep(15 + i * 10);
+            }
+        }
+
+        try { File.Delete(tmp); } catch { /* orphan cleaned on next ship */ }
     }
 
     public static SaDeskLatchDoc? TryRead()

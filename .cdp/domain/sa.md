@@ -22,7 +22,7 @@
 
 ## last_ship
 
-- **2026-08-07** — SoftFL hang ship: IdeSaChannel missing depth→pulse; SoftDispatch EnsureSaDeskDepth(go_detail→depth); citizen RunSa direct HandleJson (no MetaDispatch sync-over-async); slim `-uno`. Tests **16/16**.
+- **2026-08-07** — SoftFL hang ship: CideSaDeskLatch Publish non-blocking (File.Move into Glass-locked latch hung MCP; orphan `.tmp` evidence) · IdeSaChannel missing depth→pulse · EnsureSaDeskDepth · citizen RunSa direct HandleJson · slim `-uno`.
 - **0.5.625** — `depth=pulse` cheap: no EvaluateStore; dirty=porcelain `-uno` count (+ locus flag); slim/full unchanged. Lived: citizen single `sa depth=pulse`. Why: multi-sa dogfood looked like FM hang; AutoI stuck firing under Composer Stop.
 - **0.5.624** — citizen `@intent sa|*` host-execute Meta `cdp_sa` + PlaceOrgan(sa_desk); depth slim/full/pulse; no steal go=sa · dogfood ack=5/5 · tests 9/9 · 2026-08-03
 - wave18 DIG REJECT FileLines peel — main under warn; buffers gates ok; method_lines already cleared @ 0.5.451 · 2026-08-02
