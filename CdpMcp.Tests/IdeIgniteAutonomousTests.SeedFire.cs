@@ -122,8 +122,8 @@ public partial class IdeIgniteAutonomousTests
         Assert.DoesNotContain("End turn", invent, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public void ArmForLeaf_invent_only_hold_uses_15m_not_2s()
+        [Fact]
+    public void ArmForLeaf_invent_only_hold_uses_15m_last_once()
     {
         IdeIgniteArmHost.BindAutonomous(true);
         IdeIgniteArmHost.BindAutonomous(false);
@@ -151,6 +151,7 @@ public partial class IdeIgniteAutonomousTests
         var leaf = listDoc.RootElement.GetProperty("arms").EnumerateArray()
             .First(a => a.GetProperty("id").GetString() == IdeIgniteArmHost.LeafWakeArmId);
         Assert.Equal("15m", leaf.GetProperty("in_raw").GetString());
+        Assert.True(leaf.GetProperty("last_once").GetBoolean());
     }
 
     [Fact]
