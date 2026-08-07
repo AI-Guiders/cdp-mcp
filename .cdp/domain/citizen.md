@@ -72,6 +72,7 @@
 
 ## last_ship
 
+- **2026-08-07 sa_desk Publish SoftFL SHIPPED** — dig: SoftBoard/PulseOnly+git return; tip=CideSaDeskLatch.Publish under Glass lock (Task.Run insufficient). Ship: prod Publish no-op · RunGit bound (3cbf9e/5655984). SoftFL invent REJECT · Face=operator.
 - **2026-08-07 sa_desk latch async SoftFL SHIPPED** — FileShare latch still hung live `go=sa_desk`; densest: SoftBoard waited on Glass I/O in `CideSaDeskLatch.Publish`. Ship: `Task.Run` fire-and-forget (`5326adb`); sync under test override. SoftFL invent REJECT · Face=operator.
 - **2026-08-07 sa_desk hang SoftFL SHIPPED** — lived MCP timeout on `@intent sa` / `go=sa_desk`. Dig: densest tip = `CideSaDeskLatch` `File.Move` blocked on Glass-locked latch (orphan `.tmp`); also MetaDispatch sync-over-async + default slim. Ship: non-blocking latch write · RunSa direct HandleJson · depth/go_detail→pulse · slim `-uno`. SoftFL invent REJECT · Face=operator.
 - **2026-08-07 bare sa locus SoftFL SHIPPED** — lived dig: `@intent sa` → `path=sa` pulse `sa_desk · leave · 0w/0f` (ExtractSaPositionalToken treated bare `sa` as locus). Ship: bare `sa` → null positional. CitizenIntentRouterTests **16/16**. SoftFL invent REJECT.
