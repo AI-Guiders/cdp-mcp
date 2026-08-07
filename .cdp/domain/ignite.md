@@ -94,6 +94,7 @@
 
 ## last_ship
 
+- **2026-08-08 @Kir voice cannon Face SoftFL** — lived: Composer Stop + once intercom-pf arm → silent Remove / no Face (operator «пушка не выстрелила»; полоска-hint = asymmetry urgency not product invent). Ship: first `busy_timeout` → Radio tip once · non-requeue Remove → Face tip + `TryClearFired` so watcher can re-arm. Tests IntercomVoiceCannonStateTests **5/5**. SoftFL invent ACCEPT dig=IntercomVoiceCannonWatcher+ApplyFireOutcome.
 - **2026-08-07 wave1 Watch seams** — `IdeIgniteConnectionWatch` + `IdeIgniteOomWatch` real types (not ArmHost.*.cs peels) · OOM schedule stays `IdeIgniteArmHost.OomSchedule` (Arms/Gate) · ArmHost family 26→25 · Program/Fire/Teeth wired · dig-before-peel on quality domain · SoftFL invent REJECT still
 - **2026-08-07 ArmForLeaf invent-only last_once (0.5.680)** — lived overnight: invent-only last_once fire → AutonomousContinue → ArmForLeaf leaf-wake 15m with last_once=false → agent supersede ritual every ~15m. Fix: invent-only Hold ArmForLeaf sets last_once=true. SoftFL-safe (continuity; SoftFL invent REJECT). Test ArmForLeaf_invent_only_hold_uses_15m_last_once PASS.
 - **2026-08-07 Remount suppress under invent-only Hold (0.5.679)** — lived: invent-only wake → Cursor MCP zombie → Recover stamps remount pending → remount-wake CDT mid-turn → Not connected again (DIG REJECT). Fix: `TryScheduleRemountInitializedWake` consumes pending but skips arm when `HasArmedInventOnlyHoldInsurance`. SoftFL REJECT. Dual hard.

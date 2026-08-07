@@ -96,6 +96,37 @@ internal static class IntercomVoiceCannonState
             return false;
         }
     }
+    /// <summary>Release claim when once-arm died without Composer delivery (busy_timeout→Remove path elsewhere).</summary>
+    public static bool TryClearFired(string msgId)
+    {
+        if (string.IsNullOrWhiteSpace(msgId))
+            return false;
+        var id = msgId.Trim();
+        try
+        {
+            using var gate = new CannonFileGate();
+            var doc = TryRead();
+            if (doc?.FiredIds is null || doc.FiredIds.Count == 0)
+                return false;
+            var removed = doc.FiredIds.RemoveAll(x =>
+                string.Equals(x, id, StringComparison.OrdinalIgnoreCase));
+            if (removed == 0)
+                return false;
+            if (string.Equals(doc.LastFiredId, id, StringComparison.OrdinalIgnoreCase))
+                doc.LastFiredId = doc.FiredIds.Count > 0 ? doc.FiredIds[^1] : null;
+            doc.StampedUtc = DateTimeOffset.UtcNow;
+            var json = JsonSerializer.Serialize(doc, JsonOpts);
+            var tmp = StatePath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
+            File.WriteAllText(tmp, json);
+            File.Move(tmp, StatePath, overwrite: true);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
 
     static FiredDoc? TryRead()
     {

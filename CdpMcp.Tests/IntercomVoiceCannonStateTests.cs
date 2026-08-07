@@ -30,6 +30,16 @@ public class IntercomVoiceCannonStateTests : IDisposable
         Assert.False(IntercomVoiceCannonState.TryMarkFired("abc123"));
         Assert.True(File.Exists(IntercomVoiceCannonState.StatePath));
     }
+    [Fact]
+    public void TryClearFired_releases_claim()
+    {
+        Assert.True(IntercomVoiceCannonState.TryMarkFired("clear-me"));
+        Assert.True(IntercomVoiceCannonState.WasFired("clear-me"));
+        Assert.True(IntercomVoiceCannonState.TryClearFired("clear-me"));
+        Assert.False(IntercomVoiceCannonState.WasFired("clear-me"));
+        Assert.False(IntercomVoiceCannonState.TryClearFired("clear-me"));
+    }
+
 
     [Fact]
     public void ArmIdFor_stable_prefix()

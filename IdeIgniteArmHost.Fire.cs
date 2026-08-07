@@ -273,13 +273,27 @@ internal static partial class IdeIgniteArmHost
         IdeStageCycle.TryAppend(
             IdeStageCycle.MapIgniteError(err), "ignite", err, arm.Id);
         if (ShouldRequeueBusy(arm.Event, err) && !IsToolWakeArmId(arm.Id))
+        {
+            // First busy under Composer Stop — Face tip once (requeue keeps LastError set).
+            if (IsIntercomVoiceCannonArmId(arm.Id) && arm.LastError is null)
+                PublishVoiceCannonDeliveryFailFace(arm, err);
             RequeueAfterBusy(arm.Id, err, BusyBackoff(arm.WaitSeconds));
+        }
         else if (ShouldEnterProviderBlockedContinuity(err))
             EnterProviderBlockedContinuity(arm, TryGetDetail(result));
         else if (ShouldKeepVisibleErrorOnFireFail(arm.Once, arm.LastOnce))
             SetStatus(arm.Id, "error", err);
         else
+        {
+            // Lived SoftFL: once voice cannon marked fired before CDT — silent Remove under
+            // Composer Stop/non-requeue left @Kir with no retry + no Face tip.
+            if (IsIntercomVoiceCannonArmId(arm.Id))
+            {
+                PublishVoiceCannonDeliveryFailFace(arm, err);
+                ClearVoiceCannonFiredClaim(arm.Id);
+            }
             Remove(arm.Id); // plain once — hygiene/reclaim scrub zombies
+        }
     }
 
     static void CleanupFireToken(string armId)
