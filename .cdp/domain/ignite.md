@@ -32,7 +32,7 @@
 - HILD (default ARMED): Composer text idle **30s** on Voice → `human_away` **once** (latch until Composer text); wake → autonomous; on edge/escalate **pull-forward** armed last_once work timers ≤3s (`PullForwardLongWorkTimersOnHildAway`); arm under `away_latched` clamps ≤3s; after wake continuity **1–3s** not 45m; suppress under `await_partner` / halt. DefaultIdle=30s since 0.5.359 (meta tip 0.5.363).
 - **last_once arm clamp under autonomous:** ≤3m by default; **≤3s** when HILD `away_latched` **or** TM `ContinuityFlight.Fly` (`3s(hild_away)` / `3s(leaf_started)` · `force=true` escape). **Exception:** task title contains `invent only` **or** `invent-only` (Hold invent-only) — keep ≤**15m** / skip leaf_pull **and** hild_pull (`15m(invent_only_hold)` · `InventOnlyHoldInsuranceMax` · 0.5.677).
 - **Already-armed last_once:** HILD away edge/escalate pull-forward ≤3s; under autonomous + leaf Fly, TimerLoop also pull-forwards (`3s(leaf_pull)`) — both skip invent-only Hold tasks.
-- **leaf-wake (`ArmForLeaf`):** default **2s**; invent-only Hold title → **15m** (DIG REJECT mill ≠ 2s/3m Recover thrash; 0.5.677).
+- **leaf-wake (`ArmForLeaf`):** default **2s**; invent-only Hold title → **15m + `last_once=true`** (DIG REJECT mill ≠ 2s/3m Recover thrash; post-fire insurance matches agent re-ARM ritual · 0.5.677 / **0.5.680**).
 - **HILD away/escalate Composer wake:** suppress when invent-only Hold insurance timer already armed/firing (`HasArmedInventOnlyHoldInsurance` · edge + escalate schedule · 0.5.678) — lived DIG REJECT: invent-only 15m armed → `hild-away` CDT ~1m later. Autonomy latch on escalate still runs.
 - **Remount-initialized Composer wake:** suppress schedule when invent-only Hold insurance already armed (`TryScheduleRemountInitializedWake` · consume pending + no arm · 0.5.679) — lived DIG REJECT: Not connected → Recover stamps pending → remount-wake CDT mid-turn → Not connected again. SoftFL REJECT.
 - After successful fire: watch Cursor for "Connection Problems" / Try again|Retry overlay until next fire; auto-click (not Idle-only).
@@ -66,6 +66,7 @@
 - Leaving `remount-wake-other.pending.json` when Target was `...\self` / repo leaf (pre-0.5.661 ClassifySeat) — remount wake never arms.
 - HILD away/escalate Composer wake while invent-only Hold insurance already armed (pre-0.5.678) — DIG REJECT thrash under sealed Hold; suppress edge+escalate schedule.
 - Remount-initialized Composer wake while invent-only Hold insurance already armed (pre-0.5.679) — Recover mid-turn remount CDT → second Not connected DIG REJECT; consume pending + suppress schedule.
+- Invent-only Hold `ArmForLeaf` without `last_once` (pre-0.5.680) — every invent-only last_once fire → leaf-wake last_once=false → agent must manual supersede every wake; DIG REJECT ritual under sealed Hold.
 - Hold invent-only insurance ≤3m under overnight autonomous (pre-0.5.677) — Autoi wake → Cursor MCP zombie → Recover every ~3m = DIG REJECT seeming; `InventOnlyHoldInsuranceMax=15m`.
 - Autonomous seed→leaf-wake via DFS-first incomplete leaf while `[>]` invent-only Hold is focused (pre-0.5.676) — remount planted `Monday DoD` 2s thrash; `ResolveWakeLeafId` prefers `ActiveStageId`.
 
@@ -93,6 +94,7 @@
 
 ## last_ship
 
+- **2026-08-07 ArmForLeaf invent-only last_once (0.5.680)** — lived overnight: invent-only last_once fire → AutonomousContinue → ArmForLeaf leaf-wake 15m with last_once=false → agent supersede ritual every ~15m. Fix: invent-only Hold ArmForLeaf sets last_once=true. SoftFL-safe (continuity; SoftFL invent REJECT). Test ArmForLeaf_invent_only_hold_uses_15m_last_once PASS.
 - **2026-08-07 Remount suppress under invent-only Hold (0.5.679)** — lived: invent-only wake → Cursor MCP zombie → Recover stamps remount pending → remount-wake CDT mid-turn → Not connected again (DIG REJECT). Fix: `TryScheduleRemountInitializedWake` consumes pending but skips arm when `HasArmedInventOnlyHoldInsurance`. SoftFL REJECT. Dual hard.
 - **2026-08-07 HILD suppress under invent-only Hold (0.5.678)** — lived: invent-only `15m` insurance armed → latch `hild-away` Composer wake ~1m later (DIG REJECT thrash). Fix: `HasArmedInventOnlyHoldInsurance` suppresses edge SeedHildWake + escalate schedule (autonomy still latches). SoftFL REJECT. Dual hard.
 - **2026-08-07 InventOnlyHoldInsuranceMax 15m (0.5.677)** — lived: invent-only Hold ≤3m → Autoi wake every ~3m → Cursor MCP zombie (`Not connected` + exe up) → Recover mill = DIG REJECT seeming under sealed Hold invent. Fix: `InventOnlyHoldInsuranceMax=15m` · clamp note `15m(invent_only_hold)` · `ArmForLeaf` invent-only `15m`. Work last_once stays ≤3m. SoftFL REJECT. Dual hard `D:\cdp-mcp` + `D:\cdp-mcp-debug`.
