@@ -241,6 +241,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 ## last_ship
 
+- **2026-08-08 dual-SSOT Plan Face VERIFY** — live PrintWindow title=`CDP GlassCockpit · Windows` · WHY=`Glass Done — instruments people can fly` · NEXT=`CitizenBattleReady15 dual-SSOT verify + dogfood PNG` · COURSE=`Citizen Done toward 15.08` · evidence `cascade-ide/tmp-glass-shots/dual-ssot-plan-20260808-0033.png` + `cdp_see` · invent SoftFL NEXT thrash parked · SoftFL invent REJECT. Residual: Kir Face Radio tip dogfood under Composer Stop (primary Autoi).
 - **2026-08-07 Intercom cannon → Composer not habitat** — lived: `@Kir mention check` claimed (`85ef57e9681f` in cannon-fired) but `ignite-wake` channel=habitat (Sierra duplex busy stole prefer). Fix: `MayPreferHabitatOverComposer` excludes `intercom-pf-*`. External guest wake stays CDT. SoftFL REJECT invent.
 - **2026-08-07 mention axes Seat+Kind+Who → WakeSink** — `@PF`/`@PM` seats · `@guest`/`@citizen`/`@operator` · Who (`@Sierra`/`@Света`/`@Kir`) · wake=f(kind): guest→external cannon (Cursor AutoI), citizen|operator→Glass Face · seat follows occupant kind (Sierra·citizen `@PF` → Face not Cursor) · `GlassIntercomMention.ResolveWakes` · tests **20/20**. SoftFL REJECT invent.
 - **2026-08-07 @PM seat mention + Who cues** — `@PF`/`@PM` = seats (meta-roles); Who sticky for cues (`@PM→Света`); Face BringCabinAttention on @PM; SoftFL REJECT person-tag invent.
