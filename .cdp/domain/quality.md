@@ -26,9 +26,18 @@
 - Turning disk map into always-on Snap (alert noise).
 - Re-inlining peels past FileLinesWarn.
 - **Partial peel mill** — splitting one type into many `Foo.*.cs` to silence per-file `file_lines` (partial ≠ seam). Tooth: `partial_family` (files≥warn or sum lines≥file_lines_warn). Brain still required; teeth ≠ infinite fence.
+- **Seeming Senior** — claiming "extract seam" while adding another `Foo.Bar.cs` partial without a named type / ownership boundary. Dig first: call graph, shared Gate/Arms, who owns the loop. Prefer real type or honest dense exclude — never more dotted peels for metrics.
+
+## Dig-before-peel (Senior ritual)
+
+1. Name the seam in one sentence (what changes together / who owns state).
+2. If state is shared (`Gate`/`Arms`) — leave a thin schedule/API peel; move the **loop/probe** to a real type.
+3. Wire callers + tests to the real type (no forever facade on the God type).
+4. Stamp domain `last_ship` with peel count delta — not "file_lines green".
 
 ## last_ship
 
+- **2026-08-07 wave1 real seams** — `IdeIgniteConnectionWatch` + `IdeIgniteOomWatch` extracted from ArmHost peels · schedule stays `IdeIgniteArmHost.OomSchedule` (Arms/Gate) · family 26→25 peels · tests ConnectionWatch 3/3 + PartialFamily 2/2 · dig-before-peel ritual stamped
 - **2026-08-07 partial_family tooth** — `QualityGates.PartialFamily` · warn when ≥4 dotted peels **or** family sum ≥ file_lines_warn · message peel≠seam · `.g.cs`/Designer skipped · tests QualityGatesPartialFamily · SoftFL invent REJECT (operator-directed tooth)
 - Soft FileLines BATCH close @ **0.5.640** — densest peels + Wire Head/Tail; top FileLines 341; feature CLOSED · VL#146 · 2026-08-03
 - wave24 refactor_plan false-design fix @ **0.5.477** — non_csharp leave + top_level under-warn leave; tests green · 2026-08-02
