@@ -31,6 +31,49 @@ internal sealed partial class DocumentBufferStore
         buf.Version++;
         buf.Dirty = true;
     }
+    /// <summary>
+    /// String-replace scoped to a 1-based line/column locus (csharp M: / T: range).
+    /// SoftFL: <c>edit_op=anchor</c> + <c>old_string=</c> must patch inside the member — not wipe it.
+    /// </summary>
+    public void ApplyReplaceInRange(
+        DocBuffer buf,
+        int startLine,
+        int startColumn,
+        int endLine,
+        int endColumn,
+        string oldString,
+        string newString)
+    {
+        if (string.IsNullOrEmpty(oldString))
+            throw new ArgumentException("old_string is required for in-locus replace.");
+        if (startLine < 1 || startColumn < 1 || endLine < 1 || endColumn < 1)
+            throw new ArgumentException("line/column are 1-based and must be >= 1.");
+
+        var start = OffsetOf(buf.Text, startLine, startColumn);
+        var end = OffsetOf(buf.Text, endLine, endColumn);
+        if (end < start)
+            throw new ArgumentException("end position is before start.");
+
+        var locus = buf.Text[start..end];
+        if (!TryFindUniqueSpan(locus, oldString, out var idx, out var matchedLen))
+        {
+            var exact = locus.IndexOf(oldString, StringComparison.Ordinal);
+            if (exact < 0
+                && locus.IndexOf(NormalizeNewlines(oldString, "\n"), StringComparison.Ordinal) < 0
+                && locus.IndexOf(NormalizeNewlines(oldString, "\r\n"), StringComparison.Ordinal) < 0)
+                throw new ArgumentException(
+                    "old_string not found in anchor locus — narrow T:/K: or use edit_op=replace without M: wipe.");
+            throw new ArgumentException(
+                "old_string is not unique in anchor locus; narrow the span.");
+        }
+
+        var abs = start + idx;
+        var insertion = AdaptNewlinesToBuffer(newString ?? "", buf.Text);
+        buf.Text = string.Concat(buf.Text.AsSpan(0, abs), insertion, buf.Text.AsSpan(abs + matchedLen));
+        buf.Version++;
+        buf.Dirty = true;
+    }
+
 
     /// <summary>
     /// Exact Ordinal match first; if miss, retry with LF/CRLF variants of <paramref name="needle"/>
