@@ -40,7 +40,7 @@
 
 ## Entry
 
-- `cdp_ignite` · `IdeIgniteArmHost.*` · `IdeIgniteChannel.PagePick|Cdt|Fire|Connection` · `IdeIgniteNativeDialogs`
+- `cdp_ignite` · `IdeIgniteArmHost.*` · `IdeIgniteOomWatch` · `IdeIgniteConnectionWatch` · `IdeIgniteChannel.PagePick|Cdt|Fire|Connection` · `IdeIgniteNativeDialogs`
 - **Citizen peer path (0.5.566):** `@intent ignite|autoi …` host-executes the same channel (arm/disarm/list/continuity/resume). `go=ignite*` still place-only.
 - Cursor rule: `harness-checkpoint-automation.mdc`
 
@@ -53,7 +53,7 @@
 - Closing last leaf → plateau while overnight authorized.
 - `disarm all=true` under autonomous without immediate re-ARM (pre-0.5.335 suicide); now harness keeps means / re-seeds — still prefer `disarm id=` for one work arm.
 - Confusing `disarm all` with `halt` — disarm keeps autonomy; halt is conscious stop-world.
-- Writing another playbook for Connection Problems / stall dialog — fix is harness organ (`ConnectionWatch` + `NativeDialogs`).
+- Writing another playbook for Connection Problems / stall dialog — fix is harness organ (`IdeIgniteConnectionWatch` + `NativeDialogs`).
 - Confusing VS Code stall (Reopen/Close/Keep Waiting) with Windows "End task" hung dialog.
 - Stamping FiredUtc / dropping once arms on mid-wait-idle remount (pre-0.5.497) — silent continuity suicide.
 - Digging CDT-down from health `cdt=?` (pre-0.5.498 PulseLine never live-sampled).
@@ -94,6 +94,7 @@
 
 ## last_ship
 
+- **2026-08-07 wave1 Watch seams** — `IdeIgniteConnectionWatch` + `IdeIgniteOomWatch` real types (not ArmHost.*.cs peels) · OOM schedule stays `IdeIgniteArmHost.OomSchedule` (Arms/Gate) · ArmHost family 26→25 · Program/Fire/Teeth wired · dig-before-peel on quality domain · SoftFL invent REJECT still
 - **2026-08-07 ArmForLeaf invent-only last_once (0.5.680)** — lived overnight: invent-only last_once fire → AutonomousContinue → ArmForLeaf leaf-wake 15m with last_once=false → agent supersede ritual every ~15m. Fix: invent-only Hold ArmForLeaf sets last_once=true. SoftFL-safe (continuity; SoftFL invent REJECT). Test ArmForLeaf_invent_only_hold_uses_15m_last_once PASS.
 - **2026-08-07 Remount suppress under invent-only Hold (0.5.679)** — lived: invent-only wake → Cursor MCP zombie → Recover stamps remount pending → remount-wake CDT mid-turn → Not connected again (DIG REJECT). Fix: `TryScheduleRemountInitializedWake` consumes pending but skips arm when `HasArmedInventOnlyHoldInsurance`. SoftFL REJECT. Dual hard.
 - **2026-08-07 HILD suppress under invent-only Hold (0.5.678)** — lived: invent-only `15m` insurance armed → latch `hild-away` Composer wake ~1m later (DIG REJECT thrash). Fix: `HasArmedInventOnlyHoldInsurance` suppresses edge SeedHildWake + escalate schedule (autonomy still latches). SoftFL REJECT. Dual hard.
