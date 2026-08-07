@@ -72,6 +72,7 @@
 
 ## last_ship
 
+- **2026-08-07 ShowFace PlaceOrgan parity (Citizen+CDP)** — Citizen host-execute already `PlaceOrgan` → same seats `show_face` hand as Cursor go= (BringCabin+SelectMfd/Prefer P). No per-route invent. SoftFL invent REJECT · Face=operator for SoftOrgan Done.
 - **2026-08-07 citizen git commit need paths= SHIPPED** — lived dogfood: bare `@intent git commit message=…` → silent `git add -A` mega-commit (~1073 files incl. sibling.next; reset --mixed before push). SoftFL-safe: RunGit refuses bare commit · pulse `git commit need paths=` · persona teach · test Execute_bare_git_commit_refuses_need_paths **1/1** · dual hard `build_utc=2026-08-06T21:41:00Z`. SoftFL invent REJECT · equal hands ≠ silent mega-commit.
 - **2026-08-07 bare plan SoftOrgan aliases SHIPPED** — operator Sat-eve Sierra replace · nested[axb] · dialog Sierra: bare `@intent plan` unrecognized while `go=plan` PlaceOrgan P worked. Ship: `plan|plan_desk|cdp_plan|tm|task_manager` → Verb.Go plan · persona teach · tests Bare_plan_aliases **5/5** · dual hard `build_utc=2026-08-06T21:26:37Z` · commit `f005626`. SoftFL-safe. Next axb: kb/memory/domain/build/test lived.
 - **2026-08-06 kb tip need @intent project path= SHIPPED** — lived after VL187: tip 
