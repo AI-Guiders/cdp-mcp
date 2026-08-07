@@ -54,6 +54,25 @@ internal static partial class IdeCockpitSoftDispatch
             ? el.GetString()
             : null;
 
+    /// <summary>IdeSaChannel reads depth/shape — not cockpit go_detail. Missing → pulse (anti-hang).</summary>
+    static IReadOnlyDictionary<string, JsonElement> EnsureSaDeskDepth(
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var flat = new Dictionary<string, JsonElement>(OrganArgs(args), StringComparer.Ordinal);
+        if (flat.ContainsKey("depth") || flat.ContainsKey("shape"))
+            return flat;
+
+        var fromDetail = OptString(flat, "go_detail");
+        var depth = fromDetail?.Trim().ToLowerInvariant() switch
+        {
+            "full" or "raw" or "deep" => "full",
+            "slim" or "a" or "desk" or "status" => "slim",
+            _ => "pulse"
+        };
+        flat["depth"] = JsonSerializer.SerializeToElement(depth);
+        return flat;
+    }
+
     /// <summary>
     /// Cockpit passes nested <c>go_args</c>; soft organs expect flat organ keys (op/path/…).
     /// </summary>

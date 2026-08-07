@@ -1,12 +1,13 @@
 #nullable enable
 using System.Text.Json;
+using Cdp.Core;
 
 namespace CdpMcp;
 
-/// <summary>Citizen @intent sa — sync MetaDispatch cdp_sa; place sa_desk organ.</summary>
+/// <summary>Citizen @intent sa — sync IdeSaChannel (direct, like domain); place sa_desk organ.</summary>
 internal static partial class CitizenRouteHost
 {
-    /// <summary>Tests: inject fake sa JSON; live uses MetaDispatchResolver("cdp_sa", …).</summary>
+    /// <summary>Tests: inject fake sa JSON; live uses IdeSaChannel.HandleJson (not MetaDispatch — sync-over-async hang SoftFL).</summary>
     internal static Func<IReadOnlyDictionary<string, JsonElement>, string>? SaDispatchOverride { get; set; }
 
     static Applied RunSa(CitizenIntentRouter.Route route)
@@ -22,17 +23,24 @@ internal static partial class CitizenRouteHost
             }
             else
             {
-                var meta = MetaDispatchResolver
-                    ?? ((_, _, _) => Task.FromResult("""{"ok":false,"error":"meta_dispatch_unbound"}"""));
-                using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-                json = meta("cdp_sa", args, cts.Token)
-                    .ConfigureAwait(false)
-                    .GetAwaiter()
-                    .GetResult();
+                var session = SessionResolver?.Invoke();
+                if (session is null)
+                {
+                    return new Applied(
+                        route.Raw,
+                        route.Verb.ToString(),
+                        Ok: false,
+                        Action: "sa",
+                        Go: "sa_desk",
+                        Reason: "no_session");
+                }
+
+                var store = IdeLanguageTools.TryGetDocumentStore() ?? new DocumentBufferStore();
+                json = IdeSaChannel.HandleJson(store, session, args);
             }
 
             var ok = TryReadSaOk(json);
-            var pulse = TryReadSaPulse(json, route.Op ?? "slim");
+            var pulse = TryReadSaPulse(json, route.Op ?? "pulse");
             var seat = IdeDeskSeats.PlaceOrgan("sa_desk");
             return new Applied(
                 route.Raw,
