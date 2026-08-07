@@ -63,6 +63,11 @@ public sealed class CitizenKbHostTests
     [InlineData("kb memory_session memory_health", "memory_health", "memory_session")]
     [InlineData("kb memory_session", "memory_health", "memory_session")]
     [InlineData("kb session health", "memory_health", "memory_session")]
+    // Lived SoftFL: exclusive tool heads skip bare-facet → world unknown until remap.
+    [InlineData("kb findings", "findings", "memory_self_finding")]
+    [InlineData("kb failures", "failures", "memory_self_failure")]
+    [InlineData("kb health", "memory_health", "memory_session")]
+    [InlineData("kb memory_health", "memory_health", "memory_session")]
     [InlineData("memory_project list_knowledge_files", "list_knowledge_files", "memory_project")]
     [InlineData("memory_session memory_health", "memory_health", "memory_session")]
     [InlineData("memory_self_finding findings", "findings", "memory_self_finding")]
