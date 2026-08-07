@@ -129,6 +129,7 @@ internal static partial class IdeSaChannel
     {
         _ = store;
         // Cheap path: no QualityGates.EvaluateStore / no scored dirty cards.
+        // Dogfood `@intent sa depth=pulse` must stay sub-second; slim/full keep full gates.
         var dirtyN = CountDirtyPorcelain(session.ProjectRoot);
         var locusDirty = locus.Path is { Length: > 0 }
             && IsPathDirtyPorcelain(session.ProjectRoot, locus.Path);
