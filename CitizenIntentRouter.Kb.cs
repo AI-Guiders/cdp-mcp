@@ -60,6 +60,16 @@ internal static partial class CitizenIntentRouter
             or "validate_sections" or "normalize_sections")
             facet = Cdp.Core.CdpDomains.MemorySession;
 
+        // Lived SoftFL: "kb findings" / "kb failures" / "kb health" → tool head skips bare-facet
+        // consume → default world → kb_tool_unknown. Exclusive tools imply their facet
+        // (same class as search_* / task exclusives). Ambiguous man/tasks stay world-default.
+        if (tool is "findings" or "finding_record" or "finding_check")
+            facet = Cdp.Core.CdpDomains.MemorySelfFinding;
+        if (tool is "failures" or "failure_record")
+            facet = Cdp.Core.CdpDomains.MemorySelfFailure;
+        if (tool is "memory_health" or "route_context" or "read_hot_context")
+            facet = Cdp.Core.CdpDomains.MemorySession;
+
         // TaskKnowledge exclusive tools live on memory_task — wrong facet → SoftFL invent "unknown".
         // Do not remap ambiguous "tasks"/"man" (also findings).
         if (tool is "ensure_store" or "route_next" or "task_upsert"
