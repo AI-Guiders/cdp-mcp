@@ -28,6 +28,7 @@
 
 ## last_ship
 
+- **2026-08-08 Dig SoftFL-safe residual expand CLOSED** — dig=`ops.md`+cascade-ide remotes · lived SoftFL-safe: `origin` push URL prefers SSH → timeout `193.124.113.7:22` · escape `git push github develop` (HTTPS `AI-Guiders/cascade-ide`) shipped SoftFL tip `db8fd77a` · stamp tip for Autoi: prefer `github` remote when origin SSH dies · SoftFL invent REJECT remount thrash. Evidence dig=remote -v + push log.
 - **2026-08-06 Dig Flight durable SoftFirst DIG REJECT** — dig-lived: SoftFirst Recover + flight-durable remount survive already SHIPPED/VERIFY (ops SoftFirst dual-seat dogfood · glass flight-durable 2026-08-05 · CdpReloadNudge -File entry). Cabin Glass **pid=37464** still up since 11:58 through SoftFirst remounts this epic · health 0.5.675 lag=false. Reopen SoftFirst invent = thrash chrome. Evidence `cascade-ide/tmp-glass-shots/softfirst-flight-digreject-20260806-1630.png` + `cdp_see`. SoftFL REJECT.
 - **2026-08-06 CdpReloadNudge -File entry** — lived: mid-turn Not connected after Recover; `pwsh -File CdpReloadNudge.ps1 -Server cdp` did nothing (functions only) until `.` + `Invoke-`. Entry now bumps named seat. SoftFL REJECT.
 - **2026-08-06b dotsource gate** — Path-equality aborted Recover (empty Server + exit); `InvocationName -ne '.'` + SoftFirst Recover dogfood.
