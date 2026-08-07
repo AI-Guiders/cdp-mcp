@@ -46,6 +46,21 @@ public class IdeHumanFacePlanTests
     }
 
     [Fact]
+    public void WhyLine_lone_SEALED_marker_is_not_Face_WHY()
+    {
+        var course = """
+            ## operator_priority
+            SEALED
+            Before act (not resume-and-invent):
+            - Viewer? human eyes vs agent text
+            """;
+        var why = IdeHumanFacePlan.WhyLine(course);
+        Assert.NotNull(why);
+        Assert.DoesNotContain("SEALED", why!, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Glass Done", why, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void NextLeaf_strips_invent_only_hold_prefix()
     {
         var next = IdeHumanFacePlan.NextLeaf(
