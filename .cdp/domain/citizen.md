@@ -72,6 +72,7 @@
 
 ## last_ship
 
+- **2026-08-07 Live Sierra dialog equal-hands SoftFL invent REJECT CLOSED** · dig=`citizen.md` + Face evidence `cascade-ide/tmp-glass-shots/intercom-face-dig-20260807.png` · live `cdp_citizen` mode=dialog+vision · Sierra: #crew feed as peer not instrument dump · SoftFL invent REJECT · residual Face Done still axis4 operator eyes
 - **2026-08-07 Dig Citizen internet densest SoftFL invent REJECT** — lived dig expand (not DIG REJECT mill): domain `@intent browser` **0.5.586** · lynx which OK · `cdp_browser` search OK · Glass WebAiPortal HOLD/stub intentional (`cdp_browser` ≠ MFD portal) · **live citizen wire** `@intent browser search q=…` → `ack=1/1` · pulse `browser search ok …duckduckgo…`. SoftFL invent REJECT (habitat already flies). Face=operator for Glass portal.
 - **2026-08-07 Dig FullReady peer residual DIG REJECT** — lived: `@intent kb list_knowledge_files path=.` → **24 hub** (SHOWCASE on disk; not 550 worlds) · sa_desk Publish SoftFL already CLOSED · SoftFL invent REJECT · Face=operator.
 - **2026-08-07 sa_desk Publish SoftFL SHIPPED** — dig: SoftBoard/PulseOnly+git return; tip=CideSaDeskLatch.Publish under Glass lock (Task.Run insufficient). Ship: prod Publish no-op · RunGit bound (3cbf9e/5655984). SoftFL invent REJECT · Face=operator.
