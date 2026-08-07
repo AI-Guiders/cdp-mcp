@@ -96,7 +96,7 @@ internal static partial class IdeIgniteArmHost
         try
         {
             // New ignition supersedes post-fire Connection Problems watch.
-            StopConnectionWatch();
+            IdeIgniteConnectionWatch.Stop();
             SetStatus(arm.Id, "firing", null);
             IdeTeethTape.Record(
                 "wake_fire", armId: arm.Id, reason: arm.Reason, detail: arm.ChargeMode);
@@ -248,7 +248,7 @@ internal static partial class IdeIgniteArmHost
         {
             // Habitat duplex / citizen delivery never touched Composer — no CDT Connection Problems watch.
             if (!IsHabitatSubmitKind(submit))
-                StartConnectionWatch(arm.Port);
+                IdeIgniteConnectionWatch.Start(arm.Port);
             if (arm.LastOnce)
             {
                 // ACC: under autonomous, last_once insurance delivered ≠ invent-ban awaiting_partner

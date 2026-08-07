@@ -8,8 +8,9 @@ namespace CdpMcp;
 /// (2) native Electron stall dialog "The window is not responding" → Keep Waiting (Win32);
 /// (3) OOM terminated dialog → New Window (also covered by always-on OomWatch).
 /// Idle alone is not enough — these can appear mid-turn.
+/// Real type (not IdeIgniteArmHost.*.cs metric peel).
 /// </summary>
-internal static partial class IdeIgniteArmHost
+internal static class IdeIgniteConnectionWatch
 {
     static readonly TimeSpan ConnectionWatchInterval = TimeSpan.FromSeconds(2);
     static readonly TimeSpan ConnectionRetryCooldown = TimeSpan.FromSeconds(5);
@@ -29,13 +30,13 @@ internal static partial class IdeIgniteArmHost
     internal static int StallKeepWaitingClickCount => Volatile.Read(ref StallKeepWaitingClicks);
 
     /// <summary>Test hook — whether a post-fire watch loop is armed.</summary>
-    internal static bool IsConnectionWatchRunning =>
+    internal static bool IsRunning =>
         Volatile.Read(ref ConnectionWatchCts) is { IsCancellationRequested: false };
 
     /// <summary>Start (or restart) overlay/native-dialog watch after a successful CDT fire.</summary>
-    internal static void StartConnectionWatch(int port)
+    internal static void Start(int port)
     {
-        StopConnectionWatch();
+        Stop();
         ConnectionWatchPort = port > 0 ? port : IdeIgniteChannel.DefaultPort;
         Interlocked.Exchange(ref ConnectionRetryClicks, 0);
         Interlocked.Exchange(ref StallKeepWaitingClicks, 0);
@@ -43,11 +44,11 @@ internal static partial class IdeIgniteArmHost
         Interlocked.Exchange(ref StallLastClickTicks, 0);
         var cts = new CancellationTokenSource();
         Volatile.Write(ref ConnectionWatchCts, cts);
-        _ = Task.Run(() => ConnectionWatchLoopAsync(ConnectionWatchPort, cts.Token));
+        _ = Task.Run(() => LoopAsync(ConnectionWatchPort, cts.Token));
     }
 
     /// <summary>Stop watch before the next fire (or on host teardown).</summary>
-    internal static void StopConnectionWatch()
+    internal static void Stop()
     {
         var cts = Interlocked.Exchange(ref ConnectionWatchCts, null);
         if (cts is null)
@@ -60,7 +61,7 @@ internal static partial class IdeIgniteArmHost
         catch { /* ignore */ }
     }
 
-    static async Task ConnectionWatchLoopAsync(int port, CancellationToken ct)
+    static async Task LoopAsync(int port, CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
         {
