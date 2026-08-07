@@ -67,8 +67,28 @@ internal sealed class MemoryScopeGateway
 
         // subdir/path: inject default root for list/tags; validate when caller supplies them.
         var listLike = underlyingName is "list_knowledge_files" or "knowledge_tags";
+        // Citizen wire uses path=; AN list/tags only read subdir — mirror before inject.
+        if (listLike && HasNonEmpty(dict, "path") && !HasNonEmpty(dict, "subdir"))
+            dict["subdir"] = dict["path"];
+
         if (listLike || HasNonEmpty(dict, "subdir"))
-            ApplyPathArg(dict, "subdir", injectIfEmpty: listLike);
+        {
+            // path=. / subdir=. = hub-only for list_knowledge_files — never PreferInject worlds over it.
+            // knowledge_tags: hub marker is meaningless (TagIndex is recursive) — PreferInject worlds.
+            var hubList = underlyingName is "list_knowledge_files"
+                && (IsHubListMarker(dict, "subdir") || IsHubListMarker(dict, "path"));
+            if (underlyingName is "knowledge_tags"
+                && (IsHubListMarker(dict, "subdir") || IsHubListMarker(dict, "path")))
+            {
+                dict.Remove("subdir");
+                ApplyPathArg(dict, "subdir", injectIfEmpty: true);
+            }
+            else
+            {
+                ApplyPathArg(dict, "subdir", injectIfEmpty: listLike && !hubList);
+            }
+        }
+
         if (HasNonEmpty(dict, "path"))
             ApplyPathArg(dict, "path", injectIfEmpty: false);
 
@@ -143,7 +163,24 @@ internal sealed class MemoryScopeGateway
             $"Path '{relative}' is outside {_domain} roots [{roots}]; {tip}");
     }
 
-    private bool IsUnderAnyRoot(string relative)
+private static bool IsHubListMarker(Dictionary<string, JsonElement> dict, string key)
+    {
+        if (!HasNonEmpty(dict, key))
+            return false;
+        var raw = dict[key].GetString();
+        if (string.IsNullOrWhiteSpace(raw))
+            return false;
+        try
+        {
+            return NormalizeRelative(raw) is ".";
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
+    }
+
+        private bool IsUnderAnyRoot(string relative)
     {
         foreach (var root in _roots)
         {
