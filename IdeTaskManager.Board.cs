@@ -64,7 +64,9 @@ internal static partial class IdeTaskManager
             // Shared-SSOT: sealed course stays agent SSOT; Face WHY/board = human projection.
             var why = IdeHumanFacePlan.WhyLine(IdePressureChannel.TryPeekSealedCourse());
             var boardLines = board.Lines.Select(IdeHumanFacePlan.BoardLine).ToList();
-            CidePlanLatch.Publish(active, pulse, board.ActiveFeatureTitle, board.ActiveStageTitle, why, boardLines);
+            var feature = IdeHumanFacePlan.NextLeaf(board.ActiveFeatureTitle, maxChars: 96);
+            var task = IdeHumanFacePlan.NextLeaf(board.ActiveStageTitle, maxChars: 96);
+            CidePlanLatch.Publish(active, pulse, feature, task, why, boardLines);
         }
         catch
         {

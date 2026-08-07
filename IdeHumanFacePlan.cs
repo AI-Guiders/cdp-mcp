@@ -25,7 +25,7 @@ internal static class IdeHumanFacePlan
                 continue;
             if (IsBeforeActFence(line))
                 break;
-            if (IsAgentMetaLine(line))
+            if (IsAgentMetaLine(line) || IsSealedMarker(line))
                 continue;
 
             if (LooksLikeAgentJargon(line))
@@ -55,11 +55,11 @@ internal static class IdeHumanFacePlan
             else if (ContainsIgnore(courseOrBody, "Citizen"))
                 pick = "Citizen stable toward 15.08";
             else
-                return null;
+                pick = "Glass Done + Citizen toward 15.08";
         }
 
         pick = StripFaceTheatre(pick);
-        if (LooksLikeAgentJargon(pick) || string.IsNullOrWhiteSpace(pick))
+        if (LooksLikeAgentJargon(pick) || IsSealedMarker(pick) || string.IsNullOrWhiteSpace(pick))
             pick = "Glass Done + Citizen toward 15.08";
 
         return Truncate(pick, maxChars);
@@ -178,6 +178,18 @@ internal static class IdeHumanFacePlan
     static bool IsBeforeActFence(string line) =>
         line.StartsWith("Before act", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>Stash often writes a lone SEALED marker under ## operator_priority — not a human WHY.</summary>
+    static bool IsSealedMarker(string line)
+    {
+        var t = line.Trim().Trim('(', ')', '—', '-', '·', ' ');
+        if (t.Equals("SEALED", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (t.StartsWith("SEALED", StringComparison.OrdinalIgnoreCase)
+            && (t.Length == 6 || t[6] is ' ' or '—' or '-' or '·' or '('))
+            return true;
+        return t.StartsWith("operator_priority", StringComparison.OrdinalIgnoreCase);
+    }
+
     static bool IsAgentMetaLine(string line) =>
         line.StartsWith("Shot:", StringComparison.OrdinalIgnoreCase)
         || line.StartsWith("Shot?", StringComparison.OrdinalIgnoreCase);
@@ -207,7 +219,16 @@ internal static class IdeHumanFacePlan
         foreach (var needle in new[]
                  {
                      "SoftFL invent REJECT",
+                     "SoftFL STRUCK",
                      "SoftFL REJECT",
+                     "nested[axb]",
+                     "agent refuse Face Done claim",
+                     "agent refuse Face Done",
+                     "agent refuse #CIDE Done",
+                     "agent refuse",
+                     "YOUR Glass eyes",
+                     "Glass eyes",
+                     "Face axis4 operator",
                      "tip mill ≠ Done",
                      "tip mill != Done",
                      "Face SoftOrgan/#CIDE Done needs operator eyes",

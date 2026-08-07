@@ -113,6 +113,21 @@ internal static partial class IdePressureChannel
             """);
         }
 
+        // Marker-only stash ("SEALED" + criteria) → inject human goals for Face/Autoi.
+        if (!HasGlassCitizenGoals(c))
+        {
+            var injectAt = c.IndexOf("\nBefore act", StringComparison.OrdinalIgnoreCase);
+            var goals = """
+
+            1. Glass Done (human flight)
+            2. Citizen Done stable → 15.08
+            """;
+            if (injectAt > 0)
+                c = ClampCourse(c[..injectAt] + goals + c[injectAt..]);
+            else
+                c = ClampCourse(c + goals);
+        }
+
         if (!HasWorldDigAxis(c))
         {
             c = ClampCourse(c + """
@@ -133,6 +148,10 @@ internal static partial class IdePressureChannel
         course.Contains("Being ≠ seeming", StringComparison.OrdinalIgnoreCase)
         || course.Contains("being != seeming", StringComparison.OrdinalIgnoreCase)
         || course.Contains("быть ≠ казаться", StringComparison.OrdinalIgnoreCase);
+
+    internal static bool HasGlassCitizenGoals(string course) =>
+        course.Contains("Glass Done", StringComparison.OrdinalIgnoreCase)
+        || course.Contains("Citizen Done", StringComparison.OrdinalIgnoreCase);
 
     internal static bool HasWorldDigAxis(string course) =>
         course.Contains("World dig", StringComparison.OrdinalIgnoreCase)
@@ -174,12 +193,17 @@ internal static partial class IdePressureChannel
 
             if (line.Length == 0)
                 continue;
+            // Lone SEALED under ## operator_priority is a marker, not Face WHY.
+            var marker = line.Trim().Trim('(', ')', '—', '-', '·', ' ');
+            if (marker.Equals("SEALED", StringComparison.OrdinalIgnoreCase)
+                || marker.StartsWith("operator_priority", StringComparison.OrdinalIgnoreCase))
+                continue;
             if (line.Length > maxChars)
                 line = line[..(maxChars - 1)].TrimEnd() + "…";
             return line;
         }
 
-        return null;
+        return "Glass Done + Citizen toward 15.08";
     }
 
     /// <summary>
