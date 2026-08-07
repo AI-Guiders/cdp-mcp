@@ -111,15 +111,19 @@ internal static partial class IdeReviewChannel
         };
         using var p = Process.Start(psi);
         if (p is null) return null;
-        var stdout = p.StandardOutput.ReadToEnd();
-        _ = p.StandardError.ReadToEnd();
-        if (!p.WaitForExit(8000))
+
+        // SoftFL / Glass FDR: ReadToEnd before WaitForExit can block forever on hung git.
+        var stdoutTask = p.StandardOutput.ReadToEndAsync();
+        var stderrTask = p.StandardError.ReadToEndAsync();
+        if (!p.WaitForExit(8_000))
         {
             try { p.Kill(entireProcessTree: true); } catch { /* ignore */ }
+            try { p.WaitForExit(1_000); } catch { /* ignore */ }
             return null;
         }
 
-        return p.ExitCode == 0 ? stdout : stdout;
+        _ = stderrTask.GetAwaiter().GetResult();
+        return stdoutTask.GetAwaiter().GetResult();
     }
 
 }
