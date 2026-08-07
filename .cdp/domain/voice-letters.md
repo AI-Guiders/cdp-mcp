@@ -30,6 +30,7 @@
 
 ## last_ship
 
+- 2026-08-08 → Voice Letter #198 SoftFL @Kir Face Radio tip (`db8fd77a` dogfood · IsKirVoiceCannonFaceTip).
 - 2026-08-05 → Voice Letter #159 named-intent Glass ack=4/4 (`1f2a98f` · DialogNamedIntentSteer + GlassPeerAck dogfood).
 - 2026-08-05 → Voice Letter #160 invent-only hyphen Hold (`62db2da` dogfood · letter after live 3m invent_only_hold).
 - 2026-08-05 → Voice Letter #151 Glass CIT multiturn jsonl persist (`74786d1` · live sierra · PNG post-fix).
