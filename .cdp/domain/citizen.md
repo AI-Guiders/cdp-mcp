@@ -72,6 +72,8 @@
 
 ## last_ship
 
+- **2026-08-07 Dig Citizen internet densest SoftFL invent REJECT** — lived dig expand (not DIG REJECT mill): domain `@intent browser` **0.5.586** · lynx which OK · `cdp_browser` search OK · Glass WebAiPortal HOLD/stub intentional (`cdp_browser` ≠ MFD portal) · **live citizen wire** `@intent browser search q=…` → `ack=1/1` · pulse `browser search ok …duckduckgo…`. SoftFL invent REJECT (habitat already flies). Face=operator for Glass portal.
+- **2026-08-07 Dig FullReady peer residual DIG REJECT** — lived: `@intent kb list_knowledge_files path=.` → **24 hub** (SHOWCASE on disk; not 550 worlds) · sa_desk Publish SoftFL already CLOSED · SoftFL invent REJECT · Face=operator.
 - **2026-08-07 sa_desk Publish SoftFL SHIPPED** — dig: SoftBoard/PulseOnly+git return; tip=CideSaDeskLatch.Publish under Glass lock (Task.Run insufficient). Ship: prod Publish no-op · RunGit bound (3cbf9e/5655984). SoftFL invent REJECT · Face=operator.
 - **2026-08-07 sa_desk latch async SoftFL SHIPPED** — FileShare latch still hung live `go=sa_desk`; densest: SoftBoard waited on Glass I/O in `CideSaDeskLatch.Publish`. Ship: `Task.Run` fire-and-forget (`5326adb`); sync under test override. SoftFL invent REJECT · Face=operator.
 - **2026-08-07 sa_desk hang SoftFL SHIPPED** — lived MCP timeout on `@intent sa` / `go=sa_desk`. Dig: densest tip = `CideSaDeskLatch` `File.Move` blocked on Glass-locked latch (orphan `.tmp`); also MetaDispatch sync-over-async + default slim. Ship: non-blocking latch write · RunSa direct HandleJson · depth/go_detail→pulse · slim `-uno`. SoftFL invent REJECT · Face=operator.
