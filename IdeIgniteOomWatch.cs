@@ -7,8 +7,9 @@ namespace CdpMcp;
 /// (1) native Cursor dialog reason=oom → click New Window;
 /// (2) CDT :9222 down→up edge after MinDown → schedule oom-wake arm.
 /// Starts from Program (not EnsureStarted) — same as HILD.
+/// Real type (not IdeIgniteArmHost.*.cs metric peel). Arm store stays on IdeIgniteArmHost.
 /// </summary>
-internal static partial class IdeIgniteArmHost
+internal static class IdeIgniteOomWatch
 {
     /// <summary>Always-on tooth poll. 500ms — stream-OOM dialog can be brief (2s missed dogfood).</summary>
     static readonly TimeSpan OomWatchInterval = TimeSpan.FromMilliseconds(500);
@@ -24,19 +25,19 @@ internal static partial class IdeIgniteArmHost
     static DateTimeOffset? CdtDownSinceUtc;
 
     /// <summary>Test hook — New Window clicks on OOM dialog.</summary>
-    internal static int OomNewWindowClickCount => Volatile.Read(ref OomNewWindowClicks);
+    internal static int NewWindowClickCount => Volatile.Read(ref OomNewWindowClicks);
 
     /// <summary>Test hook — OOM wake arms scheduled.</summary>
-    internal static int OomWakeScheduleCount => Volatile.Read(ref OomWakeScheduled);
+    internal static int WakeScheduleCount => Volatile.Read(ref OomWakeScheduled);
 
     /// <summary>Test hook — whether OOM watch loop is armed.</summary>
-    internal static bool IsOomWatchRunning =>
+    internal static bool IsRunning =>
         Volatile.Read(ref OomWatchCts) is { IsCancellationRequested: false };
 
     /// <summary>Start (or restart) always-on OOM tooth/wake from Program.</summary>
-    internal static void StartOomWatch(int? port = null)
+    internal static void Start(int? port = null)
     {
-        StopOomWatch();
+        Stop();
         OomWatchPort = port is > 0 ? port.Value : IdeIgniteChannel.DefaultPort;
         Interlocked.Exchange(ref OomNewWindowClicks, 0);
         Interlocked.Exchange(ref OomWakeScheduled, 0);
@@ -46,10 +47,10 @@ internal static partial class IdeIgniteArmHost
         CdtDownSinceUtc = null;
         var cts = new CancellationTokenSource();
         Volatile.Write(ref OomWatchCts, cts);
-        _ = Task.Run(() => OomWatchLoopAsync(OomWatchPort, cts.Token));
+        _ = Task.Run(() => LoopAsync(OomWatchPort, cts.Token));
     }
 
-    internal static void StopOomWatch()
+    internal static void Stop()
     {
         var cts = Interlocked.Exchange(ref OomWatchCts, null);
         if (cts is null)
@@ -62,7 +63,7 @@ internal static partial class IdeIgniteArmHost
         catch { /* ignore */ }
     }
 
-    static async Task OomWatchLoopAsync(int port, CancellationToken ct)
+    static async Task LoopAsync(int port, CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
         {
@@ -86,7 +87,7 @@ internal static partial class IdeIgniteArmHost
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"[ide_ignite] oom-watch probe failed: {ex.Message}");
+                Console.Error.WriteLine("[ide_ignite] oom-watch probe failed: " + ex.Message);
             }
         }
     }
@@ -106,16 +107,16 @@ internal static partial class IdeIgniteArmHost
         CdtWasUp = false;
         CdtDownSinceUtc ??= DateTimeOffset.UtcNow;
         // Arm OOM wake immediately (reason=oom) so remount-empty HILD cannot steal with minimal Resume.
-        if (TryScheduleOomWake() is { } scheduled)
+        if (IdeIgniteArmHost.TryScheduleOomWake() is { } scheduled)
         {
             Interlocked.Increment(ref OomWakeScheduled);
             Interlocked.Exchange(ref OomWakeLastScheduleTicks, DateTime.UtcNow.Ticks);
-            if (TryArmId(scheduled) is { } aid)
+            if (IdeIgniteArmHost.TryArmId(scheduled) is { } aid)
                 IdeTeethTape.Record("wake_schedule", armId: aid, reason: IdeOomWake.Reason, detail: "oom_dialog");
         }
 
         Console.Error.WriteLine(
-            $"[ide_ignite] oom-dialog Reopen #{OomNewWindowClickCount}");
+            "[ide_ignite] oom-dialog Reopen #" + NewWindowClickCount);
     }
 
     static async Task ProbeCdtRecoveryAsync(int port, CancellationToken ct)
@@ -167,67 +168,22 @@ internal static partial class IdeIgniteArmHost
         if (InCooldown(OomWakeLastScheduleTicks, IdeOomWake.WakeCooldown))
             return;
 
-        if (TryScheduleOomWake() is not { } scheduled)
+        if (IdeIgniteArmHost.TryScheduleOomWake() is not { } scheduled)
             return;
 
         Interlocked.Increment(ref OomWakeScheduled);
         Interlocked.Exchange(ref OomWakeLastScheduleTicks, DateTime.UtcNow.Ticks);
-        if (TryArmId(scheduled) is { } aid)
+        if (IdeIgniteArmHost.TryArmId(scheduled) is { } aid)
             IdeTeethTape.Record("wake_schedule", armId: aid, reason: IdeOomWake.Reason, detail: "cdt_recover", downMs: downMs);
         Console.Error.WriteLine(
-            $"[ide_ignite] oom-wake scheduled #{OomWakeScheduleCount} port={port}");
+            "[ide_ignite] oom-wake scheduled #" + WakeScheduleCount + " port=" + port);
     }
 
-    /// <summary>Arm one-shot timer charge_mode=oom (system wake — not superseded).</summary>
-    internal static object? TryScheduleOomWake()
+    static bool InCooldown(long lastTicks, TimeSpan cooldown)
     {
-        // Dual-seat: only one process schedules within WakeCooldown.
-        if (!IdeOomCrossProcessClaim.TryClaimSchedule(IdeOomWake.WakeCooldown))
-            return null;
-
-        EnsureLoaded();
-        var dueSec = Math.Clamp(IdeOomWake.DefaultDueSeconds, 1, 60);
-        var now = DateTimeOffset.UtcNow;
-        var id = IdeOomWake.ArmIdPrefix
-                 + now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture)
-                 + "-" + Guid.NewGuid().ToString("N")[..6];
-
-        IgniteArm arm;
-        lock (Gate)
-        {
-            Arms.RemoveAll(a =>
-                a.Id.StartsWith(IdeOomWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
-                && a.Status is "armed" or "firing");
-
-            // After OOM remount Composer is empty → HILD races with minimal charge and
-            // steals the wake; drop pending HILD so agent sees reason=oom instead.
-            Arms.RemoveAll(a =>
-                a.Id.StartsWith(HildArmIdPrefix, StringComparison.OrdinalIgnoreCase)
-                && a.Status is "armed" or "firing");
-
-            arm = new IgniteArm
-            {
-                Id = id,
-                Event = "timer",
-                Message = IdeIgniteChannel.ComposeOomWakeCharge(),
-                ChargeMode = IdeOomWake.ChargeMode,
-                Task = IdeOomWake.ArmTask,
-                Reason = IdeOomWake.Reason,
-                Once = true,
-                LastOnce = false,
-                OkOnly = true,
-                SettleSeconds = 2,
-                WaitSeconds = 90,
-                DueUtc = now + TimeSpan.FromSeconds(dueSec),
-                InRaw = $"{dueSec}s",
-                Status = "armed",
-                CreatedUtc = now,
-                LastError = "cdt_recovered_after_down"
-            };
-            Arms.Add(arm);
-            PersistUnlocked();
-        }
-
-        return Slim(arm);
+        if (lastTicks == 0)
+            return false;
+        var elapsed = DateTime.UtcNow - new DateTime(lastTicks, DateTimeKind.Utc);
+        return elapsed < cooldown;
     }
 }

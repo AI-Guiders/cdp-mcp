@@ -97,7 +97,7 @@ var docStore = new DocumentBufferStore();
 using var diskSyncWatch = DocumentDiskSyncWatcher.Start(docStore);
 using var intercomCannon = IntercomVoiceCannonWatcher.Start();
 IdeIgniteArmHost.StartHildWatch();
-IdeIgniteArmHost.StartOomWatch();
+IdeIgniteOomWatch.Start();
 CitizenGlassDialogBridge.Start();
 GlassIgniteCmdBridge.Start();
 GlassEicasCmdBridge.Start();

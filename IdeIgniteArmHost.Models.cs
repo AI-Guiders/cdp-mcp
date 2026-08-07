@@ -120,7 +120,7 @@ internal static partial class IdeIgniteArmHost
         catch { return null; }
     }
 
-    static string? TryArmId(object? slim)
+    internal static string? TryArmId(object? slim)
     {
         if (slim is null) return null;
         try
