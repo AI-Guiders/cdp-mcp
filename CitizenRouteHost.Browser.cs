@@ -185,12 +185,23 @@ internal static partial class CitizenRouteHost
             if (root.TryGetProperty("lynx_error", out var le) && le.ValueKind == JsonValueKind.String
                 && le.GetString() is { Length: > 0 } err)
                 bits.Add(TruncPulse(err) ?? err);
+            if (root.TryGetProperty("text", out var textEl) && textEl.ValueKind == JsonValueKind.String
+                && textEl.GetString() is { Length: > 0 } body)
+            {
+                var one = body.Replace('\r', ' ').Replace('\n', ' ');
+                while (one.Contains("  ", StringComparison.Ordinal))
+                    one = one.Replace("  ", " ", StringComparison.Ordinal);
+                one = one.Trim();
+                if (one.Length > 0)
+                    bits.Add("· " + one);
+            }
 
-            return TruncPulse(string.Join(' ', bits));
+            // Peer must see page body — URL-only is seeming internet (lived SoftFL).
+            return TruncPulse(string.Join(' ', bits), InventoryObservePulseMax);
         }
         catch
         {
-            return TruncPulse(json);
+            return TruncPulse(json, InventoryObservePulseMax);
         }
     }
 }

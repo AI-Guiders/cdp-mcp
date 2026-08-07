@@ -266,6 +266,7 @@ internal static partial class CitizenRouteHost
 
         var seat = IdeDeskSeats.PlaceOrgan("editor_scene");
         PublishGlassLandOpen(full);
+        var name = Path.GetFileName(full);
         return new Applied(
             route.Raw,
             route.Verb.ToString(),
@@ -274,6 +275,7 @@ internal static partial class CitizenRouteHost
             Seat: seat,
             Go: "editor_scene",
             Path: full,
-            DocId: docId);
+            DocId: docId,
+            Pulse: TruncPulse("open " + name + " doc=" + (docId ?? "?")));
     }
 }

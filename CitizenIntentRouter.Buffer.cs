@@ -2,7 +2,7 @@
 
 namespace CdpMcp;
 
-/// <summary>Citizen @intent read|close|buffers|doc_diagnostics — DocumentEditPlane core without Cursor MCP.</summary>
+/// <summary>Citizen @intent read|close|buffers|open|doc_diagnostics — DocumentEditPlane core without Cursor MCP. buffer open → Verb.Open.</summary>
 internal static partial class CitizenIntentRouter
 {
     static Route RouteBuffer(string raw)
@@ -24,12 +24,29 @@ internal static partial class CitizenIntentRouter
                 || rest.StartsWith("buffers", StringComparison.OrdinalIgnoreCase)
                 || rest.StartsWith("list", StringComparison.OrdinalIgnoreCase))
                 op = "scene";
+            else if (rest.StartsWith("open", StringComparison.OrdinalIgnoreCase)
+                || rest.StartsWith("doc_open", StringComparison.OrdinalIgnoreCase)
+                || rest.StartsWith("buffer_open", StringComparison.OrdinalIgnoreCase))
+            {
+                var openPath = ExtractKeyedValue(raw, "path") ?? ExtractPath(raw);
+                return string.IsNullOrWhiteSpace(openPath)
+                    ? new Route(Verb.Unknown, raw, Ok: false, Reason: "open_path_empty")
+                    : new Route(Verb.Open, raw, Ok: true, Path: openPath.Trim(), Go: "buffer");
+            }
             else if (rest.StartsWith("diagnostics", StringComparison.OrdinalIgnoreCase)
                 || rest.StartsWith("diags", StringComparison.OrdinalIgnoreCase)
                 || rest.StartsWith("diag", StringComparison.OrdinalIgnoreCase))
                 op = "diagnostics";
             else
                 op = ExtractKeyedValue(raw, "op") ?? "scene";
+        }
+        else if (head.StartsWith("doc_open", StringComparison.OrdinalIgnoreCase)
+            || head.StartsWith("buffer_open", StringComparison.OrdinalIgnoreCase))
+        {
+            var openPath = ExtractKeyedValue(raw, "path") ?? ExtractPath(raw);
+            return string.IsNullOrWhiteSpace(openPath)
+                ? new Route(Verb.Unknown, raw, Ok: false, Reason: "open_path_empty")
+                : new Route(Verb.Open, raw, Ok: true, Path: openPath.Trim(), Go: "buffer");
         }
         else if (head.StartsWith("doc_read", StringComparison.OrdinalIgnoreCase)
             || head.StartsWith("buffer_read", StringComparison.OrdinalIgnoreCase)

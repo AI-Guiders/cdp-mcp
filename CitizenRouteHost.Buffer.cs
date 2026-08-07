@@ -225,7 +225,20 @@ internal static partial class CitizenRouteHost
             if (root.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String
                 && err.GetString() is { Length: > 0 } error)
                 bits.Add(error);
-            return TruncPulse(string.Join(' ', bits));
+            // Lived SoftFL: peer "can't look at code" — read must carry body, not L-range alone.
+            if (op == "read"
+                && root.TryGetProperty("text", out var textEl) && textEl.ValueKind == JsonValueKind.String
+                && textEl.GetString() is { Length: > 0 } body)
+            {
+                var one = body.Replace('\r', ' ').Replace('\n', ' ');
+                while (one.Contains("  ", StringComparison.Ordinal))
+                    one = one.Replace("  ", " ", StringComparison.Ordinal);
+                one = one.Trim();
+                if (one.Length > 0)
+                    bits.Add("· " + one);
+            }
+
+            return TruncPulse(string.Join(' ', bits), op == "read" ? InventoryObservePulseMax : 240);
         }
         catch
         {
