@@ -3,7 +3,7 @@
 **organ:** glass-intercom / GlassAutoiWakeFeed · SoftFL @Kir Face tip  
 **lived:** 2026-08-08 · Glass Release · Composer Stop → busy_timeout → wake_cannon_face  
 **evidence:** `cascade-ide/tmp-glass-shots/kir-face-tip-radio-visible-20260808.png` + `cdp_see`  
-**commits:** cascade-ide `db8fd77a` (local; push SSH timeout) · cdp-mcp cannon `13d8ceb`
+**commits:** cascade-ide `db8fd77a` (pushed `github` HTTPS · origin SSH 193.124.113.7 timeout) · cdp-mcp cannon `13d8ceb` · Voice Letter `b8f5307`
 
 Пушка выстрелила. Tip на latch сел. На Face — тишина.
 
