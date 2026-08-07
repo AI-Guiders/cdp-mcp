@@ -87,6 +87,35 @@ internal static partial class IdeSessionLifecycle
         return false;
     }
 
+    /// <summary>CdpMcp.csproj → CdpMcp.Tests/CdpMcp.Tests.csproj when present (citizen equal-hands).</summary>
+    internal static string PreferSiblingTestProject(string target)
+    {
+        if (string.IsNullOrWhiteSpace(target) || !LooksLikeCsproj(target))
+            return target;
+        var full = Path.GetFullPath(target);
+        var file = Path.GetFileNameWithoutExtension(full);
+        if (file.EndsWith(".Tests", StringComparison.OrdinalIgnoreCase)
+            || file.EndsWith("Tests", StringComparison.OrdinalIgnoreCase))
+            return full;
+
+        var dir = Path.GetDirectoryName(full);
+        if (string.IsNullOrEmpty(dir))
+            return full;
+
+        var nested = Path.Combine(dir, file + ".Tests", file + ".Tests.csproj");
+        if (File.Exists(nested))
+            return Path.GetFullPath(nested);
+
+        var sibling = Path.Combine(dir, file + ".Tests.csproj");
+        if (File.Exists(sibling))
+            return Path.GetFullPath(sibling);
+
+        return full;
+    }
+
+    static bool LooksLikeCsproj(string path) =>
+        path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase);
+
     public static Dictionary<string, JsonElement> WithSolution(
         IReadOnlyDictionary<string, JsonElement> args,
         string solutionPath)
@@ -147,6 +176,11 @@ internal static partial class IdeSessionLifecycle
     {
         if (!TryResolveTarget(session, args, out var target, out var err))
             throw new ArgumentException(err);
+
+        // Session often parks on product .csproj — prefer sibling *.Tests.csproj when no explicit path=.
+        var pathExplicit = args.ContainsKey("path") || args.ContainsKey("solution_path");
+        if (!pathExplicit)
+            target = PreferSiblingTestProject(target);
 
         var lang = ResolveLanguage(session);
         string result;

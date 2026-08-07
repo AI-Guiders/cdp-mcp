@@ -72,6 +72,7 @@
 
 ## last_ship
 
+- **2026-08-07 test empty 0/0 ≠ green + PreferSiblingTestProject** — lived SoftFL: `@intent test filter=…` on session `CdpMcp.csproj` → `test ok 0/0` (Total=0 treated Success). Ship: parsers Success=`Failed==0 && Total>0` + `Empty`; core pulse `test empty 0/0 · tip path=*.Tests.csproj`; IdeSessionLifecycle PreferSibling when no explicit path=. CitizenTestHostTests PreferSibling **1/1** · SoftFL invent REJECT.
 - **2026-08-07 kb hub list path=. SHIPPED** — lived: `@intent kb list_knowledge_files path=.` PreferInjected `subdir=worlds` (path ignored by AN) → 550-file worlds dump; SHOWCASE.md invisible. Ship: MemoryScopeGateway mirrors path→subdir · hub marker `.` skips worlds inject · NotesStorage `subdir=.` TopDirectoryOnly + `hub:true`. Tests MemoryScopeGatewayTests **6/6**. SoftFL invent REJECT · densest Sat-eve residual.
 - **2026-08-07 ShowFace PlaceOrgan parity (Citizen+CDP)** — Citizen host-execute already `PlaceOrgan` → same seats `show_face` hand as Cursor go= (BringCabin+SelectMfd/Prefer P). No per-route invent. SoftFL invent REJECT · Face=operator for SoftOrgan Done.
 - **2026-08-07 citizen git commit need paths= SHIPPED** — lived dogfood: bare `@intent git commit message=…` → silent `git add -A` mega-commit (~1073 files incl. sibling.next; reset --mixed before push). SoftFL-safe: RunGit refuses bare commit · pulse `git commit need paths=` · persona teach · test Execute_bare_git_commit_refuses_need_paths **1/1** · dual hard `build_utc=2026-08-06T21:41:00Z`. SoftFL invent REJECT · equal hands ≠ silent mega-commit.
