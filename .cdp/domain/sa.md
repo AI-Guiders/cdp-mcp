@@ -22,6 +22,7 @@
 
 ## last_ship
 
+- **2026-08-07** — bare `@intent sa` default `depth=pulse`; slim `ListDirtyFiles(-uno)`; full keeps `-uall`. Lived hang was MetaDispatch slim+`-uall` thrash (not PlaceOrgan). Tests **15/15**.
 - **0.5.625** — `depth=pulse` cheap: no EvaluateStore; dirty=porcelain `-uno` count (+ locus flag); slim/full unchanged. Lived: citizen single `sa depth=pulse`. Why: multi-sa dogfood looked like FM hang; AutoI stuck firing under Composer Stop.
 - **0.5.624** — citizen `@intent sa|*` host-execute Meta `cdp_sa` + PlaceOrgan(sa_desk); depth slim/full/pulse; no steal go=sa · dogfood ack=5/5 · tests 9/9 · 2026-08-03
 - wave18 DIG REJECT FileLines peel — main under warn; buffers gates ok; method_lines already cleared @ 0.5.451 · 2026-08-02

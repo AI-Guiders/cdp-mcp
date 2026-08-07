@@ -32,7 +32,9 @@ internal static partial class CitizenIntentRouter
         }
         else
         {
-            depth = "slim";
+            // Lived SoftFL: bare @intent sa → slim → ListDirtyFiles(-uall) hangs MetaDispatch.
+            // Pulse is cheap (Voice Letter sa-pulse-cheap); slim/full stay explicit.
+            depth = "pulse";
         }
 
         var locus = ExtractKeyedValue(work, "locus")
