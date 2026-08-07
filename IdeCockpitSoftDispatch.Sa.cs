@@ -70,8 +70,11 @@ internal static partial class IdeCockpitSoftDispatch
         if (!IsSoft(goVerb, SoftOrganKind.SaDesk))
             return false;
 
+        // SoftFL: cockpit go_detail ≠ IdeSaChannel depth; empty TileArgs used to default slim→RunGates hang.
+        // Map go_detail→depth and force pulse when neither set (desk refresh must stay cheap).
+        var saArgs = EnsureSaDeskDepth(args);
         goResult = SoftBoard(
-            SoftOrganKind.SaDesk, session, docStore, null, null, args, flattenOrganArgs: true);
+            SoftOrganKind.SaDesk, session, docStore, null, null, saArgs, flattenOrganArgs: true);
         PlaceSoft(ref goVerb, SoftOrganKind.SaDesk);
         return true;
     }
