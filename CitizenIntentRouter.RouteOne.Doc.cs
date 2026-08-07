@@ -105,6 +105,8 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("doc_diagnostics", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("buffer_diagnostics", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("buf_diagnostics", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("doc_open", StringComparison.OrdinalIgnoreCase)
+            || raw.StartsWith("buffer_open", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("buf_diags", StringComparison.OrdinalIgnoreCase))
         {
             return RouteBuffer(raw);

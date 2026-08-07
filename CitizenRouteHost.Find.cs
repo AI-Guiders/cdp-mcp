@@ -53,6 +53,15 @@ internal static partial class CitizenRouteHost
 
             var ok = TryReadOk(result);
             var pulse = TryReadPulse(result) ?? TryReadFindErrorPulse(result, op);
+            // Lived: 0 hits while PRIMARY/session tree ≠ Glass work — peer needs root tip, not silent empty.
+            if (ok && pulse is not null
+                && pulse.Contains("0 hit", StringComparison.OrdinalIgnoreCase)
+                && SessionResolver?.Invoke()?.ProjectRoot is { Length: > 0 } root)
+            {
+                pulse = TruncPulse(pulse + " · root=" + Path.GetFileName(root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+                    + " · try open path= other repo / project_switch");
+            }
+
             var seat = IdeDeskSeats.PlaceOrgan("find_desk");
             return new Applied(
                 route.Raw,

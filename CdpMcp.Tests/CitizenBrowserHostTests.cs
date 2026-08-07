@@ -79,7 +79,7 @@ public sealed class CitizenBrowserHostTests
         CitizenRouteHost.BrowserDispatchOverride = args =>
         {
             seen = args;
-            return """{"schema":"internet_browser_scene/v1","ok":true,"op":"search","query":"peer net","url":"https://html.duckduckgo.com/html/?q=peer+net"}""";
+            return """{"schema":"internet_browser_scene/v1","ok":true,"op":"search","query":"peer net","url":"https://html.duckduckgo.com/html/?q=peer+net","text":"[1]Peer Net Handbook peer dig without URL-only seeming"}""";
         };
         try
         {
@@ -91,6 +91,7 @@ public sealed class CitizenBrowserHostTests
             Assert.NotNull(seen);
             Assert.Equal("search", seen!["op"].GetString());
             Assert.Equal("peer net", seen["q"].GetString());
+            Assert.Contains("Peer Net Handbook", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
         {

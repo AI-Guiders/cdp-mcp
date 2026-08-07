@@ -37,6 +37,16 @@ public sealed class CitizenBufferHostTests
     }
 
     [Fact]
+    public void Route_buffer_open_path_is_verb_open()
+    {
+        var r = CitizenIntentRouter.RouteOne("buffer open path=a.cs");
+        Assert.True(r.Ok);
+        Assert.Equal(CitizenIntentRouter.Verb.Open, r.Verb);
+        Assert.Equal("a.cs", r.Path);
+    }
+
+
+    [Fact]
     public void Route_doc_diagnostics_not_ide()
     {
         var r = CitizenIntentRouter.RouteOne("doc_diagnostics path=a.cs");
