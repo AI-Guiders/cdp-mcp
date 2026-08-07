@@ -40,9 +40,9 @@ internal static class CideSaDeskLatch
 
     public static void Publish(bool active, string pulse, string? verdict = null)
     {
-        // SoftFL: even FileShare overwrite can stall the MCP thread when Glass locks the latch.
-        // Queue disk I/O — agent SoftBoard/citizen must return without waiting on Glass.
-        // Tests (RootOverrideForTests) stay sync for determinism.
+        // SoftFL lived: Publish (even Task.Run + FileShare) correlated with MCP timeout on go=sa_desk.
+        // Dig: SoftBoard stub OK · PulseOnly without Publish OK · with Publish hung. Glass holds
+        // sa-desk-LATEST.json. Tests still write under RootOverrideForTests.
         var pulseLine = string.IsNullOrWhiteSpace(pulse) ? "sa_desk · idle" : pulse.Trim();
         var verdictTrim = string.IsNullOrWhiteSpace(verdict) ? null : verdict.Trim();
         var doc = new SaDeskLatchDoc
@@ -56,26 +56,15 @@ internal static class CideSaDeskLatch
             ChromeHint = active ? pulseLine : null
         };
         var json = JsonSerializer.Serialize(doc, JsonOpts);
-        if (RootOverrideForTests is not null)
-        {
-            try
-            {
-                Directory.CreateDirectory(StateRoot);
-                TryWriteLatchAtomic(json);
-            }
-            catch { /* best-effort */ }
-            return;
-        }
+        if (RootOverrideForTests is null)
+            return; // production: skip Glass-contended latch write
 
-        _ = Task.Run(() =>
+        try
         {
-            try
-            {
-                Directory.CreateDirectory(StateRoot);
-                TryWriteLatchAtomic(json);
-            }
-            catch { /* best-effort */ }
-        });
+            Directory.CreateDirectory(StateRoot);
+            TryWriteLatchAtomic(json);
+        }
+        catch { /* best-effort */ }
     }
 
     static void TryWriteLatchAtomic(string json)
