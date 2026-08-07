@@ -40,29 +40,42 @@ internal static class CideSaDeskLatch
 
     public static void Publish(bool active, string pulse, string? verdict = null)
     {
-        try
+        // SoftFL: even FileShare overwrite can stall the MCP thread when Glass locks the latch.
+        // Queue disk I/O — agent SoftBoard/citizen must return without waiting on Glass.
+        // Tests (RootOverrideForTests) stay sync for determinism.
+        var pulseLine = string.IsNullOrWhiteSpace(pulse) ? "sa_desk · idle" : pulse.Trim();
+        var verdictTrim = string.IsNullOrWhiteSpace(verdict) ? null : verdict.Trim();
+        var doc = new SaDeskLatchDoc
         {
-            Directory.CreateDirectory(StateRoot);
-            var pulseLine = string.IsNullOrWhiteSpace(pulse) ? "sa_desk · idle" : pulse.Trim();
-            var doc = new SaDeskLatchDoc
+            Schema = Schema,
+            Origin = OriginAgent,
+            StampedUtc = DateTimeOffset.UtcNow,
+            Active = active,
+            Pulse = pulseLine,
+            Verdict = verdictTrim,
+            ChromeHint = active ? pulseLine : null
+        };
+        var json = JsonSerializer.Serialize(doc, JsonOpts);
+        if (RootOverrideForTests is not null)
+        {
+            try
             {
-                Schema = Schema,
-                Origin = OriginAgent,
-                StampedUtc = DateTimeOffset.UtcNow,
-                Active = active,
-                Pulse = pulseLine,
-                Verdict = string.IsNullOrWhiteSpace(verdict) ? null : verdict.Trim(),
-                ChromeHint = active ? pulseLine : null
-            };
-            var json = JsonSerializer.Serialize(doc, JsonOpts);
-            // SoftFL: File.Move(overwrite) can block forever when Glass holds the latch open.
-            // Bounded replace + drop orphan tmp — never hang citizen/cockpit MCP.
-            TryWriteLatchAtomic(json);
+                Directory.CreateDirectory(StateRoot);
+                TryWriteLatchAtomic(json);
+            }
+            catch { /* best-effort */ }
+            return;
         }
-        catch
+
+        _ = Task.Run(() =>
         {
-            /* best-effort */
-        }
+            try
+            {
+                Directory.CreateDirectory(StateRoot);
+                TryWriteLatchAtomic(json);
+            }
+            catch { /* best-effort */ }
+        });
     }
 
     static void TryWriteLatchAtomic(string json)
