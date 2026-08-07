@@ -10,7 +10,8 @@ internal static partial class IdeIgniteArmHost
     /// <summary>
     /// Continuity arm for the current TM leaf. Stable id so the next leaf supersedes the prior.
     /// Short timer so the shot lands after the agent ends the take/done turn (not mid-Stop).
-    /// Invent-only Hold uses 15m — DIG REJECT mill ≠ 2s/3m Recover thrash (same family as last_once softener).
+    /// Invent-only Hold uses 15m + last_once — DIG REJECT mill ≠ 2s/3m Recover thrash;
+    /// last_once matches agent re-ARM ritual (lived: post-fire leaf-wake last_once=false → manual supersede).
     /// </summary>
     public static object ArmForLeaf(string taskTitle, string reason)
     {
@@ -31,6 +32,7 @@ internal static partial class IdeIgniteArmHost
             ["task"] = JsonSerializer.SerializeToElement(title),
             ["id"] = JsonSerializer.SerializeToElement(LeafWakeArmId),
             ["once"] = JsonSerializer.SerializeToElement(true),
+            ["last_once"] = JsonSerializer.SerializeToElement(inventOnlyHold),
             ["charge"] = JsonSerializer.SerializeToElement("minimal"),
             ["settle_seconds"] = JsonSerializer.SerializeToElement(1),
             ["force"] = JsonSerializer.SerializeToElement(true)
@@ -57,8 +59,8 @@ internal static partial class IdeIgniteArmHost
         if (inventOnlyHold)
         {
             return autonomous
-                ? "Leaf continuity armed (15m invent-only Hold). DIG REJECT mill ≠ 2s/3m Recover thrash — AutoI is insurance if the thread dies, not a license to park."
-                : "Leaf continuity armed (15m invent-only Hold). End turn — AutoI fires wake for this leaf.";
+                ? "Leaf continuity armed (15m invent-only last_once Hold). DIG REJECT mill ≠ 2s/3m Recover thrash — AutoI is insurance if the thread dies, not a license to park."
+                : "Leaf continuity armed (15m invent-only last_once Hold). End turn — AutoI fires wake for this leaf.";
         }
 
         return autonomous
