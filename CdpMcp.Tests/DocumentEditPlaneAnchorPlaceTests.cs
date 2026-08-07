@@ -222,4 +222,65 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
         Assert.Contains("KeepMe", fx.Text, StringComparison.Ordinal);
     }
 
+    const string LargeKeepMeBody =
+        """
+        namespace Fixture;
+
+        internal static class SceneMap
+        {
+            public static void KeepMe()
+            {
+                var a = 1;
+                var b = 2;
+                var c = 3;
+                var d = 4;
+                var e = 5;
+                var f = 6;
+            }
+        }
+        """;
+
+    [Fact]
+    public async Task Place_replace_large_member_tiny_body_refuses_adx_hx_002()
+    {
+        await using var fx = await AnchorFixture.CreateAsync(LargeKeepMeBody);
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            fx.EditAnchorAsync(
+                place: "replace",
+                text: "    public static void Tiny() { }\n"));
+        Assert.Contains("ADX-HX-002", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("KeepMe", fx.Text, StringComparison.Ordinal);
+        Assert.Contains("var a = 1;", fx.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Place_replace_large_member_force_allows_wipe()
+    {
+        await using var fx = await AnchorFixture.CreateAsync(LargeKeepMeBody);
+        var json = await fx.EditAnchorAsync(
+            place: "replace",
+            text: "    public static void Forced()\n    {\n    }\n",
+            force: true);
+
+        Assert.Contains("\"place\": \"replace\"", json, StringComparison.Ordinal);
+        Assert.Contains("Forced", fx.Text, StringComparison.Ordinal);
+        Assert.DoesNotContain("KeepMe", fx.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Place_replace_with_old_string_patches_in_locus()
+    {
+        await using var fx = await AnchorFixture.CreateAsync(LargeKeepMeBody);
+        var json = await fx.EditAnchorAsync(
+            place: "replace",
+            text: "var a = 99;",
+            oldString: "var a = 1;");
+
+        Assert.Contains("\"place\": \"in_locus\"", json, StringComparison.Ordinal);
+        Assert.Contains("var a = 99;", fx.Text, StringComparison.Ordinal);
+        Assert.Contains("KeepMe", fx.Text, StringComparison.Ordinal);
+        Assert.Contains("var b = 2;", fx.Text, StringComparison.Ordinal);
+        Assert.DoesNotContain("var a = 1;", fx.Text, StringComparison.Ordinal);
+    }
+
 }

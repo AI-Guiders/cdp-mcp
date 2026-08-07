@@ -1,4 +1,4 @@
-﻿using Xunit;
+using Xunit;
 using System.Text.Json;
 using Cdp.Core;
 
@@ -73,7 +73,12 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
             return Task.FromResult(fx);
         }
 
-        public async Task<string> EditAnchorAsync(string? place, string text, string? anchor = null)
+        public async Task<string> EditAnchorAsync(
+            string? place,
+            string text,
+            string? anchor = null,
+            string? oldString = null,
+            bool force = false)
         {
             var fileName = System.IO.Path.GetFileName(Path);
             var args = new Dictionary<string, object?>
@@ -81,13 +86,17 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
                 ["op"] = "edit",
                 ["path"] = Path,
                 ["edit_op"] = "anchor",
-                ["anchor"] = anchor ?? $"[F:{fileName};M:KeepMe]",
+                ["anchor"] = anchor ?? string.Format("[F:{0};M:KeepMe]", fileName),
                 ["text"] = text,
                 ["diagnose"] = false,
                 ["flush"] = true,
             };
             if (place is not null)
                 args["place"] = place;
+            if (oldString is not null)
+                args["old_string"] = oldString;
+            if (force)
+                args["force"] = true;
             return await DocumentEditPlane.DispatchAsync("cdp_buffer", _store, _session, _byDomain, ToJsonArgs(args), CancellationToken.None);
         }
 

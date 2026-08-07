@@ -84,6 +84,33 @@ internal static partial class DocumentEditPlane
                 detail = target.Detail;
             }
 
+            // SoftFL (lived UnbindLifecycle wipe 2026-08-07): old_string= with M: must patch
+            // inside the locus — never ignore old_string while place=replace eats the member.
+            var oldInLocus = OptString(args, "old_string");
+            if (oldInLocus is { Length: > 0 } && place is "replace")
+            {
+                store.ApplyReplaceInRange(
+                    buf,
+                    range.LineStart, range.ColumnStart, range.LineEnd, range.ColumnEnd,
+                    oldInLocus, replacement);
+                return new
+                {
+                    family = "csharp",
+                    wire = BracketLocate.Format(span),
+                    resolve = detail + "+old_string",
+                    place = "in_locus",
+                    range = new
+                    {
+                        start_line = range.LineStart,
+                        start_column = range.ColumnStart,
+                        end_line = range.LineEnd,
+                        end_column = range.ColumnEnd
+                    }
+                };
+            }
+
+            RefuseLargeMemberReplaceWipe(args, place, span, range, replacement, buf.Text);
+
             var applyPlace = place is "into" ? "before" : place is "end" ? "after" : place;
             ApplyPlacedRange(
                 store, buf, applyPlace,
@@ -179,6 +206,58 @@ internal static partial class DocumentEditPlane
                 $"Unknown place='{raw}' for edit_op=anchor — use before|after|into|end|replace.")
         };
     }
+    /// <summary>
+    /// SoftFL ADX-HX-002: bare <c>place=replace</c> on a large M: locus without <c>T:</c>/<c>old_string=</c>
+    /// silently wipes the member when agents pass a tiny patch body (lived UnbindLifecycle).
+    /// </summary>
+    static void RefuseLargeMemberReplaceWipe(
+        IReadOnlyDictionary<string, JsonElement> args,
+        string place,
+        BracketLocate.Span span,
+        BracketSyntaxResolve.TextRange range,
+        string replacement,
+        string bufferText)
+    {
+        _ = bufferText;
+        if (place is not "replace")
+            return;
+        if (!string.IsNullOrWhiteSpace(span.TextNeedle))
+            return;
+        if (BoolOr(args, "force", defaultValue: false))
+            return;
+
+        var locusLines = range.LineEnd - range.LineStart + 1;
+        if (locusLines < 6)
+            return;
+
+        var bodyLines = CountBodyLines(replacement);
+        // Tiny patch vs multi-line member = crook (2 lines into ~70-line UnbindLifecycle).
+        if (bodyLines * 2 >= locusLines)
+            return;
+
+        throw new InvalidOperationException(
+            $"Refusing place=replace on large M: locus ({locusLines} lines → {bodyLines} lines) without old_string= (ADX-HX-002). " +
+            "This overwrites the whole member — lived UnbindLifecycle wipe. " +
+            "Pass old_string= for in-locus patch, T: needle, or force=true for intentional full rewrite.");
+    }
+
+    static int CountBodyLines(string s)
+    {
+        if (string.IsNullOrEmpty(s))
+            return 0;
+        var n = 1;
+        for (var i = 0; i < s.Length; i++)
+        {
+            if (s[i] == '\n')
+                n++;
+        }
+
+        // Trailing newline does not add an empty visual line for this guard.
+        if (s.EndsWith('\n'))
+            n--;
+        return Math.Max(0, n);
+    }
+
 
     /// <summary>
     /// Body-interior places, or type/namespace where before|after mean "first/last member inside".
