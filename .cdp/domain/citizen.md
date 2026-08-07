@@ -72,6 +72,7 @@
 
 ## last_ship
 
+- **2026-08-07 sa_desk latch async SoftFL SHIPPED** — FileShare latch still hung live `go=sa_desk`; densest: SoftBoard waited on Glass I/O in `CideSaDeskLatch.Publish`. Ship: `Task.Run` fire-and-forget (`5326adb`); sync under test override. SoftFL invent REJECT · Face=operator.
 - **2026-08-07 sa_desk hang SoftFL SHIPPED** — lived MCP timeout on `@intent sa` / `go=sa_desk`. Dig: densest tip = `CideSaDeskLatch` `File.Move` blocked on Glass-locked latch (orphan `.tmp`); also MetaDispatch sync-over-async + default slim. Ship: non-blocking latch write · RunSa direct HandleJson · depth/go_detail→pulse · slim `-uno`. SoftFL invent REJECT · Face=operator.
 - **2026-08-07 bare sa locus SoftFL SHIPPED** — lived dig: `@intent sa` → `path=sa` pulse `sa_desk · leave · 0w/0f` (ExtractSaPositionalToken treated bare `sa` as locus). Ship: bare `sa` → null positional. CitizenIntentRouterTests **16/16**. SoftFL invent REJECT.
 - **2026-08-07 kb exclusive-tool facet SoftFL SHIPPED** — lived dig: `@intent kb findings|failures|health|memory_health` → `kb_tool_unknown` pulse `kb memory_world … unknown` (tool head skips bare-facet; facet defaulted world). Ship: exclusive tools remap → self_finding / self_failure / session (same class as search_* / task). CitizenKbHostTests **56/56**. SoftFL invent REJECT.
