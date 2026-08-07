@@ -9,11 +9,19 @@ internal static partial class IdeIgniteArmHost
     /// <summary>
     /// Plain continuity timers only — remount/OOM/HILD/event wakes stay off habitat prefer.
     /// Remount + HILD escalate/away + OOM + tool-wake still Intercom-mirror (see MirrorTimerWakeToIntercom).
+    /// Intercom voice cannon (intercom-pf-*) must stay Composer/CDT: external guest @Kir/@guest
+    /// must not silent-steal to habitat when Sierra·PF is duplex busy (lived 2026-08-07).
     /// </summary>
     internal static bool MayPreferHabitatOverComposer(IgniteArm arm) =>
         string.Equals(arm.Event, "timer", StringComparison.OrdinalIgnoreCase)
         && !IsSystemWakeArmId(arm.Id)
+        && !IsIntercomVoiceCannonArmId(arm.Id)
         && !IsEventTriggeredArm(arm.Event);
+
+    /// <summary>Human→PF Intercom cannon arms — Guest Autoi CDT only (not habitat prefer).</summary>
+    internal static bool IsIntercomVoiceCannonArmId(string? id) =>
+        !string.IsNullOrWhiteSpace(id)
+        && id.StartsWith(IntercomVoiceCannonState.ArmIdPrefix, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Duplex partner (PF) actively in habitat — busy|composing after effective stale.
