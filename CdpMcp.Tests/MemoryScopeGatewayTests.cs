@@ -55,4 +55,31 @@ public sealed class MemoryScopeGatewayTests
             new Dictionary<string, JsonElement>());
         Assert.Equal("worlds", args["subdir"].GetString());
     }
+
+    [Fact]
+    public void List_path_dot_maps_to_subdir_hub_no_worlds_inject()
+    {
+        var gw = new MemoryScopeGateway("memory_world", ["worlds", "META", "."]);
+        var args = gw.Apply(
+            "list_knowledge_files",
+            new Dictionary<string, JsonElement>
+            {
+                ["path"] = JsonSerializer.SerializeToElement(".")
+            });
+        Assert.Equal(".", args["subdir"].GetString());
+        Assert.Equal(".", args["path"].GetString());
+    }
+
+    [Fact]
+    public void List_subdir_dot_keeps_hub_no_worlds_inject()
+    {
+        var gw = new MemoryScopeGateway("memory_world", ["worlds", "META", "."]);
+        var args = gw.Apply(
+            "list_knowledge_files",
+            new Dictionary<string, JsonElement>
+            {
+                ["subdir"] = JsonSerializer.SerializeToElement(".")
+            });
+        Assert.Equal(".", args["subdir"].GetString());
+    }
 }
