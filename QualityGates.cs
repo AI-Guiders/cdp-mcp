@@ -161,6 +161,8 @@ internal static partial class QualityGates
         method_lines_warn = p.MethodLinesWarn,
         method_lines_fail = p.MethodLinesFail,
         suggest_sniper_file_lines = p.SuggestSniperFileLines,
+        partial_family_files_warn = p.PartialFamilyFilesWarn,
+        partial_family_files_fail = p.PartialFamilyFilesFail,
         source = p.Source
     };
 

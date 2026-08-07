@@ -72,6 +72,8 @@ internal static partial class QualityGates
             MethodLinesWarn = g.MethodLinesWarn ?? basePolicy.MethodLinesWarn,
             MethodLinesFail = g.MethodLinesFail ?? basePolicy.MethodLinesFail,
             SuggestSniperFileLines = g.SuggestSniperFileLines ?? basePolicy.SuggestSniperFileLines,
+            PartialFamilyFilesWarn = g.PartialFamilyFilesWarn ?? basePolicy.PartialFamilyFilesWarn,
+            PartialFamilyFilesFail = g.PartialFamilyFilesFail ?? basePolicy.PartialFamilyFilesFail,
             Source = source
         };
     }
@@ -100,6 +102,8 @@ internal static partial class QualityGates
         int MethodLinesWarn,
         int MethodLinesFail,
         int SuggestSniperFileLines,
+        int PartialFamilyFilesWarn,
+        int PartialFamilyFilesFail,
         string Source)
     {
         public static QualityPolicy Defaults { get; } = new(
@@ -110,6 +114,8 @@ internal static partial class QualityGates
             MethodLinesWarn: 80,
             MethodLinesFail: 150,
             SuggestSniperFileLines: 200,
+            PartialFamilyFilesWarn: 4,
+            PartialFamilyFilesFail: 0,
             Source: "defaults");
     }
 
@@ -143,5 +149,7 @@ internal static partial class QualityGates
         public int? MethodLinesWarn { get; set; }
         public int? MethodLinesFail { get; set; }
         public int? SuggestSniperFileLines { get; set; }
+        public int? PartialFamilyFilesWarn { get; set; }
+        public int? PartialFamilyFilesFail { get; set; }
     }
 }

@@ -101,6 +101,13 @@ internal static partial class QualityGates
                 list.Add(worstMethod);
         }
 
+        var familyHit = TryPartialFamilyFinding(buf.Path, policy, p =>
+            string.Equals(p, buf.Path, StringComparison.OrdinalIgnoreCase)
+                ? lines
+                : QuietLineCount(p));
+        if (familyHit is not null)
+            list.Add(familyHit);
+
         if (string.Equals(policy.Mode, "warn", StringComparison.OrdinalIgnoreCase))
         {
             for (var i = 0; i < list.Count; i++)

@@ -47,6 +47,7 @@ internal static partial class QualityGates
         var findings = new List<QualityFinding>();
         var scanned = 0;
 
+        var seenFamilies = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var path in EnumerateCsFiles(projectRoot))
         {
             scanned++;
@@ -57,6 +58,14 @@ internal static partial class QualityGates
             var hit = ClassifyDiskFile(path, lines, policy, nearFloor);
             if (hit is not null)
                 findings.Add(hit);
+
+            var stem = PartialFamilyStem(path);
+            if (seenFamilies.Add(stem))
+            {
+                var familyHit = TryPartialFamilyFinding(path, policy, QuietLineCount);
+                if (familyHit is not null)
+                    findings.Add(familyHit);
+            }
         }
 
         findings.Sort((a, b) =>
