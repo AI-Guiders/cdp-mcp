@@ -8,6 +8,22 @@ internal static partial class CitizenIntentRouter
     static Route RouteKb(string raw)
     {
         var work = StripKbHead(raw);
+        var facetHint = ExtractKeyedValue(work, "facet") ?? ExtractKeyedValue(work, "server");
+        string? facet;
+        if (!string.IsNullOrWhiteSpace(facetHint))
+        {
+            facet = ResolveKbFacet(facetHint);
+            if (facet is null)
+                return new Route(Verb.Kb, raw, Ok: false, Op: null, Go: "kb", Reason: "kb_facet_unknown");
+        }
+        else
+        {
+            // Lived SoftFL: "kb memory_session memory_health" → bare memory_session ignored,
+            // facet defaulted world → kb_tool_unknown (pulse memory_world … unknown).
+            work = TryConsumeBareFacetToken(work, out facet);
+            facet ??= Cdp.Core.CdpDomains.MemoryWorld;
+        }
+
         // Prefer positional known tool — keyed tool=/op= is often an ARG
         // (e.g. failure_record tool=cdp_test; man tool=findings). SoftFL invent when arg steals Op.
         string? positional = null;
@@ -24,11 +40,6 @@ internal static partial class CitizenIntentRouter
 
         var keyed = ExtractKeyedValue(work, "tool") ?? ExtractKeyedValue(work, "op");
         var tool = !string.IsNullOrWhiteSpace(positional) ? positional : keyed;
-
-        var facetHint = ExtractKeyedValue(work, "facet") ?? ExtractKeyedValue(work, "server");
-        var facet = ResolveKbFacet(facetHint);
-        if (facet is null)
-            return new Route(Verb.Kb, raw, Ok: false, Op: tool, Go: "kb", Reason: "kb_facet_unknown");
 
         var freeQuery = ExtractKeyedValue(work, "query") ?? ExtractKeyedValue(work, "q");
         if (string.IsNullOrWhiteSpace(tool) && !string.IsNullOrWhiteSpace(freeQuery))
@@ -100,7 +111,34 @@ internal static partial class CitizenIntentRouter
         return false;
     }
 
-    static string StripKbHead(string raw)
+/// <summary>Bare facet after kb head (memory_session|session|…) — not a tool token.</summary>
+    static string TryConsumeBareFacetToken(string work, out string? facet)
+    {
+        facet = null;
+        if (string.IsNullOrWhiteSpace(work))
+            return work;
+
+        var tokens = work.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (tokens.Length == 0)
+            return work;
+
+        var head = tokens[0];
+        if (head.Contains('=', StringComparison.Ordinal))
+            return work;
+        if (IsAnyKbToolToken(head))
+            return work;
+
+        var resolved = ResolveKbFacet(head);
+        // ResolveKbFacet(null/blank) → world; blank head already refused above.
+        // Unknown alias → null — leave work unchanged.
+        if (resolved is null)
+            return work;
+
+        facet = resolved;
+        return tokens.Length == 1 ? "" : string.Join(' ', tokens[1..]);
+    }
+
+        static string StripKbHead(string raw)
     {
         if (raw.StartsWith("kb ", StringComparison.OrdinalIgnoreCase))
             return raw[3..].Trim();
