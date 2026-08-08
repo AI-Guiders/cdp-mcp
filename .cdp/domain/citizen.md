@@ -82,6 +82,7 @@
 
 ## last_ship
 
+- **2026-08-09 SoftFL densify CitizenIntentRouter RouteOne Desk+OrgansA tables** — Equals theater → `MatchesIntent` + organ Compounds SSOT (`RouteOne.Desk.Tables` / `RouteOne.OrgansA.Tables`); SoftOrgan invent REJECT. Verify: build ok · Desk/OrgansA host filter **118/118**. Family lines ↓ (~9.8k→~9.6k). Next: Host contour gates A→B (parked after this techdebt); leave Sierra SoftFL `@all` alone.
 - **2026-08-09 SoftFL ACCEPT densify intercom wipe_journal (not Citizen Done)** — lived clean-slate: Face Virtual History (`intercom.witdb`) had no wipe verb; operator asked clear human chat too. Ship: `IntercomJournalStore.WipeAll` · `CideIntercomVoiceLatch.WipeJournal` · `cdp_intercom op=wipe_journal` · test WipeJournal_clears. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Done REOPENED.
 
 - **2026-08-09 SoftFL ACCEPT densify invent-take rewrite (not Citizen Done)** — lived Glass shot: Sierra loops `take GlassIntercom.cs`; mentor `@intent take` tip stripped by `StripWire` on Face → Completions never sees PASTE. Ship: `RewriteInventedTakePath` · RouteTake + Take args prefer leaf · tests CitizenLeafPathRewrite. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Done REOPENED.
