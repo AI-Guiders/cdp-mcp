@@ -26,6 +26,19 @@ public sealed class CitizenInventedHandsTests
     }
 
     [Fact]
+    public void TryRecoverRoutes_normalizes_invented_desk_layout_to_presentation_set()
+    {
+        var routes = CitizenInventedHands.TryRecoverRoutes(
+            "Переключаю топологию.\n\nСделала: desk layout=\"(P/M)(F)\"");
+
+        Assert.Single(routes);
+        Assert.True(routes[0].Ok);
+        Assert.Contains("presentation_set", routes[0].Raw, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("(P/M)(F)", routes[0].Raw, StringComparison.Ordinal);
+    }
+
+
+    [Fact]
     public void TryProcessOnce_recovers_invented_find_hands_and_arms_peer_ready()
     {
         var root = Path.Combine(Path.GetTempPath(), "cdp-invented-hands-" + Guid.NewGuid().ToString("N")[..8]);
