@@ -104,9 +104,9 @@ internal static partial class CitizenRouteHost
             ["flush"] = JsonSerializer.SerializeToElement(true)
         };
 
-        // Prefer Route.Path (already RewriteInventedTakePath) over raw path= invent sibling.
+        // Prefer Route.Path (paste-verified in RouteTake) over raw path=.
         PutIfPresent(args, "path", route.Path
-            ?? CitizenResultWake.RewriteInventedTakePath(CitizenIntentRouter.ExtractKeyedValue(route.Raw, "path")));
+            ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "path"));
         PutIfPresent(args, "anchor",
             CitizenIntentRouter.ExtractKeyedValue(route.Raw, "anchor")
             ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "at")

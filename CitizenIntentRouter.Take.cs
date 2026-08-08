@@ -8,7 +8,19 @@ internal static partial class CitizenIntentRouter
     static Route RouteTake(string raw)
     {
         var path = ExtractKeyedValue(raw, "path") ?? ExtractPath(raw);
-        path = CitizenResultWake.RewriteInventedTakePath(path);
+        if (!CitizenResultWake.TryPasteVerifyTakePath(path, out var verified, out var refuse))
+        {
+            return new Route(
+                Verb.Take,
+                raw,
+                Ok: false,
+                Op: "take",
+                Path: verified,
+                Reason: refuse,
+                Go: "buffer");
+        }
+
+        path = verified;
         var anchor = ExtractKeyedValue(raw, "anchor") ?? ExtractKeyedValue(raw, "at") ?? ExtractKeyedValue(raw, "from");
         var sniper = ExtractKeyedValue(raw, "sniper");
         var useSniper = string.Equals(sniper, "true", StringComparison.OrdinalIgnoreCase)

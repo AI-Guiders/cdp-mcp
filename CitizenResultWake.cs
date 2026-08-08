@@ -21,25 +21,81 @@ internal static class CitizenResultWake
     public const string LeafTakeIntent =
         "@intent take path=\"" + LeafTakePath + "\" start_line=60 end_line=120";
 
+    /// <summary>Host gate A1: quotes + slash + known junction mangles (not Persona prose).</summary>
+    public static string NormalizeTakePath(string path)
+    {
+        var p = path.Trim().Trim('"', '\'');
+        foreach (var (from, to) in JunctionAliases)
+            p = p.Replace(from, to, StringComparison.OrdinalIgnoreCase);
+        p = p.Replace('\\', '/');
+        return p;
+    }
+
+    static readonly (string From, string To)[] JunctionAliases =
+    [
+        ("Personal_Cursor_Folder", "Personal Cursor Folder"),
+        ("PersonalCursorFolder", "Personal Cursor Folder"),
+        ("Personal_Cursor_Fol/", "Personal Cursor Folder/"),
+        ("Personal_Cursor_Fol\\", "Personal Cursor Folder/"),
+    ];
+
+    /// <summary>Known invent siblings Completions copies instead of PASTE LeafTakeIntent.</summary>
+    public static bool IsInventedLeafSibling(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return false;
+        var file = Path.GetFileName(NormalizeTakePath(path));
+        return file.Equals("GlassIntercomMention.cs", StringComparison.OrdinalIgnoreCase)
+            || file.Equals("GlassIntercom.cs", StringComparison.OrdinalIgnoreCase)
+            || file.Equals("GlassIntercomHost.cs", StringComparison.OrdinalIgnoreCase)
+            || file.Equals("CascadeIDE.cs", StringComparison.OrdinalIgnoreCase)
+            || file.StartsWith("CitizenRouteHost", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public const string PasteVerifyRefuseReason =
+        "paste_verify_leaf — invent basename refused; PASTE exactly: "
+        + LeafTakeIntent
+        + " · dig=@intent files|disk_peek before retry (host gate A1; rewrite thrash REJECT)";
+
     /// <summary>
-    /// SoftFL: FM invents GlassIntercom.cs / CascadeIDE.cs / CitizenRouteHost* / bare Mention.
-    /// StripWire also eats mentor @intent tips on Glass Face — host rewrite is the densify.
+    /// Host gate A1 paste-verify: LeafTakePath match (normalized) OK; invent sibling → refuse;
+    /// other paths pass (non-leaf takes). Silent RewriteInventedTakePath thrash REJECT.
+    /// </summary>
+    public static bool TryPasteVerifyTakePath(string? path, out string? normalized, out string? refuseReason)
+    {
+        refuseReason = null;
+        normalized = path;
+        if (string.IsNullOrWhiteSpace(path))
+            return true;
+
+        var p = NormalizeTakePath(path);
+        normalized = p;
+        if (p.Equals(LeafTakePath, StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = LeafTakePath;
+            return true;
+        }
+
+        if (IsInventedLeafSibling(p))
+        {
+            refuseReason = PasteVerifyRefuseReason;
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Legacy SoftFL name — normalize only; invent siblings no longer silent-map to leaf (use TryPasteVerifyTakePath).
     /// </summary>
     public static string? RewriteInventedTakePath(string? path)
     {
         if (string.IsNullOrWhiteSpace(path))
             return path;
-        var p = path.Trim().Trim('"', '\'');
+        var p = NormalizeTakePath(path);
         if (p.Equals(LeafTakePath, StringComparison.OrdinalIgnoreCase))
-            return p;
-        var file = Path.GetFileName(p.Replace('\\', '/'));
-        if (file.Equals("GlassIntercomMention.cs", StringComparison.OrdinalIgnoreCase)
-            || file.Equals("GlassIntercom.cs", StringComparison.OrdinalIgnoreCase)
-            || file.Equals("GlassIntercomHost.cs", StringComparison.OrdinalIgnoreCase)
-            || file.Equals("CascadeIDE.cs", StringComparison.OrdinalIgnoreCase)
-            || file.StartsWith("CitizenRouteHost", StringComparison.OrdinalIgnoreCase))
             return LeafTakePath;
-        return path;
+        return p;
     }
 
     public const string PeerReadyCharge =
