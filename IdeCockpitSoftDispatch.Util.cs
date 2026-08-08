@@ -16,8 +16,9 @@ internal static partial class IdeCockpitSoftDispatch
 
     static void PlaceAndClear(ref string? goVerb, string organ)
     {
+        // Soft organ / webcam desk pin ≠ human Face — do not steal browser show WebAi.
         if (IdeDeskSeats.IsSeatsMode())
-            IdeDeskSeats.PlaceOrgan(organ);
+            IdeDeskSeats.PlaceOrgan(organ, showFace: false);
         goVerb = null;
     }
 
