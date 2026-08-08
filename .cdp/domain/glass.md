@@ -10,6 +10,7 @@
 - Topology compose inside `(…)`: `+` = spatial **split** (both visible); `/` = **OneOf** XOR (full TopLevel, role switches). Example `(P/M)(F)` ≠ `(P+M)(F)`. OneOf DoD = chord **and** auto-switch. Canon: cascade-ide `docs/design/topology-oneof-slash-v0.md`. **Shipped:** parser+flags+Glass `pm_oneof_host` · chord `po` · auto M←MFD/seats · P←plan latch.
 - CDP habitat = SSOT; Glass = projector (ADR-0021 Windows-first WPF).
 - Quiet SoftOrgan seats republish = chrome tip only; `show_face` (PlaceOrgan / Citizen go) = human attention — BringCabin + SelectMfd when mfd_page, Prefer P when face_seat=p.
+- Quiet `land-LATEST` default (`show_face=false`) = Agent-Side tip only; Face AvalonEdit + PreferSurface only on land/presentation invite (`show_face=true` / Command:show). Disk reload of open editor is quiet (no SelectMfd steal).
 - Sticky `web_ai_url` may survive non-browser PlaceOrgan; Glass `RunWebAiPortal` only when Face/MFD targets browser (`SeatsWebAiNavigateGate` / `WantsWebAiNavigate`) — not on every `show_face`.
 - SoftOrgan chrome band ≠ EICAS: alert/qrh/ecl stay EICAS (not SoftOrganLatchCatalog).
 - `sa_desk` SoftOrgan → quiet chrome (`sa-desk-LATEST` / WorkspaceChromeBand) — not MFD `Problems`, not EICAS `go=sa`.
@@ -32,7 +33,7 @@
 
 ## Antipatterns
 
-- **Dual Input (Airbus sidestick)** — conflict on the **same** PreferSurface / `mfd_page` stick (both shove → wipe). Distinct from **desired dual-HCI**: Agent-Side and Human-Side may sit at different SSOT loci without 1:1 hard couple; `show`/`show_face` = invite, not automatic drag. **Gap (2026-08-09):** habitat still couples — one Glass PreferSurface XOR · `land-LATEST` → Human AvalonEdit open · Editor Face PreferSurface `m` · shared `presentation-LATEST`. SoftFL = build independent Agent-Side / Human-Side viewports + optional show, not stamp as invariant we already have.
+- **Dual Input (Airbus sidestick)** — conflict on the **same** PreferSurface / `mfd_page` stick (both shove → wipe). Distinct from **desired dual-HCI**: Agent-Side and Human-Side may sit at different SSOT loci without 1:1 hard couple; `show`/`show_face` = invite, not automatic drag. **SoftFL b1+b3 SHIPPED 2026-08-09:** quiet land default + presentation agent SelectMfd gated on `show_face` (human origin still may switch); topology still applies. Residual gap = true dual viewport / independent PreferSurface sticks (wave b4 later) — not stamp as fully closed habitat.
 - Fixing WebView2 airspace with WPF `Popup`/`AllowsTransparency` for cabin overlays — Popup HWND floats above other apps (GitHub/browser); park WebView2/VT instead.
 - Sticky `web_ai_url` + any `show_face` → `RunWebAiPortal` (Sierra message / find Face steals browser) — incomplete dual-mode SoftFL; gate navigate on browser Face/MFD only.
 - Stuffing alert/qrh into SoftOrgan band (tests explicitly ignore as EICAS bleed).
@@ -248,6 +249,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+
+- **2026-08-09 SoftFL dual-HCI land/presentation quiet (b1+b3 — not Glass Done)** — nested[axb] FULL-A: `land-LATEST` `show_face` default false · Glass LandSurface tip-only · `OpenCodeFile(showFace)` PreferSurface gate · Disk reload quiet · presentation `PresentationMaySelectMfd(origin,show_face,mfd)` · CDP `NavigationLand`/`CidePresentationLatch` show_face · Avalonia land/presentation projectors parity · tests NavigationLandLatch **3/3** · PresentationPmOneOfPolicy **16/16**. Residual b4 = true dual viewport. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Sierra densify `@all` not stolen (AllMention regex unblock only).
 
 - **2026-08-08 SoftFL ACCEPT densify ×3 Intercom/@Kir dup + topology Dialog + @ SlashPopup (Done REOPENED)** — dig=Света SoftFL. Cascade: FanOut `_seen` + `@` Suggest on SlashPopup. CDP: Dialog `presentation_set` + InventedHands desk layout recover. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD.
 
