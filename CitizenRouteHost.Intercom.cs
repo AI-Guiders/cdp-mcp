@@ -83,6 +83,10 @@ internal static partial class CitizenRouteHost
             ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "limit")
             ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "take")
             ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "n"));
+        PutIfPresent(args, "query",
+            CitizenIntentRouter.ExtractKeyedValue(route.Raw, "query")
+            ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "contains")
+            ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "q"));
         PutIntIfPresent(args, "ttl_s",
             CitizenIntentRouter.ExtractKeyedValue(route.Raw, "ttl_s")
             ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "ttl"));

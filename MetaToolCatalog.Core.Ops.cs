@@ -81,7 +81,7 @@ internal static partial class MetaToolCatalog
             page = new { type = "string", description = "alias of mfd_page" }
         }
     }),
-    Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack|history|presence|identity. send to=pm body= [channel=crew|radio|dm] [name=] → latch+journal (Face rail filter); name= claims sticky Who. NorthStar: #crew · Radio · DM. Alias go=intercom.", new
+    Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack|history|presence|identity. send to=pm body= [channel=crew|radio|dm] [name=] → latch+journal (Face rail filter); name= claims sticky Who. history limit= [query=|contains=|q=] searches journal body+name. NorthStar: #crew · Radio · DM. Alias go=intercom.", new
     {
         type = "object",
         properties = new
@@ -100,7 +100,10 @@ internal static partial class MetaToolCatalog
             kind = new { type = "string", description = "send/identity: guest|citizen|operator" },
             action = new { type = "string", description = "identity: get|set|clear (default get)" },
             id = new { type = "string", description = "ack: optional message id" },
-            limit = new { type = "integer", description = "history: last N messages (default 20, max 200)" },
+            limit = new { type = "integer", description = "history: last N messages (default 20, max 200); with query= = max hits" },
+            query = new { type = "string", description = "history: contains search on body+name (aliases contains=|q=)" },
+            contains = new { type = "string", description = "history: alias of query=" },
+            q = new { type = "string", description = "history: alias of query=" },
             seat = new { type = "string", description = "presence/identity: pf|pm (default pf)" },
             state = new { type = "string", description = "presence: idle|composing|busy" },
             status = new { type = "string", description = "presence: alias of state" },

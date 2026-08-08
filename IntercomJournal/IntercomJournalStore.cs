@@ -85,6 +85,41 @@ public static class IntercomJournalStore
         }
     }
 
+    /// <summary>Body/name contains (OrdinalIgnoreCase). Empty query → <see cref="LoadTail"/>.</summary>
+    public static IReadOnlyList<IntercomJournalRow> SearchContains(string stateRoot, string? query, int limit = 40)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return LoadTail(stateRoot, limit);
+
+        if (limit < 1) limit = 1;
+        if (limit > 500) limit = 500;
+        if (string.IsNullOrWhiteSpace(stateRoot))
+            return [];
+
+        var needle = query.Trim();
+        try
+        {
+            return WithDb(stateRoot, db =>
+            {
+                EnsureMigratedUnlocked(db, stateRoot);
+                return db.Entries.AsNoTracking()
+                    .OrderByDescending(x => x.StampedUtc)
+                    .AsEnumerable()
+                    .Where(x =>
+                        (!string.IsNullOrEmpty(x.Body) && x.Body.Contains(needle, StringComparison.OrdinalIgnoreCase))
+                        || (!string.IsNullOrEmpty(x.Name) && x.Name.Contains(needle, StringComparison.OrdinalIgnoreCase)))
+                    .Take(limit)
+                    .Reverse()
+                    .Select(FromEntity)
+                    .ToList();
+            });
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
     public static int Count(string stateRoot)
     {
         if (string.IsNullOrWhiteSpace(stateRoot))

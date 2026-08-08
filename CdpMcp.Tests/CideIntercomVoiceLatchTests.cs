@@ -280,6 +280,33 @@ public class CideIntercomVoiceLatchTests : IDisposable
         Assert.Equal(2, doc.RootElement.GetProperty("count").GetInt32());
         Assert.Equal("vh-two", doc.RootElement.GetProperty("entries")[1].GetProperty("body").GetString());
     }
+
+    [Fact]
+    public void History_query_filters_journal_by_body_contains()
+    {
+        Assert.NotNull(CideIntercomVoiceLatch.Publish(
+            "pm", "pf", "Я просила тебя сделаю @all", CideIntercomVoiceLatch.OriginHuman,
+            name: "Света", kind: "operator", channel: "crew"));
+        Assert.NotNull(CideIntercomVoiceLatch.Publish(
+            "pf", "pm", "noise other topic", CideIntercomVoiceLatch.OriginAgent,
+            name: "Sierra", kind: "citizen", channel: "crew"));
+
+        var hist = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("history"),
+            ["query"] = JsonSerializer.SerializeToElement("@all"),
+            ["limit"] = JsonSerializer.SerializeToElement(20)
+        });
+        using var doc = JsonDocument.Parse(hist);
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal("@all", doc.RootElement.GetProperty("query").GetString());
+        Assert.True(doc.RootElement.GetProperty("count").GetInt32() >= 1);
+        var bodies = doc.RootElement.GetProperty("entries").EnumerateArray()
+            .Select(e => e.GetProperty("body").GetString() ?? "")
+            .ToList();
+        Assert.Contains(bodies, b => b.Contains("@all", StringComparison.Ordinal));
+        Assert.DoesNotContain(bodies, b => b.Equals("noise other topic", StringComparison.Ordinal));
+    }
     [Fact]
     public void Publish_requires_durable_journal_not_latest_alone()
     {

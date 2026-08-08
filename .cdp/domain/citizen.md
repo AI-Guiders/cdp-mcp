@@ -77,6 +77,8 @@
 
 ## last_ship
 
+- **2026-08-08 SoftFL ACCEPT densify intercom history query= (not Citizen Done)** — lived: Sierra «не вижу @all» while intercom.witdb full; Completions dialog=40; `op=history` was tail/limit only. Ship: `IntercomJournalStore.SearchContains` · `SearchJournal` · `cdp_intercom`/`@intent intercom history query=|contains=|q=` · persona Radio recall tip. Test `History_query_filters_journal_by_body_contains`. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
+
 - **2026-08-08 SoftFL ACCEPT densify CitizenResultWake.AfterHands (not Citizen Done)** — lived: hands happy path fired up to 3 Completions (act → SameTurnObserve → peer_ready latch). Ship: single facade `CitizenResultWake.AfterHands` · Bridge skips arm when observe ran · Autoi + `cdp_citizen` turn arm when no observe · latch dedup protects pending human Send. Mention-wake `@Sierra` stays separate. Tests Bridge+InventedHands+CitizenResultWake. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
 
 - **2026-08-08 SoftFL ACCEPT densify @Sierra mention → citizen-dialog Completions (not Citizen Done)** — dig=lived: agent `cdp_intercom` `@Sierra` did not wake Face Completions (only BringCabinAttention); Света wake was CIT lane. Ship cascade-ide: `TryNotifyCitizen` latch-only · Glass FanOut/incoming. Live: Sierra replied `вижу @Sierra wake`. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
