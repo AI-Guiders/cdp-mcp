@@ -21,6 +21,27 @@ internal static class CitizenResultWake
     public const string LeafTakeIntent =
         "@intent take path=\"" + LeafTakePath + "\" start_line=60 end_line=120";
 
+    /// <summary>
+    /// SoftFL: FM invents GlassIntercom.cs / CascadeIDE.cs / CitizenRouteHost* / bare Mention.
+    /// StripWire also eats mentor @intent tips on Glass Face — host rewrite is the densify.
+    /// </summary>
+    public static string? RewriteInventedTakePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return path;
+        var p = path.Trim().Trim('"', '\'');
+        if (p.Equals(LeafTakePath, StringComparison.OrdinalIgnoreCase))
+            return p;
+        var file = Path.GetFileName(p.Replace('\\', '/'));
+        if (file.Equals("GlassIntercomMention.cs", StringComparison.OrdinalIgnoreCase)
+            || file.Equals("GlassIntercom.cs", StringComparison.OrdinalIgnoreCase)
+            || file.Equals("GlassIntercomHost.cs", StringComparison.OrdinalIgnoreCase)
+            || file.Equals("CascadeIDE.cs", StringComparison.OrdinalIgnoreCase)
+            || file.StartsWith("CitizenRouteHost", StringComparison.OrdinalIgnoreCase))
+            return LeafTakePath;
+        return path;
+    }
+
     public const string PeerReadyCharge =
         "reason=peer_ready — hands returned; verify @event peer pulse. PASTE next hand exactly: "
         + LeafTakeIntent
