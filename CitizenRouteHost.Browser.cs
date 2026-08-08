@@ -42,8 +42,22 @@ internal static partial class CitizenRouteHost
 
             var ok = TryReadBrowserOk(json);
             var pulse = TryReadBrowserPulse(json, op);
-            var faceUrl = TryReadBrowserFaceUrl(json, args);
-            var seat = IdeDeskSeats.PlaceOrgan("browser", faceUrl);
+            var wantFace = string.Equals(route.Detail, "face", StringComparison.OrdinalIgnoreCase)
+                || CitizenIntentRouter.WantBrowserFaceFlag(route.Raw)
+                || WantBrowserFaceArgs(args);
+            string? seat = null;
+            if (wantFace && op is "open" or "search" or "follow" or "goto" or "navigate")
+            {
+                var faceUrl = TryReadBrowserFaceUrl(json, args);
+                if (faceUrl is { Length: > 0 })
+                    seat = IdeDeskSeats.PlaceOrgan("browser", faceUrl);
+            }
+
+            // peer = Sierra lynx dig (default). face = operator WebAiPortal latch.
+            var modeBit = wantFace ? "face" : "peer";
+            pulse = string.IsNullOrWhiteSpace(pulse)
+                ? "browser " + modeBit
+                : pulse + " · " + modeBit;
             return new Applied(
                 route.Raw,
                 route.Verb.ToString(),
@@ -51,7 +65,7 @@ internal static partial class CitizenRouteHost
                 Action: "browser",
                 Seat: seat,
                 Go: "browser",
-                Pulse: pulse,
+                Pulse: TruncPulse(pulse, InventoryObservePulseMax),
                 Reason: ok ? null : (TryReadLifecycleError(json) ?? pulse ?? "browser_failed"));
         }
         catch (Exception ex)
@@ -78,6 +92,14 @@ internal static partial class CitizenRouteHost
             var val = ExtractMcpKeyed(raw, key);
             if (val is { Length: > 0 })
                 args[AliasBrowserKey(key)] = JsonSerializer.SerializeToElement(val);
+        }
+
+        // Face latch flags (not sent to lynx habitat — host PlaceOrgan gate).
+        foreach (var key in new[] { "face", "show", "share", "to" })
+        {
+            var val = ExtractMcpKeyed(raw, key);
+            if (val is { Length: > 0 })
+                args[key] = JsonSerializer.SerializeToElement(val);
         }
 
         // Prefer canonical keys when aliases collide.
@@ -118,6 +140,42 @@ internal static partial class CitizenRouteHost
         "url", "href", "uri", "q", "query", "text", "engine", "tab",
         "filter", "useragent", "link", "n", "ref"
     ];
+
+    /// <summary>MCP/citizen args: face|show|share|to=operator → Glass Face. Default peer dig skips PlaceOrgan.</summary>
+    internal static bool WantBrowserFaceArgs(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        foreach (var key in new[] { "face", "show", "share" })
+        {
+            if (!args.TryGetValue(key, out var el))
+                continue;
+            if (el.ValueKind == JsonValueKind.True)
+                return true;
+            if (el.ValueKind == JsonValueKind.String && IsTruthyBrowserFace(el.GetString()))
+                return true;
+        }
+
+        if (args.TryGetValue("to", out var toEl)
+            && toEl.ValueKind == JsonValueKind.String
+            && toEl.GetString() is { Length: > 0 } to
+            && (to.Equals("operator", StringComparison.OrdinalIgnoreCase)
+                || to.Equals("human", StringComparison.OrdinalIgnoreCase)
+                || to.Equals("face", StringComparison.OrdinalIgnoreCase)
+                || to.Equals("sveta", StringComparison.OrdinalIgnoreCase)
+                || to.Equals("света", StringComparison.OrdinalIgnoreCase)))
+            return true;
+
+        return false;
+    }
+
+    static bool IsTruthyBrowserFace(string? v) =>
+        v is { Length: > 0 }
+        && (v.Equals("true", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("1", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("yes", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("on", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("face", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("show", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("share", StringComparison.OrdinalIgnoreCase));
 
     static string AliasBrowserKey(string key) =>
         key switch

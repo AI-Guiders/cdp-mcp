@@ -97,7 +97,8 @@ public partial class CitizenCompletionsTests : IDisposable
         Assert.Contains("Named organs (HARD", built.System, StringComparison.Ordinal);
         Assert.Contains("domain card=id=", built.System, StringComparison.Ordinal);
         Assert.Contains("@intent browser", built.System, StringComparison.Ordinal);
-        Assert.Contains("sit-internet organ", built.System, StringComparison.Ordinal);
+        Assert.Contains("peer dig DEFAULT", built.System, StringComparison.Ordinal);
+        Assert.Contains("@intent browser show url=", built.System, StringComparison.Ordinal);
         Assert.Contains("IDE peer", built.System, StringComparison.Ordinal);
         Assert.Contains("@intent open path=", built.System, StringComparison.Ordinal);
         Assert.Contains("@intent project create", built.System, StringComparison.Ordinal);

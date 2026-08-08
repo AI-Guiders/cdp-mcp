@@ -92,6 +92,57 @@ public sealed class CitizenBrowserHostTests
             Assert.Equal("search", seen!["op"].GetString());
             Assert.Equal("peer net", seen["q"].GetString());
             Assert.Contains("Peer Net Handbook", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("peer", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Null(applied[0].Seat); // peer dig — no Glass Face steal
+        }
+        finally
+        {
+            CitizenRouteHost.BrowserDispatchOverride = null;
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Route_browser_show_is_open_face()
+    {
+        var r = CitizenIntentRouter.RouteOne("browser show url=\"https://news.ycombinator.com\"");
+        Assert.True(r.Ok);
+        Assert.Equal("open", r.Op);
+        Assert.Equal("face", r.Detail);
+    }
+
+    [Fact]
+    public void Route_browser_open_face_true()
+    {
+        var r = CitizenIntentRouter.RouteOne("browser open url=\"https://example.com\" face=true");
+        Assert.True(r.Ok);
+        Assert.Equal("open", r.Op);
+        Assert.Equal("face", r.Detail);
+    }
+
+    [Fact]
+    public void Route_browser_open_default_is_peer()
+    {
+        var r = CitizenIntentRouter.RouteOne("browser open url=\"https://example.com\"");
+        Assert.True(r.Ok);
+        Assert.Equal("peer", r.Detail);
+    }
+
+    [Fact]
+    public void Execute_browser_show_latches_face_seat()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.BrowserDispatchOverride = _ =>
+            """{"schema":"internet_browser_scene/v1","ok":true,"op":"open","url":"https://news.ycombinator.com","text":"HN peer"}""";
+        try
+        {
+            var applied = CitizenRouteHost.Execute([
+                CitizenIntentRouter.RouteOne("browser show url=\"https://news.ycombinator.com\"")
+            ]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.NotNull(applied[0].Seat);
+            Assert.Contains("face", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
         {

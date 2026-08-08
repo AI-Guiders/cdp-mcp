@@ -151,15 +151,19 @@ internal static partial class MetaToolCatalog
             take = new { type = "integer", description = "tools: max (default 40)" }
         }
     }),
-    Meta("cdp_browser", "Agent internet browser in CDP (ADR 0188) — lynx + Chromium UA spoof. NOT Cursor Browser. op=scene|which|open|search|dump|links|follow|back|forward|close. Search default=DDG HTML. Alias go=scene_internet_browser.", new
+    Meta("cdp_browser", "Agent internet browser in CDP (ADR 0188) — lynx + Chromium UA spoof. NOT Cursor Browser. op=scene|which|open|search|dump|links|follow|back|forward|close. Default peer dig = lynx only (no Glass Face). Face latch for operator eyes: face=true|show=true|share=true|to=operator (or op=show). Search default=DDG HTML. Alias go=scene_internet_browser.", new
     {
         type = "object",
         properties = new
         {
-            op = new { type = "string", description = "scene (default) | which | open | search | dump | links | follow | back | forward | close" },
+            op = new { type = "string", description = "scene (default) | which | open | search | dump | links | follow | back | forward | close | show (open+Face)" },
             url = new { type = "string", description = "open: https://… (http/file ok; bare host → https://)" },
             q = new { type = "string", description = "search: query text" },
             query = new { type = "string", description = "search: alias of q" },
+            face = new { type = "string", description = "true|1 — latch Glass WebAiPortal for operator eyes (default peer dig skips Face)" },
+            show = new { type = "string", description = "alias of face=true" },
+            share = new { type = "string", description = "alias of face=true" },
+            to = new { type = "string", description = "operator|human|face — Face latch (same as face=true)" },
             engine = new { type = "string", description = "search: ddg (default) | google | bing" },
             tab = new { type = "string", description = "Browser tab id (default main / active; search→search)" },
             link = new { type = "integer", description = "follow: N from op=links" },

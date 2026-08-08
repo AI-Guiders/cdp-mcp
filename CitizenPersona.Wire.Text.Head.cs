@@ -100,6 +100,10 @@ internal static partial class CitizenPersona
           @intent browser which
           @intent browser search q="standalone cdp without cursor"
           @intent browser open url="https://example.com"
+          # peer dig default — lynx pulse only; Face latch needs show|face=true|to=operator
+          @intent browser show url="https://example.com"
+          @intent browser open url="https://example.com" face=true
+          @intent browser search q="cdp" to=operator
           @intent browser dump
           @intent browser links
           @intent script
