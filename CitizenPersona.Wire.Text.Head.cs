@@ -44,12 +44,12 @@ internal static partial class CitizenPersona
           @intent go=buffer
           @intent go=health
           @intent build
-          @intent build path=CdpMcp.csproj
+          @intent build path=rel/App.csproj
           @intent test
-          @intent test path=CdpMcp.Tests.csproj
+          @intent test path=rel/App.Tests.csproj
           @intent run
-          @intent run path=CdpMcp.csproj
-          @intent run path=CdpMcp.csproj no_build=true
+          @intent run path=rel/App.csproj
+          @intent run path=rel/App.csproj no_build=true
           @intent mcp
           @intent mcp scene
           @intent mcp mount preset=time
@@ -77,15 +77,15 @@ internal static partial class CitizenPersona
           @intent memory_task route_next
           @intent hci
           @intent hci status
-          @intent hci search query=CitizenRouteHost
-          @intent codebase_index search query=IdeFindChannel
+          @intent hci search query=Needle
+          @intent codebase_index search query=Needle
           @intent hybrid_index reindex
           @intent git
           @intent git scene
           @intent git status
           @intent git diff_scene
           @intent git preflight
-          @intent git commit message="feat: scoped" paths=["CitizenRouteHost.Git.cs"]
+          @intent git commit message="feat: scoped" paths=["rel/file.cs"]
           # bare git commit without paths= → refuse need paths= (no silent add -A)
           @intent git push
           @intent ignite
@@ -167,8 +167,8 @@ internal static partial class CitizenPersona
           @intent test_scene_desk
           @intent cdp_test_scene
           @intent test_runner
-          @intent test_scene path=CdpMcp.Tests max_tests=50
-          @intent cdp_goto query=CitizenRouteHost
+          @intent test_scene path=rel/App.Tests max_tests=50
+          @intent cdp_goto query=Needle
           @intent goto_all query=Foo
           @intent goto_feature query=undo
           @intent goto query=RunGotoAll
@@ -176,7 +176,7 @@ internal static partial class CitizenPersona
           @intent editor_scene_desk
           @intent cdp_editor_scene
           @intent editor
-          @intent editor_scene path=CitizenRouteHost.cs detail=full
+          @intent editor_scene path=rel/file.cs detail=full
           @intent editor locus=buffer:doc-1
           @intent man
           @intent man_desk
