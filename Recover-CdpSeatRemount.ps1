@@ -105,6 +105,7 @@ if (-not $NoNudgeMcp) {
 
 Write-Host ''
 Write-Host 'Next: wait for Cursor MCP remount (or human Reload). Then cdp_health + cdp_pressure op=recall.'
+Write-Host '  Tip: CallTool timeout while ListTools ready = remount Composer wake mid SoftFL ship (Cursor MCP CallTool zombie). Prefer -NoStampRemountPending (or SoftFirst first); SoftFL ACCEPT: remount wake suppress under any last_once insurance (not invent-only only).' -ForegroundColor DarkYellow
 if ($SoftFirst) {
     Write-Host 'If still Not connected after SoftFirst: re-run without -SoftFirst (kill + nudge).'
 }

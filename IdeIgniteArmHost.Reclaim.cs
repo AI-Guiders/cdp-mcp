@@ -29,12 +29,9 @@ internal static partial class IdeIgniteArmHost
     /// <summary>
     /// Consume remount-wake pending for this seat and arm a one-shot timer with charge_mode=remount.
     /// Called on process boot (EnsureStarted). Returns null when no pending.
-    /// </summary>
-        /// <summary>
-    /// Consume remount-wake pending for this seat and arm a one-shot timer with charge_mode=remount.
-    /// Called on process boot (EnsureStarted). Returns null when no pending.
-    /// Suppress when invent-only Hold insurance already armed — Recover mid-turn remount CDT = DIG REJECT thrash
-    /// (lived 2026-08-07: Not connected → Recover → remount-wake CDT → Not connected again).
+    /// Suppress when last_once insurance already armed (invent-only Hold OR SoftFL-safe last_once) —
+    /// Recover mid-turn remount CDT = DIG REJECT thrash (lived 2026-08-07 invent-only; 2026-08-08 SoftFL ship:
+    /// ListTools ready + CallTool timeout until restart without remount pending).
     /// </summary>
     internal static object? TryScheduleRemountInitializedWake(string? seatOverride = null)
     {
@@ -44,16 +41,19 @@ internal static partial class IdeIgniteArmHost
 
         EnsureLoaded();
 
-        // Invent-only Hold insurance already covers continuity — remount Composer wake after Recover
-        // while Hold is live = DIG REJECT (mid-turn disconnect / second CDT).
-        if (HasArmedInventOnlyHoldInsurance())
+        // last_once insurance already covers continuity — remount Composer wake after Recover
+        // while SoftFL/Hold is live = DIG REJECT (mid-turn disconnect / CallTool zombie).
+        if (HasArmedLastOnceInsurance())
         {
+            var detail = HasArmedInventOnlyHoldInsurance()
+                ? "invent_only_hold_insurance"
+                : "last_once_insurance";
             IdeTeethTape.Record(
                 "wake_suppress",
                 armId: IdeRemountWake.ArmIdPrefix + "suppressed",
                 reason: IdeRemountWake.Reason,
-                detail: "invent_only_hold_insurance");
-            Console.Error.WriteLine("[ide_ignite] remount wake suppressed — invent-only Hold insurance armed");
+                detail: detail);
+            Console.Error.WriteLine($"[ide_ignite] remount wake suppressed — {detail} armed");
             return null;
         }
 
