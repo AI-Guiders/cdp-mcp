@@ -76,19 +76,37 @@ public sealed class CitizenResultWakeTests : IDisposable
     [Fact]
     public void AfterHands_arms_retry_when_peer_ready_had_drops()
     {
-        var dropped = new CitizenPeerAck.Result("ack=0/1", "intent_dropped", 0, 1, 1);
+        var dropped = new CitizenPeerAck.Result("ack=0/1 FileNotFound: GlassIntercom.cs", "intent_dropped", 0, 1, 1);
         Assert.True(CitizenResultWake.AfterHands(dropped, requestBody: CitizenResultWake.PeerReadyCharge));
 
         using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("pending", doc.RootElement.GetProperty("status").GetString());
-        Assert.Equal(CitizenResultWake.PeerReadyRetryCharge, doc.RootElement.GetProperty("body").GetString());
+        var body = doc.RootElement.GetProperty("body").GetString()!;
+        Assert.StartsWith("reason=peer_ready_retry", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("drop=[", body, StringComparison.Ordinal);
+        Assert.Contains("GlassIntercomMention", body, StringComparison.Ordinal);
+        Assert.Contains("FileNotFound", body, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void AfterHands_noops_on_retry_charge_even_with_drops()
+    public void AfterHands_arms_retry2_when_retry_had_drops()
+    {
+        var dropped = new CitizenPeerAck.Result("ack=0/1 still missing", "intent_dropped", 0, 1, 1);
+        var retryBody = CitizenResultWake.FormatDropCharge(CitizenResultWake.PeerReadyRetryCharge, dropped);
+        Assert.True(CitizenResultWake.AfterHands(dropped, requestBody: retryBody));
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        var body = doc.RootElement.GetProperty("body").GetString()!;
+        Assert.StartsWith("reason=peer_ready_retry2", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("drop=[", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AfterHands_noops_on_retry2_charge_even_with_drops()
     {
         var dropped = new CitizenPeerAck.Result("ack=0/1", "intent_dropped", 0, 1, 1);
-        Assert.False(CitizenResultWake.AfterHands(dropped, requestBody: CitizenResultWake.PeerReadyRetryCharge));
+        var retry2 = CitizenResultWake.FormatDropCharge(CitizenResultWake.PeerReadyRetry2Charge, dropped);
+        Assert.False(CitizenResultWake.AfterHands(dropped, requestBody: retry2));
         Assert.False(File.Exists(CitizenGlassDialogBridge.RequestPath));
     }
 

@@ -9,15 +9,18 @@ namespace CdpMcp;
 /// Mention-wake (<c>TryNotifyCitizen</c> / @Sierra) is a separate entry — not folded here.
 /// Depth-1: do not chain when the processed body is already a successful wake charge.
 /// SoftFL densify: same-turn observe ≠ stop — arm peer_ready so fail/"не вышло" still wakes Completions #3.
-/// One retry after primary peer_ready when Dropped > 0; retry charge does not re-arm (anti-loop).
+/// Dropped on primary peer_ready → retry with drop tip; Dropped on retry → one retry2 with tip; retry2 stops (anti-loop).
 /// </summary>
 internal static class CitizenResultWake
 {
     public const string PeerReadyCharge =
-        "reason=peer_ready — hands returned; verify @event peer pulse. Next hand now (@intent take|replace FULL path) — find≠next hand; Radio alone ≠ done; Radio only if stuck (one fact).";
+        "reason=peer_ready — hands returned; verify @event peer pulse. Next hand now (@intent take|replace FULL path) — find≠next hand; do not invent *Host.cs / GlassIntercom.cs siblings; leaf=GlassIntercomMention under CascadeIDE.GlassCore/Intercom/. Radio alone ≠ done; Radio only if stuck (one fact).";
 
     public const string PeerReadyRetryCharge =
-        "reason=peer_ready_retry — hand dropped/failed; result is still a result. Densify next hand now (@intent take|replace FULL path). find≠escape. Radio alone ≠ done.";
+        "reason=peer_ready_retry — hand dropped/failed; result is still a result. Densify next hand now (@intent take|replace FULL path). find≠escape. do not invent sibling filenames.";
+
+    public const string PeerReadyRetry2Charge =
+        "reason=peer_ready_retry2 — second densify after drop; copy path from drop=[…] quoted FULL. find≠escape. invent sibling names ≠ densify.";
 
     static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -37,9 +40,31 @@ internal static class CitizenResultWake
         return t.StartsWith("reason=peer_ready", StringComparison.OrdinalIgnoreCase);
     }
 
+    static bool IsRetry2WakeCharge(string? body) =>
+        !string.IsNullOrWhiteSpace(body)
+        && body.Trim().StartsWith("reason=peer_ready_retry2", StringComparison.OrdinalIgnoreCase);
+
     static bool IsRetryWakeCharge(string? body) =>
         !string.IsNullOrWhiteSpace(body)
-        && body.Trim().StartsWith("reason=peer_ready_retry", StringComparison.OrdinalIgnoreCase);
+        && body.Trim().StartsWith("reason=peer_ready_retry", StringComparison.OrdinalIgnoreCase)
+        && !IsRetry2WakeCharge(body);
+
+    /// <summary>Embed peer drop tip so she densifies the failed path instead of inventing siblings.</summary>
+    public static string FormatDropCharge(string baseCharge, CitizenPeerAck.Result peerAck)
+    {
+        var tip = peerAck.Peer ?? "";
+        tip = tip.Replace("\r", " ").Replace("\n", " ").Trim();
+        while (tip.Contains("  ", StringComparison.Ordinal))
+            tip = tip.Replace("  ", " ", StringComparison.Ordinal);
+        if (tip.Length > 200)
+            tip = tip[..200] + "…";
+        if (string.IsNullOrWhiteSpace(tip))
+            tip = "ack dropped";
+        return baseCharge
+            + " drop=["
+            + tip
+            + "] — densify THAT path quoted FULL; leaf=CascadeIDE.GlassCore/Intercom/GlassIntercomMention.cs; Radio alone ≠ done.";
+    }
 
     /// <summary>
     /// Unified result-wake after host-execute. Call sites: Bridge, Autoi hands, <c>cdp_citizen</c> turn.
@@ -53,13 +78,15 @@ internal static class CitizenResultWake
         if (peerAck is null)
             return false;
 
-        // Dropped/failed: still a result — wake again (one retry after primary peer_ready).
+        // Dropped/failed: still a result — wake again with densify tip.
         if (peerAck.Dropped > 0)
         {
-            if (IsRetryWakeCharge(requestBody))
+            if (IsRetry2WakeCharge(requestBody))
                 return false;
+            if (IsRetryWakeCharge(requestBody))
+                return TryArmAfterHands(channel, FormatDropCharge(PeerReadyRetry2Charge, peerAck));
             if (IsWakeCharge(requestBody))
-                return TryArmAfterHands(channel, PeerReadyRetryCharge);
+                return TryArmAfterHands(channel, FormatDropCharge(PeerReadyRetryCharge, peerAck));
             return TryArmAfterHands(channel, PeerReadyCharge);
         }
 
@@ -68,7 +95,6 @@ internal static class CitizenResultWake
             return false;
 
         // Observe ran Completions #2 in-loop — still arm peer_ready for #3 (contour self-flight).
-        // sameTurnObserveRan kept for call-site compat; no longer blocks arm.
         _ = sameTurnObserveRan;
         return TryArmAfterHands(channel, PeerReadyCharge);
     }
@@ -101,7 +127,11 @@ internal static class CitizenResultWake
                 };
 
             var charge = string.IsNullOrWhiteSpace(body) ? PeerReadyCharge : body;
-            var wakeReason = IsRetryWakeCharge(charge) ? "reason=peer_ready_retry" : "reason=peer_ready";
+            var wakeReason = IsRetry2WakeCharge(charge)
+                ? "reason=peer_ready_retry2"
+                : IsRetryWakeCharge(charge)
+                    ? "reason=peer_ready_retry"
+                    : "reason=peer_ready";
 
             var doc = new CitizenGlassDialogBridge.RequestDoc
             {
