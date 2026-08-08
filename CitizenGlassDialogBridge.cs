@@ -194,6 +194,16 @@ internal static class CitizenGlassDialogBridge
                     routes = userRoutes;
             }
 
+            // SoftFL lived 2026-08-08: FM invents «Сделала: find …» without @intent →
+            // Radio seems hands-ran, peer latch stale, no peer_ready wake.
+            if ((routes is null || routes.Count == 0)
+                && CitizenInventedHands.LooksLikeHandsClaim(turn.Text))
+            {
+                var recovered = CitizenInventedHands.TryRecoverRoutes(turn.Text);
+                if (recovered.Count > 0)
+                    routes = recovered;
+            }
+
             IReadOnlyList<CitizenRouteHost.Applied>? executed = null;
             CitizenPeerAck.Result? peerAck = null;
             if (routes is { Count: > 0 })
@@ -353,6 +363,9 @@ internal static class CitizenGlassDialogBridge
             var kind = string.IsNullOrWhiteSpace(seat.Kind)
                 ? CideIntercomVoiceLatch.KindCitizen
                 : seat.Kind!;
+            // SoftFL: Cursor PF Who=Kir (operator) must not stomp Glass citizen Face/Radio.
+            if (string.Equals(kind, CideIntercomVoiceLatch.KindOperator, StringComparison.OrdinalIgnoreCase))
+                return (CideIntercomVoiceLatch.DefaultNameCitizen, CideIntercomVoiceLatch.KindCitizen);
             return (seat.Name.Trim(), kind);
         }
 
