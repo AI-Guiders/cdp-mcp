@@ -22,6 +22,7 @@
 
 ## last_ship
 
+- **2026-08-08 SoftFL ACCEPT ResolveRg habitat** — throw-Cursor: `ResolveRg` probes habitat bin / WinGet BurntSushi / beside-exe before Cursor-only PATH. Fail pulse carries `detail=` (timeout honesty). Tests ResolveRg_finds_habitat_or_path. Live dual build_utc=2026-08-08T07:05:26Z.
 - extract method_lines FindInFiles.Dispatch → Dispatch.cs helpers @ **0.5.475** · 2026-08-02
 - soft-warn near-miss: IdeFindChannel.Shape.Last156 · Shape243 @ 0.5.405 (was Shape389)
 - prior: `FindInFiles` → `FindInFiles.Search.cs` @ 0.5.379
