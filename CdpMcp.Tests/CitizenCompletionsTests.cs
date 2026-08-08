@@ -6,6 +6,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection("CitizenCompletionsSerial")]
 public partial class CitizenCompletionsTests : IDisposable
 {
     public CitizenCompletionsTests()
@@ -16,6 +17,7 @@ public partial class CitizenCompletionsTests : IDisposable
         CitizenCompletions.TestOpenAiApiKey = null;
         CitizenCompletions.TestOpenAiBaseUrl = null;
         CitizenCompletions.ResetHttpForTests();
+        CitizenCostLedger.ResetForTests();
     }
 
     public void Dispose()
@@ -28,6 +30,7 @@ public partial class CitizenCompletionsTests : IDisposable
         CitizenCompletions.ResetHttpForTests();
         CitizenDialogHistory.ResetForTests();
         CitizenVisionLatch.ResetForTests();
+        CitizenCostLedger.ResetForTests();
     }
 
     [Fact]

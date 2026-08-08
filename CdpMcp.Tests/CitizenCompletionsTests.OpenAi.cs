@@ -35,6 +35,38 @@ public partial class CitizenCompletionsTests : IDisposable
     }
 
     [Fact]
+    public void Turn_openai_compat_records_cost_ledger_and_prompt_tokens_hint()
+    {
+        CitizenCostLedger.ResetForTests();
+        CitizenCostLedger.SetTestMemory(null, null, memoryOnly: true);
+        var payload = """
+            {"choices":[{"finish_reason":"stop","message":{"role":"assistant","content":"ok"}}],"usage":{"prompt_tokens":77,"completion_tokens":5,"total_tokens":82}}
+            """;
+        CitizenCompletions.TestOpenAiApiKey = "sk-cloud-ru-test-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        CitizenCompletions.TestHandler = new StubHandler(HttpStatusCode.OK, payload);
+        CitizenCompletions.ResetHttpForTests();
+        try
+        {
+            var r = CitizenCompletions.Turn("ping", dryRun: false, inject: false, mode: CitizenTurnMode.Wire);
+            Assert.True(r.Ok);
+            Assert.Contains("prompt_tokens=77", r.Hint!, StringComparison.Ordinal);
+            Assert.Contains("completion_tokens=5", r.Hint!, StringComparison.Ordinal);
+            using var doc = JsonDocument.Parse(JsonSerializer.Serialize(CitizenCostLedger.Pulse()));
+            Assert.Equal(1, doc.RootElement.GetProperty("turns").GetInt32());
+            Assert.Equal(77, doc.RootElement.GetProperty("prompt_tokens").GetInt64());
+        }
+        finally
+        {
+            CitizenCompletions.TestOpenAiApiKey = null;
+            CitizenCompletions.TestOpenAiBaseUrl = null;
+            CitizenCompletions.TestHandler = null;
+            CitizenCompletions.ResetHttpForTests();
+            CitizenCostLedger.ResetForTests();
+        }
+    }
+
+    [Fact]
     public void Turn_openai_compat_empty_text_surfaces_finish_reason_length()
     {
         var payload = """
