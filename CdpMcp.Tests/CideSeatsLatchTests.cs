@@ -116,4 +116,25 @@ public class CideSeatsLatchTests : IDisposable
         Assert.Null(latch.FaceSeat);
         Assert.Equal("WebAiPortal", latch.MfdPage);
     }
+
+    [Fact]
+    public void Publish_web_ai_url_roundtrips()
+    {
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?> { ["m"] = "browser" },
+            showFace: true,
+            faceSeat: "m",
+            webAiUrl: "https://html.duckduckgo.com/html/?q=sierra");
+
+        var latch = CideSeatsLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.Equal("https://html.duckduckgo.com/html/?q=sierra", latch!.WebAiUrl);
+        Assert.Equal("WebAiPortal", latch.MfdPage);
+        Assert.True(latch.ShowFace);
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(CideSeatsLatch.LatchPath));
+        Assert.Equal(
+            "https://html.duckduckgo.com/html/?q=sierra",
+            doc.RootElement.GetProperty("web_ai_url").GetString());
+    }
 }

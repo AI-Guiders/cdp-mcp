@@ -32,7 +32,7 @@ internal static partial class IdeDeskSeats
     public static string CanonicalOrganPin(string organPin) =>
         IdeCockpit.CanonicalOrganPin(organPin);
 
-    public static string? PlaceOrgan(string organPin)
+    public static string? PlaceOrgan(string organPin, string? webAiUrl = null)
     {
         var pin = CanonicalOrganPin(organPin);
         if (pin.Length == 0) return null;
@@ -41,7 +41,7 @@ internal static partial class IdeDeskSeats
         lock (Gate)
         {
             PlaceUnlocked(seat, pin);
-            PersistUnlocked(showFace: true, faceSeat: seat);
+            PersistUnlocked(showFace: true, faceSeat: seat, webAiUrl: webAiUrl);
         }
 
         return seat;
@@ -102,7 +102,7 @@ internal static partial class IdeDeskSeats
         }
     }
 
-    static void PersistUnlocked(bool showFace = false, string? faceSeat = null)
+    static void PersistUnlocked(bool showFace = false, string? faceSeat = null, string? webAiUrl = null)
     {
         if (Store is not null)
         {
@@ -122,7 +122,8 @@ internal static partial class IdeDeskSeats
             CideSeatsLatch.Publish(
                 Order.ToDictionary(s => s, s => Sticky[s], StringComparer.OrdinalIgnoreCase),
                 showFace,
-                faceSeat);
+                faceSeat,
+                webAiUrl);
         }
         catch
         {

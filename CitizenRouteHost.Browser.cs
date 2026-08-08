@@ -42,7 +42,8 @@ internal static partial class CitizenRouteHost
 
             var ok = TryReadBrowserOk(json);
             var pulse = TryReadBrowserPulse(json, op);
-            var seat = IdeDeskSeats.PlaceOrgan("browser");
+            var faceUrl = TryReadBrowserFaceUrl(json, args);
+            var seat = IdeDeskSeats.PlaceOrgan("browser", faceUrl);
             return new Applied(
                 route.Raw,
                 route.Verb.ToString(),
@@ -204,4 +205,41 @@ internal static partial class CitizenRouteHost
             return TruncPulse(json, InventoryObservePulseMax);
         }
     }
+
+    /// <summary>URL for Glass WebAiPortal Face — lynx dump stays in pulse; human Face navigates WebView2.</summary>
+    static string? TryReadBrowserFaceUrl(string json, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            foreach (var key in new[] { "url", "search_url", "href", "uri" })
+            {
+                if (root.TryGetProperty(key, out var el)
+                    && el.ValueKind == JsonValueKind.String
+                    && el.GetString() is { Length: > 0 } u)
+                    return u.Trim();
+            }
+        }
+        catch
+        {
+            /* fall through to args */
+        }
+
+        foreach (var key in new[] { "url", "uri", "href" })
+        {
+            if (args.TryGetValue(key, out var el)
+                && el.ValueKind == JsonValueKind.String
+                && el.GetString() is { Length: > 0 } u)
+                return u.Trim();
+        }
+
+        if (args.TryGetValue("q", out var qEl)
+            && qEl.ValueKind == JsonValueKind.String
+            && qEl.GetString() is { Length: > 0 } q)
+            return "https://html.duckduckgo.com/html/?q=" + Uri.EscapeDataString(q);
+
+        return null;
+    }
+
 }

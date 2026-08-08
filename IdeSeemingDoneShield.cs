@@ -11,11 +11,19 @@ internal static class IdeSeemingDoneShield
 {
     internal const string RefuseHumanFaceId = IdeHumanFaceShield.RefuseId;
     internal const string RefuseDomainStampId = IdeDomainStampShield.RefuseId;
+    internal const string RefuseThrowCursorId = "seeming_throw_cursor_done";
 
     static readonly string[] HumanFaceTokens =
     [
         "glass", "softorgan", "mfd", "fds", "peel", "intercom", "citizen", "fullready", "full-ready",
-        "share", "human", "viz", "cockpit", "topic", "hci", "cide", "#cide", "softfl", "dogfood"
+        "share", "human", "viz", "cockpit", "topic", "hci", "cide", "#cide", "softfl", "dogfood",
+        "throw cursor", "throw-cursor", "throwcursor", "standalone"
+    ];
+
+    static readonly string[] ThrowCursorTokens =
+    [
+        "throw cursor", "throw-cursor", "throwcursor", "standalone without cursor",
+        "citizen done", "glass done", "full-ready", "fullready"
     ];
 
     internal static bool IsHumanFacedText(string? text)
@@ -98,7 +106,70 @@ internal static class IdeSeemingDoneShield
                 "Stamp ## last_ship this turn. force=true escape.");
         }
 
+        RefuseThrowCursorWithoutWebAiFace(args, textBlob, verb);
+
         IdeDomainStampPending.Clear();
+    }
+
+    internal static bool IsThrowCursorEpicText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+        var blob = text.ToLowerInvariant();
+        foreach (var tok in ThrowCursorTokens)
+        {
+            if (blob.Contains(tok, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
+    }
+
+    static void RefuseThrowCursorWithoutWebAiFace(
+        IReadOnlyDictionary<string, JsonElement>? args,
+        string textBlob,
+        string verb)
+    {
+        if (!IsThrowCursorEpicText(textBlob))
+            return;
+        if (HasWebAiFaceEvidence(args))
+            return;
+
+        throw new ArgumentException(
+            $"{verb} refused — {RefuseThrowCursorId}: throw-Cursor / Citizen Done / Glass Done needs " +
+            "evidence=…webai….png (M·WebAiPortal Face lived). Lynx dump / PlaceOrgan chrome alone = seeming. " +
+            "force=true escape.");
+    }
+
+    static bool HasWebAiFaceEvidence(IReadOnlyDictionary<string, JsonElement>? args)
+    {
+        if (args is null)
+            return false;
+
+        foreach (var key in new[] { "evidence", "shot_path", "screenshot_path", "png" })
+        {
+            var path = Opt(args, key);
+            if (path is { Length: > 0 }
+                && IdeHumanFaceShield.IsPngEvidencePath(path)
+                && path.Contains("webai", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        if (args.TryGetValue("go_args", out var ga) && ga.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var p in ga.EnumerateObject())
+            {
+                if ((p.NameEquals("evidence") || p.NameEquals("shot_path") || p.NameEquals("png")
+                     || p.NameEquals("screenshot_path"))
+                    && p.Value.ValueKind == JsonValueKind.String
+                    && p.Value.GetString() is { Length: > 0 } path
+                    && IdeHumanFaceShield.IsPngEvidencePath(path)
+                    && path.Contains("webai", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     static string? DomainArg(IReadOnlyDictionary<string, JsonElement>? args)

@@ -43,7 +43,8 @@ internal static class CideSeatsLatch
     public static void Publish(
         IReadOnlyDictionary<string, string?> seats,
         bool showFace = false,
-        string? faceSeat = null)
+        string? faceSeat = null,
+        string? webAiUrl = null)
     {
         if (seats is null || seats.Count == 0)
             return;
@@ -117,6 +118,7 @@ internal static class CideSeatsLatch
                 ChromeHint = chromeHint,
                 ShowFace = showFace,
                 FaceSeat = face,
+                WebAiUrl = string.IsNullOrWhiteSpace(webAiUrl) ? null : webAiUrl.Trim(),
                 Origin = OriginAgent,
                 StampedUtc = DateTimeOffset.UtcNow
             };
@@ -157,6 +159,8 @@ internal static class CideSeatsLatch
         public string? ChromeHint { get; set; }
         public bool ShowFace { get; set; }
         public string? FaceSeat { get; set; }
+        /// <summary>Optional URL for Glass WebAiPortal navigate (Citizen browser open/search).</summary>
+        public string? WebAiUrl { get; set; }
         public string Origin { get; set; } = OriginAgent;
         public DateTimeOffset StampedUtc { get; set; }
     }
