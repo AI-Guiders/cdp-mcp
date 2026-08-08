@@ -9,7 +9,8 @@ namespace CdpMcp;
 /// Mention-wake (<c>TryNotifyCitizen</c> / @Sierra) is a separate entry — not folded here.
 /// Depth-1: do not chain when the processed body is already a successful wake charge.
 /// SoftFL densify: same-turn observe ≠ stop — arm peer_ready so fail/"не вышло" still wakes Completions #3.
-/// Dropped on primary peer_ready → retry with drop tip; Dropped on retry → one retry2 with tip; retry2 stops (anti-loop).
+/// Dropped invent/FileNotFound → dig charge (A2); dig done → take peer_ready; invent on retry → invent_halt (A3).
+/// Non-invent drops: retry → retry2 → stop.
 /// </summary>
 internal static class CitizenResultWake
 {
@@ -113,6 +114,19 @@ internal static class CitizenResultWake
         + LeafTakeIntent
         + ". find≠escape. invent sibling names ≠ densify.";
 
+    /// <summary>Host gate A2: invent/FileNotFound → dig organ before take-retry peer_ready.</summary>
+    public const string PeerReadyDigCharge =
+        "reason=peer_ready_dig — invent/FileNotFound; dig first (@intent files|disk_peek|shell). "
+        + "Do not invent take basename. After dig evidence, PASTE: "
+        + LeafTakeIntent
+        + ". peer_ready take without dig = off (host gate A2).";
+
+    public const string PeerReadyInventHaltCharge =
+        "reason=peer_ready_invent_halt — invent budget spent on this leaf; stop take-retry thrash. "
+        + "Mentor latch: dig=@intent files|disk_peek then PASTE "
+        + LeafTakeIntent
+        + " once (host gate A3; SoftFL invent mill REJECT).";
+
     static readonly JsonSerializerOptions JsonOpts = new()
     {
         WriteIndented = true,
@@ -131,6 +145,14 @@ internal static class CitizenResultWake
         return t.StartsWith("reason=peer_ready", StringComparison.OrdinalIgnoreCase);
     }
 
+    public static bool IsDigWakeCharge(string? body) =>
+        !string.IsNullOrWhiteSpace(body)
+        && body.Trim().StartsWith("reason=peer_ready_dig", StringComparison.OrdinalIgnoreCase);
+
+    public static bool IsInventHaltWakeCharge(string? body) =>
+        !string.IsNullOrWhiteSpace(body)
+        && body.Trim().StartsWith("reason=peer_ready_invent_halt", StringComparison.OrdinalIgnoreCase);
+
     static bool IsRetry2WakeCharge(string? body) =>
         !string.IsNullOrWhiteSpace(body)
         && body.Trim().StartsWith("reason=peer_ready_retry2", StringComparison.OrdinalIgnoreCase);
@@ -139,6 +161,34 @@ internal static class CitizenResultWake
         !string.IsNullOrWhiteSpace(body)
         && body.Trim().StartsWith("reason=peer_ready_retry", StringComparison.OrdinalIgnoreCase)
         && !IsRetry2WakeCharge(body);
+
+    /// <summary>FileNotFound / invent sibling / paste_verify refuse — dig-before-retry (A2).</summary>
+    public static bool IsPathInventOrMissingDrop(CitizenPeerAck.Result peerAck)
+    {
+        var tip = peerAck.Peer ?? "";
+        if (tip.Contains("FileNotFound", StringComparison.OrdinalIgnoreCase)
+            || tip.Contains("paste_verify_leaf", StringComparison.OrdinalIgnoreCase)
+            || tip.Contains("invent", StringComparison.OrdinalIgnoreCase))
+            return true;
+        foreach (var name in new[]
+                 {
+                     "GlassIntercom.cs", "GlassIntercomHost.cs", "CascadeIDE.cs",
+                     "CitizenRouteHost", "GlassIntercomMention.cs"
+                 })
+        {
+            if (tip.Contains(name, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Dig already done or ladder past dig (retry/retry2) — do not re-arm dig forever.</summary>
+    static bool HasDigCredit(bool sameTurnObserveRan, string? requestBody) =>
+        sameTurnObserveRan
+        || IsDigWakeCharge(requestBody)
+        || IsRetryWakeCharge(requestBody)
+        || IsRetry2WakeCharge(requestBody);
 
     /// <summary>
     /// Embed peer drop tip as context only. Never steer densify of find/no_project drops —
@@ -175,14 +225,38 @@ internal static class CitizenResultWake
         // Dropped/failed: still a result — wake again with densify tip.
         if (peerAck.Dropped > 0)
         {
-            if (IsRetry2WakeCharge(requestBody))
+            // A3: invent budget / retry2 — halt contour (no take-retry forever).
+            if (IsRetry2WakeCharge(requestBody) || IsInventHaltWakeCharge(requestBody))
                 return false;
+
+            var inventOrMissing = IsPathInventOrMissingDrop(peerAck);
+            if (inventOrMissing && !HasDigCredit(sameTurnObserveRan, requestBody))
+            {
+                // A2: invent/FileNotFound without dig → dig charge, not take-retry.
+                return TryArmAfterHands(channel, FormatDropCharge(PeerReadyDigCharge, peerAck));
+            }
+
+            if (inventOrMissing && IsDigWakeCharge(requestBody))
+            {
+                // Dig ran but invent persisted → one take-retry tip, then retry2, then halt.
+                return TryArmAfterHands(channel, FormatDropCharge(PeerReadyRetryCharge, peerAck));
+            }
+
             if (IsRetryWakeCharge(requestBody))
+            {
+                if (inventOrMissing)
+                    return TryArmAfterHands(channel, FormatDropCharge(PeerReadyInventHaltCharge, peerAck));
                 return TryArmAfterHands(channel, FormatDropCharge(PeerReadyRetry2Charge, peerAck));
+            }
+
             if (IsWakeCharge(requestBody))
                 return TryArmAfterHands(channel, FormatDropCharge(PeerReadyRetryCharge, peerAck));
             return TryArmAfterHands(channel, PeerReadyCharge);
         }
+
+        // Dig credit satisfied — arm take peer_ready (A2 exit).
+        if (IsDigWakeCharge(requestBody))
+            return TryArmAfterHands(channel, PeerReadyCharge);
 
         // All applied: depth-1 — no chain when body is already a wake charge.
         if (IsWakeCharge(requestBody))
@@ -221,11 +295,15 @@ internal static class CitizenResultWake
                 };
 
             var charge = string.IsNullOrWhiteSpace(body) ? PeerReadyCharge : body;
-            var wakeReason = IsRetry2WakeCharge(charge)
-                ? "reason=peer_ready_retry2"
-                : IsRetryWakeCharge(charge)
-                    ? "reason=peer_ready_retry"
-                    : "reason=peer_ready";
+            var wakeReason = IsInventHaltWakeCharge(charge)
+                ? "reason=peer_ready_invent_halt"
+                : IsDigWakeCharge(charge)
+                    ? "reason=peer_ready_dig"
+                    : IsRetry2WakeCharge(charge)
+                        ? "reason=peer_ready_retry2"
+                        : IsRetryWakeCharge(charge)
+                            ? "reason=peer_ready_retry"
+                            : "reason=peer_ready";
 
             var doc = new CitizenGlassDialogBridge.RequestDoc
             {

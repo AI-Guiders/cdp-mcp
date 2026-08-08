@@ -77,20 +77,57 @@ public sealed class CitizenResultWakeTests : IDisposable
     }
 
     [Fact]
-    public void AfterHands_arms_retry_when_peer_ready_had_drops()
+    public void AfterHands_arms_dig_when_peer_ready_had_invent_or_fnf_drop()
     {
+        // A2: invent/FileNotFound without dig credit → dig charge, not take-retry.
         var dropped = new CitizenPeerAck.Result("ack=0/1 FileNotFound: GlassIntercom.cs", "intent_dropped", 0, 1, 1);
         Assert.True(CitizenResultWake.AfterHands(dropped, requestBody: CitizenResultWake.PeerReadyCharge));
 
         using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("pending", doc.RootElement.GetProperty("status").GetString());
         var body = doc.RootElement.GetProperty("body").GetString()!;
-        Assert.StartsWith("reason=peer_ready_retry", body, StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith("reason=peer_ready_dig", body, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("drop=[", body, StringComparison.Ordinal);
         Assert.Contains("GlassIntercomMention", body, StringComparison.Ordinal);
         Assert.Contains("FileNotFound", body, StringComparison.Ordinal);
         Assert.Contains("context only", body, StringComparison.Ordinal);
         Assert.DoesNotContain("densify THAT path", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AfterHands_arms_retry_when_dig_credit_and_invent_drop()
+    {
+        var dropped = new CitizenPeerAck.Result("ack=0/1 FileNotFound: GlassIntercom.cs", "intent_dropped", 0, 1, 1);
+        Assert.True(CitizenResultWake.AfterHands(
+            dropped,
+            requestBody: CitizenResultWake.PeerReadyCharge,
+            sameTurnObserveRan: true));
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        var body = doc.RootElement.GetProperty("body").GetString()!;
+        Assert.StartsWith("reason=peer_ready_retry", body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void AfterHands_arms_take_peer_ready_after_dig_applied()
+    {
+        Assert.True(CitizenResultWake.AfterHands(SampleAck, requestBody: CitizenResultWake.PeerReadyDigCharge));
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        Assert.Equal(CitizenResultWake.PeerReadyCharge, doc.RootElement.GetProperty("body").GetString());
+    }
+
+    [Fact]
+    public void AfterHands_arms_invent_halt_when_retry_had_invent_drops()
+    {
+        // A3: invent on take-retry → halt (not endless retry2 paste thrash).
+        var dropped = new CitizenPeerAck.Result("ack=0/1 FileNotFound: CascadeIDE.cs", "intent_dropped", 0, 1, 1);
+        var retryBody = CitizenResultWake.FormatDropCharge(CitizenResultWake.PeerReadyRetryCharge, dropped);
+        Assert.True(CitizenResultWake.AfterHands(dropped, requestBody: retryBody));
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        var body = doc.RootElement.GetProperty("body").GetString()!;
+        Assert.StartsWith("reason=peer_ready_invent_halt", body, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
