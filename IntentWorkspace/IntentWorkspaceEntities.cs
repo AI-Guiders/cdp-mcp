@@ -27,6 +27,8 @@ internal sealed class StageEntity
     public string? PhaseAffinity { get; set; }
     /// <summary>Optional product/category tag for grouping work units (e.g. Cursor|CDP|CIDE). Soft — not status.</summary>
     public string? Product { get; set; }
+    /// <summary>Optional Who executor (Sierra|Кир|Света…). Soft — not Stage status. Board: ~Who.</summary>
+    public string? Executor { get; set; }
     /// <summary>Explicit Start gesture — wall clock begin of a measurable ship cycle. Null until cmd=start.</summary>
     public DateTimeOffset? StartedUtc { get; set; }
     /// <summary>Explicit Completed (shipped) gesture — wall clock end. Elapsed = Completed−Start (calendar, not agent-active).</summary>

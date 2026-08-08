@@ -37,7 +37,7 @@ internal static partial class IdeTaskManager
             : activeStageId == node.Id || node.Status.Equals("active", StringComparison.OrdinalIgnoreCase) ? "[>]"
             : "[ ]";
         var wall = FormatWallClockSuffix(node.StartedUtc, node.CompletedUtc, DateTimeOffset.UtcNow);
-        yield return $"{pad}|--- {box} {node.Title}{(node.PhaseAffinity is { Length: > 0 } pa ? $" @{pa}" : "")}{(node.Product is { Length: > 0 } pr ? $" #{pr}" : "")}{wall}";
+        yield return $"{pad}|--- {box} {node.Title}{(node.PhaseAffinity is { Length: > 0 } pa ? $" @{pa}" : "")}{(node.Product is { Length: > 0 } pr ? $" #{pr}" : "")}{(node.Executor is { Length: > 0 } ex ? $" ~{ex}" : "")}{wall}";
         foreach (var child in all.Where(s => s.ParentId == node.Id).OrderBy(s => s.Ordinal))
         {
             foreach (var line in Walk(child, all, activeStageId, indent + 1))

@@ -7,13 +7,13 @@
 ## Invariants
 
 - Feature = Intent; Task = Stage; tree via `ParentId` + `Ordinal`.
-- Focus/done mutate WitDB; board chrome `@phase` / `#Product` — affinity/tag, не status.
+- Focus/done mutate WitDB; board chrome `@phase` / `#Product` / `~Executor` — affinity/tag/Who, не status.
 - Incomplete leaf (0.5.309+): `pending|active`, skip handoff; leaf = no incomplete children.
 - `feature_focus` / `task_focus` / `done` → leaf resolve + `leaf-wake` AutoI (2s).
 - REPL: bare `feature X` = upsert/dedupe (+ leaf-arm on dedupe); `feature focus X` → `feature_focus` (0.5.311+).
 - `done` / `shipped` with **feature title** (or bare when feature focused, no task) → close incomplete leaves + clear focus (0.5.412).
 - `shipped` without prior `start` → implicit wall start (ADX ceremony tax).
-- Soft-warn FileLinesWarn=400; `IntentWorkspaceStore` is `partial` by concern (Core/Intent/Stage/Scene/Persist/Find + Leaf/StageCriteria(+Norm)/StageEvents/StageProduct).
+- Soft-warn FileLinesWarn=400; `IntentWorkspaceStore` is `partial` by concern (Core/Intent/Stage/Scene/Persist/Find + Leaf/StageCriteria(+Norm)/StageEvents/StageProduct/StageExecutor).
 - WitDB path = `StateRoot/{seat}/intent-workspace.witdb` (per-seat; dual seats never share FileShare.None). Primary `cdp` once Moves legacy flat file.
 - **All store DB I/O via `WithDb`** (file Mutex + in-proc Lock + transient retry). Never bare `Open()` for Status/Scene*/Stage* — concurrent desk readers race FileShare.None (fixed 0.5.623).
 - **Review Results** (operator remarks): `cmd=review <text>|list|ack <id>` (alias remark|rr) — durable stage_events on open leaf; pulse `review×N`; `done`/`shipped` soft-refuse while open (`IdeReviewShield`, force= escape). Dialog stays dialog — agent stamps; dig before Done. SoftOrgan `review files|open` unchanged.
@@ -42,6 +42,7 @@
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
+- **2026-08-08 SoftFL Stage.Executor** — operator SoftFL ACCEPT (TM Who so Кир/Sierra don't collide). Densify Product pattern: WitDB `Executor` + ALTER, REPL `executor|assignee`, title `~Who`, board `~Sierra`. Normalize Sierra|Кир|Света. Files-list = existing `dig=` (no invent). Tests StageExecutorTests **9** + StageProductTests **9** = 18/18. SoftOrgan invent REJECT.
 - **2026-08-06 done dig= title footgun** — REPL Clock swallowed inline dig=/evidence=/domain= as task title (`task not found: dig=…`). `MergeClockDoneShipArgs` + pathish join; parity with wave shipped. Domain=`iderepl`. SoftFL REJECT.
 - **2026-08-06 evidence-path spaces** — REPL `MergeWaveShipArgs` joins pathish keys across spaces (lived Personal Cursor Folder). Tests IdeWaveShipShieldTests (+ Feature_done human_face isolated from live Autoi half-a). Domain=`throughput`.
 - **2026-08-06 StageProduct dig-safe** — `IntentHasStageProduct` never `AsEnumerable`: SQL `Any` + `ToUpper` (NormalizeProduct want). Same lived thrash class as StageEvents Connection closed. Dig: StageProduct.cs leftover after StageEvents fix; #CIDE feature_done shield path. Tests StageProductTests (IntentHasStageProduct_matches_without_materialize). Wave FullReady-product-dig-next.

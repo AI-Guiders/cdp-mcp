@@ -63,9 +63,9 @@ internal static partial class IdeRepl
             {
                 var parent = tokens[2];
                 var rest = tokens.Skip(3).ToList();
-                var (childTitle, underPhase, underProduct) = SplitTitleMeta(rest);
+                var (childTitle, underPhase, underProduct, underExecutor) = SplitTitleMeta(rest);
                 if (childTitle.Length == 0)
-                    return (merged, Err("task under needs child title", "task under omit-tiles ship-omit @act #CDP"));
+                    return (merged, Err("task under needs child title", "task under omit-tiles ship-omit @act #CDP ~Sierra"));
                 if (IsBoardListAlias(childTitle)
                     || ReservedTitleHint(childTitle, kind: "task") is not null
                     || ChainedTitleHint(childTitle) is not null)
@@ -77,7 +77,8 @@ internal static partial class IdeRepl
                     under = parent,
                     op = "task",
                     phase = underPhase,
-                    product = underProduct
+                    product = underProduct,
+                    executor = underExecutor
                 });
                 merged["tm_op"] = JsonSerializer.SerializeToElement("task");
                 return (merged, null);
@@ -107,9 +108,9 @@ internal static partial class IdeRepl
                 return (merged, null);
             }
 
-            var (taskTitle, taskPhase, taskProduct) = SplitTitleMeta(taskRest);
+            var (taskTitle, taskPhase, taskProduct, taskExecutor) = SplitTitleMeta(taskRest);
             if (taskTitle.Length == 0)
-                return (merged, Err("task needs title", "task omit-tiles | task ship @act #CDP"));
+                return (merged, Err("task needs title", "task omit-tiles | task ship @act #CDP ~Кир"));
             if (IsBoardListAlias(taskTitle))
             {
                 merged["go"] = JsonSerializer.SerializeToElement("plan");
@@ -128,7 +129,8 @@ internal static partial class IdeRepl
                 title = taskTitle,
                 op = "task",
                 phase = taskPhase,
-                product = taskProduct
+                product = taskProduct,
+                executor = taskExecutor
             });
             merged["tm_op"] = JsonSerializer.SerializeToElement("task");
             return (merged, null);

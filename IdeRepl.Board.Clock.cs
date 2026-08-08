@@ -21,6 +21,16 @@ internal static partial class IdeRepl
             return (merged, null);
         }
 
+        if (head is "executor" or "assignee")
+        {
+            if (tokens.Count < 2)
+                return (merged, Err("executor needs value", "executor Sierra | assignee Кир | executor clear"));
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { executor = tokens[1], op = "executor" });
+            merged["tm_op"] = JsonSerializer.SerializeToElement("executor");
+            return (merged, null);
+        }
+
         if (head is "phase")
         {
             // phase act — set affinity on active task (soft). Session phase: cdp_context.

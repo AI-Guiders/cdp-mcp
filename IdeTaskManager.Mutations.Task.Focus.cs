@@ -12,7 +12,8 @@ internal static partial class IdeTaskManager
         string title,
         Guid? parentId,
         string? phaseAffinity,
-        string? product = null)
+        string? product = null,
+        string? executor = null)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("task needs title — task ship-omit | task ship @act");
@@ -25,6 +26,7 @@ internal static partial class IdeTaskManager
             if (phaseAffinity is not null)
                 store.StageUpsert(state, title: "", existing, parentId: null, sceneName: null, phaseAffinity);
             ApplyProductIfPresent(store, state, existing, product);
+            ApplyExecutorIfPresent(store, state, existing, executor);
             return new
             {
                 op = "task_focus",
@@ -33,12 +35,14 @@ internal static partial class IdeTaskManager
                 parent_id = parentId,
                 phase_affinity = phaseAffinity,
                 product = IntentWorkspaceStore.NormalizeProduct(product),
+                executor = IntentWorkspaceStore.NormalizeExecutor(executor),
                 deduped = true
             };
         }
 
         var r = store.StageUpsert(state, title, null, parentId, null, phaseAffinity);
         ApplyProductIfPresent(store, state, r.stage_id, product);
+        ApplyExecutorIfPresent(store, state, r.stage_id, executor);
         store.FocusStage(state, r.stage_id);
         return new
         {
@@ -47,7 +51,8 @@ internal static partial class IdeTaskManager
             title = r.title,
             parent_id = r.parent_id,
             phase_affinity = r.phase_affinity,
-            product = IntentWorkspaceStore.NormalizeProduct(product)
+            product = IntentWorkspaceStore.NormalizeProduct(product),
+            executor = IntentWorkspaceStore.NormalizeExecutor(executor)
         };
     }
 
