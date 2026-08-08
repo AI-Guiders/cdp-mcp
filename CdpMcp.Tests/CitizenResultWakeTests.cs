@@ -42,6 +42,9 @@ public sealed class CitizenResultWakeTests : IDisposable
         Assert.DoesNotContain("One short Radio letter", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("find≠next hand", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.DoesNotContain("take|replace|find", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.Contains(CitizenResultWake.LeafTakePath, CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.Contains("PASTE", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.Contains("Persona example", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("Radio alone", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
         Assert.DoesNotContain("One short Radio letter", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
         Assert.Contains("find≠next hand", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
@@ -86,6 +89,8 @@ public sealed class CitizenResultWakeTests : IDisposable
         Assert.Contains("drop=[", body, StringComparison.Ordinal);
         Assert.Contains("GlassIntercomMention", body, StringComparison.Ordinal);
         Assert.Contains("FileNotFound", body, StringComparison.Ordinal);
+        Assert.Contains("context only", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("densify THAT path", body, StringComparison.Ordinal);
     }
 
     [Fact]
