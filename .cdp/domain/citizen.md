@@ -78,6 +78,8 @@
 
 ## last_ship
 
+- **2026-08-09 SoftFL ACCEPT densify drop-tip + retry2 (not Citizen Done)** — lived three-crew: peer_ready+retry woke Sierra after «не вышло», then invent sibling names (GlassIntercomHost/CitizenRouteHost/GlassIntercom.cs) burned retry. Ship: `FormatDropCharge` embeds peer drop tip · retry→retry2 once · charges ban invent siblings · leaf path GlassIntercomMention. Tests CitizenResultWake **11/11**. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
+
 - **2026-08-08 SoftFL ACCEPT densify AfterHands contour wake (not Citizen Done)** — lived: Sierra cut after intent-call; observe Completions #2 + `sameTurnObserveRan` skip killed peer_ready; fail never woke #3; charge offered `find` thrash. Ship: `AfterHands` arms peer_ready after observe · Dropped>0 on primary → `PeerReadyRetryCharge` once · charges ban find (`take|replace FULL path`) · tests CitizenResultWake+Bridge+InventedHands **16/16**. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
 
 - **2026-08-08 SoftFL ACCEPT densify peer_ready charge Radio≠Done (not Citizen Done)** — lived: Sierra «заснула» after peer_ready/observe wrote one Radio letter then idle (presence=idle). Root: `PeerReadyCharge` + `SameTurnObserveUser` ended with «One short Radio letter» → model treated Radio as wake DoD. Ship: both charges → Next hand now — Radio alone ≠ done; Radio only if stuck. Test `PeerReadyCharge_steers_next_hand_not_radio_done` · SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
