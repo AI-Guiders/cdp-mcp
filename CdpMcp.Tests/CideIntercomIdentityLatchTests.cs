@@ -70,4 +70,13 @@ public sealed class CideIntercomIdentityLatchTests : IDisposable
         Assert.Equal("Sierra", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
         Assert.Equal("citizen", CideIntercomIdentityLatch.TrySeat("pf")?.Kind);
     }
+
+    [Fact]
+    public void Claim_operator_does_not_demote_sticky_citizen_who()
+    {
+        Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Sierra", "citizen", "zai-org/GLM-5.1"));
+        Assert.Null(CideIntercomIdentityLatch.Claim("pf", "Kir", "operator", "zai-org/GLM-5.1"));
+        Assert.Equal("Sierra", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
+        Assert.Equal("citizen", CideIntercomIdentityLatch.TrySeat("pf")?.Kind);
+    }
 }

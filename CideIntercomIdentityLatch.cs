@@ -134,15 +134,16 @@ internal static class CideIntercomIdentityLatch
             var doc = TryReadUnlocked() ?? new IdentityDoc { Schema = Schema };
             doc.Schema = Schema;
 
-            // Guest Radio letter (Cursor Кир) must not demote sticky citizen Who (Sierra).
-            // One-shot name= still paints the journal bubble; tip Who stays citizen.
+            // Guest/Cursor Radio letter (Кир) and mistaken kind=operator Claim
+            // must not demote sticky citizen Who (Sierra). Journal bubble still paints name=.
             var tip = GetTip(doc, seat);
             if (tip is not null
                 && string.Equals(
                     CideIntercomVoiceLatch.NormalizeKind(tip.Kind),
                     CideIntercomVoiceLatch.KindCitizen,
                     StringComparison.Ordinal)
-                && string.Equals(kindNorm, CideIntercomVoiceLatch.KindGuest, StringComparison.Ordinal))
+                && (string.Equals(kindNorm, CideIntercomVoiceLatch.KindGuest, StringComparison.Ordinal)
+                    || string.Equals(kindNorm, CideIntercomVoiceLatch.KindOperator, StringComparison.Ordinal)))
                 return null;
 
             var entry = new IdentitySeat
