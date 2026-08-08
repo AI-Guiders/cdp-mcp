@@ -89,8 +89,61 @@ internal static partial class CitizenIntentRouter
         }
 
         var rest = raw[i..];
+        // SoftFL: unquoted path-like values may contain spaces (Personal Cursor Folder).
+        // Stop before the next keyed arg (" key="), not at the first space.
+        if (IsPathLikeKey(key))
+        {
+            var next = IndexOfNextKeyedArg(rest);
+            return (next < 0 ? rest : rest[..next]).Trim();
+        }
+
         var sp = rest.IndexOf(' ');
         return sp < 0 ? rest : rest[..sp];
+    }
+
+    static bool IsPathLikeKey(string key) =>
+        key.Equals("path", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("file_path", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("workspace_path", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("workspace", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("image_path", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("see_path", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("vision_path", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Index of next <c> key=</c> in <paramref name="rest"/> (leading space + token + =).</summary>
+    static int IndexOfNextKeyedArg(string rest)
+    {
+        for (var i = 0; i < rest.Length; i++)
+        {
+            if (rest[i] != ' ')
+                continue;
+            var j = i + 1;
+            while (j < rest.Length && rest[j] == ' ')
+                j++;
+            if (j >= rest.Length)
+                return -1;
+            var eq = rest.IndexOf('=', j);
+            if (eq <= j)
+                continue;
+            var token = rest[j..eq];
+            if (token.Length == 0)
+                continue;
+            var ok = true;
+            for (var k = 0; k < token.Length; k++)
+            {
+                var c = token[k];
+                if (!(char.IsLetterOrDigit(c) || c is '_' or '-'))
+                {
+                    ok = false;
+                    break;
+                }
+            }
+
+            if (ok)
+                return i;
+        }
+
+        return -1;
     }
 
     static bool TryKv(string raw, out string? detail, out string? scene)

@@ -114,4 +114,26 @@ public sealed class CitizenIntentRouterTests
         Assert.Contains(msgs, m => m.Kind == CitizenWireParser.Kind.Event);
         Assert.Empty(CitizenIntentRouter.RouteAll(msgs));
     }
+
+    [Fact]
+    public void ExtractKeyedValue_path_keeps_spaces_until_next_key()
+    {
+        const string raw =
+            "read path=D:\\Experiments\\Personal Cursor Folder\\cascade-ide\\GlassIntercomMention.cs start_line=1";
+        var path = CitizenIntentRouter.ExtractKeyedValue(raw, "path");
+        Assert.Equal(
+            "D:\\Experiments\\Personal Cursor Folder\\cascade-ide\\GlassIntercomMention.cs",
+            path);
+        Assert.Equal("1", CitizenIntentRouter.ExtractKeyedValue(raw, "start_line"));
+    }
+
+    [Fact]
+    public void ExtractKeyedValue_path_quoted_still_works()
+    {
+        const string raw =
+            "open path=\"D:\\Experiments\\Personal Cursor Folder\\x.cs\"";
+        Assert.Equal(
+            "D:\\Experiments\\Personal Cursor Folder\\x.cs",
+            CitizenIntentRouter.ExtractKeyedValue(raw, "path"));
+    }
 }
