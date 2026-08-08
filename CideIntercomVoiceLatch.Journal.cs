@@ -59,6 +59,23 @@ internal static partial class CideIntercomVoiceLatch
 
     public static int JournalCount() => IntercomJournalStore.Count(StateRoot);
 
+    /// <summary>Wipe Face Virtual History + drop last-wins LATEST (clean slate).</summary>
+    public static int WipeJournal()
+    {
+        var n = IntercomJournalStore.WipeAll(StateRoot);
+        try
+        {
+            if (File.Exists(LatchPath))
+                File.Delete(LatchPath);
+        }
+        catch
+        {
+            /* best-effort */
+        }
+
+        return n;
+    }
+
     static IntercomVoiceDoc ToVoiceDoc(IntercomJournalRow row) => new()
     {
         Schema = Schema,
