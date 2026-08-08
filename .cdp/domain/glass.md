@@ -31,6 +31,7 @@
 
 ## Antipatterns
 
+- Fixing WebView2 airspace with WPF `Popup`/`AllowsTransparency` for cabin overlays — Popup HWND floats above other apps (GitHub/browser); park WebView2/VT instead.
 - Stuffing alert/qrh into SoftOrgan band (tests explicitly ignore as EICAS bleed).
 - Mapping `sa_desk` → MFD `Problems` (gates pulse paints WorkspaceChromeBand; Problems = quality/review family).
 - Mapping `crm` → MFD `Correspondence` (CRM = await/callout chrome; CRS = doc↔code surface).
@@ -243,6 +244,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 ## last_ship
 
+- **2026-08-08 WebView2 airspace SoftFL (not Glass Done)** — operator: palette under HN; Popup SoftFL floated over GitHub/Yandex (rejected). Ship: keep in-tree overlays; park `WebView2`/`TerminalVt` while palette/chord/open-family open (`MainWindow.Airspace`). Lived: surface `palette` open=true · evidence `cascade-ide/tmp-glass-shots/airspace-palette-park-20260808.png` (Command palette over dark MFD, URL bar HN). SoftFL invent ACCEPT · Done REOPENED.
 - **2026-08-08 Editor Face systemic** — dig=operator Ctrl+Q MFD:Editor peel / stuck F·Intercom · `GlassEditorFace` MountEditor(M) · never FormatMfdStub · PreferSurfaceFromMfdPage Editor→`m` + PreferPmOneOf AlignActiveSurfaceToZone · evidence `cascade-ide/tmp-glass-shots/mfd-editor-face-20260808.png` (M·Editor + AvalonEdit) + `cdp_see` · cascade `f19c0422`/`4866857d`/`00a89320` (push `github` HTTPS). SoftFL invent REJECT.
 - **2026-08-08 SE Face ItemsSource systemic** — dig=operator Avalonia peel shot · Glass SE = `SolutionItem` TreeView ItemsSource (auto-load workspace `.sln`) · never `FormatMfdStub` Avalonia peel on SE · cabin `Glass.DarkListItem`/`DarkTreeItem` · evidence `cascade-ide/tmp-glass-shots/se-face-tree-clean-20260808.png` + `cdp_see`. SoftFL invent REJECT.
 - **2026-08-08 Dig densest Citizen Done DoD SoftFL invent REJECT CLOSED → Citizen Done REOPENED (throw-Cursor)** — prior stamp was **seeming** vs max DoD `standalone CDP without Cursor`: peer sit-internet Face missing (lynx text ≠ WebView2 sit). SoftFL invent REJECT invent residual still holds. Evidence PNG proves dialog+vision Full Ready slice only — **not** throw-Cursor Done.
