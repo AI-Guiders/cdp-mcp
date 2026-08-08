@@ -33,12 +33,13 @@ internal static partial class IdeDeskSeats
         IdeCockpit.CanonicalOrganPin(organPin);
 
     /// <param name="showFace">
-    /// true = human attention (Citizen browser show / intentional Face).
-    /// false = agent tooling pin (plan TM, webcam desk) — must not steal Face from WebAi.
-    /// SoftFL ACCEPT 2026-08-08: plan/webcam PlaceOrgan(showFace:true) left Glass on Plan while sticky HN lived.
-    /// Quiet false clears show_face latch; Glass OnSeatsChanged skips SelectMfd — prior WebAiPortal stays.
+    /// true = intentional human Face (Citizen browser show / MetaDispatch face).
+    /// false (default) = agent tooling pin — IDE works independently; does not BringAttention/SelectMfd.
+    /// SoftFL ACCEPT 2026-08-08 densify: operator — IDE независимо · человек уходит к кабине на show.
+    /// 0.5.682 closed plan/webcam steal; default still true hijacked Glass on every soft PlaceOrgan.
+    /// Quiet false clears show_face latch; Glass OnSeatsChanged skips SelectMfd — prior Face stays.
     /// </param>
-    public static string? PlaceOrgan(string organPin, string? webAiUrl = null, bool showFace = true)
+    public static string? PlaceOrgan(string organPin, string? webAiUrl = null, bool showFace = false)
     {
         var pin = CanonicalOrganPin(organPin);
         if (pin.Length == 0) return null;

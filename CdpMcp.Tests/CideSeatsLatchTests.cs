@@ -236,4 +236,34 @@ public class CideSeatsLatchTests : IDisposable
         Assert.Equal("agent · P: plan", latch.ChromeHint);
         Assert.Equal("https://news.ycombinator.com", latch.WebAiUrl);
     }
+
+    [Fact]
+    public void Publish_default_quiet_domain_after_browser_face_no_steal()
+    {
+        // SoftFL ACCEPT 0.5.683: PlaceOrgan default quiet — domain pin must not set ShowFace.
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?>
+            {
+                ["p"] = "plan",
+                ["m"] = "browser"
+            },
+            showFace: true,
+            faceSeat: "m",
+            webAiUrl: "https://news.ycombinator.com");
+
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?>
+            {
+                ["p"] = "domain",
+                ["m"] = "browser"
+            }); // default showFace=false
+
+        var latch = CideSeatsLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.False(latch!.ShowFace);
+        Assert.Null(latch.FaceSeat);
+        Assert.Equal("https://news.ycombinator.com", latch.WebAiUrl);
+        Assert.Equal("WebAiPortal", latch.MfdPage);
+        Assert.Equal("domain", latch.Seats["p"]);
+    }
 }
