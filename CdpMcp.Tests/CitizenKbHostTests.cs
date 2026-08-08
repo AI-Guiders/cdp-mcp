@@ -20,6 +20,62 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
+    public void Route_kb_file_path_binds_read_without_tool_token()
+    {
+        var r = CitizenIntentRouter.RouteOne(
+            "kb file_path=knowledge/worlds/world-life/playbook-world-life-modeling-toolchain-v1.md");
+        Assert.True(r.Ok);
+        Assert.Equal("read_knowledge_file", r.Op);
+        Assert.Equal("memory_world", r.Server);
+    }
+
+    [Fact]
+    public void Route_kb_path_alias_binds_read()
+    {
+        var r = CitizenIntentRouter.RouteOne("kb path=worlds/world-life/playbook-world-life-modeling-toolchain-v1.md");
+        Assert.True(r.Ok);
+        Assert.Equal("read_knowledge_file", r.Op);
+    }
+
+    [Fact]
+    public void NormalizeKnowledgeRelativeFilePath_strips_knowledge_prefix()
+    {
+        Assert.Equal(
+            "worlds/world-life/playbook-world-life-modeling-toolchain-v1.md",
+            CitizenRouteHost.NormalizeKnowledgeRelativeFilePath(
+                "knowledge/worlds/world-life/playbook-world-life-modeling-toolchain-v1.md"));
+        Assert.Equal("SHOWCASE.md", CitizenRouteHost.NormalizeKnowledgeRelativeFilePath("SHOWCASE.md"));
+    }
+
+    [Fact]
+    public void Execute_kb_read_strips_knowledge_prefix_in_args()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        string? seen = null;
+        CitizenRouteHost.KbCallOverride = (_, tool, args) =>
+        {
+            Assert.Equal("read_knowledge_file", tool);
+            seen = args["file_path"].GetString();
+            return Task.FromResult("# N-Why Stop Criterion\n\nbody");
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute(
+            [
+                CitizenIntentRouter.RouteOne(
+                    "kb read_knowledge_file file_path=knowledge/worlds/world-life/playbook-world-life-modeling-toolchain-v1.md")
+            ]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.Equal("worlds/world-life/playbook-world-life-modeling-toolchain-v1.md", seen);
+        }
+        finally
+        {
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
     public void Route_kb_get_definition_parses()
     {
         var r = CitizenIntentRouter.RouteOne("kb get_definition definition_id=debug-radius");

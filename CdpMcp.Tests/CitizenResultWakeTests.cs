@@ -144,6 +144,25 @@ public sealed class CitizenResultWakeTests : IDisposable
     }
 
     [Fact]
+    public void AfterHands_kb_drop_arms_kb_charge_not_take_leaf()
+    {
+        var dropped = new CitizenPeerAck.Result(
+            "ack=0/1 kb memory_world read_knowledge_file missing",
+            "intent_dropped",
+            0,
+            1,
+            1);
+        Assert.True(CitizenResultWake.IsKbDrop(dropped));
+        Assert.True(CitizenResultWake.AfterHands(dropped, requestBody: "dialog dig"));
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        var body = doc.RootElement.GetProperty("body").GetString()!;
+        Assert.StartsWith("reason=peer_ready_kb", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("PASTE leaf take", body, StringComparison.Ordinal);
+        Assert.Contains("file_path=", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AfterHands_noops_on_retry2_charge_even_with_drops()
     {
         var dropped = new CitizenPeerAck.Result("ack=0/1", "intent_dropped", 0, 1, 1);

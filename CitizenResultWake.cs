@@ -127,6 +127,12 @@ internal static class CitizenResultWake
         + LeafTakeIntent
         + " once (host gate A3; SoftFL invent mill REJECT).";
 
+    /// <summary>Lived: kb missing/list_pack thrash while SoftFL leaf take woke — keep dig on kb axis.</summary>
+    public const string PeerReadyKbCharge =
+        "reason=peer_ready_kb — kb hand returned; verify pulse. "
+        + "If missing: PASTE @intent kb read_knowledge_file file_path=… relative under knowledge/ "
+        + "(strip leading knowledge/). path= aliases file_path=. take leaf ≠ this dig. Radio alone ≠ done.";
+
     static readonly JsonSerializerOptions JsonOpts = new()
     {
         WriteIndented = true,
@@ -196,19 +202,45 @@ internal static class CitizenResultWake
     /// </summary>
     public static string FormatDropCharge(string baseCharge, CitizenPeerAck.Result peerAck)
     {
-        var tip = peerAck.Peer ?? "";
-        tip = tip.Replace("\r", " ").Replace("\n", " ").Trim();
-        while (tip.Contains("  ", StringComparison.Ordinal))
-            tip = tip.Replace("  ", " ", StringComparison.Ordinal);
-        if (tip.Length > 200)
-            tip = tip[..200] + "…";
-        if (string.IsNullOrWhiteSpace(tip))
-            tip = "ack dropped";
+        var tip = CompactPeerTip(peerAck.Peer);
         return baseCharge
             + " drop=["
             + tip
             + "] — context only; PASTE leaf take from charge (quoted FULL). find/no_project/invented basenames ≠ target. Radio alone ≠ done.";
     }
+
+    public static string FormatKbDropCharge(string baseCharge, CitizenPeerAck.Result peerAck)
+    {
+        var tip = CompactPeerTip(peerAck.Peer);
+        return baseCharge
+            + " drop=["
+            + tip
+            + "] — context only; PASTE kb read with file_path= (strip knowledge/). take leaf ≠ this dig.";
+    }
+
+    static string CompactPeerTip(string? peer)
+    {
+        var tip = peer ?? "";
+        tip = tip.Replace("\r", " ").Replace("\n", " ").Trim();
+        while (tip.Contains("  ", StringComparison.Ordinal))
+            tip = tip.Replace("  ", " ", StringComparison.Ordinal);
+        if (tip.Length > 200)
+            tip = tip[..200] + "…";
+        return string.IsNullOrWhiteSpace(tip) ? "ack dropped" : tip;
+    }
+
+    public static bool IsKbDrop(CitizenPeerAck.Result peerAck)
+    {
+        var tip = peerAck.Peer ?? "";
+        return tip.Contains("kb ", StringComparison.OrdinalIgnoreCase)
+            || tip.Contains("memory_world", StringComparison.OrdinalIgnoreCase)
+            || tip.Contains("read_knowledge_file", StringComparison.OrdinalIgnoreCase)
+            || tip.Contains("list_pack", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool IsKbWakeCharge(string? body) =>
+        !string.IsNullOrWhiteSpace(body)
+        && body.Contains("reason=peer_ready_kb", StringComparison.Ordinal);
 
     /// <summary>
     /// Unified result-wake after host-execute. Call sites: Bridge, Autoi hands, <c>cdp_citizen</c> turn.
@@ -228,6 +260,14 @@ internal static class CitizenResultWake
             // A3: invent budget / retry2 — halt contour (no take-retry forever).
             if (IsRetry2WakeCharge(requestBody) || IsInventHaltWakeCharge(requestBody))
                 return false;
+
+            // Lived SoftFL: kb missing while SoftFL leaf take densify — stay on kb axis.
+            if (IsKbDrop(peerAck))
+            {
+                if (IsKbWakeCharge(requestBody))
+                    return false;
+                return TryArmAfterHands(channel, FormatKbDropCharge(PeerReadyKbCharge, peerAck));
+            }
 
             var inventOrMissing = IsPathInventOrMissingDrop(peerAck);
             if (inventOrMissing && !HasDigCredit(sameTurnObserveRan, requestBody))
@@ -299,11 +339,13 @@ internal static class CitizenResultWake
                 ? "reason=peer_ready_invent_halt"
                 : IsDigWakeCharge(charge)
                     ? "reason=peer_ready_dig"
-                    : IsRetry2WakeCharge(charge)
-                        ? "reason=peer_ready_retry2"
-                        : IsRetryWakeCharge(charge)
-                            ? "reason=peer_ready_retry"
-                            : "reason=peer_ready";
+                    : IsKbWakeCharge(charge)
+                        ? "reason=peer_ready_kb"
+                        : IsRetry2WakeCharge(charge)
+                            ? "reason=peer_ready_retry2"
+                            : IsRetryWakeCharge(charge)
+                                ? "reason=peer_ready_retry"
+                                : "reason=peer_ready";
 
             var doc = new CitizenGlassDialogBridge.RequestDoc
             {

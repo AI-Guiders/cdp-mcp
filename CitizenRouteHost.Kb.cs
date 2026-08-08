@@ -147,7 +147,7 @@ internal static partial class CitizenRouteHost
         {
             "kb_process_id_required" => TruncPulse("kb " + facet + " " + tool + " need process_id="),
             "kb_procedure_id_required" => TruncPulse("kb " + facet + " " + tool + " need procedure_id="),
-            "kb_file_path_required" => TruncPulse("kb " + facet + " " + tool + " need file_path="),
+            "kb_file_path_required" => TruncPulse("kb " + facet + " " + tool + " need file_path= (relative under knowledge/; strip knowledge/ prefix)"),
             _ => null
         };
     }
@@ -273,7 +273,29 @@ internal static partial class CitizenRouteHost
         if (!args.ContainsKey("query") && args.TryGetValue("q", out var qEl))
             args["query"] = qEl;
 
+        // Lived SoftFL: path= / knowledge/worlds/… → AN joins knowledge/knowledge/… → empty → missing.
+        if (tool is "read_knowledge_file")
+        {
+            if (!args.ContainsKey("file_path") && args.TryGetValue("path", out var pathEl))
+                args["file_path"] = pathEl;
+            if (args.TryGetValue("file_path", out var fpEl)
+                && fpEl.ValueKind == JsonValueKind.String
+                && fpEl.GetString() is { Length: > 0 } fp)
+            {
+                args["file_path"] = JsonSerializer.SerializeToElement(NormalizeKnowledgeRelativeFilePath(fp));
+            }
+        }
+
         return args;
+    }
+
+    /// <summary>AN roots under repo/knowledge/ — strip leading knowledge/ so operator colloquial paths work.</summary>
+    internal static string NormalizeKnowledgeRelativeFilePath(string filePath)
+    {
+        var n = filePath.Replace('\\', '/').Trim().TrimStart('/');
+        if (n.StartsWith("knowledge/", StringComparison.OrdinalIgnoreCase))
+            n = n["knowledge/".Length..];
+        return n;
     }
 
     static bool IsNotesFacet(string facet) =>
@@ -338,7 +360,7 @@ internal static partial class CitizenRouteHost
         {
             // Missing knowledge file → empty body (not SoftFL-invent content / need @intent project path=).
             if (tool is "read_knowledge_file" && string.IsNullOrWhiteSpace(json))
-                return TruncPulse("kb " + facet + " " + tool + " missing");
+                return TruncPulse("kb " + facet + " " + tool + " missing · relative under knowledge/; strip knowledge/ prefix");
 
             // Raw text from read_knowledge_file / facet man — short preview, not silent parse fail.
             if ((tool is "read_knowledge_file" or "man") && !string.IsNullOrWhiteSpace(json))

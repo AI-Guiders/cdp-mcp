@@ -42,11 +42,17 @@ internal static partial class CitizenIntentRouter
         var tool = !string.IsNullOrWhiteSpace(positional) ? positional : keyed;
 
         var freeQuery = ExtractKeyedValue(work, "query") ?? ExtractKeyedValue(work, "q");
+        var filePathHint = ExtractKeyedValue(work, "file_path") ?? ExtractKeyedValue(work, "path");
         if (string.IsNullOrWhiteSpace(tool) && !string.IsNullOrWhiteSpace(freeQuery))
         {
             // Free-text dig → agent-notes search (not silent list_pack / epistemic-scene dump).
             tool = "search_agent_notes";
             facet = Cdp.Core.CdpDomains.MemorySession;
+        }
+        else if (string.IsNullOrWhiteSpace(tool) && LooksLikeKnowledgeFilePath(filePathHint))
+        {
+            // Lived: operator gave knowledge/… path; bare kb → list_pack; read without shape → missing.
+            tool = "read_knowledge_file";
         }
         else
         {
@@ -84,7 +90,9 @@ internal static partial class CitizenIntentRouter
             return new Route(Verb.Kb, raw, Ok: false, Op: tool, Server: facet, Go: "kb", Reason: "kb_process_id_required");
         if (tool is "get_procedure" && string.IsNullOrWhiteSpace(ExtractKeyedValue(work, "procedure_id")))
             return new Route(Verb.Kb, raw, Ok: false, Op: tool, Server: facet, Go: "kb", Reason: "kb_procedure_id_required");
-        if (tool is "read_knowledge_file" && string.IsNullOrWhiteSpace(ExtractKeyedValue(work, "file_path")))
+        if (tool is "read_knowledge_file"
+            && string.IsNullOrWhiteSpace(ExtractKeyedValue(work, "file_path"))
+            && string.IsNullOrWhiteSpace(ExtractKeyedValue(work, "path")))
             return new Route(Verb.Kb, raw, Ok: false, Op: tool, Server: facet, Go: "kb", Reason: "kb_file_path_required");
 
         return new Route(
@@ -185,6 +193,22 @@ internal static partial class CitizenIntentRouter
             Cdp.Core.CdpDomains.MemoryTask => "route_next",
             _ => "list_pack"
         };
+
+    /// <summary>Operator/colloquial KB path — bind read (host strips leading knowledge/).</summary>
+    internal static bool LooksLikeKnowledgeFilePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return false;
+        var n = path.Replace('\\', '/').Trim().TrimStart('/');
+        if (n.Contains("..", StringComparison.Ordinal) || Path.IsPathRooted(n))
+            return false;
+        return n.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
+            || n.StartsWith("knowledge/", StringComparison.OrdinalIgnoreCase)
+            || n.StartsWith("worlds/", StringComparison.OrdinalIgnoreCase)
+            || n.StartsWith("domains/", StringComparison.OrdinalIgnoreCase)
+            || n.StartsWith("META/", StringComparison.OrdinalIgnoreCase)
+            || n.StartsWith("work/", StringComparison.OrdinalIgnoreCase);
+    }
 
     static string NormalizeKbTool(string tool) =>
         tool switch
