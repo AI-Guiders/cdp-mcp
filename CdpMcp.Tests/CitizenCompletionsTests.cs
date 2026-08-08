@@ -96,7 +96,9 @@ public partial class CitizenCompletionsTests : IDisposable
         Assert.Contains("Memory:", built.System, StringComparison.Ordinal);
         Assert.Contains("Named organs (HARD", built.System, StringComparison.Ordinal);
         Assert.Contains("domain card=id=", built.System, StringComparison.Ordinal);
-        Assert.Contains("do not invent mcp/shell/kb", built.System, StringComparison.Ordinal);
+        Assert.Contains("@intent browser", built.System, StringComparison.Ordinal);
+        Assert.Contains("sit-internet organ", built.System, StringComparison.Ordinal);
+        Assert.Contains("Do not invent mcp/shell/kb", built.System, StringComparison.Ordinal);
     }
 
     [Fact]
