@@ -25,7 +25,8 @@ internal static partial class IdeFilesChannel
             op: op,
             where: where,
             cwd: cwd,
-            entryCount: total);
+            entryCount: total,
+            entries: ProjectLatchEntries(entries));
         return new
         {
             ok = true,
@@ -44,6 +45,31 @@ internal static partial class IdeFilesChannel
             next = Next(cwd),
             hint
         };
+    }
+
+    static IReadOnlyList<CideFilesDeskLatch.FilesDeskEntry> ProjectLatchEntries(IReadOnlyList<object> entries)
+    {
+        var list = new List<CideFilesDeskLatch.FilesDeskEntry>(Math.Min(entries.Count, 80));
+        foreach (var row in entries.Take(80))
+        {
+            if (row is null)
+                continue;
+            // anonymous { kind, name, path, … } from Enumerate
+            var t = row.GetType();
+            var kind = t.GetProperty("kind")?.GetValue(row)?.ToString();
+            var name = t.GetProperty("name")?.GetValue(row)?.ToString();
+            var path = t.GetProperty("path")?.GetValue(row)?.ToString();
+            if (string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(path))
+                continue;
+            list.Add(new CideFilesDeskLatch.FilesDeskEntry
+            {
+                Kind = kind,
+                Name = name,
+                Path = path
+            });
+        }
+
+        return list;
     }
 
     static object[] Next(string cwd) =>

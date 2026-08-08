@@ -26,6 +26,7 @@ internal static partial class IdeFindChannel
             : null;
 
         object? hits = null;
+        List<CideFindDeskLatch.FindDeskHit>? latchHits = null;
         if (root.TryGetProperty("hits", out var hitsEl) && hitsEl.ValueKind == JsonValueKind.Array)
         {
             var take = shape switch
@@ -38,6 +39,27 @@ internal static partial class IdeFindChannel
             hits = list;
             if (shape == "slim" && hitsEl.GetArrayLength() > SlimHitCap)
                 truncated = true;
+
+            latchHits = [];
+            foreach (var h in hitsEl.EnumerateArray().Take(CideFindDeskLatch.LatchHitCap))
+            {
+                var path = h.TryGetProperty("path", out var pEl) ? pEl.GetString() : null;
+                if (string.IsNullOrWhiteSpace(path))
+                    continue;
+                int? line = null;
+                if (h.TryGetProperty("line", out var ln) && ln.TryGetInt32(out var l) && l > 0)
+                    line = l;
+                var preview = h.TryGetProperty("preview", out var pr) ? pr.GetString() : null;
+                latchHits.Add(new CideFindDeskLatch.FindDeskHit
+                {
+                    Path = path,
+                    Line = line,
+                    Preview = preview
+                });
+            }
+
+            if (latchHits.Count == 0)
+                latchHits = null;
         }
 
         string? engineError = null;
@@ -58,7 +80,8 @@ internal static partial class IdeFindChannel
             op: "run",
             where: where,
             query: query,
-            hitCount: count);
+            hitCount: count,
+            hits: latchHits);
 
         var next = BuildNext(where, shape, ok, count);
 
