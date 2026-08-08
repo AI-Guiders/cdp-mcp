@@ -55,10 +55,9 @@ internal static partial class CitizenPersona
           @intent mcp mount preset=time
           @intent mcp call server=time tool=get_current_time
           @intent kb
-          @intent kb get_definition definition_id=debug-radius
-          @intent kb list_pack pack_id=epistemic-scene
-          @intent kb list_pack pack_id=agent-operations-cdp
-          @intent kb get_process process_id=bug-radius-shrink
+          @intent kb get_definition definition_id=sample-def
+          @intent kb list_pack pack_id=sample-pack
+          @intent kb get_process process_id=sample-process
           @intent kb facet=skill list_pack
           @intent kb facet=project list_knowledge_files
           @intent kb facet=session memory_health
@@ -66,9 +65,8 @@ internal static partial class CitizenPersona
           @intent kb facet=failure failures
           @intent kb facet=task route_next
           @intent kb list_knowledge_files path=.
-          @intent kb read_knowledge_file file_path=META/integrity-core.md
-          @intent kb read_knowledge_file file_path=SHOWCASE.md
-          Note: pack_id=epistemic-scene|agent-operations-cdp — hub root "." = ~24 knowledge files (SHOWCASE); worlds ~550 ≠ hub and ≠ cannot-read. Prefer list path=. then read file_path=.
+          @intent kb read_knowledge_file file_path=rel/note.md
+          Note: hub root "." = ~24 knowledge files; worlds dump ≠ hub and ≠ cannot-read. Prefer list path=. then read file_path= from the hit — placeholders ≠ leaf.
           @intent memory_world list_pack
           @intent memory_project list_knowledge_files
           @intent memory_session memory_health
