@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 199 | [MFD Editor Face на M, не peel](voice-letter-glass-editor-face-m.ru.md) | glass · GlassEditorFace · Editor→m · f19c0422 · 2026-08-08 |
 | 198 | [SoftFL @Kir Face Radio tip — не StatusText tip-only](voice-letter-kir-face-radio-tip.ru.md) | glass-intercom · IsKirVoiceCannonFaceTip · db8fd77a · 2026-08-08 |
 | 197 | [Glass Ctrl+Q Soft: QRH/ECL — equal hands PlaceOrgan](voice-letter-glass-cq-soft-qrh-ecl.ru.md) | glass · C-q SoftFL · soft_qrh/ecl/alert · @intent PlaceOrgan · 2026-08-07 |
 | 196 | [place=replace больше не ест UnbindLifecycle](voice-letter-buffer-anchor-replace-adx-hx-002.ru.md) | buffer · ADX-HX-002 SoftFL · old_string in_locus · 0.5.680 · 2026-08-07 |
