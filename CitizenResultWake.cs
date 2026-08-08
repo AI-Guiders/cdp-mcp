@@ -13,7 +13,7 @@ namespace CdpMcp;
 internal static class CitizenResultWake
 {
     public const string PeerReadyCharge =
-        "reason=peer_ready — hands returned; verify @event peer pulse and continue if needed. One short Radio letter.";
+        "reason=peer_ready — hands returned; verify @event peer pulse. Next hand now (@intent take|replace|find) — Radio alone ≠ done; Radio only if stuck (one fact).";
 
     static readonly JsonSerializerOptions JsonOpts = new()
     {

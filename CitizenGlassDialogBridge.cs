@@ -39,7 +39,7 @@ internal static class CitizenGlassDialogBridge
     /// in-loop (Cursor Cutoff densest), not sleep until next Autoi.
     /// </summary>
     internal const string SameTurnObserveUser =
-        "@event peer — verify hands from pulse; do not invent refuse. One short Radio letter.";
+        "@event peer — verify hands from pulse; do not invent refuse. Next hand now (@intent take|replace|find) — Radio alone ≠ done; Radio only if stuck (one fact).";
 
     internal static void ResetProcessedForTests() => LastProcessedId = null;
 
