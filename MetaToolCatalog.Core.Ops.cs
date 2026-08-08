@@ -51,14 +51,15 @@ internal static partial class MetaToolCatalog
             ask = new { type = "string", description = "alias of message" }
         }
     }),
-    Meta("cdp_land", "Land via Family:navigation Anchor wire (ADR 0186). NOT Deep-Link/URI. Pass anchor=[Family:navigation;Command:open|goto|restore|show|go;…]. Nested Anchor:[…] reuses code/xml resolve. Alias go=land.", new
+    Meta("cdp_land", "Land via Family:navigation Anchor wire (ADR 0186). NOT Deep-Link/URI. Pass anchor=[Family:navigation;Command:open|goto|restore|show|go;…]. Nested Anchor:[…] reuses code/xml resolve. Default open|goto quiet (show_face=false); Command:show invites Human Face. Alias go=land.", new
     {
         type = "object",
         properties = new
         {
             anchor = new { type = "string", description = "[Family:navigation;Command:…;Go:…;Anchor:[…]]" },
             at = new { type = "string", description = "Alias of anchor" },
-            wire = new { type = "string", description = "Alias of anchor" }
+            wire = new { type = "string", description = "Alias of anchor" },
+            show_face = new { type = "boolean", description = "Invite Human Glass Face (AvalonEdit + PreferSurface). Default false on open|goto; Command:show defaults true." }
         },
         required = new[] { "anchor" }
     }),
@@ -78,7 +79,8 @@ internal static partial class MetaToolCatalog
             forward_status_strip = new { type = "string", description = "set: display.instruments.forward_status_strip" },
             instruments = new { type = "string", description = "set: JSON object of instrument slot→id (merged with pfd_primary/…)" },
             mfd_page = new { type = "string", description = "set: MfdShellPage name e.g. SolutionExplorer|Chat|Terminal" },
-            page = new { type = "string", description = "alias of mfd_page" }
+            page = new { type = "string", description = "alias of mfd_page" },
+            show_face = new { type = "boolean", description = "set: agent Face invite — SelectMfd when true; quiet agent patches leave Human stick" }
         }
     }),
     Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack|history|presence|identity. send to=pm body= [channel=crew|radio|dm] [name=] → latch+journal (Face rail filter); name= claims sticky Who. history limit= [query=|contains=|q=] searches journal body+name. NorthStar: #crew · Radio · DM. Alias go=intercom.", new
