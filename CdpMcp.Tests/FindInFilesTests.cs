@@ -42,6 +42,14 @@ public class FindInFilesTests
     }
 
     [Fact]
+    public void ResolveRg_finds_habitat_or_path()
+    {
+        var rg = FindInFiles.ResolveRg();
+        Assert.NotNull(rg);
+        Assert.True(File.Exists(rg), rg);
+    }
+
+    [Fact]
     public void External_searches_outside_project_without_open()
     {
         var tmp = Directory.CreateTempSubdirectory("cdp-find-ext-");

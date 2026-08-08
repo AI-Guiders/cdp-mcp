@@ -64,15 +64,17 @@ internal static partial class IdeFindChannel
 
         string? engineError = null;
         string? engineHint = null;
+        string? engineDetail = null;
         if (!ok)
         {
             engineError = root.TryGetProperty("error", out var eEl) ? eEl.GetString() : "find_failed";
             engineHint = root.TryGetProperty("hint", out var hEl) ? hEl.GetString() : null;
+            engineDetail = root.TryGetProperty("detail", out var dEl) ? dEl.GetString() : null;
         }
 
         var pulse = ok
             ? $"find · {where} · {count} hit(s){(truncated ? "+" : "")}{(pathNote is { Length: > 0 } ? $" · {pathNote}" : "")}"
-            : $"find · {where} · fail · {engineError}";
+            : $"find · {where} · fail · {engineError}{(engineDetail is { Length: > 0 } ? " · " + engineDetail : "")}";
 
         CideFindDeskLatch.Publish(
             active: true,
