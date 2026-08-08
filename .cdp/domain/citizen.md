@@ -60,7 +60,9 @@
 
 - Asking the operator «куда стучаться — Intercom или KB?» while already on a Glass CIT/dialog turn — seeming lost; map is in dialog persona.
 - Skipping `peer_ready` after same-turn observe — contour dies after intent (fail/"не вышло" never Completions #3). `AfterHands` arms #3; depth-1 + `peer_ready_retry` cap stop shotgun.
-- Offering `find` as next hand in peer_ready/observe charge — thrash escape when project_root ≠ leaf tree; steer `take|replace FULL path`.
+- Offering `find` as next hand in peer_ready/observe charge — thrash escape when project_root ≠ leaf tree; steer paste exact `LeafTakeIntent`.
+- `FormatDropCharge` saying densify THAT path on find/fail/no_project — Completions densifies drop garbage then invents CascadeIDE.cs / copies Persona `CitizenRouteHost.cs` examples. Drop tip = context only; PASTE leaf take.
+- Treating Persona example paths (`CitizenRouteHost.cs` in CitizenPersona) as this-leaf targets — Face HOLD (no Persona rewrite this leaf); SoftFL charges must name Persona example ≠ leaf.
 - Folding `@Sierra` mention-wake into `CitizenResultWake` — two entries (mention vs result); do not densify into one SoftOrgan.
 - Treating **full-chain GREEN** as 15.08 Done — DoD is **full-ready** (usable habitat peer), not pipe re-prove.
 - Starting dogfood from social/speech hubs — citizen is completions host, not CASA speech.
@@ -77,6 +79,8 @@
 - **jsonl Radio journal under named Mutex + full-file JSON scan** — lived `publish_failed` after KillRunning (AbandonedMutex swallowed) / Autoi thrash. SSOT = `intercom.witdb` (not TM seat WitDB).
 
 ## last_ship
+
+- **2026-08-09 SoftFL ACCEPT densify PASTE LeafTakeIntent (not Citizen Done)** — lived: invent CascadeIDE.cs / CitizenRouteHost* / GlassIntercomHost while contour woke; root=Persona examples teach `path=CitizenRouteHost.cs` + drop tip densify THAT path on find/no_project. Ship: `LeafTakePath`/`LeafTakeIntent` · charges PASTE exact take · FormatDropCharge context-only (no densify THAT) · ban Persona example ≠ leaf. Tests CitizenResultWake **11/11**. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
 
 - **2026-08-09 SoftFL ACCEPT densify drop-tip + retry2 (not Citizen Done)** — lived three-crew: peer_ready+retry woke Sierra after «не вышло», then invent sibling names (GlassIntercomHost/CitizenRouteHost/GlassIntercom.cs) burned retry. Ship: `FormatDropCharge` embeds peer drop tip · retry→retry2 once · charges ban invent siblings · leaf path GlassIntercomMention. Tests CitizenResultWake **11/11**. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
 

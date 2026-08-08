@@ -13,14 +13,26 @@ namespace CdpMcp;
 /// </summary>
 internal static class CitizenResultWake
 {
+    public const string LeafTakePath = "CascadeIDE.GlassCore/Intercom/GlassIntercomMention.cs";
+
+    /// <summary>Copy-paste line Completions must emit — not a buried leaf= hint.</summary>
+    public const string LeafTakeIntent =
+        "@intent take path=\"" + LeafTakePath + "\" start_line=60 end_line=120";
+
     public const string PeerReadyCharge =
-        "reason=peer_ready — hands returned; verify @event peer pulse. Next hand now (@intent take|replace FULL path) — find≠next hand; do not invent *Host.cs / GlassIntercom.cs siblings; leaf=GlassIntercomMention under CascadeIDE.GlassCore/Intercom/. Radio alone ≠ done; Radio only if stuck (one fact).";
+        "reason=peer_ready — hands returned; verify @event peer pulse. PASTE next hand exactly: "
+        + LeafTakeIntent
+        + " — find≠next hand; CitizenRouteHost.cs=Persona example ≠ this leaf; do not invent CascadeIDE.cs / *Host.cs / GlassIntercom.cs; Radio alone ≠ done; Radio only if stuck (one fact).";
 
     public const string PeerReadyRetryCharge =
-        "reason=peer_ready_retry — hand dropped/failed; result is still a result. Densify next hand now (@intent take|replace FULL path). find≠escape. do not invent sibling filenames.";
+        "reason=peer_ready_retry — hand dropped/failed; result is still a result. PASTE exactly: "
+        + LeafTakeIntent
+        + ". find≠escape. CitizenRouteHost*=Persona example ≠ leaf. invent CascadeIDE.cs / siblings ≠ densify.";
 
     public const string PeerReadyRetry2Charge =
-        "reason=peer_ready_retry2 — second densify after drop; copy path from drop=[…] quoted FULL. find≠escape. invent sibling names ≠ densify.";
+        "reason=peer_ready_retry2 — second densify after drop; PASTE exactly: "
+        + LeafTakeIntent
+        + ". find≠escape. invent sibling names ≠ densify.";
 
     static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -49,7 +61,10 @@ internal static class CitizenResultWake
         && body.Trim().StartsWith("reason=peer_ready_retry", StringComparison.OrdinalIgnoreCase)
         && !IsRetry2WakeCharge(body);
 
-    /// <summary>Embed peer drop tip so she densifies the failed path instead of inventing siblings.</summary>
+    /// <summary>
+    /// Embed peer drop tip as context only. Never steer densify of find/no_project drops —
+    /// Completions copies Persona example CitizenRouteHost.cs / invents CascadeIDE.cs otherwise.
+    /// </summary>
     public static string FormatDropCharge(string baseCharge, CitizenPeerAck.Result peerAck)
     {
         var tip = peerAck.Peer ?? "";
@@ -63,7 +78,7 @@ internal static class CitizenResultWake
         return baseCharge
             + " drop=["
             + tip
-            + "] — densify THAT path quoted FULL; leaf=CascadeIDE.GlassCore/Intercom/GlassIntercomMention.cs; Radio alone ≠ done.";
+            + "] — context only; PASTE leaf take from charge (quoted FULL). find/no_project/CitizenRouteHost*/CascadeIDE.cs ≠ target. Radio alone ≠ done.";
     }
 
     /// <summary>
