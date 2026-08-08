@@ -11,6 +11,7 @@
 - CDP habitat = SSOT; Glass = projector (ADR-0021 Windows-first WPF).
 - Quiet SoftOrgan seats republish = chrome tip only; `show_face` (PlaceOrgan / Citizen go) = human attention — BringCabin + SelectMfd when mfd_page, Prefer P when face_seat=p.
 - Quiet `land-LATEST` default (`show_face=false`) = Agent-Side tip only; Face AvalonEdit + PreferSurface only on land/presentation invite (`show_face=true` / Command:show). Disk reload of open editor is quiet (no SelectMfd steal).
+- Face invite page SSOT = cascade-ide `GlassFacePagePolicy` (path kind → MFD page; explicit `mfd_page` override wins). Land latch stays path+`show_face` — no MainWindow extension ifs. Document Face (`Editor`|`MarkdownPreview`) PreferSurface token = `m` (not world).
 - Sticky `web_ai_url` may survive non-browser PlaceOrgan; Glass `RunWebAiPortal` only when Face/MFD targets browser (`SeatsWebAiNavigateGate` / `WantsWebAiNavigate`) — not on every `show_face`.
 - SoftOrgan chrome band ≠ EICAS: alert/qrh/ecl stay EICAS (not SoftOrganLatchCatalog).
 - `sa_desk` SoftOrgan → quiet chrome (`sa-desk-LATEST` / WorkspaceChromeBand) — not MFD `Problems`, not EICAS `go=sa`.
@@ -249,6 +250,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 - Wave on TM: problems-host → build-full → git-panel → markdown-host → cascade-chord → related-files → correspondence → debug-dap → terminal-conpty → webai-portal → semantic-map.
 
 ## last_ship
+
+- **2026-08-09 GlassFacePagePolicy SSOT (Face path→page — not situational .md if)** — `GlassFacePagePolicy.Resolve` in GlassCore · OpenCodeFile Face invite calls it · PreferSurface `MarkdownPreview`→`m` (was world) · tests GlassFacePagePolicy+PresentationPmOneOfPolicy **26/26** · live `M · MarkdownPreview` land show note-citizen-persona… · evidence `cascade-ide/tmp-glass-shots/face-md-preview-policy-20260809.png` + `cdp_see`. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · not Glass Done.
 
 - **2026-08-09 SoftFL dual-HCI land/presentation quiet (b1+b3 — not Glass Done)** — nested[axb] FULL-A: `land-LATEST` `show_face` default false · Glass LandSurface tip-only · `OpenCodeFile(showFace)` PreferSurface gate · Disk reload quiet · presentation `PresentationMaySelectMfd(origin,show_face,mfd)` · CDP `NavigationLand`/`CidePresentationLatch` show_face · Avalonia land/presentation projectors parity · tests NavigationLandLatch **3/3** · PresentationPmOneOfPolicy **16/16**. Residual b4 = true dual viewport. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Sierra densify `@all` not stolen (AllMention regex unblock only).
 
