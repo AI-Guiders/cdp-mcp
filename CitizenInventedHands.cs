@@ -54,6 +54,17 @@ internal static partial class CitizenInventedHands
                 if (IsOrganGoLabel(part))
                     continue;
 
+                // SoftFL: invent «desk layout=(P/M)(F)» / topology=… without presentation_set.
+                if (TryNormalizeInventedPresentation(part) is { } presentationClaim)
+                {
+                    var pres = CitizenIntentRouter.RouteOne(presentationClaim);
+                    if (pres.Ok)
+                    {
+                        list.Add(pres);
+                        continue;
+                    }
+                }
+
                 var route = CitizenIntentRouter.RouteOne(part);
                 if (route.Ok)
                     list.Add(route);
@@ -81,6 +92,78 @@ internal static partial class CitizenInventedHands
             return true;
         return false;
     }
+
+    /// <summary>
+    /// Lived invent: desk layout= / topology= prose → presentation_set.
+    /// </summary>
+    static string? TryNormalizeInventedPresentation(string part)
+    {
+        var p = part.Trim().Trim('"', '\'');
+        if (p.Length == 0)
+            return null;
+
+        if (p.StartsWith("presentation_set", StringComparison.OrdinalIgnoreCase)
+            || p.StartsWith("cide_presentation", StringComparison.OrdinalIgnoreCase)
+            || p.StartsWith("presentation ", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var topology = TryExtractTopologyToken(p);
+        if (string.IsNullOrWhiteSpace(topology))
+            return null;
+
+        return "presentation_set topology=" + topology;
+    }
+
+    static string? TryExtractTopologyToken(string p)
+    {
+        foreach (var key in new[] { "layout", "topology" })
+        {
+            var idx = p.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+            if (idx < 0)
+                continue;
+            var after = p[(idx + key.Length)..].TrimStart();
+            if (after.StartsWith('=') || after.StartsWith(':'))
+                after = after[1..].TrimStart();
+            after = after.TrimStart('"', '\'');
+            var open = after.IndexOf('(');
+            if (open < 0)
+                continue;
+
+            // Canon topologies are concatenations: (P/M)(F) · (P)(F)(M).
+            var i = open;
+            while (i < after.Length && after[i] == '(')
+            {
+                var depth = 0;
+                var j = i;
+                for (; j < after.Length; j++)
+                {
+                    if (after[j] == '(')
+                        depth++;
+                    else if (after[j] == ')')
+                    {
+                        depth--;
+                        if (depth == 0)
+                        {
+                            j++;
+                            break;
+                        }
+                    }
+                }
+
+                if (depth != 0)
+                    break;
+                i = j;
+                while (i < after.Length && char.IsWhiteSpace(after[i]))
+                    i++;
+            }
+
+            if (i > open)
+                return after[open..i];
+        }
+
+        return null;
+    }
+
 
     [GeneratedRegex(
         @"^Сделал[аи]?\s*:\s*(.+)$",

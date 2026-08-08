@@ -88,6 +88,7 @@ internal static partial class CitizenPersona
           @intent cide_presentation scene
           @intent presentation_set topology=(F/P/M)
           @intent cide_presentation set topology=(F/P/M)
+          @intent presentation_set topology=(P/M)(F)
           @intent presentation_set topology=(P)(F)(M)
           @intent cide_presentation set tier=cockpit
           @intent toolchain
