@@ -161,11 +161,20 @@ internal static partial class IdeCideIntercomChannel
         });
     }
 
-    static string WipeJournal(IReadOnlyDictionary<string, JsonElement> args)
+        static string WipeJournal(IReadOnlyDictionary<string, JsonElement> args)
     {
         _ = args;
         var before = CideIntercomVoiceLatch.JournalCount();
-        var wiped = CideIntercomVoiceLatch.WipeJournal();
+        int wiped;
+        try
+        {
+            wiped = CideIntercomVoiceLatch.WipeJournal();
+        }
+        catch (Exception ex)
+        {
+            return Fail("wipe_failed", ex.GetType().Name + ": " + (ex.InnerException?.Message ?? ex.Message));
+        }
+
         if (wiped < 0)
             return Fail("wipe_failed", "intercom.witdb busy or IO — retry; Glass may hold lock");
 

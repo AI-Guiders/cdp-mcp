@@ -139,28 +139,22 @@ public static class IntercomJournalStore
     }
 
     /// <summary>Operator clean-slate — delete all Radio journal rows (Face Virtual History SSOT).</summary>
+        /// <summary>Operator clean-slate — delete all Radio journal rows (Face Virtual History SSOT).</summary>
     public static int WipeAll(string stateRoot)
     {
         if (string.IsNullOrWhiteSpace(stateRoot))
             return 0;
 
-        try
+        return WithDb(stateRoot, db =>
         {
-            return WithDb(stateRoot, db =>
-            {
-                EnsureMigratedUnlocked(db, stateRoot);
-                var n = db.Entries.Count();
-                if (n == 0)
-                    return 0;
-                db.Entries.RemoveRange(db.Entries);
-                db.SaveChanges();
-                return n;
-            });
-        }
-        catch
-        {
-            return -1;
-        }
+            EnsureMigratedUnlocked(db, stateRoot);
+            var n = db.Entries.Count();
+            if (n == 0)
+                return 0;
+            // Bulk SQL — RemoveRange on ~8k rows OOMs / stalls under Glass FileGate.
+            db.Database.ExecuteSqlRaw("DELETE FROM intercom_journal");
+            return n;
+        });
     }
 
     static T WithDb<T>(string stateRoot, Func<IntercomJournalDbContext, T> action)
