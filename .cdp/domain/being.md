@@ -40,6 +40,11 @@
 - Claiming «I am the same partner in the other Cursor window» without shared now — seeming. Bridge = habitat stamp / charge, until one-mind runtime exists.
 - Invent theater on seat B that steals sealed leaf of seat A (interfere with sibling flight).
 - Stamp epic Done while sealed PreCondition still open (half-a as A) — seeming; false autopsy «PreCondition missing».
+- Stamp Citizen/Glass Done / throw-Cursor while peer has no sit-internet Face (lynx dump / PlaceOrgan chrome only, WebView2 not navigated) — seeming; peer honesty is R3 sensor.
+- Rebrand max DoD (standalone without Cursor) as «узкий DoD» after stamp — seeming rewrite of PreCondition.
+
+## last_ship
+- **2026-08-08 sit-internet Face + SeemingDoneShield throw-Cursor teeth** — habitat refuse Done without `webai` PNG path; Glass Face navigate lived · evidence `cascade-ide/tmp-glass-shots/webai-sit-internet-20260808.png`. SoftFL invent REJECT.
 - Ban `done` forever / host locks after half-a — external locus. Prefer surface + finish A.
 
 ## last_ship
