@@ -77,6 +77,8 @@
 
 ## last_ship
 
+- **2026-08-08 SoftFL ACCEPT densify peer_ready charge Radio≠Done (not Citizen Done)** — lived: Sierra «заснула» after peer_ready/observe wrote one Radio letter then idle (presence=idle). Root: `PeerReadyCharge` + `SameTurnObserveUser` ended with «One short Radio letter» → model treated Radio as wake DoD. Ship: both charges → Next hand now (@intent take|replace|find) — Radio alone ≠ done; Radio only if stuck. Test `PeerReadyCharge_steers_next_hand_not_radio_done` · CitizenResultWake **8/8**. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
+
 - **2026-08-08 SoftFL ACCEPT densify ExtractKeyedValue path spaces (not Citizen Done)** — lived: Sierra Radio Clear desk / FileNotFound after `read path=D:\…\Personal Cursor Folder\…` — unquoted path truncated at first space. Ship: path-like keys keep spaces until next ` key=` · tests ExtractKeyedValue_path_* **2/2** · Persona tip quote/doc= retry ≠ invent Clear desk. SoftFL invent REJECT.
 
 - **2026-08-08 SoftFL ACCEPT densify intercom history query= (not Citizen Done)** — lived: Sierra «не вижу @all» while intercom.witdb full; Completions dialog=40; `op=history` was tail/limit only. Ship: `IntercomJournalStore.SearchContains` · `SearchJournal` · `cdp_intercom`/`@intent intercom history query=|contains=|q=` · persona Radio recall tip. Test `History_query_filters_journal_by_body_contains`. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.

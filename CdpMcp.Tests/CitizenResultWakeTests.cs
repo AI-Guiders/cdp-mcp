@@ -36,6 +36,15 @@ public sealed class CitizenResultWakeTests : IDisposable
     }
 
     [Fact]
+    public void PeerReadyCharge_steers_next_hand_not_radio_done()
+    {
+        Assert.Contains("Radio alone", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.DoesNotContain("One short Radio letter", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.Contains("Radio alone", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
+        Assert.DoesNotContain("One short Radio letter", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AfterHands_noops_without_peerAck()
     {
         Assert.False(CitizenResultWake.AfterHands(null));
