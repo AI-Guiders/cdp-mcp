@@ -10,6 +10,7 @@
 - Topology compose inside `(…)`: `+` = spatial **split** (both visible); `/` = **OneOf** XOR (full TopLevel, role switches). Example `(P/M)(F)` ≠ `(P+M)(F)`. OneOf DoD = chord **and** auto-switch. Canon: cascade-ide `docs/design/topology-oneof-slash-v0.md`. **Shipped:** parser+flags+Glass `pm_oneof_host` · chord `po` · auto M←MFD/seats · P←plan latch.
 - CDP habitat = SSOT; Glass = projector (ADR-0021 Windows-first WPF).
 - Quiet SoftOrgan seats republish = chrome tip only; `show_face` (PlaceOrgan / Citizen go) = human attention — BringCabin + SelectMfd when mfd_page, Prefer P when face_seat=p.
+- Sticky `web_ai_url` may survive non-browser PlaceOrgan; Glass `RunWebAiPortal` only when Face/MFD targets browser (`SeatsWebAiNavigateGate` / `WantsWebAiNavigate`) — not on every `show_face`.
 - SoftOrgan chrome band ≠ EICAS: alert/qrh/ecl stay EICAS (not SoftOrganLatchCatalog).
 - `sa_desk` SoftOrgan → quiet chrome (`sa-desk-LATEST` / WorkspaceChromeBand) — not MFD `Problems`, not EICAS `go=sa`.
 - Quiet-chrome SoftOrgans (dedicated latch/projector): `sa_desk`, `crm`, `plugins`, `webcam` — presence = WorkspaceChromeBand, not force-MFD.
@@ -32,6 +33,7 @@
 ## Antipatterns
 
 - Fixing WebView2 airspace with WPF `Popup`/`AllowsTransparency` for cabin overlays — Popup HWND floats above other apps (GitHub/browser); park WebView2/VT instead.
+- Sticky `web_ai_url` + any `show_face` → `RunWebAiPortal` (Sierra message / find Face steals browser) — incomplete dual-mode SoftFL; gate navigate on browser Face/MFD only.
 - Stuffing alert/qrh into SoftOrgan band (tests explicitly ignore as EICAS bleed).
 - Mapping `sa_desk` → MFD `Problems` (gates pulse paints WorkspaceChromeBand; Problems = quality/review family).
 - Mapping `crm` → MFD `Correspondence` (CRM = await/callout chrome; CRS = doc↔code surface).
@@ -244,6 +246,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 ## last_ship
 
+- **2026-08-08 sticky web_ai show_face SoftFL (not Glass Done)** — operator «опять недоделка»: Sierra message opened browser while sticky HN URL lived. Ship: `SeatsWebAiNavigateGate` · `LatchPaint.SeatsView.WantsWebAiNavigate` · `SeatsSurface` RunWebAiPortal only when wants · tests LatchPaintSeatsWebAiNavigateTests **3/3**. SoftFL invent ACCEPT · Done REOPENED.
 - **2026-08-08 WebView2 airspace SoftFL (not Glass Done)** — operator: palette under HN; Popup SoftFL floated over GitHub/Yandex (rejected). Ship: keep in-tree overlays; park `WebView2`/`TerminalVt` while palette/chord/open-family open (`MainWindow.Airspace`). Lived: surface `palette` open=true · evidence `cascade-ide/tmp-glass-shots/airspace-palette-park-20260808.png` (Command palette over dark MFD, URL bar HN). SoftFL invent ACCEPT · Done REOPENED.
 - **2026-08-08 Editor Face systemic** — dig=operator Ctrl+Q MFD:Editor peel / stuck F·Intercom · `GlassEditorFace` MountEditor(M) · never FormatMfdStub · PreferSurfaceFromMfdPage Editor→`m` + PreferPmOneOf AlignActiveSurfaceToZone · evidence `cascade-ide/tmp-glass-shots/mfd-editor-face-20260808.png` (M·Editor + AvalonEdit) + `cdp_see` · cascade `f19c0422`/`4866857d`/`00a89320` (push `github` HTTPS). SoftFL invent REJECT.
 - **2026-08-08 SE Face ItemsSource systemic** — dig=operator Avalonia peel shot · Glass SE = `SolutionItem` TreeView ItemsSource (auto-load workspace `.sln`) · never `FormatMfdStub` Avalonia peel on SE · cabin `Glass.DarkListItem`/`DarkTreeItem` · evidence `cascade-ide/tmp-glass-shots/se-face-tree-clean-20260808.png` + `cdp_see`. SoftFL invent REJECT.
