@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 201 | [seats: quiet PlaceOrgan не крадёт WebAi Face](voice-letter-placeorgan-quiet-noface-steal.ru.md) | seats · PlaceOrgan showFace · 0.5.682 · 2026-08-08 |
 | 200 | [ignite: SoftFL last_once тоже не рвётся remount-wake](voice-letter-ignite-remount-suppress-last-once.ru.md) | ignite · HasArmedLastOnceInsurance · 0.5.681 · 2026-08-08 |
 | 199 | [MFD Editor Face на M, не peel](voice-letter-glass-editor-face-m.ru.md) | glass · GlassEditorFace · Editor→m · f19c0422 · 2026-08-08 |
 | 198 | [SoftFL @Kir Face Radio tip — не StatusText tip-only](voice-letter-kir-face-radio-tip.ru.md) | glass-intercom · IsKirVoiceCannonFaceTip · db8fd77a · 2026-08-08 |
