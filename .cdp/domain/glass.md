@@ -105,7 +105,9 @@ Parity note: Glass XAML / CabinGlass use page string **SemanticMap** (`arch_desk
 
 **Glass Done human-flight ≠ substitute for:** `All CIDE surfaces adopted` on Glass — **CIDE/Avalonia cabin is EOL** for the standalone path.
 
-**2026-08-08 PreCondition REOPENED (throw-Cursor honesty):** prior CLOSE stamped a **narrower** human-flight slice (Adopt inventory + SoftOrgan Face + PNG) while operator DoD max = **standalone CDP without Cursor**. Peer sit-internet Face gap (PlaceOrgan browser → WebView2 navigate; default chatgpt landmine) = seeming Done. Status = **OPEN** until throw-Cursor DoD lived (Sierra sit-internet + battle dogfood), not half-a rebrand.
+**2026-08-08 PreCondition REOPENED (throw-Cursor honesty):** prior CLOSE stamped a **narrower** human-flight slice (Adopt inventory + SoftOrgan Face + PNG) while operator DoD max = **standalone CDP without Cursor**. Peer sit-internet Face gap (PlaceOrgan browser → WebView2 navigate; default chatgpt landmine) = seeming Done.
+
+**Battle VERIFY lived 2026-08-08** (Sierra `@intent browser` HN + Face WebAiPortal PNG + DDG search default) — checklist PASS; **Glass Done stamp still refused** vs max DoD standalone-without-Cursor (not half-a rebrand of battle VERIFY as epic Done). SoftOrgan Meta invent stays REJECT.
 
 What closed under the name Glass Done was a **narrower DoD** (presence / SoftOrgan / latch peels / P0–P3 lived UX slices — e.g. Topics **P0b** = strip+gap, not ADR 0072 overview). That is **half-a vs operator PreCondition** when a needed CIDE surface still only lives on Avalonia or as stub/strip.
 
