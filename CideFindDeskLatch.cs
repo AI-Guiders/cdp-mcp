@@ -9,11 +9,13 @@ namespace CdpMcp;
 /// Writes %LocalAppData%/cdp-mcp/find_desk-LATEST.json.
 /// SoftOrganMfdGlance RelatedFiles stays ←refactor (1:1 MFD map; search ≠ debt/blast).
 /// Idle (clear) stays silent (Dark Cockpit).
+/// Hits[] mirror FilesDesk entries SoftFL — Sierra Face list without /search alone.
 /// </summary>
 internal static class CideFindDeskLatch
 {
     public const string Schema = "cide_find_desk_latch/v1";
     public const string OriginAgent = "agent";
+    public const int LatchHitCap = 80;
 
     static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -45,7 +47,8 @@ internal static class CideFindDeskLatch
         string? op,
         string? where,
         string? query,
-        int hitCount)
+        int hitCount,
+        IReadOnlyList<FindDeskHit>? hits = null)
     {
         try
         {
@@ -62,7 +65,10 @@ internal static class CideFindDeskLatch
                 Where = string.IsNullOrWhiteSpace(where) ? null : where.Trim(),
                 Query = string.IsNullOrWhiteSpace(query) ? null : query.Trim(),
                 HitCount = hitCount,
-                ChromeHint = active ? pulseLine : null
+                ChromeHint = active ? pulseLine : null,
+                Hits = active && hits is { Count: > 0 }
+                    ? hits.Take(LatchHitCap).ToList()
+                    : null
             };
             var json = JsonSerializer.Serialize(doc, JsonOpts);
             var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
@@ -105,5 +111,13 @@ internal static class CideFindDeskLatch
         public string? Query { get; set; }
         public int HitCount { get; set; }
         public string? ChromeHint { get; set; }
+        public List<FindDeskHit>? Hits { get; set; }
+    }
+
+    public sealed class FindDeskHit
+    {
+        public string? Path { get; set; }
+        public int? Line { get; set; }
+        public string? Preview { get; set; }
     }
 }

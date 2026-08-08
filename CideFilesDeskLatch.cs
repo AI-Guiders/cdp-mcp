@@ -45,7 +45,8 @@ internal static class CideFilesDeskLatch
         string? op,
         string? where,
         string? cwd,
-        int entryCount)
+        int entryCount,
+        IReadOnlyList<FilesDeskEntry>? entries = null)
     {
         try
         {
@@ -62,7 +63,10 @@ internal static class CideFilesDeskLatch
                 Where = string.IsNullOrWhiteSpace(where) ? null : where.Trim(),
                 Cwd = string.IsNullOrWhiteSpace(cwd) ? null : cwd.Trim(),
                 EntryCount = entryCount,
-                ChromeHint = active ? pulseLine : null
+                ChromeHint = active ? pulseLine : null,
+                Entries = active && entries is { Count: > 0 }
+                    ? entries.Take(80).ToList()
+                    : null
             };
             var json = JsonSerializer.Serialize(doc, JsonOpts);
             var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
@@ -105,5 +109,13 @@ internal static class CideFilesDeskLatch
         public string? Cwd { get; set; }
         public int EntryCount { get; set; }
         public string? ChromeHint { get; set; }
+        public List<FilesDeskEntry>? Entries { get; set; }
+    }
+
+    public sealed class FilesDeskEntry
+    {
+        public string? Kind { get; set; }
+        public string? Name { get; set; }
+        public string? Path { get; set; }
     }
 }

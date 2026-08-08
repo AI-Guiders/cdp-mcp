@@ -38,7 +38,7 @@
 - Mapping `sa_desk` → MFD `Problems` (gates pulse paints WorkspaceChromeBand; Problems = quality/review family).
 - Mapping `crm` → MFD `Correspondence` (CRM = await/callout chrome; CRS = doc↔code surface).
 - Inventing SoftOrganKinds to bind orphan MFD pages (Events/Hypotheses/WorkspaceHealth/EnvironmentReadiness) — presence ≠ invent entity.
-- SoftOrganMfdGlance remapping RelatedFiles ← find_desk (stays ←refactor; FindDesk DoD = CabinGlass pin+chrome, not glance displace).
+- SoftOrganMfdGlance remapping RelatedFiles ← find_desk (stays ←refactor; FindDesk Face = own MFD + glance ←find_desk SoftFL unpin).
 - Inventing SoftOrganKind for crs/Correspondence latch+chrome (CabinGlass MFD pin only; Crm chrome ≠ CRS; SoftOrganMfdGlance stays unbound).
 - Soft deploy ≠ remounted habitat; Glass WPF rebuild is separate from cdp-mcp seat.
 - Treat `cockpit_host · down` as process death without checking Debug vs Release path_orphans — false-down + twin Start is the bug; refuse twin, path= orphan or kill then preferred.
@@ -246,6 +246,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 ## last_ship
 
+- **2026-08-08 FindDesk latch hits SoftFL (Done REOPENED)** — overnight anti-waste: `CideFindDeskLatch` now writes `hits[]` (path/line/preview, cap 80) from `IdeFindChannel` so Sierra `@intent find` / `cdp_search` paints Glass FindDesk list without `/search` alone. Tests `CideFindDeskLatchTests` + CabinGlass pin. Prior FULL-A wave still stands; **not** Glass/Citizen Done.
+- **2026-08-08 SoftFL FULL-A port wave SHIPPED (Done REOPENED)** — FilesDesk SoftKeys Up/Open/List + DoubleClick/Enter local cd · FindDesk Face + CabinGlass `find_desk→FindDesk` unpin (RelatedFiles stays refactor) · `/search` paints FindDesk · ADR0125 slash family `/file open|pick|save` `/solution open|load|new|explorer show` `/folder open` · SE filter TextBox · Build/Tests fail DoubleClick jump · Peel17 WorkspaceFileIndex/McpSolutionTree/SolutionExplorerTreeFilter linked+Compile Remove · unit: GlassSlashCatalogStepTests + CabinGlassProjectionCatalogTests · **not** Glass/Citizen Done · SoftFL invent REJECT invent SoftOrgans/Themes/Intercom-relate/full IdeDap · open A14–A22 SoftOrgan cards / throw-Cursor battle.
 - **2026-08-08 sticky web_ai show_face SoftFL (not Glass Done)** — operator «опять недоделка»: Sierra message opened browser while sticky HN URL lived. Ship: `SeatsWebAiNavigateGate` · `LatchPaint.SeatsView.WantsWebAiNavigate` · `SeatsSurface` RunWebAiPortal only when wants · tests LatchPaintSeatsWebAiNavigateTests **3/3**. SoftFL invent ACCEPT · Done REOPENED.
 - **2026-08-08 WebView2 airspace SoftFL (not Glass Done)** — operator: palette under HN; Popup SoftFL floated over GitHub/Yandex (rejected). Ship: keep in-tree overlays; park `WebView2`/`TerminalVt` while palette/chord/open-family open (`MainWindow.Airspace`). Lived: surface `palette` open=true · evidence `cascade-ide/tmp-glass-shots/airspace-palette-park-20260808.png` (Command palette over dark MFD, URL bar HN). SoftFL invent ACCEPT · Done REOPENED.
 - **2026-08-08 Editor Face systemic** — dig=operator Ctrl+Q MFD:Editor peel / stuck F·Intercom · `GlassEditorFace` MountEditor(M) · never FormatMfdStub · PreferSurfaceFromMfdPage Editor→`m` + PreferPmOneOf AlignActiveSurfaceToZone · evidence `cascade-ide/tmp-glass-shots/mfd-editor-face-20260808.png` (M·Editor + AvalonEdit) + `cdp_see` · cascade `f19c0422`/`4866857d`/`00a89320` (push `github` HTTPS). SoftFL invent REJECT.
