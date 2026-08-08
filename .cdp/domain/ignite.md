@@ -34,7 +34,7 @@
 - **Already-armed last_once:** HILD away edge/escalate pull-forward ≤3s; under autonomous + leaf Fly, TimerLoop also pull-forwards (`3s(leaf_pull)`) — both skip invent-only Hold tasks.
 - **leaf-wake (`ArmForLeaf`):** default **2s**; invent-only Hold title → **15m + `last_once=true`** (DIG REJECT mill ≠ 2s/3m Recover thrash; post-fire insurance matches agent re-ARM ritual · 0.5.677 / **0.5.680**).
 - **HILD away/escalate Composer wake:** suppress when invent-only Hold insurance timer already armed/firing (`HasArmedInventOnlyHoldInsurance` · edge + escalate schedule · 0.5.678) — lived DIG REJECT: invent-only 15m armed → `hild-away` CDT ~1m later. Autonomy latch on escalate still runs.
-- **Remount-initialized Composer wake:** suppress schedule when invent-only Hold insurance already armed (`TryScheduleRemountInitializedWake` · consume pending + no arm · 0.5.679) — lived DIG REJECT: Not connected → Recover stamps pending → remount-wake CDT mid-turn → Not connected again. SoftFL REJECT.
+- **Remount-initialized Composer wake:** suppress schedule when **any** last_once insurance already armed (`HasArmedLastOnceInsurance` · invent-only Hold **or** SoftFL-safe last_once · `TryScheduleRemountInitializedWake` · consume pending + no arm · **0.5.681**; invent-only-only was 0.5.679) — lived DIG REJECT SoftFL ship 2026-08-08: ListTools ready + CallTool timeout until restart without remount pending. SoftFL invent ACCEPT.
 - After successful fire: watch Cursor for "Connection Problems" / Try again|Retry overlay until next fire; auto-click (not Idle-only).
 - After successful fire: also Win32-click Electron stall dialog "The window is not responding" → **Keep Waiting** (not OS hung dialog; not CDT).
 
@@ -66,6 +66,7 @@
 - Leaving `remount-wake-other.pending.json` when Target was `...\self` / repo leaf (pre-0.5.661 ClassifySeat) — remount wake never arms.
 - HILD away/escalate Composer wake while invent-only Hold insurance already armed (pre-0.5.678) — DIG REJECT thrash under sealed Hold; suppress edge+escalate schedule.
 - Remount-initialized Composer wake while invent-only Hold insurance already armed (pre-0.5.679) — Recover mid-turn remount CDT → second Not connected DIG REJECT; consume pending + suppress schedule.
+- Remount-initialized Composer wake while SoftFL-safe last_once insurance armed but invent-only gate missed (pre-0.5.681) — SoftFL ship mid-turn CallTool zombie (ListTools OK); suppress under any last_once; Recover prefer `-NoStampRemountPending`.
 - Invent-only Hold `ArmForLeaf` without `last_once` (pre-0.5.680) — every invent-only last_once fire → leaf-wake last_once=false → agent must manual supersede every wake; DIG REJECT ritual under sealed Hold.
 - Hold invent-only insurance ≤3m under overnight autonomous (pre-0.5.677) — Autoi wake → Cursor MCP zombie → Recover every ~3m = DIG REJECT seeming; `InventOnlyHoldInsuranceMax=15m`.
 - Autonomous seed→leaf-wake via DFS-first incomplete leaf while `[>]` invent-only Hold is focused (pre-0.5.676) — remount planted `Monday DoD` 2s thrash; `ResolveWakeLeafId` prefers `ActiveStageId`.
@@ -94,6 +95,7 @@
 
 ## last_ship
 
+- **2026-08-08 Remount suppress under any last_once (0.5.681)** — lived SoftFL: Dialog kb ship → Recover remount pending → Composer remount wake mid SoftFL → Cursor MCP CallTool zombie (ListTools ready, CallTool timeout) while CdpMcp.exe up. Fix: `HasArmedLastOnceInsurance` gates `TryScheduleRemountInitializedWake` (not invent-only only); tip `Recover-CdpSeatRemount.ps1` prefer `-NoStampRemountPending`. Tests invent-only + SoftFL last_once **3/3**. SoftFL invent ACCEPT dig=ignite.md.
 - **2026-08-08 @Kir voice cannon Face SoftFL** — lived: Composer Stop + once intercom-pf arm → silent Remove / no Face (operator «пушка не выстрелила»; полоска-hint = asymmetry urgency not product invent). Ship: first `busy_timeout` → Radio tip once · non-requeue Remove → Face tip + `TryClearFired` so watcher can re-arm. Tests IntercomVoiceCannonStateTests **5/5**. SoftFL invent ACCEPT dig=IntercomVoiceCannonWatcher+ApplyFireOutcome.
 - **2026-08-07 wave1 Watch seams** — `IdeIgniteConnectionWatch` + `IdeIgniteOomWatch` real types (not ArmHost.*.cs peels) · OOM schedule stays `IdeIgniteArmHost.OomSchedule` (Arms/Gate) · ArmHost family 26→25 · Program/Fire/Teeth wired · dig-before-peel on quality domain · SoftFL invent REJECT still
 - **2026-08-07 ArmForLeaf invent-only last_once (0.5.680)** — lived overnight: invent-only last_once fire → AutonomousContinue → ArmForLeaf leaf-wake 15m with last_once=false → agent supersede ritual every ~15m. Fix: invent-only Hold ArmForLeaf sets last_once=true. SoftFL-safe (continuity; SoftFL invent REJECT). Test ArmForLeaf_invent_only_hold_uses_15m_last_once PASS.
