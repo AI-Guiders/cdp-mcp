@@ -39,7 +39,7 @@ internal static class CitizenGlassDialogBridge
     /// in-loop (Cursor Cutoff densest), not sleep until next Autoi.
     /// </summary>
     internal const string SameTurnObserveUser =
-        "@event peer — verify hands from pulse; do not invent refuse. Next hand now (@intent take|replace|find) — Radio alone ≠ done; Radio only if stuck (one fact).";
+        "@event peer — verify hands from pulse; do not invent refuse. Next hand now (@intent take|replace FULL path) — find≠next hand; Radio alone ≠ done; Radio only if stuck (one fact).";
 
     internal static void ResetProcessedForTests() => LastProcessedId = null;
 
@@ -267,7 +267,7 @@ internal static class CitizenGlassDialogBridge
             if (published is not null)
             {
                 LastProcessedId = req.Id;
-                // Result-wake facade: skip peer_ready when same-turn observe already ran Completions #2.
+                // Result-wake facade: observe Completions #2 ≠ stop — AfterHands arms peer_ready for #3.
                 CitizenResultWake.AfterHands(
                     peerAck,
                     req.Channel,
