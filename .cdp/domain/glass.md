@@ -248,6 +248,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 ## last_ship
 
+- **2026-08-08 Dig SoftFL invent REJECT densest SoftFL ACCEPT after dual-SSOT wave CLOSED (Done REOPENED)** — dig=`glass.md`+`citizen.md`+wave shipped. SoftFL ACCEPT NuGet/flat/CamelCase/PlaceOrgan CLOSED · A4 relate SoftFL invent REJECT · B1–B3 DIG REJECT · densest sealed next = Face axis4 operator HOLD (not SoftFL invent mill) · SoftFL invent REJECT SoftOrgan invent REJECT · not Glass/Citizen Done.
 - **2026-08-08 CitizenBattleReady15 dual-SSOT wave SHIPPED (Done REOPENED)** — dig=`active-wave.json` w-20260807-213307 lag close: i1 dual-ssot-png already done · i2 kir-face-tip CLOSED dig=`glass.md` SoftFL @Kir Face Radio tip + evidence `D:\cdp-mcp\tmp-evidence\kir-face-tip-radio-20260808.png` + `cdp_see` · i3 park-invent CLOSED dig=dual-SSOT stamp «invent SoftFL NEXT thrash parked» + evidence `D:\cdp-mcp\tmp-evidence\dual-ssot-plan-20260808.png` + `cdp_see`. SoftFL invent REJECT SoftOrgan invent REJECT Face axis4 HOLD · not Glass/Citizen Done · SoftFL invent ACCEPT SoftFL only as wave lag close (lived≠pending).
 
 - **2026-08-08 SoftFL ACCEPT nuget.org flat-container 0.1.3 index VERIFY (Done REOPENED)** — dig=`https://api.nuget.org/v3-flatcontainer/aiguiders.hybridcodebaseindex.core/index.json` versions now include **0.1.3** (restore-ready; gallery lag closed). SoftFL invent ACCEPT · SoftOrgan invent REJECT · Face axis4 HOLD · not Glass/Citizen Done · dig=flat API.
