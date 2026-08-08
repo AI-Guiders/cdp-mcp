@@ -32,7 +32,7 @@
 
 ## Antipatterns
 
-- **Dual Input (Airbus sidestick)** — agent and operator both shove Glass Face at once (`presentation_set` / PreferSurface / `mfd_page` / topology wipe) while the other already holds the stick. Lived 2026-08-09: mentor restored topology with `mfd_page=WebAiPortal` → Portal on M, not the MD buffer; operator flight was Portal + Intercom on F. Fix = authority gate (quiet agent open / topology-only merge / explicit `show_face`), **not** swap topology to hide the fight. Priority: operator Face unless they asked for Face show.
+- **Dual Input (Airbus sidestick)** — conflict on the **same** control surface / PreferSurface XOR / `mfd_page` stick (both shove → wipe each other's view). **Not** the same as dual-HCI parallel: one SSOT, different slices — operator preps next leaf on Portal/rest while agent/Citizen works another locus; agent **`show` / `show_face`** is the invite axis to share a slice, not a ban. Lived 2026-08-09: mentor `presentation_set` fought operator Portal on M (wanted MD show) → Portal won, MD lost; topology swap was a hide, not a fix. SoftFL target = show without stealing the peer's parallel viewport (quiet mount vs PreferSurface fight), **not** «agent never touches Face».
 - Fixing WebView2 airspace with WPF `Popup`/`AllowsTransparency` for cabin overlays — Popup HWND floats above other apps (GitHub/browser); park WebView2/VT instead.
 - Sticky `web_ai_url` + any `show_face` → `RunWebAiPortal` (Sierra message / find Face steals browser) — incomplete dual-mode SoftFL; gate navigate on browser Face/MFD only.
 - Stuffing alert/qrh into SoftOrgan band (tests explicitly ignore as EICAS bleed).
