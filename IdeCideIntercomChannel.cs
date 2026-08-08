@@ -24,9 +24,10 @@ internal static partial class IdeCideIntercomChannel
             "send" or "say" or "tx" => Send(args),
             "ack" or "read" or "clear" => Ack(args),
             "history" or "line" or "journal" or "tail" => History(args),
+            "wipe_journal" or "clear_journal" or "journal_wipe" or "wipe_feed" => WipeJournal(args),
             "presence" or "status" or "pulse_presence" => Presence(args),
             "identity" or "who" or "nick" => Identity(args),
-            _ => Fail("unknown_op", "op=scene|send|ack|history|presence|identity  to=pm|pf body= | seat= name=|state=")
+            _ => Fail("unknown_op", "op=scene|send|ack|history|wipe_journal|presence|identity  to=pm|pf body= | seat= name=|state=")
         };
     }
 
@@ -157,6 +158,28 @@ internal static partial class IdeCideIntercomChannel
             op = "ack",
             message = Card(doc),
             hint = "Unread cleared from cockpit pulse."
+        });
+    }
+
+    static string WipeJournal(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        _ = args;
+        var before = CideIntercomVoiceLatch.JournalCount();
+        var wiped = CideIntercomVoiceLatch.WipeJournal();
+        if (wiped < 0)
+            return Fail("wipe_failed", "intercom.witdb busy or IO — retry; Glass may hold lock");
+
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "wipe_journal",
+            wiped,
+            before,
+            journal_count = CideIntercomVoiceLatch.JournalCount(),
+            journal_path = CideIntercomVoiceLatch.JournalPath,
+            latch_path = CideIntercomVoiceLatch.LatchPath,
+            hint = "Face Virtual History wiped (intercom.witdb). Glass may need rail flick / restart if paint still shows old bubbles."
         });
     }
 

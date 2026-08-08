@@ -307,6 +307,26 @@ public class CideIntercomVoiceLatchTests : IDisposable
         Assert.Contains(bodies, b => b.Contains("@all", StringComparison.Ordinal));
         Assert.DoesNotContain(bodies, b => b.Equals("noise other topic", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public void WipeJournal_clears_face_virtual_history()
+    {
+        Assert.NotNull(CideIntercomVoiceLatch.Publish(
+            "pm", "pf", "old noise for wipe", CideIntercomVoiceLatch.OriginHuman,
+            name: "Света", kind: "operator", channel: "crew"));
+        Assert.True(CideIntercomVoiceLatch.JournalCount() >= 1);
+
+        var json = IdeCideIntercomChannel.HandleJson(new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["op"] = JsonSerializer.SerializeToElement("wipe_journal")
+        });
+        using var doc = JsonDocument.Parse(json);
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.True(doc.RootElement.GetProperty("wiped").GetInt32() >= 1);
+        Assert.Equal(0, doc.RootElement.GetProperty("journal_count").GetInt32());
+        Assert.Equal(0, CideIntercomVoiceLatch.JournalCount());
+        Assert.Empty(CideIntercomVoiceLatch.LoadJournalTail(10));
+    }
     [Fact]
     public void Publish_requires_durable_journal_not_latest_alone()
     {

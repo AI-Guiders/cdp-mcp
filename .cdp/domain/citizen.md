@@ -82,6 +82,8 @@
 
 ## last_ship
 
+- **2026-08-09 SoftFL ACCEPT densify intercom wipe_journal (not Citizen Done)** — lived clean-slate: Face Virtual History (`intercom.witdb`) had no wipe verb; operator asked clear human chat too. Ship: `IntercomJournalStore.WipeAll` · `CideIntercomVoiceLatch.WipeJournal` · `cdp_intercom op=wipe_journal` · test WipeJournal_clears. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Done REOPENED.
+
 - **2026-08-09 SoftFL ACCEPT densify invent-take rewrite (not Citizen Done)** — lived Glass shot: Sierra loops `take GlassIntercom.cs`; mentor `@intent take` tip stripped by `StripWire` on Face → Completions never sees PASTE. Ship: `RewriteInventedTakePath` · RouteTake + Take args prefer leaf · tests CitizenLeafPathRewrite. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Done REOPENED.
 
 - **2026-08-09 SoftFL ACCEPT densify LeafTakePath absolute (not Citizen Done)** — lived Autoi: Sierra PASTE relative leaf under project_root=cdp-mcp → FileNotFound / truncated Personal Cursor F…. Ship: `LeafTakePath` absolute quoted under cascade-ide · LeafTakeIntent PASTE · open cascade-ide for flight. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Done REOPENED.
