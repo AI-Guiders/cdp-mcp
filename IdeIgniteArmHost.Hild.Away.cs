@@ -266,6 +266,17 @@ internal static partial class IdeIgniteArmHost
                 && IsInventOnlyHoldTask(a.Task));
     }
 
+    /// <summary>Any last_once timer insurance armed/firing — remount Composer wake after Recover mid SoftFL = DIG REJECT thrash.</summary>
+    internal static bool HasArmedLastOnceInsurance()
+    {
+        EnsureLoaded();
+        lock (Gate)
+            return Arms.Any(a =>
+                a.LastOnce
+                && a.Status is "armed" or "firing"
+                && string.Equals(a.Event, "timer", StringComparison.OrdinalIgnoreCase));
+    }
+
     static bool HasAwaitingOperatorLatch()
     {
         EnsureLoaded();

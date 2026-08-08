@@ -314,8 +314,45 @@ public partial class IdeIgniteArmHostTests
             ["charge"] = JsonSerializer.SerializeToElement("minimal")
         });
         Assert.True(IdeIgniteArmHost.HasArmedInventOnlyHoldInsurance());
+        Assert.True(IdeIgniteArmHost.HasArmedLastOnceInsurance());
 
         IdeRemountWake.MarkPending(IdeDeploy.ReleaseTarget, "recover_unit");
+        Assert.Null(IdeIgniteArmHost.TryScheduleRemountInitializedWake("cdp"));
+        Assert.False(IdeRemountWake.HasPending("cdp"));
+
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["all"] = JsonSerializer.SerializeToElement(true),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+    }
+
+    [Fact]
+    public void TryScheduleRemountInitializedWake_null_when_softfl_last_once_insurance_armed()
+    {
+        IdeIgniteArmHost.BindAutonomous(true);
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("disarm"),
+            ["all"] = JsonSerializer.SerializeToElement(true),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+
+        IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>
+        {
+            ["op"] = JsonSerializer.SerializeToElement("arm"),
+            ["when"] = JsonSerializer.SerializeToElement("timer"),
+            ["in"] = JsonSerializer.SerializeToElement("3m"),
+            ["last_once"] = JsonSerializer.SerializeToElement(true),
+            ["task"] = JsonSerializer.SerializeToElement(
+                "SoftFL ACCEPT Dialog kb hub honesty SoftFL invent ACCEPT"),
+            ["charge"] = JsonSerializer.SerializeToElement("minimal")
+        });
+        Assert.False(IdeIgniteArmHost.HasArmedInventOnlyHoldInsurance());
+        Assert.True(IdeIgniteArmHost.HasArmedLastOnceInsurance());
+
+        IdeRemountWake.MarkPending(IdeDeploy.ReleaseTarget, "recover_softfl");
         Assert.Null(IdeIgniteArmHost.TryScheduleRemountInitializedWake("cdp"));
         Assert.False(IdeRemountWake.HasPending("cdp"));
 
