@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using System.Text;
-using System.Text.Json;
 
 namespace CdpMcp;
 internal static partial class CitizenCompletions
@@ -24,6 +23,16 @@ internal static partial class CitizenCompletions
                     hint.Append(" · truncated — raise max_tokens or shorten prompt/reasoning");
             }
 
+            CitizenCostLedger.Record(
+                built,
+                resolved.Model,
+                resolved.Provider,
+                ok: false,
+                error: "empty_text",
+                promptTokens: meta?.PromptTokens,
+                completionTokens: meta?.CompletionTokens,
+                totalTokens: meta?.TotalTokens);
+
             return new TurnResult(false, "empty_text", hint.ToString(), null, resolved.Model, resolved.Provider, built, null, null, false);
         }
 
@@ -39,6 +48,18 @@ internal static partial class CitizenCompletions
             okHint += " · text from reasoning";
         if (meta is { CompletionTokens: int used })
             okHint += " · completion_tokens=" + used;
+        if (meta is { PromptTokens: int ptOk })
+            okHint += " · prompt_tokens=" + ptOk;
+
+        CitizenCostLedger.Record(
+            built,
+            resolved.Model,
+            resolved.Provider,
+            ok: true,
+            error: null,
+            promptTokens: meta?.PromptTokens,
+            completionTokens: meta?.CompletionTokens,
+            totalTokens: meta?.TotalTokens);
 
         return new TurnResult(true, null, okHint, text, resolved.Model, resolved.Provider, built, intents, routes, false);
     }

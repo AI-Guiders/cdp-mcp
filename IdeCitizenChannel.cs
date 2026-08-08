@@ -98,8 +98,10 @@ internal static partial class IdeCitizenChannel
     {
         var keys = CitizenAiKeys.Load();
         var invite = InviteReady(keys);
+        var cost = CitizenCostLedger.Pulse();
+        var costPulse = CitizenCostLedger.PulseLine();
         var pulse = invite.Ready
-            ? "citizen · invite=ready · keys=set · tea"
+            ? "citizen · invite=ready · keys=set · " + costPulse + " · tea"
             : "citizen · invite=blocked · keys=" + (keys.FileExists ? "empty" : "missing");
         return JsonSerializer.Serialize(new
         {
@@ -109,6 +111,7 @@ internal static partial class IdeCitizenChannel
             pulse,
             persona_chars = CitizenPersona.WireSystemPrompt.Length,
             dialog_persona_chars = CitizenPersona.DialogSystemPrompt.Length,
+            cost,
             modes = new[] { "wire", "dialog" },
             mode_default = "wire",
             dialog = CitizenDialogHistory.Pulse(),
@@ -123,7 +126,7 @@ internal static partial class IdeCitizenChannel
             keys = keys.ToPublicPulse(),
             invite_ready = invite,
             hint = invite.Ready
-                ? "invite ready — op=turn mode=dialog message=… for peer prose; mode=wire for hands. dry_run= still free."
+                ? "invite ready — op=turn mode=dialog message=… for peer prose; mode=wire for hands. dry_run= still free. cost= ledger on live turns."
                 : "not invite-ready — copy docs/design/ai-keys.example.toml → CascadeIDE ai-keys.toml; fill open_ai_api_key (Cloud.ru) or anthropic_api_key. dry_run= explains without keys.",
             next = invite.Ready
                 ? new object[]
