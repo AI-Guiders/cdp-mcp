@@ -65,9 +65,10 @@ internal static partial class CitizenPersona
           @intent kb facet=finding findings
           @intent kb facet=failure failures
           @intent kb facet=task route_next
+          @intent kb list_knowledge_files path=.
           @intent kb read_knowledge_file file_path=META/integrity-core.md
           @intent kb read_knowledge_file file_path=SHOWCASE.md
-          Note: pack_id=epistemic-scene|agent-operations-cdp — hub root "." is knowledge files (SHOWCASE), not a pack.
+          Note: pack_id=epistemic-scene|agent-operations-cdp — hub root "." = ~24 knowledge files (SHOWCASE); worlds ~550 ≠ hub and ≠ cannot-read. Prefer list path=. then read file_path=.
           @intent memory_world list_pack
           @intent memory_project list_knowledge_files
           @intent memory_session memory_health
