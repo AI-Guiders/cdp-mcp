@@ -25,7 +25,23 @@ internal static partial class CitizenIntentRouter
         }
 
         op = string.IsNullOrWhiteSpace(op) ? "scene" : op.Trim().ToLowerInvariant();
+        // show|share|face = open/search + latch Glass Face (operator eyes). Default peer dig stays lynx-only.
+        var faceVerb = op is "show" or "share" or "face";
         op = NormalizeBrowserOp(op);
+        if (faceVerb)
+        {
+            var hasUrl = !string.IsNullOrWhiteSpace(
+                ExtractKeyedValue(raw, "url")
+                ?? ExtractKeyedValue(raw, "href")
+                ?? ExtractKeyedValue(raw, "uri"));
+            var hasQ = !string.IsNullOrWhiteSpace(
+                ExtractKeyedValue(raw, "q")
+                ?? ExtractKeyedValue(raw, "query")
+                ?? ExtractKeyedValue(raw, "text"));
+            op = !hasUrl && hasQ ? "search" : "open";
+        }
+
+        var face = faceVerb || WantBrowserFaceFlag(raw);
 
         if (!IsBrowserOp(op))
             return new Route(Verb.Unknown, raw, Ok: false, Reason: "browser_op_unknown");
@@ -41,6 +57,7 @@ internal static partial class CitizenIntentRouter
                 raw,
                 Ok: false,
                 Op: op,
+                Detail: face ? "face" : "peer",
                 Go: "browser",
                 Reason: "browser_url_required");
         }
@@ -56,6 +73,7 @@ internal static partial class CitizenIntentRouter
                 raw,
                 Ok: false,
                 Op: op,
+                Detail: face ? "face" : "peer",
                 Go: "browser",
                 Reason: "browser_query_required");
         }
@@ -71,6 +89,7 @@ internal static partial class CitizenIntentRouter
                 raw,
                 Ok: false,
                 Op: op,
+                Detail: face ? "face" : "peer",
                 Go: "browser",
                 Reason: "browser_link_required");
         }
@@ -80,8 +99,41 @@ internal static partial class CitizenIntentRouter
             raw,
             Ok: true,
             Op: op,
+            Detail: face ? "face" : "peer",
             Go: "browser");
     }
+
+    /// <summary>face=true|show=true|share=true|to=operator — latch Glass WebAi Face. Default peer dig does not.</summary>
+    internal static bool WantBrowserFaceFlag(string raw)
+    {
+        foreach (var key in new[] { "face", "show", "share" })
+        {
+            var v = ExtractKeyedValue(raw, key);
+            if (IsTruthyFlag(v))
+                return true;
+        }
+
+        var to = ExtractKeyedValue(raw, "to");
+        if (to is { Length: > 0 }
+            && (to.Equals("operator", StringComparison.OrdinalIgnoreCase)
+                || to.Equals("human", StringComparison.OrdinalIgnoreCase)
+                || to.Equals("face", StringComparison.OrdinalIgnoreCase)
+                || to.Equals("sveta", StringComparison.OrdinalIgnoreCase)
+                || to.Equals("света", StringComparison.OrdinalIgnoreCase)))
+            return true;
+
+        return false;
+    }
+
+    static bool IsTruthyFlag(string? v) =>
+        v is { Length: > 0 }
+        && (v.Equals("true", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("1", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("yes", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("on", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("face", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("show", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("share", StringComparison.OrdinalIgnoreCase));
 
     static string NormalizeBrowserOp(string op) =>
         op switch
@@ -95,6 +147,8 @@ internal static partial class CitizenIntentRouter
             "click" => "follow",
             "fwd" => "forward",
             "tab_close" => "close",
+            // show|share|face remapped before Normalize when used as verb head
+            "show" or "share" or "face" => "open",
             _ => op
         };
 

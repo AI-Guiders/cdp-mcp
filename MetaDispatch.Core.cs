@@ -66,14 +66,20 @@ internal static partial class MetaDispatch
         }
     }
 
-    /// <summary>Agent cdp_browser open|search → Glass WebAiPortal Face (parity with Citizen @intent browser).</summary>
+    /// <summary>
+    /// Agent cdp_browser open|search → Glass WebAiPortal Face only when face=/show=/share=/to=operator.
+    /// Default peer dig = lynx text only (operator may look at something else).
+    /// </summary>
     static void TryPlaceBrowserFace(IReadOnlyDictionary<string, JsonElement> args, string json)
     {
         try
         {
+            if (!CitizenRouteHost.WantBrowserFaceArgs(args))
+                return;
+
             var op = OptArg(args, "op") ?? "scene";
             op = op.Trim().ToLowerInvariant();
-            if (op is not ("open" or "goto" or "navigate" or "search" or "find" or "google"))
+            if (op is not ("open" or "goto" or "navigate" or "search" or "find" or "google" or "show" or "share" or "face"))
                 return;
 
             var faceUrl = TryReadBrowserFaceUrl(json, args);
