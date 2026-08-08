@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 203 | [HybridIndex: BoardLeaf снова слышен в FTS](voice-letter-hybridindex-camelcase-fts.ru.md) | glass · HybridIndex CamelCase/FTS · Core 0.1.3 · 2026-08-08 |
 | 202 | [seats: default quiet · Face только на show](voice-letter-placeorgan-default-quiet-face-on-show.ru.md) | seats · PlaceOrgan default quiet · 0.5.683 · 2026-08-08 |
 | 201 | [seats: quiet PlaceOrgan не крадёт WebAi Face](voice-letter-placeorgan-quiet-noface-steal.ru.md) | seats · PlaceOrgan showFace · 0.5.682 · 2026-08-08 |
 | 200 | [ignite: SoftFL last_once тоже не рвётся remount-wake](voice-letter-ignite-remount-suppress-last-once.ru.md) | ignite · HasArmedLastOnceInsurance · 0.5.681 · 2026-08-08 |
