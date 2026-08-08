@@ -13,7 +13,9 @@ namespace CdpMcp;
 /// </summary>
 internal static class CitizenResultWake
 {
-    public const string LeafTakePath = "CascadeIDE.GlassCore/Intercom/GlassIntercomMention.cs";
+    /// <summary>Absolute quoted path — relative leaf dies when project_root=cdp-mcp (spaces OK via quotes).</summary>
+    public const string LeafTakePath =
+        "D:/Experiments/Personal Cursor Folder/Financial/software/open/cascade-ide/CascadeIDE.GlassCore/Intercom/GlassIntercomMention.cs";
 
     /// <summary>Copy-paste line Completions must emit — not a buried leaf= hint.</summary>
     public const string LeafTakeIntent =
