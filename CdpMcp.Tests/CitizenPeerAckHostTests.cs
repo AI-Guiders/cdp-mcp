@@ -77,6 +77,31 @@ public sealed class CitizenPeerAckHostTests : IDisposable
     }
 
     [Fact]
+    public void FromExecuted_includes_take_ship_body_in_event()
+    {
+        CitizenPeerAck.ResetForTests();
+
+        const string body = "# N-Why\n\nmodeling toolchain paragraph that must reach Completions.";
+        var ack = CitizenPeerAck.FromExecuted(
+        [
+            new CitizenRouteHost.Applied(
+                Raw: "@intent take path=n.md",
+                Verb: "Take",
+                Ok: true,
+                Action: "take",
+                Pulse: "take chars=64 lines=4 verify=n/a ship=64",
+                Ship: body)
+        ]);
+
+        Assert.Equal(1, ack.Applied);
+        Assert.Contains("ship  |", ack.Event, StringComparison.Ordinal);
+        Assert.Contains("modeling toolchain paragraph", ack.Event, StringComparison.Ordinal);
+        Assert.Contains(body, CitizenPeerAck.LastEvent!, StringComparison.Ordinal);
+        // Peer tip stays compact — full body is event ship, not tip.
+        Assert.DoesNotContain("modeling toolchain", ack.Peer, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Channel_live_mock_turn_surfaces_peer_ack()
     {
         CitizenPeerAck.ResetForTests();

@@ -20,7 +20,8 @@ internal static partial class CitizenRouteHost
         string? DocId = null,
         string? Cmd = null,
         string? Pulse = null,
-        string? Reason = null);
+        string? Reason = null,
+        string? Ship = null);
 
     public static IReadOnlyList<Applied> Execute(IEnumerable<CitizenIntentRouter.Route>? routes)
     {

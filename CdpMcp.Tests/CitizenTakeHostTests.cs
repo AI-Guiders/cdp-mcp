@@ -78,4 +78,30 @@ public sealed class CitizenTakeHostTests
             CitizenRouteHost.UnbindLifecycle();
         }
     }
+
+    [Fact]
+    public void Execute_take_ships_chat_markdown_into_Applied_Ship()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.TakeCallOverride = _ =>
+            """{"schema":"editor_comfort/v0","ok":true,"op":"take","chars":11,"lines":1,"verify":{"status":"skipped","note":"no_kind_checker"},"chat_markdown":"```md\nhello ship\n```","body":"hello ship","meta":{"path":"D:\\tmp\\n.md","doc_id":"doc-9"}}""";
+        try
+        {
+            var applied = CitizenRouteHost.Execute([
+                CitizenIntentRouter.RouteOne("take path=n.md")
+            ]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.Contains("verify=n/a", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.DoesNotContain("skipped", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("ship=", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.False(string.IsNullOrWhiteSpace(applied[0].Ship));
+            Assert.Contains("hello ship", applied[0].Ship!, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.TakeCallOverride = null;
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
 }

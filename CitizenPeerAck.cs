@@ -253,6 +253,13 @@ internal static class CitizenPeerAck
                 sb.Append('\n').Append("pulse | ").Append(OneLine(a.Pulse, EventPulseMax));
             else if (!string.IsNullOrWhiteSpace(a.Reason))
                 sb.Append(" (").Append(OneLine(a.Reason, 120)).Append(')');
+
+            // take (and future ship verbs): body into Completions afferent — not OneLine pulse.
+            if (!string.IsNullOrWhiteSpace(a.Ship))
+            {
+                sb.Append('\n').Append("ship  |");
+                sb.Append('\n').Append(a.Ship.TrimEnd());
+            }
         }
 
         return sb.ToString();

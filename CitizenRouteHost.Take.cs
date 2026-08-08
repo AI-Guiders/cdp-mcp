@@ -66,6 +66,11 @@ internal static partial class CitizenRouteHost
             var json = result is string s ? s : JsonSerializer.Serialize(result);
             var ok = TryReadUndoOk(json);
             var pulse = TryReadTakePulse(json);
+            var ship = ok ? TryReadTakeShip(json) : null;
+            if (ship is { Length: > 0 }
+                && pulse is not null
+                && pulse.IndexOf("ship=", StringComparison.Ordinal) < 0)
+                pulse = TruncPulse(pulse + " ship=" + ship.Length);
             string? full = null;
             string? docId = null;
             TryReadEditMeta(json, out full, out docId);
@@ -82,7 +87,8 @@ internal static partial class CitizenRouteHost
                 Path: full ?? route.Path,
                 DocId: docId,
                 Pulse: pulse,
-                Reason: ok ? null : (TryReadLifecycleError(json) ?? TryReadUndoError(json) ?? pulse ?? op + "_failed"));
+                Reason: ok ? null : (TryReadLifecycleError(json) ?? TryReadUndoError(json) ?? pulse ?? op + "_failed"),
+                Ship: ship);
         }
         catch (Exception ex)
         {
@@ -131,6 +137,10 @@ internal static partial class CitizenRouteHost
         return args;
     }
 
+    /// <summary>
+    /// SoftFL lived: bare <c>skipped</c> in pulse reads as "content missed".
+    /// TakeShip uses verify.status=skipped for no_kind_checker (.md) — map to verify=n/a.
+    /// </summary>
     static string? TryReadTakePulse(string json)
     {
         try
@@ -147,7 +157,12 @@ internal static partial class CitizenRouteHost
             if (root.TryGetProperty("verify", out var v) && v.ValueKind == JsonValueKind.Object
                 && v.TryGetProperty("status", out var st) && st.ValueKind == JsonValueKind.String
                 && st.GetString() is { Length: > 0 } status)
-                bits.Add(status);
+            {
+                // skipped ≠ failed — no checker for this kind (markdown etc.).
+                bits.Add(string.Equals(status, "skipped", StringComparison.OrdinalIgnoreCase)
+                    ? "verify=n/a"
+                    : status);
+            }
             if (root.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String
                 && err.GetString() is { Length: > 0 } error)
                 bits.Add(error);
@@ -156,6 +171,37 @@ internal static partial class CitizenRouteHost
         catch
         {
             return TruncPulse("take");
+        }
+    }
+
+    /// <summary>
+    /// TakeShip ships <c>chat_markdown</c> (prefer) or <c>body</c> into agent context.
+    /// Cursor MCP pastes tool result; Citizen Completions needs Applied.Ship → @event peer.
+    /// </summary>
+    internal const int TakeShipMaxChars = 64_000;
+
+    static string? TryReadTakeShip(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            string? ship = null;
+            if (root.TryGetProperty("chat_markdown", out var md) && md.ValueKind == JsonValueKind.String)
+                ship = md.GetString();
+            if (string.IsNullOrWhiteSpace(ship)
+                && root.TryGetProperty("body", out var body) && body.ValueKind == JsonValueKind.String)
+                ship = body.GetString();
+            if (string.IsNullOrWhiteSpace(ship))
+                return null;
+            ship = ship.Replace("\r\n", "\n", StringComparison.Ordinal).TrimEnd();
+            if (ship.Length <= TakeShipMaxChars)
+                return ship;
+            return ship[..TakeShipMaxChars] + "\n…[ship truncated chars=" + ship.Length + "]";
+        }
+        catch
+        {
+            return null;
         }
     }
 }
