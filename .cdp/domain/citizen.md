@@ -75,6 +75,8 @@
 
 ## last_ship
 
+- **2026-08-08 SoftFL ACCEPT densify @Sierra mention → citizen-dialog Completions (not Citizen Done)** — dig=lived: agent `cdp_intercom` `@Sierra` did not wake Face Completions (only BringCabinAttention); Света wake was CIT lane. Ship cascade-ide: `TryNotifyCitizen` latch-only · Glass FanOut/incoming. Live: Sierra replied `вижу @Sierra wake`. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
+
 - **2026-08-08 SoftFL ACCEPT densify ×3 Света: Intercom dup @Kir + topology Dialog + @ hints (not Citizen Done)** — dig=lived: (1) CIT `@Kir` latch-only `TryNotifyPf` re-journaled by Face watcher → `_seenIntercomIds.Add(notified.Id)` in FanOut. (2) Dialog habitat omitted `presentation_set` → Sierra invented `desk layout=` — teach Dialog + Wire `(P/M)(F)` + InventedHands recover. (3) `@` autocomplete never wired — densify SlashPopup via `GlassIntercomMention.Suggest`. Tests GlassIntercomMention **21/21** · InventedHands **4/4**. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
 
 - **2026-08-08 SoftFL ACCEPT InventedHands → peer_ready/CitizenResultWake VERIFY (not Citizen Done)** — dig=lived: Radio «Сделала: find …» without `@intent` → no routes → no peerAck → stale peer latch / auto-wake feel broken. Ship: `CitizenInventedHands` + bridge recover when routes empty + Who=operator face guard. Tests CitizenInventedHands **3/3**. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED vs throw-Cursor max DoD.
