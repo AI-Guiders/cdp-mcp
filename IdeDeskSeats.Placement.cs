@@ -32,7 +32,13 @@ internal static partial class IdeDeskSeats
     public static string CanonicalOrganPin(string organPin) =>
         IdeCockpit.CanonicalOrganPin(organPin);
 
-    public static string? PlaceOrgan(string organPin, string? webAiUrl = null)
+    /// <param name="showFace">
+    /// true = human attention (Citizen browser show / intentional Face).
+    /// false = agent tooling pin (plan TM, webcam desk) — must not steal Face from WebAi.
+    /// SoftFL ACCEPT 2026-08-08: plan/webcam PlaceOrgan(showFace:true) left Glass on Plan while sticky HN lived.
+    /// Quiet false clears show_face latch; Glass OnSeatsChanged skips SelectMfd — prior WebAiPortal stays.
+    /// </param>
+    public static string? PlaceOrgan(string organPin, string? webAiUrl = null, bool showFace = true)
     {
         var pin = CanonicalOrganPin(organPin);
         if (pin.Length == 0) return null;
@@ -41,7 +47,7 @@ internal static partial class IdeDeskSeats
         lock (Gate)
         {
             PlaceUnlocked(seat, pin);
-            PersistUnlocked(showFace: true, faceSeat: seat, webAiUrl: webAiUrl);
+            PersistUnlocked(showFace: showFace, faceSeat: showFace ? seat : null, webAiUrl: webAiUrl);
         }
 
         return seat;

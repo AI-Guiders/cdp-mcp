@@ -180,4 +180,60 @@ public class CideSeatsLatchTests : IDisposable
         Assert.NotNull(latch);
         Assert.Null(latch!.WebAiUrl);
     }
+
+    [Fact]
+    public void Publish_quiet_plan_after_browser_face_does_not_keep_plan_as_face()
+    {
+        // SoftFL ACCEPT: after browser Face, quiet plan pin must not leave face_seat=p / ShowFace on plan.
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?>
+            {
+                ["p"] = "plan",
+                ["m"] = "browser"
+            },
+            showFace: true,
+            faceSeat: "m",
+            webAiUrl: "https://news.ycombinator.com");
+
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?>
+            {
+                ["p"] = "plan",
+                ["m"] = "browser"
+            },
+            showFace: false);
+
+        var latch = CideSeatsLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.False(latch!.ShowFace);
+        Assert.Null(latch.FaceSeat);
+        Assert.Equal("https://news.ycombinator.com", latch.WebAiUrl);
+        Assert.Equal("browser", latch.Seats["m"]);
+        Assert.Equal("plan", latch.Seats["p"]);
+        // Quiet path projects M (WebAiPortal) for chrome/mfd tip — not plan face steal.
+        Assert.Equal("WebAiPortal", latch.MfdPage);
+    }
+
+    [Fact]
+    public void Publish_show_face_plan_steals_mfd_from_browser_regression()
+    {
+        // Documents the pre-0.5.682 steal: showFace plan on P while M=browser → plan chrome, not WebAi.
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?>
+            {
+                ["p"] = "plan",
+                ["m"] = "browser"
+            },
+            showFace: true,
+            faceSeat: "p",
+            webAiUrl: "https://news.ycombinator.com");
+
+        var latch = CideSeatsLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.True(latch!.ShowFace);
+        Assert.Equal("p", latch.FaceSeat);
+        Assert.Null(latch.MfdPage); // plan = chrome-only
+        Assert.Equal("agent · P: plan", latch.ChromeHint);
+        Assert.Equal("https://news.ycombinator.com", latch.WebAiUrl);
+    }
 }

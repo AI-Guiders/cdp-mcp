@@ -31,7 +31,8 @@ internal static partial class CitizenRouteHost
             {
                 if (args.TryGetValue("go", out var goEl) && goEl.ValueKind == JsonValueKind.String && goEl.GetString() is { Length: > 0 } goOnly)
                 {
-                    var placedOnly = IdeDeskSeats.PlaceOrgan(goOnly);
+                    // TM/go place-only ≠ Face steal (browser show SoftFL).
+                    var placedOnly = IdeDeskSeats.PlaceOrgan(goOnly, showFace: false);
                     return new Applied(route.Raw, route.Verb.ToString(), Ok: placedOnly is not null, Action: "repl_place", Seat: placedOnly, Go: IdeDeskSeats.CanonicalOrganPin(goOnly), Cmd: cmd, Reason: placedOnly is null ? "place_failed" : null);
                 }
 
@@ -52,7 +53,8 @@ internal static partial class CitizenRouteHost
             var result = IdeTaskManager.Handle(store, state, tmArgs);
             var pulse = TryReadPulse(result);
             var ok = TryReadOk(result);
-            var seat = IdeDeskSeats.PlaceOrgan("plan");
+            // Plan pin for agent TM pulse — quiet; Face WebAi stays after browser show.
+            var seat = IdeDeskSeats.PlaceOrgan("plan", showFace: false);
             return new Applied(route.Raw, route.Verb.ToString(), Ok: ok, Action: "repl", Seat: seat, Go: "plan", Cmd: cmd, Pulse: pulse, Reason: ok ? null : (TryReadError(result) ?? pulse ?? "tm_failed"));
         }
         catch (Exception ex)
