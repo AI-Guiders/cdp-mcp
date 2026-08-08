@@ -21,7 +21,7 @@ internal static partial class CitizenPersona
           @intent cdp_sa
           @intent code_sa
           @intent sa pulse
-          @intent sa depth=full path=CitizenRouteHost.Sa.cs
+          @intent sa depth=full path=rel/file.cs
           @intent go=sa_desk
           @intent go=sa
           @intent learn
@@ -35,7 +35,7 @@ internal static partial class CitizenPersona
           @intent refactor_plan
           @intent cdp_refactor
           @intent refactor pulse
-          @intent refactor recommend path=CitizenRouteHost.Refactor.cs
+          @intent refactor recommend path=rel/file.cs
           @intent go=refactor_plan
           @intent calendar
           @intent calendar pulse
@@ -43,8 +43,8 @@ internal static partial class CitizenPersona
           @intent calendar month
           @intent land
           @intent land restore
-          @intent land open path=CitizenRouteHost.cs line=50
-          @intent land goto path=CitizenRouteHost.cs line=50 member=RunLand
+          @intent land open path=rel/file.cs line=50
+          @intent land goto path=rel/file.cs line=50 member=Foo
           @intent land show path=docs/shot.png
           @intent land go go=editor_scene
           @intent land anchor="[Family:navigation;Command:restore]"
@@ -169,19 +169,19 @@ internal static partial class CitizenPersona
           @intent alert
           @intent eicas
           @intent cdp_alert
-          @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer anchor" place=before
+          @intent edit path=rel/file.cs anchor="[F:rel/file.cs;M:Foo]" text="// peer anchor" place=before
           @intent anchor path=rel/file.cs at="[F:rel/file.cs;M:Foo]" body="patched" place=replace
           @intent deploy
           @intent deploy dry_run=true
           @intent deploy mode=soft target=sibling
           @intent deploy mode=hard
           @intent deploy mode=rollout dry_run=true
-          @intent undo path=CitizenRouteHost.cs
-          @intent redo path=CitizenRouteHost.cs
-          @intent edit_history path=CitizenRouteHost.cs
-          @intent copy path=CitizenRouteHost.cs text="snippet"
+          @intent undo path=rel/file.cs
+          @intent redo path=rel/file.cs
+          @intent edit_history path=rel/file.cs
+          @intent copy path=rel/file.cs text="snippet"
           @intent clipboard
-          @intent paste path=CitizenRouteHost.cs place=after
+          @intent paste path=rel/file.cs place=after
           @intent replace_all path=tools/_tmp.txt query=foo text=bar
           @intent back
           @intent forward
@@ -191,50 +191,50 @@ internal static partial class CitizenPersona
           @intent put path=tools/_put-draft.txt text="overwrite" overwrite=true
           @intent scratch
           @intent scratch ext=md text="# notes"
-          @intent take path=CitizenRouteHost.cs
-          @intent take path=CitizenRouteHost.cs check=false
-          @intent share with=operator path=CitizenRouteHost.cs
+          @intent take path=rel/file.cs
+          @intent take path=rel/file.cs check=false
+          @intent share with=operator path=rel/file.cs
           @intent share with=self body="shelf note"
           @intent share from=self
           @intent reload
-          @intent reload path=CitizenRouteHost.cs
-          @intent keep_disk path=CitizenRouteHost.cs
-          @intent disk_peek path=CitizenRouteHost.cs pad=2
-          @intent scope from=[F:CitizenRouteHost.cs;L:10]
+          @intent reload path=rel/file.cs
+          @intent keep_disk path=rel/file.cs
+          @intent disk_peek path=rel/file.cs pad=2
+          @intent scope from=[F:rel/file.cs;L:10]
           @intent peek
           @intent target
-          @intent aim wire=[F:CitizenRouteHost.cs;M:CitizenRouteHost.RunSniper]
+          @intent aim wire=[F:rel/file.cs;M:Foo]
           @intent scope_clear
           @intent sniper
-          @intent open path=CitizenRouteHost.cs
-          @intent buffer open path=CitizenRouteHost.cs
-          @intent read path=CitizenRouteHost.cs start_line=1 end_line=20
+          @intent open path=rel/file.cs
+          @intent buffer open path=rel/file.cs
+          @intent read path=rel/file.cs start_line=1 end_line=20
           @intent buffers
           @intent close path=tools/_put-draft.txt
-          @intent doc_diagnostics path=CitizenRouteHost.cs
-          @intent find_all path=CitizenRouteHost.cs query=RunFindBuf
-          @intent buf_find path=CitizenRouteHost.cs query=FindBuf
-          @intent find query=x scope=buffer path=CitizenRouteHost.cs
-          @intent find query="IdeFindChannel" where=project shape=list
-          @intent find IdeFindChannel where=project
-          @intent search query=CitizenRouteHost
+          @intent doc_diagnostics path=rel/file.cs
+          @intent find_all path=rel/file.cs query=needle
+          @intent buf_find path=rel/file.cs query=FindBuf
+          @intent find query=x scope=buffer path=rel/file.cs
+          @intent find query="Needle" where=project shape=list
+          @intent find Needle where=project
+          @intent search query=Needle
           @intent find last
-          @intent goto path=CitizenRouteHost.cs line=50 column=1
-          @intent usages path=CitizenRouteHost.cs line=50
-          @intent diagnostics path=CitizenRouteHost.cs
-          @intent complete path=CitizenRouteHost.cs line=50 column=1 prefix=Run
-          @intent signature path=CitizenRouteHost.cs line=50 column=20
-          @intent symbols path=CitizenRouteHost.cs
-          @intent symbol path=CitizenRouteHost.cs line=50 column=10
-          @intent rename path=CitizenRouteHost.cs line=50 column=10 new_name=RunIdePreview apply=false
-          @intent actions path=CitizenRouteHost.cs line=50 column=10
-          @intent ide goto path=CitizenIntentRouter.cs line=11
+          @intent goto path=rel/file.cs line=50 column=1
+          @intent usages path=rel/file.cs line=50
+          @intent diagnostics path=rel/file.cs
+          @intent complete path=rel/file.cs line=50 column=1 prefix=Run
+          @intent signature path=rel/file.cs line=50 column=20
+          @intent symbols path=rel/file.cs
+          @intent symbol path=rel/file.cs line=50 column=10
+          @intent rename path=rel/file.cs line=50 column=10 new_name=RunIdePreview apply=false
+          @intent actions path=rel/file.cs line=50 column=10
+          @intent ide goto path=rel/file.cs line=11
           @intent shell echo citizen-shell-ok
           @intent shell command="dotnet --version"
           @intent debug
           @intent debug scene
           @intent debug bp_list
-          @intent debug bp_add path=CitizenRouteHost.cs line=50
+          @intent debug bp_add path=rel/file.cs line=50
           @intent replace path=rel/file.cs old="needle" new="patch"
           @intent create path=rel/new.cs body="class New { }"
           @intent write path=rel/new.cs text="class New { }"

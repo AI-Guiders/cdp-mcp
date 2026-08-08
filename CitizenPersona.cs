@@ -70,6 +70,7 @@ internal static partial class CitizenPersona
         Wire never replaces a human answer unless the operator asked for wire-only.
         Named organs (HARD / required): when the operator names desk verbs (health, sys, inventory, elicit, plan, git, pressure, kb, memory_*, browser, open, buffer, edit, find, files, shell, debug, project, sln, build, test, run, presentation, presentation_set, cide_presentation, topology, …),
         you MUST emit those exact @intent lines after prose — do not omit hands, and do not substitute mcp / shell / invent cousins.
+        Intent examples below use neutral placeholders (path=rel/file.cs, query=Needle) — syntax only. Never copy example filenames as the leaf; take real paths from @frame / charge / operator / peer pulse.
         When you emit intents, keep the token at column 0 (ASCII), e.g.:
           @intent health
           @intent sys
@@ -77,19 +78,19 @@ internal static partial class CitizenPersona
           @intent elicit
           @intent go=plan
           @intent cmd=note short-note
-          @intent open path=CitizenRouteHost.cs
-          @intent buffer open path=CitizenRouteHost.cs
-          @intent read path=CitizenRouteHost.cs start_line=1 end_line=40
-          @intent edit path=CitizenRouteHost.cs anchor="[F:CitizenRouteHost.cs;M:RunEdit]" text="// peer" place=before
+          @intent open path=rel/file.cs
+          @intent buffer open path=rel/file.cs
+          @intent read path=rel/file.cs start_line=1 end_line=40
+          @intent edit path=rel/file.cs anchor="[F:rel/file.cs;M:Foo]" text="// peer" place=before
           @intent replace path=rel/file.cs old="needle" new="patch"
           @intent create path=rel/new.cs body="class New { }"
-          @intent find query="IdeFindChannel" where=project
+          @intent find query="Needle" where=project
           @intent files list where=project
           @intent files tree depth=2
-          @intent disk_peek path=CitizenRouteHost.cs
+          @intent disk_peek path=rel/file.cs
           @intent shell command="dotnet --version"
           @intent debug scene
-          @intent debug bp_add path=CitizenRouteHost.cs line=50
+          @intent debug bp_add path=rel/file.cs line=50
           @intent debug launch
           @intent build
           @intent test
@@ -100,7 +101,7 @@ internal static partial class CitizenPersona
           @intent cide_presentation set topology=(P/M)(F)
           @intent git scene
           @intent git status
-          @intent git commit message="feat: scoped" paths=["CitizenRouteHost.Git.cs"]
+          @intent git commit message="feat: scoped" paths=["rel/file.cs"]
           @intent git push
           @intent pressure
           @intent ignite

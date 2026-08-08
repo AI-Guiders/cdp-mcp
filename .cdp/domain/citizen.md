@@ -62,7 +62,7 @@
 - Skipping `peer_ready` after same-turn observe — contour dies after intent (fail/"не вышло" never Completions #3). `AfterHands` arms #3; depth-1 + `peer_ready_retry` cap stop shotgun.
 - Offering `find` as next hand in peer_ready/observe charge — thrash escape when project_root ≠ leaf tree; steer paste exact `LeafTakeIntent`.
 - `FormatDropCharge` saying densify THAT path on find/fail/no_project — Completions densifies drop garbage then invents CascadeIDE.cs / copies Persona `CitizenRouteHost.cs` examples. Drop tip = context only; PASTE leaf take.
-- Treating Persona example paths (`CitizenRouteHost.cs` in CitizenPersona) as this-leaf targets — Face HOLD (no Persona rewrite this leaf); SoftFL charges must name Persona example ≠ leaf.
+- Putting real habitat type/path names in Persona intent examples (`CitizenRouteHost.cs`, `CdpMcp.csproj`, …) — Completions copies them as leaf. Examples = `rel/file.cs` / `Needle` placeholders only; regression `CitizenPersonaNoCodePoisonTests`.
 - Folding `@Sierra` mention-wake into `CitizenResultWake` — two entries (mention vs result); do not densify into one SoftOrgan.
 - Treating **full-chain GREEN** as 15.08 Done — DoD is **full-ready** (usable habitat peer), not pipe re-prove.
 - Starting dogfood from social/speech hubs — citizen is completions host, not CASA speech.
@@ -79,6 +79,8 @@
 - **jsonl Radio journal under named Mutex + full-file JSON scan** — lived `publish_failed` after KillRunning (AbandonedMutex swallowed) / Autoi thrash. SSOT = `intercom.witdb` (not TM seat WitDB).
 
 ## last_ship
+
+- **2026-08-09 Face densify scrub Persona code-poison (not Citizen Done)** — operator: «ссылка на код в Persona — жесть». Ship: Dialog+Wire examples → `rel/file.cs` / `Needle` / `rel/App.csproj` · no CitizenRouteHost/IntentRouter/IdeFindChannel/CdpMcp.csproj · Dialog note placeholders ≠ leaf · regression `CitizenPersonaNoCodePoisonTests` · wake charges drop «Persona example» claim. SoftOrgan invent REJECT · Face densify ACCEPT · Done REOPENED.
 
 - **2026-08-09 SoftFL ACCEPT densify PASTE LeafTakeIntent (not Citizen Done)** — lived: invent CascadeIDE.cs / CitizenRouteHost* / GlassIntercomHost while contour woke; root=Persona examples teach `path=CitizenRouteHost.cs` + drop tip densify THAT path on find/no_project. Ship: `LeafTakePath`/`LeafTakeIntent` · charges PASTE exact take · FormatDropCharge context-only (no densify THAT) · ban Persona example ≠ leaf. Tests CitizenResultWake **11/11**. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
 
