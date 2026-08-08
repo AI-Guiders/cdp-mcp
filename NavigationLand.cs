@@ -55,8 +55,8 @@ internal static class NavigationLand
         return command switch
         {
             "restore" => LandRestore(session, buffers, detectOpen, syncShellCwd, notifyListChanged, span),
-            "open" or "goto" => LandOpenOrGoto(session, buffers, span, command),
-            "show" => LandShow(session, span),
+            "open" or "goto" => LandOpenOrGoto(session, buffers, span, command, args),
+            "show" => LandShow(session, span, args),
             "go" => await LandGoAsync(span, dispatchTool, cancellationToken).ConfigureAwait(false),
             _ => Fail("unknown_command", $"Command:{command}")
         };
@@ -78,7 +78,8 @@ internal static class NavigationLand
         SessionContext session,
         DocumentBufferStore buffers,
         BracketLocate.Span span,
-        string command)
+        string command,
+        IReadOnlyDictionary<string, JsonElement> args)
     {
         var inner = span.NestedAnchor
                     ?? (string.IsNullOrWhiteSpace(span.File)
@@ -119,7 +120,10 @@ internal static class NavigationLand
             }
         }
 
-        NavigationLandLatch.Publish(command, buf.Path, line, inner.MemberKey, BracketLocate.Format(span));
+        // Default quiet dual-HCI: Human Face only when show_face=true invite.
+        var showFace = OptBool(args, "show_face");
+        NavigationLandLatch.Publish(
+            command, buf.Path, line, inner.MemberKey, BracketLocate.Format(span), showFace);
 
         return Ok(command, span, new
         {
@@ -127,27 +131,43 @@ internal static class NavigationLand
             doc_id = buf.DocId,
             line,
             member = inner.MemberKey,
+            show_face = showFace,
             peek,
             nested_wire = BracketLocate.Format(inner),
             latch = NavigationLandLatch.LatchPath,
-            hint = "Landed. Edit → edit_op=anchor with code/xml family (not navigation)."
+            hint = showFace
+                ? "Landed + Face invite. Edit → edit_op=anchor with code/xml family (not navigation)."
+                : "Landed quiet (Agent-Side). show_face=true to invite Human Glass Face."
         });
     }
 
 
-    static string LandShow(SessionContext session, BracketLocate.Span span)
+    static string LandShow(
+        SessionContext session,
+        BracketLocate.Span span,
+        IReadOnlyDictionary<string, JsonElement> args)
     {
         var path = span.NestedAnchor?.File ?? span.File;
         if (string.IsNullOrWhiteSpace(path))
             return Fail("file_required", "Command:show needs Anchor:[File:…]");
 
         var full = ResolvePath(session, path!);
+        var exists = File.Exists(full);
+        // Command:show = invite Human Face when file exists (dual-HCI share slice).
+        var showFace = OptBool(args, "show_face", defaultValue: true);
+        if (exists && showFace)
+            NavigationLandLatch.Publish("show", full, span.LineStart, span.MemberKey, BracketLocate.Format(span), showFace: true);
+
         return Ok("show", span, new
         {
             path = full,
-            exists = File.Exists(full),
-            hint = File.Exists(full)
-                ? "Artifact path — Read (or vision) for PNG; not CodeAnchor edit."
+            exists,
+            show_face = exists && showFace,
+            latch = exists && showFace ? NavigationLandLatch.LatchPath : null,
+            hint = exists
+                ? (showFace
+                    ? "Face invite published — Glass may open AvalonEdit + PreferSurface."
+                    : "Artifact path — show_face=false kept quiet; Read for PNG.")
                 : "Path missing on disk."
         });
     }
@@ -216,4 +236,21 @@ internal static class NavigationLand
         args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String
             ? el.GetString()
             : null;
+
+    static bool OptBool(
+        IReadOnlyDictionary<string, JsonElement> args,
+        string key,
+        bool defaultValue = false)
+    {
+        if (!args.TryGetValue(key, out var el))
+            return defaultValue;
+        return el.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.String => bool.TryParse(el.GetString(), out var b) ? b : defaultValue,
+            JsonValueKind.Number => el.TryGetInt32(out var n) && n != 0,
+            _ => defaultValue
+        };
+    }
 }

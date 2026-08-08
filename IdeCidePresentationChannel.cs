@@ -55,13 +55,15 @@ internal static class IdeCidePresentationChannel
         var tier = Arg(args, "tier");
         var mfdPage = Arg(args, "mfd_page") ?? Arg(args, "page");
         var instruments = CollectInstruments(args);
+        var showFace = ArgBool(args, "show_face");
 
         var patch = new CidePresentationLatch.PresentationPatch
         {
             Topology = topology,
             Tier = tier,
             Instruments = instruments,
-            MfdPage = mfdPage
+            MfdPage = mfdPage,
+            ShowFace = showFace
         };
 
         if (!patch.HasAny)
@@ -84,10 +86,13 @@ internal static class IdeCidePresentationChannel
             tier = latch?.Tier,
             instruments = latch?.Instruments,
             mfd_page = latch?.MfdPage,
+            show_face = latch?.ShowFace,
             origin = CidePresentationLatch.OriginAgent,
             latch_path = CidePresentationLatch.LatchPath,
             stamped_utc = latch?.StampedUtc,
-            hint = "Latch published — CIDE glass applies when projector is up."
+            hint = showFace
+                ? "Latch published + Face invite — CIDE may SelectMfd."
+                : "Latch published quiet — topology applies; MFD stick holds unless show_face=true."
         });
     }
 
@@ -152,6 +157,20 @@ internal static class IdeCidePresentationChannel
         if (!args.TryGetValue(key, out var el))
             return null;
         return el.ValueKind == JsonValueKind.String ? el.GetString() : el.ToString();
+    }
+
+    static bool ArgBool(IReadOnlyDictionary<string, JsonElement> args, string key)
+    {
+        if (!args.TryGetValue(key, out var el))
+            return false;
+        return el.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.String => bool.TryParse(el.GetString(), out var b) && b,
+            JsonValueKind.Number => el.TryGetInt32(out var n) && n != 0,
+            _ => false
+        };
     }
 
     static string Fail(string reason, string authority) =>

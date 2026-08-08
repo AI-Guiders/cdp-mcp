@@ -7,7 +7,8 @@ namespace CdpMcp;
 /// <summary>
 /// Durable land pulse for operator GUI projector (ADR-0019 / Start-Stop contract).
 /// Agent <c>cdp_land</c> open|goto writes %LocalAppData%/cdp-mcp/land-LATEST.json;
-/// CascadeIDE watches and applies <c>open_file</c> + line reveal. Melody untouched.
+/// CascadeIDE watches. Default <c>show_face=false</c> (quiet Agent-Side locus) —
+/// Human Face open only when <paramref name="showFace"/> invite. Melody untouched.
 /// </summary>
 internal static class NavigationLandLatch
 {
@@ -31,7 +32,16 @@ internal static class NavigationLandLatch
 
     public static string LatchPath => Path.Combine(StateRoot, "land-LATEST.json");
 
-    public static void Publish(string command, string path, int? line, string? member, string? wire)
+    /// <param name="showFace">
+    /// True = invite Human Glass Face (AvalonEdit + PreferSurface). Default false = dual-HCI quiet.
+    /// </param>
+    public static void Publish(
+        string command,
+        string path,
+        int? line,
+        string? member,
+        string? wire,
+        bool showFace = false)
     {
         try
         {
@@ -44,6 +54,7 @@ internal static class NavigationLandLatch
                 Line = line is > 0 ? line : null,
                 Member = string.IsNullOrWhiteSpace(member) ? null : member,
                 Wire = wire,
+                ShowFace = showFace,
                 StampedUtc = DateTimeOffset.UtcNow
             };
             var json = JsonSerializer.Serialize(doc, JsonOpts);
@@ -65,6 +76,8 @@ internal static class NavigationLandLatch
         public int? Line { get; set; }
         public string? Member { get; set; }
         public string? Wire { get; set; }
+        /// <summary>Invite Human Face; false = Agent-Side quiet (default).</summary>
+        public bool ShowFace { get; set; }
         public DateTimeOffset StampedUtc { get; set; }
     }
 }

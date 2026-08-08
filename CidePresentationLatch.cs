@@ -112,6 +112,7 @@ internal static class CidePresentationLatch
                 Tier = tier,
                 Instruments = instruments,
                 MfdPage = mfdPage,
+                ShowFace = patch.ShowFace,
                 Origin = origin.ToLowerInvariant(),
                 StampedUtc = DateTimeOffset.UtcNow
             };
@@ -152,12 +153,15 @@ internal static class CidePresentationLatch
         public string? Tier { get; init; }
         public Dictionary<string, string>? Instruments { get; init; }
         public string? MfdPage { get; init; }
+        /// <summary>Agent invite to SelectMfd; quiet agent patches leave Human stick alone.</summary>
+        public bool ShowFace { get; init; }
 
         public bool HasAny =>
             !string.IsNullOrWhiteSpace(Topology)
             || !string.IsNullOrWhiteSpace(Tier)
             || (Instruments is { Count: > 0 })
-            || !string.IsNullOrWhiteSpace(MfdPage);
+            || !string.IsNullOrWhiteSpace(MfdPage)
+            || ShowFace;
     }
 
     public sealed class PresentationLatchDoc
@@ -167,6 +171,7 @@ internal static class CidePresentationLatch
         public string? Tier { get; set; }
         public Dictionary<string, string>? Instruments { get; set; }
         public string? MfdPage { get; set; }
+        public bool ShowFace { get; set; }
         public string Origin { get; set; } = OriginAgent;
         public DateTimeOffset StampedUtc { get; set; }
 

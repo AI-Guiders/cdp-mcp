@@ -44,6 +44,7 @@ public class NavigationLandLatchTests : IDisposable
         Assert.Equal(path, doc.RootElement.GetProperty("path").GetString());
         Assert.Equal(12, doc.RootElement.GetProperty("line").GetInt32());
         Assert.Equal("Foo", doc.RootElement.GetProperty("member").GetString());
+        Assert.False(doc.RootElement.GetProperty("show_face").GetBoolean());
     }
 
     [Fact]
@@ -52,5 +53,14 @@ public class NavigationLandLatchTests : IDisposable
         NavigationLandLatch.Publish("open", "D:\\x.cs", 0, null, null);
         using var doc = JsonDocument.Parse(File.ReadAllText(NavigationLandLatch.LatchPath));
         Assert.False(doc.RootElement.TryGetProperty("line", out _));
+        Assert.False(doc.RootElement.GetProperty("show_face").GetBoolean());
+    }
+
+    [Fact]
+    public void Publish_show_face_invite_writes_true()
+    {
+        NavigationLandLatch.Publish("open", "D:\\invite.cs", 3, null, null, showFace: true);
+        using var doc = JsonDocument.Parse(File.ReadAllText(NavigationLandLatch.LatchPath));
+        Assert.True(doc.RootElement.GetProperty("show_face").GetBoolean());
     }
 }
