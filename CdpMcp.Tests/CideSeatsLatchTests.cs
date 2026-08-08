@@ -137,4 +137,47 @@ public class CideSeatsLatchTests : IDisposable
             "https://html.duckduckgo.com/html/?q=sierra",
             doc.RootElement.GetProperty("web_ai_url").GetString());
     }
+
+    [Fact]
+    public void Publish_null_webAiUrl_preserves_prior()
+    {
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?> { ["m"] = "browser" },
+            showFace: true,
+            faceSeat: "m",
+            webAiUrl: "https://news.ycombinator.com");
+
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?>
+            {
+                ["p"] = "webcam_desk",
+                ["m"] = "browser"
+            },
+            showFace: true,
+            faceSeat: "p");
+
+        var latch = CideSeatsLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.Equal("https://news.ycombinator.com", latch!.WebAiUrl);
+        Assert.Equal("p", latch.FaceSeat);
+    }
+
+    [Fact]
+    public void Publish_empty_webAiUrl_clears()
+    {
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?> { ["m"] = "browser" },
+            showFace: true,
+            faceSeat: "m",
+            webAiUrl: "https://news.ycombinator.com");
+
+        CideSeatsLatch.Publish(
+            new Dictionary<string, string?> { ["m"] = "browser" },
+            showFace: false,
+            webAiUrl: "");
+
+        var latch = CideSeatsLatch.TryRead();
+        Assert.NotNull(latch);
+        Assert.Null(latch!.WebAiUrl);
+    }
 }

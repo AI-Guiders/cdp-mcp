@@ -63,6 +63,13 @@ internal static class CideSeatsLatch
             if (map.Count == 0)
                 return;
 
+            // null webAiUrl = keep prior Face URL (webcam/shot PlaceOrgan must not wipe sit-internet).
+            // Whitespace/empty = explicit clear.
+            if (webAiUrl is null)
+                webAiUrl = TryRead()?.WebAiUrl;
+            else if (string.IsNullOrWhiteSpace(webAiUrl))
+                webAiUrl = null;
+
             string? mfdPage = null;
             string? chromeHint = null;
             var faceKey = string.IsNullOrWhiteSpace(faceSeat)
