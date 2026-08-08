@@ -82,7 +82,7 @@ internal static partial class FindInFiles
         var rg = ResolveRg();
         if (rg is null)
             return FailJson(all, scopeWire, "rg_not_found",
-                "Install ripgrep on PATH, or set env CDP_RG to rg.exe");
+                "Install ripgrep (winget BurntSushi.ripgrep.MSVC) or set CDP_RG; habitat also probes %LocalAppData%/cdp-mcp/bin/rg.exe");
 
         var regex = BoolOr(args, "regex", false);
         var ignoreCase = BoolOr(args, "ignore_case", true);
