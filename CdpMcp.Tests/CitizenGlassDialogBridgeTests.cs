@@ -50,7 +50,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     }
 
     [Fact]
-    public void TryProcessOnce_arms_peer_ready_wake_after_hands()
+    public void TryProcessOnce_skips_peer_ready_when_same_turn_observe_ran()
     {
         IdeDeskSeats.EnsureDefaultsFromSettings();
         IdeDeskSeats.Clear();
@@ -70,6 +70,51 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
             return EchoTurn(body, routes: [CitizenIntentRouter.RouteOne("go=plan")]);
         };
         WritePending("peerready0001", "hands please");
+
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        using (var afterHands = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath)))
+        {
+            // SoftFL densify: observe Completions #2 already ran — no third peer_ready latch.
+            Assert.Equal("done", afterHands.RootElement.GetProperty("status").GetString());
+            Assert.Equal("hands please", afterHands.RootElement.GetProperty("body").GetString());
+        }
+
+        // No pending peer_ready → second process is idle.
+        Assert.False(CitizenGlassDialogBridge.TryProcessOnce());
+    }
+
+    [Fact]
+    public void TryProcessOnce_arms_peer_ready_when_same_turn_observe_fails()
+    {
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        IdeDeskSeats.TryPlaceExplicit("p", "plan");
+        IdeCitizenChannel.InviteReadyOverrideForTests = () => true;
+
+        var seatRoot = Path.Combine(_root, "cdp");
+        Directory.CreateDirectory(seatRoot);
+        CitizenDialogHistory.SetTestPath(Path.Combine(seatRoot, CitizenDialogHistory.FileName));
+
+        CitizenGlassDialogBridge.TurnOverrideForTests = body =>
+        {
+            if (body.Equals(CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal))
+                return new CitizenCompletions.TurnResult(
+                    Ok: false,
+                    Error: "observe_fail",
+                    Hint: null,
+                    Text: null,
+                    Model: "test",
+                    Provider: "mock",
+                    Built: null,
+                    WireIntents: null,
+                    Routes: null,
+                    DryRun: false);
+            if (CitizenResultWake.IsWakeCharge(body))
+                return EchoTurn("wake: saw peer, continue");
+            return EchoTurn(body, routes: [CitizenIntentRouter.RouteOne("go=plan")]);
+        };
+        WritePending("obsfail000001", "hands please");
 
         Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
 

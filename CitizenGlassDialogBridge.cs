@@ -218,11 +218,13 @@ internal static class CitizenGlassDialogBridge
 
             // Face letter prefers same-turn observe; thin observe ("R" / 1-token) falls back to act.
             var publishBody = actPublished;
+            var sameTurnObserveRan = false;
             if (peerAck is not null)
             {
                 var observe = TrySameTurnObserve(peerAck, executed);
                 if (observe is { } obs)
                 {
+                    sameTurnObserveRan = true;
                     if (IsUsableFaceLetter(obs.PublishBody))
                     {
                         publishBody = obs.PublishBody;
@@ -265,10 +267,12 @@ internal static class CitizenGlassDialogBridge
             if (published is not null)
             {
                 LastProcessedId = req.Id;
-                // Autoi-parity: result-ready wake (reason=peer_ready) — do not sleep until operator Send.
-                // Depth-1: skip when this turn was already a wake charge.
-                if (peerAck is not null && !CitizenResultWake.IsWakeCharge(req.Body))
-                    CitizenResultWake.TryArmAfterHands(req.Channel);
+                // Result-wake facade: skip peer_ready when same-turn observe already ran Completions #2.
+                CitizenResultWake.AfterHands(
+                    peerAck,
+                    req.Channel,
+                    req.Body,
+                    sameTurnObserveRan: sameTurnObserveRan);
             }
             return true;
         }

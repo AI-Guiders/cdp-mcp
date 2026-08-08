@@ -204,9 +204,8 @@ internal static partial class IdeCitizenChannel
         {
             var executed = CitizenRouteHost.Execute(turn.Routes);
             var peerAck = CitizenPeerAck.FromExecuted(executed);
-            // Composer-gone Autoi path: arm Glass result-ready wake so Face continues without human Send.
-            if (peerAck is not null)
-                CitizenResultWake.TryArmAfterHands();
+            // Composer-gone Autoi path: result-wake facade (no same-turn observe here).
+            CitizenResultWake.AfterHands(peerAck, requestBody: body);
         }
         return true;
     }
@@ -309,6 +308,8 @@ internal static partial class IdeCitizenChannel
             {
                 executed = CitizenRouteHost.Execute(routes);
                 peerAck = CitizenPeerAck.FromExecuted(executed);
+                // Close asymmetry with Autoi/Bridge: result-wake after host-execute peerAck.
+                CitizenResultWake.AfterHands(peerAck, requestBody: message);
             }
         }
 

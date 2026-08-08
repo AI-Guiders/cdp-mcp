@@ -5,10 +5,10 @@ using System.Text.Json.Serialization;
 namespace CdpMcp;
 
 /// <summary>
-/// Autoi-parity result-ready wake for Citizen (reason=peer_ready).
-/// After host-execute returns peerAck she must get a new Glass dialog turn —
-/// same class as remount|build_finished for Composer — not sleep until operator Send.
+/// Single result-wake facade for Citizen Completions after hands/peerAck.
+/// Mention-wake (<c>TryNotifyCitizen</c> / @Sierra) is a separate entry — not folded here.
 /// Depth-1: do not chain when the processed body is already a wake charge.
+/// SoftFL densify: skip latch arm when same-turn observe already ran Completions #2.
 /// </summary>
 internal static class CitizenResultWake
 {
@@ -34,14 +34,37 @@ internal static class CitizenResultWake
     }
 
     /// <summary>
+    /// Unified result-wake after host-execute. Call sites: Bridge, Autoi hands, <c>cdp_citizen</c> turn.
+    /// </summary>
+    public static bool AfterHands(
+        CitizenPeerAck.Result? peerAck,
+        string? channel = null,
+        string? requestBody = null,
+        bool sameTurnObserveRan = false)
+    {
+        if (peerAck is null)
+            return false;
+        if (IsWakeCharge(requestBody))
+            return false;
+        // Observe already covered Completions #2 in-loop — no third peer_ready latch.
+        if (sameTurnObserveRan)
+            return false;
+        return TryArmAfterHands(channel);
+    }
+
+    /// <summary>
     /// Write pending citizen-dialog-request so bridge Loop wakes her on the result.
-    /// Call only after the prior latch is released (status=done), or from paths that do not own the latch.
+    /// Latch dedup: do not overwrite pending/running human Send; idempotent if peer_ready already pending.
+    /// Prefer <see cref="AfterHands"/> from call sites.
     /// </summary>
     public static bool TryArmAfterHands(string? channel = null)
     {
         try
         {
             if (!IdeCitizenChannel.IsInviteReady())
+                return false;
+
+            if (HasProtectedPendingLatch())
                 return false;
 
             Directory.CreateDirectory(CitizenGlassDialogBridge.StateRoot);
@@ -75,6 +98,36 @@ internal static class CitizenResultWake
                 "citizen-peer-ready-" + id,
                 "citizen_result_wake",
                 "reason=peer_ready");
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Pending/running latch that is not ours to overwrite (human Send or already peer_ready).
+    /// Use JsonDocument — RequestDoc.Status defaults to "pending"; a failed property bind would false-protect a done latch.
+    /// </summary>
+    static bool HasProtectedPendingLatch()
+    {
+        try
+        {
+            var path = CitizenGlassDialogBridge.RequestPath;
+            if (!File.Exists(path))
+                return false;
+            var raw = File.ReadAllText(path);
+            if (string.IsNullOrWhiteSpace(raw))
+                return false;
+            using var doc = JsonDocument.Parse(raw);
+            var root = doc.RootElement;
+            var status = root.TryGetProperty("status", out var st)
+                ? st.GetString()?.Trim().ToLowerInvariant() ?? ""
+                : "";
+            if (status is not ("pending" or "running"))
+                return false;
+            // Human Send or already-armed wake — do not overwrite.
             return true;
         }
         catch

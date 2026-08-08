@@ -39,7 +39,7 @@ public sealed class CitizenInventedHandsTests
 
 
     [Fact]
-    public void TryProcessOnce_recovers_invented_find_hands_and_arms_peer_ready()
+    public void TryProcessOnce_recovers_invented_find_hands_without_third_peer_ready()
     {
         var root = Path.Combine(Path.GetTempPath(), "cdp-invented-hands-" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(root);
@@ -80,19 +80,17 @@ public sealed class CitizenInventedHandsTests
             using (var afterHands = System.Text.Json.JsonDocument.Parse(
                        File.ReadAllText(CitizenGlassDialogBridge.RequestPath)))
             {
-                Assert.Equal("pending", afterHands.RootElement.GetProperty("status").GetString());
+                // Observe ran → AfterHands skips third peer_ready latch.
+                Assert.Equal("done", afterHands.RootElement.GetProperty("status").GetString());
                 Assert.Equal(
-                    CitizenResultWake.PeerReadyCharge,
+                    "проанализируй CascadeIDE",
                     afterHands.RootElement.GetProperty("body").GetString());
             }
 
             Assert.NotNull(CitizenPeerAck.LastPeer);
             Assert.Contains("ack=", CitizenPeerAck.LastPeer, StringComparison.OrdinalIgnoreCase);
 
-            Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
-            using var afterWake = System.Text.Json.JsonDocument.Parse(
-                File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
-            Assert.Equal("done", afterWake.RootElement.GetProperty("status").GetString());
+            Assert.False(CitizenGlassDialogBridge.TryProcessOnce());
         }
         finally
         {
