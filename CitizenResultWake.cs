@@ -7,13 +7,17 @@ namespace CdpMcp;
 /// <summary>
 /// Single result-wake facade for Citizen Completions after hands/peerAck.
 /// Mention-wake (<c>TryNotifyCitizen</c> / @Sierra) is a separate entry — not folded here.
-/// Depth-1: do not chain when the processed body is already a wake charge.
-/// SoftFL densify: skip latch arm when same-turn observe already ran Completions #2.
+/// Depth-1: do not chain when the processed body is already a successful wake charge.
+/// SoftFL densify: same-turn observe ≠ stop — arm peer_ready so fail/"не вышло" still wakes Completions #3.
+/// One retry after primary peer_ready when Dropped > 0; retry charge does not re-arm (anti-loop).
 /// </summary>
 internal static class CitizenResultWake
 {
     public const string PeerReadyCharge =
-        "reason=peer_ready — hands returned; verify @event peer pulse. Next hand now (@intent take|replace|find) — Radio alone ≠ done; Radio only if stuck (one fact).";
+        "reason=peer_ready — hands returned; verify @event peer pulse. Next hand now (@intent take|replace FULL path) — find≠next hand; Radio alone ≠ done; Radio only if stuck (one fact).";
+
+    public const string PeerReadyRetryCharge =
+        "reason=peer_ready_retry — hand dropped/failed; result is still a result. Densify next hand now (@intent take|replace FULL path). find≠escape. Radio alone ≠ done.";
 
     static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -22,7 +26,7 @@ internal static class CitizenResultWake
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    /// <summary>Same-turn observe nudge + peer_ready enqueue — no second arm.</summary>
+    /// <summary>Same-turn observe nudge + peer_ready enqueue — no second arm on success.</summary>
     public static bool IsWakeCharge(string? body)
     {
         if (string.IsNullOrWhiteSpace(body))
@@ -32,6 +36,10 @@ internal static class CitizenResultWake
             return true;
         return t.StartsWith("reason=peer_ready", StringComparison.OrdinalIgnoreCase);
     }
+
+    static bool IsRetryWakeCharge(string? body) =>
+        !string.IsNullOrWhiteSpace(body)
+        && body.Trim().StartsWith("reason=peer_ready_retry", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Unified result-wake after host-execute. Call sites: Bridge, Autoi hands, <c>cdp_citizen</c> turn.
@@ -44,12 +52,25 @@ internal static class CitizenResultWake
     {
         if (peerAck is null)
             return false;
+
+        // Dropped/failed: still a result — wake again (one retry after primary peer_ready).
+        if (peerAck.Dropped > 0)
+        {
+            if (IsRetryWakeCharge(requestBody))
+                return false;
+            if (IsWakeCharge(requestBody))
+                return TryArmAfterHands(channel, PeerReadyRetryCharge);
+            return TryArmAfterHands(channel, PeerReadyCharge);
+        }
+
+        // All applied: depth-1 — no chain when body is already a wake charge.
         if (IsWakeCharge(requestBody))
             return false;
-        // Observe already covered Completions #2 in-loop — no third peer_ready latch.
-        if (sameTurnObserveRan)
-            return false;
-        return TryArmAfterHands(channel);
+
+        // Observe ran Completions #2 in-loop — still arm peer_ready for #3 (contour self-flight).
+        // sameTurnObserveRan kept for call-site compat; no longer blocks arm.
+        _ = sameTurnObserveRan;
+        return TryArmAfterHands(channel, PeerReadyCharge);
     }
 
     /// <summary>
@@ -57,7 +78,7 @@ internal static class CitizenResultWake
     /// Latch dedup: do not overwrite pending/running human Send; idempotent if peer_ready already pending.
     /// Prefer <see cref="AfterHands"/> from call sites.
     /// </summary>
-    public static bool TryArmAfterHands(string? channel = null)
+    public static bool TryArmAfterHands(string? channel = null, string? body = null)
     {
         try
         {
@@ -79,11 +100,14 @@ internal static class CitizenResultWake
                     _ => "crew"
                 };
 
+            var charge = string.IsNullOrWhiteSpace(body) ? PeerReadyCharge : body;
+            var wakeReason = IsRetryWakeCharge(charge) ? "reason=peer_ready_retry" : "reason=peer_ready";
+
             var doc = new CitizenGlassDialogBridge.RequestDoc
             {
                 Schema = CitizenGlassDialogBridge.Schema,
                 Id = id,
-                Body = PeerReadyCharge,
+                Body = charge,
                 Channel = channelCode,
                 Status = "pending",
                 StampedUtc = DateTimeOffset.UtcNow
@@ -97,7 +121,7 @@ internal static class CitizenResultWake
                 "wake_arm",
                 "citizen-peer-ready-" + id,
                 "citizen_result_wake",
-                "reason=peer_ready");
+                wakeReason);
             return true;
         }
         catch

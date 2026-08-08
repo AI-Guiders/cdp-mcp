@@ -50,7 +50,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     }
 
     [Fact]
-    public void TryProcessOnce_skips_peer_ready_when_same_turn_observe_ran()
+    public void TryProcessOnce_arms_peer_ready_when_same_turn_observe_ran()
     {
         IdeDeskSeats.EnsureDefaultsFromSettings();
         IdeDeskSeats.Clear();
@@ -75,12 +75,13 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
 
         using (var afterHands = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath)))
         {
-            // SoftFL densify: observe Completions #2 already ran — no third peer_ready latch.
-            Assert.Equal("done", afterHands.RootElement.GetProperty("status").GetString());
-            Assert.Equal("hands please", afterHands.RootElement.GetProperty("body").GetString());
+            // Contour densify: observe Completions #2 ran — still arm peer_ready for #3.
+            Assert.Equal("pending", afterHands.RootElement.GetProperty("status").GetString());
+            Assert.Equal(CitizenResultWake.PeerReadyCharge, afterHands.RootElement.GetProperty("body").GetString());
         }
 
-        // No pending peer_ready → second process is idle.
+        // peer_ready pending → second process runs; depth-1 IsWakeCharge stops further arm.
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
         Assert.False(CitizenGlassDialogBridge.TryProcessOnce());
     }
 

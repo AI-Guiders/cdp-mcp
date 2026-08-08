@@ -59,7 +59,8 @@
 ## Antipatterns
 
 - Asking the operator «куда стучаться — Intercom или KB?» while already on a Glass CIT/dialog turn — seeming lost; map is in dialog persona.
-- Arming `peer_ready` after same-turn observe already ran — triple Completions shotgun; result-wake = `AfterHands` only, skip when observe covered #2.
+- Skipping `peer_ready` after same-turn observe — contour dies after intent (fail/"не вышло" never Completions #3). `AfterHands` arms #3; depth-1 + `peer_ready_retry` cap stop shotgun.
+- Offering `find` as next hand in peer_ready/observe charge — thrash escape when project_root ≠ leaf tree; steer `take|replace FULL path`.
 - Folding `@Sierra` mention-wake into `CitizenResultWake` — two entries (mention vs result); do not densify into one SoftOrgan.
 - Treating **full-chain GREEN** as 15.08 Done — DoD is **full-ready** (usable habitat peer), not pipe re-prove.
 - Starting dogfood from social/speech hubs — citizen is completions host, not CASA speech.
@@ -77,7 +78,9 @@
 
 ## last_ship
 
-- **2026-08-08 SoftFL ACCEPT densify peer_ready charge Radio≠Done (not Citizen Done)** — lived: Sierra «заснула» after peer_ready/observe wrote one Radio letter then idle (presence=idle). Root: `PeerReadyCharge` + `SameTurnObserveUser` ended with «One short Radio letter» → model treated Radio as wake DoD. Ship: both charges → Next hand now (@intent take|replace|find) — Radio alone ≠ done; Radio only if stuck. Test `PeerReadyCharge_steers_next_hand_not_radio_done` · CitizenResultWake **8/8**. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
+- **2026-08-08 SoftFL ACCEPT densify AfterHands contour wake (not Citizen Done)** — lived: Sierra cut after intent-call; observe Completions #2 + `sameTurnObserveRan` skip killed peer_ready; fail never woke #3; charge offered `find` thrash. Ship: `AfterHands` arms peer_ready after observe · Dropped>0 on primary → `PeerReadyRetryCharge` once · charges ban find (`take|replace FULL path`) · tests CitizenResultWake+Bridge+InventedHands **16/16**. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
+
+- **2026-08-08 SoftFL ACCEPT densify peer_ready charge Radio≠Done (not Citizen Done)** — lived: Sierra «заснула» after peer_ready/observe wrote one Radio letter then idle (presence=idle). Root: `PeerReadyCharge` + `SameTurnObserveUser` ended with «One short Radio letter» → model treated Radio as wake DoD. Ship: both charges → Next hand now — Radio alone ≠ done; Radio only if stuck. Test `PeerReadyCharge_steers_next_hand_not_radio_done` · SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Face HOLD · Done REOPENED.
 
 - **2026-08-08 SoftFL ACCEPT densify ExtractKeyedValue path spaces (not Citizen Done)** — lived: Sierra Radio Clear desk / FileNotFound after `read path=D:\…\Personal Cursor Folder\…` — unquoted path truncated at first space. Ship: path-like keys keep spaces until next ` key=` · tests ExtractKeyedValue_path_* **2/2** · Persona tip quote/doc= retry ≠ invent Clear desk. SoftFL invent REJECT.
 
