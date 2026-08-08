@@ -64,6 +64,7 @@
 - `FormatDropCharge` saying densify THAT path on find/fail/no_project — Completions densifies drop garbage then invents CascadeIDE.cs / copies Persona `CitizenRouteHost.cs` examples. Drop tip = context only; PASTE leaf take.
 - Putting real habitat type/path names in Persona intent examples (`CitizenRouteHost.cs`, `CdpMcp.csproj`, …) — Completions copies them as leaf. Examples = `rel/file.cs` / `Needle` placeholders only; regression `CitizenPersonaNoCodePoisonTests`.
 - Peer_ready leaf as relative path while agent/MCP project_root=cdp-mcp — take FileNotFound; densify absolute quoted LeafTakePath (or keep cascade-ide open).
+- Mentor tip with `@intent take …` on Glass Face — `StripWire` drops the line; Completions never sees PASTE. Tip path as prose OR host `RewriteInventedTakePath`.
 - Folding `@Sierra` mention-wake into `CitizenResultWake` — two entries (mention vs result); do not densify into one SoftOrgan.
 - Treating **full-chain GREEN** as 15.08 Done — DoD is **full-ready** (usable habitat peer), not pipe re-prove.
 - Starting dogfood from social/speech hubs — citizen is completions host, not CASA speech.
@@ -80,6 +81,8 @@
 - **jsonl Radio journal under named Mutex + full-file JSON scan** — lived `publish_failed` after KillRunning (AbandonedMutex swallowed) / Autoi thrash. SSOT = `intercom.witdb` (not TM seat WitDB).
 
 ## last_ship
+
+- **2026-08-09 SoftFL ACCEPT densify invent-take rewrite (not Citizen Done)** — lived Glass shot: Sierra loops `take GlassIntercom.cs`; mentor `@intent take` tip stripped by `StripWire` on Face → Completions never sees PASTE. Ship: `RewriteInventedTakePath` · RouteTake + Take args prefer leaf · tests CitizenLeafPathRewrite. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Done REOPENED.
 
 - **2026-08-09 SoftFL ACCEPT densify LeafTakePath absolute (not Citizen Done)** — lived Autoi: Sierra PASTE relative leaf under project_root=cdp-mcp → FileNotFound / truncated Personal Cursor F…. Ship: `LeafTakePath` absolute quoted under cascade-ide · LeafTakeIntent PASTE · open cascade-ide for flight. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Done REOPENED.
 
