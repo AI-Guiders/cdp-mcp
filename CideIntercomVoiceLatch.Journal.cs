@@ -60,6 +60,7 @@ internal static partial class CideIntercomVoiceLatch
     public static int JournalCount() => IntercomJournalStore.Count(StateRoot);
 
     /// <summary>Wipe Face Virtual History + drop last-wins LATEST (clean slate).</summary>
+        /// <summary>Wipe Face Virtual History + drop last-wins LATEST (clean slate).</summary>
     public static int WipeJournal()
     {
         var n = IntercomJournalStore.WipeAll(StateRoot);
