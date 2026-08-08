@@ -98,7 +98,15 @@ public partial class CitizenCompletionsTests : IDisposable
         Assert.Contains("domain card=id=", built.System, StringComparison.Ordinal);
         Assert.Contains("@intent browser", built.System, StringComparison.Ordinal);
         Assert.Contains("sit-internet organ", built.System, StringComparison.Ordinal);
+        Assert.Contains("IDE peer", built.System, StringComparison.Ordinal);
+        Assert.Contains("@intent open path=", built.System, StringComparison.Ordinal);
+        Assert.Contains("@intent project create", built.System, StringComparison.Ordinal);
+        Assert.Contains("@intent debug bp_add", built.System, StringComparison.Ordinal);
+        Assert.Contains("@intent find query=", built.System, StringComparison.Ordinal);
+        Assert.Contains("@intent shell command=", built.System, StringComparison.Ordinal);
+        Assert.Contains("@intent git status", built.System, StringComparison.Ordinal);
         Assert.Contains("Do not invent mcp/shell/kb", built.System, StringComparison.Ordinal);
+        Assert.Contains("Do not invent incapacity for named IDE organs", built.System, StringComparison.Ordinal);
     }
 
     [Fact]
