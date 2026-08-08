@@ -9,7 +9,6 @@
 
 - Topology compose inside `(…)`: `+` = spatial **split** (both visible); `/` = **OneOf** XOR (full TopLevel, role switches). Example `(P/M)(F)` ≠ `(P+M)(F)`. OneOf DoD = chord **and** auto-switch. Canon: cascade-ide `docs/design/topology-oneof-slash-v0.md`. **Shipped:** parser+flags+Glass `pm_oneof_host` · chord `po` · auto M←MFD/seats · P←plan latch.
 - CDP habitat = SSOT; Glass = projector (ADR-0021 Windows-first WPF).
-- **Agent-Side ≠ Human-Side 1:1** — same SSOT, loci may diverge (parallel prep vs current leaf). `show`/`show_face` invites a shared glance; do not hard-couple PreferSurface / `mfd_page` so one side’s dig always moves the other. Dual Input = fighting the **same** stick, not having two points of view.
 - Quiet SoftOrgan seats republish = chrome tip only; `show_face` (PlaceOrgan / Citizen go) = human attention — BringCabin + SelectMfd when mfd_page, Prefer P when face_seat=p.
 - Sticky `web_ai_url` may survive non-browser PlaceOrgan; Glass `RunWebAiPortal` only when Face/MFD targets browser (`SeatsWebAiNavigateGate` / `WantsWebAiNavigate`) — not on every `show_face`.
 - SoftOrgan chrome band ≠ EICAS: alert/qrh/ecl stay EICAS (not SoftOrganLatchCatalog).
@@ -33,7 +32,7 @@
 
 ## Antipatterns
 
-- **Dual Input (Airbus sidestick)** — conflict on the **same** control surface / PreferSurface XOR / `mfd_page` stick (both shove → wipe each other's view). **Not** the same as dual-HCI parallel: one SSOT, different slices — operator preps next leaf on Portal/rest while agent/Citizen works another locus; agent **`show` / `show_face`** is the invite axis to share a slice, not a ban. Lived 2026-08-09: mentor `presentation_set` fought operator Portal on M (wanted MD show) → Portal won, MD lost; topology swap was a hide, not a fix. SoftFL target = show without stealing the peer's parallel viewport (quiet mount vs PreferSurface fight), **not** «agent never touches Face».
+- **Dual Input (Airbus sidestick)** — conflict on the **same** PreferSurface / `mfd_page` stick (both shove → wipe). Distinct from **desired dual-HCI**: Agent-Side and Human-Side may sit at different SSOT loci without 1:1 hard couple; `show`/`show_face` = invite, not automatic drag. **Gap (2026-08-09):** habitat still couples — one Glass PreferSurface XOR · `land-LATEST` → Human AvalonEdit open · Editor Face PreferSurface `m` · shared `presentation-LATEST`. SoftFL = build independent Agent-Side / Human-Side viewports + optional show, not stamp as invariant we already have.
 - Fixing WebView2 airspace with WPF `Popup`/`AllowsTransparency` for cabin overlays — Popup HWND floats above other apps (GitHub/browser); park WebView2/VT instead.
 - Sticky `web_ai_url` + any `show_face` → `RunWebAiPortal` (Sierra message / find Face steals browser) — incomplete dual-mode SoftFL; gate navigate on browser Face/MFD only.
 - Stuffing alert/qrh into SoftOrgan band (tests explicitly ignore as EICAS bleed).
