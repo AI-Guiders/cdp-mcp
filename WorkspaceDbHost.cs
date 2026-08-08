@@ -75,6 +75,7 @@ internal sealed class WorkspaceDbHost
                 _store.EnsureStagePhaseAffinityColumn();
                 _store.EnsureStageClockColumns();
                 _store.EnsureStageProductColumn();
+                _store.EnsureStageExecutorColumn();
                 _store.EnsureStageEventsTable();
                 _store.EnsureStageCriteriaTable();
                 _store.EnsureWorkFocusTable();

@@ -66,7 +66,7 @@ internal sealed partial class IntentWorkspaceStore
         while (words.Count > 0)
         {
             var last = words[^1];
-            if ((last.StartsWith('@') || last.StartsWith('#')) && last.Length > 1)
+            if ((last.StartsWith('@') || last.StartsWith('#') || last.StartsWith('~')) && last.Length > 1)
             {
                 words.RemoveAt(words.Count - 1);
                 continue;

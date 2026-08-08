@@ -4,16 +4,17 @@ namespace CdpMcp;
 
 internal static partial class IdeRepl
 {
-    /// <summary>Split trailing <c>@act</c> / TM directive and optional <c>#CDP</c> product tag from title tokens.</summary>
-    internal static (string Title, string? Phase, string? Product) SplitTitleMeta(IReadOnlyList<string> tokens)
+    /// <summary>Split trailing <c>@act</c> / TM directive, optional <c>#CDP</c> product, optional <c>~Who</c> executor from title tokens.</summary>
+    internal static (string Title, string? Phase, string? Product, string? Executor) SplitTitleMeta(IReadOnlyList<string> tokens)
     {
         if (tokens.Count == 0)
-            return ("", null, null);
+            return ("", null, null, null);
 
         var list = tokens.ToList();
         string? product = null;
-        // Peel trailing #Product tags (order-flexible with @phase).
-        for (var guard = 0; guard < 4 && list.Count > 0; guard++)
+        string? executor = null;
+        // Peel trailing #Product / ~Who tags (order-flexible with @phase).
+        for (var guard = 0; guard < 6 && list.Count > 0; guard++)
         {
             var last = list[^1];
             if (last.StartsWith('#') && last.Length > 1 && product is null)
@@ -23,24 +24,45 @@ internal static partial class IdeRepl
                 continue;
             }
 
+            if (last.StartsWith('~') && last.Length > 1 && executor is null)
+            {
+                executor = last[1..];
+                list.RemoveAt(list.Count - 1);
+                continue;
+            }
+
             break;
         }
 
         var (title, phase) = SplitTitlePhase(list);
-        // Also allow #Product before @phase: peeled above only from end — peel leftover # from title tokens once more after phase.
-        if (product is null && list.Count > 0)
+        // Also allow #Product / ~Who before @phase: peel leftover from title tokens once more after phase.
+        if ((product is null || executor is null) && title.Length > 0)
         {
-            // If phase was peeled, list is already reduced inside SplitTitlePhase via return — re-check title words.
             var words = title.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-            if (words.Count > 0 && words[^1].StartsWith('#') && words[^1].Length > 1)
+            for (var guard = 0; guard < 4 && words.Count > 0; guard++)
             {
-                product = words[^1][1..];
-                words.RemoveAt(words.Count - 1);
-                title = string.Join(' ', words);
+                var last = words[^1];
+                if (product is null && last.StartsWith('#') && last.Length > 1)
+                {
+                    product = last[1..];
+                    words.RemoveAt(words.Count - 1);
+                    continue;
+                }
+
+                if (executor is null && last.StartsWith('~') && last.Length > 1)
+                {
+                    executor = last[1..];
+                    words.RemoveAt(words.Count - 1);
+                    continue;
+                }
+
+                break;
             }
+
+            title = string.Join(' ', words);
         }
 
-        return (title, phase, product);
+        return (title, phase, product, executor);
     }
 
     /// <summary>Split trailing <c>@act</c> phase affinity or TM directive (<c>@focus</c>/<c>@done</c>/…) from title tokens.</summary>
@@ -115,6 +137,9 @@ internal static partial class IdeRepl
             return "drop feature X | drop task X | drop";
         if (title.Equals("phase", StringComparison.OrdinalIgnoreCase))
             return "phase act | phase verify";
+        if (title.Equals("executor", StringComparison.OrdinalIgnoreCase)
+            || title.Equals("assignee", StringComparison.OrdinalIgnoreCase))
+            return "executor Sierra | assignee Кир | executor clear";
         if (title.Equals("share", StringComparison.OrdinalIgnoreCase))
             return "share report | share plan";
         if (title.Equals("promote", StringComparison.OrdinalIgnoreCase))

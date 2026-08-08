@@ -21,7 +21,8 @@ internal static partial class IdeTaskManager
         string? PhaseAffinity = null,
         DateTimeOffset? StartedUtc = null,
         DateTimeOffset? CompletedUtc = null,
-        string? Product = null);
+        string? Product = null,
+        string? Executor = null);
 
     public sealed record FeatureNode(
         Guid Id,

@@ -82,12 +82,12 @@ public sealed class StageProductTests
         Assert.Equal("product", applied.Value.Args["tm_op"].GetString());
         Assert.Equal("CDP", applied.Value.Args["go_args"].GetProperty("product").GetString());
 
-        var (title, phase, product) = IdeRepl.SplitTitleMeta(["ship-omit", "@act", "#cdp"]);
+        var (title, phase, product, _) = IdeRepl.SplitTitleMeta(["ship-omit", "@act", "#cdp"]);
         Assert.Equal("ship-omit", title);
         Assert.Equal("act", phase);
         Assert.Equal("cdp", product);
 
-        (title, phase, product) = IdeRepl.SplitTitleMeta(["ship-omit", "#Cursor", "@act"]);
+        (title, phase, product, _) = IdeRepl.SplitTitleMeta(["ship-omit", "#Cursor", "@act"]);
         Assert.Equal("ship-omit", title);
         Assert.Equal("act", phase);
         Assert.Equal("Cursor", product);

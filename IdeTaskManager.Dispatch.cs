@@ -34,7 +34,7 @@ internal static partial class IdeTaskManager
             "feature_focus" or "intent_select" => FeatureFocus(store, state, args),
             "feature_drop" or "feature_rm" or "feature_delete" => FeatureDrop(store, state, args),
             "task" or "task_add" or "add" => TaskAdd(
-                store, state, Title(args), ResolveParent(store, state, args), PhaseArg(args), ProductArg(args)),
+                store, state, Title(args), ResolveParent(store, state, args), PhaseArg(args), ProductArg(args), ExecutorArg(args)),
             "focus" or "task_focus" => TaskFocus(store, state, args),
             "task_drop" or "task_rm" or "task_delete" => TaskDrop(store, state, args),
             "drop" or "rm" or "delete" => DropSmart(store, state, args),
@@ -48,6 +48,7 @@ internal static partial class IdeTaskManager
             "await_operator" or "await" or "epic_closed" or "plateau_park" => TaskAwaitOperator(store, state, args),
             "phase" or "task_phase" => TaskSetPhase(store, state, args),
             "product" or "category" or "task_product" => TaskSetProduct(store, state, args),
+            "executor" or "assignee" or "task_executor" => TaskSetExecutor(store, state, args),
             "start" or "clock_start" => TaskClockStart(store, state, args),
             "shipped" or "completed" => TaskClockShipped(store, state, args),
             "start_phase" or "phase_start" => TaskPhaseStart(store, state, args),
