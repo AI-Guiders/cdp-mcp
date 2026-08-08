@@ -86,7 +86,7 @@ internal static partial class MetaDispatch
             if (faceUrl is null)
                 return;
 
-            IdeDeskSeats.PlaceOrgan("browser", faceUrl);
+            IdeDeskSeats.PlaceOrgan("browser", faceUrl, showFace: true);
         }
         catch
         {

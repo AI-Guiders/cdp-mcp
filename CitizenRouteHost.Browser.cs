@@ -50,7 +50,7 @@ internal static partial class CitizenRouteHost
             {
                 var faceUrl = TryReadBrowserFaceUrl(json, args);
                 if (faceUrl is { Length: > 0 })
-                    seat = IdeDeskSeats.PlaceOrgan("browser", faceUrl);
+                    seat = IdeDeskSeats.PlaceOrgan("browser", faceUrl, showFace: true);
             }
 
             // peer = Sierra lynx dig (default). face = operator WebAiPortal latch.
