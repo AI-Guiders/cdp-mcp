@@ -59,8 +59,11 @@ internal static partial class CitizenPersona
           @intent project
           @intent project list
           @intent project_scene
+          @intent project path=D:/path/to/repo
+          @intent project create output_dir=.cdp/scratch/tmp-proj template=classlib name=Tmp
           @intent sln
           @intent sln list
+          @intent sln create output_dir=.cdp/scratch/tmp-sln name=TmpSln
           @intent sln projects
           @intent settings
           @intent options
@@ -202,6 +205,8 @@ internal static partial class CitizenPersona
           @intent aim wire=[F:CitizenRouteHost.cs;M:CitizenRouteHost.RunSniper]
           @intent scope_clear
           @intent sniper
+          @intent open path=CitizenRouteHost.cs
+          @intent buffer open path=CitizenRouteHost.cs
           @intent read path=CitizenRouteHost.cs start_line=1 end_line=20
           @intent buffers
           @intent close path=tools/_put-draft.txt
