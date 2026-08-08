@@ -9,6 +9,7 @@
 
 - Topology compose inside `(…)`: `+` = spatial **split** (both visible); `/` = **OneOf** XOR (full TopLevel, role switches). Example `(P/M)(F)` ≠ `(P+M)(F)`. OneOf DoD = chord **and** auto-switch. Canon: cascade-ide `docs/design/topology-oneof-slash-v0.md`. **Shipped:** parser+flags+Glass `pm_oneof_host` · chord `po` · auto M←MFD/seats · P←plan latch.
 - CDP habitat = SSOT; Glass = projector (ADR-0021 Windows-first WPF).
+- **Agent-Side ≠ Human-Side 1:1** — same SSOT, loci may diverge (parallel prep vs current leaf). `show`/`show_face` invites a shared glance; do not hard-couple PreferSurface / `mfd_page` so one side’s dig always moves the other. Dual Input = fighting the **same** stick, not having two points of view.
 - Quiet SoftOrgan seats republish = chrome tip only; `show_face` (PlaceOrgan / Citizen go) = human attention — BringCabin + SelectMfd when mfd_page, Prefer P when face_seat=p.
 - Sticky `web_ai_url` may survive non-browser PlaceOrgan; Glass `RunWebAiPortal` only when Face/MFD targets browser (`SeatsWebAiNavigateGate` / `WantsWebAiNavigate`) — not on every `show_face`.
 - SoftOrgan chrome band ≠ EICAS: alert/qrh/ecl stay EICAS (not SoftOrganLatchCatalog).
