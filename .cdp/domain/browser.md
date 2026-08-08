@@ -21,6 +21,7 @@
 
 ## last_ship
 
+- Dialog Radio body-map: `@intent browser` taught in DialogSystemPrompt (parity Wire) @ 2026-08-08 — SoftFL for «нет браузера» lie
 - Engine→Lynx peel (Fetch/Resolve/RunProcess) @ 0.5.434 · 2026-08-01
 - soft-warn near-miss peel: Core172 Nav238 Engine362 @ 0.5.402
 - soft-warn: Engine peel (Follow→Tab + Fetch/Lynx) @ 0.5.385
