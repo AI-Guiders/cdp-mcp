@@ -44,7 +44,7 @@ public sealed class CitizenResultWakeTests : IDisposable
         Assert.DoesNotContain("take|replace|find", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains(CitizenResultWake.LeafTakePath, CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("PASTE", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
-        Assert.Contains("Persona example", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.Contains("dialog-history basenames", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("Radio alone", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
         Assert.DoesNotContain("One short Radio letter", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
         Assert.Contains("find≠next hand", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);

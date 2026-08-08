@@ -22,12 +22,12 @@ internal static class CitizenResultWake
     public const string PeerReadyCharge =
         "reason=peer_ready — hands returned; verify @event peer pulse. PASTE next hand exactly: "
         + LeafTakeIntent
-        + " — find≠next hand; CitizenRouteHost.cs=Persona example ≠ this leaf; do not invent CascadeIDE.cs / *Host.cs / GlassIntercom.cs; Radio alone ≠ done; Radio only if stuck (one fact).";
+        + " — find≠next hand; do not invent CascadeIDE.cs / *Host.cs / GlassIntercom.cs / dialog-history basenames; Radio alone ≠ done; Radio only if stuck (one fact).";
 
     public const string PeerReadyRetryCharge =
         "reason=peer_ready_retry — hand dropped/failed; result is still a result. PASTE exactly: "
         + LeafTakeIntent
-        + ". find≠escape. CitizenRouteHost*=Persona example ≠ leaf. invent CascadeIDE.cs / siblings ≠ densify.";
+        + ". find≠escape. invent CascadeIDE.cs / *Host.cs / dialog-history basenames ≠ densify.";
 
     public const string PeerReadyRetry2Charge =
         "reason=peer_ready_retry2 — second densify after drop; PASTE exactly: "
@@ -78,7 +78,7 @@ internal static class CitizenResultWake
         return baseCharge
             + " drop=["
             + tip
-            + "] — context only; PASTE leaf take from charge (quoted FULL). find/no_project/CitizenRouteHost*/CascadeIDE.cs ≠ target. Radio alone ≠ done.";
+            + "] — context only; PASTE leaf take from charge (quoted FULL). find/no_project/invented basenames ≠ target. Radio alone ≠ done.";
     }
 
     /// <summary>
