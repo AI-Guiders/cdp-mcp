@@ -49,8 +49,31 @@ internal static partial class IdeCideIntercomChannel
                 limit = ns;
         }
 
-        var entries = CideIntercomVoiceLatch.LoadJournalTail(limit);
-        return JsonSerializer.Serialize(new { schema = Schema, ok = true, op = "history", journal_path = CideIntercomVoiceLatch.JournalPath, count = entries.Count, total = CideIntercomVoiceLatch.JournalCount(), entries = entries.Select(Card).ToArray(), hint = entries.Count == 0 ? "Journal empty — send/receive first. Not auto-injected into flight context." : "Virtual History on demand. Pull only what you need; do not dump into composer." });
+        if (limit > 200) limit = 200;
+
+        var query = Arg(args, "query") ?? Arg(args, "contains") ?? Arg(args, "q");
+        var entries = string.IsNullOrWhiteSpace(query)
+            ? CideIntercomVoiceLatch.LoadJournalTail(limit)
+            : CideIntercomVoiceLatch.SearchJournal(query, limit);
+        var searched = !string.IsNullOrWhiteSpace(query);
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "history",
+            journal_path = CideIntercomVoiceLatch.JournalPath,
+            query = searched ? query!.Trim() : null,
+            count = entries.Count,
+            total = CideIntercomVoiceLatch.JournalCount(),
+            entries = entries.Select(Card).ToArray(),
+            hint = entries.Count == 0
+                ? (searched
+                    ? "No journal hits for query= — try shorter needle / different spelling. Not auto-injected into flight context."
+                    : "Journal empty — send/receive first. Not auto-injected into flight context.")
+                : (searched
+                    ? "Virtual History search. Pull only what you need; do not dump into composer."
+                    : "Virtual History on demand (tail). Pass query=/contains=/q= to search body+name. Pull only what you need; do not dump into composer.")
+        });
     }
 
     static object Card(CideIntercomVoiceLatch.IntercomVoiceDoc d) => new

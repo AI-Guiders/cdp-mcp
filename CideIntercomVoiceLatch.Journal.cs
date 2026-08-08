@@ -50,6 +50,13 @@ internal static partial class CideIntercomVoiceLatch
         return rows.Select(ToVoiceDoc).ToList();
     }
 
+    /// <summary>Journal search by body/name contains. Empty query → tail.</summary>
+    public static IReadOnlyList<IntercomVoiceDoc> SearchJournal(string? query, int limit = 40)
+    {
+        var rows = IntercomJournalStore.SearchContains(StateRoot, query, limit);
+        return rows.Select(ToVoiceDoc).ToList();
+    }
+
     public static int JournalCount() => IntercomJournalStore.Count(StateRoot);
 
     static IntercomVoiceDoc ToVoiceDoc(IntercomJournalRow row) => new()
