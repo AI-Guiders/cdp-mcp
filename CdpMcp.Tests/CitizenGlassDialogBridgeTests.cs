@@ -483,6 +483,39 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     }
 
     [Fact]
+    public void AppendShipForHumanFace_skips_take_csharp_wall()
+    {
+        const string wall = "#nullable enable\nnamespace CdpMcp;\n\ninternal static class GlassIntercomMention\n{\n    public static void X() { }\n}\n";
+        var applied = new CitizenRouteHost.Applied(
+            "@intent take",
+            "Take",
+            Ok: true,
+            Action: "take",
+            Pulse: "take chars=9000",
+            Ship: wall + new string('x', 500));
+        var face = CitizenGlassDialogBridge.AppendShipForHumanFace("Hands ok · take", [applied]);
+        Assert.Equal("Hands ok · take", face);
+        Assert.DoesNotContain("namespace", face, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FaceLetterFallback_skips_take_ship_wall()
+    {
+        const string wall = "#nullable enable\nnamespace CdpMcp;\nclass X { }\n" + "body\nbody\nbody\nbody\nbody\n";
+        var applied = new CitizenRouteHost.Applied(
+            "@intent take",
+            "Take",
+            Ok: true,
+            Action: "take",
+            Pulse: "take chars=1200",
+            Ship: wall + new string('y', 450));
+        var letter = CitizenGlassDialogBridge.FaceLetterFallback("@intent take", [applied], peerAck: null);
+        Assert.Contains("Hands ok", letter, StringComparison.Ordinal);
+        Assert.Contains("take chars=1200", letter, StringComparison.Ordinal);
+        Assert.DoesNotContain("namespace", letter, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TryProcessOnce_persists_operator_dialog_for_multiturn()
     {
         var seatRoot = Path.Combine(_root, "cdp");

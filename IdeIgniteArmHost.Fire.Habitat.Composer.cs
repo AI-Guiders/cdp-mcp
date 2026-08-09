@@ -110,6 +110,9 @@ internal static partial class IdeIgniteArmHost
     {
         if (!IsPrimaryAutoiSeat())
             return;
+        // Remount + Face busy → no Autoi Radio spam (parity MirrorTimerWakeToIntercom).
+        if (arm is not null && IsRemountWakeArm(arm) && IsHabitatPartnerLive())
+            return;
         if (arm is not null && !TryClaimSharedWakeMirror(MirrorClaimKey(arm)))
             return;
         var voiceBody = FormatHabitatIntercomRadio(arm, charge);

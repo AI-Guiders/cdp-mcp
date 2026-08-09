@@ -214,6 +214,10 @@ internal static partial class IdeIgniteArmHost
         string detail;
         if (IsRemountWakeArm(arm))
         {
+            // Lived Face thrash: remount Autoi tips mid-Sierra Turn (presence=busy).
+            // CDT→Composer still ok; mute Radio while Face Who is working.
+            if (IsHabitatPartnerLive())
+                return false;
             detail = "remount_intercom";
         }
         else if (IsHildEscalateWakeArm(arm))

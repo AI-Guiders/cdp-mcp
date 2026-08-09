@@ -347,7 +347,7 @@ internal static class CitizenGlassDialogBridge
                 return "Hands FAIL · " + string.Join(" · ", fails!);
 
             var ships = executed
-                .Where(a => a.Ok && !string.IsNullOrWhiteSpace(a.Ship))
+                .Where(IsHumanFaceListingShip)
                 .Select(a => TruncFaceShip(a.Ship!))
                 .Take(2)
                 .ToArray();
@@ -488,14 +488,15 @@ internal static class CitizenGlassDialogBridge
     internal const int FaceShipMaxChars = 2_400;
 
     /// <summary>
-    /// SoftOrgan HND owns receipt chrome; Ship payload must still hit Face for human eyes.
+    /// SoftOrgan HND owns receipt chrome; short directory listings may hit Face.
+    /// Never dump take/body walls (lived 0.5.692 csharp thrash).
     /// </summary>
     internal static string AppendShipForHumanFace(
         string? letter,
         IReadOnlyList<CitizenRouteHost.Applied>? executed)
     {
         var ships = executed?
-            .Where(a => a.Ok && !string.IsNullOrWhiteSpace(a.Ship))
+            .Where(IsHumanFaceListingShip)
             .Select(a => TruncFaceShip(a.Ship!))
             .Take(2)
             .ToArray();
@@ -512,6 +513,39 @@ internal static class CitizenGlassDialogBridge
         if (probeLen > 0 && tip.Contains(block[..probeLen], StringComparison.Ordinal))
             return tip;
         return tip + "\n\n" + block;
+    }
+
+    /// <summary>files Ship / cwd|dir|file board — not take csharp walls.</summary>
+    internal static bool IsHumanFaceListingShip(CitizenRouteHost.Applied a)
+    {
+        if (!a.Ok || string.IsNullOrWhiteSpace(a.Ship))
+            return false;
+        if (string.Equals(a.Action, "files", StringComparison.OrdinalIgnoreCase))
+            return true;
+        return LooksLikeDirectoryListingShip(a.Ship!);
+    }
+
+    internal static bool LooksLikeDirectoryListingShip(string ship)
+    {
+        var t = ship.Replace("\r\n", "\n", StringComparison.Ordinal).TrimStart();
+        if (t.Length == 0)
+            return false;
+        // take / buffer walls — never Face dump
+        if (t.Contains("namespace ", StringComparison.Ordinal)
+            || t.Contains("#nullable", StringComparison.Ordinal)
+            || (t.Contains('{') && t.Contains('}') && t.Length > 400))
+            return false;
+        if (t.StartsWith("cwd |", StringComparison.Ordinal))
+            return true;
+        foreach (var line in t.Split('\n'))
+        {
+            var s = line.TrimStart();
+            if (s.StartsWith("dir ", StringComparison.Ordinal)
+                || s.StartsWith("file ", StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
     }
 
     internal static string TruncFaceShip(string ship)

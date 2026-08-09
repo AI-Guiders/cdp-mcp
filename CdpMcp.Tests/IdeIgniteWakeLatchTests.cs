@@ -331,7 +331,7 @@ public partial class IdeIgniteWakeLatchTests : IDisposable
     }
 
     [Fact]
-    public void MirrorTimerWakeToIntercom_remount_publishes_when_pf_busy()
+    public void MirrorTimerWakeToIntercom_remount_skips_when_pf_busy()
     {
         CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
         var arm = new IdeIgniteArmHost.IgniteArm
@@ -345,12 +345,10 @@ public partial class IdeIgniteWakeLatchTests : IDisposable
             WaitSeconds = 30
         };
 
-        // Prefer still skipped for remount; mirror is the residual.
+        // Prefer still skipped for remount; Face busy → mute Radio remount spam.
         Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "reason=remount"));
-        Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=remount busy PF"));
-        var voice = CideIntercomVoiceLatch.TryRead();
-        Assert.NotNull(voice);
-        Assert.Contains("reason=remount busy PF", voice!.Body, StringComparison.Ordinal);
+        Assert.False(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "reason=remount busy PF"));
+        Assert.Null(CideIntercomVoiceLatch.TryRead());
     }
 
 }
