@@ -259,6 +259,10 @@ internal static class CitizenGlassDialogBridge
             if (string.IsNullOrWhiteSpace(publishBody))
                 publishBody = FaceLetterFallback(turn.Text!, executed, peerAck);
 
+            // Human eyes: SoftOrgan chip ≠ journal. Ship body (files listing / take text)
+            // must reach Face letter — pulse "files · 37" alone is seeming (lived 2026-08-09).
+            publishBody = AppendShipForHumanFace(publishBody, executed);
+
             var radioPointer = IdeIgniteArmHost.LooksLikeHabitatRadioPointer(publishBody);
             var published = CideIntercomVoiceLatch.Publish(
                 fromSeat: CideIntercomVoiceLatch.SeatPf,
@@ -341,6 +345,23 @@ internal static class CitizenGlassDialogBridge
                 .ToArray();
             if (fails.Length > 0)
                 return "Hands FAIL · " + string.Join(" · ", fails!);
+
+            var ships = executed
+                .Where(a => a.Ok && !string.IsNullOrWhiteSpace(a.Ship))
+                .Select(a => TruncFaceShip(a.Ship!))
+                .Take(2)
+                .ToArray();
+            if (ships.Length > 0)
+            {
+                var pulseTip = executed
+                    .Where(a => a.Ok)
+                    .Select(a => a.Pulse)
+                    .FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
+                var head = string.IsNullOrWhiteSpace(pulseTip)
+                    ? "Hands ok"
+                    : "Hands ok · " + pulseTip;
+                return head + "\n\n" + string.Join("\n\n", ships!);
+            }
 
             var oks = executed
                 .Where(a => a.Ok)
@@ -462,6 +483,43 @@ internal static class CitizenGlassDialogBridge
         if (string.IsNullOrWhiteSpace(assistant))
             return;
         CitizenDialogHistory.Append(userBody, assistant);
+    }
+
+    internal const int FaceShipMaxChars = 2_400;
+
+    /// <summary>
+    /// SoftOrgan HND owns receipt chrome; Ship payload must still hit Face for human eyes.
+    /// </summary>
+    internal static string AppendShipForHumanFace(
+        string? letter,
+        IReadOnlyList<CitizenRouteHost.Applied>? executed)
+    {
+        var ships = executed?
+            .Where(a => a.Ok && !string.IsNullOrWhiteSpace(a.Ship))
+            .Select(a => TruncFaceShip(a.Ship!))
+            .Take(2)
+            .ToArray();
+        if (ships is not { Length: > 0 })
+            return letter?.Trim() ?? "";
+
+        var block = string.Join("\n\n", ships!);
+        if (string.IsNullOrWhiteSpace(letter))
+            return block;
+
+        var tip = letter.Trim();
+        // Already carried (fallback path or model quoted listing).
+        var probeLen = Math.Min(48, block.Length);
+        if (probeLen > 0 && tip.Contains(block[..probeLen], StringComparison.Ordinal))
+            return tip;
+        return tip + "\n\n" + block;
+    }
+
+    internal static string TruncFaceShip(string ship)
+    {
+        ship = ship.Replace("\r\n", "\n", StringComparison.Ordinal).TrimEnd();
+        if (ship.Length <= FaceShipMaxChars)
+            return ship;
+        return ship[..FaceShipMaxChars] + "\n…";
     }
 
     static string SurfacePublishBody(

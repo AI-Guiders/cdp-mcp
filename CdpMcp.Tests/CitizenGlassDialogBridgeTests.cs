@@ -449,6 +449,40 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     }
 
     [Fact]
+    public void FaceLetterFallback_prefers_files_ship_listing_over_thin_pulse()
+    {
+        const string ship = "cwd | D:/kb\ndir  domains\nfile README.md";
+        var applied = new CitizenRouteHost.Applied(
+            "@intent files",
+            "Files",
+            Ok: true,
+            Action: "files",
+            Go: "files_desk",
+            Pulse: "files · external · knowledge · 37",
+            Ship: ship);
+        var letter = CitizenGlassDialogBridge.FaceLetterFallback("@intent files", [applied], peerAck: null);
+        Assert.Contains("Hands ok", letter, StringComparison.Ordinal);
+        Assert.Contains("domains", letter, StringComparison.Ordinal);
+        Assert.Contains("README.md", letter, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AppendShipForHumanFace_appends_listing_after_prose()
+    {
+        const string ship = "cwd | D:/kb\ndir  domains";
+        var applied = new CitizenRouteHost.Applied(
+            "@intent files",
+            "Files",
+            Ok: true,
+            Action: "files",
+            Pulse: "files · 2",
+            Ship: ship);
+        var face = CitizenGlassDialogBridge.AppendShipForHumanFace("Делаю:", [applied]);
+        Assert.StartsWith("Делаю:", face, StringComparison.Ordinal);
+        Assert.Contains("domains", face, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TryProcessOnce_persists_operator_dialog_for_multiturn()
     {
         var seatRoot = Path.Combine(_root, "cdp");

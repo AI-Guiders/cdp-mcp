@@ -86,6 +86,36 @@ public sealed class CitizenFilesHostTests
     }
 
     [Fact]
+    public void Execute_entries_ship_into_applied_and_peer_event()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenPeerAck.ResetForTests();
+        CitizenRouteHost.FilesHandleOverride = _ =>
+            """{"ok":true,"schema":"files/v1","cwd":"D:/Experiments/agent-notes/knowledge","pulse":"files · external · knowledge · 37","total":37,"entries":[{"kind":"dir","name":"domains","path":"D:/Experiments/agent-notes/knowledge/domains"},{"kind":"file","name":"README.md","path":"D:/Experiments/agent-notes/knowledge/README.md"}]}""";
+        try
+        {
+            var applied = CitizenRouteHost.Execute([CitizenIntentRouter.RouteOne("files")]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.False(string.IsNullOrWhiteSpace(applied[0].Ship));
+            Assert.Contains("cwd | ", applied[0].Ship, StringComparison.Ordinal);
+            Assert.Contains("dir  domains", applied[0].Ship, StringComparison.Ordinal);
+            Assert.Contains("file README.md", applied[0].Ship, StringComparison.Ordinal);
+            Assert.Contains("ship=", applied[0].Pulse, StringComparison.Ordinal);
+
+            var ack = CitizenPeerAck.FromExecuted(applied);
+            Assert.Contains("ship  |", ack.Event, StringComparison.Ordinal);
+            Assert.Contains("domains", ack.Event, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CitizenRouteHost.FilesHandleOverride = null;
+            CitizenRouteHost.UnbindLifecycle();
+            CitizenPeerAck.ResetForTests();
+        }
+    }
+
+    [Fact]
     public void Execute_list_passes_op_and_where()
     {
         CitizenRouteHost.UnbindLifecycle();
