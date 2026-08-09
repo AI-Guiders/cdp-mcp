@@ -251,6 +251,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 ## last_ship
 
+- **2026-08-09 Glass Done human flight VERIFY speech+pipe+HND (not Glass Done closed)** — dig=glass.md · sealed after Hands/HND 0.5.709. Live: Face dialog `cdp_health` → letter `0.5.709` · `hands-LATEST` OK·cdp_health · Glass host up · PrintWindow `CDP GlassCockpit · Windows` SoftOrgan chrome shows **HND** · evidence `D:\cdp-mcp\tmp-evidence\glass-flight-hnd-cabin-20260809.png` + OneOf `p/m · m active · OneOf host` `D:\cdp-mcp\tmp-evidence\glass-flight-oneof-mfd-20260809.png` + `cdp_see`. SoftFL invent REJECT · SoftOrgan invent REJECT · Mentions SoftFL Face-owned alone. shot_seen_as_closed: Page Ready still open (Mentions SoftFL residual).
+
 - **2026-08-09 dig SoftFL-safe residual (not Glass Done)** — Autoi wake dig=glass.md+citizen.md: sticky `web_ai_url` antipattern **stale** (gate SHIPPED 2026-08-08) → stamped CLOSED. Densest open SoftFL = Face `@all` MentionsAll→ResolveWakes (MentionsAll live · ResolveWakes never fans @all). SoftOrgan invent REJECT. Kir does not steal Face leaf; arm `when=peer_ship`.
 - **2026-08-09 Face busy hold ttl=0 (CDP 0.5.695)** — lived SoftFL Glass Done residual: Autoi Radio tips interleaved with Sierra #crew while Face Turn >120s (presence stale → mute miss). Ship habitat presence hold until finally idle. SoftFL invent ACCEPT dig=glass.md+citizen.md. SoftOrgan invent REJECT. Not Glass Done.
 - **2026-08-09 Mentions SoftFL · @PF Face≻tip (cascade-ide)** — lived tip≠Face: `@PF` → Cursor while Face citizen in `pf_profiles`. Ship GlassCore Face roster + `TryCitizenFace` · tests **23/23**. SoftFL invent ACCEPT densify dig=glass-intercom.md. SoftOrgan invent REJECT. Residual Mentions invent UX alone.
