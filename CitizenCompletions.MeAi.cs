@@ -79,6 +79,11 @@ internal static partial class CitizenCompletions
         int maxTokens,
         CancellationToken cancellationToken)
     {
+        // Whole-catalog agent pipe when ICM (or test exec) is bound — Face ≠ keyboard mill.
+        // TestChatClient stream unit tests stay on GetStreamingResponseAsync.
+        if (AgentPipeAvailable && !ReferenceEquals(client, TestChatClient))
+            return TurnViaMeAiAgent(built, resolved, client, maxTokens, cancellationToken);
+
         // Stream = organ shape. Headers=TTFT until first chunk; Idle between updates; Overall hard cap.
         // Accumulate → ToChatResponse so usage/finish merge like MEAI intends (not junior GetResponseAsync).
         using var turnCts = CreateTurnCts(cancellationToken);
