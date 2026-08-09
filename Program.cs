@@ -46,6 +46,15 @@ IdeIgniteArmHost.BindFlightProbe(() =>
         return ContinuityFlight.Fly;
     }
 });
+IdeIgniteArmHost.BindCitizenFocusLane(() =>
+{
+    workspace.Ensure();
+    var store = workspace.Store;
+    if (store is null)
+        return;
+    var (who, _) = CitizenGlassDialogBridge.ResolveCitizenFace();
+    store.WorkFocusSwitchLane(workspace.State, who);
+});
 
 /// <summary>Open Recent lives in WitDB — ensure store before push/list (cdp_open / CSX Open.*).</summary>
 void EnsureOpenRecentWired() => workspace.Ensure();

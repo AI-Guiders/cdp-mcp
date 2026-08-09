@@ -22,6 +22,25 @@ internal static partial class IdeIgniteArmHost
     /// <summary>Bind TM-aware flight probe (handoff / no-act plateau).</summary>
     public static void BindFlightProbe(Func<ContinuityFlight> probe) => FlightProbe = probe;
 
+    static Action? CitizenFocusLaneBind;
+
+    /// <summary>prefer_citizen wake → switch TM FocusLane to Face Who (tip≠Face).</summary>
+    public static void BindCitizenFocusLane(Action bind) => CitizenFocusLaneBind = bind;
+
+    /// <summary>Best-effort: Face lane on citizen Autoi consume. Never throws into fire path.</summary>
+    internal static void TryApplyCitizenFocusLane()
+    {
+        try
+        {
+            CitizenFocusLaneBind?.Invoke();
+        }
+        catch
+        {
+            /* workspace optional at cold fire */
+        }
+    }
+
+
     /// <summary>Test/compat: true = fly, false = no active task.</summary>
     public static void BindTaskFocus(Func<bool> probe) =>
         FlightProbe = () => probe() ? ContinuityFlight.Fly : ContinuityFlight.NoActiveTask;

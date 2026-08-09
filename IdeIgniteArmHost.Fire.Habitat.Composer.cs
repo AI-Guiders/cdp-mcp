@@ -1,4 +1,4 @@
-﻿namespace CdpMcp;
+namespace CdpMcp;
 internal static partial class IdeIgniteArmHost
 {
     /// <summary>remount-wake-* — Intercom mirror residual; not habitat prefer.</summary>
@@ -70,6 +70,8 @@ internal static partial class IdeIgniteArmHost
         // Composer gone/down: citizen can own the wake without stealing Cursor Composer.
         if (IdeCitizenChannel.TryDeliverAutoiWake(charge, out var reply))
         {
+            // Multi-principal: citizen Autoi owns Sierra lane — tip Кир stays Cursor Who.
+            TryApplyCitizenFocusLane();
             IdeFlightDataRecorder.RecordWake("wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_citizen");
             PublishCitizenWakeIntercom(arm, reply ?? charge);
             return HabitatWakeResult(arm.Id, "prefer_citizen", submitKind: "citizen");
