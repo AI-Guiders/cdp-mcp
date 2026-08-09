@@ -391,6 +391,64 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     }
 
     [Fact]
+    public void TryProcessOnce_wire_only_still_publishes_face_fallback()
+    {
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        IdeDeskSeats.TryPlaceExplicit("p", "plan");
+
+        var seatRoot = Path.Combine(_root, "cdp");
+        Directory.CreateDirectory(seatRoot);
+        CitizenDialogHistory.SetTestPath(Path.Combine(seatRoot, CitizenDialogHistory.FileName));
+
+        // Lived SoftFL: Completions returns @intent only → StripWire empty → publish_failed sleep.
+        // EchoTurn prefixes citizen-echo: — use raw TurnResult so StripWire really empties.
+        CitizenGlassDialogBridge.TurnOverrideForTests = body =>
+        {
+            if (body.Equals(CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal))
+                return EchoTurn("R"); // thin observe → keep act path
+            return new CitizenCompletions.TurnResult(
+                Ok: true,
+                Error: null,
+                Hint: null,
+                Text: "@intent go=plan",
+                Model: "test",
+                Provider: "mock",
+                Built: null,
+                WireIntents: null,
+                Routes: [CitizenIntentRouter.RouteOne("go=plan")],
+                DryRun: false);
+        };
+        WritePending("wireonly00001", "do the plan");
+
+        Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
+
+        using var status = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        Assert.Equal("done", status.RootElement.GetProperty("status").GetString());
+
+        using var latch = JsonDocument.Parse(File.ReadAllText(CideIntercomVoiceLatch.LatchPath));
+        var face = latch.RootElement.GetProperty("body").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(face));
+        Assert.Contains("Hands", face, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void FaceLetterFallback_surfaces_hands_fail_pulse()
+    {
+        var applied = new CitizenRouteHost.Applied(
+            "@intent kb read",
+            "Kb",
+            Ok: false,
+            Action: "kb",
+            Go: "kb",
+            Pulse: "kb memory_world read failed",
+            Reason: "kb_path_outside_roots");
+        var letter = CitizenGlassDialogBridge.FaceLetterFallback("@intent kb read", [applied], peerAck: null);
+        Assert.Contains("Hands FAIL", letter, StringComparison.Ordinal);
+        Assert.Contains("kb memory_world read failed", letter, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TryProcessOnce_persists_operator_dialog_for_multiturn()
     {
         var seatRoot = Path.Combine(_root, "cdp");

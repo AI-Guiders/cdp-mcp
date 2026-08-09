@@ -254,6 +254,11 @@ internal static class CitizenGlassDialogBridge
                 }
             }
 
+            // SoftOrgan HND owns receipt chips — wire-only Completions strip to empty →
+            // Publish null → publish_failed → busy→idle with no Radio (lived @Sierra paste).
+            if (string.IsNullOrWhiteSpace(publishBody))
+                publishBody = FaceLetterFallback(turn.Text!, executed, peerAck);
+
             var radioPointer = IdeIgniteArmHost.LooksLikeHabitatRadioPointer(publishBody);
             var published = CideIntercomVoiceLatch.Publish(
                 fromSeat: CideIntercomVoiceLatch.SeatPf,
@@ -316,6 +321,53 @@ internal static class CitizenGlassDialogBridge
         if (t.IndexOfAny([' ', '\n', '\t', '·', '.', ',', '—', '-']) < 0 && t.Length < 40)
             return false;
         return true;
+    }
+
+    /// <summary>
+    /// Never leave Radio empty after a citizen turn — SoftOrgan chips ≠ journal letter.
+    /// </summary>
+    internal static string FaceLetterFallback(
+        string prose,
+        IReadOnlyList<CitizenRouteHost.Applied>? executed,
+        CitizenPeerAck.Result? peerAck)
+    {
+        if (executed is { Count: > 0 })
+        {
+            var fails = executed
+                .Where(a => !a.Ok)
+                .Select(a => a.Pulse ?? a.Reason)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Take(2)
+                .ToArray();
+            if (fails.Length > 0)
+                return "Hands FAIL · " + string.Join(" · ", fails!);
+
+            var oks = executed
+                .Where(a => a.Ok)
+                .Select(a => a.Pulse)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Take(2)
+                .ToArray();
+            if (oks.Length > 0)
+                return "Hands ok · " + string.Join(" · ", oks!) + " — продолжаю после dig.";
+
+            // Hands ran (SoftOrgan chip) but pulse thin — still a human Face letter.
+            return executed.Any(a => !a.Ok)
+                ? "Hands FAIL · детали в SoftOrgan HND."
+                : "Hands ok · продолжаю после dig.";
+        }
+
+        if (peerAck?.Peer is { Length: > 0 } peer)
+        {
+            var tip = peer.Length <= 280 ? peer : peer[..279] + "…";
+            return "Peer: " + tip;
+        }
+
+        var stripped = CitizenIntercomHumanSurface.StripWire(prose);
+        if (!string.IsNullOrWhiteSpace(stripped))
+            return stripped;
+
+        return "Ход без Radio-письма (wire/empty). Смотри SoftOrgan HND; повтори с короткой прозой.";
     }
 
     /// <summary>
