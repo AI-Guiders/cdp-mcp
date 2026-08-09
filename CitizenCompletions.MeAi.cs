@@ -1,12 +1,13 @@
 #nullable enable
 using System.ClientModel;
+using System.Text;
 using Microsoft.Extensions.AI;
 using MeAiChat = Microsoft.Extensions.AI.ChatMessage;
 using MeAiRole = Microsoft.Extensions.AI.ChatRole;
 
 namespace CdpMcp;
 
-/// <summary>MEAI message/options + GetResponse bridge for Face Completions.</summary>
+/// <summary>MEAI message/options + streaming GetStreamingResponseAsync bridge for Face Completions.</summary>
 internal static partial class CitizenCompletions
 {
     internal static IReadOnlyList<MeAiChat> BuildMeAiMessages(BuiltTurn built)
@@ -78,21 +79,83 @@ internal static partial class CitizenCompletions
         int maxTokens,
         CancellationToken cancellationToken)
     {
+        // Stream = organ shape (Glass Face). Headers=TTFT until first chunk; Idle between updates; Overall hard cap.
         using var turnCts = CreateTurnCts(cancellationToken);
         try
         {
-            using var headersCts = CancellationTokenSource.CreateLinkedTokenSource(turnCts.Token);
-            headersCts.CancelAfter(HeadersTimeoutFor(built.Mode));
+            using var budgetCts = CancellationTokenSource.CreateLinkedTokenSource(turnCts.Token);
+            budgetCts.CancelAfter(HeadersTimeoutFor(built.Mode));
+            void TouchIdle() => budgetCts.CancelAfter(IdleTimeout);
 
             var messages = BuildMeAiMessages(built);
             var options = BuildMeAiChatOptions(built, maxTokens);
-            var response = client
-                .GetResponseAsync(messages, options, headersCts.Token)
-                .GetAwaiter()
-                .GetResult();
+            var contentSb = new StringBuilder();
+            var reasoningSb = new StringBuilder();
+            string? finish = null;
+            int? prompt = null, completion = null, total = null;
+            var gotFirst = false;
 
-            var text = (response.Text ?? "").Trim();
-            var meta = MetaFromMeAi(response);
+            var enumerator = client
+                .GetStreamingResponseAsync(messages, options, budgetCts.Token)
+                .GetAsyncEnumerator(budgetCts.Token);
+            try
+            {
+                while (enumerator.MoveNextAsync().AsTask().GetAwaiter().GetResult())
+                {
+                    if (!gotFirst)
+                    {
+                        gotFirst = true;
+                        TouchIdle();
+                    }
+                    else
+                        TouchIdle();
+
+                    var update = enumerator.Current;
+                    if (!string.IsNullOrEmpty(update.Text))
+                        contentSb.Append(update.Text);
+                    if (update.FinishReason is { } fr)
+                        finish = fr.ToString();
+
+                    foreach (var part in update.Contents)
+                    {
+                        switch (part)
+                        {
+                            case TextReasoningContent tr when !string.IsNullOrEmpty(tr.Text):
+                                reasoningSb.Append(tr.Text);
+                                break;
+                            case UsageContent uc:
+                                prompt ??= uc.Details?.InputTokenCount is long pin ? (int)pin : null;
+                                completion ??= uc.Details?.OutputTokenCount is long cout ? (int)cout : null;
+                                total ??= uc.Details?.TotalTokenCount is long tot ? (int)tot : null;
+                                break;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+
+            string? text;
+            var fromReasoning = false;
+            if (contentSb.Length > 0)
+                text = contentSb.ToString().Trim();
+            else if (reasoningSb.Length > 0)
+            {
+                text = reasoningSb.ToString().Trim();
+                fromReasoning = true;
+            }
+            else
+                text = null;
+
+            var meta = new OpenAiExtract(
+                string.IsNullOrWhiteSpace(text) ? null : text,
+                finish,
+                fromReasoning,
+                prompt,
+                completion,
+                total);
             return FinishText(built, resolved, string.IsNullOrWhiteSpace(text) ? null : text, meta);
         }
         catch (OperationCanceledException oce)
@@ -114,21 +177,5 @@ internal static partial class CitizenCompletions
         {
             return FailNetwork(built, resolved, ex);
         }
-    }
-
-    static OpenAiExtract MetaFromMeAi(ChatResponse response)
-    {
-        var text = (response.Text ?? "").Trim();
-        int? prompt = response.Usage?.InputTokenCount is long pin ? (int)pin : null;
-        int? completion = response.Usage?.OutputTokenCount is long cout ? (int)cout : null;
-        int? total = response.Usage?.TotalTokenCount is long tot ? (int)tot : null;
-        var finish = response.FinishReason?.ToString();
-        return new OpenAiExtract(
-            string.IsNullOrWhiteSpace(text) ? null : text,
-            finish,
-            FromReasoning: false,
-            prompt,
-            completion,
-            total);
     }
 }
