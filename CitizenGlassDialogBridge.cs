@@ -244,9 +244,10 @@ internal static class CitizenGlassDialogBridge
             PersistOperatorDialog(req.Body, turn.Text!, actPublished, executed);
 
             // Face letter prefers same-turn observe; thin observe ("R" / 1-token) falls back to act.
+            // Lived SoftFL: Dig-only + ApplyArmed → Completions #2 «verify hands from pulse» spam without meat.
             var publishBody = actPublished;
             var sameTurnObserveRan = false;
-            if (peerAck is not null)
+            if (peerAck is not null && ShouldRunSameTurnObserve(peerAck))
             {
                 var observe = TrySameTurnObserve(peerAck, executed);
                 if (observe is { } obs)
@@ -412,6 +413,14 @@ internal static class CitizenGlassDialogBridge
 
         return "Ход без Radio-письма (wire/empty). Смотри SoftOrgan HND; повтори с короткой прозой.";
     }
+
+    /// <summary>
+    /// SoftFL Dig/Radio under ApplyArmed → skip Completions #2 observe (meatless «verify hands» spam).
+    /// Mutate/Verify still observe. Outside SoftFL apply contour — observe as before.
+    /// </summary>
+    internal static bool ShouldRunSameTurnObserve(CitizenPeerAck.Result peerAck) =>
+        peerAck.HandKind is CitizenHandKind.Mutate or CitizenHandKind.Verify
+        || !CitizenSoftFlLeaf.IsApplyArmed;
 
     /// <summary>
     /// After host-execute: second Turn so Completions injects @event peer (LastEvent).
