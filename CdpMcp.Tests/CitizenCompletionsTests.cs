@@ -356,3 +356,19 @@ sealed class HangHeadersHandler(TimeSpan delay) : HttpMessageHandler
         };
     }
 }
+
+/// <summary>First handlers may hang/fail; later succeed — SoftFL reconnect.</summary>
+sealed class SequenceHandler(params HttpMessageHandler[] handlers) : HttpMessageHandler
+{
+    int _i;
+
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        var idx = Math.Min(Interlocked.Increment(ref _i) - 1, handlers.Length - 1);
+        // HttpMessageInvoker reaches protected SendAsync on nested handlers.
+        return new HttpMessageInvoker(handlers[idx], disposeHandler: false)
+            .SendAsync(request, cancellationToken);
+    }
+}

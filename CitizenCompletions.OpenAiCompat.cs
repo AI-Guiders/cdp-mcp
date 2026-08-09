@@ -82,6 +82,13 @@ internal static partial class CitizenCompletions
         BuiltTurn built,
         Resolved resolved,
         int maxTokens,
+        CancellationToken cancellationToken) =>
+        WithTransientRetry(() => TurnOpenAiCompatOnce(built, resolved, maxTokens, cancellationToken));
+
+    static TurnResult TurnOpenAiCompatOnce(
+        BuiltTurn built,
+        Resolved resolved,
+        int maxTokens,
         CancellationToken cancellationToken)
     {
         using var turnCts = CreateTurnCts(cancellationToken);
@@ -144,7 +151,7 @@ internal static partial class CitizenCompletions
         try
         {
             using var headersCts = CancellationTokenSource.CreateLinkedTokenSource(turnCts.Token);
-            headersCts.CancelAfter(HeadersTimeout);
+            headersCts.CancelAfter(HeadersTimeoutFor(built.Mode));
             using var resp = Http
                 .SendAsync(req, HttpCompletionOption.ResponseHeadersRead, headersCts.Token)
                 .GetAwaiter()
@@ -169,7 +176,15 @@ internal static partial class CitizenCompletions
         }
         catch (OperationCanceledException oce)
         {
-            return MapCancel(built, resolved, oce, cancellationToken);
+            return MapCancel(built, resolved, oce, cancellationToken, built.Mode);
+        }
+        catch (HttpRequestException ex)
+        {
+            return FailNetwork(built, resolved, ex);
+        }
+        catch (IOException ex)
+        {
+            return FailNetwork(built, resolved, ex);
         }
     }
 

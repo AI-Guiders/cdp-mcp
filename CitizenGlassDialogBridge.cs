@@ -83,7 +83,7 @@ internal static class CitizenGlassDialogBridge
             if (doc is null || !string.Equals(doc.Schema, Schema, StringComparison.OrdinalIgnoreCase))
                 return;
             var status = doc.Status?.Trim().ToLowerInvariant() ?? "";
-            if (status is not "running")
+            if (status is not ("running" or "reconnecting"))
                 return;
 
             MarkStatus(doc, "pending");
@@ -174,14 +174,28 @@ internal static class CitizenGlassDialogBridge
             else
             {
                 var live = CitizenLiveDesk.TryCaptureLive();
-                turn = CitizenCompletions.Turn(
-                    req.Body,
-                    boardLines: live.BoardLines.Length > 0 ? live.BoardLines : null,
-                    tm: live.TmPulse,
-                    inject: true,
-                    mode: CitizenTurnMode.Dialog,
-                    history: true,
-                    appendHistory: false);
+                var prevHook = CitizenCompletions.TransientRetryHook;
+                CitizenCompletions.TransientRetryHook = (attempt, max, err) =>
+                    MarkStatus(
+                        req,
+                        "reconnecting",
+                        "reconnecting " + attempt + "/" + max
+                            + (string.IsNullOrWhiteSpace(err) ? "" : " · " + err));
+                try
+                {
+                    turn = CitizenCompletions.Turn(
+                        req.Body,
+                        boardLines: live.BoardLines.Length > 0 ? live.BoardLines : null,
+                        tm: live.TmPulse,
+                        inject: true,
+                        mode: CitizenTurnMode.Dialog,
+                        history: true,
+                        appendHistory: false);
+                }
+                finally
+                {
+                    CitizenCompletions.TransientRetryHook = prevHook;
+                }
             }
 
             if (!turn.Ok || string.IsNullOrWhiteSpace(turn.Text))
@@ -605,7 +619,7 @@ internal static class CitizenGlassDialogBridge
             if (string.IsNullOrWhiteSpace(doc.Id) || string.IsNullOrWhiteSpace(doc.Body))
                 return null;
             var status = doc.Status?.Trim().ToLowerInvariant() ?? "pending";
-            if (status is "done" or "error" or "running")
+            if (status is "done" or "error" or "running" or "reconnecting")
                 return null;
             return doc;
         }

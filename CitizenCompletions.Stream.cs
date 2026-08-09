@@ -154,13 +154,24 @@ internal static partial class CitizenCompletions
         return null;
     }
 
-    static TurnResult FailTimeout(BuiltTurn built, Resolved resolved, string which) =>
-        new(
+    static TurnResult FailTimeout(BuiltTurn built, Resolved resolved, string which, CitizenTurnMode mode)
+    {
+        var hint = which + " · Headers=" + (int)HeadersTimeoutFor(mode).TotalSeconds
+            + "s Idle=" + (int)IdleTimeout.TotalSeconds
+            + "s Overall=" + (int)OverallTimeout.TotalSeconds + "s";
+        CitizenCostLedger.Record(
+            built,
+            resolved.Model,
+            resolved.Provider,
+            ok: false,
+            error: "timeout",
+            promptTokens: null,
+            completionTokens: null,
+            totalTokens: null);
+        return new(
             false,
             "timeout",
-            which + " · Headers=" + (int)HeadersTimeout.TotalSeconds
-                + "s Idle=" + (int)IdleTimeout.TotalSeconds
-                + "s Overall=" + (int)OverallTimeout.TotalSeconds + "s",
+            hint,
             null,
             resolved.Model,
             resolved.Provider,
@@ -168,6 +179,32 @@ internal static partial class CitizenCompletions
             null,
             null,
             false);
+    }
+
+    static TurnResult FailNetwork(BuiltTurn built, Resolved resolved, Exception ex)
+    {
+        var hint = Trunc(ex.GetType().Name + ": " + ex.Message, 240);
+        CitizenCostLedger.Record(
+            built,
+            resolved.Model,
+            resolved.Provider,
+            ok: false,
+            error: "http_network",
+            promptTokens: null,
+            completionTokens: null,
+            totalTokens: null);
+        return new(
+            false,
+            "http_network",
+            hint,
+            null,
+            resolved.Model,
+            resolved.Provider,
+            built,
+            null,
+            null,
+            false);
+    }
 
     /// <summary>
     /// Map OperationCanceledException: outer cancel → rethrow; budget → timeout result.
@@ -176,10 +213,11 @@ internal static partial class CitizenCompletions
         BuiltTurn built,
         Resolved resolved,
         OperationCanceledException _,
-        CancellationToken outer)
+        CancellationToken outer,
+        CitizenTurnMode mode = CitizenTurnMode.Wire)
     {
         if (outer.IsCancellationRequested)
             throw new OperationCanceledException(outer);
-        return FailTimeout(built, resolved, "http_budget");
+        return FailTimeout(built, resolved, "http_budget", mode);
     }
 }

@@ -1,10 +1,23 @@
-﻿#nullable enable
+#nullable enable
 using System.Text;
 
 namespace CdpMcp;
 internal static partial class CitizenCompletions
 {
-    static TurnResult FailHttp(BuiltTurn built, Resolved resolved, System.Net.HttpStatusCode code, string body) => new(false, "http_" + (int)code, Trunc(body, 240), null, resolved.Model, resolved.Provider, built, null, null, false);
+    static TurnResult FailHttp(BuiltTurn built, Resolved resolved, System.Net.HttpStatusCode code, string body)
+    {
+        var error = "http_" + (int)code;
+        CitizenCostLedger.Record(
+            built,
+            resolved.Model,
+            resolved.Provider,
+            ok: false,
+            error: error,
+            promptTokens: null,
+            completionTokens: null,
+            totalTokens: null);
+        return new(false, error, Trunc(body, 240), null, resolved.Model, resolved.Provider, built, null, null, false);
+    }
 
     static TurnResult FinishText(BuiltTurn built, Resolved resolved, string? text, OpenAiExtract? meta = null)
     {

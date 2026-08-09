@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Text;
 using System.Text.Json;
 
@@ -6,7 +6,18 @@ namespace CdpMcp;
 
 internal static partial class CitizenCompletions
 {
-    static TurnResult TurnAnthropic(BuiltTurn built, Resolved resolved, int maxTokens, CancellationToken cancellationToken)
+    static TurnResult TurnAnthropic(
+        BuiltTurn built,
+        Resolved resolved,
+        int maxTokens,
+        CancellationToken cancellationToken) =>
+        WithTransientRetry(() => TurnAnthropicOnce(built, resolved, maxTokens, cancellationToken));
+
+    static TurnResult TurnAnthropicOnce(
+        BuiltTurn built,
+        Resolved resolved,
+        int maxTokens,
+        CancellationToken cancellationToken)
     {
         using var turnCts = CreateTurnCts(cancellationToken);
         var payload = new Dictionary<string, object?>
@@ -26,7 +37,7 @@ internal static partial class CitizenCompletions
         try
         {
             using var headersCts = CancellationTokenSource.CreateLinkedTokenSource(turnCts.Token);
-            headersCts.CancelAfter(HeadersTimeout);
+            headersCts.CancelAfter(HeadersTimeoutFor(built.Mode));
             using var resp = Http
                 .SendAsync(req, HttpCompletionOption.ResponseHeadersRead, headersCts.Token)
                 .GetAwaiter()
@@ -49,7 +60,15 @@ internal static partial class CitizenCompletions
         }
         catch (OperationCanceledException oce)
         {
-            return MapCancel(built, resolved, oce, cancellationToken);
+            return MapCancel(built, resolved, oce, cancellationToken, built.Mode);
+        }
+        catch (HttpRequestException ex)
+        {
+            return FailNetwork(built, resolved, ex);
+        }
+        catch (IOException ex)
+        {
+            return FailNetwork(built, resolved, ex);
         }
     }
 

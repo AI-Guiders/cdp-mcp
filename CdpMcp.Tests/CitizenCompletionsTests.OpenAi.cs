@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -189,6 +189,7 @@ public partial class CitizenCompletionsTests : IDisposable
         CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
         CitizenCompletions.TestHeadersTimeout = TimeSpan.FromMilliseconds(80);
         CitizenCompletions.TestOverallTimeout = TimeSpan.FromSeconds(5);
+        CitizenCompletions.TestMaxAttempts = 1; // no reconnect — surface timeout once
         CitizenCompletions.TestHandler = new HangHeadersHandler(TimeSpan.FromSeconds(3));
         CitizenCompletions.ResetHttpForTests();
         try
@@ -204,9 +205,65 @@ public partial class CitizenCompletionsTests : IDisposable
             CitizenCompletions.TestOpenAiBaseUrl = null;
             CitizenCompletions.TestHeadersTimeout = null;
             CitizenCompletions.TestOverallTimeout = null;
+            CitizenCompletions.TestMaxAttempts = null;
             CitizenCompletions.TestHandler = null;
             CitizenCompletions.ResetHttpForTests();
         }
+    }
+
+    [Fact]
+    public void Turn_openai_compat_reconnects_after_headers_timeout()
+    {
+        CitizenCompletions.TestOpenAiApiKey = "sk-cloud-ru-test-abcdefghijklmnop";
+        CitizenCompletions.TestOpenAiBaseUrl = "https://foundation-models.api.cloud.ru/v1";
+        CitizenCompletions.TestHeadersTimeout = TimeSpan.FromMilliseconds(80);
+        CitizenCompletions.TestOverallTimeout = TimeSpan.FromSeconds(5);
+        CitizenCompletions.TestMaxAttempts = 3;
+        var okPayload = """
+            {"choices":[{"message":{"content":"жив после reconnect"}}],"usage":{"prompt_tokens":3,"completion_tokens":2,"total_tokens":5}}
+            """;
+        var hookHits = 0;
+        CitizenCompletions.TransientRetryHook = (_, _, _) => hookHits++;
+        CitizenCompletions.TestHandler = new SequenceHandler(
+            new HangHeadersHandler(TimeSpan.FromSeconds(3)),
+            new StubHandler(HttpStatusCode.OK, okPayload));
+        CitizenCompletions.ResetHttpForTests();
+        try
+        {
+            var r = CitizenCompletions.Turn("ping", dryRun: false);
+            Assert.True(r.Ok);
+            Assert.Equal("жив после reconnect", r.Text);
+            Assert.True(hookHits >= 1);
+            Assert.Contains("reconnect ok", r.Hint!, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            CitizenCompletions.TransientRetryHook = null;
+            CitizenCompletions.TestOpenAiApiKey = null;
+            CitizenCompletions.TestOpenAiBaseUrl = null;
+            CitizenCompletions.TestHeadersTimeout = null;
+            CitizenCompletions.TestOverallTimeout = null;
+            CitizenCompletions.TestMaxAttempts = null;
+            CitizenCompletions.TestHandler = null;
+            CitizenCompletions.ResetHttpForTests();
+        }
+    }
+
+    [Fact]
+    public void IsTransientError_covers_timeout_and_gateway()
+    {
+        Assert.True(CitizenCompletions.IsTransientError("timeout"));
+        Assert.True(CitizenCompletions.IsTransientError("http_503"));
+        Assert.True(CitizenCompletions.IsTransientError("http_network"));
+        Assert.False(CitizenCompletions.IsTransientError("empty_text"));
+        Assert.False(CitizenCompletions.IsTransientError("http_401"));
+    }
+
+    [Fact]
+    public void HeadersTimeoutFor_dialog_longer_than_wire()
+    {
+        Assert.True(CitizenCompletions.HeadersTimeoutFor(CitizenTurnMode.Dialog)
+            > CitizenCompletions.HeadersTimeoutFor(CitizenTurnMode.Wire));
     }
 
     [Fact]
