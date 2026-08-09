@@ -8,7 +8,7 @@
 
 - Feature = Intent; Task = Stage; tree via `ParentId` + `Ordinal`.
 - Focus/done mutate WitDB; board chrome `@phase` / `#Product` / `~Executor` — affinity/tag/Who, не status.
-- **Focus lanes (0.5.689):** shared crew board + per-Who `work_focus_lanes` (not hard-split boards). `FocusLane` = tip Who / `cmd=lane Кир|Sierra`. `[>]` = active lane; `[»]` = other Who focus. `FocusStage` does not demote other-lane active status.
+- **Focus lanes (0.5.689+):** shared crew board + per-Who `work_focus_lanes` (not hard-split boards). `FocusLane` = tip Who / `cmd=lane Кир|Sierra`. `[>]` = active lane; `[»]` = other Who focus. `FocusStage` does not demote other-lane active status. **prefer_citizen Autoi (0.5.690):** `TryApplyCitizenFocusLane` → Face Who (`ResolveCitizenFace`), tip≠Face.
 - Incomplete leaf (0.5.309+): `pending|active`, skip handoff; leaf = no incomplete children.
 - `feature_focus` / `task_focus` / `done` → leaf resolve + `leaf-wake` AutoI (2s).
 - REPL: bare `feature X` = upsert/dedupe (+ leaf-arm on dedupe); `feature focus X` → `feature_focus` (0.5.311+).
@@ -43,7 +43,8 @@
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
-- **2026-08-09 Multi-principal focus-lanes (0.5.689)** — densest after tip≠Face: singleton `work_focus` Id=1 stole focus; Stage.Executor tags Who but FocusStage demoted peer actives. Ship: `work_focus_lanes` · `FocusLane` · `cmd=lane Who` · protect other-lane Status · board `[»]`. Tests WorkFocusLaneTests **3**. Mentions SoftFL alone. Residual: citizen Autoi auto-lane=Sierra on habitat wake.
+- **2026-08-09 citizen Autoi FocusLane=Face (0.5.690)** — densest after focus-lanes: `ResolveFocusLane` bound tip Who (Кир); prefer_citizen woke Sierra Turn on tip lane. Ship: `BindCitizenFocusLane` · `TryApplyCitizenFocusLane` on prefer_citizen · `ResolveCitizenFace` → `WorkFocusSwitchLane`. Tip≠Face preserved. Test CitizenFocusLaneBindTests **1**. Mentions SoftFL alone.
+- **2026-08-09 Multi-principal focus-lanes (0.5.689)** — densest after tip≠Face: singleton `work_focus` Id=1 stole focus; Stage.Executor tags Who but FocusStage demoted peer actives. Ship: `work_focus_lanes` · `FocusLane` · `cmd=lane Who` · protect other-lane Status · board `[»]`. Tests WorkFocusLaneTests **3**. Mentions SoftFL alone.
 - **2026-08-08 SoftFL Stage.Executor** — operator SoftFL ACCEPT (TM Who so Кир/Sierra don't collide). Densify Product pattern: WitDB `Executor` + ALTER, REPL `executor|assignee`, title `~Who`, board `~Sierra`. Normalize Sierra|Кир|Света. Files-list = existing `dig=` (no invent). Tests StageExecutorTests **9** + StageProductTests **9** = 18/18. SoftOrgan invent REJECT.
 - **2026-08-06 done dig= title footgun** — REPL Clock swallowed inline dig=/evidence=/domain= as task title (`task not found: dig=…`). `MergeClockDoneShipArgs` + pathish join; parity with wave shipped. Domain=`iderepl`. SoftFL REJECT.
 - **2026-08-06 evidence-path spaces** — REPL `MergeWaveShipArgs` joins pathish keys across spaces (lived Personal Cursor Folder). Tests IdeWaveShipShieldTests (+ Feature_done human_face isolated from live Autoi half-a). Domain=`throughput`.
