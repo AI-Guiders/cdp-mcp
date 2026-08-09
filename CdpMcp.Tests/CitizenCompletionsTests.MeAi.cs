@@ -71,6 +71,19 @@ public partial class CitizenCompletionsTests
             // Role only on first update (SSE shape). Contents= must not wipe TextContent — that was the fake bug.
             yield return new ChatResponseUpdate(ChatRole.Assistant, [new TextContent("alive-")]);
             yield return new ChatResponseUpdate { Contents = [new TextContent("stream")] };
+            // Intermediate usage (cumulative noise) — must NOT sum; last wins.
+            yield return new ChatResponseUpdate
+            {
+                Contents =
+                [
+                    new UsageContent(new UsageDetails
+                    {
+                        InputTokenCount = 9999,
+                        OutputTokenCount = 9999,
+                        TotalTokenCount = 19998
+                    })
+                ]
+            };
             yield return new ChatResponseUpdate
             {
                 FinishReason = ChatFinishReason.Stop,

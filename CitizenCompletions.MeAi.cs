@@ -96,7 +96,9 @@ internal static partial class CitizenCompletions
                 TouchIdle);
 
             var response = updates.ToChatResponse();
-            var meta = MetaFromMeAi(response);
+            // Cloud.ru/MEAI may emit UsageContent more than once; ToChatResponse can SUM them → absurd totals.
+            // Honest usage = last UsageContent on the stream (SSE final chunk shape).
+            var meta = MetaFromMeAi(response, LastUsageFromUpdates(updates));
             return FinishText(built, resolved, meta.Text, meta);
         }
         catch (OperationCanceledException oce)
@@ -152,7 +154,7 @@ internal static partial class CitizenCompletions
         return updates;
     }
 
-    internal static OpenAiExtract MetaFromMeAi(ChatResponse response)
+    internal static OpenAiExtract MetaFromMeAi(ChatResponse response, UsageDetails? streamUsage = null)
     {
         var text = (response.Text ?? "").Trim();
         var fromReasoning = false;
@@ -166,9 +168,10 @@ internal static partial class CitizenCompletions
             }
         }
 
-        int? prompt = response.Usage?.InputTokenCount is long pin ? (int)pin : null;
-        int? completion = response.Usage?.OutputTokenCount is long cout ? (int)cout : null;
-        int? total = response.Usage?.TotalTokenCount is long tot ? (int)tot : null;
+        var usage = streamUsage ?? response.Usage;
+        int? prompt = usage?.InputTokenCount is long pin ? (int)pin : null;
+        int? completion = usage?.OutputTokenCount is long cout ? (int)cout : null;
+        int? total = usage?.TotalTokenCount is long tot ? (int)tot : null;
         var finish = response.FinishReason?.ToString();
         return new OpenAiExtract(
             string.IsNullOrWhiteSpace(text) ? null : text,
@@ -177,6 +180,21 @@ internal static partial class CitizenCompletions
             prompt,
             completion,
             total);
+    }
+
+    internal static UsageDetails? LastUsageFromUpdates(IReadOnlyList<ChatResponseUpdate> updates)
+    {
+        UsageDetails? last = null;
+        foreach (var update in updates)
+        {
+            foreach (var part in update.Contents)
+            {
+                if (part is UsageContent usage)
+                    last = usage.Details;
+            }
+        }
+
+        return last;
     }
 
     static string? ExtractMeAiReasoning(ChatResponse response)
