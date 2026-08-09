@@ -25,6 +25,9 @@ internal static partial class EditorComfort
     static readonly List<string> NavBack = [];
     static readonly List<string> NavForward = [];
     static string? NavCurrent;
+
+    /// <summary>Face Afferent — current nav wire without dumping Snap.</summary>
+    internal static string? TryPeekNavCurrent() => NavCurrent;
     static int ScratchSeq;
 
     sealed class EditStack

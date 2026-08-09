@@ -115,6 +115,7 @@ Paths: from `@frame` / wake charge / peer pulse — never from example laundry. 
 
 ## last_ship
 
+- **2026-08-09 Face workspace lantern Afferent (0.5.712)** — SoftFL: empty map feel (board seats without session/buffers). Ship: `session |` + `editor |` inject on Completions; F seat pulse shows live buf+focus; Persona orientation/verify/presence; sticky habitat pins. Mentions SoftFL Face-owned alone.
 - **2026-08-09 Face full ADCM SoftFL (0.5.711)** — mandate sierra-hih-adcm: Persist→pressure→Partition + anti-poison (not silent compact). Densify DialogMemory: `partition`/`fork` · `persist key= v=` · `rebuild`/`antidote` · Prune still `clear`/`amnesia`. Fat AfferentLine = ADCM pressure tips. Persona ADCM line. Desk aliases + Slice. Tests DialogMemoryHost **8**. Mentions SoftFL Face-owned alone · SoftOrgan invent REJECT.
 - **2026-08-09 Face dialog clear + tighter history (0.5.710)** — operator: stable speed + Face can clear context. Ship: `@intent dialog|amnesia|forget` → `Verb.DialogMemory` clear/scene/history (optional sticky=true); tip still `cdp_citizen op=clear`. History window **20 msgs / 6k chars** (was 40/12k). Afferent `dialog|` tips clear when fat. Persona Memory hygiene line. Tests DialogMemoryHost **3**. SoftOrgan invent REJECT · Mentions SoftFL Face-owned alone.
 

@@ -75,6 +75,14 @@ internal static class CitizenLiveDesk
         if (!string.IsNullOrWhiteSpace(tmPulse)
             && pin.Equals("plan", StringComparison.OrdinalIgnoreCase))
             return IdeDeskView.HumanizePulse(tmPulse, organ);
+        if (pin.Equals("editor", StringComparison.OrdinalIgnoreCase)
+            || pin.Equals("editor_scene", StringComparison.OrdinalIgnoreCase))
+        {
+            var ed = CitizenWorkspaceAfferent.EditorSeatPulse();
+            if (!string.IsNullOrWhiteSpace(ed))
+                return ed;
+        }
+
         return pin;
     }
 }

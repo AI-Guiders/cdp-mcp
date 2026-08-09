@@ -152,6 +152,10 @@ internal static partial class CitizenCompletions
                 if (peerEvent is not null)
                     afferent = AppendAfferentLine(afferent, peerEvent);
 
+                // SoftFL lantern: entry + open buffers (Face asked — board seats alone ≠ map).
+                foreach (var line in CitizenWorkspaceAfferent.TryCaptureLines())
+                    afferent = AppendAfferentLine(afferent, line);
+
                 if (mode == CitizenTurnMode.Dialog && history)
                 {
                     afferent = AppendAfferentLine(afferent, CitizenDialogHistory.AfferentLine());
