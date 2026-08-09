@@ -95,6 +95,7 @@
 
 ## last_ship
 
+- **2026-08-09 Face busy hold ttl=0 (0.5.695)** — densest after prefer_citizen mute: 120s TTL stale mid-Turn broke `IsHabitatPartnerLive` → Autoi Radio still mid-Face. Ship + tests with citizen bridge. SoftFL invent ACCEPT dig=ignite.md+citizen.md. SoftOrgan invent REJECT.
 - **2026-08-09 prefer_citizen mute while Face busy (0.5.694)** — lived: Composer unavailable + invite ready → Completions Turn / Radio tip mid-Sierra Face Turn. Ship: `TryDeliverHabitatWhenComposerUnavailableAsync` returns null + `prefer_citizen_face_busy` when `IsHabitatPartnerLive`; `PublishCitizenWakeIntercom` early-return when partner live. Test `defers_prefer_citizen_when_pf_busy`. SoftFL invent ACCEPT dig=ignite.md. Mentions SoftFL alone.
 - **2026-08-09 Remount Intercom mute while Face busy (0.5.693)** — lived: remount Autoi Radio tips mid-Sierra Turn (presence=busy). Ship: `MirrorTimerWakeToIntercom` remount + `PublishHabitatIntercomCharge` remount skip when `IsHabitatPartnerLive`. Test remount_skips_when_pf_busy. SoftFL invent ACCEPT dig=ignite.md+citizen.md. Mentions SoftFL alone.
 - **2026-08-09 Kit3 Autoi echo filter (0.5.691)** — tip≠Face made Kit2 tip=citizen suppress rare; lived Autoi Composer tip self-echo / Sierra recipient. Ship: `TryUnreadForPf` self-tip (from Who==tip Who) + Face-recipient body (`@Sierra` / → Face Who) while tip harness. Tests Unread_for_pf **5/5**. Mentions SoftFL alone.
