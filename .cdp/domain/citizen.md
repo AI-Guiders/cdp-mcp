@@ -115,6 +115,8 @@ Paths: from `@frame` / wake charge / peer pulse — never from example laundry. 
 
 ## last_ship
 
+- **2026-08-09 Face pipe thin habitat + cdp_call (0.5.708)** — lived 0.5.707 dogfood: cdp_call-only → model invents top-level `cdp_health` → MEAI `Function failed`. Fix: named thin set (`cdp_health`/`cdp_buffer`/`find`/`cdp_build`/`cdp_shell_run`) + `cdp_call` escape · agent instructions ban invent names. Speech SoftFL 0.5.707 kept (stream fallback). SoftOrgan invent REJECT · Mentions SoftFL alone.
+
 - **2026-08-09 Face silence SoftFL after agent-pipe thrash (0.5.707)** — lived: Света @CIT «НАПИШИ БУКВУ» / Radio Check → Completions `timeout`/`empty_text` → Glass `MarkStatus error` **без письма**. Root: 0.5.706 dumped Meta+bare ~95 schemas every AsAIAgent turn. Fix: `BuildWholeCatalog` = **`cdp_call` only** (весь catalog = reachability) · agent empty/timeout → **stream MeAi fallback** · stop glue toolTraces into letter. Tests catalog **1/1**. SoftOrgan invent REJECT · Mentions SoftFL alone.
 
 - **2026-08-09 Face MEAI agent pipe · whole CDP catalog (0.5.706)** — operator fork: весь catalog (не narrow find/buffer/build). Ship: `CitizenCompletions.MeAi.Agent` (`AsAIAgent` + `RunAsync`) · `CitizenMeAiAgentTools.BuildWholeCatalog` (Meta + bare IDE verbs + `cdp_call`) · live `TurnViaMeAi` routes agent when `AgentPipeAvailable` (TestChatClient stays stream for unit tests). Pkgs: `Microsoft.Agents.AI` 1.3.0. Tests catalog+MeAi+History **4/4**. SoftOrgan invent REJECT · Mentions SoftFL Face-owned alone. PARK: delete Stream.cs · token SoftOrgan.

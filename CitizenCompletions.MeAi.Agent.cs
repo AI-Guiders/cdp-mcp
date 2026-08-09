@@ -40,8 +40,11 @@ internal static partial class CitizenCompletions
             var exec = ResolveAgentExecute();
             var tools = CitizenMeAiAgentTools.BuildWholeCatalog(exec, toolTraces);
             var options = BuildMeAiChatOptions(built, maxTokens);
+            var instructions = (built.System ?? "").TrimEnd()
+                + "\n\nHabitat tools: use only listed functions. Prefer named tools when listed. "
+                + "For any other CDP tool call cdp_call(tool_name, args_json). Never invent tool names.";
             AIAgent agent = client.AsAIAgent(
-                instructions: built.System,
+                instructions: instructions,
                 tools: tools);
 
             // History messages only — system lives in AsAIAgent instructions (CIDE shape).
@@ -114,14 +117,64 @@ internal static class CitizenMeAiAgentTools
         Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
         List<string> toolTraces)
     {
-        // Lived 0.5.706 silence: dumping Meta+bare (~95 schemas) every turn → timeout/empty_text.
-        // Fork «весь catalog» = reachability via cdp_call, not thrash schemas in the face of Kimi.
-        return [CreateCdpCallDispatch(exec, toolTraces)];
+        // Lived 0.5.706 silence: Meta+bare ~95 schemas → timeout/empty.
+        // Lived 0.5.707 dogfood: cdp_call-only → model invents cdp_health name → Function failed.
+        // Shape: thin habitat named + cdp_call escape = whole catalog reachability without thrash.
+        var list = new List<AITool>();
+        foreach (var name in HabitatNamed)
+            list.Add(CreateNamedThinTool(name, exec, toolTraces));
+        list.Add(CreateCdpCallDispatch(exec, toolTraces));
+        return list;
     }
 
-    internal static int CountNamedCatalogTools() => 0;
+    static readonly string[] HabitatNamed =
+    [
+        "cdp_health",
+        "cdp_buffer",
+        "find",
+        "cdp_build",
+        "cdp_shell_run",
+    ];
 
-    internal static int CountDispatchTools() => 1;
+    internal static int CountNamedCatalogTools() => HabitatNamed.Length;
+
+    internal static int CountDispatchTools() => HabitatNamed.Length + 1;
+
+    static AIFunction CreateNamedThinTool(
+        string toolName,
+        Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
+        List<string> toolTraces)
+    {
+        return AIFunctionFactory.Create(
+            async (
+                [Description("JSON object of tool args, or {}.")]
+                string? args_json,
+                CancellationToken cancellationToken) =>
+            {
+                var header = $"[{toolName}]";
+                toolTraces.Add($"{header} вызов…");
+                try
+                {
+                    var args = ParseArgsJson(args_json);
+                    var outcome = await exec(toolName, args, cancellationToken).ConfigureAwait(false);
+                    var clipped = ClipOutcome(outcome, 12_000);
+                    toolTraces[^1] = $"{header} ok · chars={clipped.Length}";
+                    return clipped;
+                }
+                catch (OperationCanceledException)
+                {
+                    toolTraces[^1] = $"{header} → отмена";
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    toolTraces[^1] = $"{header} → ошибка: {ex.Message}";
+                    return $"{header} ошибка: {ex.Message}";
+                }
+            },
+            name: toolName,
+            description: $"CDP habitat tool {toolName}. Pass args_json={{}} when none.");
+    }
 
     static AIFunction CreateCdpCallDispatch(
         Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
@@ -162,7 +215,8 @@ internal static class CitizenMeAiAgentTools
             },
             name: "cdp_call",
             description:
-                "Call any CDP tool by name (full catalog escape — domain git/memory/build/… not only Meta ListTools). Prefer named tools when listed; use this for the rest.");
+                "Call any CDP tool by name that is not already listed (git_*/memory_*/cdp_pressure/…). "
+                + "Pass tool_name= exact CallTool id and args_json={{}} or a JSON object. Do not invent unlisted tool names as top-level functions.");
     }
 
     static IReadOnlyDictionary<string, JsonElement>? JsonArgsToDict(JsonElement arguments)
