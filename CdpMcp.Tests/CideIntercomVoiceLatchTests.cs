@@ -55,6 +55,15 @@ public class CideIntercomVoiceLatchTests : IDisposable
     }
 
     [Fact]
+    public void Unread_for_pf_suppressed_when_sticky_tip_is_citizen()
+    {
+        Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Sierra", "citizen", "zai-org/GLM-5.1"));
+        CideIntercomVoiceLatch.Publish("pm", "pf", "for Sierra habitat", CideIntercomVoiceLatch.OriginHuman);
+        Assert.Null(CideIntercomVoiceLatch.TryUnreadForPf());
+        Assert.Null(CideIntercomVoiceLatch.DeskPulseLine());
+    }
+
+    [Fact]
     public void Ack_clears_unread()
     {
         var pub = CideIntercomVoiceLatch.Publish("pm", "pf", "ack me", CideIntercomVoiceLatch.OriginHuman);

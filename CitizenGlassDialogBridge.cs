@@ -362,6 +362,10 @@ internal static class CitizenGlassDialogBridge
     /// Face Who for busy cue + Radio: Activate tip for live model slot.
     /// Missing profile → bootstrap Citizen (do not inherit other model's Who).
     /// </summary>
+        /// <summary>
+    /// Face Who for busy cue + Radio: Activate tip for live model slot.
+    /// Missing / guest / operator tip → bootstrap Citizen (Cursor Who ≠ habitat Face).
+    /// </summary>
     internal static (string Who, string Kind) ResolveCitizenFace()
     {
         var model = CitizenIdentity.ResolveCitizenModel();
@@ -373,14 +377,18 @@ internal static class CitizenGlassDialogBridge
             var kind = string.IsNullOrWhiteSpace(seat.Kind)
                 ? CideIntercomVoiceLatch.KindCitizen
                 : seat.Kind!;
-            // SoftFL: Cursor PF Who=Kir (operator) must not stomp Glass citizen Face/Radio.
-            if (string.Equals(kind, CideIntercomVoiceLatch.KindOperator, StringComparison.OrdinalIgnoreCase))
+            var kindNorm = CideIntercomVoiceLatch.NormalizeKind(kind)
+                ?? CideIntercomVoiceLatch.KindCitizen;
+            // SoftFL: Cursor PF Who (guest|operator) must not stomp Glass citizen Face/Radio.
+            if (string.Equals(kindNorm, CideIntercomVoiceLatch.KindGuest, StringComparison.Ordinal)
+                || string.Equals(kindNorm, CideIntercomVoiceLatch.KindOperator, StringComparison.Ordinal))
                 return (CideIntercomVoiceLatch.DefaultNameCitizen, CideIntercomVoiceLatch.KindCitizen);
-            return (seat.Name.Trim(), kind);
+            return (seat.Name.Trim(), CideIntercomVoiceLatch.KindCitizen);
         }
 
         return (CideIntercomVoiceLatch.DefaultNameCitizen, CideIntercomVoiceLatch.KindCitizen);
     }
+
 
 
     /// <summary>Glass CIT operator thread — human prose (+ hands) for multi-turn memory, not raw wire.</summary>

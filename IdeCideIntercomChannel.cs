@@ -241,10 +241,11 @@ internal static partial class IdeCideIntercomChannel
                 return Fail("name_required", "identity action=set seat=pf|pm name=… [kind=guest|citizen|operator]");
             if (kind is not null && CideIntercomVoiceLatch.NormalizeKind(kind) is null)
                 return Fail("kind_invalid", "kind=guest|citizen|operator");
-            var model = Arg(args, "model") ?? CitizenIdentity.ResolveCitizenModel();
-            var doc = CideIntercomIdentityLatch.Claim(seatRaw!, name!, kind, model);
+            var modelArg = Arg(args, "model");
+            var slot = CideIntercomIdentityLatch.ProfileSlotFor(kind, modelArg);
+            var doc = CideIntercomIdentityLatch.Claim(seatRaw!, name!, kind, slot);
             if (doc is null)
-                return Fail("identity_failed", "seat=pf|pm name=… (freeform Who / nick)");
+                return Fail("identity_failed", "seat=pf|pm name=… (freeform Who / nick; guest≠citizen model)");
             return JsonSerializer.Serialize(new
             {
                 schema = Schema,
@@ -253,8 +254,8 @@ internal static partial class IdeCideIntercomChannel
                 action = "set",
                 identity_path = CideIntercomIdentityLatch.LatchPath,
                 identity = IdentityCard(doc),
-                model,
-                hint = "Who claimed for model slot — switch model ≠ inherit; same model restores profile."
+                model = slot,
+                hint = "Who claimed: citizen→FM model slot; guest/operator→harness:* (never stomps citizen FM)."
             });
         }
 

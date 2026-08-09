@@ -93,12 +93,13 @@ internal static partial class CideIntercomVoiceLatch
                 return null;
             // Explicit name= / as= claims sticky Who (agent-line). Bootstrap defaults do not.
             // Autoi remount/wake Publishes name=AutoI — must NOT stomp citizen Who (Sierra).
+            // Guest/operator → harness:* slots; citizen → FM model. Never bind guest to ResolveCitizenModel.
             if (explicitName && !IsSystemVoiceWho(resolvedName))
                 _ = CideIntercomIdentityLatch.Claim(
                     from,
                     resolvedName,
                     resolvedKind,
-                    CitizenIdentity.ResolveCitizenModel());
+                    CideIntercomIdentityLatch.ProfileSlotFor(resolvedKind, null));
             return doc;
         }
         catch
@@ -127,7 +128,10 @@ internal static partial class CideIntercomVoiceLatch
         }
     }
 
-    /// <summary>Unread for PF = human→pf and not acked.</summary>
+    /// <summary>
+    /// Unread for Cursor PF cannon = human→pf, not acked, and PF tip is not habitat citizen.
+    /// When sticky PF Who is citizen (Sierra), sink = Glass CIT dialog — not Autoi Composer.
+    /// </summary>
     public static IntercomVoiceDoc? TryUnreadForPf()
     {
         var doc = TryRead();
@@ -137,6 +141,15 @@ internal static partial class CideIntercomVoiceLatch
             return null;
         if (!string.Equals(doc.Origin, OriginHuman, StringComparison.OrdinalIgnoreCase))
             return null;
+
+        var tip = CideIntercomIdentityLatch.TrySeat(SeatPf);
+        if (tip is not null
+            && string.Equals(
+                NormalizeKind(tip.Kind),
+                KindCitizen,
+                StringComparison.Ordinal))
+            return null;
+
         return doc;
     }
 

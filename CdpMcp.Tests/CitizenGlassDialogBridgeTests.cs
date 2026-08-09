@@ -189,6 +189,19 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     }
 
     [Fact]
+    public void ResolveCitizenFace_rejects_guest_tip()
+    {
+        Assert.NotNull(CideIntercomIdentityLatch.Claim(
+            "pf",
+            "Kir",
+            "guest",
+            CitizenAiKeys.DefaultOpenAiModel));
+        var (who, kind) = CitizenGlassDialogBridge.ResolveCitizenFace();
+        Assert.Equal(CideIntercomVoiceLatch.DefaultNameCitizen, who);
+        Assert.Equal(CideIntercomVoiceLatch.KindCitizen, kind);
+    }
+
+    [Fact]
     public void TryProcessOnce_sticky_who_survives_busy_and_publish()
     {
         Assert.NotNull(CideIntercomIdentityLatch.Claim(
