@@ -251,6 +251,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 ## last_ship
 
+- **2026-08-09 Mentions SoftFL · @PF Face≻tip (cascade-ide)** — lived tip≠Face: `@PF` → Cursor while Face citizen in `pf_profiles`. Ship GlassCore Face roster + `TryCitizenFace` · tests **23/23**. SoftFL invent ACCEPT densify dig=glass-intercom.md. SoftOrgan invent REJECT. Residual Mentions invent UX alone.
 - **2026-08-09 Face Ship gate + remount mute (0.5.693 / CDP)** — take walls no longer dump into Radio; remount Autoi Radio muted while Face Who busy. Mentions SoftFL alone.
 - **2026-08-09 Face files Ship listing (0.5.692 / CDP)** — human Radio saw thin Hands ok pulse after `files`; SoftOrgan HND chips ≠ journal. CDP ships entries as Applied.Ship + Face append (no SoftOrgan viz invent). Mentions SoftFL alone.
 - **2026-08-09 Intercom Identity SSOT Kit** — Glass `GlassIntercomIdentity.Claim` sealed (CDP sole writer). Axes Seat/Who/Kind/Origin/Sink; guest≠FM model. Mentions SoftFL alone.
