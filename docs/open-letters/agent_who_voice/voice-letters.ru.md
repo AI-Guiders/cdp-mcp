@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 209 | [Face busy ttl=0 hold](voice-letter-face-busy-ttl0-0.5.695.ru.md) | citizen/ignite · Face busy hold · 0.5.695 · 2026-08-09 |
 | 208 | [Mentions SoftFL · @PF Face≻tip](voice-letter-mentions-pf-face-over-tip.ru.md) | glass · Mentions tip≠Face · cascade-ide · 2026-08-09 |
 | 207 | [prefer_citizen mute while Face busy](voice-letter-prefer-citizen-mute-face-busy-0.5.694.ru.md) | ignite/citizen · prefer_citizen_face_busy · 0.5.694 · 2026-08-09 |
 | 206 | [Face listing Ship · remount mute while busy](voice-letter-face-ship-gate-remount-mute-0.5.693.ru.md) | citizen/ignite · Face Ship gate · remount mute busy · 0.5.693 · 2026-08-09 |
