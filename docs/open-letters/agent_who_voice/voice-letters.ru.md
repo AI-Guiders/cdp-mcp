@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 213 | [Face MEAI agent pipe · whole catalog](voice-letter-citizen-meai-agent-pipe-0.5.706.ru.md) | citizen · Completions AsAIAgent whole catalog · 0.5.706 · 2026-08-09 |
 | 212 | [Completions MEAI FULL A](voice-letter-citizen-meai-full-a-0.5.705.ru.md) | citizen · Completions stream+usage+MaxChars · 0.5.705 · 2026-08-09 |
 | 211 | [Face Completions → MEAI IChatClient](voice-letter-citizen-meai-ichatclient-0.5.702.ru.md) | citizen · Completions MEAI · 0.5.702 · 2026-08-09 |
 | 210 | [peer_ship: таймер ≠ «подожди, пока Face шипнет»](voice-letter-peer-ship-autoi-0.5.697.ru.md) | ignite · when=peer_ship · SoftFL HIH · 0.5.697 · 2026-08-09 |
