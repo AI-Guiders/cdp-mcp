@@ -6,19 +6,29 @@ namespace CdpMcp;
 
 /// <summary>
 /// Human-faced Intercom surface: strip wire (@intent/@event/@frame) from prose;
-/// harness outcomes → short «сделала: …» — not peer tip dump.
+/// harness outcomes → receipt block (ok/fail/reason/pulse/elapsed) in the letter — not StatusText chrome.
 /// </summary>
 internal static partial class CitizenIntercomHumanSurface
 {
     static readonly Regex WireLine = WireLineRegex();
 
     /// <summary>Publish body for Glass Intercom (prose + optional hands).</summary>
-    public static string Publish(string? prose, IReadOnlyList<CitizenRouteHost.Applied>? executed = null)
+    public static string Publish(
+        string? prose,
+        IReadOnlyList<CitizenRouteHost.Applied>? executed = null,
+        TimeSpan? elapsed = null)
     {
         var clean = StripWire(prose);
-        var hands = FormatHands(executed);
+        var hands = FormatHands(executed, elapsed);
         if (string.IsNullOrWhiteSpace(hands))
-            return clean;
+        {
+            if (string.IsNullOrWhiteSpace(clean))
+                return "";
+            var alone = clean.TrimEnd();
+            var dur = FormatElapsed(elapsed);
+            return string.IsNullOrWhiteSpace(dur) ? alone : alone + "\n\n⏱ " + dur;
+        }
+
         if (string.IsNullOrWhiteSpace(clean))
             return hands;
         return clean.TrimEnd() + "\n\n" + hands;
@@ -57,26 +67,54 @@ internal static partial class CitizenIntercomHumanSurface
         return sb.ToString().Trim();
     }
 
-    /// <summary>Harness → one human line (RU). Empty when nothing applied.</summary>
-    public static string FormatHands(IReadOnlyList<CitizenRouteHost.Applied>? executed)
+    /// <summary>
+    /// Harness → human-faced receipt (RU). Operator needs ok/fail/reason/pulse — not opaque «Сделала KB».
+    /// </summary>
+    public static string FormatHands(
+        IReadOnlyList<CitizenRouteHost.Applied>? executed,
+        TimeSpan? elapsed = null)
     {
         if (executed is null || executed.Count == 0)
             return "";
 
         var parts = new List<string>(executed.Count);
+        var okN = 0;
+        var failN = 0;
         foreach (var a in executed)
         {
+            if (a.Ok)
+                okN++;
+            else
+                failN++;
             var label = HumanLabel(a);
             if (string.IsNullOrWhiteSpace(label))
                 continue;
             parts.Add(label);
-            if (parts.Count >= 4)
+            if (parts.Count >= 6)
                 break;
         }
 
         if (parts.Count == 0)
             return "";
-        return "Сделала: " + string.Join(" · ", parts);
+
+        var head = $"Сделала · ok×{okN}";
+        if (failN > 0)
+            head += $" · fail×{failN}";
+        var dur = FormatElapsed(elapsed);
+        if (!string.IsNullOrWhiteSpace(dur))
+            head += " · " + dur;
+
+        // One receipt block in the letter (not StatusText chrome).
+        var sb = new StringBuilder(head.Length + parts.Count * 48);
+        sb.Append(head);
+        foreach (var p in parts)
+        {
+            sb.Append('\n');
+            sb.Append("• ");
+            sb.Append(p);
+        }
+
+        return sb.ToString();
     }
 
     static string HumanLabel(CitizenRouteHost.Applied a)
@@ -96,16 +134,39 @@ internal static partial class CitizenIntercomHumanSurface
             core = "ход";
 
         if (!a.Ok)
-            return core + " — не вышло";
+        {
+            var why = OneLine(a.Reason, 96);
+            return string.IsNullOrWhiteSpace(why)
+                ? core + " · fail · не вышло"
+                : core + " · fail · " + why;
+        }
+
+        if (!string.IsNullOrWhiteSpace(a.Ship))
+        {
+            var ship = OneLine(a.Ship, 96);
+            if (ship.Length > 0)
+                return core + " · ok · ship " + ship;
+        }
 
         if (!string.IsNullOrWhiteSpace(a.Pulse))
         {
-            var tip = OneLine(a.Pulse, 36);
-            if (tip.Length > 0 && !tip.Contains(core, StringComparison.OrdinalIgnoreCase))
-                return core + " · " + tip;
+            var tip = OneLine(a.Pulse, 120);
+            if (tip.Length > 0)
+                return core + " · ok · " + tip;
         }
 
-        return core;
+        return core + " · ok";
+    }
+
+    internal static string FormatElapsed(TimeSpan? elapsed)
+    {
+        if (elapsed is not { } e || e < TimeSpan.FromMilliseconds(500))
+            return "";
+        if (e.TotalSeconds < 60)
+            return e.TotalSeconds < 10
+                ? $"{e.TotalSeconds:0.0}s"
+                : $"{e.TotalSeconds:0}s";
+        return $"{(int)e.TotalMinutes}m{e.Seconds:00}s";
     }
 
     static string VerbRu(string verb)

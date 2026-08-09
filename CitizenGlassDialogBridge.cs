@@ -213,7 +213,8 @@ internal static class CitizenGlassDialogBridge
             }
 
             // Act letter first (dialog memory), then same-turn observe if hands ran.
-            var actPublished = SurfacePublishBody(turn.Text!, executed);
+            var elapsed = DateTimeOffset.UtcNow - req.StampedUtc;
+            var actPublished = SurfacePublishBody(turn.Text!, executed, elapsed);
             PersistOperatorDialog(req.Body, turn.Text!, actPublished, executed);
 
             // Face letter prefers same-turn observe; thin observe ("R" / 1-token) falls back to act.
@@ -398,9 +399,12 @@ internal static class CitizenGlassDialogBridge
         CitizenDialogHistory.Append(userBody, assistant);
     }
 
-    static string SurfacePublishBody(string prose, IReadOnlyList<CitizenRouteHost.Applied>? executed)
+    static string SurfacePublishBody(
+        string prose,
+        IReadOnlyList<CitizenRouteHost.Applied>? executed,
+        TimeSpan? elapsed = null)
     {
-        var body = CitizenIntercomHumanSurface.Publish(prose, executed);
+        var body = CitizenIntercomHumanSurface.Publish(prose, executed, elapsed);
         // @frame desk SA walls → Radio leaf pointer (I6). Dialog prose stays on operator channel (#crew).
         if (CitizenIntercomHumanSurface.LooksLikeSaInstrumentWall(body))
         {

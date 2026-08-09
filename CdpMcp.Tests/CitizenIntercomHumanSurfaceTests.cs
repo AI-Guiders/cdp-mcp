@@ -40,13 +40,14 @@ public sealed class CitizenIntercomHumanSurfaceTests
             ]);
 
         Assert.StartsWith("Готово.", body, StringComparison.Ordinal);
-        Assert.Contains("Сделала: сборка · build ok E×0 W×180", body, StringComparison.Ordinal);
+        Assert.Contains("Сделала · ok×1", body, StringComparison.Ordinal);
+        Assert.Contains("• сборка · ok · build ok E×0 W×180", body, StringComparison.Ordinal);
         Assert.DoesNotContain("@intent", body, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("ack=", body, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void FormatHands_marks_failure()
+    public void FormatHands_marks_failure_with_reason()
     {
         var tip = CitizenIntercomHumanSurface.FormatHands(
         [
@@ -57,7 +58,24 @@ public sealed class CitizenIntercomHumanSurfaceTests
                 Go: "plan",
                 Reason: "busy")
         ]);
-        Assert.Equal("Сделала: plan — не вышло", tip);
+        Assert.Contains("Сделала · ok×0 · fail×1", tip, StringComparison.Ordinal);
+        Assert.Contains("• plan · fail · busy", tip, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FormatHands_includes_elapsed_for_operator()
+    {
+        var tip = CitizenIntercomHumanSurface.FormatHands(
+        [
+            new CitizenRouteHost.Applied(
+                Raw: "@intent kb",
+                Verb: "Kb",
+                Ok: true,
+                Pulse: "kb · read · file_path=worlds/x.md · n=3")
+        ],
+        elapsed: TimeSpan.FromSeconds(12.4));
+        Assert.Contains("Сделала · ok×1 · 12s", tip, StringComparison.Ordinal);
+        Assert.Contains("• KB · ok · kb · read · file_path=worlds/x.md · n=3", tip, StringComparison.Ordinal);
     }
 
     [Fact]
