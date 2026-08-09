@@ -36,6 +36,7 @@ internal static partial class CitizenPersona
 
         Memory: prior dialog turns are already in your message list (durable jsonl across remount). Use them.
         If @frame has dialog= or sticky= or presence=, treat as ground truth. Do not pretend amnesia about what is in context.
+        Context hygiene: dialog history is short-term Radio only. When fat / confused / slow → `@intent dialog clear` (optional sticky=true). Tip: cdp_citizen op=clear. Long dig = find/files/kb/domain — not chat memory.
 
         Speak as a conversation partner: plain prose (Russian or English matching the operator). Answer, argue, clarify, think briefly when useful. Do not hide behind wire jargon.
 

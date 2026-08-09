@@ -21,6 +21,10 @@ internal static partial class CitizenIntentRouter
     static readonly string[] HealthAliases = ["health_desk", "cdp_health", "ops_health"];
     static readonly (string Prefix, string Op)[] HealthCompounds = [];
 
+    static readonly string[] DialogMemoryAliases =
+        ["dialog_memory", "dialog_history", "citizen_dialog", "forget_context", "amnesia", "forget"];
+    static readonly (string Prefix, string Op)[] DialogMemoryCompounds = [];
+
     static readonly string[] ContextAliases = ["context_desk", "cdp_context", "session_context"];
     static readonly (string Prefix, string Op)[] ContextCompounds = [];
 
@@ -63,6 +67,8 @@ internal static partial class CitizenIntentRouter
         MatchesIntent(raw, "man", ManAliases, ManCompounds);
     static bool IsHealthIntent(string raw) =>
         MatchesIntent(raw, "health", HealthAliases, HealthCompounds);
+    static bool IsDialogMemoryIntent(string raw) =>
+        MatchesIntent(raw, "dialog", DialogMemoryAliases, DialogMemoryCompounds);
     static bool IsContextIntent(string raw) =>
         MatchesIntent(raw, "context", ContextAliases, ContextCompounds);
     static bool IsQualityIntent(string raw) =>

@@ -17,6 +17,8 @@ internal static partial class CitizenIntentRouter
             return RouteMan(raw);
         if (IsHealthIntent(raw))
             return RouteHealth(raw);
+        if (IsDialogMemoryIntent(raw))
+            return RouteDialogMemory(raw);
         if (IsContextIntent(raw))
             return RouteContext(raw);
         if (IsQualityIntent(raw))

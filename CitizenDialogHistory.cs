@@ -10,9 +10,9 @@ namespace CdpMcp;
 internal static class CitizenDialogHistory
 {
     public const string FileName = "citizen-dialog.jsonl";
-    public const int DefaultMaxMessages = 40; // 20 user/assistant pairs
-    /// <summary>Char budget for Load() — 40 fat CoT msgs (~21k) still timeout Cloud.ru; keep newest under this.</summary>
-    public const int DefaultMaxChars = 12_000;
+    public const int DefaultMaxMessages = 20; // 10 user/assistant pairs — speed SoftFL
+    /// <summary>Char budget for Load() — fat CoT history timeouts Cloud.ru; keep newest under this.</summary>
+    public const int DefaultMaxChars = 6_000;
 
     static readonly object Gate = new();
     static string? PathOverrideForTests;
@@ -263,9 +263,17 @@ internal static class CitizenDialogHistory
     {
         var msgs = Load();
         var pairs = msgs.Count / 2;
-        return pairs > 0
-            ? $"dialog | pairs={pairs} · msgs={msgs.Count} · prior turns in messages — use them; do not claim amnesia"
-            : "dialog | pairs=0 · fresh thread (still durable after remount)";
+        var chars = 0;
+        foreach (var m in msgs)
+            chars += m.Content?.Length ?? 0;
+
+        if (pairs <= 0)
+            return "dialog | pairs=0 · fresh thread (still durable after remount) · clear=@intent dialog clear";
+
+        var tip = pairs >= 4 || chars >= 4_000
+            ? " · fat — @intent dialog clear when confused/slow"
+            : " · clear=@intent dialog clear";
+        return $"dialog | pairs={pairs} · msgs={msgs.Count} · chars≈{chars} · prior turns in messages — use them; do not claim amnesia{tip}";
     }
 
     static string Trunc(string s, int max) =>

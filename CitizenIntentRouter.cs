@@ -92,6 +92,7 @@ internal static partial class CitizenIntentRouter
         Refactor,
         Elicit,
         Context,
+        DialogMemory,
         Edit,
         Deploy,
         Undo,

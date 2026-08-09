@@ -76,6 +76,7 @@ internal static partial class CitizenIntentRouter
             "editor_scene" or "editor_scene_desk" or "cdp_editor_scene" or "editor_desk" => "editor_scene",
             "man" or "man_desk" or "cdp_man" or "manual" => "man",
             "health" or "health_desk" or "cdp_health" or "ops_health" => "health",
+            "dialog" or "dialog_memory" or "dialog_history" or "citizen_dialog" or "amnesia" or "forget" or "forget_context" => "dialog",
             "context" or "context_desk" or "cdp_context" or "session_context" => "context",
             "quality" or "quality_desk" or "quality_gates" or "cdp_quality" or "gates" or "quality_disk" or "quality_assert" or "quality_adx" => "quality",
             "session" or "session_desk" or "session_plane" or "cdp_session" => "session",

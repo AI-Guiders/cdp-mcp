@@ -90,6 +90,7 @@ internal static class CitizenScarGate
                 or CitizenIntentRouter.Verb.Health
                 or CitizenIntentRouter.Verb.Session
                 or CitizenIntentRouter.Verb.Context
+                or CitizenIntentRouter.Verb.DialogMemory
                 or CitizenIntentRouter.Verb.Inventory
                 or CitizenIntentRouter.Verb.Go
                 or CitizenIntentRouter.Verb.Drill

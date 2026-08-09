@@ -12,7 +12,7 @@
 - Vision: `image_path=` (or prior `cdp_see` latch) → multimodal `image_url`; auto-model `Qwen/Qwen3.6-35B-A3B` when default/non-vision; thinking off on vision turns. Not in dialog jsonl.
 - Defaults when keys omit URL/model: `https://foundation-models.api.cloud.ru/v1` · **`zai-org/GLM-5.1`** (post-Cursor sealed pick). Second slot: `Qwen/Qwen3-Coder-Next`. Vision auto: `Qwen/Qwen3.6-35B-A3B`.
 - Turn `mode=wire` (default) = HARD @intent contract + OAI `temperature=0`. `mode=dialog` = prose peer persona + `temperature=0.6`; optional @intent after prose. Aliases: prose|chat|talk|peer.
-- Dialog multi-turn: `StateRoot/{seat}/citizen-dialog.jsonl` or `citizen-dialog.{sanitizedModel}.jsonl` when live model set (op=history|clear; turn `history=`/`reset=`). Wire ignores history. Window = **40** msgs (20 pairs) **and** **`DefaultMaxChars=12_000`** (`TrimNewest` keeps newest under both; drop leading orphan assistant). Fat char history was a lived timeout root even under count cap. Model switch ≠ inherited dialog memory.
+- Dialog multi-turn: `StateRoot/{seat}/citizen-dialog.jsonl` or `citizen-dialog.{sanitizedModel}.jsonl` when live model set (op=history|clear; turn `history=`/`reset=`). Wire ignores history. Window = **20** msgs (10 pairs) **and** **`DefaultMaxChars=6_000`** (`TrimNewest` keeps newest under both; drop leading orphan assistant). Fat char history was a lived timeout root even under count cap. Model switch ≠ inherited dialog memory. Face clear: `@intent dialog clear` / `amnesia` (optional sticky=true); tip: `cdp_citizen op=clear`.
 - **Slot ≠ personality · tip ≠ Face (0.5.688):** Intercom Who keyed by model in `intercom-identity-LATEST.json` (`PfProfiles`/`PmProfiles`). **tip** = Cursor Who (`harness:guest|operator`); **Face** = FM citizen profile via `Activate`/`Claim(citizen)`. Citizen Claim/Activate must not stomp harness tip; guest/operator Claim reclaim tip while citizen Face profile lives. Guest pollution under FM model id ≠ Cursor tip (Activate may scrub). Never inherit other model's nick across FM slots.
 - Sticky pins: `StateRoot/{seat}/citizen-sticky.json` — op=`sticky` action=get|set|clear; turn `sticky_key=`/`sticky_value=`. Injected as `sticky | k=v` on dialog afferents.
 - Dialog afferent also gets `dialog | pairs=N · … use them; do not claim amnesia`.
@@ -23,7 +23,7 @@
 - OpenAI-compat extract (**0.5.655**): prefer non-empty `content`; else `reasoning_content` / `reasoning` / `thinking` (GLM/Qwen). SSE accumulates content vs reasoning separately — content wins if any. ATL: reasoning models ≠ content-only.
 - Token budget: dialog default **4096**, wire **2048** (`ResolveMaxTokens`); `cdp_citizen` turn accepts `max_tokens=` / `maxTokens=`. Wire payload sets `enable_thinking=false` (+ `chat_template_kwargs`) to avoid burning budget on hidden CoT.
 - Live cost ledger: each live turn appends `StateRoot/{seat}/citizen-cost.jsonl` (prompt/completion/total + system_chars + history_msgs + share %); totals sidecar; `cdp_citizen op=scene` → `cost` + pulse `cost · turns=…`.
-- Dialog history window **40 msgs** (~20 pairs) **and** **12k chars** (`TrimNewest`) — Radio short-term only. Long dig = `@intent find` / `files` / `kb` / `domain` / `git` / buffer — not chat history.
+- Dialog history window **20 msgs** (~10 pairs) **and** **6k chars** (`TrimNewest`) — Radio short-term only. Long dig = `@intent find` / `files` / `kb` / `domain` / `git` / buffer — not chat history. Face self-clear: `@intent dialog clear` / `amnesia`.
 - `empty_text` surfaces `finish_reason` + `completion_tokens` (esp. `length` truncate) — not silent blank after paid tokens.
 - **Empty Radio after SoftOrgan HND (0.5.687):** `HumanSurface.Publish` = prose only (chips ≠ letter). Wire-only Completions → StripWire empty → must `FaceLetterFallback` (Hands FAIL/ok tip) before VoiceLatch.Publish — never `publish_failed` silent busy→idle. Dig: not billing/`http_402` first.
 - **KB path facet:** `domains/`|`templates/` → `memory_skill` (DefaultSkillRoots); `worlds/`|`META/` → world; `work/`|`personal/` → project. Bare `kb` + `domains/…` must not default world (outside roots SoftFL).
@@ -114,6 +114,8 @@ Paths: from `@frame` / wake charge / peer pulse — never from example laundry. 
 - **jsonl Radio journal under named Mutex + full-file JSON scan** — lived `publish_failed` after KillRunning (AbandonedMutex swallowed) / Autoi thrash. SSOT = `intercom.witdb` (not TM seat WitDB).
 
 ## last_ship
+
+- **2026-08-09 Face dialog clear + tighter history (0.5.710)** — operator: stable speed + Face can clear context. Ship: `@intent dialog|amnesia|forget` → `Verb.DialogMemory` clear/scene/history (optional sticky=true); tip still `cdp_citizen op=clear`. History window **20 msgs / 6k chars** (was 40/12k). Afferent `dialog|` tips clear when fat. Persona Memory hygiene line. Tests DialogMemoryHost **3**. SoftOrgan invent REJECT · Mentions SoftFL Face-owned alone.
 
 - **2026-08-09 dig Stream.cs delete REJECT (not dead)** — PARK «delete Stream.cs» premature: `CitizenCompletions.OpenAiCompat` + `.Anthropic` still call `IsJsonNotEventStream` / `ReadSseOpenAiAccumulated` / `ReadSseAccumulated` for **TestHandler legacy HTTP** stubs (StubHandler SSE/reasoning). Live MEAI path does not use Stream.cs; delete only after TestHandler→TestChatClient retirement. SoftOrgan invent REJECT · Mentions SoftFL Face-owned alone.
 

@@ -63,6 +63,7 @@ internal static class CitizenHandKindClassifier
                 or CitizenIntentRouter.Verb.Health
                 or CitizenIntentRouter.Verb.Session
                 or CitizenIntentRouter.Verb.Context
+                or CitizenIntentRouter.Verb.DialogMemory
                 or CitizenIntentRouter.Verb.Inventory
                 => CitizenHandKind.Dig,
 
