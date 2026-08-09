@@ -103,10 +103,19 @@ internal sealed class DeskSeatEntity
     public DateTimeOffset UpdatedUtc { get; set; }
 }
 
-/// <summary>Singleton sticky Task Manager focus — survives MCP remount.</summary>
+/// <summary>Legacy singleton sticky focus (Id=1) — mirrors active FocusLane after hydrate/save.</summary>
 internal sealed class WorkFocusEntity
 {
     public int Id { get; set; } = 1;
+    public Guid? ActiveIntentId { get; set; }
+    public Guid? ActiveStageId { get; set; }
+    public DateTimeOffset UpdatedUtc { get; set; }
+}
+
+/// <summary>Per-Who focus lane on shared crew board (Multi-principal · not hard-split boards).</summary>
+internal sealed class WorkFocusLaneEntity
+{
+    public string Lane { get; set; } = "";
     public Guid? ActiveIntentId { get; set; }
     public Guid? ActiveStageId { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }

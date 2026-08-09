@@ -39,26 +39,8 @@ internal sealed partial class IntentWorkspaceStore
 
 
 
-    public void FocusStage(IntentWorkspaceState state, Guid stageId)
-    {
-        WithDb(db =>
-        {
-            var entity = db.Stages.FirstOrDefault(x => x.Id == stageId)
-                         ?? throw new ArgumentException($"stage_id not found: {stageId}");
-            state.ActiveIntentId = entity.IntentId;
-            state.ActiveStageId = entity.Id;
-            foreach (var s in db.Stages.Where(x => x.IntentId == entity.IntentId && x.Status == "active"))
-            {
-                if (s.Id != entity.Id)
-                    s.Status = "pending";
-            }
-
-            entity.Status = "active";
-            entity.UpdatedUtc = DateTimeOffset.UtcNow;
-            db.SaveChanges();
-        });
-        WorkFocusSave(state);
-    }
+    public void FocusStage(IntentWorkspaceState state, Guid stageId) =>
+        FocusStagePreserveOtherLanes(state, stageId);
 
     public Guid? FindStageIdByTitle(IntentWorkspaceState state, string? title) =>
         FindStageMatching(state, title, parentId: null, matchParent: false);

@@ -79,6 +79,7 @@ internal sealed class WorkspaceDbHost
                 _store.EnsureStageEventsTable();
                 _store.EnsureStageCriteriaTable();
                 _store.EnsureWorkFocusTable();
+                State.FocusLane = IntentWorkspaceStore.ResolveFocusLane();
                 _store.WorkFocusHydrate(State);
                 _store.EnsureScriptLastRunTable();
 

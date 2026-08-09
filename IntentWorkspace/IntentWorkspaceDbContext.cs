@@ -13,6 +13,7 @@ internal sealed class IntentWorkspaceDbContext(DbContextOptions<IntentWorkspaceD
     public DbSet<OpenRecentEntity> OpenRecent => Set<OpenRecentEntity>();
     public DbSet<DeskSeatEntity> DeskSeats => Set<DeskSeatEntity>();
     public DbSet<WorkFocusEntity> WorkFocus => Set<WorkFocusEntity>();
+    public DbSet<WorkFocusLaneEntity> WorkFocusLanes => Set<WorkFocusLaneEntity>();
     public DbSet<ScriptLastRunEntity> ScriptLastRuns => Set<ScriptLastRunEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -86,6 +87,13 @@ internal sealed class IntentWorkspaceDbContext(DbContextOptions<IntentWorkspaceD
         {
             e.ToTable("work_focus");
             e.HasKey(x => x.Id);
+        });
+
+        modelBuilder.Entity<WorkFocusLaneEntity>(e =>
+        {
+            e.ToTable("work_focus_lanes");
+            e.HasKey(x => x.Lane);
+            e.Property(x => x.Lane).IsRequired();
         });
 
         modelBuilder.Entity<ScriptLastRunEntity>(e =>

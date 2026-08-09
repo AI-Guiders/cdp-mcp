@@ -11,6 +11,8 @@ internal sealed class IntentWorkspaceState
     public Guid? ActiveIntentId { get; set; }
     public Guid? ActiveSceneId { get; set; }
     public Guid? ActiveStageId { get; set; }
+    /// <summary>Who focus lane (Кир|Sierra|Света|_default_). Shared board; per-Who ActiveStageId.</summary>
+    public string FocusLane { get; set; } = IntentWorkspaceStore.DefaultFocusLane;
     public string DatabasePath { get; set; } = "";
 }
 
