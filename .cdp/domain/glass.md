@@ -36,7 +36,7 @@
 
 - **Dual Input (Airbus sidestick)** — conflict on the **same** PreferSurface / `mfd_page` stick (both shove → wipe). Distinct from **desired dual-HCI**: Agent-Side and Human-Side may sit at different SSOT loci without 1:1 hard couple; `show`/`show_face` = invite, not automatic drag. **SoftFL b1+b3 SHIPPED 2026-08-09:** quiet land default + presentation agent SelectMfd gated on `show_face` (human origin still may switch); topology still applies. Residual gap = true dual viewport / independent PreferSurface sticks (wave b4 later) — not stamp as fully closed habitat.
 - Fixing WebView2 airspace with WPF `Popup`/`AllowsTransparency` for cabin overlays — Popup HWND floats above other apps (GitHub/browser); park WebView2/VT instead.
-- Sticky `web_ai_url` + any `show_face` → `RunWebAiPortal` (Sierra message / find Face steals browser) — incomplete dual-mode SoftFL; gate navigate on browser Face/MFD only.
+- Sticky `web_ai_url` + any `show_face` → `RunWebAiPortal` — **CLOSED SoftFL 2026-08-08** (`SeatsWebAiNavigateGate` / `WantsWebAiNavigate`; tests LatchPaintSeatsWebAiNavigateTests). Do not reopen as invent; residual dual-HCI = dual viewport (b4), not this gate.
 - Stuffing alert/qrh into SoftOrgan band (tests explicitly ignore as EICAS bleed).
 - Mapping `sa_desk` → MFD `Problems` (gates pulse paints WorkspaceChromeBand; Problems = quality/review family).
 - Mapping `crm` → MFD `Correspondence` (CRM = await/callout chrome; CRS = doc↔code surface).
@@ -251,6 +251,7 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 ## last_ship
 
+- **2026-08-09 dig SoftFL-safe residual (not Glass Done)** — Autoi wake dig=glass.md+citizen.md: sticky `web_ai_url` antipattern **stale** (gate SHIPPED 2026-08-08) → stamped CLOSED. Densest open SoftFL = Face `@all` MentionsAll→ResolveWakes (MentionsAll live · ResolveWakes never fans @all). SoftOrgan invent REJECT. Kir does not steal Face leaf; arm `when=peer_ship`.
 - **2026-08-09 Face busy hold ttl=0 (CDP 0.5.695)** — lived SoftFL Glass Done residual: Autoi Radio tips interleaved with Sierra #crew while Face Turn >120s (presence stale → mute miss). Ship habitat presence hold until finally idle. SoftFL invent ACCEPT dig=glass.md+citizen.md. SoftOrgan invent REJECT. Not Glass Done.
 - **2026-08-09 Mentions SoftFL · @PF Face≻tip (cascade-ide)** — lived tip≠Face: `@PF` → Cursor while Face citizen in `pf_profiles`. Ship GlassCore Face roster + `TryCitizenFace` · tests **23/23**. SoftFL invent ACCEPT densify dig=glass-intercom.md. SoftOrgan invent REJECT. Residual Mentions invent UX alone.
 - **2026-08-09 Face Ship gate + remount mute (0.5.693 / CDP)** — take walls no longer dump into Radio; remount Autoi Radio muted while Face Who busy. Mentions SoftFL alone.
