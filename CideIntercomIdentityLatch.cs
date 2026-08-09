@@ -74,12 +74,8 @@ internal static class CideIntercomIdentityLatch
     }
 
     /// <summary>
-    /// Bind tip to Who for this model. Missing profile → clear tip (bootstrap).
-    /// Legacy tip without Model migrates onto <paramref name="model"/> once.
-    /// </summary>
-        /// <summary>
-    /// Bind tip to Who for this model. Missing profile → clear tip (bootstrap).
-    /// Legacy tip without Model migrates onto <paramref name="model"/> once.
+    /// Face Who for FM model (citizen Radio/busy). Tip plane ≠ Face:
+    /// harness guest/operator tip (Cursor PF) is preserved — do not promote Face onto tip.
     /// Guest/operator under an FM model id are pollution — scrub and treat as missing.
     /// </summary>
     public static IdentitySeat? Activate(string seatRaw, string? model)
@@ -95,6 +91,9 @@ internal static class CideIntercomIdentityLatch
             doc.Schema = Schema;
             MigrateLegacyTip(doc, seat, modelKey);
 
+            var tipNow = GetTip(doc, seat);
+            var tipIsHarness = TipIsHarness(tipNow);
+
             var profiles = GetProfiles(doc, seat);
             if (profiles.TryGetValue(modelKey, out var profile) && profile.Name.Length > 0)
             {
@@ -105,27 +104,34 @@ internal static class CideIntercomIdentityLatch
                 {
                     profiles.Remove(modelKey);
                     SetProfiles(doc, seat, profiles);
-                    SetTip(doc, seat, null);
+                    if (!tipIsHarness)
+                        SetTip(doc, seat, null);
                     _ = WriteUnlocked(doc);
                     return null;
                 }
 
-                var tip = CloneSeat(profile);
-                tip.Model = modelKey;
-                tip.StampedUtc = DateTimeOffset.UtcNow;
-                SetTip(doc, seat, tip);
-                return WriteUnlocked(doc) ? tip : null;
+                var face = CloneSeat(profile);
+                face.Model = modelKey;
+                face.StampedUtc = DateTimeOffset.UtcNow;
+                // Multi-principal: Cursor tip (harness) survives Face Activate.
+                if (!tipIsHarness)
+                {
+                    SetTip(doc, seat, face);
+                    return WriteUnlocked(doc) ? face : null;
+                }
+
+                return WriteUnlocked(doc) ? face : null;
             }
 
-            // Model switch with no profile — do not inherit prior tip Who.
-            SetTip(doc, seat, null);
+            // Model switch with no Face profile — clear citizen tip only; keep harness Cursor tip.
+            if (!tipIsHarness)
+                SetTip(doc, seat, null);
             return WriteUnlocked(doc) ? null : null;
         }
     }
 
 
-    /// <summary>Claim Who for seat under model slot (default = live citizen model).</summary>
-        /// <summary>Cursor/external guest Who — never a citizen FM model id.</summary>
+    /// <summary>Cursor/external guest Who — never a citizen FM model id.</summary>
     public const string HarnessGuestSlot = "harness:guest";
 
     /// <summary>Operator Who profile — never a citizen FM model id.</summary>
@@ -157,7 +163,7 @@ internal static class CideIntercomIdentityLatch
                 || string.Equals(key, HarnessOperatorSlot, StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>Claim Who for seat under kind-scoped profile slot.</summary>
+    /// <summary>Claim Who under kind-scoped profile. Tip=Cursor; citizen Face does not stomp harness tip.</summary>
     public static IdentityDoc? Claim(string seatRaw, string name, string? kind = null, string? model = null)
     {
         var seat = CideIntercomVoiceLatch.NormalizeSeat(seatRaw);
@@ -190,11 +196,6 @@ internal static class CideIntercomIdentityLatch
             var doc = TryReadUnlocked() ?? new IdentityDoc { Schema = Schema };
             doc.Schema = Schema;
 
-            // Guest/Cursor must not demote habitat citizen Who (tip or any citizen profile).
-            // Journal bubble still paints message name=.
-            if (WouldDemoteCitizen(doc, seat, kindNorm))
-                return null;
-
             var entry = new IdentitySeat
             {
                 Name = trimmed,
@@ -206,35 +207,31 @@ internal static class CideIntercomIdentityLatch
             profiles[modelKey] = CloneSeat(entry);
             SetProfiles(doc, seat, profiles);
 
-            SetTip(doc, seat, entry);
+            // Tip = Cursor Who. Citizen Claim writes Face profile only when harness tip already stands.
+            var tipIsHarness = TipIsHarness(GetTip(doc, seat));
+            var claimIsHarness = IsHarnessSlot(modelKey)
+                || string.Equals(kindNorm, CideIntercomVoiceLatch.KindGuest, StringComparison.Ordinal)
+                || string.Equals(kindNorm, CideIntercomVoiceLatch.KindOperator, StringComparison.Ordinal);
+            if (claimIsHarness || !tipIsHarness)
+                SetTip(doc, seat, entry);
+
             return WriteUnlocked(doc) ? doc : null;
         }
     }
 
-    static bool WouldDemoteCitizen(IdentityDoc doc, string seat, string kindNorm)
+    /// <summary>Cursor tip = guest|operator on harness slot (not guest pollution under FM model id).</summary>
+    static bool TipIsHarness(IdentitySeat? tip)
     {
-        if (!string.Equals(kindNorm, CideIntercomVoiceLatch.KindGuest, StringComparison.Ordinal)
-            && !string.Equals(kindNorm, CideIntercomVoiceLatch.KindOperator, StringComparison.Ordinal))
+        if (tip is null || tip.Name.Length == 0)
             return false;
-
-        var tip = GetTip(doc, seat);
-        if (tip is not null
-            && string.Equals(
-                CideIntercomVoiceLatch.NormalizeKind(tip.Kind),
-                CideIntercomVoiceLatch.KindCitizen,
-                StringComparison.Ordinal))
-            return true;
-
-        foreach (var profile in GetProfiles(doc, seat).Values)
-        {
-            if (string.Equals(
-                CideIntercomVoiceLatch.NormalizeKind(profile.Kind),
-                CideIntercomVoiceLatch.KindCitizen,
-                StringComparison.Ordinal))
-                return true;
-        }
-
-        return false;
+        var k = CideIntercomVoiceLatch.NormalizeKind(tip.Kind);
+        if (!string.Equals(k, CideIntercomVoiceLatch.KindGuest, StringComparison.Ordinal)
+            && !string.Equals(k, CideIntercomVoiceLatch.KindOperator, StringComparison.Ordinal))
+            return false;
+        // Pollution: guest under FM model id is not Cursor tip — Activate may scrub it.
+        if (!string.IsNullOrWhiteSpace(tip.Model) && !IsHarnessSlot(tip.Model))
+            return false;
+        return true;
     }
 
 

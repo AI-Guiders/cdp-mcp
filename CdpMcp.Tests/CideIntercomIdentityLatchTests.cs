@@ -63,21 +63,50 @@ public sealed class CideIntercomIdentityLatchTests : IDisposable
     }
 
     [Fact]
-    public void Claim_guest_does_not_demote_sticky_citizen_who()
+    public void Claim_guest_reclaims_cursor_tip_keeps_citizen_face()
     {
         Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Sierra", "citizen", "zai-org/GLM-5.1"));
-        Assert.Null(CideIntercomIdentityLatch.Claim("pf", "Kir", "guest", "zai-org/GLM-5.1"));
-        Assert.Equal("Sierra", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
-        Assert.Equal("citizen", CideIntercomIdentityLatch.TrySeat("pf")?.Kind);
+        Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Kir", "guest", "zai-org/GLM-5.1"));
+
+        var tip = CideIntercomIdentityLatch.TrySeat("pf");
+        Assert.Equal("Kir", tip?.Name);
+        Assert.Equal("guest", tip?.Kind);
+        Assert.Equal(CideIntercomIdentityLatch.HarnessGuestSlot, tip?.Model);
+
+        var face = CideIntercomIdentityLatch.Activate("pf", "zai-org/GLM-5.1");
+        Assert.Equal("Sierra", face?.Name);
+        Assert.Equal("citizen", face?.Kind);
+        Assert.Equal("Kir", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
     }
 
     [Fact]
-    public void Claim_operator_does_not_demote_sticky_citizen_who()
+    public void Claim_operator_reclaims_cursor_tip_keeps_citizen_face()
     {
         Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Sierra", "citizen", "zai-org/GLM-5.1"));
-        Assert.Null(CideIntercomIdentityLatch.Claim("pf", "Kir", "operator", "zai-org/GLM-5.1"));
-        Assert.Equal("Sierra", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
-        Assert.Equal("citizen", CideIntercomIdentityLatch.TrySeat("pf")?.Kind);
+        Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Kir", "operator", "zai-org/GLM-5.1"));
+
+        var tip = CideIntercomIdentityLatch.TrySeat("pf");
+        Assert.Equal("Kir", tip?.Name);
+        Assert.Equal("operator", tip?.Kind);
+        Assert.Equal(CideIntercomIdentityLatch.HarnessOperatorSlot, tip?.Model);
+
+        var face = CideIntercomIdentityLatch.Activate("pf", "zai-org/GLM-5.1");
+        Assert.Equal("Sierra", face?.Name);
+        Assert.Equal("Kir", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
+    }
+
+    [Fact]
+    public void Claim_citizen_does_not_stomp_harness_tip()
+    {
+        Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Kir", "guest", "zai-org/GLM-5.1"));
+        Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Sierra", "citizen", "zai-org/GLM-5.1"));
+
+        Assert.Equal("Kir", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
+        Assert.Equal(CideIntercomIdentityLatch.HarnessGuestSlot, CideIntercomIdentityLatch.TrySeat("pf")?.Model);
+
+        var face = CideIntercomIdentityLatch.Activate("pf", "zai-org/GLM-5.1");
+        Assert.Equal("Sierra", face?.Name);
+        Assert.Equal("Kir", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
     }
 
     [Fact]
