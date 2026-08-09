@@ -25,7 +25,28 @@ public partial class IdeIgniteArmHostTests
         Assert.Equal("timer", IdeIgniteArmHost.NormalizeEvent("delay"));
         Assert.Equal("timer", IdeIgniteArmHost.NormalizeEvent("timer"));
         Assert.Equal("shell_finished", IdeIgniteArmHost.NormalizeEvent("shell"));
+        Assert.Equal("peer_ship", IdeIgniteArmHost.NormalizeEvent("peer_ship"));
+        Assert.Equal("peer_ship", IdeIgniteArmHost.NormalizeEvent("leaf_done"));
+        Assert.Equal("peer_ship", IdeIgniteArmHost.NormalizeEvent("ship"));
     }
+
+    [Fact]
+    public void IsEventTriggeredArm_includes_peer_ship()
+    {
+        Assert.True(IdeIgniteArmHost.IsEventTriggeredArm("peer_ship"));
+        Assert.True(IdeIgniteArmHost.IsEventTriggeredArm("leaf_done"));
+        Assert.False(IdeIgniteArmHost.IsEventTriggeredArm("timer"));
+    }
+
+    [Theory]
+    [InlineData("ship SoftFL densify", "citizen", "Citizen", true)]
+    [InlineData("SoftFL shipped · @all", "citizen", "Citizen", true)]
+    [InlineData("peer_ship: @all done", "guest", "Кир", true)]
+    [InlineData("The user is sending a frame", "citizen", "Citizen", false)]
+    [InlineData("ship SoftFL", "guest", "AutoI", false)]
+    [InlineData("ship SoftFL", "operator", "Света", false)]
+    public void LooksLikePeerShipSignal_policy(string body, string kind, string name, bool expect) =>
+        Assert.Equal(expect, IdeIgniteArmHost.LooksLikePeerShipSignal(body, kind, name));
 
     [Theory]
     [InlineData("timer", "busy_timeout", true)]

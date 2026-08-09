@@ -129,6 +129,7 @@ internal static partial class IdeIgniteArmHost
             "build" or "build_done" or "build_ok" or "build_finished" or "on_build" => "build_finished",
             "test" or "tests" or "test_done" or "test_finished" or "on_test" => "test_finished",
             "shell" or "shell_done" or "shell_finished" or "on_shell" => "shell_finished",
+            "peer_ship" or "peer" or "leaf_done" or "leaf_ship" or "ship" or "shipped" or "hih_ship" => "peer_ship",
             "hild" or "human_away" or "hitl" or "human_idle" or "away" => "human_away",
             "time" or "delay" or "sleep" or "timer" or "in" => "timer",
             "manual" or "now" or "fire" => "manual",

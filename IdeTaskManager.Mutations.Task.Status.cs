@@ -26,6 +26,8 @@ internal static partial class IdeTaskManager
 
         var wasActive = state.ActiveStageId == id;
         var r = store.StageSetStatus(state, id.Value, "done");
+        var doneTitle = store.StageTitle(state, id.Value);
+        IdeIgniteArmHost.NotifyPeerShip(pulse: "tm_done", detail: doneTitle);
         object? leafContinuity = null;
         if (wasActive)
         {
@@ -137,6 +139,8 @@ internal static partial class IdeTaskManager
         }
 
         var clock = store.StageClockShipped(state, id.Value);
+        var shipTitle = store.StageTitle(state, id.Value);
+        IdeIgniteArmHost.NotifyPeerShip(pulse: "tm_shipped", detail: shipTitle);
         return startedImplicit
             ? new { clock, started_implicit = true, hint = "wall start was missing — started implicitly at ship" }
             : clock;

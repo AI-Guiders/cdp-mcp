@@ -91,6 +91,9 @@ internal static partial class CideIntercomVoiceLatch
             // Lived: status=done with stomped/missing journal → operator "ей не пришло".
             if (!AppendJournal(doc))
                 return null;
+            // HIH SoftFL: explicit ship cue on #crew → peer_ship Autoi wake (timer ≠ wait).
+            if (IdeIgniteArmHost.LooksLikePeerShipSignal(doc.Body, doc.Kind, doc.Name))
+                IdeIgniteArmHost.NotifyPeerShip(pulse: "intercom", detail: doc.Name ?? doc.Kind);
             // Explicit name= / as= claims sticky Who (agent-line). Bootstrap defaults do not.
             // Autoi remount/wake Publishes name=AutoI — must NOT stomp citizen Who (Sierra).
             // Guest/operator → harness:* slots; citizen → FM model. Never bind guest to ResolveCitizenModel.

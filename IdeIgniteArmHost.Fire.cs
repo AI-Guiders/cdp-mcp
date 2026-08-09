@@ -27,7 +27,7 @@ internal static partial class IdeIgniteArmHost
     internal static bool IsEventTriggeredArm(string? eventName)
     {
         var e = NormalizeEvent(eventName);
-        return e is "build_finished" or "test_finished" or "shell_finished" or "human_away";
+        return e is "build_finished" or "test_finished" or "shell_finished" or "human_away" or "peer_ship";
     }
 
 

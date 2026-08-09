@@ -115,7 +115,7 @@ internal static partial class IdeIgniteArmHost
             return true;
         // Mid-flight event wakes — do not cancel build/test/shell inject under all=.
         if (a.Status == "firing"
-            && a.Event is "build_finished" or "test_finished" or "shell_finished" or "human_away")
+            && a.Event is "build_finished" or "test_finished" or "shell_finished" or "human_away" or "peer_ship")
             return true;
         return false;
     }

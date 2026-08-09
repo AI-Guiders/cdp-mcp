@@ -23,7 +23,7 @@ internal static partial class IdeIgniteArmHost
             seat = Seat,
             arms = list.Select(Slim).ToList(),
             store = StorePath,
-            hint = "op=arm when=build_finished|test_finished|timer in=5m task=… [last_once]; charge=minimal (default) fires canonical wake + amnesia postfix; op=hygiene|plateau"
+            hint = "op=arm when=build_finished|test_finished|shell_finished|peer_ship|human_away|timer in=5m task=… [last_once]; charge=minimal (default) fires canonical wake + amnesia postfix; op=hygiene|plateau"
         };
     }
 
