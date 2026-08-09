@@ -105,13 +105,13 @@ internal static class CitizenResultWake
         + " — find≠next hand; do not invent CascadeIDE.cs / *Host.cs / GlassIntercom.cs / dialog-history basenames; Radio alone ≠ done; Radio only if stuck (one fact).";
 
     /// <summary>
-    /// SoftFL 2026-08-09 (Citizen pair): next open — do not command invent take.
-    /// Leaf PASTE stays on <see cref="PeerReadyCharge"/> when contour is active.
+    /// SoftFL 2026-08-09: rare true-open (no SoftFL leaf named). Anti-invent only.
+    /// SoftFL densify 2026-08-09b: do NOT teach «жду вектора» — partner approve / known SoftFL ≠ wait vector.
     /// </summary>
     public const string PeerReadyNextOpenCharge =
-        "reason=peer_ready_next_open — hands returned; next unknown. "
-        + "Do not invent take path. One Radio fact OK («next unknown · жду вектора»). "
-        + "Wait operator/mentor vector or PASTE leaf when charge names it. find≠fabricate next.";
+        "reason=peer_ready_next_open — no SoftFL leaf named in this wake. "
+        + "Do not invent take path. One Radio fact OK. "
+        + "Partner «меняй» / known SoftFL on board ≠ wait vector — dig TM or PASTE leaf when charge names it. find≠fabricate next.";
 
     public const string PeerReadyRetryCharge =
         "reason=peer_ready_retry — hand dropped/failed; result is still a result. PASTE exactly: "
@@ -277,7 +277,10 @@ internal static class CitizenResultWake
     public static bool IsKbHand(CitizenPeerAck.Result peerAck) => IsKbDrop(peerAck);
 
     /// <summary>
-    /// Pick post-hands wake: leaf contour → PASTE leaf; kb → kb dig; else next open (no invent mine).
+    /// Pick post-hands wake: leaf contour → PASTE leaf; kb → kb dig.
+    /// SoftFL densify 2026-08-09b: default PASTE <see cref="LeafTakeIntent"/> (Mentions SoftFL live),
+    /// not next_open — that overshot into anti-agency («шаг не определён» after partner «меняй»).
+    /// next_open only when wake body already is next_open.
     /// </summary>
     public static string SelectAppliedWakeCharge(
         CitizenPeerAck.Result peerAck,
@@ -289,7 +292,9 @@ internal static class CitizenResultWake
             return PeerReadyKbCharge;
         if (IsLeafContourCharge(requestBody))
             return PeerReadyCharge;
-        return PeerReadyNextOpenCharge;
+        if (IsNextOpenWakeCharge(requestBody))
+            return PeerReadyNextOpenCharge;
+        return PeerReadyCharge;
     }
 
     /// <summary>

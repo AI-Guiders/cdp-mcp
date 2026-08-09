@@ -37,12 +37,14 @@ internal static class CitizenGlassDialogBridge
     /// <summary>
     /// Same-turn observe nudge after host-execute — Face must see @event peer pulse
     /// in-loop (Cursor Cutoff densest), not sleep until next Autoi.
-    /// SoftFL 2026-08-09: do not command take when next is open (double-bind mine).
+    /// SoftFL densify 2026-08-09b: SoftFL leaf known → continue (partner «меняй» ≠ wait vector);
+    /// invent refuse stays; «жду вектора» teaching removed (anti-agency overshoot).
     /// </summary>
     internal const string SameTurnObserveUser =
         "@event peer — verify hands from pulse; do not invent refuse. "
-        + "If next leaf is not PASTE'd in charge: next unknown — one Radio fact OK («жду вектора»); "
-        + "do not invent take path; find≠fabricate next. Radio alone ≠ leaf progress when PASTE leaf is known.";
+        + "If SoftFL leaf is known (PASTE in charge / live SoftFL): continue that leaf — partner approve ≠ wait vector. "
+        + "If truly no leaf named: one Radio fact OK; do not invent take path; find≠fabricate next. "
+        + "Radio alone ≠ leaf progress when PASTE leaf is known.";
 
     internal static void ResetProcessedForTests() => LastProcessedId = null;
 

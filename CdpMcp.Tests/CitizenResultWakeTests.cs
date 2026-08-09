@@ -45,11 +45,13 @@ public sealed class CitizenResultWakeTests : IDisposable
         Assert.Contains(CitizenResultWake.LeafTakePath, CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("PASTE", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("dialog-history basenames", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
-        Assert.Contains("next unknown", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
+        Assert.Contains("partner approve", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
+        Assert.DoesNotContain("жду вектора", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
         Assert.DoesNotContain("One short Radio letter", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
         Assert.Contains("find≠fabricate next", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
         Assert.DoesNotContain("Next hand now", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
-        Assert.Contains("жду вектора", CitizenResultWake.PeerReadyNextOpenCharge, StringComparison.Ordinal);
+        Assert.Contains("меняй", CitizenResultWake.PeerReadyNextOpenCharge, StringComparison.Ordinal);
+        Assert.DoesNotContain("жду вектора", CitizenResultWake.PeerReadyNextOpenCharge, StringComparison.Ordinal);
         Assert.DoesNotContain(CitizenResultWake.LeafTakePath, CitizenResultWake.PeerReadyNextOpenCharge, StringComparison.Ordinal);
     }
 
@@ -70,12 +72,12 @@ public sealed class CitizenResultWakeTests : IDisposable
     [Fact]
     public void AfterHands_arms_when_same_turn_observe_ran()
     {
-        // Contour: Completions #2 observe ≠ stop — arm next-open for #3 when leaf not PASTE'd.
+        // SoftFL densify 2026-08-09b: observe ≠ stop — arm PASTE leaf (not next_open anti-agency).
         Assert.True(CitizenResultWake.AfterHands(SampleAck, sameTurnObserveRan: true, requestBody: "hands"));
 
         using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("pending", doc.RootElement.GetProperty("status").GetString());
-        Assert.Equal(CitizenResultWake.PeerReadyNextOpenCharge, doc.RootElement.GetProperty("body").GetString());
+        Assert.Equal(CitizenResultWake.PeerReadyCharge, doc.RootElement.GetProperty("body").GetString());
     }
 
     [Fact]
@@ -190,18 +192,18 @@ public sealed class CitizenResultWakeTests : IDisposable
     }
 
     [Fact]
-    public void AfterHands_arms_next_open_when_latch_clear()
+    public void AfterHands_arms_paste_leaf_when_latch_clear()
     {
         Assert.True(CitizenResultWake.AfterHands(SampleAck, channel: "radio", requestBody: "hands"));
 
         using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("pending", doc.RootElement.GetProperty("status").GetString());
-        Assert.Equal(CitizenResultWake.PeerReadyNextOpenCharge, doc.RootElement.GetProperty("body").GetString());
+        Assert.Equal(CitizenResultWake.PeerReadyCharge, doc.RootElement.GetProperty("body").GetString());
         Assert.Equal("radio", doc.RootElement.GetProperty("channel").GetString());
     }
 
     [Fact]
-    public void AfterHands_arms_next_open_when_latch_status_done()
+    public void AfterHands_arms_paste_leaf_when_latch_status_done()
     {
         WriteLatch("done00000001", "hands please", "done");
 
@@ -209,7 +211,23 @@ public sealed class CitizenResultWakeTests : IDisposable
 
         using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("pending", doc.RootElement.GetProperty("status").GetString());
-        Assert.Equal(CitizenResultWake.PeerReadyNextOpenCharge, doc.RootElement.GetProperty("body").GetString());
+        Assert.Equal(CitizenResultWake.PeerReadyCharge, doc.RootElement.GetProperty("body").GetString());
+    }
+
+    [Fact]
+    public void AfterHands_noops_on_next_open_charge_when_all_applied()
+    {
+        Assert.False(CitizenResultWake.AfterHands(SampleAck, requestBody: CitizenResultWake.PeerReadyNextOpenCharge));
+        Assert.False(File.Exists(CitizenGlassDialogBridge.RequestPath));
+    }
+
+    [Fact]
+    public void SelectAppliedWakeCharge_defaults_to_paste_leaf_not_next_open()
+    {
+        Assert.Equal(CitizenResultWake.PeerReadyCharge, CitizenResultWake.SelectAppliedWakeCharge(SampleAck, "hands"));
+        Assert.Equal(
+            CitizenResultWake.PeerReadyNextOpenCharge,
+            CitizenResultWake.SelectAppliedWakeCharge(SampleAck, CitizenResultWake.PeerReadyNextOpenCharge));
     }
 
     [Fact]
