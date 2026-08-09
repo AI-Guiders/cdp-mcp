@@ -11,6 +11,8 @@ internal static class CitizenDialogHistory
 {
     public const string FileName = "citizen-dialog.jsonl";
     public const int DefaultMaxMessages = 40; // 20 user/assistant pairs
+    /// <summary>Char budget for Load() — 40 fat CoT msgs (~21k) still timeout Cloud.ru; keep newest under this.</summary>
+    public const int DefaultMaxChars = 12_000;
 
     static readonly object Gate = new();
     static string? PathOverrideForTests;
@@ -76,17 +78,21 @@ internal static class CitizenDialogHistory
         }
     }
 
-    public static IReadOnlyList<CitizenCompletions.ChatMessage> Load(int maxMessages = DefaultMaxMessages)
+    public static IReadOnlyList<CitizenCompletions.ChatMessage> Load(
+        int maxMessages = DefaultMaxMessages,
+        int maxChars = DefaultMaxChars)
     {
         lock (Gate)
         {
             if (MemoryOverrideForTests is not null)
-                return MemoryOverrideForTests.TakeLast(Math.Max(0, maxMessages)).ToArray();
-            return LoadUnlocked(maxMessages);
+                return TrimNewest(MemoryOverrideForTests, maxMessages, maxChars);
+            return LoadUnlocked(maxMessages, maxChars);
         }
     }
 
-    static IReadOnlyList<CitizenCompletions.ChatMessage> LoadUnlocked(int maxMessages = DefaultMaxMessages)
+    static IReadOnlyList<CitizenCompletions.ChatMessage> LoadUnlocked(
+        int maxMessages = DefaultMaxMessages,
+        int maxChars = DefaultMaxChars)
     {
         var path = FilePath;
         if (!File.Exists(path))
@@ -110,14 +116,47 @@ internal static class CitizenDialogHistory
                 list.Add(new CitizenCompletions.ChatMessage(role, content));
             }
 
-            if (list.Count <= maxMessages)
-                return list;
-            return list.TakeLast(maxMessages).ToArray();
+            return TrimNewest(list, maxMessages, maxChars);
         }
         catch
         {
             return [];
         }
+    }
+
+    /// <summary>Keep newest messages under both count and char budgets (pairs stay intact when possible).</summary>
+    internal static IReadOnlyList<CitizenCompletions.ChatMessage> TrimNewest(
+        IReadOnlyList<CitizenCompletions.ChatMessage> source,
+        int maxMessages,
+        int maxChars)
+    {
+        if (source.Count == 0)
+            return [];
+
+        maxMessages = Math.Max(0, maxMessages);
+        maxChars = Math.Max(0, maxChars);
+        if (maxMessages == 0 || maxChars == 0)
+            return [];
+
+        var keep = new List<CitizenCompletions.ChatMessage>();
+        var chars = 0;
+        for (var i = source.Count - 1; i >= 0; i--)
+        {
+            var m = source[i];
+            var len = m.Content?.Length ?? 0;
+            if (keep.Count >= maxMessages)
+                break;
+            if (chars + len > maxChars && keep.Count > 0)
+                break;
+            keep.Add(m);
+            chars += len;
+        }
+
+        keep.Reverse();
+        // Prefer even count so we don't start mid-pair on user-only remnant.
+        if (keep.Count >= 2 && keep[0].Role == "assistant")
+            keep.RemoveAt(0);
+        return keep;
     }
 
     public static void Append(string userText, string assistantText, int maxMessages = DefaultMaxMessages)
@@ -131,8 +170,9 @@ internal static class CitizenDialogHistory
             {
                 MemoryOverrideForTests.Add(new CitizenCompletions.ChatMessage("user", userText.Trim()));
                 MemoryOverrideForTests.Add(new CitizenCompletions.ChatMessage("assistant", assistantText.Trim()));
-                while (MemoryOverrideForTests.Count > maxMessages)
-                    MemoryOverrideForTests.RemoveAt(0);
+                var trimmed = TrimNewest(MemoryOverrideForTests, maxMessages, DefaultMaxChars);
+                MemoryOverrideForTests.Clear();
+                MemoryOverrideForTests.AddRange(trimmed);
                 return;
             }
 
@@ -149,11 +189,11 @@ internal static class CitizenDialogHistory
                         + Environment.NewLine;
                     File.AppendAllText(FilePath, lines);
 
-                    // Trim file if oversized (rewrite last N) — under Gate to avoid interleaved Appends losing pairs.
-                    var loaded = LoadUnlocked(maxMessages * 4);
-                    if (loaded.Count > maxMessages)
+                    // Trim file if oversized (count + char budgets).
+                    var loaded = LoadUnlocked(maxMessages * 4, DefaultMaxChars * 4);
+                    var keep = TrimNewest(loaded, maxMessages, DefaultMaxChars);
+                    if (keep.Count < loaded.Count)
                     {
-                        var keep = loaded.TakeLast(maxMessages).ToArray();
                         var sb = new System.Text.StringBuilder();
                         foreach (var m in keep)
                             sb.AppendLine(JsonSerializer.Serialize(new { role = m.Role, content = m.Content, at_utc = DateTimeOffset.UtcNow }));
