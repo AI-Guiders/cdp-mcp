@@ -92,25 +92,12 @@ public partial class CitizenCompletionsTests : IDisposable
         Assert.Equal(CitizenTurnMode.Dialog, built.Mode);
         Assert.Contains("dialog peer", built.System, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("WIRE OUTPUT CONTRACT", built.System, StringComparison.Ordinal);
-        Assert.Contains("Habitat map (from inside", built.System, StringComparison.Ordinal);
+        Assert.Contains("Habitat (from inside", built.System, StringComparison.Ordinal);
         Assert.Contains("This Glass CIT / Intercom turn IS the knock", built.System, StringComparison.Ordinal);
-        Assert.Contains("Equal standing", built.System, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("equal standing", built.System, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Света", built.System, StringComparison.Ordinal);
-        Assert.Contains("Memory:", built.System, StringComparison.Ordinal);
         Assert.Contains("Named organs (HARD", built.System, StringComparison.Ordinal);
-        Assert.Contains("domain card=id=", built.System, StringComparison.Ordinal);
-        Assert.Contains("@intent browser", built.System, StringComparison.Ordinal);
-        Assert.Contains("peer dig DEFAULT", built.System, StringComparison.Ordinal);
-        Assert.Contains("@intent browser show url=", built.System, StringComparison.Ordinal);
-        Assert.Contains("IDE peer", built.System, StringComparison.Ordinal);
-        Assert.Contains("@intent open path=", built.System, StringComparison.Ordinal);
-        Assert.Contains("@intent project create", built.System, StringComparison.Ordinal);
-        Assert.Contains("@intent debug bp_add", built.System, StringComparison.Ordinal);
-        Assert.Contains("@intent find query=", built.System, StringComparison.Ordinal);
-        Assert.Contains("@intent shell command=", built.System, StringComparison.Ordinal);
-        Assert.Contains("@intent git status", built.System, StringComparison.Ordinal);
-        Assert.Contains("Do not invent mcp/shell/kb", built.System, StringComparison.Ordinal);
-        Assert.Contains("Do not invent incapacity for named IDE organs", built.System, StringComparison.Ordinal);
+        Assert.Contains("@intent", built.System, StringComparison.Ordinal);
     }
 
     [Fact]

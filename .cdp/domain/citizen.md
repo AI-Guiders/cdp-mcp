@@ -18,7 +18,8 @@
 - Dialog afferent also gets `dialog | pairs=N · … use them; do not claim amnesia`.
 - Persona baseline: **equal standing** (peer, not tool) + human name **Света**; Who = Agent Who series (not operator); **Memory:** use prior turns / sticky.
 - **Habitat map (from inside):** dialog persona carries short orientation — this CIT/Intercom turn IS the knock; `#crew`·Radio·DM = rooms; `@intent` = hands; `kb`/`domain` = dig not another door; Autoi≠Radio letter. Lived confusion: Sierra «куда стучаться?» without map.
-- Wire: Bearer + `{base}/v1/chat/completions` — **SSE stream** (`stream=true`, `ResponseHeadersRead`); JSON body fallback when Content-Type is `application/json` (stubs / non-stream providers). Anthropic Messages same policy.
+- Live Completions (**0.5.702**): official MEAI `IChatClient` (`CitizenMafChatClientFactories` · `TurnViaMeAi` / `GetResponseAsync`) for OpenAI-compat + Anthropic. SoftFL reconnect / Glass `reconnecting N/M` still wraps the live turn. **`TestHandler` → legacy HTTP** (`Turn*OnceHttp`) so StubHandler SSE/reasoning stubs stay green.
+- Wire (legacy/test path): Bearer + `{base}/v1/chat/completions` — **SSE stream** (`stream=true`, `ResponseHeadersRead`); JSON body fallback when Content-Type is `application/json` (stubs / non-stream providers). Anthropic Messages same policy.
 - OpenAI-compat extract (**0.5.655**): prefer non-empty `content`; else `reasoning_content` / `reasoning` / `thinking` (GLM/Qwen). SSE accumulates content vs reasoning separately — content wins if any. ATL: reasoning models ≠ content-only.
 - Token budget: dialog default **4096**, wire **2048** (`ResolveMaxTokens`); `cdp_citizen` turn accepts `max_tokens=` / `maxTokens=`. Wire payload sets `enable_thinking=false` (+ `chat_template_kwargs`) to avoid burning budget on hidden CoT.
 - Live cost ledger: each live turn appends `StateRoot/{seat}/citizen-cost.jsonl` (prompt/completion/total + system_chars + history_msgs + share %); totals sidecar; `cdp_citizen op=scene` → `cost` + pulse `cost · turns=…`.
@@ -53,7 +54,7 @@
 ## Entry
 
 - `cdp_citizen` op=`scene|keys|turn`
-- Keys: `CitizenAiKeys` · Completions: `CitizenCompletions` (+`.OpenAiCompat` · `.Anthropic` · `.Finish`)
+- Keys: `CitizenAiKeys` · Completions: `CitizenCompletions` (+`.OpenAiCompat` · `.Anthropic` · `.MeAi` · `.Finish`) · factories: `CitizenMafChatClientFactories`
 - Live desk: `CitizenLiveDesk` / `IdeStageCycle.TryWorkspace`
 - Route host: `CitizenRouteHost` / `CitizenIntentRouter`
 - Example: `docs/design/ai-keys.example.toml`
@@ -113,6 +114,8 @@ Paths: from `@frame` / wake charge / peer pulse — never from example laundry. 
 - **jsonl Radio journal under named Mutex + full-file JSON scan** — lived `publish_failed` after KillRunning (AbandonedMutex swallowed) / Autoi thrash. SSOT = `intercom.witdb` (not TM seat WitDB).
 
 ## last_ship
+
+- **2026-08-09 Face Completions → official MEAI IChatClient (0.5.702)** — first honest cut off homemade SSE HTTP for live OpenAI-compat + Anthropic. Ship: `CitizenMafChatClientFactories` · `CitizenCompletions.MeAi` (`GetResponseAsync`) · live path MEAI; `TestHandler` keeps legacy HTTP (`Turn*OnceHttp`) so StubHandler SSE/reasoning stubs stay green. FinishText / `@intent` unchanged. Pkgs: `Microsoft.Extensions.AI.OpenAI` 10.5.0 · `Anthropic` 12.13.0. Tests Completions **29/29**. SoftFL invent ACCEPT densify dig=citizen.md. SoftOrgan invent REJECT · Mentions SoftFL `@all` Face-owned · AsAIAgent tool loop parked.
 
 - **2026-08-09 SoftFL scar→gate + blast-radius + dogfood→scar (0.5.701)** — lived: habitat experience = memo antipatterns, not host muscle → Face/Autoi can PathMutate invent off-leaf while SoftFL apply armed. Ship: `CitizenScarLedger` (builtin+dogfood latch) · `CitizenScarGate` (Dig free; Mutate/Verify/Deploy need SoftFlLeaf when `IsApplyArmed`; off-leaf PathMutate refuse) · `CitizenSoftFlLeaf.ArmApply/DisarmApply` · AfterHands Mutate∩leaf → `PromoteSoftFlDogfoodScar` + Disarm. Tests ScarGate+HandKind+ResultWake **31/31**. SoftFL invent ACCEPT densify dig=citizen.md. SoftOrgan invent REJECT · Mentions SoftFL apply still Face-owned.
 - **2026-08-09 SoftFL HandKind + leaf SSOT (0.5.700)** — lived: Face take-loop (`PeerReadyCharge` PASTE take forever) + Autoi false `peer_ship` on «peer shipped …cs» take/observe. Root: charge prose = SoftFL identity; depth-1 treated dig as done; fuzzy «peer ship». Ship: `CitizenHandKind` (Dig|Mutate|Verify|Radio) on `PeerAck` · `CitizenSoftFlLeaf` latch SSOT · `PeerReadyCharge` formats from leaf · AfterHands Dig|Radio under apply → re-arm; Mutate on leaf → `NotifyPeerShip` · tighten `LooksLikePeerShipSignal`. Tests ResultWake+HandKind+PeerShip **32/32**. SoftFL invent ACCEPT densify dig=citizen.md. SoftOrgan invent REJECT · Mentions SoftFL apply still Face-owned.
