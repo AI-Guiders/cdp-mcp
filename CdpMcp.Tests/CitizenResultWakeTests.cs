@@ -36,7 +36,7 @@ public sealed class CitizenResultWakeTests : IDisposable
     }
 
     [Fact]
-    public void PeerReadyCharge_steers_next_hand_not_radio_done()
+    public void PeerReadyCharge_steers_softfl_leaf_ssot_not_take_loop()
     {
         Assert.Contains("Radio alone", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.DoesNotContain("One short Radio letter", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
@@ -44,8 +44,15 @@ public sealed class CitizenResultWakeTests : IDisposable
         Assert.DoesNotContain("take|replace|find", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains(CitizenResultWake.LeafTakePath, CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("PASTE", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.Contains("leaf SSOT", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.Contains("MentionsAll", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.Contains("ExpandWakes", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.DoesNotContain(CitizenResultWake.LeafTakeIntent, CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.Contains("Do NOT take/read again", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("dialog-history basenames", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("partner approve", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
+        Assert.Contains("leaf SSOT", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
+        Assert.Contains("Dig≠done", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
         Assert.DoesNotContain("жду вектора", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
         Assert.DoesNotContain("One short Radio letter", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
         Assert.Contains("find≠fabricate next", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
@@ -67,6 +74,22 @@ public sealed class CitizenResultWakeTests : IDisposable
     {
         Assert.False(CitizenResultWake.AfterHands(SampleAck, requestBody: CitizenResultWake.PeerReadyCharge));
         Assert.False(File.Exists(CitizenGlassDialogBridge.RequestPath));
+    }
+
+    [Fact]
+    public void AfterHands_rearms_softfl_when_dig_hand_under_apply_charge()
+    {
+        var takeAck = new CitizenPeerAck.Result(
+            "ack=1/1 take chars=64 lines=4 verify=n/a ship=64",
+            "intent_ack\npulse | take chars=64 lines=4 verify=n/a ship=64",
+            1,
+            0,
+            1,
+            CitizenHandKind.Dig);
+        Assert.True(CitizenResultWake.AfterHands(takeAck, requestBody: CitizenResultWake.PeerReadyCharge));
+        Assert.True(File.Exists(CitizenGlassDialogBridge.RequestPath));
+        using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        Assert.Equal(CitizenResultWake.PeerReadyCharge, doc.RootElement.GetProperty("body").GetString());
     }
 
     [Fact]
@@ -222,7 +245,7 @@ public sealed class CitizenResultWakeTests : IDisposable
     }
 
     [Fact]
-    public void SelectAppliedWakeCharge_defaults_to_paste_leaf_not_next_open()
+    public void SelectAppliedWakeCharge_defaults_to_softfl_mentions_not_next_open()
     {
         Assert.Equal(CitizenResultWake.PeerReadyCharge, CitizenResultWake.SelectAppliedWakeCharge(SampleAck, "hands"));
         Assert.Equal(
@@ -231,7 +254,7 @@ public sealed class CitizenResultWakeTests : IDisposable
     }
 
     [Fact]
-    public void AfterHands_leaf_contour_keeps_paste_take()
+    public void AfterHands_leaf_contour_keeps_softfl_mentions_charge()
     {
         Assert.True(CitizenResultWake.AfterHands(
             SampleAck,

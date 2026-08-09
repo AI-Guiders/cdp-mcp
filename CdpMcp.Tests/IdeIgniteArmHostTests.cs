@@ -45,6 +45,8 @@ public partial class IdeIgniteArmHostTests
     [InlineData("The user is sending a frame", "citizen", "Citizen", false)]
     [InlineData("ship SoftFL", "guest", "AutoI", false)]
     [InlineData("ship SoftFL", "operator", "Света", false)]
+    [InlineData("peer shipped GlassIntercomMention.cs", "citizen", "Citizen", false)]
+    [InlineData("ack=1/1 take chars=64 ship=64", "citizen", "Citizen", false)]
     public void LooksLikePeerShipSignal_policy(string body, string kind, string name, bool expect) =>
         Assert.Equal(expect, IdeIgniteArmHost.LooksLikePeerShipSignal(body, kind, name));
 

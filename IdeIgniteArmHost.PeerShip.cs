@@ -14,6 +14,7 @@ internal static partial class IdeIgniteArmHost
     /// <summary>
     /// Intercom prose that means leaf ship (not Autoi Radio thrash).
     /// Strict: citizen|guest + explicit ship cue — CoT dumps alone do not fire.
+    /// SoftFL systemic 2026-08-09: drop fuzzy "peer ship" (matched «peer shipped GlassIntercomMention.cs» take/observe).
     /// </summary>
     internal static bool LooksLikePeerShipSignal(string? body, string? kind, string? name)
     {
@@ -27,14 +28,18 @@ internal static partial class IdeIgniteArmHost
             return false;
 
         var t = body.Trim();
+        // Dig/observe false-ship: take pulse Radio ≠ SoftFL ship.
+        if (t.Contains("take chars=", StringComparison.OrdinalIgnoreCase)
+            || t.Contains("ship=", StringComparison.OrdinalIgnoreCase))
+            return false;
+
         if (t.StartsWith("peer_ship:", StringComparison.OrdinalIgnoreCase)
             || t.StartsWith("ship ", StringComparison.OrdinalIgnoreCase)
             || t.StartsWith("shipped", StringComparison.OrdinalIgnoreCase))
             return true;
 
         if (t.Contains("SoftFL shipped", StringComparison.OrdinalIgnoreCase)
-            || t.Contains("leaf shipped", StringComparison.OrdinalIgnoreCase)
-            || t.Contains("peer ship", StringComparison.OrdinalIgnoreCase))
+            || t.Contains("leaf shipped", StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
