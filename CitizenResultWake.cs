@@ -313,6 +313,24 @@ internal static class CitizenResultWake
         return tip.Contains(leafName, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>Dogfood burn → promote scar refuse lines into host ledger (muscle after compact).</summary>
+    internal static void PromoteSoftFlDogfoodScar(string? leafId)
+    {
+        CitizenScarLedger.EnsureBuiltins();
+        CitizenScarLedger.Promote(
+            CitizenScarLedger.ScarPathMutateOffLeaf,
+            CitizenScarGate.RefusePathMutateOffLeaf,
+            "SoftFL apply armed: PathMutate path must match SoftFlLeaf SSOT (force= escape)",
+            source: "dogfood",
+            leafId: leafId);
+        CitizenScarLedger.Promote(
+            CitizenScarLedger.ScarDigClosesSoftFl,
+            "scar_dig_closes_softfl",
+            "Dig|Radio under SoftFL apply ≠ SoftFL done; peer_ship only Mutate∩leaf",
+            source: "dogfood",
+            leafId: leafId);
+    }
+
     /// <summary>
     /// Pick post-hands wake: leaf contour → SoftFL Mentions apply; kb → kb dig.
     /// SoftFL densify 2026-08-09c: default PeerReadyCharge = MentionsAll→ExpandWakes PASTE
@@ -404,6 +422,8 @@ internal static class CitizenResultWake
                     IdeIgniteArmHost.NotifyPeerShip(
                         pulse: "softfl_mutate",
                         detail: CitizenSoftFlLeaf.Current.Id);
+                    PromoteSoftFlDogfoodScar(CitizenSoftFlLeaf.Current.Id);
+                    CitizenSoftFlLeaf.DisarmApply();
                     return false;
                 }
 
@@ -447,6 +467,8 @@ internal static class CitizenResultWake
                 };
 
             var charge = string.IsNullOrWhiteSpace(body) ? PeerReadyCharge : body;
+            if (IsNextOpenWakeCharge(charge))
+                CitizenSoftFlLeaf.DisarmApply();
             var wakeReason = IsInventHaltWakeCharge(charge)
                 ? "reason=peer_ready_invent_halt"
                 : IsDigWakeCharge(charge)

@@ -49,6 +49,9 @@ internal static partial class CitizenRouteHost
                 Reason: route.Reason ?? "route_not_ok");
         }
 
+        if (CitizenScarGate.TryRefuse(route) is { } scarRefuse)
+            return scarRefuse;
+
         return route.Verb switch
         {
             CitizenIntentRouter.Verb.Go
