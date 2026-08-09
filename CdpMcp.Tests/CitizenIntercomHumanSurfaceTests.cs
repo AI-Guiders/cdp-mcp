@@ -26,7 +26,7 @@ public sealed class CitizenIntercomHumanSurfaceTests
     }
 
     [Fact]
-    public void Publish_appends_human_hands_not_peer_wire()
+    public void Publish_keeps_prose_without_hands_laundry()
     {
         var body = CitizenIntercomHumanSurface.Publish(
             "Готово.\n\n@intent build",
@@ -37,17 +37,18 @@ public sealed class CitizenIntercomHumanSurfaceTests
                     Ok: true,
                     Action: "build",
                     Pulse: "build ok E×0 W×180")
-            ]);
+            ],
+            elapsed: TimeSpan.FromSeconds(12));
 
-        Assert.StartsWith("Готово.", body, StringComparison.Ordinal);
-        Assert.Contains("Сделала · ok×1", body, StringComparison.Ordinal);
-        Assert.Contains("• сборка · ok · build ok E×0 W×180", body, StringComparison.Ordinal);
+        Assert.Equal("Готово.", body);
+        Assert.DoesNotContain("Сделала", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("OK · ok×", body, StringComparison.Ordinal);
         Assert.DoesNotContain("@intent", body, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("ack=", body, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void FormatHands_marks_failure_with_reason()
+    public void FormatHands_marks_failure_with_softorgan_keywords()
     {
         var tip = CitizenIntercomHumanSurface.FormatHands(
         [
@@ -58,12 +59,12 @@ public sealed class CitizenIntercomHumanSurfaceTests
                 Go: "plan",
                 Reason: "busy")
         ]);
-        Assert.Contains("Сделала · ok×0 · fail×1", tip, StringComparison.Ordinal);
+        Assert.Contains("FAIL · ok×0 · fail×1", tip, StringComparison.Ordinal);
         Assert.Contains("• plan · fail · busy", tip, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void FormatHands_includes_elapsed_for_operator()
+    public void FormatHands_includes_elapsed_for_softorgan_tip()
     {
         var tip = CitizenIntercomHumanSurface.FormatHands(
         [
@@ -74,7 +75,7 @@ public sealed class CitizenIntercomHumanSurfaceTests
                 Pulse: "kb · read · file_path=worlds/x.md · n=3")
         ],
         elapsed: TimeSpan.FromSeconds(12.4));
-        Assert.Contains("Сделала · ok×1 · 12s", tip, StringComparison.Ordinal);
+        Assert.Contains("OK · ok×1 · 12s", tip, StringComparison.Ordinal);
         Assert.Contains("• KB · ok · kb · read · file_path=worlds/x.md · n=3", tip, StringComparison.Ordinal);
     }
 

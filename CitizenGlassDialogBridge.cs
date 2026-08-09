@@ -149,6 +149,7 @@ internal static class CitizenGlassDialogBridge
             return false;
 
         MarkStatus(req, "running");
+        CideHandsLatch.PublishRunning();
         var (who, kind) = ResolveCitizenFace();
         CideIntercomPresenceLatch.PublishSeat(
             CideIntercomVoiceLatch.SeatPf,
@@ -180,6 +181,7 @@ internal static class CitizenGlassDialogBridge
 
             if (!turn.Ok || string.IsNullOrWhiteSpace(turn.Text))
             {
+                CideHandsLatch.Clear();
                 MarkStatus(req, "error", turn.Error ?? "empty_reply");
                 return true;
             }
@@ -213,7 +215,9 @@ internal static class CitizenGlassDialogBridge
             }
 
             // Act letter first (dialog memory), then same-turn observe if hands ran.
+            // SoftOrgan HND owns receipt chips; letter stays prose (no FormatHands laundry).
             var elapsed = DateTimeOffset.UtcNow - req.StampedUtc;
+            CideHandsLatch.PublishDone(executed, elapsed);
             var actPublished = SurfacePublishBody(turn.Text!, executed, elapsed);
             PersistOperatorDialog(req.Body, turn.Text!, actPublished, executed);
 
@@ -279,6 +283,7 @@ internal static class CitizenGlassDialogBridge
         }
         catch (Exception ex)
         {
+            CideHandsLatch.Clear();
             MarkStatus(req, "error", ex.GetType().Name);
             return true;
         }

@@ -5,33 +5,22 @@ using System.Text.RegularExpressions;
 namespace CdpMcp;
 
 /// <summary>
-/// Human-faced Intercom surface: strip wire (@intent/@event/@frame) from prose;
-/// harness outcomes → receipt block (ok/fail/reason/pulse/elapsed) in the letter — not StatusText chrome.
+/// Human-faced Intercom surface: strip wire (@intent/@event/@frame) from prose.
+/// Hands receipt lives on SoftOrgan (<see cref="CideHandsLatch"/>) — not letter laundry.
 /// </summary>
 internal static partial class CitizenIntercomHumanSurface
 {
     static readonly Regex WireLine = WireLineRegex();
 
-    /// <summary>Publish body for Glass Intercom (prose + optional hands).</summary>
+    /// <summary>Publish body for Glass Intercom — Sierra prose only; receipt → SoftOrgan HND chip.</summary>
     public static string Publish(
         string? prose,
         IReadOnlyList<CitizenRouteHost.Applied>? executed = null,
         TimeSpan? elapsed = null)
     {
-        var clean = StripWire(prose);
-        var hands = FormatHands(executed, elapsed);
-        if (string.IsNullOrWhiteSpace(hands))
-        {
-            if (string.IsNullOrWhiteSpace(clean))
-                return "";
-            var alone = clean.TrimEnd();
-            var dur = FormatElapsed(elapsed);
-            return string.IsNullOrWhiteSpace(dur) ? alone : alone + "\n\n⏱ " + dur;
-        }
-
-        if (string.IsNullOrWhiteSpace(clean))
-            return hands;
-        return clean.TrimEnd() + "\n\n" + hands;
+        _ = executed;
+        _ = elapsed;
+        return StripWire(prose);
     }
 
     /// <summary>Drop @intent / @event / @frame lines and peer-wire tips; keep human prose.</summary>
@@ -68,131 +57,12 @@ internal static partial class CitizenIntercomHumanSurface
     }
 
     /// <summary>
-    /// Harness → human-faced receipt (RU). Operator needs ok/fail/reason/pulse — not opaque «Сделала KB».
+    /// SoftOrgan tip body (OK/FAIL/RUNNING keywords). Letter Publish no longer appends this.
     /// </summary>
     public static string FormatHands(
         IReadOnlyList<CitizenRouteHost.Applied>? executed,
-        TimeSpan? elapsed = null)
-    {
-        if (executed is null || executed.Count == 0)
-            return "";
-
-        var parts = new List<string>(executed.Count);
-        var okN = 0;
-        var failN = 0;
-        foreach (var a in executed)
-        {
-            if (a.Ok)
-                okN++;
-            else
-                failN++;
-            var label = HumanLabel(a);
-            if (string.IsNullOrWhiteSpace(label))
-                continue;
-            parts.Add(label);
-            if (parts.Count >= 6)
-                break;
-        }
-
-        if (parts.Count == 0)
-            return "";
-
-        var head = $"Сделала · ok×{okN}";
-        if (failN > 0)
-            head += $" · fail×{failN}";
-        var dur = FormatElapsed(elapsed);
-        if (!string.IsNullOrWhiteSpace(dur))
-            head += " · " + dur;
-
-        // One receipt block in the letter (not StatusText chrome).
-        var sb = new StringBuilder(head.Length + parts.Count * 48);
-        sb.Append(head);
-        foreach (var p in parts)
-        {
-            sb.Append('\n');
-            sb.Append("• ");
-            sb.Append(p);
-        }
-
-        return sb.ToString();
-    }
-
-    static string HumanLabel(CitizenRouteHost.Applied a)
-    {
-        var core = !string.IsNullOrWhiteSpace(a.Go)
-            ? a.Go!.Trim()
-            : VerbRu(a.Verb);
-
-        if (!string.IsNullOrWhiteSpace(a.Path))
-        {
-            var name = Path.GetFileName(a.Path.Trim());
-            if (!string.IsNullOrWhiteSpace(name))
-                core = string.IsNullOrWhiteSpace(core) ? name : core + " " + name;
-        }
-
-        if (string.IsNullOrWhiteSpace(core))
-            core = "ход";
-
-        if (!a.Ok)
-        {
-            var why = OneLine(a.Reason, 96);
-            return string.IsNullOrWhiteSpace(why)
-                ? core + " · fail · не вышло"
-                : core + " · fail · " + why;
-        }
-
-        if (!string.IsNullOrWhiteSpace(a.Ship))
-        {
-            var ship = OneLine(a.Ship, 96);
-            if (ship.Length > 0)
-                return core + " · ok · ship " + ship;
-        }
-
-        if (!string.IsNullOrWhiteSpace(a.Pulse))
-        {
-            var tip = OneLine(a.Pulse, 120);
-            if (tip.Length > 0)
-                return core + " · ok · " + tip;
-        }
-
-        return core + " · ok";
-    }
-
-    internal static string FormatElapsed(TimeSpan? elapsed)
-    {
-        if (elapsed is not { } e || e < TimeSpan.FromMilliseconds(500))
-            return "";
-        if (e.TotalSeconds < 60)
-            return e.TotalSeconds < 10
-                ? $"{e.TotalSeconds:0.0}s"
-                : $"{e.TotalSeconds:0}s";
-        return $"{(int)e.TotalMinutes}m{e.Seconds:00}s";
-    }
-
-    static string VerbRu(string verb)
-    {
-        if (string.IsNullOrWhiteSpace(verb))
-            return "";
-        return verb.Trim().ToLowerInvariant() switch
-        {
-            "go" or "drill" or "detail" => "открыла",
-            "open" => "файл",
-            "build" => "сборка",
-            "test" => "тесты",
-            "run" => "запуск",
-            "git" => "git",
-            "shell" => "shell",
-            "pressure" => "pressure",
-            "ignite" => "autoi",
-            "cockpit" => "cockpit",
-            "intercom" => "intercom",
-            "browser" => "браузер",
-            "kb" => "KB",
-            "find" => "поиск",
-            "replace" or "create" or "append" or "delete" => "правка",
-            _ => verb.Trim().ToLowerInvariant()
-        };
-    }
+        TimeSpan? elapsed = null) =>
+        CitizenHandsReceipt.FormatTip(executed, elapsed);
 
     /// <summary>
     /// @frame desk / Autoi charge mirrored as Citizen — instrument dump, not human Radio.
@@ -273,18 +143,6 @@ internal static partial class CitizenIntercomHumanSurface
             return true;
 
         return false;
-    }
-
-    static string OneLine(string? s, int max)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-            return "";
-        var t = s.Replace('\r', ' ').Replace('\n', ' ').Trim();
-        while (t.Contains("  ", StringComparison.Ordinal))
-            t = t.Replace("  ", " ", StringComparison.Ordinal);
-        if (t.Length > max)
-            t = t[..(max - 1)] + "…";
-        return t;
     }
 
     [GeneratedRegex(@"^(kind|id|ack|pulse)\s*\|\s", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
