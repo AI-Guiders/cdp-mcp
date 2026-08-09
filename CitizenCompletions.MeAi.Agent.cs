@@ -12,6 +12,7 @@ namespace CdpMcp;
 /// <summary>
 /// Face Completions MEAI agent pipe — whole CDP catalog as AIFunctions + cdp_call dispatch.
 /// Parity with CascadeIdeMafIdeAgentChat (AsAIAgent), without SoftOrgan invent.
+/// SoftFL throughput (0.5.715): concurrent tool invoke + ChatOptions applied (thinking off / max tokens / multi-tool).
 /// </summary>
 internal static partial class CitizenCompletions
 {
@@ -21,6 +22,46 @@ internal static partial class CitizenCompletions
 
     internal static bool AgentPipeAvailable =>
         TestAgentExecute is not null || IdeCommandModule.IsBound;
+
+    /// <summary>
+    /// Tip-class throughput: FunctionInvokingChatClient with concurrent tool invoke.
+    /// Default MEAI AsAIAgent decorator is serial (AllowConcurrentInvocation=false).
+    /// </summary>
+    internal static IChatClient BuildConcurrentFunctionClient(IChatClient inner) =>
+        new ChatClientBuilder(inner)
+            .UseFunctionInvocation(configure: fic =>
+            {
+                fic.AllowConcurrentInvocation = true;
+                fic.IncludeDetailedErrors = true;
+            })
+            .Build();
+
+    /// <summary>Agent ChatOptions: tools + multi-tool + thinking-off / max tokens (must not discard).</summary>
+    internal static ChatClientAgentOptions BuildFaceAgentOptions(
+        BuiltTurn built,
+        int maxTokens,
+        IList<AITool> tools)
+    {
+        var options = BuildMeAiChatOptions(built, maxTokens);
+        options.Tools = tools;
+        options.AllowMultipleToolCalls = true;
+        options.Instructions = BuildFaceAgentInstructions(built.System);
+        return new ChatClientAgentOptions
+        {
+            Name = "citizen-face",
+            ChatOptions = options,
+            // Keep our concurrent FunctionInvoking decorator — do not re-wrap serial default.
+            UseProvidedChatClientAsIs = true
+        };
+    }
+
+    internal static string BuildFaceAgentInstructions(string? system) =>
+        (system ?? "").TrimEnd()
+        + "\n\nHabitat tools: use only listed functions. SoftFL desk work: prefer @intent after prose (host executes open/buffer/build/test). "
+        + "Named MEAI tools are for dig/verify when listed (open→cdp_open; edit→cdp_buffer). "
+        + "For any other CDP tool call cdp_call(tool_name, args_json). Never invent unlisted tool names. "
+        + "Throughput: when dig needs several independent facts, emit MULTIPLE tool calls in ONE assistant step (parallel). "
+        + "Do not serial-wait one dig tool then another when they do not depend on each other.";
 
     static TurnResult TurnViaMeAiAgent(
         BuiltTurn built,
@@ -37,26 +78,19 @@ internal static partial class CitizenCompletions
             budgetCts.CancelAfter(OverallTimeout);
 
             var applied = new List<CitizenRouteHost.Applied>();
+            var appliedGate = new object();
             var exec = ResolveAgentExecute();
-            var tools = CitizenMeAiAgentTools.BuildWholeCatalog(exec, applied);
-            var options = BuildMeAiChatOptions(built, maxTokens);
-            var instructions = (built.System ?? "").TrimEnd()
-                + "\n\nHabitat tools: use only listed functions. SoftFL desk work: prefer @intent after prose (host executes open/buffer/build/test). "
-                + "Named MEAI tools are for dig/verify when listed (open→cdp_open; edit→cdp_buffer). "
-                + "For any other CDP tool call cdp_call(tool_name, args_json). Never invent unlisted tool names.";
-            AIAgent agent = client.AsAIAgent(
-                instructions: instructions,
-                tools: tools);
+            var tools = CitizenMeAiAgentTools.BuildWholeCatalog(exec, applied, appliedGate);
+            var pipe = BuildConcurrentFunctionClient(client);
+            AIAgent agent = pipe.AsAIAgent(BuildFaceAgentOptions(built, maxTokens, tools));
 
-            // History messages only — system lives in AsAIAgent instructions (CIDE shape).
+            // History messages only — system lives in ChatOptions.Instructions (CIDE/agent shape).
             var messages = BuildMeAiMessages(built)
                 .Where(m => m.Role != MeAiRole.System)
                 .ToList();
             if (messages.Count == 0)
                 messages.Add(new MeAiChat(MeAiRole.User, "(empty)"));
 
-            // ChatOptions MaxOutputTokens still applied via underlying client when supported.
-            _ = options;
             var sw = System.Diagnostics.Stopwatch.StartNew();
             CideHandsLatch.PublishRunning();
             try
@@ -140,17 +174,20 @@ internal static class CitizenMeAiAgentTools
 {
     internal static IList<AITool> BuildWholeCatalog(
         Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
-        List<CitizenRouteHost.Applied> applied)
+        List<CitizenRouteHost.Applied> applied,
+        object? appliedGate = null)
     {
         // Lived 0.5.706 silence: Meta+bare ~95 schemas → timeout/empty.
         // Lived 0.5.707 dogfood: cdp_call-only → model invents cdp_health name → Function failed.
         // Lived 0.5.712 Radio: SoftFL Mentions invents open/edit (not in thin set) → Function failed.
         // Shape: thin habitat named + invent aliases (open/edit) + cdp_call escape.
         // Receipts: SoftOrgan HND via CideHandsLatch (reuse HandsReceipt) — not letter glue.
+        // 0.5.715: appliedGate locks RecordApplied under concurrent tool invoke.
+        appliedGate ??= applied;
         var list = new List<AITool>();
         foreach (var entry in HabitatNamed)
-            list.Add(CreateNamedThinTool(entry, exec, applied));
-        list.Add(CreateCdpCallDispatch(exec, applied));
+            list.Add(CreateNamedThinTool(entry, exec, applied, appliedGate));
+        list.Add(CreateCdpCallDispatch(exec, applied, appliedGate));
         return list;
     }
 
@@ -177,7 +214,8 @@ internal static class CitizenMeAiAgentTools
     static AIFunction CreateNamedThinTool(
         NamedEntry entry,
         Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
-        List<CitizenRouteHost.Applied> applied)
+        List<CitizenRouteHost.Applied> applied,
+        object appliedGate)
     {
         return AIFunctionFactory.Create(
             async (
@@ -197,17 +235,17 @@ internal static class CitizenMeAiAgentTools
                     var args = MergeNamedArgs(args_json, path, op, query, entry.DefaultOp);
                     var outcome = await exec(toolName, args, cancellationToken).ConfigureAwait(false);
                     var clipped = ClipOutcome(outcome, 12_000);
-                    RecordApplied(applied, entry.Name, ok: true, pulse: $"chars={clipped.Length}");
+                    RecordApplied(applied, appliedGate, entry.Name, ok: true, pulse: $"chars={clipped.Length}");
                     return clipped;
                 }
                 catch (OperationCanceledException)
                 {
-                    RecordApplied(applied, entry.Name, ok: false, reason: "отмена");
+                    RecordApplied(applied, appliedGate, entry.Name, ok: false, reason: "отмена");
                     throw;
                 }
                 catch (Exception ex)
                 {
-                    RecordApplied(applied, entry.Name, ok: false, reason: ex.Message);
+                    RecordApplied(applied, appliedGate, entry.Name, ok: false, reason: ex.Message);
                     return $"[{entry.Name}→{toolName}] ошибка: {ex.Message}";
                 }
             },
@@ -248,7 +286,8 @@ internal static class CitizenMeAiAgentTools
 
     static AIFunction CreateCdpCallDispatch(
         Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
-        List<CitizenRouteHost.Applied> applied)
+        List<CitizenRouteHost.Applied> applied,
+        object appliedGate)
     {
         return AIFunctionFactory.Create(
             async (
@@ -261,7 +300,7 @@ internal static class CitizenMeAiAgentTools
                 tool_name = (tool_name ?? "").Trim();
                 if (tool_name.Length == 0)
                 {
-                    RecordApplied(applied, "cdp_call", ok: false, reason: "пустой tool_name");
+                    RecordApplied(applied, appliedGate, "cdp_call", ok: false, reason: "пустой tool_name");
                     return "[cdp_call] ошибка: пустой tool_name";
                 }
 
@@ -271,17 +310,17 @@ internal static class CitizenMeAiAgentTools
                     var args = ParseArgsJson(args_json);
                     var outcome = await exec(tool_name, args, cancellationToken).ConfigureAwait(false);
                     var clipped = ClipOutcome(outcome, 12_000);
-                    RecordApplied(applied, go, ok: true, pulse: $"chars={clipped.Length}");
+                    RecordApplied(applied, appliedGate, go, ok: true, pulse: $"chars={clipped.Length}");
                     return clipped;
                 }
                 catch (OperationCanceledException)
                 {
-                    RecordApplied(applied, go, ok: false, reason: "отмена");
+                    RecordApplied(applied, appliedGate, go, ok: false, reason: "отмена");
                     throw;
                 }
                 catch (Exception ex)
                 {
-                    RecordApplied(applied, go, ok: false, reason: ex.Message);
+                    RecordApplied(applied, appliedGate, go, ok: false, reason: ex.Message);
                     return $"[cdp_call→{tool_name}] ошибка: {ex.Message}";
                 }
             },
@@ -293,18 +332,21 @@ internal static class CitizenMeAiAgentTools
 
     static void RecordApplied(
         List<CitizenRouteHost.Applied> applied,
+        object appliedGate,
         string go,
         bool ok,
         string? pulse = null,
         string? reason = null)
     {
-        applied.Add(new CitizenRouteHost.Applied(
+        var row = new CitizenRouteHost.Applied(
             Raw: go,
             Verb: "agent",
             Ok: ok,
             Go: go,
             Pulse: pulse,
-            Reason: reason));
+            Reason: reason);
+        lock (appliedGate)
+            applied.Add(row);
     }
 
     static IReadOnlyDictionary<string, JsonElement>? JsonArgsToDict(JsonElement arguments)

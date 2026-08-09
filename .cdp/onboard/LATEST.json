@@ -3,12 +3,12 @@
   "title": "onboard \u00B7 cdp-mcp",
   "project_name": "cdp-mcp",
   "root": "D:\\Experiments\\Personal Cursor Folder\\Financial\\software\\open\\cdp-mcp",
-  "updated_utc": "2026-07-28T14:39:48.2781544+00:00",
+  "updated_utc": "2026-08-09T05:40:59.2749112+00:00",
   "profile_hint": "cide",
   "docs": {
     "has_readme": true,
     "has_docs_dir": true,
-    "adr_count": 2,
+    "adr_count": 26,
     "readme_path": "README.md"
   },
   "entrypoints": [
@@ -22,8 +22,22 @@
     {
       "kind": "entrypoint",
       "label": "Program",
+      "path": "CdpDeskTui/Program.cs",
+      "anchor": "[F:CdpDeskTui/Program.cs;M:Program]",
+      "score": 100
+    },
+    {
+      "kind": "entrypoint",
+      "label": "Program",
       "path": "tools/CdpProbe/Program.cs",
       "anchor": "[F:tools/CdpProbe/Program.cs;M:Program]",
+      "score": 100
+    },
+    {
+      "kind": "entrypoint",
+      "label": "Program",
+      "path": "tools/_citizen_run_probe/Program.cs",
+      "anchor": "[F:tools/_citizen_run_probe/Program.cs;M:Program]",
       "score": 100
     },
     {
@@ -35,84 +49,70 @@
     },
     {
       "kind": "entrypoint",
-      "label": "IdeIgniteArmHost.Api",
-      "path": "IdeIgniteArmHost.Api.cs",
-      "anchor": "[F:IdeIgniteArmHost.Api.cs;M:IdeIgniteArmHost.Api]",
+      "label": "CdpPluginQuarantine.Host",
+      "path": "CdpPluginQuarantine.Host.cs",
+      "anchor": "[F:CdpPluginQuarantine.Host.cs;M:CdpPluginQuarantine.Host]",
       "score": 70
     },
     {
       "kind": "entrypoint",
-      "label": "IdeIgniteArmHost",
-      "path": "IdeIgniteArmHost.cs",
-      "anchor": "[F:IdeIgniteArmHost.cs;M:IdeIgniteArmHost]",
+      "label": "CitizenIntentRouter.CockpitHost",
+      "path": "CitizenIntentRouter.CockpitHost.cs",
+      "anchor": "[F:CitizenIntentRouter.CockpitHost.cs;M:CitizenIntentRouter.CockpitHost]",
       "score": 70
     },
     {
       "kind": "entrypoint",
-      "label": "IdeIgniteArmHost.Delivery",
-      "path": "IdeIgniteArmHost.Delivery.cs",
-      "anchor": "[F:IdeIgniteArmHost.Delivery.cs;M:IdeIgniteArmHost.Delivery]",
+      "label": "CitizenRouteHost.Analysis",
+      "path": "CitizenRouteHost.Analysis.cs",
+      "anchor": "[F:CitizenRouteHost.Analysis.cs;M:CitizenRouteHost.Analysis]",
       "score": 70
     },
     {
       "kind": "entrypoint",
-      "label": "IdeIgniteArmHost.Fire",
-      "path": "IdeIgniteArmHost.Fire.cs",
-      "anchor": "[F:IdeIgniteArmHost.Fire.cs;M:IdeIgniteArmHost.Fire]",
+      "label": "CitizenRouteHost.Append",
+      "path": "CitizenRouteHost.Append.cs",
+      "anchor": "[F:CitizenRouteHost.Append.cs;M:CitizenRouteHost.Append]",
       "score": 70
     },
     {
       "kind": "entrypoint",
-      "label": "IdeIgniteArmHost.Models",
-      "path": "IdeIgniteArmHost.Models.cs",
-      "anchor": "[F:IdeIgniteArmHost.Models.cs;M:IdeIgniteArmHost.Models]",
+      "label": "CitizenRouteHost.Arch",
+      "path": "CitizenRouteHost.Arch.cs",
+      "anchor": "[F:CitizenRouteHost.Arch.cs;M:CitizenRouteHost.Arch]",
       "score": 70
     },
     {
       "kind": "entrypoint",
-      "label": "IdeIgniteArmHost.Parse",
-      "path": "IdeIgniteArmHost.Parse.cs",
-      "anchor": "[F:IdeIgniteArmHost.Parse.cs;M:IdeIgniteArmHost.Parse]",
+      "label": "CitizenRouteHost.Browser",
+      "path": "CitizenRouteHost.Browser.cs",
+      "anchor": "[F:CitizenRouteHost.Browser.cs;M:CitizenRouteHost.Browser]",
       "score": 70
     },
     {
       "kind": "entrypoint",
-      "label": "IdeIgniteArmHost.Persist",
-      "path": "IdeIgniteArmHost.Persist.cs",
-      "anchor": "[F:IdeIgniteArmHost.Persist.cs;M:IdeIgniteArmHost.Persist]",
-      "score": 70
-    },
-    {
-      "kind": "entrypoint",
-      "label": "IdeIgniteArmHost.ProviderBlocked",
-      "path": "IdeIgniteArmHost.ProviderBlocked.cs",
-      "anchor": "[F:IdeIgniteArmHost.ProviderBlocked.cs;M:IdeIgniteArmHost.ProviderBlocked]",
-      "score": 70
-    },
-    {
-      "kind": "entrypoint",
-      "label": "IdeIgniteArmHost.Reclaim",
-      "path": "IdeIgniteArmHost.Reclaim.cs",
-      "anchor": "[F:IdeIgniteArmHost.Reclaim.cs;M:IdeIgniteArmHost.Reclaim]",
+      "label": "CitizenRouteHost.Buffer",
+      "path": "CitizenRouteHost.Buffer.cs",
+      "anchor": "[F:CitizenRouteHost.Buffer.cs;M:CitizenRouteHost.Buffer]",
       "score": 70
     }
   ],
   "top_folders": [
     {
       "path": "CdpMcp.Tests",
-      "file_count": 51
+      "file_count": 280
     },
     {
       "path": "Cockpit",
-      "file_count": 43
+      "file_count": 45
     },
     {
       "path": "IntentWorkspace",
-      "file_count": 10
+      "file_count": 24
     },
     {
       "path": "tools",
-      "file_count": 6
+      "file_count": 7
     },
     {
       "path": "CdpMcp.ArchitectureAnalyzers",
@@ -121,24 +121,32 @@
     {
       "path": "Backends",
       "file_count": 4
+    },
+    {
+      "path": "IntercomJournal",
+      "file_count": 3
+    },
+    {
+      "path": "CdpDeskTui",
+      "file_count": 3
     }
   ],
   "verticals": [
     {
       "name": "Cockpit",
-      "file_count": 43,
+      "file_count": 45,
       "sample_path": "Cockpit/Transport/DeskIngestionBus.cs",
       "sample_anchor": "[F:Cockpit/Transport/DeskIngestionBus.cs;M:DeskIngestionBus]"
     },
     {
       "name": "IntentWorkspace",
-      "file_count": 10,
+      "file_count": 24,
       "sample_path": "IntentWorkspace/IdeReportJobRunner.cs",
       "sample_anchor": "[F:IntentWorkspace/IdeReportJobRunner.cs;M:IdeReportJobRunner]"
     },
     {
       "name": "tools",
-      "file_count": 6,
+      "file_count": 7,
       "sample_path": "tools/_mutate_dogfood/Alpha.cs",
       "sample_anchor": "[F:tools/_mutate_dogfood/Alpha.cs;M:Alpha]"
     },
@@ -153,10 +161,22 @@
       "file_count": 4,
       "sample_path": "Backends/MemoryScopeGateway.cs",
       "sample_anchor": "[F:Backends/MemoryScopeGateway.cs;M:MemoryScopeGateway]"
+    },
+    {
+      "name": "IntercomJournal",
+      "file_count": 3,
+      "sample_path": "IntercomJournal/IntercomJournalDbContext.cs",
+      "sample_anchor": "[F:IntercomJournal/IntercomJournalDbContext.cs;M:IntercomJournalDbContext]"
+    },
+    {
+      "name": "CdpDeskTui",
+      "file_count": 3,
+      "sample_path": "CdpDeskTui/DeskFixture.cs",
+      "sample_anchor": "[F:CdpDeskTui/DeskFixture.cs;M:DeskFixture]"
     }
   ],
   "solutions": [],
-  "csproj_count": 6,
-  "files_scanned": 330,
+  "csproj_count": 8,
+  "files_scanned": 1139,
   "truncated": false
 }

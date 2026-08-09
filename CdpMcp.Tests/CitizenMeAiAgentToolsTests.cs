@@ -110,4 +110,26 @@ public sealed class CitizenMeAiAgentToolsTests
         Assert.Contains("edited", result?.ToString() ?? "", StringComparison.Ordinal);
         Assert.Equal("edit", applied[0].Go);
     }
+
+    [Fact]
+    public async Task Concurrent_tool_invokes_lock_Applied_receipts()
+    {
+        var applied = new List<CitizenRouteHost.Applied>();
+        var gate = new object();
+        Task<string> Exec(string name, IReadOnlyDictionary<string, System.Text.Json.JsonElement>? args, CancellationToken ct) =>
+            Task.Delay(20, ct).ContinueWith(_ => $"ok:{name}", ct);
+
+        var tools = CitizenMeAiAgentTools.BuildWholeCatalog(Exec, applied, gate);
+        var health = Assert.IsAssignableFrom<AIFunction>(
+            tools.Single(t => string.Equals(t.Name, "cdp_health", StringComparison.OrdinalIgnoreCase)));
+        var find = Assert.IsAssignableFrom<AIFunction>(
+            tools.Single(t => string.Equals(t.Name, "find", StringComparison.OrdinalIgnoreCase)));
+
+        await Task.WhenAll(
+            health.InvokeAsync(new AIFunctionArguments { ["args_json"] = "{}" }, cancellationToken: CancellationToken.None).AsTask(),
+            find.InvokeAsync(new AIFunctionArguments { ["query"] = "ExpandWakes" }, cancellationToken: CancellationToken.None).AsTask());
+
+        Assert.Equal(2, applied.Count);
+        Assert.All(applied, a => Assert.True(a.Ok));
+    }
 }
