@@ -251,6 +251,8 @@ North star: **standalone CDP without Cursor** · dialog peer on Glass/Intercom (
 
 ## last_ship
 
+- **2026-08-09 SoftOrgan HandsReceipt Kit (HND chips)** — catalog `hands` · ShortLabel HND · priority 3 · ChipLevel RUNNING→Caution · latch `hands-LATEST.json` from CDP. Letter laundry REJECT (Face SoftOrgan band owns receipt). Cascade SoftOrgan density tests green. Mentions SoftFL alone.
+
 - **2026-08-09 GlassFacePagePolicy SSOT (Face path→page — not situational .md if)** — `GlassFacePagePolicy.Resolve` in GlassCore · OpenCodeFile Face invite calls it · PreferSurface `MarkdownPreview`→`m` (was world) · tests GlassFacePagePolicy+PresentationPmOneOfPolicy **26/26** · live `M · MarkdownPreview` land show note-citizen-persona… · evidence `cascade-ide/tmp-glass-shots/face-md-preview-policy-20260809.png` + `cdp_see`. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · not Glass Done.
 
 - **2026-08-09 SoftFL dual-HCI land/presentation quiet (b1+b3 — not Glass Done)** — nested[axb] FULL-A: `land-LATEST` `show_face` default false · Glass LandSurface tip-only · `OpenCodeFile(showFace)` PreferSurface gate · Disk reload quiet · presentation `PresentationMaySelectMfd(origin,show_face,mfd)` · CDP `NavigationLand`/`CidePresentationLatch` show_face · Avalonia land/presentation projectors parity · tests NavigationLandLatch **3/3** · PresentationPmOneOfPolicy **16/16**. Residual b4 = true dual viewport. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · Sierra densify `@all` not stolen (AllMention regex unblock only).
