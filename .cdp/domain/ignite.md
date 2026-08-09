@@ -95,6 +95,7 @@
 
 ## last_ship
 
+- **2026-08-09 Kit3 Autoi echo filter (0.5.691)** — tip≠Face made Kit2 tip=citizen suppress rare; lived Autoi Composer tip self-echo / Sierra recipient. Ship: `TryUnreadForPf` self-tip (from Who==tip Who) + Face-recipient body (`@Sierra` / → Face Who) while tip harness. Tests Unread_for_pf **5/5**. Mentions SoftFL alone.
 - **2026-08-09 prefer_citizen FocusLane=Face (0.5.690)** — tip Who lane stole citizen Autoi focus after focus-lanes. Ship: `BindCitizenFocusLane` · `TryApplyCitizenFocusLane` on prefer_citizen · Face via `ResolveCitizenFace`. Test CitizenFocusLaneBindTests **1**. SoftFL invent REJECT Mentions.
 - **2026-08-08 Remount suppress under any last_once (0.5.681)** — lived SoftFL: Dialog kb ship → Recover remount pending → Composer remount wake mid SoftFL → Cursor MCP CallTool zombie (ListTools ready, CallTool timeout) while CdpMcp.exe up. Fix: `HasArmedLastOnceInsurance` gates `TryScheduleRemountInitializedWake` (not invent-only only); tip `Recover-CdpSeatRemount.ps1` prefer `-NoStampRemountPending`. Tests invent-only + SoftFL last_once **3/3**. SoftFL invent ACCEPT dig=ignite.md.
 - **2026-08-08 @Kir voice cannon Face SoftFL** — lived: Composer Stop + once intercom-pf arm → silent Remove / no Face (operator «пушка не выстрелила»; полоска-hint = asymmetry urgency not product invent). Ship: first `busy_timeout` → Radio tip once · non-requeue Remove → Face tip + `TryClearFired` so watcher can re-arm. Tests IntercomVoiceCannonStateTests **5/5**. SoftFL invent ACCEPT dig=IntercomVoiceCannonWatcher+ApplyFireOutcome.
