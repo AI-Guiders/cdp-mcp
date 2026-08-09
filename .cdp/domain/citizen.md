@@ -56,6 +56,30 @@
 - Route host: `CitizenRouteHost` / `CitizenIntentRouter`
 - Example: `docs/design/ai-keys.example.toml`
 
+## Agent howto (progressive — Dialog SP stays short)
+
+Dialog persona = constitution (who / standing / dig-after-fail / where to dig syntax). **This card** = organ map + situation playbook. Dig via `@intent domain card=id=citizen` — do not densify encyclopedia back into Dialog SP.
+
+### When unclear (no АААА spray)
+
+1. Say in prose what you do not know.
+2. One dig hand (`files` | `disk_peek` | `find` | `kb` | `domain` | `shell`) **or** one clarifying sentence to the operator.
+3. Then **one** `@intent` — multi-organ shotgun = flee the problem.
+
+### Hands by job (syntax placeholders ≠ leaf)
+
+| Job | Intent sketch |
+|-----|----------------|
+| Dig path on disk | `@intent files` · `disk_peek path=rel/file.cs` · `shell` |
+| Read leaf span | `@intent take path="…" start_line= end_line=` (FULL quoted path from charge/@frame/peer) |
+| Search code | `@intent find query="Needle" where=project` |
+| KB hub → read | `@intent kb list_knowledge_files path=.` then `read_knowledge_file file_path=worlds/…` (no `knowledge/` prefix; `path=` aliases `file_path=`) |
+| Organ / habitat map | `@intent domain card=id=citizen` |
+| Build / test | `@intent build` · `test` |
+| World dig | `@intent browser search q="topic"` |
+
+Paths: from `@frame` / wake charge / peer pulse — never from example laundry. Operator-facing receipt is host `FormatHands` (ok/fail/reason/pulse/elapsed) — prose «Сделала» without Applied = theater.
+
 ## Antipatterns
 
 - Asking the operator «куда стучаться — Intercom или KB?» while already on a Glass CIT/dialog turn — seeming lost; map is in dialog persona.
@@ -83,6 +107,7 @@
 
 ## last_ship
 
+- **2026-08-09 Operator intent receipt human-faced (not StatusText chrome)** — lived: «Сделала KB» opaque; fail hid Reason; pulse tip 36. Ship: `FormatHands` → `ok×N/fail×N` + bullet `verb · ok|fail · reason|pulse(120)|ship` + elapsed in letter; bridge passes `StampedUtc→now`. Domain **Agent howto** (progressive; Dialog stays short). Face mid-flight bubble = next (StatusText alone REJECT as primary). SoftOrgan invent REJECT · Mentions SoftFL alone.
 - **2026-08-09 Host A→B CLOSED (C REJECT)** — one-move close: A1 paste-verify · A2 dig-before-retry · A3 invent halt · A4 junction normalize · B Persona slim DialogSystemPrompt already in tree; verify ResultWake|LeafPath|PersonaNoCodePoison **27/27**. Scratch Next closed. SoftOrgan invent REJECT · SoftFL mill densify invent REJECT · leave Sierra SoftFL `@all` alone. No VoiceCannon SoftFL.
 - **2026-08-09 SoftFL ACCEPT take→Completions ship inject (not Citizen Done)** — lived: Sierra `take … skipped` read as miss; buffer open but Completions never got body (RunTake Pulse-only; MCP pastes `chat_markdown`). Ship: `Applied.Ship` · `TryReadTakeShip` · PeerAck `ship |` block in `@event peer` · pulse `verify=n/a` (not bare `skipped`) + `ship=N`. Tests TakeHost+PeerAck **9/9**. SoftFL invent ACCEPT densify · SoftOrgan invent REJECT · leave Sierra SoftFL `@all` alone.
 - **2026-08-09 KB path dig SoftFL (knowledge/ prefix + wake)** — lived: exact `knowledge/worlds/…` → AN joins `knowledge/knowledge/…` → empty/`missing`; SoftFL take densify while dialog dig. Ship: `NormalizeKnowledgeRelativeFilePath` strip · `path=`→`file_path=` · router bind read on path hint · `peer_ready_kb` (no PASTE take) · Dialog tip. Verify: KbHost+ResultWake+Poison. SoftOrgan invent REJECT · SoftFL mill densify invent REJECT.
