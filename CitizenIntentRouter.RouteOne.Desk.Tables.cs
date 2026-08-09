@@ -22,7 +22,8 @@ internal static partial class CitizenIntentRouter
     static readonly (string Prefix, string Op)[] HealthCompounds = [];
 
     static readonly string[] DialogMemoryAliases =
-        ["dialog_memory", "dialog_history", "citizen_dialog", "forget_context", "amnesia", "forget"];
+        ["dialog_memory", "dialog_history", "citizen_dialog", "forget_context", "amnesia", "forget",
+            "partition", "fork", "persist", "rebuild", "antidote", "unpoison", "adcm"];
     static readonly (string Prefix, string Op)[] DialogMemoryCompounds = [];
 
     static readonly string[] ContextAliases = ["context_desk", "cdp_context", "session_context"];

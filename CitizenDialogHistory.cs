@@ -259,6 +259,7 @@ internal static class CitizenDialogHistory
     }
 
     /// <summary>Afferent line for dialog turns — reminds FM that priors are in context.</summary>
+        /// <summary>Afferent line for dialog turns — ADCM pressure when fat (Prune/Partition/Persist/Rebuild).</summary>
     public static string AfferentLine()
     {
         var msgs = Load();
@@ -268,11 +269,12 @@ internal static class CitizenDialogHistory
             chars += m.Content?.Length ?? 0;
 
         if (pairs <= 0)
-            return "dialog | pairs=0 · fresh thread (still durable after remount) · clear=@intent dialog clear";
+            return "dialog | pairs=0 · fresh thread (still durable after remount) · ADCM=@intent dialog partition|persist|rebuild|clear";
 
-        var tip = pairs >= 4 || chars >= 4_000
-            ? " · fat — @intent dialog clear when confused/slow"
-            : " · clear=@intent dialog clear";
+        var fat = pairs >= 4 || chars >= 4_000;
+        var tip = fat
+            ? " · pressure FAT — Prune=@intent dialog clear · Partition=@intent dialog partition · Persist=@intent dialog persist key= v= · Rebuild=@intent dialog rebuild (anti-poison) · dig=@intent pressure|plan|domain"
+            : " · ADCM=@intent dialog clear|partition|persist|rebuild";
         return $"dialog | pairs={pairs} · msgs={msgs.Count} · chars≈{chars} · prior turns in messages — use them; do not claim amnesia{tip}";
     }
 
