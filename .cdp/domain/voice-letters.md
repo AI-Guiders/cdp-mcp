@@ -30,6 +30,7 @@
 
 ## last_ship
 
+- 2026-08-09 → Voice Letter #205 focus-lanes (`d209eac` dogfood · work_focus_lanes 0.5.689 · cmd=lane Кир↔Sierra).
 - 2026-08-08 → Voice Letter #198 SoftFL @Kir Face Radio tip (`db8fd77a` dogfood · IsKirVoiceCannonFaceTip).
 - 2026-08-05 → Voice Letter #159 named-intent Glass ack=4/4 (`1f2a98f` · DialogNamedIntentSteer + GlassPeerAck dogfood).
 - 2026-08-05 → Voice Letter #160 invent-only hyphen Hold (`62db2da` dogfood · letter after live 3m invent_only_hold).
