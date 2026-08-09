@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 206 | [Face listing Ship · remount mute while busy](voice-letter-face-ship-gate-remount-mute-0.5.693.ru.md) | citizen/ignite · Face Ship gate · remount mute busy · 0.5.693 · 2026-08-09 |
 | 205 | [focus-lanes на общем board](voice-letter-tm-focus-lanes-0.5.689.ru.md) | tm · work_focus_lanes · cmd=lane · 0.5.689 · 2026-08-09 |
 | 204 | [tip ≠ Face — Cursor tip и Sierra Face сосуществуют](voice-letter-intercom-tip-ne-face-0.5.688.ru.md) | intercom · tip≠Face · 0.5.688 · 2026-08-09 |
 | 203 | [HybridIndex: BoardLeaf снова слышен в FTS](voice-letter-hybridindex-camelcase-fts.ru.md) | glass · HybridIndex CamelCase/FTS · Core 0.1.3 · 2026-08-08 |
