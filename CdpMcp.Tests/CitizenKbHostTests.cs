@@ -38,6 +38,26 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
+    public void Route_kb_domains_path_binds_skill_facet()
+    {
+        var r = CitizenIntentRouter.RouteOne(
+            "kb read_knowledge_file file_path=domains/agent-operations/note-equal-standing-index-v1.md");
+        Assert.True(r.Ok);
+        Assert.Equal("read_knowledge_file", r.Op);
+        Assert.Equal(CdpDomains.MemorySkill, r.Server);
+    }
+
+    [Fact]
+    public void Route_kb_readknowledgefile_underscore_stripped_normalizes()
+    {
+        var r = CitizenIntentRouter.RouteOne(
+            "kb readknowledgefile file_path=domains/agent-operations/note-equal-standing-index-v1.md");
+        Assert.True(r.Ok);
+        Assert.Equal("read_knowledge_file", r.Op);
+        Assert.Equal(CdpDomains.MemorySkill, r.Server);
+    }
+
+    [Fact]
     public void NormalizeKnowledgeRelativeFilePath_strips_knowledge_prefix()
     {
         Assert.Equal(

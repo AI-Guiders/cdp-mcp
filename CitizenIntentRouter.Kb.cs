@@ -82,6 +82,12 @@ internal static partial class CitizenIntentRouter
             or "read_card" or "write_card" or "upsert_section" or "analytics_upsert")
             facet = Cdp.Core.CdpDomains.MemoryTask;
 
+        // Path prefix → notes facet (skill roots=domains|templates; world=worlds|META|.).
+        // Lived SoftFL: bare kb + domains/… defaulted world → outside roots → Hands FAIL + empty Radio.
+        if (tool is "read_knowledge_file" or "list_knowledge_files" or "knowledge_tags"
+            && InferNotesFacetFromPath(filePathHint) is { } pathFacet)
+            facet = pathFacet;
+
         if (!IsKbToolForFacet(tool, facet))
             // Keep Op/Server so host can tip pulse (pulse=null → SoftFL invent "missing tool").
             return new Route(Verb.Unknown, raw, Ok: false, Op: tool, Server: facet, Go: "kb", Reason: "kb_tool_unknown");
@@ -194,6 +200,29 @@ internal static partial class CitizenIntentRouter
             _ => "list_pack"
         };
 
+    /// <summary>
+    /// Infer notes facet from knowledge-relative path prefix.
+    /// <c>domains/</c> → skill (DefaultSkillRoots); not world.
+    /// </summary>
+    internal static string? InferNotesFacetFromPath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return null;
+        var n = path.Replace('\\', '/').Trim().TrimStart('/');
+        if (n.StartsWith("knowledge/", StringComparison.OrdinalIgnoreCase))
+            n = n["knowledge/".Length..];
+        if (n.StartsWith("domains/", StringComparison.OrdinalIgnoreCase)
+            || n.StartsWith("templates/", StringComparison.OrdinalIgnoreCase))
+            return Cdp.Core.CdpDomains.MemorySkill;
+        if (n.StartsWith("work/", StringComparison.OrdinalIgnoreCase)
+            || n.StartsWith("personal/", StringComparison.OrdinalIgnoreCase))
+            return Cdp.Core.CdpDomains.MemoryProject;
+        if (n.StartsWith("worlds/", StringComparison.OrdinalIgnoreCase)
+            || n.StartsWith("META/", StringComparison.OrdinalIgnoreCase))
+            return Cdp.Core.CdpDomains.MemoryWorld;
+        return null;
+    }
+
     /// <summary>Operator/colloquial KB path — bind read (host strips leading knowledge/).</summary>
     internal static bool LooksLikeKnowledgeFilePath(string? path)
     {
@@ -218,9 +247,11 @@ internal static partial class CitizenIntentRouter
             "procedure" => "get_procedure",
             "list" or "pack" => "list_pack",
             "radius" or "gate" => "radius_gate_check",
-            "read" or "file" => "read_knowledge_file",
+            "read" or "file" or "readknowledgefile" or "read_knowledgefile"
+                => "read_knowledge_file",
             "tags" => "knowledge_tags",
-            "files" or "ls" => "list_knowledge_files",
+            "files" or "ls" or "listknowledgefiles" or "list_knowledgefiles"
+                => "list_knowledge_files",
             "hot" or "read_hot" => "read_hot_context",
             "search" or "search_notes" => "search_agent_notes",
             "health" or "memory_health" => "memory_health",

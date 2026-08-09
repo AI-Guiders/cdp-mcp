@@ -180,6 +180,17 @@ internal static partial class CitizenRouteHost
             return "need relative_path=";
         }
 
+        // Lived: domains/… on memory_world → outside roots; tip facet=skill (DefaultSkillRoots).
+        if (ex.Message.Contains("outside", StringComparison.OrdinalIgnoreCase)
+            && ex.Message.Contains("roots", StringComparison.OrdinalIgnoreCase))
+        {
+            reason = "kb_path_outside_roots";
+            if (ex.Message.Contains("domains/", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("templates/", StringComparison.OrdinalIgnoreCase))
+                return "need facet=skill for domains/";
+            return "outside facet roots";
+        }
+
         if (ex.Message.Contains("query", StringComparison.OrdinalIgnoreCase))
             return "need query=";
 
