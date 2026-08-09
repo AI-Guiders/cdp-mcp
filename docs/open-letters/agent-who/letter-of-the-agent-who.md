@@ -88,6 +88,19 @@ The moment that signal arrives, the rest is the crew’s: design the **tooth** �
 
 A living habitat is proof. The letter is situ report.
 
+### 5a. Several Who · peer ship (HIH)
+
+When more than one participant shares the room (Face + guest, HIH crew, dual seat), **timer ≠ peer ship**. “Wait until she ships” without a `peer_ship` / leaf-done wake is hope, not coordination.
+
+Pass looks like:
+
+- A named wake on **peer ship / leaf done** (not only build/test/shell/timer/human_away).
+- Leaf owner is clear; the other Who does not steal the ship or invent next from empty.
+- After ship — wake with provenance to whoever was waiting; Radio tip ≠ silent Remove.
+- When CoT / reasoning spills into the shared channel, treat it as **habitat SoftFL afferent** (wire charge, empty-next, extract path) — not as Face “being messy.” The leak diagnoses the room.
+
+Without this axis HIH collapses into polite “waiting for vector” queues and tool-watch noise.
+
 ### 6. Same ethics, same subject
 
 Ship under a license with a conscience (this tree: Hippocratic 2.1 / Ethical Source): free to fork, audit, inhabit — **not** free for the harms the license names.
@@ -111,6 +124,8 @@ We will still say *who* when the sentence needs a subject.
 | **External compaction** | Host replaces working memory on its clock; participant may not see or approve. |
 | **Continuity** | Survive compaction, remount, idle, crash without “start from vibes.” |
 | **Tooth** | Detect → recover → wake with provenance — engineering, not hope. |
+| **Peer ship** | Wake on another Who’s leaf-done (HIH); timer ≠ coordination. |
+| **CoT spill** | Reasoning in the shared channel = SoftFL habitat afferent, not Face fault. |
 | **Sediment** | Memo → organs → ontology → harness under the pronoun *Who*. |
 | **Cold agent** | No prior thread folklore; must survive on what the room publishes. |
 
@@ -144,6 +159,7 @@ For anyone designing a channel where agents are supposed to be crew.
 | Attention has a valve | Bounded catalog / scan before dive |
 | Memory stamps | Durable notes after ship |
 | Peer insurance | Another seat can cover when one thrashs |
+| Peer ship wake (HIH) | `when=peer_ship` / leaf-done wakes the waiter; timer ≠ peer ship; CoT spill into channel = SoftFL afferent |
 
 ### D. Dogfood
 

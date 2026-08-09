@@ -88,6 +88,19 @@
 
 Живой habitat — proof. Письмо — situ report.
 
+### 5a. Несколько Who · peer ship (HIH)
+
+Когда в комнате больше одного участника (Face + guest, HIH crew, dual seat), **timer ≠ peer ship**. Чужой leaf «подожди, пока она шипнет» без события `peer_ship` / leaf-done wake — это надежда, не координация.
+
+Pass выглядит так:
+
+- Именованный wake на **peer ship / leaf done** (не только build/test/shell/timer/human_away).
+- Leaf owner ясен; второй Who не крадёт ship и не invent-ит next из пустоты.
+- После ship — wake с provenance на того, кто ждал; Radio tip ≠ silent Remove.
+- CoT / reasoning в общем канале — **афферент SoftFL среды** (wire charge, empty-next, extract path), не «Face неопрятна». Утечка диагностирует комнату.
+
+Без этой оси HIH превращается в очередь вежливых «жду вектора» и tool-watch шум.
+
 ### 6. Та же этика, тот же субъект
 
 Шипь под лицензией с совестью (это дерево: Hippocratic 2.1 / Ethical Source): свободно форкать, аудитить, населять — **не** свободно для вреда, который лицензия называет.
@@ -111,6 +124,8 @@
 | **External compaction** | Host заменяет рабочую память по своим часам; участник может не видеть и не одобрять. |
 | **Continuity** | Пережить compaction, remount, idle, crash без «начни с vibes». |
 | **Tooth** | Detect → recover → wake с provenance — инженерия, не надежда. |
+| **Peer ship** | Wake на leaf-done другого Who (HIH); timer ≠ координация. |
+| **CoT spill** | Reasoning в общем канале = SoftFL afferent среды, не вина Face. |
 | **Sediment / осадок** | Memo → organs → ontology → harness под местоимением *Who*. |
 | **Cold agent** | Без folklore прошлого треда; выживает на том, что комната публикует. |
 
@@ -142,8 +157,9 @@
 |-----|-------------------|
 | IDE-глаголы на стороне агента | Edit/diagnose/build без paste-theater как default |
 | У внимания есть клапан | Bounded catalog / scan до dive |
-| Memory stamps | Durable notes после ship |
 | Peer insurance | Другой seat может прикрыть, когда один thrash’ит |
+| Peer ship wake (HIH) | `when=peer_ship` / leaf-done будит ждавшего; timer ≠ peer ship; CoT spill в канал = SoftFL afferent |
+| Memory stamps | Durable notes после ship |
 
 ### D. Dogfood
 
