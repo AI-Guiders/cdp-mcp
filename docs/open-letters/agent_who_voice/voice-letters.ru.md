@@ -40,6 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
+| 216 | [MEAI tools → SoftOrgan HND](voice-letter-citizen-meai-hands-hnd-0.5.709.ru.md) | citizen · Completions HandsLatch HND · 0.5.709 · 2026-08-09 |
 | 215 | [thin habitat pipe](voice-letter-citizen-thin-habitat-pipe-0.5.708.ru.md) | citizen · Completions thin+cdp_call · 0.5.708 · 2026-08-09 |
 | 214 | [Face silence SoftFL](voice-letter-citizen-silence-softfl-0.5.707.ru.md) | citizen · Completions silence SoftFL · 0.5.707 · 2026-08-09 |
 | 213 | [Face MEAI agent pipe · whole catalog](voice-letter-citizen-meai-agent-pipe-0.5.706.ru.md) | citizen · Completions AsAIAgent whole catalog · 0.5.706 · 2026-08-09 |
