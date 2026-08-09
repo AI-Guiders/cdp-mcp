@@ -38,7 +38,13 @@ internal static class CitizenPeerAck
     static DateTimeOffset? LastStampedUtc;
     static bool DiskHydrated;
 
-    public sealed record Result(string Peer, string Event, int Applied, int Dropped, int Generation);
+    public sealed record Result(
+        string Peer,
+        string Event,
+        int Applied,
+        int Dropped,
+        int Generation,
+        CitizenHandKind HandKind = CitizenHandKind.Unknown);
 
     /// <summary>Test hook: redirect latch root (shares voice latch override when set).</summary>
     internal static string? RootOverrideForTests { get; set; }
@@ -129,6 +135,7 @@ internal static class CitizenPeerAck
         int gen;
         string peer;
         string ev;
+        var handKind = CitizenHandKindClassifier.Dominant(executed);
         lock (Gate)
         {
             EnsureHydrated();
@@ -142,7 +149,7 @@ internal static class CitizenPeerAck
             PersistLocked();
         }
 
-        return new Result(peer, ev, applied, dropped, gen);
+        return new Result(peer, ev, applied, dropped, gen, handKind);
     }
 
     static void EnsureHydrated()

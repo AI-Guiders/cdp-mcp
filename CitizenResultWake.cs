@@ -14,13 +14,11 @@ namespace CdpMcp;
 /// </summary>
 internal static class CitizenResultWake
 {
-    /// <summary>Absolute quoted path — relative leaf dies when project_root=cdp-mcp (spaces OK via quotes).</summary>
-    public const string LeafTakePath =
-        "D:/Experiments/Personal Cursor Folder/Financial/software/open/cascade-ide/CascadeIDE.GlassCore/Intercom/GlassIntercomMention.cs";
+    /// <summary>Absolute quoted path — SoftFL leaf SSOT (<see cref="CitizenSoftFlLeaf"/>).</summary>
+    public static string LeafTakePath => CitizenSoftFlLeaf.Current.Path;
 
-    /// <summary>Copy-paste line Completions must emit — not a buried leaf= hint.</summary>
-    public const string LeafTakeIntent =
-        "@intent take path=\"" + LeafTakePath + "\" start_line=60 end_line=120";
+    /// <summary>Copy-paste dig line — from leaf SSOT dig span (not SoftFL apply).</summary>
+    public static string LeafTakeIntent => CitizenSoftFlLeaf.FormatDigTakeIntent();
 
     /// <summary>Host gate A1: quotes + slash + known junction mangles (not Persona prose).</summary>
     public static string NormalizeTakePath(string path)
@@ -53,7 +51,7 @@ internal static class CitizenResultWake
             || file.StartsWith("CitizenRouteHost", StringComparison.OrdinalIgnoreCase);
     }
 
-    public const string PasteVerifyRefuseReason =
+    public static string PasteVerifyRefuseReason =>
         "paste_verify_leaf — invent basename refused; PASTE exactly: "
         + LeafTakeIntent
         + " · dig=@intent files|disk_peek before retry (host gate A1; rewrite thrash REJECT)";
@@ -99,10 +97,18 @@ internal static class CitizenResultWake
         return p;
     }
 
-    public const string PeerReadyCharge =
-        "reason=peer_ready — hands returned; verify @event peer pulse. PASTE next hand exactly: "
-        + LeafTakeIntent
-        + " — find≠next hand; do not invent CascadeIDE.cs / *Host.cs / GlassIntercom.cs / dialog-history basenames; Radio alone ≠ done; Radio only if stuck (one fact).";
+    /// <summary>
+    /// SoftFL apply — default peer_ready after hands. Formats from <see cref="CitizenSoftFlLeaf"/> SSOT
+    /// (not Mentions prose as sole identity). Dig take stays dig/retry only.
+    /// </summary>
+    public static string PeerReadyCharge
+    {
+        get
+        {
+            CitizenSoftFlLeaf.EnsureMentionsDefault();
+            return CitizenSoftFlLeaf.FormatApplyCharge();
+        }
+    }
 
     /// <summary>
     /// SoftFL 2026-08-09: rare true-open (no SoftFL leaf named). Anti-invent only.
@@ -113,24 +119,24 @@ internal static class CitizenResultWake
         + "Do not invent take path. One Radio fact OK. "
         + "Partner «меняй» / known SoftFL on board ≠ wait vector — dig TM or PASTE leaf when charge names it. find≠fabricate next.";
 
-    public const string PeerReadyRetryCharge =
+    public static string PeerReadyRetryCharge =>
         "reason=peer_ready_retry — hand dropped/failed; result is still a result. PASTE exactly: "
         + LeafTakeIntent
         + ". find≠escape. invent CascadeIDE.cs / *Host.cs / dialog-history basenames ≠ densify.";
 
-    public const string PeerReadyRetry2Charge =
+    public static string PeerReadyRetry2Charge =>
         "reason=peer_ready_retry2 — second densify after drop; PASTE exactly: "
         + LeafTakeIntent
         + ". find≠escape. invent sibling names ≠ densify.";
 
     /// <summary>Host gate A2: invent/FileNotFound → dig organ before take-retry peer_ready.</summary>
-    public const string PeerReadyDigCharge =
+    public static string PeerReadyDigCharge =>
         "reason=peer_ready_dig — invent/FileNotFound; dig first (@intent files|disk_peek|shell). "
         + "Do not invent take basename. After dig evidence, PASTE: "
         + LeafTakeIntent
         + ". peer_ready take without dig = off (host gate A2).";
 
-    public const string PeerReadyInventHaltCharge =
+    public static string PeerReadyInventHaltCharge =>
         "reason=peer_ready_invent_halt — invent budget spent on this leaf; stop take-retry thrash. "
         + "Mentor latch: dig=@intent files|disk_peek then PASTE "
         + LeafTakeIntent
@@ -158,6 +164,25 @@ internal static class CitizenResultWake
         if (t.Equals(CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal))
             return true;
         return t.StartsWith("reason=peer_ready", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Default SoftFL apply charge from leaf SSOT (not dig/retry/kb/next_open).</summary>
+    public static bool IsSoftFlApplyWakeCharge(string? body) =>
+        CitizenSoftFlLeaf.IsApplyWakeCharge(body);
+
+    /// <summary>Dig hand — SoftFL apply not done (prefer <see cref="CitizenPeerAck.Result.HandKind"/>).</summary>
+    public static bool IsDigHand(CitizenPeerAck.Result peerAck) =>
+        peerAck.HandKind == CitizenHandKind.Dig
+        || (peerAck.HandKind == CitizenHandKind.Unknown && IsLeafTakePulseLegacy(peerAck));
+
+    /// <summary>Legacy tip scrape when HandKind unknown (pre-classifier acks / tests).</summary>
+    static bool IsLeafTakePulseLegacy(CitizenPeerAck.Result peerAck)
+    {
+        var tip = peerAck.Peer ?? "";
+        if (tip.Contains("take chars=", StringComparison.OrdinalIgnoreCase))
+            return true;
+        var ev = peerAck.Event ?? "";
+        return ev.Contains("take chars=", StringComparison.OrdinalIgnoreCase);
     }
 
     public static bool IsDigWakeCharge(string? body) =>
@@ -276,11 +301,24 @@ internal static class CitizenResultWake
 
     public static bool IsKbHand(CitizenPeerAck.Result peerAck) => IsKbDrop(peerAck);
 
+    /// <summary>Mutate progress on SoftFL leaf path (tip/event may carry basename).</summary>
+    public static bool SoftFlMutateMatchesLeaf(CitizenPeerAck.Result peerAck)
+    {
+        if (peerAck.HandKind != CitizenHandKind.Mutate)
+            return false;
+        var tip = (peerAck.Peer ?? "") + "\n" + (peerAck.Event ?? "");
+        if (CitizenSoftFlLeaf.MatchesPath(tip))
+            return true;
+        var leafName = Path.GetFileName(CitizenSoftFlLeaf.Current.Path);
+        return tip.Contains(leafName, StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>
-    /// Pick post-hands wake: leaf contour → PASTE leaf; kb → kb dig.
-    /// SoftFL densify 2026-08-09b: default PASTE <see cref="LeafTakeIntent"/> (Mentions SoftFL live),
-    /// not next_open — that overshot into anti-agency («шаг не определён» after partner «меняй»).
-    /// next_open only when wake body already is next_open.
+    /// Pick post-hands wake: leaf contour → SoftFL Mentions apply; kb → kb dig.
+    /// SoftFL densify 2026-08-09c: default PeerReadyCharge = MentionsAll→ExpandWakes PASTE
+    /// (not LeafTakeIntent — take-loop lived). Take stays dig/retry only.
+    /// SoftFL densify 2026-08-09b: not next_open — that overshot into anti-agency
+    /// («шаг не определён» after partner «меняй»). next_open only when wake body already is next_open.
     /// </summary>
     public static string SelectAppliedWakeCharge(
         CitizenPeerAck.Result peerAck,
@@ -349,13 +387,32 @@ internal static class CitizenResultWake
             return TryArmAfterHands(channel, SelectAppliedWakeCharge(peerAck, requestBody));
         }
 
-        // Dig credit satisfied — arm take peer_ready (A2 exit).
+        // Dig credit satisfied — arm SoftFL apply from leaf SSOT (not take-loop).
         if (IsDigWakeCharge(requestBody))
             return TryArmAfterHands(channel, PeerReadyCharge);
 
         // All applied: depth-1 — no chain when body is already a wake charge.
+        // SoftFL systemic: Dig|Radio under apply charge ≠ SoftFL done — re-arm apply.
+        // Mutate on leaf path → NotifyPeerShip (host evidence) + stop.
         if (IsWakeCharge(requestBody))
+        {
+            if (IsSoftFlApplyWakeCharge(requestBody))
+            {
+                if (peerAck.HandKind == CitizenHandKind.Mutate
+                    && SoftFlMutateMatchesLeaf(peerAck))
+                {
+                    IdeIgniteArmHost.NotifyPeerShip(
+                        pulse: "softfl_mutate",
+                        detail: CitizenSoftFlLeaf.Current.Id);
+                    return false;
+                }
+
+                if (IsDigHand(peerAck) || peerAck.HandKind == CitizenHandKind.Radio)
+                    return TryArmAfterHands(channel, PeerReadyCharge);
+            }
+
             return false;
+        }
 
         // Observe ran Completions #2 in-loop — still arm wake #3, but not invent-mine when next open.
         _ = sameTurnObserveRan;

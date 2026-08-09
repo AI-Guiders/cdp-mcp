@@ -42,6 +42,7 @@ internal static class CitizenGlassDialogBridge
     /// </summary>
     internal const string SameTurnObserveUser =
         "@event peer — verify hands from pulse; do not invent refuse. "
+        + "SoftFL leaf SSOT = mutation DoD (not take/read alone). Dig≠done; Mutate on leaf = progress. "
         + "If SoftFL leaf is known (PASTE in charge / live SoftFL): continue that leaf — partner approve ≠ wait vector. "
         + "If truly no leaf named: one Radio fact OK; do not invent take path; find≠fabricate next. "
         + "Radio alone ≠ leaf progress when PASTE leaf is known.";
