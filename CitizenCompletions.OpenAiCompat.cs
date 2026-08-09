@@ -91,6 +91,29 @@ internal static partial class CitizenCompletions
         int maxTokens,
         CancellationToken cancellationToken)
     {
+        // Unit stubs (TestHandler) keep HTTP peel — OpenAI SDK wire != StubHandler SSE/reasoning shape.
+        // Live Face path = official MEAI IChatClient.
+        if (TestHandler is not null)
+            return TurnOpenAiCompatOnceHttp(built, resolved, maxTokens, cancellationToken);
+
+        var client = CitizenMafChatClientFactories.CreateOpenAiCompatibleChatClientOrNull(
+            resolved.ApiKey,
+            resolved.BaseUrl ?? CitizenAiKeys.DefaultOpenAiBaseUrl,
+            resolved.Model,
+            Http);
+        if (client is null)
+            return new TurnResult(false, "no_client", "OpenAI-compat IChatClient factory returned null", null, resolved.Model, resolved.Provider, built, null, null, false);
+
+        using (client as IDisposable)
+            return TurnViaMeAi(built, resolved, client, maxTokens, cancellationToken);
+    }
+
+    static TurnResult TurnOpenAiCompatOnceHttp(
+        BuiltTurn built,
+        Resolved resolved,
+        int maxTokens,
+        CancellationToken cancellationToken)
+    {
         using var turnCts = CreateTurnCts(cancellationToken);
         var url = ChatCompletionsUrl(resolved.BaseUrl!);
         var oaiMessages = new List<object> { new { role = "system", content = built.System } };

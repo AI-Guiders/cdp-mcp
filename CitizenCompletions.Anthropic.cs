@@ -19,6 +19,26 @@ internal static partial class CitizenCompletions
         int maxTokens,
         CancellationToken cancellationToken)
     {
+        if (TestHandler is not null)
+            return TurnAnthropicOnceHttp(built, resolved, maxTokens, cancellationToken);
+
+        var client = CitizenMafChatClientFactories.CreateAnthropicChatClientOrNull(
+            resolved.ApiKey,
+            resolved.Model,
+            Http);
+        if (client is null)
+            return new TurnResult(false, "no_client", "Anthropic IChatClient factory returned null", null, resolved.Model, resolved.Provider, built, null, null, false);
+
+        using (client as IDisposable)
+            return TurnViaMeAi(built, resolved, client, maxTokens, cancellationToken);
+    }
+
+    static TurnResult TurnAnthropicOnceHttp(
+        BuiltTurn built,
+        Resolved resolved,
+        int maxTokens,
+        CancellationToken cancellationToken)
+    {
         using var turnCts = CreateTurnCts(cancellationToken);
         var payload = new Dictionary<string, object?>
         {
