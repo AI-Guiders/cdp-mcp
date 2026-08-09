@@ -7,19 +7,20 @@ internal static partial class IdeTaskManager
     internal static IEnumerable<string> FormatStageTree(
         IReadOnlyList<StageNode> stages,
         Guid? activeStageId,
-        int indent)
+        int indent,
+        IReadOnlySet<Guid>? otherLaneFocusIds = null)
     {
         var roots = stages.Where(s => s.ParentId is null).OrderBy(s => s.Ordinal).ToList();
         foreach (var root in roots)
         {
-            foreach (var line in Walk(root, stages, activeStageId, indent))
+            foreach (var line in Walk(root, stages, activeStageId, indent, otherLaneFocusIds))
                 yield return line;
         }
 
         var ids = stages.Select(s => s.Id).ToHashSet();
         foreach (var orphan in stages.Where(s => s.ParentId is { } p && !ids.Contains(p)).OrderBy(s => s.Ordinal))
         {
-            foreach (var line in Walk(orphan, stages, activeStageId, indent))
+            foreach (var line in Walk(orphan, stages, activeStageId, indent, otherLaneFocusIds))
                 yield return line;
         }
     }
@@ -28,19 +29,23 @@ internal static partial class IdeTaskManager
         StageNode node,
         IReadOnlyList<StageNode> all,
         Guid? activeStageId,
-        int indent)
+        int indent,
+        IReadOnlySet<Guid>? otherLaneFocusIds)
     {
         var pad = new string(' ', indent * 2);
+        var otherLane = otherLaneFocusIds is not null && otherLaneFocusIds.Contains(node.Id);
         var box = node.Status.Equals("done", StringComparison.OrdinalIgnoreCase) ? "[x]"
             : node.Status.Equals("parked", StringComparison.OrdinalIgnoreCase) ? "[-]"
             : node.Status.Equals("deferred", StringComparison.OrdinalIgnoreCase) ? "[~]"
-            : activeStageId == node.Id || node.Status.Equals("active", StringComparison.OrdinalIgnoreCase) ? "[>]"
+            : activeStageId == node.Id ? "[>]"
+            : otherLane ? "[»]"
+            : node.Status.Equals("active", StringComparison.OrdinalIgnoreCase) ? "[>]"
             : "[ ]";
         var wall = FormatWallClockSuffix(node.StartedUtc, node.CompletedUtc, DateTimeOffset.UtcNow);
         yield return $"{pad}|--- {box} {node.Title}{(node.PhaseAffinity is { Length: > 0 } pa ? $" @{pa}" : "")}{(node.Product is { Length: > 0 } pr ? $" #{pr}" : "")}{(node.Executor is { Length: > 0 } ex ? $" ~{ex}" : "")}{wall}";
         foreach (var child in all.Where(s => s.ParentId == node.Id).OrderBy(s => s.Ordinal))
         {
-            foreach (var line in Walk(child, all, activeStageId, indent + 1))
+            foreach (var line in Walk(child, all, activeStageId, indent + 1, otherLaneFocusIds))
                 yield return line;
         }
     }

@@ -31,6 +31,16 @@ internal static partial class IdeRepl
             return (merged, null);
         }
 
+        if (head is "lane" or "focus_lane" or "who_lane")
+        {
+            if (tokens.Count < 2)
+                return (merged, Err("lane needs Who", "lane Кир | lane Sierra | lane clear"));
+            merged["go"] = JsonSerializer.SerializeToElement("plan");
+            merged["go_args"] = JsonSerializer.SerializeToElement(new { lane = tokens[1], op = "lane" });
+            merged["tm_op"] = JsonSerializer.SerializeToElement("lane");
+            return (merged, null);
+        }
+
         if (head is "phase")
         {
             // phase act — set affinity on active task (soft). Session phase: cdp_context.

@@ -57,7 +57,7 @@ internal static partial class IdeRepl
             or "start" or "shipped" or "completed"
             or "drop" or "rm" or "delete"
             or "park" or "parked" or "defer" or "deferred"
-            or "product" or "category" or "executor" or "assignee" or "phase"
+            or "product" or "category" or "executor" or "assignee" or "lane" or "focus_lane" or "phase"
             or "events" or "note" or "review" or "reviews" or "remark" or "remarks" or "rr"
             or "criteria" or "criterion"
             or "start_phase" or "phase_start"

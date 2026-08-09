@@ -49,6 +49,7 @@ internal static partial class IdeTaskManager
             "phase" or "task_phase" => TaskSetPhase(store, state, args),
             "product" or "category" or "task_product" => TaskSetProduct(store, state, args),
             "executor" or "assignee" or "task_executor" => TaskSetExecutor(store, state, args),
+            "lane" or "focus_lane" or "who_lane" => TaskSetLane(store, state, args),
             "start" or "clock_start" => TaskClockStart(store, state, args),
             "shipped" or "completed" => TaskClockShipped(store, state, args),
             "start_phase" or "phase_start" => TaskPhaseStart(store, state, args),

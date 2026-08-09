@@ -90,6 +90,7 @@ internal static partial class IdeTaskManager
         }
 
         var snap = store.TaskManagerSnapshot(state);
+        var otherLanes = store.WorkFocusOtherLaneStageIds(state);
         var lines = new List<string>();
         foreach (var feature in snap.Features)
         {
@@ -97,7 +98,7 @@ internal static partial class IdeTaskManager
             lines.Add($"{mark}{feature.Title}");
             if (!feature.IsActive)
                 continue;
-            foreach (var line in FormatStageTree(feature.Stages, feature.ActiveStageId, indent: 0))
+            foreach (var line in FormatStageTree(feature.Stages, feature.ActiveStageId, indent: 0, otherLanes))
                 lines.Add(line);
         }
 
