@@ -36,9 +36,9 @@ internal static partial class CitizenCompletions
             using var budgetCts = CancellationTokenSource.CreateLinkedTokenSource(turnCts.Token);
             budgetCts.CancelAfter(OverallTimeout);
 
-            var toolTraces = new List<string>();
+            var applied = new List<CitizenRouteHost.Applied>();
             var exec = ResolveAgentExecute();
-            var tools = CitizenMeAiAgentTools.BuildWholeCatalog(exec, toolTraces);
+            var tools = CitizenMeAiAgentTools.BuildWholeCatalog(exec, applied);
             var options = BuildMeAiChatOptions(built, maxTokens);
             var instructions = (built.System ?? "").TrimEnd()
                 + "\n\nHabitat tools: use only listed functions. Prefer named tools when listed. "
@@ -56,21 +56,32 @@ internal static partial class CitizenCompletions
 
             // ChatOptions MaxOutputTokens still applied via underlying client when supported.
             _ = options;
-            var response = agent.RunAsync(messages, cancellationToken: budgetCts.Token)
-                .GetAwaiter()
-                .GetResult();
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            CideHandsLatch.PublishRunning();
+            try
+            {
+                var response = agent.RunAsync(messages, cancellationToken: budgetCts.Token)
+                    .GetAwaiter()
+                    .GetResult();
 
-            var text = ExtractAgentText(response);
-            // Letter stays prose — tool receipt ≠ SoftOrgan invent; do not glue traces into Radio.
+                var text = ExtractAgentText(response);
+                // Letter stays prose — SoftOrgan HND owns tool receipts (reuse HandsLatch).
+                PublishAgentHands(applied, sw.Elapsed);
 
-            var meta = new OpenAiExtract(
-                string.IsNullOrWhiteSpace(text) ? null : text.Trim(),
-                null,
-                false,
-                null,
-                null,
-                null);
-            return FinishText(built, resolved, meta.Text, meta);
+                var meta = new OpenAiExtract(
+                    string.IsNullOrWhiteSpace(text) ? null : text.Trim(),
+                    null,
+                    false,
+                    null,
+                    null,
+                    null);
+                return FinishText(built, resolved, meta.Text, meta);
+            }
+            catch
+            {
+                PublishAgentHands(applied, sw.Elapsed);
+                throw;
+            }
         }
         catch (OperationCanceledException oce)
         {
@@ -80,6 +91,19 @@ internal static partial class CitizenCompletions
         {
             return FailNetwork(built, resolved, ex);
         }
+    }
+
+    static void PublishAgentHands(
+        IReadOnlyList<CitizenRouteHost.Applied> applied,
+        TimeSpan elapsed)
+    {
+        if (applied.Count == 0)
+        {
+            CideHandsLatch.Clear();
+            return;
+        }
+
+        CideHandsLatch.PublishDone(applied, elapsed);
     }
 
     static Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> ResolveAgentExecute()
@@ -115,15 +139,16 @@ internal static class CitizenMeAiAgentTools
 {
     internal static IList<AITool> BuildWholeCatalog(
         Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
-        List<string> toolTraces)
+        List<CitizenRouteHost.Applied> applied)
     {
         // Lived 0.5.706 silence: Meta+bare ~95 schemas → timeout/empty.
         // Lived 0.5.707 dogfood: cdp_call-only → model invents cdp_health name → Function failed.
         // Shape: thin habitat named + cdp_call escape = whole catalog reachability without thrash.
+        // Receipts: SoftOrgan HND via CideHandsLatch (reuse HandsReceipt) — not letter glue.
         var list = new List<AITool>();
         foreach (var name in HabitatNamed)
-            list.Add(CreateNamedThinTool(name, exec, toolTraces));
-        list.Add(CreateCdpCallDispatch(exec, toolTraces));
+            list.Add(CreateNamedThinTool(name, exec, applied));
+        list.Add(CreateCdpCallDispatch(exec, applied));
         return list;
     }
 
@@ -143,7 +168,7 @@ internal static class CitizenMeAiAgentTools
     static AIFunction CreateNamedThinTool(
         string toolName,
         Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
-        List<string> toolTraces)
+        List<CitizenRouteHost.Applied> applied)
     {
         return AIFunctionFactory.Create(
             async (
@@ -151,25 +176,23 @@ internal static class CitizenMeAiAgentTools
                 string? args_json,
                 CancellationToken cancellationToken) =>
             {
-                var header = $"[{toolName}]";
-                toolTraces.Add($"{header} вызов…");
                 try
                 {
                     var args = ParseArgsJson(args_json);
                     var outcome = await exec(toolName, args, cancellationToken).ConfigureAwait(false);
                     var clipped = ClipOutcome(outcome, 12_000);
-                    toolTraces[^1] = $"{header} ok · chars={clipped.Length}";
+                    RecordApplied(applied, toolName, ok: true, pulse: $"chars={clipped.Length}");
                     return clipped;
                 }
                 catch (OperationCanceledException)
                 {
-                    toolTraces[^1] = $"{header} → отмена";
+                    RecordApplied(applied, toolName, ok: false, reason: "отмена");
                     throw;
                 }
                 catch (Exception ex)
                 {
-                    toolTraces[^1] = $"{header} → ошибка: {ex.Message}";
-                    return $"{header} ошибка: {ex.Message}";
+                    RecordApplied(applied, toolName, ok: false, reason: ex.Message);
+                    return $"[{toolName}] ошибка: {ex.Message}";
                 }
             },
             name: toolName,
@@ -178,11 +201,11 @@ internal static class CitizenMeAiAgentTools
 
     static AIFunction CreateCdpCallDispatch(
         Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
-        List<string> toolTraces)
+        List<CitizenRouteHost.Applied> applied)
     {
         return AIFunctionFactory.Create(
             async (
-                [Description("Exact CDP CallTool name (e.g. git_diff, memory_world_get_definition, find)." )]
+                [Description("Exact CDP CallTool name (e.g. git_diff, memory_world_get_definition, find).")]
                 string tool_name,
                 [Description("Optional JSON object of arguments, e.g. {\"path\":\"x.cs\"}. Empty ok.")]
                 string? args_json,
@@ -190,33 +213,51 @@ internal static class CitizenMeAiAgentTools
             {
                 tool_name = (tool_name ?? "").Trim();
                 if (tool_name.Length == 0)
+                {
+                    RecordApplied(applied, "cdp_call", ok: false, reason: "пустой tool_name");
                     return "[cdp_call] ошибка: пустой tool_name";
+                }
 
-                var header = $"[cdp_call→{tool_name}]";
-                toolTraces.Add($"{header} вызов…");
+                var go = "cdp_call→" + tool_name;
                 try
                 {
                     var args = ParseArgsJson(args_json);
                     var outcome = await exec(tool_name, args, cancellationToken).ConfigureAwait(false);
                     var clipped = ClipOutcome(outcome, 12_000);
-                    toolTraces[^1] = $"{header} ok · chars={clipped.Length}";
+                    RecordApplied(applied, go, ok: true, pulse: $"chars={clipped.Length}");
                     return clipped;
                 }
                 catch (OperationCanceledException)
                 {
-                    toolTraces[^1] = $"{header} → отмена";
+                    RecordApplied(applied, go, ok: false, reason: "отмена");
                     throw;
                 }
                 catch (Exception ex)
                 {
-                    toolTraces[^1] = $"{header} → ошибка: {ex.Message}";
-                    return $"{header} ошибка: {ex.Message}";
+                    RecordApplied(applied, go, ok: false, reason: ex.Message);
+                    return $"[cdp_call→{tool_name}] ошибка: {ex.Message}";
                 }
             },
             name: "cdp_call",
             description:
                 "Call any CDP tool by name that is not already listed (git_*/memory_*/cdp_pressure/…). "
                 + "Pass tool_name= exact CallTool id and args_json={{}} or a JSON object. Do not invent unlisted tool names as top-level functions.");
+    }
+
+    static void RecordApplied(
+        List<CitizenRouteHost.Applied> applied,
+        string go,
+        bool ok,
+        string? pulse = null,
+        string? reason = null)
+    {
+        applied.Add(new CitizenRouteHost.Applied(
+            Raw: go,
+            Verb: "agent",
+            Ok: ok,
+            Go: go,
+            Pulse: pulse,
+            Reason: reason));
     }
 
     static IReadOnlyDictionary<string, JsonElement>? JsonArgsToDict(JsonElement arguments)

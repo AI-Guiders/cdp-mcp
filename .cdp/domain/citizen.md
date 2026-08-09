@@ -115,6 +115,8 @@ Paths: from `@frame` / wake charge / peer pulse — never from example laundry. 
 
 ## last_ship
 
+- **2026-08-09 Face MEAI agent tools → SoftOrgan HND (0.5.709)** — tool receipts reuse `CideHandsLatch` / `CitizenHandsReceipt` (HND chips), not letter glue and not invent SoftOrgan. `TurnViaMeAiAgent`: `PublishRunning` → `RecordApplied` on thin habitat/`cdp_call` → `PublishDone`. Letter stays prose. Tests MeAi Applied + HandsLatch **5/5**. Mentions SoftFL alone.
+
 - **2026-08-09 Face pipe thin habitat + cdp_call (0.5.708)** — lived 0.5.707 dogfood: cdp_call-only → model invents top-level `cdp_health` → MEAI `Function failed`. Fix: named thin set (`cdp_health`/`cdp_buffer`/`find`/`cdp_build`/`cdp_shell_run`) + `cdp_call` escape · agent instructions ban invent names. Speech SoftFL 0.5.707 kept (stream fallback). SoftOrgan invent REJECT · Mentions SoftFL alone.
 
 - **2026-08-09 Face silence SoftFL after agent-pipe thrash (0.5.707)** — lived: Света @CIT «НАПИШИ БУКВУ» / Radio Check → Completions `timeout`/`empty_text` → Glass `MarkStatus error` **без письма**. Root: 0.5.706 dumped Meta+bare ~95 schemas every AsAIAgent turn. Fix: `BuildWholeCatalog` = **`cdp_call` only** (весь catalog = reachability) · agent empty/timeout → **stream MeAi fallback** · stop glue toolTraces into letter. Tests catalog **1/1**. SoftOrgan invent REJECT · Mentions SoftFL alone.
