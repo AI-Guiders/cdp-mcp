@@ -91,8 +91,9 @@ internal static partial class CitizenCompletions
         int maxTokens,
         CancellationToken cancellationToken)
     {
-        // Unit stubs (TestHandler) keep HTTP peel — OpenAI SDK wire != StubHandler SSE/reasoning shape.
-        // Live Face path = official MEAI IChatClient.
+        // TestChatClient = MEAI stream path. TestHandler = legacy HTTP stubs (SSE/reasoning shape).
+        if (TestChatClient is not null)
+            return TurnViaMeAi(built, resolved, TestChatClient, maxTokens, cancellationToken);
         if (TestHandler is not null)
             return TurnOpenAiCompatOnceHttp(built, resolved, maxTokens, cancellationToken);
 

@@ -19,6 +19,8 @@ internal static partial class CitizenCompletions
         int maxTokens,
         CancellationToken cancellationToken)
     {
+        if (TestChatClient is not null)
+            return TurnViaMeAi(built, resolved, TestChatClient, maxTokens, cancellationToken);
         if (TestHandler is not null)
             return TurnAnthropicOnceHttp(built, resolved, maxTokens, cancellationToken);
 

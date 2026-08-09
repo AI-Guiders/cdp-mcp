@@ -40,6 +40,9 @@ internal static partial class CitizenCompletions
     /// <summary>Tests: inject handler before Turn; clear in finally.</summary>
     internal static HttpMessageHandler? TestHandler;
 
+    /// <summary>Tests: inject MEAI IChatClient (stream path); wins over TestHandler.</summary>
+    internal static Microsoft.Extensions.AI.IChatClient? TestChatClient;
+
     /// <summary>Tests: force Anthropic key without touching disk.</summary>
     internal static string? TestApiKey;
 
