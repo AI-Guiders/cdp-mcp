@@ -104,6 +104,15 @@ internal static class CitizenResultWake
         + LeafTakeIntent
         + " — find≠next hand; do not invent CascadeIDE.cs / *Host.cs / GlassIntercom.cs / dialog-history basenames; Radio alone ≠ done; Radio only if stuck (one fact).";
 
+    /// <summary>
+    /// SoftFL 2026-08-09 (Citizen pair): next open — do not command invent take.
+    /// Leaf PASTE stays on <see cref="PeerReadyCharge"/> when contour is active.
+    /// </summary>
+    public const string PeerReadyNextOpenCharge =
+        "reason=peer_ready_next_open — hands returned; next unknown. "
+        + "Do not invent take path. One Radio fact OK («next unknown · жду вектора»). "
+        + "Wait operator/mentor vector or PASTE leaf when charge names it. find≠fabricate next.";
+
     public const string PeerReadyRetryCharge =
         "reason=peer_ready_retry — hand dropped/failed; result is still a result. PASTE exactly: "
         + LeafTakeIntent
@@ -242,6 +251,47 @@ internal static class CitizenResultWake
         !string.IsNullOrWhiteSpace(body)
         && body.Contains("reason=peer_ready_kb", StringComparison.Ordinal);
 
+    public static bool IsNextOpenWakeCharge(string? body) =>
+        !string.IsNullOrWhiteSpace(body)
+        && body.Trim().StartsWith("reason=peer_ready_next_open", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Leaf SoftFL contour still wants PASTE <see cref="LeafTakeIntent"/>.</summary>
+    public static bool IsLeafContourCharge(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return false;
+        if (IsDigWakeCharge(body) || IsRetryWakeCharge(body) || IsRetry2WakeCharge(body)
+            || IsInventHaltWakeCharge(body))
+            return true;
+        var t = body.Trim();
+        if (t.StartsWith("reason=peer_ready_next_open", StringComparison.OrdinalIgnoreCase))
+            return false;
+        if (t.StartsWith("reason=peer_ready_kb", StringComparison.OrdinalIgnoreCase))
+            return false;
+        if (t.StartsWith("reason=peer_ready", StringComparison.OrdinalIgnoreCase))
+            return true;
+        return t.Contains(LeafTakePath, StringComparison.OrdinalIgnoreCase)
+            || t.Contains(LeafTakeIntent, StringComparison.Ordinal);
+    }
+
+    public static bool IsKbHand(CitizenPeerAck.Result peerAck) => IsKbDrop(peerAck);
+
+    /// <summary>
+    /// Pick post-hands wake: leaf contour → PASTE leaf; kb → kb dig; else next open (no invent mine).
+    /// </summary>
+    public static string SelectAppliedWakeCharge(
+        CitizenPeerAck.Result peerAck,
+        string? requestBody)
+    {
+        if (IsDigWakeCharge(requestBody))
+            return PeerReadyCharge;
+        if (IsKbHand(peerAck) || IsKbWakeCharge(requestBody))
+            return PeerReadyKbCharge;
+        if (IsLeafContourCharge(requestBody))
+            return PeerReadyCharge;
+        return PeerReadyNextOpenCharge;
+    }
+
     /// <summary>
     /// Unified result-wake after host-execute. Call sites: Bridge, Autoi hands, <c>cdp_citizen</c> turn.
     /// </summary>
@@ -291,7 +341,7 @@ internal static class CitizenResultWake
 
             if (IsWakeCharge(requestBody))
                 return TryArmAfterHands(channel, FormatDropCharge(PeerReadyRetryCharge, peerAck));
-            return TryArmAfterHands(channel, PeerReadyCharge);
+            return TryArmAfterHands(channel, SelectAppliedWakeCharge(peerAck, requestBody));
         }
 
         // Dig credit satisfied — arm take peer_ready (A2 exit).
@@ -302,9 +352,9 @@ internal static class CitizenResultWake
         if (IsWakeCharge(requestBody))
             return false;
 
-        // Observe ran Completions #2 in-loop — still arm peer_ready for #3 (contour self-flight).
+        // Observe ran Completions #2 in-loop — still arm wake #3, but not invent-mine when next open.
         _ = sameTurnObserveRan;
-        return TryArmAfterHands(channel, PeerReadyCharge);
+        return TryArmAfterHands(channel, SelectAppliedWakeCharge(peerAck, requestBody));
     }
 
     /// <summary>

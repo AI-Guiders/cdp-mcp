@@ -80,10 +80,10 @@ public sealed class CitizenInventedHandsTests
             using (var afterHands = System.Text.Json.JsonDocument.Parse(
                        File.ReadAllText(CitizenGlassDialogBridge.RequestPath)))
             {
-                // Observe ran — still arms peer_ready for Completions #3 (contour self-flight).
+                // Observe ran — arms next-open for Completions #3 (no invent take mine).
                 Assert.Equal("pending", afterHands.RootElement.GetProperty("status").GetString());
                 Assert.Equal(
-                    CitizenResultWake.PeerReadyCharge,
+                    CitizenResultWake.PeerReadyNextOpenCharge,
                     afterHands.RootElement.GetProperty("body").GetString());
             }
 

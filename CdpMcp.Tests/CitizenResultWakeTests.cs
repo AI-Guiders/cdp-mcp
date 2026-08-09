@@ -45,10 +45,12 @@ public sealed class CitizenResultWakeTests : IDisposable
         Assert.Contains(CitizenResultWake.LeafTakePath, CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("PASTE", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("dialog-history basenames", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
-        Assert.Contains("Radio alone", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
+        Assert.Contains("next unknown", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
         Assert.DoesNotContain("One short Radio letter", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
-        Assert.Contains("find≠next hand", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
-        Assert.DoesNotContain("take|replace|find", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
+        Assert.Contains("find≠fabricate next", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
+        Assert.DoesNotContain("Next hand now", CitizenGlassDialogBridge.SameTurnObserveUser, StringComparison.Ordinal);
+        Assert.Contains("жду вектора", CitizenResultWake.PeerReadyNextOpenCharge, StringComparison.Ordinal);
+        Assert.DoesNotContain(CitizenResultWake.LeafTakePath, CitizenResultWake.PeerReadyNextOpenCharge, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -68,12 +70,12 @@ public sealed class CitizenResultWakeTests : IDisposable
     [Fact]
     public void AfterHands_arms_when_same_turn_observe_ran()
     {
-        // Contour: Completions #2 observe ≠ stop — arm peer_ready for #3.
+        // Contour: Completions #2 observe ≠ stop — arm next-open for #3 when leaf not PASTE'd.
         Assert.True(CitizenResultWake.AfterHands(SampleAck, sameTurnObserveRan: true, requestBody: "hands"));
 
         using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("pending", doc.RootElement.GetProperty("status").GetString());
-        Assert.Equal(CitizenResultWake.PeerReadyCharge, doc.RootElement.GetProperty("body").GetString());
+        Assert.Equal(CitizenResultWake.PeerReadyNextOpenCharge, doc.RootElement.GetProperty("body").GetString());
     }
 
     [Fact]
@@ -163,6 +165,22 @@ public sealed class CitizenResultWakeTests : IDisposable
     }
 
     [Fact]
+    public void AfterHands_kb_applied_arms_kb_not_mention_take()
+    {
+        var applied = new CitizenPeerAck.Result(
+            "ack=1/1 kb memory_world read_knowledge_file ok",
+            "intent_ack",
+            1,
+            0,
+            1);
+        Assert.True(CitizenResultWake.AfterHands(applied, requestBody: "сходи в knowledge"));
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
+        Assert.Equal(CitizenResultWake.PeerReadyKbCharge, doc.RootElement.GetProperty("body").GetString());
+        Assert.DoesNotContain(CitizenResultWake.LeafTakePath, doc.RootElement.GetProperty("body").GetString()!, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AfterHands_noops_on_retry2_charge_even_with_drops()
     {
         var dropped = new CitizenPeerAck.Result("ack=0/1", "intent_dropped", 0, 1, 1);
@@ -172,18 +190,18 @@ public sealed class CitizenResultWakeTests : IDisposable
     }
 
     [Fact]
-    public void AfterHands_arms_peer_ready_when_latch_clear()
+    public void AfterHands_arms_next_open_when_latch_clear()
     {
         Assert.True(CitizenResultWake.AfterHands(SampleAck, channel: "radio", requestBody: "hands"));
 
         using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("pending", doc.RootElement.GetProperty("status").GetString());
-        Assert.Equal(CitizenResultWake.PeerReadyCharge, doc.RootElement.GetProperty("body").GetString());
+        Assert.Equal(CitizenResultWake.PeerReadyNextOpenCharge, doc.RootElement.GetProperty("body").GetString());
         Assert.Equal("radio", doc.RootElement.GetProperty("channel").GetString());
     }
 
     [Fact]
-    public void AfterHands_arms_when_latch_status_done()
+    public void AfterHands_arms_next_open_when_latch_status_done()
     {
         WriteLatch("done00000001", "hands please", "done");
 
@@ -191,6 +209,17 @@ public sealed class CitizenResultWakeTests : IDisposable
 
         using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("pending", doc.RootElement.GetProperty("status").GetString());
+        Assert.Equal(CitizenResultWake.PeerReadyNextOpenCharge, doc.RootElement.GetProperty("body").GetString());
+    }
+
+    [Fact]
+    public void AfterHands_leaf_contour_keeps_paste_take()
+    {
+        Assert.True(CitizenResultWake.AfterHands(
+            SampleAck,
+            requestBody: "continue SoftFL densify " + CitizenResultWake.LeafTakePath));
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal(CitizenResultWake.PeerReadyCharge, doc.RootElement.GetProperty("body").GetString());
     }
 

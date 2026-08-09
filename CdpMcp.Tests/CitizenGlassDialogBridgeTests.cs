@@ -75,9 +75,9 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
 
         using (var afterHands = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath)))
         {
-            // Contour densify: observe Completions #2 ran — still arm peer_ready for #3.
+            // Contour densify: observe Completions #2 ran — arm next-open for #3 (leaf not PASTE'd).
             Assert.Equal("pending", afterHands.RootElement.GetProperty("status").GetString());
-            Assert.Equal(CitizenResultWake.PeerReadyCharge, afterHands.RootElement.GetProperty("body").GetString());
+            Assert.Equal(CitizenResultWake.PeerReadyNextOpenCharge, afterHands.RootElement.GetProperty("body").GetString());
         }
 
         // peer_ready pending → second process runs; depth-1 IsWakeCharge stops further arm.
@@ -123,7 +123,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         {
             Assert.Equal("pending", afterHands.RootElement.GetProperty("status").GetString());
             Assert.Equal(
-                CitizenResultWake.PeerReadyCharge,
+                CitizenResultWake.PeerReadyNextOpenCharge,
                 afterHands.RootElement.GetProperty("body").GetString());
         }
 
@@ -132,7 +132,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         using var afterWake = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("done", afterWake.RootElement.GetProperty("status").GetString());
         Assert.Equal(
-            CitizenResultWake.PeerReadyCharge,
+            CitizenResultWake.PeerReadyNextOpenCharge,
             afterWake.RootElement.GetProperty("body").GetString());
     }
 
