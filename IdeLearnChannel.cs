@@ -59,7 +59,11 @@ internal static partial class IdeLearnChannel
             "list" => List(args),
             "recall" or "get" or "peek" => Recall(args),
             "promote" or "export" => Promote(session, args),
-            _ => Fail("unknown_op", "op=scene|stash|list|recall|promote")
+            "xp_scene" or "experience" or "xp" => ExperienceScene(),
+            "xp_record" or "experience_record" => ExperienceRecord(args),
+            "xp_list" or "experience_list" => ExperienceList(args),
+            "xp_position" or "experience_position" or "position" => ExperiencePosition(args),
+            _ => Fail("unknown_op", "op=scene|stash|list|recall|promote|xp_scene|xp_record|xp_list|xp_position")
         };
         PublishGlass();
         return result;
@@ -107,11 +111,13 @@ internal static partial class IdeLearnChannel
             new { go = "learn", label = "Stash", why = "op=stash title= body=" },
             new { go = "learn", label = "List", why = "op=list" },
             new { go = "learn", label = "Promote", why = "op=promote id= [path=]" },
+            new { go = "learn", label = "Habitat XP", why = "op=xp_scene — position Junior→Architect" },
             new { go = "pressure_desk", label = "Pressure", why = "L1 short stash (different)" }
         },
         hint =
             "Lean learning desk: one glance cards from dialogue. " +
             "stash → ws journal (anti-compaction). promote → agent-notes under work/projects/_learn (or path=). " +
+            "xp_* → habitat lived experience / position (any principal; not SoftFL). " +
             "Not findings (file hash memos) and not TM criteria."
     };
 
