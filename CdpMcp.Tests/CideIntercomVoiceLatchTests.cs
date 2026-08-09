@@ -64,6 +64,44 @@ public class CideIntercomVoiceLatchTests : IDisposable
     }
 
     [Fact]
+    public void Unread_for_pf_suppressed_self_tip_when_from_who_equals_tip()
+    {
+        // tip≠Face: Cursor guest tip Кир; human mail stamped as Кир → self-echo Autoi tip.
+        Assert.NotNull(CideIntercomIdentityLatch.Claim(
+            "pf", "Кир", "guest", CideIntercomIdentityLatch.HarnessGuestSlot));
+        CideIntercomVoiceLatch.Publish(
+            "pm", "pf", "hey me", CideIntercomVoiceLatch.OriginHuman, name: "Кир", kind: "guest");
+        Assert.Null(CideIntercomVoiceLatch.TryUnreadForPf());
+        Assert.Null(CideIntercomVoiceLatch.DeskPulseLine());
+    }
+
+    [Fact]
+    public void Unread_for_pf_suppressed_when_body_addresses_face_who()
+    {
+        Assert.NotNull(CideIntercomIdentityLatch.Claim(
+            "pf", "Кир", "guest", CideIntercomIdentityLatch.HarnessGuestSlot));
+        Assert.NotNull(CideIntercomIdentityLatch.Claim(
+            "pf", "Sierra", "citizen", "zai-org/GLM-5.1"));
+        // tip stays harness Кир; Face profile Sierra — @Sierra mail ≠ Cursor cannon.
+        CideIntercomVoiceLatch.Publish(
+            "pm", "pf", "@Sierra kitchen dig", CideIntercomVoiceLatch.OriginHuman, name: "Света", kind: "operator");
+        Assert.Null(CideIntercomVoiceLatch.TryUnreadForPf());
+        Assert.Null(CideIntercomVoiceLatch.DeskPulseLine());
+    }
+
+    [Fact]
+    public void Unread_for_pf_allows_operator_mail_to_guest_tip()
+    {
+        Assert.NotNull(CideIntercomIdentityLatch.Claim(
+            "pf", "Кир", "guest", CideIntercomIdentityLatch.HarnessGuestSlot));
+        CideIntercomVoiceLatch.Publish(
+            "pm", "pf", "fly densest leaf", CideIntercomVoiceLatch.OriginHuman, name: "Света", kind: "operator");
+        var unread = CideIntercomVoiceLatch.TryUnreadForPf();
+        Assert.NotNull(unread);
+        Assert.Equal("fly densest leaf", unread!.Body);
+    }
+
+    [Fact]
     public void Ack_clears_unread()
     {
         var pub = CideIntercomVoiceLatch.Publish("pm", "pf", "ack me", CideIntercomVoiceLatch.OriginHuman);

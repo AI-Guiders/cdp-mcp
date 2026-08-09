@@ -129,8 +129,10 @@ internal static partial class CideIntercomVoiceLatch
     }
 
     /// <summary>
-    /// Unread for Cursor PF cannon = human→pf, not acked, and PF tip is not habitat citizen.
-    /// When sticky PF Who is citizen (Sierra), sink = Glass CIT dialog — not Autoi Composer.
+    /// Unread for Cursor PF cannon = human→pf, not acked, tip≠Face aware.
+    /// Kit2: tip kind=citizen → Glass CIT, not Autoi Composer.
+    /// Kit3 (0.5.691): tip≠Face — also filter self-tip (from Who==tip Who) and Face-recipient
+    /// body (@Sierra / Face Who) while tip is Cursor harness guest.
     /// </summary>
     public static IntercomVoiceDoc? TryUnreadForPf()
     {
@@ -150,7 +152,67 @@ internal static partial class CideIntercomVoiceLatch
                 StringComparison.Ordinal))
             return null;
 
+        // Kit3 self-tip: Autoi/composer must not wake on human mail that already is tip Who.
+        if (tip is { Name.Length: > 0 }
+            && !string.IsNullOrWhiteSpace(doc.Name)
+            && !IsSystemVoiceWho(doc.Name)
+            && string.Equals(doc.Name.Trim(), tip.Name.Trim(), StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        // Kit3 Face recipient: tip harness + body addresses Face Who → habitat Face, not Cursor.
+        if (tip is not null
+            && LooksLikeFaceRecipientMail(doc.Body, tip.Name))
+            return null;
+
         return doc;
+    }
+
+    /// <summary>Body cues that mail is for citizen Face (not Cursor tip Who).</summary>
+    internal static bool LooksLikeFaceRecipientMail(string? body, string? tipWho)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+            return false;
+
+        string faceWho;
+        try
+        {
+            (faceWho, _) = CitizenGlassDialogBridge.ResolveCitizenFace();
+        }
+        catch
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(faceWho))
+            return false;
+        faceWho = faceWho.Trim();
+        // Bootstrap "Citizen" alone is too weak — need an explicit @ / arrow cue.
+        if (string.Equals(faceWho, DefaultNameCitizen, StringComparison.OrdinalIgnoreCase)
+            && !BodyAddressesWho(body, faceWho))
+            return false;
+
+        if (!string.IsNullOrWhiteSpace(tipWho)
+            && string.Equals(faceWho, tipWho.Trim(), StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return BodyAddressesWho(body, faceWho);
+    }
+
+    internal static bool BodyAddressesWho(string body, string who)
+    {
+        if (string.IsNullOrWhiteSpace(body) || string.IsNullOrWhiteSpace(who))
+            return false;
+        var t = body.Trim();
+        var at = "@" + who.Trim();
+        if (t.Contains(at, StringComparison.OrdinalIgnoreCase))
+            return true;
+        // Lived Autoi tip: "… TO Sierra@PF" / "→ Sierra"
+        if (t.Contains("→ " + who, StringComparison.OrdinalIgnoreCase)
+            || t.Contains("-> " + who, StringComparison.OrdinalIgnoreCase)
+            || t.Contains(" to " + who, StringComparison.OrdinalIgnoreCase)
+            || t.Contains("TO " + who, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
     }
 
     public static IntercomVoiceDoc? Ack(string? id = null)
