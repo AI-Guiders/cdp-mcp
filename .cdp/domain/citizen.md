@@ -115,6 +115,8 @@ Paths: from `@frame` / wake charge / peer pulse — never from example laundry. 
 
 ## last_ship
 
+- **2026-08-09 Face MEAI agent pipe · whole CDP catalog (0.5.706)** — operator fork: весь catalog (не narrow find/buffer/build). Ship: `CitizenCompletions.MeAi.Agent` (`AsAIAgent` + `RunAsync`) · `CitizenMeAiAgentTools.BuildWholeCatalog` (Meta + bare IDE verbs + `cdp_call`) · live `TurnViaMeAi` routes agent when `AgentPipeAvailable` (TestChatClient stays stream for unit tests). Pkgs: `Microsoft.Agents.AI` 1.3.0. Tests catalog+MeAi+History **4/4**. SoftOrgan invent REJECT · Mentions SoftFL Face-owned alone. PARK: delete Stream.cs · token SoftOrgan.
+
 - **2026-08-09 Completions MEAI usage last-wins (0.5.705)** — lived dogfood 0.5.704: short ping recorded prompt≈275k/completion≈104k (ToChatResponse SUM of stream UsageContent). Fix: `LastUsageFromUpdates` → MetaFromMeAi. Tests MeAi last-wins + History **green**.
 
 - **2026-08-09 Completions MEAI FULL A (0.5.704)** — operator REJECT half-a. Ship: stream accumulate → `ToChatResponse` · dialog `DefaultMaxChars=12_000` TrimNewest · MeAi stream unit test (`TestChatClient` + Fake stream) · Completions+History tests **33/33**. SoftFL invent densify reconnect REJECT · Mentions SoftFL Face-owned alone. PARK: AsAIAgent · delete Stream.cs · Glass token SoftOrgan.
