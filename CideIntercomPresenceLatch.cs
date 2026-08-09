@@ -113,7 +113,8 @@ internal static class CideIntercomPresenceLatch
         {
             State = state,
             StampedUtc = now,
-            TtlSeconds = ttl > 0 ? ttl : null,
+            // Explicit 0 = hold until next Publish (Face Turn); omit → default TTL; null slot = idle-ish.
+            TtlSeconds = ttlSeconds.HasValue ? Math.Max(0, ttlSeconds.Value) : (ttl > 0 ? ttl : null),
             Who = whoTrim,
             Kind = kindTrim
         };

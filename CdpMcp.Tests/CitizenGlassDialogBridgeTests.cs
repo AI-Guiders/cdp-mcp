@@ -170,11 +170,13 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
     {
         string? midState = null;
         string? midWho = null;
+        int? midTtl = null;
         CitizenGlassDialogBridge.TurnOverrideForTests = body =>
         {
             var doc = CideIntercomPresenceLatch.TryReadEffective();
             midState = doc?.Pf?.State;
             midWho = doc?.Pf?.Who;
+            midTtl = doc?.Pf?.TtlSeconds;
             return EchoTurn(body);
         };
 
@@ -182,10 +184,28 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
         Assert.Equal(CideIntercomPresenceLatch.StateBusy, midState);
         Assert.Equal(CideIntercomVoiceLatch.DefaultNameCitizen, midWho);
+        Assert.Equal(0, midTtl);
 
         var after = CideIntercomPresenceLatch.TryReadEffective();
         Assert.Equal(CideIntercomPresenceLatch.StateIdle, after?.Pf?.State);
         Assert.Null(after?.Pf?.Who);
+    }
+
+    [Fact]
+    public void Face_busy_ttl0_holds_past_default_busy_window()
+    {
+        CideIntercomPresenceLatch.PublishSeat(
+            "pf",
+            CideIntercomPresenceLatch.StateBusy,
+            ttlSeconds: 0,
+            who: "Sierra",
+            kind: "citizen");
+        var stamped = CideIntercomPresenceLatch.TryReadRaw()?.Pf?.StampedUtc
+            ?? DateTimeOffset.UtcNow;
+        var later = stamped.AddSeconds(CideIntercomPresenceLatch.DefaultBusyTtlSeconds + 60);
+        var eff = CideIntercomPresenceLatch.TryReadEffective(later);
+        Assert.Equal(CideIntercomPresenceLatch.StateBusy, eff?.Pf?.State);
+        Assert.True(IdeIgniteArmHost.IsHabitatPartnerLive(later));
     }
 
     [Fact]

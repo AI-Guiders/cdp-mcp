@@ -151,10 +151,12 @@ internal static class CitizenGlassDialogBridge
         MarkStatus(req, "running");
         CideHandsLatch.PublishRunning();
         var (who, kind) = ResolveCitizenFace();
+        // ttl=0: hold busy until finally idle — DefaultBusyTtl (120s) went stale mid-Turn
+        // → IsHabitatPartnerLive false → Autoi Radio tips during Sierra Completions (lived 2026-08-09).
         CideIntercomPresenceLatch.PublishSeat(
             CideIntercomVoiceLatch.SeatPf,
             CideIntercomPresenceLatch.StateBusy,
-            ttlSeconds: CideIntercomPresenceLatch.DefaultBusyTtlSeconds,
+            ttlSeconds: 0,
             who: who,
             kind: kind);
         // Sticky Who wins — never Claim DefaultNameCitizen (stomps Sierra).
