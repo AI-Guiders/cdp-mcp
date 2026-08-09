@@ -158,7 +158,8 @@ internal static partial class CitizenCompletions
     {
         var hint = which + " · Headers=" + (int)HeadersTimeoutFor(mode).TotalSeconds
             + "s Idle=" + (int)IdleTimeout.TotalSeconds
-            + "s Overall=" + (int)OverallTimeout.TotalSeconds + "s";
+            + "s Overall=" + (int)OverallTimeout.TotalSeconds
+            + "s AgentOverall=" + (int)AgentOverallTimeout.TotalSeconds + "s";
         CitizenCostLedger.Record(
             built,
             resolved.Model,

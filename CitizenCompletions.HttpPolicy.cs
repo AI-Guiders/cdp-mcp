@@ -28,6 +28,14 @@ internal static partial class CitizenCompletions
     internal static TimeSpan IdleTimeout => TestIdleTimeout ?? TimeSpan.FromSeconds(30);
     internal static TimeSpan OverallTimeout => TestOverallTimeout ?? TimeSpan.FromSeconds(90);
 
+    /// <summary>Tests: shrink AgentOverallTimeout (MEAI tool rounds).</summary>
+    internal static TimeSpan? TestAgentOverallTimeout;
+
+    /// <summary>Agent multi-round dig/tools — lived SoftFL wall after concurrent: stream Overall=90s too tight.</summary>
+    internal static TimeSpan AgentOverallTimeout =>
+        TestAgentOverallTimeout ?? TimeSpan.FromSeconds(180);
+
+
     /// <summary>Wire stays snappy; Face dialog fat history needs longer TTFT.</summary>
     internal static TimeSpan HeadersTimeoutFor(CitizenTurnMode mode) =>
         TestHeadersTimeout
@@ -48,6 +56,15 @@ internal static partial class CitizenCompletions
         cts.CancelAfter(OverallTimeout);
         return cts;
     }
+
+    /// <summary>Linked to caller cancel + agent multi-round hard cap.</summary>
+    internal static CancellationTokenSource CreateAgentTurnCts(CancellationToken outer)
+    {
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(outer);
+        cts.CancelAfter(AgentOverallTimeout);
+        return cts;
+    }
+
 
     internal static bool IsTransientError(string? error)
     {

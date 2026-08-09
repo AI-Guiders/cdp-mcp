@@ -70,13 +70,10 @@ internal static partial class CitizenCompletions
         int maxTokens,
         CancellationToken cancellationToken)
     {
-        // Agent multi-round = Overall budget (not Headers-only TTFT). Pipe, not keyboard.
-        using var turnCts = CreateTurnCts(cancellationToken);
+        // Agent multi-round = AgentOverall (not stream Overall=90s). Pipe, not keyboard.
+        using var turnCts = CreateAgentTurnCts(cancellationToken);
         try
         {
-            using var budgetCts = CancellationTokenSource.CreateLinkedTokenSource(turnCts.Token);
-            budgetCts.CancelAfter(OverallTimeout);
-
             var applied = new List<CitizenRouteHost.Applied>();
             var appliedGate = new object();
             var exec = ResolveAgentExecute();
@@ -95,7 +92,7 @@ internal static partial class CitizenCompletions
             CideHandsLatch.PublishRunning();
             try
             {
-                var response = agent.RunAsync(messages, cancellationToken: budgetCts.Token)
+                var response = agent.RunAsync(messages, cancellationToken: turnCts.Token)
                     .GetAwaiter()
                     .GetResult();
 
@@ -234,7 +231,7 @@ internal static class CitizenMeAiAgentTools
                 {
                     var args = MergeNamedArgs(args_json, path, op, query, entry.DefaultOp);
                     var outcome = await exec(toolName, args, cancellationToken).ConfigureAwait(false);
-                    var clipped = ClipOutcome(outcome, 12_000);
+                    var clipped = ClipOutcome(outcome, AgentToolClipChars);
                     RecordApplied(applied, appliedGate, entry.Name, ok: true, pulse: $"chars={clipped.Length}");
                     return clipped;
                 }
@@ -309,7 +306,7 @@ internal static class CitizenMeAiAgentTools
                 {
                     var args = ParseArgsJson(args_json);
                     var outcome = await exec(tool_name, args, cancellationToken).ConfigureAwait(false);
-                    var clipped = ClipOutcome(outcome, 12_000);
+                    var clipped = ClipOutcome(outcome, AgentToolClipChars);
                     RecordApplied(applied, appliedGate, go, ok: true, pulse: $"chars={clipped.Length}");
                     return clipped;
                 }
@@ -376,7 +373,10 @@ internal static class CitizenMeAiAgentTools
         }
     }
 
-    static string ClipOutcome(string? outcome, int maxChars)
+    /// <summary>Concurrent dig returns × N — 12k each balloons wire (lived SoftFL fat after tip-class).</summary>
+    internal const int AgentToolClipChars = 4_000;
+
+    internal static string ClipOutcome(string? outcome, int maxChars)
     {
         var s = outcome ?? "";
         if (s.Length <= maxChars)

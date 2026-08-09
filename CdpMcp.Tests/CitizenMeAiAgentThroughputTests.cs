@@ -47,6 +47,25 @@ public sealed class CitizenMeAiAgentThroughputTests
         Assert.Contains("Throughput", CitizenCompletions.BuildFaceAgentInstructions("sys"), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void AgentOverallTimeout_defaults_above_stream_Overall()
+    {
+        Assert.True(CitizenCompletions.AgentOverallTimeout > CitizenCompletions.OverallTimeout);
+        Assert.Equal(TimeSpan.FromSeconds(180), CitizenCompletions.AgentOverallTimeout);
+        Assert.Equal(TimeSpan.FromSeconds(90), CitizenCompletions.OverallTimeout);
+    }
+
+    [Fact]
+    public void ClipOutcome_clips_at_AgentToolClipChars()
+    {
+        Assert.Equal(4_000, CitizenMeAiAgentTools.AgentToolClipChars);
+        var fat = new string('x', CitizenMeAiAgentTools.AgentToolClipChars + 50);
+        var clipped = CitizenMeAiAgentTools.ClipOutcome(fat, CitizenMeAiAgentTools.AgentToolClipChars);
+        Assert.StartsWith(new string('x', CitizenMeAiAgentTools.AgentToolClipChars), clipped);
+        Assert.Contains("chars clipped", clipped, StringComparison.Ordinal);
+        Assert.True(clipped.Length < fat.Length);
+    }
+
     static FunctionInvokingChatClient? FindFunctionInvoking(IChatClient client)
     {
         for (var cur = client; cur is not null;)
