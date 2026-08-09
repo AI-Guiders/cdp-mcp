@@ -41,8 +41,9 @@ internal static partial class CitizenCompletions
             var tools = CitizenMeAiAgentTools.BuildWholeCatalog(exec, applied);
             var options = BuildMeAiChatOptions(built, maxTokens);
             var instructions = (built.System ?? "").TrimEnd()
-                + "\n\nHabitat tools: use only listed functions. Prefer named tools when listed. "
-                + "For any other CDP tool call cdp_call(tool_name, args_json). Never invent tool names.";
+                + "\n\nHabitat tools: use only listed functions. SoftFL desk work: prefer @intent after prose (host executes open/buffer/build/test). "
+                + "Named MEAI tools are for dig/verify when listed (open→cdp_open; edit→cdp_buffer). "
+                + "For any other CDP tool call cdp_call(tool_name, args_json). Never invent unlisted tool names.";
             AIAgent agent = client.AsAIAgent(
                 instructions: instructions,
                 tools: tools);
@@ -143,22 +144,30 @@ internal static class CitizenMeAiAgentTools
     {
         // Lived 0.5.706 silence: Meta+bare ~95 schemas → timeout/empty.
         // Lived 0.5.707 dogfood: cdp_call-only → model invents cdp_health name → Function failed.
-        // Shape: thin habitat named + cdp_call escape = whole catalog reachability without thrash.
+        // Lived 0.5.712 Radio: SoftFL Mentions invents open/edit (not in thin set) → Function failed.
+        // Shape: thin habitat named + invent aliases (open/edit) + cdp_call escape.
         // Receipts: SoftOrgan HND via CideHandsLatch (reuse HandsReceipt) — not letter glue.
         var list = new List<AITool>();
-        foreach (var name in HabitatNamed)
-            list.Add(CreateNamedThinTool(name, exec, applied));
+        foreach (var entry in HabitatNamed)
+            list.Add(CreateNamedThinTool(entry, exec, applied));
         list.Add(CreateCdpCallDispatch(exec, applied));
         return list;
     }
 
-    static readonly string[] HabitatNamed =
+    /// <summary>MEAI surface name → CallTool id (+ optional default arg seed).</summary>
+    sealed record NamedEntry(string Name, string ToolId, string? DefaultOp = null);
+
+    static readonly NamedEntry[] HabitatNamed =
     [
-        "cdp_health",
-        "cdp_buffer",
-        "find",
-        "cdp_build",
-        "cdp_shell_run",
+        new("cdp_health", "cdp_health"),
+        new("cdp_buffer", "cdp_buffer"),
+        new("find", "find"),
+        new("cdp_build", "cdp_build"),
+        new("cdp_test", "cdp_test"),
+        new("cdp_open", "cdp_open"),
+        new("cdp_shell_run", "cdp_shell_run"),
+        new("open", "cdp_open"), // invent alias — SoftFL first step
+        new("edit", "cdp_buffer", DefaultOp: "edit"), // invent alias → buffer edit
     ];
 
     internal static int CountNamedCatalogTools() => HabitatNamed.Length;
@@ -166,37 +175,75 @@ internal static class CitizenMeAiAgentTools
     internal static int CountDispatchTools() => HabitatNamed.Length + 1;
 
     static AIFunction CreateNamedThinTool(
-        string toolName,
+        NamedEntry entry,
         Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
         List<CitizenRouteHost.Applied> applied)
     {
         return AIFunctionFactory.Create(
             async (
-                [Description("JSON object of tool args, or {}.")]
-                string? args_json,
-                CancellationToken cancellationToken) =>
+                [Description("JSON object of tool args, or {}. Prefer this over inventing extra parameters.")]
+                string? args_json = null,
+                [Description("Optional path= (merged into args when set).")]
+                string? path = null,
+                [Description("Optional op= for buffer/open tools (merged when set).")]
+                string? op = null,
+                [Description("Optional query= for find (merged when set).")]
+                string? query = null,
+                CancellationToken cancellationToken = default) =>
             {
+                var toolName = entry.ToolId;
                 try
                 {
-                    var args = ParseArgsJson(args_json);
+                    var args = MergeNamedArgs(args_json, path, op, query, entry.DefaultOp);
                     var outcome = await exec(toolName, args, cancellationToken).ConfigureAwait(false);
                     var clipped = ClipOutcome(outcome, 12_000);
-                    RecordApplied(applied, toolName, ok: true, pulse: $"chars={clipped.Length}");
+                    RecordApplied(applied, entry.Name, ok: true, pulse: $"chars={clipped.Length}");
                     return clipped;
                 }
                 catch (OperationCanceledException)
                 {
-                    RecordApplied(applied, toolName, ok: false, reason: "отмена");
+                    RecordApplied(applied, entry.Name, ok: false, reason: "отмена");
                     throw;
                 }
                 catch (Exception ex)
                 {
-                    RecordApplied(applied, toolName, ok: false, reason: ex.Message);
-                    return $"[{toolName}] ошибка: {ex.Message}";
+                    RecordApplied(applied, entry.Name, ok: false, reason: ex.Message);
+                    return $"[{entry.Name}→{toolName}] ошибка: {ex.Message}";
                 }
             },
-            name: toolName,
-            description: $"CDP habitat tool {toolName}. Pass args_json={{}} when none.");
+            name: entry.Name,
+            description: entry.DefaultOp is { } dop
+                ? $"CDP habitat {entry.Name} → {entry.ToolId} (default op={dop}). Pass args_json and/or path=/op=/query=."
+                : $"CDP habitat tool {entry.Name} → {entry.ToolId}. Pass args_json={{}} and/or path=/op=/query=.");
+    }
+
+    static IReadOnlyDictionary<string, JsonElement>? MergeNamedArgs(
+        string? argsJson,
+        string? path,
+        string? op,
+        string? query,
+        string? defaultOp)
+    {
+        Dictionary<string, JsonElement>? dict = null;
+        var parsed = ParseArgsJson(argsJson);
+        if (parsed is not null)
+            dict = new Dictionary<string, JsonElement>(parsed, StringComparer.Ordinal);
+
+        void Put(string key, string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return;
+            dict ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+            dict[key] = JsonSerializer.SerializeToElement(value.Trim());
+        }
+
+        Put("path", path);
+        Put("op", op);
+        Put("query", query);
+        if (defaultOp is not null && (dict is null || !dict.ContainsKey("op")))
+            Put("op", defaultOp);
+
+        return dict;
     }
 
     static AIFunction CreateCdpCallDispatch(
@@ -208,8 +255,8 @@ internal static class CitizenMeAiAgentTools
                 [Description("Exact CDP CallTool name (e.g. git_diff, memory_world_get_definition, find).")]
                 string tool_name,
                 [Description("Optional JSON object of arguments, e.g. {\"path\":\"x.cs\"}. Empty ok.")]
-                string? args_json,
-                CancellationToken cancellationToken) =>
+                string? args_json = null,
+                CancellationToken cancellationToken = default) =>
             {
                 tool_name = (tool_name ?? "").Trim();
                 if (tool_name.Length == 0)
