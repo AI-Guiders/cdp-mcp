@@ -6,7 +6,7 @@ namespace CdpMcp.Tests;
 public sealed class CitizenMeAiAgentToolsTests
 {
     [Fact]
-    public void BuildWholeCatalog_covers_meta_and_dispatch()
+    public void BuildWholeCatalog_is_cdp_call_dispatch_not_schema_thrash()
     {
         var traces = new List<string>();
         Task<string> Exec(string name, IReadOnlyDictionary<string, System.Text.Json.JsonElement>? args, CancellationToken ct) =>
@@ -15,11 +15,11 @@ public sealed class CitizenMeAiAgentToolsTests
         var tools = CitizenMeAiAgentTools.BuildWholeCatalog(Exec, traces);
         var names = tools.Select(t => t.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        Assert.True(CitizenMeAiAgentTools.CountNamedCatalogTools() >= 80, "whole Meta+bare catalog expected");
-        Assert.True(tools.Count >= CitizenMeAiAgentTools.CountNamedCatalogTools() + 1, "named + cdp_call");
+        Assert.Equal(1, CitizenMeAiAgentTools.CountDispatchTools());
+        Assert.Equal(0, CitizenMeAiAgentTools.CountNamedCatalogTools());
+        Assert.Single(tools);
         Assert.Contains("cdp_call", names);
-        Assert.Contains("cdp_buffer", names);
-        Assert.Contains("cdp_health", names);
-        Assert.Contains("find", names);
+        Assert.DoesNotContain("cdp_buffer", names);
+        Assert.DoesNotContain("find", names);
     }
 }

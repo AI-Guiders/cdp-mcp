@@ -1,14 +1,11 @@
 #nullable enable
 using System.ComponentModel;
-using System.Collections.Frozen;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using ModelContextProtocol.Protocol;
 using MeAiChat = Microsoft.Extensions.AI.ChatMessage;
 using MeAiRole = Microsoft.Extensions.AI.ChatRole;
-using McpTool = ModelContextProtocol.Protocol.Tool;
 
 namespace CdpMcp;
 
@@ -61,8 +58,7 @@ internal static partial class CitizenCompletions
                 .GetResult();
 
             var text = ExtractAgentText(response);
-            if (toolTraces.Count > 0 && !string.IsNullOrWhiteSpace(text))
-                text = text.Trim() + "\n\n" + string.Join("\n", toolTraces.TakeLast(8));
+            // Letter stays prose — tool receipt ≠ SoftOrgan invent; do not glue traces into Radio.
 
             var meta = new OpenAiExtract(
                 string.IsNullOrWhiteSpace(text) ? null : text.Trim(),
@@ -118,77 +114,14 @@ internal static class CitizenMeAiAgentTools
         Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
         List<string> toolTraces)
     {
-        var list = new List<AITool>();
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var tool in MetaToolCatalog.Build().OrderBy(t => t.Name, StringComparer.Ordinal))
-        {
-            if (!seen.Add(tool.Name))
-                continue;
-            list.Add(CreateNamedCatalogTool(tool, exec, toolTraces));
-        }
-
-        foreach (var tool in IdeLanguageTools.BuildBareVerbTools().OrderBy(t => t.Name, StringComparer.Ordinal))
-        {
-            if (!seen.Add(tool.Name))
-                continue;
-            list.Add(CreateNamedCatalogTool(tool, exec, toolTraces));
-        }
-
-        // Escape hatch for domain tools (git_*/memory_*/…) not in Meta ListTools shortlist.
-        list.Add(CreateCdpCallDispatch(exec, toolTraces));
-        return list;
+        // Lived 0.5.706 silence: dumping Meta+bare (~95 schemas) every turn → timeout/empty_text.
+        // Fork «весь catalog» = reachability via cdp_call, not thrash schemas in the face of Kimi.
+        return [CreateCdpCallDispatch(exec, toolTraces)];
     }
 
-    internal static int CountNamedCatalogTools()
-    {
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var t in MetaToolCatalog.Build())
-            seen.Add(t.Name);
-        foreach (var t in IdeLanguageTools.BuildBareVerbTools())
-            seen.Add(t.Name);
-        return seen.Count;
-    }
+    internal static int CountNamedCatalogTools() => 0;
 
-    static AIFunction CreateNamedCatalogTool(
-        McpTool tool,
-        Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
-        List<string> toolTraces)
-    {
-        var description = ClampDescription(tool.Description, 3600);
-        return AIFunctionFactory.Create(
-            async (
-                [Description("Arguments object matching the MCP tool schema. Use {} when no args.")]
-                JsonElement arguments,
-                CancellationToken cancellationToken) =>
-            {
-                var header = $"[{tool.Name}]";
-                toolTraces.Add($"{header} вызов…");
-                try
-                {
-                    var args = JsonArgsToDict(arguments);
-                    var outcome = await exec(tool.Name, args, cancellationToken).ConfigureAwait(false);
-                    var clipped = ClipOutcome(outcome, 12_000);
-                    toolTraces[^1] = $"{header} ok · chars={clipped.Length}";
-                    return clipped;
-                }
-                catch (OperationCanceledException)
-                {
-                    toolTraces[^1] = $"{header} → отмена";
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    toolTraces[^1] = $"{header} → ошибка: {ex.Message}";
-                    return $"{header} ошибка: {ex.Message}";
-                }
-            },
-            new AIFunctionFactoryOptions
-            {
-                Name = tool.Name,
-                Description = description,
-            });
-    }
+    internal static int CountDispatchTools() => 1;
 
     static AIFunction CreateCdpCallDispatch(
         Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>> exec,
@@ -257,16 +190,6 @@ internal static class CitizenMeAiAgentTools
         {
             return null;
         }
-    }
-
-    static string ClampDescription(string? text, int maxChars)
-    {
-        var s = (text ?? "").Trim();
-        if (s.Length == 0)
-            return "(See MCP schema for this tool.)";
-        if (s.Length <= maxChars)
-            return s;
-        return s[..maxChars] + $"… (+{s.Length - maxChars} chars)";
     }
 
     static string ClipOutcome(string? outcome, int maxChars)

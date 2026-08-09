@@ -115,6 +115,8 @@ Paths: from `@frame` / wake charge / peer pulse — never from example laundry. 
 
 ## last_ship
 
+- **2026-08-09 Face silence SoftFL after agent-pipe thrash (0.5.707)** — lived: Света @CIT «НАПИШИ БУКВУ» / Radio Check → Completions `timeout`/`empty_text` → Glass `MarkStatus error` **без письма**. Root: 0.5.706 dumped Meta+bare ~95 schemas every AsAIAgent turn. Fix: `BuildWholeCatalog` = **`cdp_call` only** (весь catalog = reachability) · agent empty/timeout → **stream MeAi fallback** · stop glue toolTraces into letter. Tests catalog **1/1**. SoftOrgan invent REJECT · Mentions SoftFL alone.
+
 - **2026-08-09 Face MEAI agent pipe · whole CDP catalog (0.5.706)** — operator fork: весь catalog (не narrow find/buffer/build). Ship: `CitizenCompletions.MeAi.Agent` (`AsAIAgent` + `RunAsync`) · `CitizenMeAiAgentTools.BuildWholeCatalog` (Meta + bare IDE verbs + `cdp_call`) · live `TurnViaMeAi` routes agent when `AgentPipeAvailable` (TestChatClient stays stream for unit tests). Pkgs: `Microsoft.Agents.AI` 1.3.0. Tests catalog+MeAi+History **4/4**. SoftOrgan invent REJECT · Mentions SoftFL Face-owned alone. PARK: delete Stream.cs · token SoftOrgan.
 
 - **2026-08-09 Completions MEAI usage last-wins (0.5.705)** — lived dogfood 0.5.704: short ping recorded prompt≈275k/completion≈104k (ToChatResponse SUM of stream UsageContent). Fix: `LastUsageFromUpdates` → MetaFromMeAi. Tests MeAi last-wins + History **green**.
