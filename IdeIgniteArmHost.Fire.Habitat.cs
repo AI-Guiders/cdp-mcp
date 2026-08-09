@@ -150,6 +150,10 @@ internal static partial class IdeIgniteArmHost
 
     static void PublishCitizenWakeIntercom(IgniteArm arm, string body)
     {
+        // Face busy — mute Autoi/prefer_citizen Radio tip (parity remount mute 0.5.693).
+        if (IsHabitatPartnerLive())
+            return;
+
         // Lived: remount/system prefer_citizen painted Autoi remount as kind=citizen —
         // stomped Glass Radio + stole Citizen Who. System wakes → guest Radio only.
         if (IsSystemWakeArmId(arm.Id))

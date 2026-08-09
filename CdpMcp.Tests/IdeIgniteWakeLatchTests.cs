@@ -197,6 +197,49 @@ public partial class IdeIgniteWakeLatchTests : IDisposable
     }
 
     [Fact]
+    public async Task TryDeliverHabitatWhenComposerUnavailable_defers_prefer_citizen_when_pf_busy()
+    {
+        IdeIgniteArmHost.BindAutonomous(true);
+        var citizenAte = false;
+        IdeCitizenChannel.InviteReadyOverrideForTests = () => true;
+        IdeCitizenChannel.AutoiWakeTurnOverrideForTests = charge =>
+        {
+            citizenAte = true;
+            return new CitizenCompletions.TurnResult(
+                Ok: true,
+                Error: null,
+                Hint: null,
+                Text: "should not eat: " + charge,
+                Model: "test",
+                Provider: "mock",
+                Built: null,
+                WireIntents: null,
+                Routes: null,
+                DryRun: false);
+        };
+        CideIntercomPresenceLatch.PublishSeat("pf", "busy", ttlSeconds: 120);
+        Assert.True(IdeIgniteArmHost.IsHabitatPartnerLive());
+
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "arm-citizen-face-busy",
+            Event = "timer",
+            Status = "firing",
+            Reason = "timer",
+            Task = "leaf",
+            Once = true,
+            Port = 1,
+            WaitSeconds = 1
+        };
+
+        var result = await IdeIgniteArmHost.TryDeliverHabitatWhenComposerUnavailableAsync(
+            arm, "Resume from Task Manager.", CancellationToken.None);
+        Assert.Null(result);
+        Assert.False(citizenAte);
+        Assert.Null(CideIntercomVoiceLatch.TryRead());
+    }
+
+    [Fact]
     public void TryDeliverHabitatWake_null_when_partner_mode_idle_pf()
     {
         IdeIgniteArmHost.BindAutonomous(false);

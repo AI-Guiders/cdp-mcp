@@ -67,6 +67,15 @@ internal static partial class IdeIgniteArmHost
         var latch = IdeIgniteWakeLatch.Publish(arm.Id, charge, IdeIgniteWakeLatch.ChannelHabitat, arm.Reason, arm.Task);
         if (latch is null)
             return null;
+        // Face mid-Turn (presence busy|composing): do not nest Completions / Radio tip.
+        // Lived: prefer_citizen + remount thrash while Sierra working (0.5.694).
+        if (IsHabitatPartnerLive())
+        {
+            IdeFlightDataRecorder.RecordWake(
+                "wake_habitat", arm.Id, ToolFromWakeArm(arm), "prefer_citizen_face_busy");
+            return null;
+        }
+
         // Composer gone/down: citizen can own the wake without stealing Cursor Composer.
         if (IdeCitizenChannel.TryDeliverAutoiWake(charge, out var reply))
         {
