@@ -20,6 +20,40 @@ internal static partial class CitizenCompletions
     internal static Func<string, IReadOnlyDictionary<string, JsonElement>?, CancellationToken, Task<string>>?
         TestAgentExecute;
 
+    static readonly object ToolRoundGate = new();
+    static List<CitizenDialogHistory.ToolRound>? PendingToolRounds;
+
+    internal static void BeginToolRoundCapture()
+    {
+        lock (ToolRoundGate)
+            PendingToolRounds = [];
+    }
+
+    internal static void RecordToolRound(string name, bool ok, string content)
+    {
+        if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(content))
+            return;
+        lock (ToolRoundGate)
+            PendingToolRounds?.Add(new CitizenDialogHistory.ToolRound(name.Trim(), ok, content));
+    }
+
+    /// <summary>Take captured MEAI tool digs for dialog history (role=tool).</summary>
+    internal static IReadOnlyList<CitizenDialogHistory.ToolRound>? TakeToolRounds()
+    {
+        lock (ToolRoundGate)
+        {
+            var taken = PendingToolRounds;
+            PendingToolRounds = null;
+            return taken is { Count: > 0 } ? taken : null;
+        }
+    }
+
+    internal static void ClearToolRoundCapture()
+    {
+        lock (ToolRoundGate)
+            PendingToolRounds = null;
+    }
+
     internal static bool AgentPipeAvailable =>
         TestAgentExecute is not null || IdeCommandModule.IsBound;
 
@@ -72,6 +106,7 @@ internal static partial class CitizenCompletions
     {
         // Agent multi-round = AgentOverall (not stream Overall=90s). Pipe, not keyboard.
         using var turnCts = CreateAgentTurnCts(cancellationToken);
+        BeginToolRoundCapture();
         try
         {
             var applied = new List<CitizenRouteHost.Applied>();
@@ -100,13 +135,7 @@ internal static partial class CitizenCompletions
                 // Letter stays prose — SoftOrgan HND owns tool receipts (reuse HandsLatch).
                 PublishAgentHands(applied, sw.Elapsed);
 
-                var meta = new OpenAiExtract(
-                    string.IsNullOrWhiteSpace(text) ? null : text.Trim(),
-                    null,
-                    false,
-                    null,
-                    null,
-                    null);
+                var meta = MetaFromAgentResponse(response, text);
                 return FinishText(built, resolved, meta.Text, meta);
             }
             catch
@@ -123,6 +152,23 @@ internal static partial class CitizenCompletions
         {
             return FailNetwork(built, resolved, ex);
         }
+    }
+
+    /// <summary>Prefer AgentResponse usage/finish when present; never invent null meta.</summary>
+    internal static OpenAiExtract MetaFromAgentResponse(AgentResponse response, string? fallbackText)
+    {
+        var chat = new ChatResponse(response.Messages?.ToList() ?? []);
+        var meta = MetaFromMeAi(chat);
+        var text = !string.IsNullOrWhiteSpace(meta.Text)
+            ? meta.Text
+            : (string.IsNullOrWhiteSpace(fallbackText) ? null : fallbackText.Trim());
+        return new OpenAiExtract(
+            text,
+            meta.FinishReason,
+            meta.FromReasoning,
+            meta.PromptTokens,
+            meta.CompletionTokens,
+            meta.TotalTokens);
     }
 
     static void PublishAgentHands(
@@ -233,6 +279,7 @@ internal static class CitizenMeAiAgentTools
                     var outcome = await exec(toolName, args, cancellationToken).ConfigureAwait(false);
                     var clipped = ClipOutcome(outcome, AgentToolClipChars);
                     RecordApplied(applied, appliedGate, entry.Name, ok: true, pulse: $"chars={clipped.Length}");
+                    CitizenCompletions.RecordToolRound(entry.Name, ok: true, clipped);
                     return clipped;
                 }
                 catch (OperationCanceledException)
@@ -242,8 +289,11 @@ internal static class CitizenMeAiAgentTools
                 }
                 catch (Exception ex)
                 {
+                    // Typed fail for FIC IncludeDetailedErrors — do not return success prose about the error.
+                    var fail = $"[{entry.Name}→{toolName}] fail: {ex.Message}";
                     RecordApplied(applied, appliedGate, entry.Name, ok: false, reason: ex.Message);
-                    return $"[{entry.Name}→{toolName}] ошибка: {ex.Message}";
+                    CitizenCompletions.RecordToolRound(entry.Name, ok: false, fail);
+                    throw new InvalidOperationException(fail, ex);
                 }
             },
             name: entry.Name,
@@ -298,7 +348,9 @@ internal static class CitizenMeAiAgentTools
                 if (tool_name.Length == 0)
                 {
                     RecordApplied(applied, appliedGate, "cdp_call", ok: false, reason: "пустой tool_name");
-                    return "[cdp_call] ошибка: пустой tool_name";
+                    var emptyFail = "[cdp_call] fail: пустой tool_name";
+                    CitizenCompletions.RecordToolRound("cdp_call", ok: false, emptyFail);
+                    throw new InvalidOperationException(emptyFail);
                 }
 
                 var go = "cdp_call→" + tool_name;
@@ -308,6 +360,7 @@ internal static class CitizenMeAiAgentTools
                     var outcome = await exec(tool_name, args, cancellationToken).ConfigureAwait(false);
                     var clipped = ClipOutcome(outcome, AgentToolClipChars);
                     RecordApplied(applied, appliedGate, go, ok: true, pulse: $"chars={clipped.Length}");
+                    CitizenCompletions.RecordToolRound(go, ok: true, clipped);
                     return clipped;
                 }
                 catch (OperationCanceledException)
@@ -317,8 +370,10 @@ internal static class CitizenMeAiAgentTools
                 }
                 catch (Exception ex)
                 {
+                    var fail = $"[cdp_call→{tool_name}] fail: {ex.Message}";
                     RecordApplied(applied, appliedGate, go, ok: false, reason: ex.Message);
-                    return $"[cdp_call→{tool_name}] ошибка: {ex.Message}";
+                    CitizenCompletions.RecordToolRound(go, ok: false, fail);
+                    throw new InvalidOperationException(fail, ex);
                 }
             },
             name: "cdp_call",
