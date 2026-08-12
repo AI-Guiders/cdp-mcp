@@ -57,7 +57,9 @@ public sealed class HabitatExperienceLedgerTests : IDisposable
         var state = HabitatExperienceLedger.GetPosition("face");
         Assert.Equal(HabitatExperienceLedger.Position.Architect, state.Position);
         Assert.True(state.PositionPinned);
-        Assert.True(HabitatExperienceLedger.AffordanceFor(state.Position).CanSeedCurriculum);
+        // Affordance frozen: ladder decorative — no curriculum/wide-mutate from position alone.
+        Assert.False(HabitatExperienceLedger.AffordanceFor(state.Position).CanSeedCurriculum);
+        Assert.True(HabitatExperienceLedger.AffordanceFor(state.Position).MutateNarrow);
     }
 
     [Fact]

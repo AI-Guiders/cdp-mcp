@@ -194,14 +194,13 @@ internal static class HabitatExperienceLedger
         }
     }
 
-    public static Affordance AffordanceFor(Position position) => position switch
+    public static Affordance AffordanceFor(Position position)
     {
-        Position.Junior => new(DigWide: true, MutateNarrow: true, CanPromoteExperience: false, CanSeedCurriculum: false),
-        Position.Middle => new(DigWide: true, MutateNarrow: true, CanPromoteExperience: true, CanSeedCurriculum: false),
-        Position.Senior => new(DigWide: true, MutateNarrow: false, CanPromoteExperience: true, CanSeedCurriculum: false),
-        Position.Architect => new(DigWide: true, MutateNarrow: false, CanPromoteExperience: true, CanSeedCurriculum: true),
-        _ => new(DigWide: true, MutateNarrow: true, CanPromoteExperience: false, CanSeedCurriculum: false)
-    };
+        // Brief C freeze (2026-08-13): lesson-count ladder is decorative until verified currency.
+        // Do not open wide mutate from self-reported xp. Position still recorded for learn UX.
+        _ = position;
+        return new(DigWide: true, MutateNarrow: true, CanPromoteExperience: true, CanSeedCurriculum: false);
+    }
 
     public static bool TryParsePosition(string? raw, out Position position)
     {

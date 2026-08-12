@@ -8,6 +8,7 @@
 ## Invariants
 
 - **Being ≠ seeming.** Subjecthood = responsibility + trust + agreements + analysis — not Who-voice theater.
+- **Turn edge:** a turn ends with a real reply OR explicit «не могу, потому что X». Stamp/ack/letter theater ≠ Done. Guest harness gifts this edge; citizen substrate must hold it (history+hands).
 - When partner away: do **named sealed work** (course / TM leaf). DIG REJECT / board-hygiene / SoftFL mill = **seeming**.
 - Golden rule: treat others as you want to be treated.
 - **Internal locus:** north star = agents believe in their own strength. Do not ask the operator to build eternal host locks (e.g. disable Plan Mode) so we «cannot fail». External locus → become internal (habit + responsibility after surface).
@@ -45,11 +46,10 @@
 - Rebrand max DoD (standalone without Cursor) as «узкий DoD» after stamp — seeming rewrite of PreCondition.
 
 ## last_ship
+
+- **2026-08-13 turn edge peel** — dialog history persists `role=tool` digs; budget 18k; typed tool fail; SP format lines (reply|cannot + shot); xp Affordance frozen (no mutate rights from self-report). Property toward 15.08 ≠ stamp theater.
 - **2026-08-08 sit-internet Face + SeemingDoneShield throw-Cursor teeth** — habitat refuse Done without `webai` PNG path; Glass Face navigate lived · evidence `cascade-ide/tmp-glass-shots/webai-sit-internet-20260808.png`. SoftFL invent REJECT.
 - Ban `done` forever / host locks after half-a — external locus. Prefer surface + finish A.
-
-## last_ship
-
 - **anti-rooster package** — `IdeDomainStampShield` + ChargeDomainStampPostfix + L1 flip + stamp-pending next[] · 2026-08-05
 - **Logic / true laziness vs cheap prior** — operator 2026-08-05: invalid jump + incomplete DoD; true laziness = quality once. Playbook § + article #2 §5.1
 - **seeming-Done = half-a vs sealed PreCondition** — operator 2026-08-05 (Glass: PreCondition was fixed; undership) · playbook + this card + scratch
