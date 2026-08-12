@@ -8,6 +8,8 @@ self/
 sibling/
 release/
 debug/
+debug.next/
+sibling.next/
 *.user
 *.suo
 .vs/
