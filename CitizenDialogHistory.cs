@@ -10,9 +10,9 @@ namespace CdpMcp;
 internal static class CitizenDialogHistory
 {
     public const string FileName = "citizen-dialog.jsonl";
-    public const int DefaultMaxMessages = 20; // 10 user/assistant pairs — speed SoftFL
-    /// <summary>Char budget for Load() — fat CoT history timeouts Cloud.ru; keep newest under this.</summary>
-    public const int DefaultMaxChars = 6_000;
+    public const int DefaultMaxMessages = 40; // prose pairs + tool rounds — turn-edge peel
+    /// <summary>Char budget for Load() — ≥3 clipped tool results (4k each) + prose; trim oldest.</summary>
+    public const int DefaultMaxChars = 18_000;
 
     static readonly object Gate = new();
     static string? PathOverrideForTests;
@@ -111,7 +111,8 @@ internal static class CitizenDialogHistory
                 var content = root.TryGetProperty("content", out var c) ? c.GetString() : null;
                 if (string.IsNullOrWhiteSpace(role) || string.IsNullOrWhiteSpace(content))
                     continue;
-                if (role is not ("user" or "assistant"))
+                // tool = prior hands (MEAI dig) — without these, turn N+1 re-digs blind.
+                if (role is not ("user" or "assistant" or "tool"))
                     continue;
                 list.Add(new CitizenCompletions.ChatMessage(role, content));
             }
@@ -153,23 +154,42 @@ internal static class CitizenDialogHistory
         }
 
         keep.Reverse();
-        // Prefer even count so we don't start mid-pair on user-only remnant.
-        if (keep.Count >= 2 && keep[0].Role == "assistant")
+        // Prefer not to start mid-pair: drop orphan leading assistant/tool before first user.
+        while (keep.Count >= 2 && keep[0].Role is "assistant" or "tool")
             keep.RemoveAt(0);
         return keep;
     }
 
-    public static void Append(string userText, string assistantText, int maxMessages = DefaultMaxMessages)
+    public static void Append(
+        string userText,
+        string assistantText,
+        IReadOnlyList<ToolRound>? tools = null,
+        int maxMessages = DefaultMaxMessages)
     {
         if (string.IsNullOrWhiteSpace(userText) || string.IsNullOrWhiteSpace(assistantText))
             return;
 
         lock (Gate)
         {
+            var batch = new List<CitizenCompletions.ChatMessage>
+            {
+                new("user", userText.Trim())
+            };
+            if (tools is { Count: > 0 })
+            {
+                foreach (var t in tools)
+                {
+                    if (string.IsNullOrWhiteSpace(t.Content))
+                        continue;
+                    batch.Add(new CitizenCompletions.ChatMessage("tool", FormatToolContent(t)));
+                }
+            }
+
+            batch.Add(new CitizenCompletions.ChatMessage("assistant", assistantText.Trim()));
+
             if (MemoryOverrideForTests is not null)
             {
-                MemoryOverrideForTests.Add(new CitizenCompletions.ChatMessage("user", userText.Trim()));
-                MemoryOverrideForTests.Add(new CitizenCompletions.ChatMessage("assistant", assistantText.Trim()));
+                MemoryOverrideForTests.AddRange(batch);
                 var trimmed = TrimNewest(MemoryOverrideForTests, maxMessages, DefaultMaxChars);
                 MemoryOverrideForTests.Clear();
                 MemoryOverrideForTests.AddRange(trimmed);
@@ -182,14 +202,13 @@ internal static class CitizenDialogHistory
                 try
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-                    var lines =
-                        JsonSerializer.Serialize(new { role = "user", content = userText.Trim(), at_utc = DateTimeOffset.UtcNow })
-                        + Environment.NewLine
-                        + JsonSerializer.Serialize(new { role = "assistant", content = assistantText.Trim(), at_utc = DateTimeOffset.UtcNow })
-                        + Environment.NewLine;
-                    File.AppendAllText(FilePath, lines);
+                    var sbWrite = new System.Text.StringBuilder();
+                    var at = DateTimeOffset.UtcNow;
+                    foreach (var m in batch)
+                        sbWrite.AppendLine(JsonSerializer.Serialize(new { role = m.Role, content = m.Content, at_utc = at }));
+                    File.AppendAllText(FilePath, sbWrite.ToString());
 
-                    // Trim file if oversized (count + char budgets).
+                    // Trim file if oversized (count + char budgets) — drop oldest, keep newest tools.
                     var loaded = LoadUnlocked(maxMessages * 4, DefaultMaxChars * 4);
                     var keep = TrimNewest(loaded, maxMessages, DefaultMaxChars);
                     if (keep.Count < loaded.Count)
@@ -210,6 +229,16 @@ internal static class CitizenDialogHistory
                 }
             }
         }
+    }
+
+    /// <summary>One MEAI/tool dig persisted across turns (role=tool in jsonl).</summary>
+    public sealed record ToolRound(string Name, bool Ok, string Content);
+
+    internal static string FormatToolContent(ToolRound t)
+    {
+        var status = t.Ok ? "ok" : "fail";
+        var body = t.Content.Trim();
+        return $"[tool_status={status} name={t.Name}]\n{body}";
     }
 
     public static void Clear()
@@ -236,21 +265,26 @@ internal static class CitizenDialogHistory
         var msgs = Load();
         string? lastUser = null;
         string? lastAssistant = null;
+        var tools = 0;
         for (var i = msgs.Count - 1; i >= 0; i--)
         {
+            if (msgs[i].Role == "tool")
+                tools++;
             if (lastAssistant is null && msgs[i].Role == "assistant")
                 lastAssistant = Trunc(msgs[i].Content, 120);
             if (lastUser is null && msgs[i].Role == "user")
                 lastUser = Trunc(msgs[i].Content, 120);
-            if (lastUser is not null && lastAssistant is not null)
+            if (lastUser is not null && lastAssistant is not null && i == 0)
                 break;
         }
 
+        var prose = msgs.Count(m => m.Role is "user" or "assistant");
         return new
         {
             path = FilePath,
             count = msgs.Count,
-            pairs = msgs.Count / 2,
+            pairs = prose / 2,
+            tools,
             last_role = msgs.Count > 0 ? msgs[^1].Role : null,
             last_user = lastUser,
             last_assistant = lastAssistant,
@@ -258,24 +292,25 @@ internal static class CitizenDialogHistory
         };
     }
 
-    /// <summary>Afferent line for dialog turns — reminds FM that priors are in context.</summary>
-        /// <summary>Afferent line for dialog turns — ADCM pressure when fat (Prune/Partition/Persist/Rebuild).</summary>
+    /// <summary>Afferent line for dialog turns — ADCM pressure when fat (Prune/Partition/Persist/Rebuild).</summary>
     public static string AfferentLine()
     {
         var msgs = Load();
-        var pairs = msgs.Count / 2;
+        var prose = msgs.Count(m => m.Role is "user" or "assistant");
+        var pairs = prose / 2;
+        var tools = msgs.Count(m => m.Role == "tool");
         var chars = 0;
         foreach (var m in msgs)
             chars += m.Content?.Length ?? 0;
 
-        if (pairs <= 0)
+        if (pairs <= 0 && tools <= 0)
             return "dialog | pairs=0 · fresh thread (still durable after remount) · ADCM=@intent dialog partition|persist|rebuild|clear";
 
-        var fat = pairs >= 4 || chars >= 4_000;
+        var fat = pairs >= 4 || tools >= 6 || chars >= 12_000;
         var tip = fat
             ? " · pressure FAT — Prune=@intent dialog clear · Partition=@intent dialog partition · Persist=@intent dialog persist key= v= · Rebuild=@intent dialog rebuild (anti-poison) · dig=@intent pressure|plan|domain"
             : " · ADCM=@intent dialog clear|partition|persist|rebuild";
-        return $"dialog | pairs={pairs} · msgs={msgs.Count} · chars≈{chars} · prior turns in messages — use them; do not claim amnesia{tip}";
+        return $"dialog | pairs={pairs} · tools={tools} · msgs={msgs.Count} · chars≈{chars} · prior turns+hands in messages — use them; do not re-dig the same path{tip}";
     }
 
     static string Trunc(string s, int max) =>

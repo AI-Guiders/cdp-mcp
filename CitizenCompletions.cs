@@ -300,7 +300,9 @@ internal static partial class CitizenCompletions
                 : TurnAnthropic(built, resolved, tokens, cancellationToken);
             if (result.Ok && mode == CitizenTurnMode.Dialog && history && appendHistory
                 && !string.IsNullOrWhiteSpace(result.Text))
-                CitizenDialogHistory.Append(userText, result.Text!);
+                CitizenDialogHistory.Append(userText, result.Text!, CitizenCompletions.TakeToolRounds());
+            else
+                CitizenCompletions.ClearToolRoundCapture();
             return result;
         }
         catch (OperationCanceledException)

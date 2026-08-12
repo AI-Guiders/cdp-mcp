@@ -27,6 +27,13 @@ internal static partial class CitizenCompletions
         for (var i = 0; i < built.Messages.Count; i++)
         {
             var m = built.Messages[i];
+            // Prior tool digs: surface as user-visible hands evidence (no ToolCallId across turns).
+            if (m.Role == "tool")
+            {
+                list.Add(new MeAiChat(MeAiRole.User, "[prior_hands]\n" + m.Content));
+                continue;
+            }
+
             var role = m.Role switch
             {
                 "assistant" => MeAiRole.Assistant,
