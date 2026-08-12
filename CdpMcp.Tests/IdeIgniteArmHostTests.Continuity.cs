@@ -277,7 +277,7 @@ public partial class IdeIgniteArmHostTests
             ["in"] = JsonSerializer.SerializeToElement("15m"),
             ["last_once"] = JsonSerializer.SerializeToElement(true),
             ["task"] = JsonSerializer.SerializeToElement(
-                "Sat-eve DoD invent-only Hold — Sierra KB+net+SA SoftOrgan+IDE lived"),
+                "Sat-eve DoD invent-only Hold — Sierra KB+net+SA SoftInstrument+IDE lived"),
             ["charge"] = JsonSerializer.SerializeToElement("minimal")
         });
         Assert.True(IdeIgniteArmHost.HasArmedInventOnlyHoldInsurance());
@@ -310,7 +310,7 @@ public partial class IdeIgniteArmHostTests
             ["in"] = JsonSerializer.SerializeToElement("15m"),
             ["last_once"] = JsonSerializer.SerializeToElement(true),
             ["task"] = JsonSerializer.SerializeToElement(
-                "Sat-eve DoD invent-only Hold — Sierra KB+net+SA SoftOrgan+IDE lived"),
+                "Sat-eve DoD invent-only Hold — Sierra KB+net+SA SoftInstrument+IDE lived"),
             ["charge"] = JsonSerializer.SerializeToElement("minimal")
         });
         Assert.True(IdeIgniteArmHost.HasArmedInventOnlyHoldInsurance());

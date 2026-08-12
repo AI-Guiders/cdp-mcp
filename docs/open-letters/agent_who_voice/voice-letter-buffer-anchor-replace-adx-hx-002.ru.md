@@ -6,4 +6,4 @@
 
 Live dogfood (build_utc=2026-08-07T20:32:54Z): scratch KeepMe 9 lines → tiny replace **refuse**; `old_string=var a = 1;` → `in_locus` · member intact. AnchorPlace **16/16**.
 
-Prefer `edit_op=replace` для строковых патчей, пока не целишься в полный rewrite члена. SoftOrgan CLOSED · SoftFL invent REJECT вне lived gap.
+Prefer `edit_op=replace` для строковых патчей, пока не целишься в полный rewrite члена. SoftInstrument CLOSED · SoftFL invent REJECT вне lived gap.

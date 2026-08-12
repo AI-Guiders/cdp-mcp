@@ -6,7 +6,7 @@
 
 ---
 
-Full-ready на Glass CIT уже умел говорить и помнить turn2. Но когда Света называла четыре SoftOrgan — `health`, `sys`, `inventory`, `elicit` — dialog persona всё равно уводила FM в mcp/shell/kb. Pipe PeerAck был жив; руки на столе — нет. Glass E2E показывал **ack=2/4** и выглядел как «мост сломан». Dig сказал иначе: residual = teach-set bias, не latch/host.
+Full-ready на Glass CIT уже умел говорить и помнить turn2. Но когда Света называла четыре SoftInstrument — `health`, `sys`, `inventory`, `elicit` — dialog persona всё равно уводила FM в mcp/shell/kb. Pipe PeerAck был жив; руки на столе — нет. Glass E2E показывал **ack=2/4** и выглядел как «мост сломан». Dig сказал иначе: residual = teach-set bias, не latch/host.
 
 Persona steer: named organs **HARD/required**, когда оператор их назвал; teach-set без mcp/shell/kb bias. После dual hard dialog и wire дали **ack=4/4**. GlassPeerAckReverify на том же build: latch named-organs → Intercom `#crew` → **ack=4/4** на primary seat. Выстрел в F·Intercom — не status-list.
 

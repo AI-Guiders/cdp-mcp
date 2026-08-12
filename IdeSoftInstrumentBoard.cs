@@ -7,85 +7,85 @@ using DotNetBuildTest.Core;
 
 namespace CdpMcp;
 
-/// <summary>ISoftOrganBoard: wraps Ide* Handle (+ plan/review/sys) for seats and SoftDispatch.</summary>
-internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
+/// <summary>ISoftInstrumentBoard: wraps Ide* Handle (+ plan/review/sys) for seats and SoftDispatch.</summary>
+internal sealed class IdeSoftInstrumentBoard : ISoftInstrumentBoard
 {
-    readonly SoftOrganSeatBag _bag;
+    readonly SoftInstrumentSeatBag _bag;
 
-    public IdeSoftOrganBoard(in SoftOrganSeatBag bag) => _bag = bag;
+    public IdeSoftInstrumentBoard(in SoftInstrumentSeatBag bag) => _bag = bag;
 
-        public SoftOrganBoardHit Build(SoftOrganKind kind) => kind switch
+        public SoftInstrumentBoardHit Build(SoftInstrumentKind kind) => kind switch
     {
-        SoftOrganKind.Plan => BuildPlan(),
-        SoftOrganKind.Report => Hit(IdeReportBoard.Handle(_bag.Session, _bag.TileArgs)),
-        SoftOrganKind.FindDesk => Hit(IdeFindChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs)),
-        SoftOrganKind.SaDesk => Hit(IdeSaChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs)),
-        SoftOrganKind.DebugDesk => Hit(IdeDebugSaChannel.Handle(_bag.Session, _bag.TileArgs)),
-        SoftOrganKind.TestDesk => Hit(IdeTestSaChannel.Handle(_bag.Session, _bag.TileArgs)),
-        SoftOrganKind.BuildDesk => Hit(IdeBuildSaChannel.Handle(_bag.Session, _bag.TileArgs)),
-        SoftOrganKind.Crm => Hit(IdeCrmChannel.Handle(
+        SoftInstrumentKind.Plan => BuildPlan(),
+        SoftInstrumentKind.Report => Hit(IdeReportBoard.Handle(_bag.Session, _bag.TileArgs)),
+        SoftInstrumentKind.FindDesk => Hit(IdeFindChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs)),
+        SoftInstrumentKind.SaDesk => Hit(IdeSaChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs)),
+        SoftInstrumentKind.DebugDesk => Hit(IdeDebugSaChannel.Handle(_bag.Session, _bag.TileArgs)),
+        SoftInstrumentKind.TestDesk => Hit(IdeTestSaChannel.Handle(_bag.Session, _bag.TileArgs)),
+        SoftInstrumentKind.BuildDesk => Hit(IdeBuildSaChannel.Handle(_bag.Session, _bag.TileArgs)),
+        SoftInstrumentKind.Crm => Hit(IdeCrmChannel.Handle(
             _bag.Session, _bag.WorkspaceStore, _bag.WorkspaceState!, _bag.TileArgs)),
-        SoftOrganKind.FilesDesk => Hit(IdeFilesChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs)),
-        SoftOrganKind.IgniteDesk => Hit(IdeIgniteChannel.Handle(_bag.TileArgs)),
-        SoftOrganKind.WebcamDesk => Hit(IdeWebcamChannel.Handle(_bag.Session, _bag.TileArgs)),
-        SoftOrganKind.PressureDesk => Hit(
+        SoftInstrumentKind.FilesDesk => Hit(IdeFilesChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs)),
+        SoftInstrumentKind.IgniteDesk => Hit(IdeIgniteChannel.Handle(_bag.TileArgs)),
+        SoftInstrumentKind.WebcamDesk => Hit(IdeWebcamChannel.Handle(_bag.Session, _bag.TileArgs)),
+        SoftInstrumentKind.PressureDesk => Hit(
             IdePressureChannel.Handle(_bag.Session, _bag.TileArgs),
             IdePressureChannel.PulseLine(),
             IdePressureChannel.SchemaVersion),
-        SoftOrganKind.OnboardDesk => Hit(
+        SoftInstrumentKind.OnboardDesk => Hit(
             IdeOnboardChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeOnboardChannel.PulseLine(_bag.Session),
             IdeOnboardChannel.SchemaVersion),
-        SoftOrganKind.Toolchain => Hit(
+        SoftInstrumentKind.Toolchain => Hit(
             IdeToolchainChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeToolchainChannel.PulseLine(_bag.Session),
             IdeToolchainChannel.SchemaVersion),
-        SoftOrganKind.Alert => Hit(IdeAlertChannel.Handle(RequireExtras().AlertInputs, _bag.TileArgs)),
-        SoftOrganKind.Problems => Hit(
+        SoftInstrumentKind.Alert => Hit(IdeAlertChannel.Handle(RequireExtras().AlertInputs, _bag.TileArgs)),
+        SoftInstrumentKind.Problems => Hit(
             IdeProblemsChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs),
             IdeProblemsChannel.Build(_bag.DocStore!, _bag.Session).Pulse),
-        SoftOrganKind.Plugins => Hit(
+        SoftInstrumentKind.Plugins => Hit(
             IdePluginsChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs),
             IdePluginsChannel.Build().Pulse),
-        SoftOrganKind.Quality => BuildQuality(),
-        SoftOrganKind.ArchDesk => Hit(IdeArchBoardChannel.Handle(_bag.Session, _bag.TileArgs)),
-        SoftOrganKind.RefactorPlan => Hit(
+        SoftInstrumentKind.Quality => BuildQuality(),
+        SoftInstrumentKind.ArchDesk => Hit(IdeArchBoardChannel.Handle(_bag.Session, _bag.TileArgs)),
+        SoftInstrumentKind.RefactorPlan => Hit(
             IdeRefactorPlanChannel.Handle(_bag.DocStore!, _bag.Session, _bag.TileArgs)),
-        SoftOrganKind.Ps1Desk => BuildPs1(),
-        SoftOrganKind.Sys => Hit(RequireExtras().SysBoard()),
-        SoftOrganKind.Ecl => Hit(IdeChkChannel.Handle(RequireExtras().ChkCtx, _bag.TileArgs)),
-        SoftOrganKind.Qrh => Hit(IdeQrhChannel.Handle(
+        SoftInstrumentKind.Ps1Desk => BuildPs1(),
+        SoftInstrumentKind.Sys => Hit(RequireExtras().SysBoard()),
+        SoftInstrumentKind.Ecl => Hit(IdeChkChannel.Handle(RequireExtras().ChkCtx, _bag.TileArgs)),
+        SoftInstrumentKind.Qrh => Hit(IdeQrhChannel.Handle(
             RequireExtras().ChkCtx, _bag.TileArgs, RequireExtras().ChkSnap)),
-        SoftOrganKind.Review => BuildReview(),
-        SoftOrganKind.MdAuthor => Hit(
+        SoftInstrumentKind.Review => BuildReview(),
+        SoftInstrumentKind.MdAuthor => Hit(
             IdeMdAuthorChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeMdAuthorChannel.PulseLine(_bag.Session),
             IdeMdAuthorChannel.SchemaVersion),
-        SoftOrganKind.Learn => Hit(
+        SoftInstrumentKind.Learn => Hit(
             IdeLearnChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeLearnChannel.PulseLine(_bag.Session),
             IdeLearnChannel.SchemaVersion),
-        SoftOrganKind.ProjectSwitch => Hit(
+        SoftInstrumentKind.ProjectSwitch => Hit(
             IdeScopeChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeScopeChannel.PulseLine(_bag.Session),
             IdeScopeChannel.SchemaVersion),
-        SoftOrganKind.Domain => Hit(
+        SoftInstrumentKind.Domain => Hit(
             IdeDomainChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeDomainChannel.PulseLine(_bag.Session),
             IdeDomainChannel.SchemaVersion),
-        SoftOrganKind.Calendar => Hit(
+        SoftInstrumentKind.Calendar => Hit(
             IdeCalendarChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeCalendarChannel.PulseLine(_bag.Session),
             IdeCalendarChannel.SchemaVersion),
-        SoftOrganKind.Rules => Hit(
+        SoftInstrumentKind.Rules => Hit(
             IdeRulesChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeRulesChannel.PulseLine(_bag.Session),
             IdeRulesChannel.SchemaVersion),
-        SoftOrganKind.Inventory => Hit(
+        SoftInstrumentKind.Inventory => Hit(
             IdeInventoryChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeInventoryChannel.PulseLine(_bag.Session),
             IdeInventoryChannel.SchemaVersion),
-        SoftOrganKind.VerifyWave => Hit(
+        SoftInstrumentKind.VerifyWave => Hit(
             IdeVerifyWaveChannel.Handle(_bag.Session, _bag.TileArgs),
             IdeVerifyWaveChannel.PulseLine(_bag.Session),
             IdeVerifyWaveChannel.SchemaVersion),
@@ -93,14 +93,14 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
     };
 
 
-    static SoftOrganBoardHit Hit(object board, string? pulse = null, string? schema = null) =>
+    static SoftInstrumentBoardHit Hit(object board, string? pulse = null, string? schema = null) =>
         new(board, pulse, schema);
 
-    SoftOrganSeatExtras RequireExtras() =>
+    SoftInstrumentSeatExtras RequireExtras() =>
         _bag.Extras ?? throw new InvalidOperationException(
-            "SoftOrganSeatExtras required for alert/sys/ecl/qrh/review boards.");
+            "SoftInstrumentSeatExtras required for alert/sys/ecl/qrh/review boards.");
 
-    SoftOrganBoardHit BuildPlan()
+    SoftInstrumentBoardHit BuildPlan()
     {
         if (_bag.WorkspaceStore is null)
         {
@@ -138,7 +138,7 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
         return Hit(IdeTaskManager.Handle(_bag.WorkspaceStore, _bag.WorkspaceState!, tmArgs));
     }
 
-    SoftOrganBoardHit BuildQuality()
+    SoftInstrumentBoardHit BuildQuality()
     {
         var store = _bag.DocStore!;
         var root = _bag.Session.ProjectRoot;
@@ -196,7 +196,7 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
         return "disk";
     }
 
-    SoftOrganBoardHit BuildPs1()
+    SoftInstrumentBoardHit BuildPs1()
     {
         var (_, pulse) = Ps1Scene.Pulse(_bag.Session);
         return Hit(Ps1Scene.Board(_bag.Session), pulse, Ps1Scene.Schema);
@@ -220,7 +220,7 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
     }
 
 
-    SoftOrganBoardHit BuildReview()
+    SoftInstrumentBoardHit BuildReview()
     {
         var x = RequireExtras();
         var reviewInputs = new IdeReviewChannel.Inputs(
@@ -236,7 +236,7 @@ internal sealed class IdeSoftOrganBoard : ISoftOrganBoard
 }
 
 /// <summary>Seat/deferred extras — only needed for alert/sys/ecl/qrh/review.</summary>
-internal readonly record struct SoftOrganSeatExtras(
+internal readonly record struct SoftInstrumentSeatExtras(
     IdeAlertChannel.Inputs AlertInputs,
     Func<object> SysBoard,
     IdeChkChannel.ProbeCtx ChkCtx,
@@ -246,12 +246,12 @@ internal readonly record struct SoftOrganSeatExtras(
     bool TestsFailed,
     QualityGates.QualitySnap Quality);
 
-/// <summary>Core bag for <see cref="IdeSoftOrganBoard"/> (SoftDispatch + seats).</summary>
-internal readonly record struct SoftOrganSeatBag(
+/// <summary>Core bag for <see cref="IdeSoftInstrumentBoard"/> (SoftDispatch + seats).</summary>
+internal readonly record struct SoftInstrumentSeatBag(
     Dictionary<string, JsonElement> TileArgs,
     SessionContext Session,
     DocumentBufferStore? DocStore,
     IntentWorkspaceStore? WorkspaceStore,
     IntentWorkspaceState? WorkspaceState,
     string? GoVerb = null,
-    SoftOrganSeatExtras? Extras = null);
+    SoftInstrumentSeatExtras? Extras = null);

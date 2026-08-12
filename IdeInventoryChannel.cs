@@ -7,7 +7,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Soft organ <c>go=inventory</c> / Meta <c>cdp_inventory</c> — dense throughput gap list [A], not W-spray.
-/// Live SoftOrgan Meta host dig (RouteOne go|tool ≠ place-only) so Autoi does not re-wire shipped Crm/Arch.
+/// Live SoftInstrument Meta host dig (RouteOne go|tool ≠ place-only) so Autoi does not re-wire shipped Crm/Arch.
 /// </summary>
 internal static class IdeInventoryChannel
 {
@@ -37,7 +37,7 @@ internal static class IdeInventoryChannel
     {
         var gaps = BuildGaps(session).Count;
         var wave = IdeWaveChannel.PulseLine();
-        var host = SoftOrganHostPulse();
+        var host = SoftInstrumentHostPulse();
         return $"inventory · gaps×{gaps} · {host} · {wave}";
     }
 
@@ -45,7 +45,7 @@ internal static class IdeInventoryChannel
     {
         var gaps = BuildGaps(session);
         var wave = IdeWaveChannel.TryLoadActive();
-        var host = ProbeSoftOrganHosts();
+        var host = ProbeSoftInstrumentHosts();
         var recommend = Math.Clamp(Math.Max(8, gaps.Count(g => g.Status is "gap" or "active")), 8, 15);
         return new
         {
@@ -56,7 +56,7 @@ internal static class IdeInventoryChannel
             tool = ToolName,
             pulse = PulseLine(session),
             batch_size_recommend = recommend,
-            softorgan_host = new
+            softinstrument_host = new
             {
                 covered = host.Covered,
                 missing = host.Missing.Count,
@@ -86,7 +86,7 @@ internal static class IdeInventoryChannel
             },
             hint =
                 "Throughput inventory [A]: list gaps → batch (~8–15) → ship one wave. Soft FileLines CLOSED — do not mill. " +
-                "softorgan_host = live Meta host dig — do not re-wire CLOSED. Not W-spray; not biped serial peel."
+                "softinstrument_host = live Meta host dig — do not re-wire CLOSED. Not W-spray; not biped serial peel."
         };
     }
 
@@ -101,16 +101,16 @@ internal static class IdeInventoryChannel
 
     static List<(string Id, string Status, string Note)> BuildGaps(SessionContext? session)
     {
-        var host = ProbeSoftOrganHosts();
+        var host = ProbeSoftInstrumentHosts();
         var gaps = new List<(string, string, string)>
         {
             ("soft-filelines", "CLOSED", "Do not reopen peel mill — Soft FileLines CLOSED."),
             ("citizen-sse", "shipped", "Citizen SSE 0.5.644 — stream+budgets; do not re-litigate."),
-            ("meta-host-softorgans",
+            ("meta-host-softinstruments",
                 host.Missing.Count == 0 ? "CLOSED" : "gap",
                 host.Missing.Count == 0
-                    ? $"SoftOrgan Meta hosts covered ({host.Covered}/{host.Total} excl Plan) — do not re-wire Crm/Arch."
-                    : $"SoftOrgan Meta host gaps ×{host.Missing.Count}: {string.Join(", ", host.Missing.Take(6))} — wire @intent host, not FileLines."),
+                    ? $"SoftInstrument Meta hosts covered ({host.Covered}/{host.Total} excl Plan) — do not re-wire Crm/Arch."
+                    : $"SoftInstrument Meta host gaps ×{host.Missing.Count}: {string.Join(", ", host.Missing.Take(6))} — wire @intent host, not FileLines."),
             ("throughput-wave", IdeWaveChannel.HasActiveOpen() ? "active" : "gap",
                 IdeWaveChannel.HasActiveOpen()
                     ? "Active wave — fly items to shipped."
@@ -126,23 +126,23 @@ internal static class IdeInventoryChannel
         return gaps;
     }
 
-    static string SoftOrganHostPulse()
+    static string SoftInstrumentHostPulse()
     {
-        var host = ProbeSoftOrganHosts();
+        var host = ProbeSoftInstrumentHosts();
         return host.Missing.Count == 0
             ? $"meta-host CLOSED {host.Covered}/{host.Total}"
             : $"meta-host gap×{host.Missing.Count}";
     }
 
-    internal static SoftOrganHostSnap ProbeSoftOrganHosts()
+    internal static SoftInstrumentHostSnap ProbeSoftInstrumentHosts()
     {
-        var cat = new SoftOrganBoardMetaCatalog();
+        var cat = new SoftInstrumentBoardMetaCatalog();
         var missing = new List<string>();
         var covered = 0;
         var total = 0;
-        foreach (SoftOrganKind kind in Enum.GetValues<SoftOrganKind>())
+        foreach (SoftInstrumentKind kind in Enum.GetValues<SoftInstrumentKind>())
         {
-            if (kind == SoftOrganKind.Plan)
+            if (kind == SoftInstrumentKind.Plan)
                 continue; // TM place organ — not Meta host mill
 
             total++;
@@ -156,7 +156,7 @@ internal static class IdeInventoryChannel
             missing.Add($"{kind}:{meta.Go}");
         }
 
-        return new SoftOrganHostSnap(covered, total, missing);
+        return new SoftInstrumentHostSnap(covered, total, missing);
     }
 
     static IEnumerable<string> HostProbes(string go, string tool)
@@ -190,7 +190,7 @@ internal static class IdeInventoryChannel
             and not CitizenIntentRouter.Verb.Unknown;
     }
 
-    internal sealed record SoftOrganHostSnap(int Covered, int Total, IReadOnlyList<string> Missing);
+    internal sealed record SoftInstrumentHostSnap(int Covered, int Total, IReadOnlyList<string> Missing);
 
     static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)
     {

@@ -35,8 +35,8 @@ internal static partial class CitizenRouteHost
                 result = IdeGlassSurfaceChannel.HandleJson(session!, args);
 
             var json = result is string s ? s : JsonSerializer.Serialize(result);
-            var ok = TryReadSoftOrganOk(json);
-            var pulse = TryReadSoftOrganPulse(json, "glass", op);
+            var ok = TryReadSoftInstrumentOk(json);
+            var pulse = TryReadSoftInstrumentPulse(json, "glass", op);
             var seat = IdeDeskSeats.PlaceOrgan("surface_desk");
             return new Applied(
                 route.Raw,

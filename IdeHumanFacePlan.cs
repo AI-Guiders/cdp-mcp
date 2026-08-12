@@ -231,7 +231,7 @@ internal static class IdeHumanFacePlan
                      "Face axis4 operator",
                      "tip mill ≠ Done",
                      "tip mill != Done",
-                     "Face SoftOrgan/#CIDE Done needs operator eyes",
+                     "Face SoftInstrument/#CIDE Done needs operator eyes",
                      "needs operator eyes",
                      "operator eyes",
                      "refuse board hygiene",

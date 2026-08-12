@@ -3,7 +3,7 @@ using CdpMcp.Cockpit.Channels;
 
 namespace CdpMcp.Cockpit.Channels;
 
-/// <summary>Channel peel payload: deferred soft-organ wants (ADR 0036).</summary>
+/// <summary>Channel peel payload: deferred soft-instrument wants (ADR 0036).</summary>
 public readonly record struct DeferredSoftWantsPayload(
     bool Sys,
     bool Chk,
@@ -13,8 +13,8 @@ public readonly record struct DeferredSoftWantsPayload(
     bool Plugins,
     bool Review);
 
-/// <summary>IChannel for soft-organ deferral — peeks go-verb into typed wants.</summary>
-public sealed class DeferredSoftOrganChannel : IChannel<string?, DeferredSoftWantsPayload>
+/// <summary>IChannel for soft-instrument deferral — peeks go-verb into typed wants.</summary>
+public sealed class DeferredSoftInstrumentChannel : IChannel<string?, DeferredSoftWantsPayload>
 {
     public DeferredSoftWantsPayload Build(in string? goVerb)
     {

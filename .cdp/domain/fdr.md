@@ -11,7 +11,7 @@
 - **Tape is seat-local:** `StateRoot/{seat}/fdr-tape.jsonl` — dual seats must not share one FileShare.None root tape. Cross-process Mutex + `FileShare.ReadWrite` append. Legacy workspace-root tape migrates once on primary.
 
 ## Entry
-- SoftOrgan `go=fdr` / Meta `cdp_fdr` — `op=scene|tail|stats|slow|open|cancel_open|trace|suggest|apply|clear_overlay`
+- SoftInstrument `go=fdr` / Meta `cdp_fdr` — `op=scene|tail|stats|slow|open|cancel_open|trace|suggest|apply|clear_overlay`
 - Wire: `IdeToolCallWatch.RunAsync` → orphan reconcile → `RecordToolStart` → ticks (+ watchdog cancel) → `RecordToolCall` in `finally`
 - Tape: `%StateRoot%/{seat}/fdr-tape.jsonl` (legacy `%StateRoot%/fdr-tape.jsonl` → primary migrate)
 

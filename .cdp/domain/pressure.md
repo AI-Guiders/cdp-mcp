@@ -37,7 +37,7 @@
 
 ## last_ship
 
-- **2026-08-09 Face ADCM densify (0.5.711)** — citizen DialogMemory owns Face Persist/Partition/Rebuild; pressure axis stays `cdp_pressure` / `@intent pressure` + fat dialog AfferentLine (not SoftOrgan ADCM). Mentions SoftFL Face-owned alone.
+- **2026-08-09 Face ADCM densify (0.5.711)** — citizen DialogMemory owns Face Persist/Partition/Rebuild; pressure axis stays `cdp_pressure` / `@intent pressure` + fat dialog AfferentLine (not SoftInstrument ADCM). Mentions SoftFL Face-owned alone.
 - **anti-rooster L1 flip** — notify = already late if stamp/memo missing; SceneArmedHint / AGENT_REMINDER · 2026-08-05
 - 0.5.645: stash/recall `wave` field · SA biped_mill · organs inventory/verify_wave · 2026-08-03
 - 0.5.636: Autoi `ChargeAmnesiaPostfix` body≠biped recall (pipe/CDP dig·parallel) · playbook-pf-body-not-biped-v1 · 2026-08-03

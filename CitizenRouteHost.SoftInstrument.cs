@@ -3,10 +3,10 @@ using System.Text.Json;
 
 namespace CdpMcp;
 
-/// <summary>Shared JSON ok/pulse readers for SoftOrgan Meta citizen hosts.</summary>
+/// <summary>Shared JSON ok/pulse readers for SoftInstrument Meta citizen hosts.</summary>
 internal static partial class CitizenRouteHost
 {
-    static bool TryReadSoftOrganOk(string json)
+    static bool TryReadSoftInstrumentOk(string json)
     {
         try
         {
@@ -35,7 +35,7 @@ internal static partial class CitizenRouteHost
         }
     }
 
-    static string? TryReadSoftOrganPulse(string json, string tag, string op)
+    static string? TryReadSoftInstrumentPulse(string json, string tag, string op)
     {
         try
         {

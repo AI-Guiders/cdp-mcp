@@ -448,4 +448,4 @@
       <DependentUpon>CitizenPersona.Wire.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="CitizenIntentRouter.SoftOrganMeta9.Tables.cs"><DependentUpon>CitizenIntentRouter.SoftOrganMeta9.cs</DependentUpon></Compile></ItemGroup></Project>
+<ItemGroup><Compile Update="CitizenIntentRouter.SoftInstrumentMeta9.Tables.cs"><DependentUpon>CitizenIntentRouter.SoftInstrumentMeta9.cs</DependentUpon></Compile></ItemGroup></Project>

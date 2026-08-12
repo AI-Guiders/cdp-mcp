@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace CdpMcp;
 
 /// <summary>
-/// Agent Debug-SA pulse → CIDE/Glass SoftOrgan (instant).
+/// Agent Debug-SA pulse → CIDE/Glass SoftInstrument (instant).
 /// Writes %LocalAppData%/cdp-mcp/debug_desk-LATEST.json; Glass MFD DebugStack glance.
 /// Live: DAP stopped/continued hooks enrich stack/locals. Idle stays silent (Dark Cockpit).
 /// </summary>

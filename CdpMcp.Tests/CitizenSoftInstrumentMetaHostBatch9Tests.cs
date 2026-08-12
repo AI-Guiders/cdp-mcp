@@ -5,7 +5,7 @@ using Xunit;
 namespace CdpMcp.Tests;
 
 [Collection("CitizenRouteHostLifecycle")]
-public sealed class CitizenSoftOrganMetaHostBatch9Tests
+public sealed class CitizenSoftInstrumentMetaHostBatch9Tests
 {
     [Theory]
     [InlineData("report", "scene", "report")]

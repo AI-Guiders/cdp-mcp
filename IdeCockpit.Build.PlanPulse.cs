@@ -8,7 +8,7 @@ using TerminalMcp.Core;
 namespace CdpMcp;
 
 /// <summary>
-/// Desk-pulse fast path for BuildAsync — skip upfront git / quality / full SoftOrgan seat resolve.
+/// Desk-pulse fast path for BuildAsync — skip upfront git / quality / full SoftInstrument seat resolve.
 /// <c>go_detail=full</c> = organ depth only. <c>seats_detail=full</c> alone stays on pulse
 /// (W-spray refused early — same as SeatsDetailGateUnit). <c>pane_full=</c> stays on pulse and
 /// resolves one matched seat only. CDP-ADR-0020: deferred soft organs skip glass spray; organ-only skip nav.

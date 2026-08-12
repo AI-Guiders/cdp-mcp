@@ -1,7 +1,7 @@
 #nullable enable
 namespace CdpMcp.Cockpit.ComputingUnits;
 
-/// <summary>CCU: merge GoMap keys with desk soft-organ aliases for desk_detail=nav.</summary>
+/// <summary>CCU: merge GoMap keys with desk soft-instrument aliases for desk_detail=nav.</summary>
 public sealed class GoVerbsCatalogUnit : ICockpitComputeUnit
 {
     public static readonly string[] ExtraDeskVerbs =

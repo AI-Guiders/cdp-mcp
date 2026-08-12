@@ -1,21 +1,21 @@
 #nullable enable
 namespace CdpMcp.Cockpit.Surface;
 
-/// <summary>Project soft-organ board into seat pane DTO (full wrap or as-is).</summary>
-public static class SeatOrganPanePresenter
+/// <summary>Project soft-instrument board into seat pane DTO (full wrap or as-is).</summary>
+public static class SeatInstrumentPanePresenter
 {
     public static object Present(
-        SoftOrganBoardMetaCatalog.Meta meta,
+        SoftInstrumentBoardMetaCatalog.Meta meta,
         bool wantFull,
         object board,
         string? pulse = null,
         string? schema = null) =>
         meta.Mode switch
         {
-            SoftOrganPresentMode.FullOr => FullOr(board, wantFull, meta.Go, meta.Tool),
-            SoftOrganPresentMode.PulseLine => PulseOrFull(
+            SoftInstrumentPresentMode.FullOr => FullOr(board, wantFull, meta.Go, meta.Tool),
+            SoftInstrumentPresentMode.PulseLine => PulseOrFull(
                 wantFull, board, meta.Go, meta.Tool, pulse ?? "—", schema, meta.PulseHint),
-            SoftOrganPresentMode.PulseWithResult => wantFull
+            SoftInstrumentPresentMode.PulseWithResult => wantFull
                 ? Full(board, meta.Go, meta.Tool)
                 : PulseWithResult(board, meta.Go, pulse ?? "—", meta.Tool),
             _ => throw new ArgumentOutOfRangeException(nameof(meta), meta.Mode, null)

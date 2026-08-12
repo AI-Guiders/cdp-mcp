@@ -6,13 +6,13 @@ namespace CdpMcp;
 
 /// <summary>
 /// Human-faced Intercom surface: strip wire (@intent/@event/@frame) from prose.
-/// Hands receipt lives on SoftOrgan (<see cref="CideHandsLatch"/>) — not letter laundry.
+/// Hands receipt lives on SoftInstrument (<see cref="CideHandsLatch"/>) — not letter laundry.
 /// </summary>
 internal static partial class CitizenIntercomHumanSurface
 {
     static readonly Regex WireLine = WireLineRegex();
 
-    /// <summary>Publish body for Glass Intercom — Sierra prose only; receipt → SoftOrgan HND chip.</summary>
+    /// <summary>Publish body for Glass Intercom — Sierra prose only; receipt → SoftInstrument HND chip.</summary>
     public static string Publish(
         string? prose,
         IReadOnlyList<CitizenRouteHost.Applied>? executed = null,
@@ -57,7 +57,7 @@ internal static partial class CitizenIntercomHumanSurface
     }
 
     /// <summary>
-    /// SoftOrgan tip body (OK/FAIL/RUNNING keywords). Letter Publish no longer appends this.
+    /// SoftInstrument tip body (OK/FAIL/RUNNING keywords). Letter Publish no longer appends this.
     /// </summary>
     public static string FormatHands(
         IReadOnlyList<CitizenRouteHost.Applied>? executed,

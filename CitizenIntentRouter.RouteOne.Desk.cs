@@ -2,7 +2,7 @@
 
 namespace CdpMcp;
 
-/// <summary>RouteOne family gate: Desk — table-driven SoftFL densify (SoftOrgan invent REJECT).</summary>
+/// <summary>RouteOne family gate: Desk — table-driven SoftFL densify (SoftInstrument invent REJECT).</summary>
 internal static partial class CitizenIntentRouter
 {
     static Route? TryRouteDesk(string raw)

@@ -49,7 +49,7 @@ internal static partial class IdeCockpit
         IdeAlertChannel.Inputs alertInputs;
         if (AnyDeferredSoftWant(deferred))
         {
-            (goResult, alertSnap, alertInputs) = ApplyDeferredSoftOrgans(
+            (goResult, alertSnap, alertInputs) = ApplyDeferredSoftInstruments(
                 deferred, goResult, session, docStore, workspaceStore, workspaceState, args,
                 git, shell, buffer, probes.Debug, probes.Test, probes.Work, probes.Quality,
                 probes.Problems, probes.ChkCtx, probes.ChkSnap,

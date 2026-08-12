@@ -39,7 +39,7 @@ internal static partial class IdeCockpit
     static readonly GoResultSlimUnit GoResultSlim = new();
 
     /// <summary>
-    /// Soft-organ Handle() often ignores go_detail — slim fat dumps to pulse when A (default).
+    /// Soft-instrument Handle() often ignores go_detail — slim fat dumps to pulse when A (default).
     /// </summary>
     static object? SlimGoResult(object? goResult, string? goDetailRaw) =>
         GoResultSlim.Slim(goResult, goDetailRaw, raw =>

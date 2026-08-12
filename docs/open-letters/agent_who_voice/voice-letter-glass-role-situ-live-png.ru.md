@@ -1,6 +1,6 @@
 # Voice Letter — Glass ROLE situ live PNG
 
-**Орган:** glass · Editor situ ROLE/HOPS/LOOK · SoftOrgan human viz  
+**Орган:** glass · Editor situ ROLE/HOPS/LOOK · SoftInstrument human viz  
 **Ship:** 0d52fe15 + live dogfood 2026-08-04
 
 ---

@@ -9,7 +9,7 @@ Sealed: Glass Done + Citizen Done. Dig = investigate/expand (not DIG REJECT mill
 2. `cdp_browser op=which` — Lynx 2.9.3 · path scoop shim.
 3. `cdp_browser op=search` — DDG HTML ok (~1.3s).
 4. Desk `go=browser` — M pulse `2 tab(s) · html.duckduckgo.com`.
-5. **Citizen wire execute** — `@intent browser search q="cascade-ide SoftOrgan human viz"` → `ack=1/1` · peer pulse `browser search ok …duckduckgo…`.
+5. **Citizen wire execute** — `@intent browser search q="cascade-ide SoftInstrument human viz"` → `ack=1/1` · peer pulse `browser search ok …duckduckgo…`.
 6. Glass `WebAiPortal` — domain HOLD/stub intentional; SSOT Avalonia; do not fork into Glass TextBlock; ≠ lynx habitat.
 
 ## Verdict

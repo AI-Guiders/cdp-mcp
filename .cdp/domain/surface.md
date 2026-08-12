@@ -22,7 +22,7 @@
 ## Antipatterns
 
 - Claiming parity after PrintWindow-only.
-- One-way SoftOrgan latch for layout (no reply).
+- One-way SoftInstrument latch for layout (no reply).
 - Pulling Avalonia Visual into Core as SSOT.
 
 ## last_ship

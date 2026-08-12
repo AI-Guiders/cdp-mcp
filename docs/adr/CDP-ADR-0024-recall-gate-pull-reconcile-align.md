@@ -36,7 +36,7 @@ Agreement: difficulties easable by cockpit → ease via cockpit.
 ## Consequences
 
 - Wake/L1 path has an explicit place to **decide**, not only restore text.
-- SoftOrgan/pressure pulse becomes the continuity desk for locus-of-control practice.
+- SoftInstrument/pressure pulse becomes the continuity desk for locus-of-control practice.
 - Later (non-goal v0): hard-block leave-`CdpPhase.Recall` until `ready` via `SessionContext`.
 
 ---

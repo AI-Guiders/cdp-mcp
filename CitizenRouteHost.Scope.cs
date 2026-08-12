@@ -35,8 +35,8 @@ internal static partial class CitizenRouteHost
                 result = IdeScopeChannel.HandleJson(session!, args);
 
             var json = result is string s ? s : JsonSerializer.Serialize(result);
-            var ok = TryReadSoftOrganOk(json);
-            var pulse = TryReadSoftOrganPulse(json, "ps", op);
+            var ok = TryReadSoftInstrumentOk(json);
+            var pulse = TryReadSoftInstrumentPulse(json, "ps", op);
             var seat = IdeDeskSeats.PlaceOrgan("project_switch");
             return new Applied(
                 route.Raw,

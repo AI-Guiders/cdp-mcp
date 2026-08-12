@@ -67,9 +67,9 @@ internal static partial class IdeCockpit
                     continue;
                 }
 
-                var tileArgs = SeatOrganArgs.Sanitize(args, wantFull: true);
+                var tileArgs = SeatInstrumentArgs.Sanitize(args, wantFull: true);
                 var planPin = CanonicalOrganPin(organ);
-                var pane = await ResolveSeatOrganPaneAsync(
+                var pane = await ResolveSeatInstrumentPaneAsync(
                         organ, planPin, wantFull: true, tileArgs,
                         session, docStore, workspaceStore, workspaceState, alertInputs,
                         git, shell, browser, mcpPulse, buffer,

@@ -4,7 +4,7 @@ using System.Text;
 namespace CdpMcp;
 
 /// <summary>
-/// Hands receipt domain (OOA&amp;D Kit) — SoftOrgan Face chips, not Intercom letter laundry.
+/// Hands receipt domain (OOA&amp;D Kit) — SoftInstrument Face chips, not Intercom letter laundry.
 /// Writer paints <c>hands-LATEST.json</c> chrome_hint; Glass catalog id <c>hands</c> / HND.
 /// </summary>
 internal static class CitizenHandsReceipt
@@ -58,7 +58,7 @@ internal static class CitizenHandsReceipt
         return new Snapshot(Phase.Done, items, elapsed, okN, failN);
     }
 
-    /// <summary>SoftOrgan chrome_hint — ChipLevelFromHint keywords: RUNNING / FAIL / OK.</summary>
+    /// <summary>SoftInstrument chrome_hint — ChipLevelFromHint keywords: RUNNING / FAIL / OK.</summary>
     public static string? FormatChromeHint(Snapshot snap)
     {
         if (snap.Phase == Phase.Idle)
@@ -93,7 +93,7 @@ internal static class CitizenHandsReceipt
         return sb.ToString();
     }
 
-    /// <summary>Legacy tip body (tests / SoftOrgan tooltip) — same shape as former FormatHands.</summary>
+    /// <summary>Legacy tip body (tests / SoftInstrument tooltip) — same shape as former FormatHands.</summary>
     public static string FormatTip(
         IReadOnlyList<CitizenRouteHost.Applied>? executed,
         TimeSpan? elapsed = null) =>

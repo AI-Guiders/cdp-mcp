@@ -13,13 +13,13 @@ namespace CdpMcp;
 /// <summary>
 /// Surface role for cockpit BuildAsync (CIDE ADR 0036 / arch_desk wire).
 /// Fills seat panes (organ bodies) then compositor projects into desk JSON.
-/// Soft-organ resolve: <see cref="ResolveSeatOrganPaneAsync"/>.
+/// Soft-instrument resolve: <see cref="ResolveSeatInstrumentPaneAsync"/>.
 /// Orthogonal to IDS overlays (ADR 0079).
 /// </summary>
 internal static partial class IdeCockpit
 {
     static readonly SeatsDetailGateUnit SeatsDetailGate = new();
-    static readonly SeatOrganArgsSanitizer SeatOrganArgs = new();
+    static readonly SeatInstrumentArgsSanitizer SeatInstrumentArgs = new();
     static readonly SeatFullPaneMatchUnit SeatFullPaneMatch = new();
 
     /// <summary>Collect seat organ panes + compose seats desk surface.</summary>
@@ -97,9 +97,9 @@ internal static partial class IdeCockpit
                 continue;
             }
 
-            var tileArgs = SeatOrganArgs.Sanitize(args, wantFull);
+            var tileArgs = SeatInstrumentArgs.Sanitize(args, wantFull);
             var planPin = CanonicalOrganPin(organ);
-            var pane = await ResolveSeatOrganPaneAsync(
+            var pane = await ResolveSeatInstrumentPaneAsync(
                     organ, planPin, wantFull, tileArgs,
                     session, docStore, workspaceStore, workspaceState, alertInputs,
                     git, shell, browser, mcpPulse, buffer, debug, test, work,

@@ -67,7 +67,7 @@ internal static partial class IdeCockpit
     static bool GitIsDirty(JsonElement? root) => GitMaterialDirty(root);
 
     /// <summary>
-    /// Staged/unstaged only — untracked local SoftOrgan noise must not fuse SA WARN.
+    /// Staged/unstaged only — untracked local SoftInstrument noise must not fuse SA WARN.
     /// </summary>
     static bool GitMaterialDirty(JsonElement? root)
     {

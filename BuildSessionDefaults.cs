@@ -4,7 +4,7 @@ using Cdp.Core;
 namespace CdpMcp;
 
 /// <summary>
-/// Soft-organ <c>build_*</c> parsers require <c>solution_path</c>; after <c>cdp_open</c> inject
+/// Soft-instrument <c>build_*</c> parsers require <c>solution_path</c>; after <c>cdp_open</c> inject
 /// session solution/project (parity with meta <c>cdp_build</c>/<c>cdp_test</c>).
 /// </summary>
 internal static class BuildSessionDefaults

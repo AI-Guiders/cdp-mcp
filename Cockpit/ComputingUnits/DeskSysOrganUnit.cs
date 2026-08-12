@@ -1,7 +1,7 @@
 #nullable enable
 namespace CdpMcp.Cockpit.ComputingUnits;
 
-/// <summary>CCU: SYS soft-organ board (legacy mfd=sys pulse card).</summary>
+/// <summary>CCU: SYS soft-instrument board (legacy mfd=sys pulse card).</summary>
 public sealed class DeskSysOrganUnit : ICockpitComputeUnit
 {
     public readonly record struct Input(

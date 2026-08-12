@@ -5,7 +5,7 @@ using DotnetDebugMcp;
 
 namespace CdpMcp;
 
-/// <summary>Live debug_desk latch on DAP stopped/continued — Glass SoftOrgan FSW without polling SA.</summary>
+/// <summary>Live debug_desk latch on DAP stopped/continued — Glass SoftInstrument FSW without polling SA.</summary>
 internal static partial class IdeDebugSaChannel
 {
     static int _liveWired;

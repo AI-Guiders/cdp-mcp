@@ -1,8 +1,8 @@
 #nullable enable
 namespace CdpMcp.Cockpit.Surface;
 
-/// <summary>Canonical soft-organ id after alias normalize (surface route).</summary>
-public enum SoftOrganKind
+/// <summary>Canonical soft-instrument id after alias normalize (surface route).</summary>
+public enum SoftInstrumentKind
 {
     Plan,
     Report,

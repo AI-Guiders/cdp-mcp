@@ -167,8 +167,8 @@ internal static partial class CitizenIntentRouter
             ?? TryRouteDoc(raw)
             ?? TryRouteDesk(raw)
             ?? TryRouteRuntime(raw)
-            ?? TryRouteOrgansA(raw)
-            ?? TryRouteOrgansB(raw)
+            ?? TryRouteInstrumentsA(raw)
+            ?? TryRouteInstrumentsB(raw)
             ?? TryRouteNav(raw)
             ?? TryRouteDetailOrUnknown(raw);
     }

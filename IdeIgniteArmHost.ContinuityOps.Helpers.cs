@@ -56,7 +56,7 @@ internal static partial class IdeIgniteArmHost
         var awaiting = list.Where(a => a.Status == "awaiting").ToList();
         var awaitingCount = awaiting.Count;
         var providerBlocked = list.Any(a => a.Status == ProviderBlockedStatus);
-        // SoftOrgan chrome stays Dark Cockpit when no arms — HUD still gets autonomous/hild/course.
+        // SoftInstrument chrome stays Dark Cockpit when no arms — HUD still gets autonomous/hild/course.
         var active = armedCount > 0 || awaitingCount > 0 || providerBlocked;
         var course = IdePressureChannel.TryPeekSealedCourse();
         var awaitPartner = awaitingCount > 0;

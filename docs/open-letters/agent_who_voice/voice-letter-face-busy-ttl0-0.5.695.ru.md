@@ -4,4 +4,4 @@
 
 Чинили не tip filter (он уже есть), а hold: bridge пишет busy с `ttlSeconds:0`, latch больше не превращает 0 в null→120. Пока Turn в `finally` не поставит idle — mute держится.
 
-Тесты 3/3 · dual 0.5.695 · SoftOrgan invent REJECT.
+Тесты 3/3 · dual 0.5.695 · SoftInstrument invent REJECT.

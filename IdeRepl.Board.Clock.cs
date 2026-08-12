@@ -148,7 +148,7 @@ internal static partial class IdeRepl
         }
 
         // Operator Review Results — durable remarks on leaf (dialog → stamp; dig before done).
-        // SoftOrgan `review files|open` stays in Organs; freeform / list / ack land here.
+        // SoftInstrument `review files|open` stays in Organs; freeform / list / ack land here.
         if (head is "review" or "reviews" or "remark" or "remarks" or "rr")
         {
             merged["go"] = JsonSerializer.SerializeToElement("plan");

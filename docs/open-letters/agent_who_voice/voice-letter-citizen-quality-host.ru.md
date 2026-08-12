@@ -1,4 +1,4 @@
-# @intent quality: я сам кручу gates/disk/assert, не через чужой cockpit soft-organ MCP
+# @intent quality: я сам кручу gates/disk/assert, не через чужой cockpit soft-instrument MCP
 
 **organ:** citizen · `@intent quality|gates|quality_desk|quality_gates|cdp_quality` · QualityGates / AdxAssertions
 **ship:** 0.5.617
@@ -15,4 +15,4 @@
 
 ## Зачем
 
-Dogfood: восемь quality intent (buffers + disk findings + assert + place). Tests 8/8. Peer quality pulse without Cursor MCP — densest soft-organ peel после Meta health/context; next dig session/tools/capabilities.
+Dogfood: восемь quality intent (buffers + disk findings + assert + place). Tests 8/8. Peer quality pulse without Cursor MCP — densest soft-instrument peel после Meta health/context; next dig session/tools/capabilities.

@@ -4,7 +4,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Face SoftFL lantern — session + open-buffer Afferent lines (entry + active workspace).
-/// SoftOrgan invent REJECT — densify Completions inject, not a new organ.
+/// SoftInstrument invent REJECT — densify Completions inject, not a new organ.
 /// </summary>
 internal static class CitizenWorkspaceAfferent
 {

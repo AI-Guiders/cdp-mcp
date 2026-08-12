@@ -13,7 +13,7 @@ internal static partial class MetaDispatch
         var byDomain = d.ByDomain;
         var allAffordances = d.AllAffordances;
         var settings = d.Settings;
-        var SoftOrganMetaNames = d.SoftOrganMetaNames;
+        var SoftInstrumentMetaNames = d.SoftInstrumentMetaNames;
         var Pretty = d.Pretty;
         var BuildVisibleTools = d.BuildVisibleTools;
         var BuildMetaTools = d.BuildMetaTools;
@@ -28,10 +28,10 @@ internal static partial class MetaDispatch
             domains = byDomain.Keys.OrderBy(x => x).ToArray(),
             list_tools_count = BuildVisibleTools().Count,
             meta_tool_names = BuildMetaTools()
-                .Where(t => !SoftOrganMetaNames.Contains(t.Name))
+                .Where(t => !SoftInstrumentMetaNames.Contains(t.Name))
                 .Select(t => t.Name)
                 .ToArray(),
-            soft_organ_meta_hidden = SoftOrganMetaNames.OrderBy(x => x).ToArray(),
+            soft_organ_meta_hidden = SoftInstrumentMetaNames.OrderBy(x => x).ToArray(),
             buffer_tool = BuildMetaTools()
                 .Where(t => t.Name == "cdp_buffer")
                 .Select(t => new

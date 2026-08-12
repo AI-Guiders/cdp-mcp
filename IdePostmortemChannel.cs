@@ -81,7 +81,7 @@ internal static partial class IdePostmortemChannel
             new { go = "fdr", label = "FDR", why = "pair call_id evidence" }
         },
         hint =
-            "Ethical SoftOrgan postmortem: happened|system_root|why_repeated|fix|do_not. " +
+            "Ethical SoftInstrument postmortem: happened|system_root|why_repeated|fix|do_not. " +
             "No blame language; scrub secrets/tokens; never paste chat transcripts. " +
             "record → AgentFailures + Findings memo + FDR postmortem event."
     };

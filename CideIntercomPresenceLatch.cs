@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace CdpMcp;
 
 /// <summary>
-/// Dual-seat Intercom partner presence (observability) — not voice, not SoftOrgan/EICAS.
+/// Dual-seat Intercom partner presence (observability) — not voice, not SoftInstrument/EICAS.
 /// Latch: %LocalAppData%/cdp-mcp/intercom-presence-LATEST.json
 /// Coarse states only: idle|composing|busy (+ reader-side stale). No thinking/stream dump.
 /// </summary>

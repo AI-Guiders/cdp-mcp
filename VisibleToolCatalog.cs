@@ -10,7 +10,7 @@ namespace CdpMcp;
 internal static class VisibleToolCatalog
 {
     /// <summary>Soft organs with go= aliases — CallTool ok, omit from always-ListTools.</summary>
-    public static readonly HashSet<string> SoftOrganMetaNames = new(StringComparer.OrdinalIgnoreCase)
+    public static readonly HashSet<string> SoftInstrumentMetaNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "cdp_search",
         "cdp_sa",
@@ -41,7 +41,7 @@ internal static class VisibleToolCatalog
     public static List<Tool> Build(VisibleToolCatalogDeps d)
     {
         var meta = d.BuildMetaTools()
-            .Where(t => !SoftOrganMetaNames.Contains(t.Name))
+            .Where(t => !SoftInstrumentMetaNames.Contains(t.Name))
             .ToList();
         var ide = IdeLanguageTools.BuildBareVerbTools().ToList();
         var hits = PhaseObjectCatalog.Query(

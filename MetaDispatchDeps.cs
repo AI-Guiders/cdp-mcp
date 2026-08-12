@@ -21,7 +21,7 @@ internal sealed class MetaDispatchDeps
     public required ToolAffordance[] AllAffordances { get; init; }
     public required CdpSettings Settings { get; init; }
     public required string McpVersion { get; init; }
-    public required HashSet<string> SoftOrganMetaNames { get; init; }
+    public required HashSet<string> SoftInstrumentMetaNames { get; init; }
     public required JsonSerializerOptions Pretty { get; init; }
     public required ShellHabitat ShellHabitat { get; init; }
     public required McpOutletHabitat McpOutlet { get; init; }

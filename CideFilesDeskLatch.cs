@@ -5,9 +5,9 @@ using System.Text.Json.Serialization;
 namespace CdpMcp;
 
 /// <summary>
-/// Agent File Manager pulse → CIDE/Glass SoftOrgan quiet chrome (instant).
+/// Agent File Manager pulse → CIDE/Glass SoftInstrument quiet chrome (instant).
 /// Writes %LocalAppData%/cdp-mcp/files_desk-LATEST.json.
-/// SoftOrganMfdGlance stays unbound for SolutionExplorer (Glass .sln TreeView peel).
+/// SoftInstrumentMfdGlance stays unbound for SolutionExplorer (Glass .sln TreeView peel).
 /// Idle (clear/inactive) stays silent (Dark Cockpit).
 /// </summary>
 internal static class CideFilesDeskLatch

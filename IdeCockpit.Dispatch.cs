@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace CdpMcp;
 
-/// <summary>Go-verb dispatch peel — soft-organ tool call + locus path inject.</summary>
+/// <summary>Go-verb dispatch peel — soft-instrument tool call + locus path inject.</summary>
 internal static partial class IdeCockpit
 {
     static async Task<object> DispatchGoAsync(

@@ -35,8 +35,8 @@ internal static partial class CitizenRouteHost
                 result = IdeFdrChannel.HandleJson(session!, args);
 
             var json = result is string s ? s : JsonSerializer.Serialize(result);
-            var ok = TryReadSoftOrganOk(json);
-            var pulse = TryReadSoftOrganPulse(json, "fdr", op);
+            var ok = TryReadSoftInstrumentOk(json);
+            var pulse = TryReadSoftInstrumentPulse(json, "fdr", op);
             var seat = IdeDeskSeats.PlaceOrgan("fdr");
             return new Applied(
                 route.Raw,

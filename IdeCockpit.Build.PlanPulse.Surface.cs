@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Text.Json;
 using Cdp.Core;
 using CdpMcp.Cockpit.Surface;
@@ -20,7 +20,7 @@ internal static partial class IdeCockpit
         return new DeskProbeBundle(debug, test, work, quality, problems, chkCtx, chkSnap, GitDirty: false, TestsFailed: test is { Available: true, LastRun: not null, Success: false });
     }
 
-    /// <summary>Plan glass only — no SoftOrgan board spray.</summary>
+    /// <summary>Plan glass only — no SoftInstrument board spray.</summary>
     static (IdeAlertChannel.Snap AlertSnap, IdeAlertChannel.Inputs AlertInputs) ApplyPlanPulseGlass(SessionContext session, IntentWorkspaceStore? workspaceStore, IntentWorkspaceState workspaceState, BufferSnap buffer, ShellSnap shell, DeskProbeBundle probes)
     {
         IdeTaskManager.PublishGlass(workspaceStore, workspaceState, CdpEnumParse.ToWire(session.Phase));
@@ -56,7 +56,7 @@ internal static partial class IdeCockpit
         var buffer = CollectBuffer(docStore.Scene());
         var shell = CollectShell(shellHabitat.Scene());
         var probes = CollectPlanPulseProbeBundle(session, workspaceStore, workspaceState);
-        (goResult, var alertSnap, _) = ApplyDeferredSoftOrgans(deferred, goResult, session, docStore, workspaceStore, workspaceState, args, git: null, shell, buffer, probes.Debug, probes.Test, probes.Work, probes.Quality, probes.Problems, probes.ChkCtx, probes.ChkSnap, publishGlassSpray: false);
+        (goResult, var alertSnap, _) = ApplyDeferredSoftInstruments(deferred, goResult, session, docStore, workspaceStore, workspaceState, args, git: null, shell, buffer, probes.Debug, probes.Test, probes.Work, probes.Quality, probes.Problems, probes.ChkCtx, probes.ChkSnap, publishGlassSpray: false);
         goResult = SlimGoResult(goResult, OptString(args, "go_detail"));
         var resultPin = TryGoPinFromResult(goResult);
         object next = Array.Empty<object>();
@@ -69,7 +69,7 @@ internal static partial class IdeCockpit
     }
 
     /// <summary>
-    /// Desk pulse for bare / editor / git / leftover go — no upfront git spray, no ResolveSeatOrganPaneAsync.
+    /// Desk pulse for bare / editor / git / leftover go — no upfront git spray, no ResolveSeatInstrumentPaneAsync.
     /// Editor uses local snap (not cdp_editor_scene dispatch); git loads only when go is git.
     /// Deferred soft organs (alert/chk/…) apply on cheap PlanPulse probes — not full CollectProbeBundle.
     /// CDP-ADR-0020: deferred apply skips multi-channel glass spray on this path.
@@ -86,7 +86,7 @@ internal static partial class IdeCockpit
         return null;
     }
 
-    /// <summary>Seat lines without ResolveSeatOrganPaneAsync — matched go seat uses goResult pulse.</summary>
+    /// <summary>Seat lines without ResolveSeatInstrumentPaneAsync — matched go seat uses goResult pulse.</summary>
     static string BuildDeskPulseSeatsSurface(SessionContext session, IReadOnlyDictionary<string, JsonElement> args, string mfd, string? focusId, object? goResult, object? warm, object next, object? focus, IdeAlertChannel.Snap alertSnap, IReadOnlyList<Locus> loci, string[] goVerbs, string? resultPin)
     {
         var seatMap = IdeDeskSeats.Snapshot();

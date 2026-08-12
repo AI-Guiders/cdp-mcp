@@ -250,7 +250,7 @@ internal static partial class IdeWebcamChannel
         return el.ValueKind switch
         {
             JsonValueKind.String => el.GetString(),
-            // Wire often sends hwnd= as JSON number; String-only Opt dropped Face SoftOrgan shots.
+            // Wire often sends hwnd= as JSON number; String-only Opt dropped Face SoftInstrument shots.
             JsonValueKind.Number => el.GetRawText(),
             JsonValueKind.True => "true",
             JsonValueKind.False => "false",
@@ -258,7 +258,7 @@ internal static partial class IdeWebcamChannel
         };
     }
 
-    /// <summary>Test hook — Opt coerces JSON Number (hwnd=) for Face SoftOrgan shots.</summary>
+    /// <summary>Test hook — Opt coerces JSON Number (hwnd=) for Face SoftInstrument shots.</summary>
     internal static string? OptForTests(IReadOnlyDictionary<string, JsonElement> args, string key) =>
         Opt(args, key);
 }

@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace CdpMcp.Cockpit.Surface;
 
 /// <summary>Strip cockpit steer keys before organ dispatch from a seat pane.</summary>
-public sealed class SeatOrganArgsSanitizer
+public sealed class SeatInstrumentArgsSanitizer
 {
     static readonly string[] SteerKeys =
     [

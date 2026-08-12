@@ -2,7 +2,7 @@
 
 namespace CdpMcp;
 
-/// <summary>Citizen @intent BATCH-9: report|debug_sa|test_sa|build_sa|sys|ecl|review|alert soft-organ hosts.</summary>
+/// <summary>Citizen @intent BATCH-9: report|debug_sa|test_sa|build_sa|sys|ecl|review|alert soft-instrument hosts.</summary>
 internal static partial class CitizenIntentRouter
 {
     static Route RouteReport(string raw)

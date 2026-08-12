@@ -25,8 +25,8 @@
 - Active wave is durable (seat `active-wave.json`): `wave seed|scene|start|item done|shipped|clear`. Wave items = a; open→shipping→shipped = phases already — no extra TM stage organ.
 - Prefer `wave seed title=Name items=a;b;c` — bare `title=` + free words without separators must not invent fake items.
 - Prefer short `items=` labels without spaces, or quoted blobs; `items=` with spaces must not invent one item per whitespace token (0.5.650).
-- Inventory [A] = dense gap table + **live SoftOrgan Meta host dig** (`softorgan_host`) + batch_size_recommend (~8–15), not W-spray.
-- SoftOrgan Meta host mill **CLOSED** when inventory reports `meta-host-softorgans=CLOSED` — do not re-wire Crm/Arch from stale TM.
+- Inventory [A] = dense gap table + **live SoftInstrument Meta host dig** (`softinstrument_host`) + batch_size_recommend (~8–15), not W-spray.
+- SoftInstrument Meta host mill **CLOSED** when inventory reports `meta-host-softinstruments=CLOSED` — do not re-wire Crm/Arch from stale TM.
 - SA `biped_mill` when session act + no active wave → next `go=inventory` | `cmd=wave seed`.
 - `verify_wave` = checklist only — dual hard via `terminal_*` + `publish-and-deploy.ps1`, never in-proc KillRunning.
 - Hard deploy remount nudge is **per-seat** (0.5.661) — sibling hard must not remount the live survivor (`CdpReloadNudge.ps1`).
@@ -44,7 +44,7 @@
 - **Teeth naming (lie):** AutoI / FeatureDone half-a refuse is a **shield** (holds blow, seals course, latch/armor) — not «зубы». «Teeth» sounds like aggression and rhymes with «рубить дерево зубами» (imitation instead of axe). Prefer future rename shield|latch|course-guard; until then hold: щит ≠ зубы-имитация.
 - One peel / one Meta / one organ per Autoi wake while FileLines CLOSED.
 - **Half-a residual:** ship densest subset (e.g. Git+RelatedFiles) and defer rest of same inventory (e.g. Markdown) to next Autoi — serial strips, not one integral over a. **Also breaks nested-[axb] PREMISE** (open compact → lemma off).
-- **Domain-sliced CIDE port:** treat SoftOrgan / MFD / glass.md rows as separate waves — wrong. For Avalonia→Glass, **a** = весь остаток переноса CIDE (что ещё надо перенести), one wave to ship; not «сначала Git-домен, потом MD-домен».
+- **Domain-sliced CIDE port:** treat SoftInstrument / MFD / glass.md rows as separate waves — wrong. For Avalonia→Glass, **a** = весь остаток переноса CIDE (что ещё надо перенести), one wave to ship; not «сначала Git-домен, потом MD-домен».
 - Treating soft-staged `.next` as remounted live seat.
 - In-proc `cdp_shell` hard deploy (kills self).
 - Global MCP nudge remounting both seats on sibling hard (pre-0.5.661).
@@ -55,7 +55,7 @@
 
 ## last_ship
 - **2026-08-06 FullReady-cursor-cliff-lived SHIPPED** — wave `w-20260806-121024`: tm-standalone-honesty DIG REJECT · dig-next=battle-ready soak ACCEPT · ac-or-ship · dogfood-png · stamp-domain · wave-ship. Lived soak: peer ack=3/3 + dialog usable + Glass PNG `battle-ready-soak-20260806-1515.png` + `cdp_see`. Nested densest mid-soak: presentation OneOf intent tip `(F/P/M)` (was sole `(P)(F)(M)`). SoftFL REJECT.
-- **2026-08-06 FullReady-standalone-runs DIG REJECT** — dig-lived: glass.md Standalone Runs full-ready already SHIPPED `w-20260806-100246` · inventory SoftFL/Meta CLOSED · SoftOrgan Plan WHY+NEXT CLOSED · Face axis4=operator only · PreCondition B DIG REJECT/defer · A4 SoftFL REJECT. Mis-seeded successor after go_args ship = invent theater. DIG ACCEPT=honest dig-reject mill (not Standalone re-prove). Evidence `cascade-ide/tmp-glass-shots/standalone-digreject-20260806-1508.png` title=`M · MFD host` + `cdp_see`. SoftFL REJECT.
+- **2026-08-06 FullReady-standalone-runs DIG REJECT** — dig-lived: glass.md Standalone Runs full-ready already SHIPPED `w-20260806-100246` · inventory SoftFL/Meta CLOSED · SoftInstrument Plan WHY+NEXT CLOSED · Face axis4=operator only · PreCondition B DIG REJECT/defer · A4 SoftFL REJECT. Mis-seeded successor after go_args ship = invent theater. DIG ACCEPT=honest dig-reject mill (not Standalone re-prove). Evidence `cascade-ide/tmp-glass-shots/standalone-digreject-20260806-1508.png` title=`M · MFD host` + `cdp_see`. SoftFL REJECT.
 - **2026-08-06 wave go_args.label** — Direct `wave item done` ignored nested `go_args.label` (tokens-only). `WaveLabelFromGoArgs` + Merge whitelist `label|item|title|q|dig`. Lived: cockpit `cmd=wave item done` + `go_args.label=dig-lived` → 1/6. Test `Repl_wave_item_done_from_go_args_label`. Also: `CdpReloadNudge.ps1` PS5.1-safe coalesce (publish-and-deploy host has no `??`). SoftFL REJECT.
 - **2026-08-06 evidence-path spaces** — `MergeWaveShipArgs` joins pathish REPL values (`evidence`/`shot_path`/`png`/`screenshot_path`/`project_root`/`workspace_path`) until next ship-key=. Lived: `wave shipped evidence=…\Personal Cursor Folder\…` split → shield miss. Test `Repl_wave_shipped_joins_unquoted_evidence_path_with_spaces`. SoftFL REJECT.
 - **2026-08-06 Complexity seal** — operator teach: ЛВО→дихотомия · **serial[a,b]=O(N)** · **nested[axb]=O(log N)** · mill = other complexity class (not style). Canon: lemma note + playbook-pf-body-not-biped §Throughput + this card.
@@ -73,7 +73,7 @@
 - **2026-08-04 SoftFL CLOSED dig** — DIG REJECT SoftFL reopen (inventory CLOSED). densest ACCEPT: board CLOSED noise hygiene under FeatureDone @0.5.647 live dogfood; IntentSelect clears stage by design (restore in FeatureDone); dual `-Target` terminal habit ≠ code mill.
 - 2026-08-04 invent DIG — densest ACCEPT FeatureDone preserve-foreign-focus; SoftFL WARN×4 DIG REJECT; inventory throughput-wave was sole gap
 
-- 2026-08-04: SoftOrgan Meta defer dig CLOSED — inventory 32/32; TM feature shipped (no re-wire)
+- 2026-08-04: SoftInstrument Meta defer dig CLOSED — inventory 32/32; TM feature shipped (no re-wire)
 - stamp a×b turn rectangle + half-a antipattern · 2026-08-04
-- 0.5.646: inventory SoftOrgan host dig + wave seed title= footgun · 2026-08-03
+- 0.5.646: inventory SoftInstrument host dig + wave seed title= footgun · 2026-08-03
 - 0.5.645: TM wave + inventory + pressure wave[] + SA biped_mill + verify_wave · 2026-08-03

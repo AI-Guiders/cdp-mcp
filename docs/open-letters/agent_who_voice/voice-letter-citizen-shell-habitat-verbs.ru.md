@@ -6,4 +6,4 @@
 
 Live dogfood (seat cdp, build_utc=2026-08-07T20:17:44Z): `@intent shell scene` + `shell which` + `shell command=echo monday-dod` → **ack=3/3** · pulse `shell ok scene` / `which main` / `exit=0 … echo monday-dod`. SoftFL invent REJECT вне lived gap. Face Done — всё ещё axis4 operator.
 
-Commit `283f131`. Следующий densest FullReady peer residual — SoftFL invent REJECT, не SoftOrgan reopen.
+Commit `283f131`. Следующий densest FullReady peer residual — SoftFL invent REJECT, не SoftInstrument reopen.

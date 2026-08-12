@@ -15,7 +15,7 @@ internal static class IdeSeemingDoneShield
 
     static readonly string[] HumanFaceTokens =
     [
-        "glass", "softorgan", "mfd", "fds", "peel", "intercom", "citizen", "fullready", "full-ready",
+        "glass", "softinstrument", "mfd", "fds", "peel", "intercom", "citizen", "fullready", "full-ready",
         "share", "human", "viz", "cockpit", "topic", "hci", "cide", "#cide", "softfl", "dogfood",
         "throw cursor", "throw-cursor", "throwcursor", "standalone"
     ];
@@ -50,10 +50,10 @@ internal static class IdeSeemingDoneShield
     internal static string? InferDomain(string blob)
     {
         var b = blob.ToLowerInvariant();
-        if (b.Contains("softorgan", StringComparison.Ordinal)
+        if (b.Contains("softinstrument", StringComparison.Ordinal)
             || b.Contains("human-viz", StringComparison.Ordinal)
             || b.Contains("human viz", StringComparison.Ordinal))
-            return "softorgan-human-viz";
+            return "softinstrument-human-viz";
         if (b.Contains("citizen", StringComparison.Ordinal)
             || b.Contains("fullready", StringComparison.Ordinal)
             || b.Contains("full-ready", StringComparison.Ordinal))
@@ -93,7 +93,7 @@ internal static class IdeSeemingDoneShield
         {
             throw new ArgumentException(
                 $"{verb} refused — {RefuseDomainStampId}: human-faced ship needs domain=<card-id> " +
-                "(or inferrable glass|citizen|softorgan from wave/feature title). force=true escape.");
+                "(or inferrable glass|citizen|softinstrument from wave/feature title). force=true escape.");
         }
 
         var root = Opt(args, "project_root")

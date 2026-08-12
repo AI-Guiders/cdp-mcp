@@ -8,10 +8,10 @@ namespace CdpMcp;
 
 internal static partial class IdeCockpitSoftDispatch
 {
-    static readonly SoftOrganAliasCatalog SoftAliases = new();
-    static readonly SoftOrganBoardMetaCatalog SoftMeta = new();
+    static readonly SoftInstrumentAliasCatalog SoftAliases = new();
+    static readonly SoftInstrumentBoardMetaCatalog SoftMeta = new();
 
-    static bool IsSoft(string? goVerb, SoftOrganKind kind) =>
+    static bool IsSoft(string? goVerb, SoftInstrumentKind kind) =>
         SoftAliases.TryResolve(goVerb) == kind;
 
     static void PlaceAndClear(ref string? goVerb, string organ)
@@ -22,13 +22,13 @@ internal static partial class IdeCockpitSoftDispatch
         goVerb = null;
     }
 
-    static void PlaceSoft(ref string? goVerb, SoftOrganKind kind) =>
+    static void PlaceSoft(ref string? goVerb, SoftInstrumentKind kind) =>
         PlaceAndClear(ref goVerb, SoftMeta.Require(kind).Go);
 
-    /// <summary>SoftDispatch → IdeSoftOrganBoard (lite bag; no seat extras).</summary>
-        /// <summary>SoftDispatch → IdeSoftOrganBoard (lite bag; no seat extras).</summary>
+    /// <summary>SoftDispatch → IdeSoftInstrumentBoard (lite bag; no seat extras).</summary>
+        /// <summary>SoftDispatch → IdeSoftInstrumentBoard (lite bag; no seat extras).</summary>
     static object SoftBoard(
-        SoftOrganKind kind,
+        SoftInstrumentKind kind,
         SessionContext session,
         DocumentBufferStore? docStore,
         IntentWorkspaceStore? workspaceStore,
@@ -41,11 +41,11 @@ internal static partial class IdeCockpitSoftDispatch
         var tile = flattenOrganArgs
             ? new Dictionary<string, JsonElement>(OrganArgs(args), StringComparer.Ordinal)
             : new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
-        var hit = new IdeSoftOrganBoard(new SoftOrganSeatBag(
+        var hit = new IdeSoftInstrumentBoard(new SoftInstrumentSeatBag(
             tile, session, docStore, workspaceStore, workspaceState, goVerb)).Build(kind);
         if (!wantFull)
             return hit.Board;
-        return SeatOrganPanePresenter.Present(
+        return SeatInstrumentPanePresenter.Present(
             SoftMeta.Require(kind), wantFull: true, hit.Board, hit.Pulse, hit.Schema);
     }
 

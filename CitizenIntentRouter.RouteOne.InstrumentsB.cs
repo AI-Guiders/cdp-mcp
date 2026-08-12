@@ -2,10 +2,10 @@
 
 namespace CdpMcp;
 
-/// <summary>RouteOne family gate: OrgansB (intercom..domain) — peel FileLines off Organs.</summary>
+/// <summary>RouteOne family gate: InstrumentsB (intercom..domain) — peel FileLines off Organs.</summary>
 internal static partial class CitizenIntentRouter
 {
-    static Route? TryRouteOrgansB(string raw)
+    static Route? TryRouteInstrumentsB(string raw)
     {
         if (raw.Equals("settings", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("settings ", StringComparison.OrdinalIgnoreCase)
@@ -254,6 +254,6 @@ internal static partial class CitizenIntentRouter
             return RouteEvidence(raw);
         }
 
-        return TryRouteOrgansBMeta(raw);
+        return TryRouteInstrumentsBMeta(raw);
     }
 }

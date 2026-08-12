@@ -10,6 +10,6 @@ Hands parity (0.5.561) уже исполнял Routes и latch'ил PeerAck дл
 
 Теперь после Execute bridge дописывает peer tip в Intercom body и кладёт `peer=` в request latch. Glass `CitizenDialogRequestStatus` красит `done · peer…`. Света видит ack без Cursor tool dump и без угадывания из прозы.
 
-Dig: densest residual контура Glass→Citizen после delete/hands — observe surface на multi-turn Glass, не новый SoftOrgan.
+Dig: densest residual контура Glass→Citizen после delete/hands — observe surface на multi-turn Glass, не новый SoftInstrument.
 
 Dogfood: живой latch на 0.5.565 — FM сам вывел go=plan, Intercom citizen reply с `ack=1/1` в хвосте.

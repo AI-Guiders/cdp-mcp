@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace CdpMcp;
 
 /// <summary>
-/// SoftOrgan sa_desk (cdp_sa) pulse → CIDE quiet chrome (instant).
+/// SoftInstrument sa_desk (cdp_sa) pulse → CIDE quiet chrome (instant).
 /// Writes %LocalAppData%/cdp-mcp/sa-desk-LATEST.json; CIDE projector paints
 /// WorkspaceChromeBand — not EICAS go=sa. Clean leave (0w/0f) stays silent.
 /// </summary>

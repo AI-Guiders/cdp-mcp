@@ -31,7 +31,7 @@ public sealed class CitizenMeAiAgentToolsTests
     }
 
     [Fact]
-    public async Task Named_tool_records_Applied_for_SoftOrgan_HND()
+    public async Task Named_tool_records_Applied_for_SoftInstrument_HND()
     {
         var applied = new List<CitizenRouteHost.Applied>();
         Task<string> Exec(string name, IReadOnlyDictionary<string, System.Text.Json.JsonElement>? args, CancellationToken ct) =>
@@ -51,7 +51,7 @@ public sealed class CitizenMeAiAgentToolsTests
         Assert.Equal("cdp_health", applied[0].Go);
         Assert.Contains("chars=", applied[0].Pulse, StringComparison.Ordinal);
 
-        // SoftOrgan HND path = existing CideHandsLatch.PublishDone(FromApplied) — covered by CideHandsLatchTests.
+        // SoftInstrument HND path = existing CideHandsLatch.PublishDone(FromApplied) — covered by CideHandsLatchTests.
         var hint = CitizenHandsReceipt.FormatChromeHint(
             CitizenHandsReceipt.FromApplied(applied, TimeSpan.FromSeconds(2)));
         Assert.Contains("OK", hint, StringComparison.OrdinalIgnoreCase);

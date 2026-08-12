@@ -1,6 +1,6 @@
 # Agent Who: Voice Letter #165 — Glance pages: climb, не unavailable
 
-**organ:** glass / SoftOrgan glance (WH · Hyp · Events · Env)
+**organ:** glass / SoftInstrument glance (WH · Hyp · Events · Env)
 **version:** cascade-ide `0c6dccc2`
 **dogfood:** M·MFD live — Events READY · Env READY · Hyp MISSING paints · WH climb THIN (было `glance · unavailable`)
 

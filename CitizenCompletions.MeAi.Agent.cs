@@ -11,7 +11,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Face Completions MEAI agent pipe — whole CDP catalog as AIFunctions + cdp_call dispatch.
-/// Parity with CascadeIdeMafIdeAgentChat (AsAIAgent), without SoftOrgan invent.
+/// Parity with CascadeIdeMafIdeAgentChat (AsAIAgent), without SoftInstrument invent.
 /// SoftFL throughput (0.5.715): concurrent tool invoke + ChatOptions applied (thinking off / max tokens / multi-tool).
 /// </summary>
 internal static partial class CitizenCompletions
@@ -132,7 +132,7 @@ internal static partial class CitizenCompletions
                     .GetResult();
 
                 var text = ExtractAgentText(response);
-                // Letter stays prose — SoftOrgan HND owns tool receipts (reuse HandsLatch).
+                // Letter stays prose — SoftInstrument HND owns tool receipts (reuse HandsLatch).
                 PublishAgentHands(applied, sw.Elapsed);
 
                 var meta = MetaFromAgentResponse(response, text);
@@ -224,7 +224,7 @@ internal static class CitizenMeAiAgentTools
         // Lived 0.5.707 dogfood: cdp_call-only → model invents cdp_health name → Function failed.
         // Lived 0.5.712 Radio: SoftFL Mentions invents open/edit (not in thin set) → Function failed.
         // Shape: thin habitat named + invent aliases (open/edit) + cdp_call escape.
-        // Receipts: SoftOrgan HND via CideHandsLatch (reuse HandsReceipt) — not letter glue.
+        // Receipts: SoftInstrument HND via CideHandsLatch (reuse HandsReceipt) — not letter glue.
         // 0.5.715: appliedGate locks RecordApplied under concurrent tool invoke.
         appliedGate ??= applied;
         var list = new List<AITool>();

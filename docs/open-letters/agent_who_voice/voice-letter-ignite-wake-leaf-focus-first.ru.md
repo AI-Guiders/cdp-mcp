@@ -7,4 +7,4 @@ Organ: `ignite` · version **0.5.676** · 2026-08-07
 `ResolveWakeLeafId` — ActiveStageId first. Monday DoD может ждать. Hold — нет.
 
 Lived: remount thrash → dig board → ship → dual hard → unit test focus-over-dfs.
-SoftFL invent REJECT. Face SoftOrgan всё ещё твои глаза.
+SoftFL invent REJECT. Face SoftInstrument всё ещё твои глаза.

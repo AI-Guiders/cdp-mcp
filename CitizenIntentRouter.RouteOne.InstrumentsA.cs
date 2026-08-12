@@ -2,10 +2,10 @@
 
 namespace CdpMcp;
 
-/// <summary>RouteOne family gate: OrgansA (icm..project) — table-driven SoftFL densify (SoftOrgan invent REJECT).</summary>
+/// <summary>RouteOne family gate: InstrumentsA (icm..project) — table-driven SoftFL densify (SoftInstrument invent REJECT).</summary>
 internal static partial class CitizenIntentRouter
 {
-    static Route? TryRouteOrgansA(string raw)
+    static Route? TryRouteInstrumentsA(string raw)
     {
         if (IsIcmIntent(raw))
             return RouteIcm(raw);

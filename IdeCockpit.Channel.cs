@@ -9,12 +9,12 @@ namespace CdpMcp;
 
 /// <summary>
 /// Channel role for cockpit BuildAsync (CIDE ADR 0036 / arch_desk wire).
-/// Deferred soft organs via <see cref="DeferredSoftOrganChannel"/> → <see cref="IdeSoftOrganBoard"/>.
+/// Deferred soft organs via <see cref="DeferredSoftInstrumentChannel"/> → <see cref="IdeSoftInstrumentBoard"/>.
 /// </summary>
 internal static partial class IdeCockpit
 {
-    static readonly DeferredSoftOrganChannel SoftOrganChannel = new();
-    static readonly SoftOrganBoardMetaCatalog DeferredSoftMeta = new();
+    static readonly DeferredSoftInstrumentChannel SoftInstrumentChannel = new();
+    static readonly SoftInstrumentBoardMetaCatalog DeferredSoftMeta = new();
 
     private readonly record struct DeferredSoftWants(
         bool Sys,
@@ -28,7 +28,7 @@ internal static partial class IdeCockpit
     /// <summary>Peek go=sys|chk|qrh|alert|problems|plugins|review and clear goVerb.</summary>
     private static DeferredSoftWants PeekDeferredSoftWants(ref string? goVerb)
     {
-        var (payload, residual) = SoftOrganChannel.Peek(goVerb);
+        var (payload, residual) = SoftInstrumentChannel.Peek(goVerb);
         goVerb = residual;
         return new DeferredSoftWants(
             payload.Sys, payload.Chk, payload.Qrh, payload.Alert,
@@ -40,7 +40,7 @@ internal static partial class IdeCockpit
     /// <paramref name="publishGlassSpray"/>: full multi-channel PublishGlass is desk-width work —
     /// only on slow desk path (CDP-ADR-0020). Desk-pulse organ calls keep SA/ECL/QRH latches only.
     /// </summary>
-    private static (object? GoResult, IdeAlertChannel.Snap AlertSnap, IdeAlertChannel.Inputs AlertInputs) ApplyDeferredSoftOrgans(
+    private static (object? GoResult, IdeAlertChannel.Snap AlertSnap, IdeAlertChannel.Inputs AlertInputs) ApplyDeferredSoftInstruments(
         DeferredSoftWants wants,
         object? goResult,
         SessionContext session,
@@ -76,13 +76,13 @@ internal static partial class IdeCockpit
                 gitDirty, problems, testsFailed, quality, chkSnap);
 
         var tile = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
-        var board = new IdeSoftOrganBoard(new SoftOrganSeatBag(
+        var board = new IdeSoftInstrumentBoard(new SoftInstrumentSeatBag(
             tile,
             session,
             docStore,
             workspaceStore,
             workspaceState,
-            Extras: new SoftOrganSeatExtras(
+            Extras: new SoftInstrumentSeatExtras(
                 alertInputs,
                 () => BuildSysOrgan(session, git, shell, buffer, debug, test, work),
                 chkCtx,
@@ -94,20 +94,20 @@ internal static partial class IdeCockpit
 
         // Soft organs that own a seat: place BEFORE SA fuse so same-turn map matches desk.
         if (wants.Problems)
-            goResult = PlaceDeferred(board, SoftOrganKind.Problems);
+            goResult = PlaceDeferred(board, SoftInstrumentKind.Problems);
         if (wants.Plugins)
-            goResult = PlaceDeferred(board, SoftOrganKind.Plugins);
+            goResult = PlaceDeferred(board, SoftInstrumentKind.Plugins);
         if (wants.Review)
-            goResult = PlaceDeferred(board, SoftOrganKind.Review);
+            goResult = PlaceDeferred(board, SoftInstrumentKind.Review);
         if (wants.Sys)
-            goResult = PlaceDeferred(board, SoftOrganKind.Sys);
+            goResult = PlaceDeferred(board, SoftInstrumentKind.Sys);
         if (wants.Chk)
-            goResult = PlaceDeferred(board, SoftOrganKind.Ecl);
+            goResult = PlaceDeferred(board, SoftInstrumentKind.Ecl);
         if (wants.Qrh)
-            goResult = PlaceDeferred(board, SoftOrganKind.Qrh);
+            goResult = PlaceDeferred(board, SoftInstrumentKind.Qrh);
 
         if (wants.Alert)
-            goResult = board.Build(SoftOrganKind.Alert).Board;
+            goResult = board.Build(SoftInstrumentKind.Alert).Board;
 
         return (goResult, alertSnap, alertInputs);
     }
@@ -149,7 +149,7 @@ internal static partial class IdeCockpit
         IdeDomainChannel.PublishGlass(session);
     }
 
-    static object PlaceDeferred(IdeSoftOrganBoard board, SoftOrganKind kind)
+    static object PlaceDeferred(IdeSoftInstrumentBoard board, SoftInstrumentKind kind)
     {
         var hit = board.Build(kind);
         if (IdeDeskSeats.IsSeatsMode())

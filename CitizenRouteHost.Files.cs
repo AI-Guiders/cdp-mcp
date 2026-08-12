@@ -59,7 +59,7 @@ internal static partial class CitizenRouteHost
             var ok = TryReadFilesOk(json);
             var pulse = TryReadFilesPulse(json, op);
             // Parity with take: listing/text body → Applied.Ship → @event peer + Face tip.
-            // Pulse alone ("files · … · 37") is SoftOrgan chip — human Radio saw no names (lived 2026-08-09).
+            // Pulse alone ("files · … · 37") is SoftInstrument chip — human Radio saw no names (lived 2026-08-09).
             var ship = ok ? TryReadFilesShip(json) : null;
             if (ship is { Length: > 0 }
                 && pulse is not null

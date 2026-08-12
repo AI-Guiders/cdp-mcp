@@ -7,7 +7,7 @@ namespace CdpMcp;
 /// <summary>ListTools Meta catalog — Soft organs (refactor→scope); ops peel in Soft.Ops.</summary>
 internal static partial class MetaToolCatalog
 {
-    static IEnumerable<Tool> SoftOrgans() =>
+    static IEnumerable<Tool> SoftInstruments() =>
     [
     Meta("cdp_refactor", "Refactor decide desk — debt map + before/after budget + blast next + partials seam. op=plan|debt|budget|blast|partials|pulse. After sa_desk; Alias go=refactor_plan.", new
     {
@@ -149,7 +149,7 @@ internal static partial class MetaToolCatalog
                 cdt = new { type = "boolean", description = "scene: live CDT sample (default false)" }
             }
         }),
-    Meta("cdp_postmortem", "Ethical SoftOrgan postmortem — blameless peel (happened/system_root/why_repeated/fix/do_not). Scrubs secrets; refuses blame + chat dump. op=scene|template|draft|record|list. Persist failure+finding+FDR call_id. Alias go=postmortem|pm|retro. Integrity=honesty+exit.",
+    Meta("cdp_postmortem", "Ethical SoftInstrument postmortem — blameless peel (happened/system_root/why_repeated/fix/do_not). Scrubs secrets; refuses blame + chat dump. op=scene|template|draft|record|list. Persist failure+finding+FDR call_id. Alias go=postmortem|pm|retro. Integrity=honesty+exit.",
         new
         {
             type = "object",

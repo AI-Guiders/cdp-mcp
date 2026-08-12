@@ -5,9 +5,9 @@ using System.Text.Json.Serialization;
 namespace CdpMcp;
 
 /// <summary>
-/// Agent Find desk pulse → CIDE/Glass SoftOrgan quiet chrome (instant).
+/// Agent Find desk pulse → CIDE/Glass SoftInstrument quiet chrome (instant).
 /// Writes %LocalAppData%/cdp-mcp/find_desk-LATEST.json.
-/// SoftOrganMfdGlance RelatedFiles stays ←refactor (1:1 MFD map; search ≠ debt/blast).
+/// SoftInstrumentMfdGlance RelatedFiles stays ←refactor (1:1 MFD map; search ≠ debt/blast).
 /// Idle (clear) stays silent (Dark Cockpit).
 /// Hits[] mirror FilesDesk entries SoftFL — Sierra Face list without /search alone.
 /// </summary>

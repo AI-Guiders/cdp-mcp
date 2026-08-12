@@ -3,7 +3,7 @@
 **Status:** accepted  
 **Date:** 2026-07-30  
 **project-id:** `cdp-mcp` · related CIDE: ADR 0191 / 0193 / 0189  
-**Tags:** #cdp #adr #cockpit #soft-organ #context-economy #hang
+**Tags:** #cdp #adr #cockpit #soft-instrument #context-economy #hang
 
 **Related:** 7890872 desk-pulse for deferred softs · Glass as context economy (0-sync) · CDP-ADR-0018 slim desk
 
@@ -13,7 +13,7 @@
 
 One `BuildAsync` mixed **desk** (thin A / pulse) and **organ dump** (alert / chk / gates body). Agents calling `go=alert|chk` (even after desk-pulse) still hung ~50s+ because deferred soft apply ran a full **glass PublishGlass spray** (~15 channels) plus seat compose on the same turn.
 
-Patch 7890872 kept deferred organs on PlanPulse probes (no git/quality/ResolveSeatOrgan), but did not separate organ work from glass spray. Tool-wake (`cdp_cockpit >20s`) confirmed the hole.
+Patch 7890872 kept deferred organs on PlanPulse probes (no git/quality/ResolveSeatInstrument), but did not separate organ work from glass spray. Tool-wake (`cdp_cockpit >20s`) confirmed the hole.
 
 ---
 
@@ -30,7 +30,7 @@ Patch 7890872 kept deferred organs on PlanPulse probes (no git/quality/ResolveSe
 ## Consequences
 
 - `go=alert` / `go=chk` on pulse desk must return in agent-comfortable time (seconds, not minutes).
-- Glass consumers that relied on every soft-organ call refreshing all channels may see stale glass until a desk touch or slow path — acceptable; latch publish for alert/qrh/ecl stays.
+- Glass consumers that relied on every soft-instrument call refreshing all channels may see stale glass until a desk touch or slow path — acceptable; latch publish for alert/qrh/ecl stays.
 - Further peels shipped: organ-only early return (skip nav); `seats_detail=full` alone stays pulse (early refuse); `pane_full=` stays pulse (one matched seat Resolve only).
 - Meta `cdp_editor_scene` default = desk `go=editor` snap (counts; no disk probe/loci); `detail=full` / path|locus|doc_id = full map.
 - Optional later: `cdp_organ` Meta.
@@ -45,4 +45,4 @@ New MCP tool; rewriting SoftDispatch/gates; quiet-chrome UI; raising WARN thresh
 
 ## Ship
 
-`ApplyDeferredSoftOrgans(..., publishGlassSpray:)` · desk-pulse passes `false` · this ADR
+`ApplyDeferredSoftInstruments(..., publishGlassSpray:)` · desk-pulse passes `false` · this ADR

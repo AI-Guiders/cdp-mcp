@@ -20,7 +20,7 @@ internal static partial class ProgramHost
         "CSX: cdp_script_scene (put→diags→check→run) | cdp_csx_help | cdp_csx_check | cdp_csx_run | cdp_csx_run_plan | promote | discard | cdp_evidence. " +
         "PS1: cdp_ps1_scene (ISE put→AST check→pwsh -File→last). " +
         "Domain tools prefixed memory_world_|memory_project_|memory_task_|memory_session_|memory_skill_|memory_self_finding_|memory_self_failure_|debug_|build_|roslyn_|git_|codebase_index_|anui_ (roslyn_* = legacy aliases; prefer bare IDE verbs). " +
-        "ListTools = core meta + bare IDE verbs + ≤10 domain shortlist (soft-organ Metas via go=/CallTool; not always-ListTools). " +
+        "ListTools = core meta + bare IDE verbs + ≤10 domain shortlist (soft-instrument Metas via go=/CallTool; not always-ListTools). " +
         "Too many tools = agent thrash — use cdp_context to retarget, cdp_tools to preview, cdp_session (A; include_pack=true only when needed). " +
         "Continuity: route/handoff before deep topic; evidence-first (stop_context), PNG last.";
 }

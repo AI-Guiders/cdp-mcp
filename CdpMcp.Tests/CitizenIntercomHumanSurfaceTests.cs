@@ -48,7 +48,7 @@ public sealed class CitizenIntercomHumanSurfaceTests
     }
 
     [Fact]
-    public void FormatHands_marks_failure_with_softorgan_keywords()
+    public void FormatHands_marks_failure_with_softinstrument_keywords()
     {
         var tip = CitizenIntercomHumanSurface.FormatHands(
         [
@@ -64,7 +64,7 @@ public sealed class CitizenIntercomHumanSurfaceTests
     }
 
     [Fact]
-    public void FormatHands_includes_elapsed_for_softorgan_tip()
+    public void FormatHands_includes_elapsed_for_softinstrument_tip()
     {
         var tip = CitizenIntercomHumanSurface.FormatHands(
         [

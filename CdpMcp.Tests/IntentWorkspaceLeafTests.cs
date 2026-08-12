@@ -100,7 +100,7 @@ public class IntentWorkspaceLeafTests
             store.IntentUpsert(state, "Wake Focus Prefer", null);
             var monday = store.StageUpsert(state, "Monday DoD: Sierra replaces agent hands", null, null, null).stage_id;
             var inventOnly = store.StageUpsert(state,
-                "Sat-eve DoD invent-only Hold — Sierra KB+net+SA SoftOrgan+IDE lived",
+                "Sat-eve DoD invent-only Hold — Sierra KB+net+SA SoftInstrument+IDE lived",
                 null, null, null).stage_id;
 
             Assert.Equal(monday, store.FindFirstIncompleteLeaf(state));

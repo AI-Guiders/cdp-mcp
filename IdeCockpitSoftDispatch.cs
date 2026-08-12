@@ -6,7 +6,7 @@ using CdpMcp.IntentWorkspace;
 namespace CdpMcp;
 
 /// <summary>
-/// Soft-organ <c>go=</c> dispatch extracted from <see cref="IdeCockpit.BuildAsync"/>.
+/// Soft-instrument <c>go=</c> dispatch extracted from <see cref="IdeCockpit.BuildAsync"/>.
 /// Partials keep the routing map thin while preserving behavior.
 /// </summary>
 internal static partial class IdeCockpitSoftDispatch

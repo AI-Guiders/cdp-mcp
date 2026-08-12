@@ -60,7 +60,7 @@ public sealed class CitizenObservePeerPulseTests : IDisposable
     {
         var ids = new[]
         {
-            "soft-filelines", "citizen-sse", "meta-host-softorgans", "throughput-wave",
+            "soft-filelines", "citizen-sse", "meta-host-softinstruments", "throughput-wave",
             "pressure-wave-field", "sa-biped", "verify-wave", "domain-stamp", "list-batch-ship"
         };
         var gapJson = string.Join(",\n",

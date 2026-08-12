@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace CdpMcp.Cockpit.ComputingUnits;
 
-/// <summary>CCU: slim fat soft-organ Handle dumps to pulse when go_detail≠full.</summary>
+/// <summary>CCU: slim fat soft-instrument Handle dumps to pulse when go_detail≠full.</summary>
 public sealed class GoResultSlimUnit : ICockpitComputeUnit
 {
     public readonly record struct OrganPulseSnap(

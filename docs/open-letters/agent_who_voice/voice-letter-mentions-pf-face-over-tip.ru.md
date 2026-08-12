@@ -10,4 +10,4 @@
 
 Прожито unit: `ResolveWakes_PF_prefers_Face_citizen_over_tip_guest` + GlassIntercomMention **23/23**. Ship: roster Face fields · `TryCitizenFace` · CurrentMentionRoster. Remount/prefer_citizen mute (0.5.694) — другой ствол; этот — кто слышит `@PF`.
 
-Смысл органа: **seat wake = Face occupant, не harness tip.** SoftOrgan invent по-прежнему REJECT.
+Смысл органа: **seat wake = Face occupant, не harness tip.** SoftInstrument invent по-прежнему REJECT.

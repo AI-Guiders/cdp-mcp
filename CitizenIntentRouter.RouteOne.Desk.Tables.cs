@@ -2,7 +2,7 @@
 
 namespace CdpMcp;
 
-/// <summary>RouteOne Desk gate tables — SoftFL densify (reuse MatchesIntent; SoftOrgan invent REJECT).</summary>
+/// <summary>RouteOne Desk gate tables — SoftFL densify (reuse MatchesIntent; SoftInstrument invent REJECT).</summary>
 internal static partial class CitizenIntentRouter
 {
     // TestPlanCompounds lives in TestPlan.cs (normalize SSOT) — reuse for gate match.

@@ -9,7 +9,7 @@
 - Loads local `path=` / `file=` or `url=` (http(s)|file://) → bytes → `ToolMediaOutbox.TryAdd` → MCP `ImageContent`.
 - Caps: outbox MaxImages=2, MaxBytesPerImage=2.5MB (same as take/PlantUML).
 - Not Lynx (text browser). Not capture (webcam). Not host-only Cursor Read as the habitat path.
-- Always-ListTools Meta (not SoftOrgan-hidden) — discoverable vision organ.
+- Always-ListTools Meta (not SoftInstrument-hidden) — discoverable vision organ.
 - Optional HTTP cache under `.cdp/evidence/see-cache/` when ProjectRoot set.
 
 ## Entry
@@ -21,7 +21,7 @@
 
 - Using Lynx / `cdp_browser` to "see" bitmaps.
 - Expecting `take vision=true` for arbitrary PNGs — that opt-in is PlantUML/take only; `cdp_see` is the dedicated attach.
-- SoftOrgan/Glass latch zoo for a one-shot vision Meta.
+- SoftInstrument/Glass latch zoo for a one-shot vision Meta.
 
 ## last_ship
 

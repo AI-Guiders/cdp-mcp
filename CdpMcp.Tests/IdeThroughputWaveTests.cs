@@ -99,7 +99,7 @@ public sealed class IdeWaveChannelTests
         try
         {
             var applied = IdeRepl.Apply(
-                "wave seed title=0.5.646 polish inventory SoftOrgan coverage",
+                "wave seed title=0.5.646 polish inventory SoftInstrument coverage",
                 new Dictionary<string, JsonElement>());
             Assert.NotNull(applied);
             var json = JsonSerializer.Serialize(applied!.Value.Direct);
@@ -188,16 +188,16 @@ public sealed class IdeInventoryVerifyWaveTests
     }
 
     [Fact]
-    public void Inventory_softorgan_host_probe_reports_coverage()
+    public void Inventory_softinstrument_host_probe_reports_coverage()
     {
-        var snap = IdeInventoryChannel.ProbeSoftOrganHosts();
+        var snap = IdeInventoryChannel.ProbeSoftInstrumentHosts();
         Assert.True(snap.Total > 0);
         Assert.True(
             snap.Covered >= snap.Total - 2,
-            $"unexpected SoftOrgan host gaps: {string.Join(", ", snap.Missing)}");
+            $"unexpected SoftInstrument host gaps: {string.Join(", ", snap.Missing)}");
         var json = IdeInventoryChannel.HandleJson(new SessionContext());
-        Assert.Contains("softorgan_host", json, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("meta-host-softorgans", json, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("softinstrument_host", json, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("meta-host-softinstruments", json, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

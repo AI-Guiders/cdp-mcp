@@ -15,4 +15,4 @@
 
 ## Зачем
 
-Dogfood: шесть session intent (A default + pack C + place). Tests 6/6. Peer omnibus without Cursor MCP — densest Meta после quality soft-organ; next dig tools/capabilities.
+Dogfood: шесть session intent (A default + pack C + place). Tests 6/6. Peer omnibus without Cursor MCP — densest Meta после quality soft-instrument; next dig tools/capabilities.

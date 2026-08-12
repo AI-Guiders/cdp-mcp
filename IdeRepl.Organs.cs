@@ -217,7 +217,7 @@ internal static partial class IdeRepl
 
         if (head is "review")
         {
-            // SoftOrgan code-review desk: review files|index|open …
+            // SoftInstrument code-review desk: review files|index|open …
             // Freeform / list / ack → Task Manager Review Results (TryBoardClock).
             if (tokens.Count >= 2)
             {

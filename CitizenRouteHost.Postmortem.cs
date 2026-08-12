@@ -35,8 +35,8 @@ internal static partial class CitizenRouteHost
                 result = IdePostmortemChannel.HandleJson(session!, args);
 
             var json = result is string s ? s : JsonSerializer.Serialize(result);
-            var ok = TryReadSoftOrganOk(json);
-            var pulse = TryReadSoftOrganPulse(json, "postmortem", op);
+            var ok = TryReadSoftInstrumentOk(json);
+            var pulse = TryReadSoftInstrumentPulse(json, "postmortem", op);
             var seat = IdeDeskSeats.PlaceOrgan("postmortem");
             return new Applied(
                 route.Raw,

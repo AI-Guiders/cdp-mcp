@@ -9,7 +9,7 @@
 - Soft-warn FileLinesWarn=400; top-level statements stay in `Program.cs` (one TLS file).
 - WitDB bootstrap: `WorkspaceDbHost` owns Ensure/Invalidate/Require (not re-inlined in TLS).
 - ListTools Meta catalog: `MetaToolCatalog` partials; `BuildMetaTools()` → `MetaToolCatalog.Build()`.
-- ListTools composition: `VisibleToolCatalog` (+ SoftOrganMetaNames); `BuildVisibleTools()` thin stub.
+- ListTools composition: `VisibleToolCatalog` (+ SoftInstrumentMetaNames); `BuildVisibleTools()` thin stub.
 - CallTool router: `IdeToolDispatch` (+ Deps per call).
 - Meta switch: `MetaDispatch` partials + `MetaDispatchDeps` (per-call).
 - cdp_work ops: `CdpWorkDispatch` (+ Deps per call).

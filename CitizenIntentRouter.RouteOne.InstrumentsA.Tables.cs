@@ -2,7 +2,7 @@
 
 namespace CdpMcp;
 
-/// <summary>RouteOne OrgansA gate tables — SoftFL densify (reuse MatchesIntent + organ Compounds; SoftOrgan invent REJECT).</summary>
+/// <summary>RouteOne InstrumentsA gate tables — SoftFL densify (reuse MatchesIntent + organ Compounds; SoftInstrument invent REJECT).</summary>
 internal static partial class CitizenIntentRouter
 {
     // IcmCompounds — SSOT in CitizenIntentRouter.Icm.cs

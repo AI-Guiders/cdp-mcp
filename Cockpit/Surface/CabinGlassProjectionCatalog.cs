@@ -2,9 +2,9 @@
 namespace CdpMcp.Cockpit.Surface;
 
 /// <summary>
-/// Cabin tool map (0-sync): SoftOrgan / seat pin → CIDE glass affordance.
+/// Cabin tool map (0-sync): SoftInstrument / seat pin → CIDE glass affordance.
 /// CDP remains canon; glass only consumes derived mfd_page / chrome_hint.
-/// Every SoftOrganKind go-pin must resolve (chrome stub OK) — catalog gate test.
+/// Every SoftInstrumentKind go-pin must resolve (chrome stub OK) — catalog gate test.
 /// </summary>
 public static class CabinGlassProjectionCatalog
 {

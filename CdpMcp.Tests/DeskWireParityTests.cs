@@ -166,9 +166,9 @@ public sealed partial class DeskWireParityTests
     }
 
     [Fact]
-    public void SeatOrganArgsSanitizer_strips_steer_keys()
+    public void SeatInstrumentArgsSanitizer_strips_steer_keys()
     {
-        var sanitizer = new SeatOrganArgsSanitizer();
+        var sanitizer = new SeatInstrumentArgsSanitizer();
         var args = new Dictionary<string, JsonElement>
         {
             ["go"] = JsonSerializer.SerializeToElement("browser"),

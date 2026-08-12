@@ -68,20 +68,20 @@ public class CabinGlassProjectionCatalogTests
     }
 
     [Fact]
-    public void TryResolve_covers_every_SoftOrganKind_go_pin()
+    public void TryResolve_covers_every_SoftInstrumentKind_go_pin()
     {
-        var meta = new SoftOrganBoardMetaCatalog();
-        foreach (SoftOrganKind kind in Enum.GetValues<SoftOrganKind>())
+        var meta = new SoftInstrumentBoardMetaCatalog();
+        foreach (SoftInstrumentKind kind in Enum.GetValues<SoftInstrumentKind>())
         {
             var go = meta.Require(kind).Go;
             var proj = CabinGlassProjectionCatalog.TryResolve(go);
             Assert.True(
                 proj is not null,
-                $"SoftOrganKind.{kind} go='{go}' missing from CabinGlassProjectionCatalog (0-sync)");
+                $"SoftInstrumentKind.{kind} go='{go}' missing from CabinGlassProjectionCatalog (0-sync)");
             Assert.True(
                 !string.IsNullOrWhiteSpace(proj!.Value.MfdPage)
                 || !string.IsNullOrWhiteSpace(proj.Value.ChromeHint),
-                $"SoftOrganKind.{kind} go='{go}' resolves empty projection");
+                $"SoftInstrumentKind.{kind} go='{go}' resolves empty projection");
         }
     }
 }

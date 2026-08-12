@@ -17,7 +17,7 @@ public class IdeHumanFacePlanTests
     {
         var course = """
             ## operator_priority (SEALED)
-            SoftFL invent REJECT · tip mill ≠ Done · Face SoftOrgan/#CIDE Done needs operator eyes · refuse board hygiene
+            SoftFL invent REJECT · tip mill ≠ Done · Face SoftInstrument/#CIDE Done needs operator eyes · refuse board hygiene
             1. Glass Done (human flight)
             2. Citizen Done stable → 15.08
             Before act:
@@ -64,7 +64,7 @@ public class IdeHumanFacePlanTests
     public void NextLeaf_strips_invent_only_hold_prefix()
     {
         var next = IdeHumanFacePlan.NextLeaf(
-            "Sat-eve DoD invent-only Hold — Sierra KB+net+SA SoftOrgan+IDE lived @act #CDP");
+            "Sat-eve DoD invent-only Hold — Sierra KB+net+SA SoftInstrument+IDE lived @act #CDP");
         Assert.DoesNotContain("SoftFL", next, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Sierra", next, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("@act", next, StringComparison.OrdinalIgnoreCase);

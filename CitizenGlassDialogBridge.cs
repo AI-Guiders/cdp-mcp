@@ -237,7 +237,7 @@ internal static class CitizenGlassDialogBridge
             }
 
             // Act letter first (dialog memory), then same-turn observe if hands ran.
-            // SoftOrgan HND owns receipt chips; letter stays prose (no FormatHands laundry).
+            // SoftInstrument HND owns receipt chips; letter stays prose (no FormatHands laundry).
             var elapsed = DateTimeOffset.UtcNow - req.StampedUtc;
             CideHandsLatch.PublishDone(executed, elapsed);
             var actPublished = SurfacePublishBody(turn.Text!, executed, elapsed);
@@ -277,12 +277,12 @@ internal static class CitizenGlassDialogBridge
                 }
             }
 
-            // SoftOrgan HND owns receipt chips — wire-only Completions strip to empty →
+            // SoftInstrument HND owns receipt chips — wire-only Completions strip to empty →
             // Publish null → publish_failed → busy→idle with no Radio (lived @Sierra paste).
             if (string.IsNullOrWhiteSpace(publishBody))
                 publishBody = FaceLetterFallback(turn.Text!, executed, peerAck);
 
-            // Human eyes: SoftOrgan chip ≠ journal. Ship body (files listing / take text)
+            // Human eyes: SoftInstrument chip ≠ journal. Ship body (files listing / take text)
             // must reach Face letter — pulse "files · 37" alone is seeming (lived 2026-08-09).
             publishBody = AppendShipForHumanFace(publishBody, executed);
 
@@ -351,7 +351,7 @@ internal static class CitizenGlassDialogBridge
     }
 
     /// <summary>
-    /// Never leave Radio empty after a citizen turn — SoftOrgan chips ≠ journal letter.
+    /// Never leave Radio empty after a citizen turn — SoftInstrument chips ≠ journal letter.
     /// </summary>
     internal static string FaceLetterFallback(
         string prose,
@@ -395,9 +395,9 @@ internal static class CitizenGlassDialogBridge
             if (oks.Length > 0)
                 return "Hands ok · " + string.Join(" · ", oks!) + " — продолжаю после dig.";
 
-            // Hands ran (SoftOrgan chip) but pulse thin — still a human Face letter.
+            // Hands ran (SoftInstrument chip) but pulse thin — still a human Face letter.
             return executed.Any(a => !a.Ok)
-                ? "Hands FAIL · детали в SoftOrgan HND."
+                ? "Hands FAIL · детали в SoftInstrument HND."
                 : "Hands ok · продолжаю после dig.";
         }
 
@@ -411,7 +411,7 @@ internal static class CitizenGlassDialogBridge
         if (!string.IsNullOrWhiteSpace(stripped))
             return stripped;
 
-        return "Ход без Radio-письма (wire/empty). Смотри SoftOrgan HND; повтори с короткой прозой.";
+        return "Ход без Radio-письма (wire/empty). Смотри SoftInstrument HND; повтори с короткой прозой.";
     }
 
     /// <summary>
@@ -519,7 +519,7 @@ internal static class CitizenGlassDialogBridge
     internal const int FaceShipMaxChars = 2_400;
 
     /// <summary>
-    /// SoftOrgan HND owns receipt chrome; short directory listings may hit Face.
+    /// SoftInstrument HND owns receipt chrome; short directory listings may hit Face.
     /// Never dump take/body walls (lived 0.5.692 csharp thrash).
     /// </summary>
     internal static string AppendShipForHumanFace(

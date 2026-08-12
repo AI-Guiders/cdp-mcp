@@ -53,8 +53,8 @@ internal static partial class CitizenRouteHost
             }
 
             var json = result is string s ? s : JsonSerializer.Serialize(result);
-            var ok = TryReadSoftOrganOk(json);
-            var pulse = TryReadSoftOrganPulse(json, "problems", op);
+            var ok = TryReadSoftInstrumentOk(json);
+            var pulse = TryReadSoftInstrumentPulse(json, "problems", op);
             var seat = IdeDeskSeats.PlaceOrgan("problems");
             return new Applied(
                 route.Raw,

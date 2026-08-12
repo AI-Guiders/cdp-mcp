@@ -80,7 +80,7 @@ internal static partial class IdeWebcamChannel
 
     /// <summary>
     /// Build WinInfo from HWND. Iconic (minimized) windows report tiny off-screen rects
-    /// (e.g. Glass 159x27 @ -25600) — use placement normal size so Face SoftOrgan list/shot still hit.
+    /// (e.g. Glass 159x27 @ -25600) — use placement normal size so Face SoftInstrument list/shot still hit.
     /// </summary>
     static bool TryDescribeHwnd(IntPtr hWnd, string? knownTitle, out WinInfo info)
     {

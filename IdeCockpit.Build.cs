@@ -53,13 +53,13 @@ internal static partial class IdeCockpit
 
         var deferred = PeekDeferredSoftWants(ref goVerb);
         // Deferred soft organs (alert/chk/…) must NOT force full BuildAsync spray — that hung
-        // agents ~minutes (git+quality+ResolveSeatOrgan). Apply them on cheap probes in desk-pulse.
+        // agents ~minutes (git+quality+ResolveSeatInstrument). Apply them on cheap probes in desk-pulse.
         // seats_detail=full alone thrash-refuses; pane_full= stays pulse (one-seat resolve).
         var paneFull = OptString(args, "pane_full") ?? OptString(args, "full_pane");
         var wantsOnePane = paneFull is { Length: > 0 };
         if (deskPulseWanted)
         {
-            // pane_full needs FinishDeskPulseAsync (dispatch + one ResolveSeatOrgan).
+            // pane_full needs FinishDeskPulseAsync (dispatch + one ResolveSeatInstrument).
             if (!wantsOnePane && AnyDeferredSoftWant(deferred) && goVerb is not { Length: > 0 })
             {
                 return FinishOrganPulseDesk(
@@ -99,7 +99,7 @@ internal static partial class IdeCockpit
 
         IdeAlertChannel.Snap alertSnap;
         IdeAlertChannel.Inputs alertInputs;
-        (goResult, alertSnap, alertInputs) = ApplyDeferredSoftOrgans(
+        (goResult, alertSnap, alertInputs) = ApplyDeferredSoftInstruments(
             deferred, goResult, session, docStore, workspaceStore, workspaceState, args,
             git, shell, buffer, probes.Debug, probes.Test, probes.Work, probes.Quality,
             probes.Problems, probes.ChkCtx, probes.ChkSnap);

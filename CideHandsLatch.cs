@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace CdpMcp;
 
 /// <summary>
-/// Citizen hands receipt → Glass SoftOrgan (<c>hands-LATEST.json</c>).
+/// Citizen hands receipt → Glass SoftInstrument (<c>hands-LATEST.json</c>).
 /// Face chips (HND) own ok/fail/running — Intercom letter stays Sierra prose.
 /// </summary>
 internal static class CideHandsLatch

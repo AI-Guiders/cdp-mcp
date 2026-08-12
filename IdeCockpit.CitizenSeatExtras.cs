@@ -5,12 +5,12 @@ using TerminalMcp.Core;
 
 namespace CdpMcp;
 
-/// <summary>Fused SoftOrganSeatExtras for citizen host-execute (mirrors cockpit Channel/Surface).</summary>
+/// <summary>Fused SoftInstrumentSeatExtras for citizen host-execute (mirrors cockpit Channel/Surface).</summary>
 internal static partial class IdeCockpit
 {
     static readonly ShellSnap EmptyShell = new(0, 0, 0, Array.Empty<ShellTab>());
 
-    internal static SoftOrganSeatExtras? TryBuildCitizenSeatExtras(
+    internal static SoftInstrumentSeatExtras? TryBuildCitizenSeatExtras(
         SessionContext session,
         DocumentBufferStore docStore,
         Func<ShellHabitat?>? shellResolver,
@@ -44,7 +44,7 @@ internal static partial class IdeCockpit
             probes.ChkSnap,
             quietBandQuality: quietBandQuality);
 
-        return new SoftOrganSeatExtras(
+        return new SoftInstrumentSeatExtras(
             alertInputs,
             () => BuildSysOrgan(session, null, shell, buffer, probes.Debug, probes.Test, probes.Work),
             probes.ChkCtx,

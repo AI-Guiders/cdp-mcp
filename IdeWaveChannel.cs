@@ -8,7 +8,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// TM Wave — durable active wave (seat JSON). REPL: <c>wave seed|scene|start|item done|shipped|clear</c>.
-/// Affordance for list→batch→ship (not single-leaf mill). Not SoftOrgan; lives beside plan board.
+/// Affordance for list→batch→ship (not single-leaf mill). Not SoftInstrument; lives beside plan board.
 /// </summary>
 internal static partial class IdeWaveChannel
 {

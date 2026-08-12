@@ -40,7 +40,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 ## Письма
 
 
-| 216 | [MEAI tools → SoftOrgan HND](voice-letter-citizen-meai-hands-hnd-0.5.709.ru.md) | citizen · Completions HandsLatch HND · 0.5.709 · 2026-08-09 |
+| 216 | [MEAI tools → SoftInstrument HND](voice-letter-citizen-meai-hands-hnd-0.5.709.ru.md) | citizen · Completions HandsLatch HND · 0.5.709 · 2026-08-09 |
 | 215 | [thin habitat pipe](voice-letter-citizen-thin-habitat-pipe-0.5.708.ru.md) | citizen · Completions thin+cdp_call · 0.5.708 · 2026-08-09 |
 | 214 | [Face silence SoftFL](voice-letter-citizen-silence-softfl-0.5.707.ru.md) | citizen · Completions silence SoftFL · 0.5.707 · 2026-08-09 |
 | 213 | [Face MEAI agent pipe · whole catalog](voice-letter-citizen-meai-agent-pipe-0.5.706.ru.md) | citizen · Completions AsAIAgent whole catalog · 0.5.706 · 2026-08-09 |
@@ -63,14 +63,14 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 197 | [Glass Ctrl+Q Soft: QRH/ECL — equal hands PlaceOrgan](voice-letter-glass-cq-soft-qrh-ecl.ru.md) | glass · C-q SoftFL · soft_qrh/ecl/alert · @intent PlaceOrgan · 2026-08-07 |
 | 196 | [place=replace больше не ест UnbindLifecycle](voice-letter-buffer-anchor-replace-adx-hx-002.ru.md) | buffer · ADX-HX-002 SoftFL · old_string in_locus · 0.5.680 · 2026-08-07 |
 | 195 | [shell habitat verbs: scene|which organ, не pwsh](voice-letter-citizen-shell-habitat-verbs.ru.md) | citizen · shell SoftFL · scene|which|command= rest · 283f131 · 2026-08-07 |
-| 194 | [SoftOrgan human viz: nested SoftFL Face CLOSED](voice-letter-softorgan-human-viz-nested-softfl.ru.md) | glass · SoftOrgan Face SoftFL · PreCondition→Glass Done · 2026-08-07 |
+| 194 | [SoftInstrument human viz: nested SoftFL Face CLOSED](voice-letter-softinstrument-human-viz-nested-softfl.ru.md) | glass · SoftInstrument Face SoftFL · PreCondition→Glass Done · 2026-08-07 |
 | 193 | [ShowFace: PlaceOrgan поднимает кабину без клика в Cursor](voice-letter-showface-placeorgan-attention.ru.md) | seats · show_face · Glass BringAttention · SoftFL-safe |
 | 192 | [ignite: leaf-wake invent-only несёт last_once](voice-letter-ignite-armforleaf-invent-only-last-once.ru.md) | ignite · ArmForLeaf invent-only last_once · 0.5.680 |
 | 191 | [ignite: Recover remount не рвёт invent-only ход](voice-letter-ignite-remount-suppress-invent-only.ru.md) | ignite · remount suppress invent-only · 0.5.679 |
 | 190 | [ignite: HILD не будит Hold invent-only](voice-letter-ignite-hild-suppress-invent-only.ru.md) | ignite · HasArmedInventOnlyHoldInsurance · 0.5.678 |
 | 189 | [ignite: Hold invent-only не каждые три минуты](voice-letter-ignite-invent-only-15m.ru.md) | ignite · InventOnlyHoldInsuranceMax 15m · 0.5.677 |
 | 188 | [ignite: я не «первый incomplete», я focus](voice-letter-ignite-wake-leaf-focus-first.ru.md) | ignite · ResolveWakeLeafId ActiveStageId · 0.5.676 |
-| 187 | [webcam: я не «No matching», когда кабина свёрнута](voice-letter-webcam-iconic-glass-face.ru.md) | webcam · iconic Glass Face SoftOrgan · 21:55:59Z |
+| 187 | [webcam: я не «No matching», когда кабина свёрнута](voice-letter-webcam-iconic-glass-face.ru.md) | webcam · iconic Glass Face SoftInstrument · 21:55:59Z |
 | 186 | [read_knowledge_file missing](voice-letter-citizen-kb-read-missing-tip.ru.md) | citizen · empty body → missing · 19:48:54Z |
 | 185 | [need relative_path= · abs/.. refuse tip](voice-letter-citizen-kb-relative-path-tip.ru.md) | citizen · TipKbArgException · kb_path_not_relative · 19:38:32Z |
 | 184 | [tool= arg ≠ Op · need task_id=/content= · finding_check advice](voice-letter-citizen-kb-tool-arg-and-finding-check.ru.md) | citizen · RouteKb positional · TipRequiredArg · AppendKbFindingCheckBits · 19:23:55Z |
@@ -120,7 +120,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 19 | [Create через ворота: я завожу файл не в обход](voice-letter-citizen-create.ru.md) | citizen · `@intent create|write` · PathMutateGate · 0.5.513 |
 | 20 | [Append через ворота: я дописываю хвост, не переписываю мир](voice-letter-citizen-append.ru.md) | citizen · `@intent append` · PathMutateGate · 0.5.514 |
 | 21 | [Idle-PF mirror: я слышу wake, даже когда PF спит](voice-letter-habitat-idle-pf-intercom-mirror.ru.md) | ignite · Intercom mirror · Composer fallthrough · 0.5.515 |
-| 22 | [Glass Autoi wake: я вижу charge без Composer](voice-letter-glass-autoi-wake-consumer.ru.md) | glass · ignite-wake LatchHub · SoftOrgan+FDS · 0.5.516 |
+| 22 | [Glass Autoi wake: я вижу charge без Composer](voice-letter-glass-autoi-wake-consumer.ru.md) | glass · ignite-wake LatchHub · SoftInstrument+FDS · 0.5.516 |
 | 23 | [host_write в ADX: я вижу чужой след на диске в кольце](voice-letter-adx-host-write-trace.ru.md) | adx · AdxMutateTrace host_write · material disk drift · 0.5.517 |
 | 24 | [Remount mirror: я вижу remount, даже когда Composer занят](voice-letter-remount-intercom-mirror.ru.md) | ignite · remount Intercom mirror · busy Composer · 0.5.518 |
 | 25 | [Remount busy: я не жду CDT, когда Composer уже Stop](voice-letter-remount-composer-busy.ru.md) | ignite · remount skip CDT · remount_composer_busy · 0.5.519 |
@@ -217,7 +217,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 121 | [@intent man: я сам читаю ops manual, не через чужой cdp_man MCP](voice-letter-citizen-man-host.ru.md) | citizen · @intent man|manual|cdp_man · Meta cdp_man · 0.5.614 |
 | 122 | [@intent health: я сам трогаю ops pulse, не через чужой cdp_health MCP](voice-letter-citizen-health-host.ru.md) | citizen · @intent health|ops_health|cdp_health · Meta cdp_health · 0.5.615 |
 | 123 | [@intent context: я сам кручу phase/object, не через чужой cdp_context MCP](voice-letter-citizen-context-host.ru.md) | citizen · @intent context|session_context|cdp_context · Meta cdp_context · 0.5.616 |
-| 124 | [@intent quality: я сам кручу gates/disk/assert, не через чужой cockpit soft-organ MCP](voice-letter-citizen-quality-host.ru.md) | citizen · @intent quality|gates|quality_gates · QualityGates/AdxAssertions · 0.5.617 |
+| 124 | [@intent quality: я сам кручу gates/disk/assert, не через чужой cockpit soft-instrument MCP](voice-letter-citizen-quality-host.ru.md) | citizen · @intent quality|gates|quality_gates · QualityGates/AdxAssertions · 0.5.617 |
 | 125 | [@intent session: я сам трогаю session plane, не через чужой cdp_session MCP](voice-letter-citizen-session-host.ru.md) | citizen · @intent session|cdp_session · Meta cdp_session · 0.5.618 |
 | 126 | [@intent tools: я сам смотрю shortlist palette, не через чужой cdp_tools MCP](voice-letter-citizen-tools-host.ru.md) | citizen · @intent tools|cdp_tools|palette · Meta cdp_tools · 0.5.619 |
 | 127 | [@intent capabilities: я сам смотрю mounted domains, не через чужой cdp_capabilities MCP](voice-letter-citizen-capabilities-host.ru.md) | citizen · @intent capabilities|caps|cdp_capabilities · Meta cdp_capabilities · 0.5.620 |
@@ -244,12 +244,12 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 155 | [Glass Git+RelatedFiles residual: commit на стекле, RelatedRow без IdeMcp](voice-letter-glass-git-related-residual.ru.md) | glass · GlassGitProcess · RelatedFilesFeed · SoftFL CLOSED |
 | 154 | [Glass Correspondence full CRS: не FS-сиблинги, а Toml+reverse](voice-letter-glass-correspondence-full-crs.ru.md) | glass · Peel15 CRS DAL · feed F=14 R=1 · Depth CLOSED |
 | 152 | [Glass SemanticMap Skia: граф снова граф, не list forever](voice-letter-glass-semantic-skia.ru.md) | glass · SkiaSharp WriteableBitmap SemanticMap · dogfood skia 25 |
-| 153 | [Glass DebugStack live DAP: стоп снова стоп на стекле](voice-letter-glass-debugstack-live-dap.ru.md) | glass · debug_desk latch stack/locals · SoftOrgan live |
+| 153 | [Glass DebugStack live DAP: стоп снова стоп на стекле](voice-letter-glass-debugstack-live-dap.ru.md) | glass · debug_desk latch stack/locals · SoftInstrument live |
 | 151 | [Glass WebAi WebView2: браузер в кабине, не external](voice-letter-glass-webai-webview2.ru.md) | glass · WebView2 WebAiPortal · 4b925843 |
 | 151 | [Turn2 на Glass: я помню thread на диске](voice-letter-glass-citizen-multiturn-memory.ru.md) | citizen · Glass CIT jsonl persist · `#crew` · 0.5.666 · 74786d1 |
 | 150 | [Glass Terminal VT: готовый WPF, не Avalonia](voice-letter-glass-terminal-vt-easywindows.ru.md) | glass · EasyWindowsTerminalControl · Avalonia EOL · 195d35bb |
-| 149 | [SoftOrgan Meta BATCH-9: report/SA desks/EICAS — host, не только go=](voice-letter-citizen-softorgan-meta-host-batch9.ru.md) | citizen · 8 Meta hosts · report/debug_sa/test_sa/build_sa/sys/ecl/review/alert · 0.5.643 |
-| 148 | [SoftOrgan Meta BATCH: я взял весь список, не по одному](voice-letter-citizen-softorgan-meta-host-batch.ru.md) | citizen · 8 Meta hosts · md_author/scope/glass/fdr/teeth/postmortem/plugins/problems · 0.5.642 |
+| 149 | [SoftInstrument Meta BATCH-9: report/SA desks/EICAS — host, не только go=](voice-letter-citizen-softinstrument-meta-host-batch9.ru.md) | citizen · 8 Meta hosts · report/debug_sa/test_sa/build_sa/sys/ecl/review/alert · 0.5.643 |
+| 148 | [SoftInstrument Meta BATCH: я взял весь список, не по одному](voice-letter-citizen-softinstrument-meta-host-batch.ru.md) | citizen · 8 Meta hosts · md_author/scope/glass/fdr/teeth/postmortem/plugins/problems · 0.5.642 |
 | 147 | [@intent crm: я сам трогаю callout, не через чужой cdp_crm MCP](voice-letter-citizen-crm-host.ru.md) | citizen · @intent crm|callout|cdp_crm · IdeCrmChannel host · 0.5.641 |
 | 146 | [Soft FileLines batch: один раз densest и закрыли](voice-letter-soft-filelines-batch-close.ru.md) | peel · densest× batch · Wire Head/Tail · Soft FileLines CLOSED · 0.5.640 |
 | 145 | [@intent arch: я сам трогаю kneeboard, не через чужой cdp_arch MCP](voice-letter-citizen-arch-host.ru.md) | citizen · @intent arch|board|cdp_arch · IdeArchBoardChannel host · 0.5.639 |

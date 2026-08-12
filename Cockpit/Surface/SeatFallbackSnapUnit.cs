@@ -3,7 +3,7 @@ using CdpMcp.Cockpit.ComputingUnits;
 
 namespace CdpMcp.Cockpit.Surface;
 
-/// <summary>Surface CCU: non-soft-organ seat pin → world/editor/script snap (else dispatch).</summary>
+/// <summary>Surface CCU: non-soft-instrument seat pin → world/editor/script snap (else dispatch).</summary>
 public sealed class SeatFallbackSnapUnit : ICockpitComputeUnit
 {
     public enum SnapKind

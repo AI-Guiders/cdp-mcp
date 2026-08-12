@@ -17,7 +17,7 @@
 - Soft-warn FileLinesWarn=400; `IntentWorkspaceStore` is `partial` by concern (Core/Intent/Stage/Scene/Persist/Find + Leaf/StageCriteria(+Norm)/StageEvents/StageProduct/StageExecutor).
 - WitDB path = `StateRoot/{seat}/intent-workspace.witdb` (per-seat; dual seats never share FileShare.None). Primary `cdp` once Moves legacy flat file.
 - **All store DB I/O via `WithDb`** (file Mutex + in-proc Lock + transient retry). Never bare `Open()` for Status/Scene*/Stage* — concurrent desk readers race FileShare.None (fixed 0.5.623).
-- **Review Results** (operator remarks): `cmd=review <text>|list|ack <id>` (alias remark|rr) — durable stage_events on open leaf; pulse `review×N`; `done`/`shipped` soft-refuse while open (`IdeReviewShield`, force= escape). Dialog stays dialog — agent stamps; dig before Done. SoftOrgan `review files|open` unchanged.
+- **Review Results** (operator remarks): `cmd=review <text>|list|ack <id>` (alias remark|rr) — durable stage_events on open leaf; pulse `review×N`; `done`/`shipped` soft-refuse while open (`IdeReviewShield`, force= escape). Dialog stays dialog — agent stamps; dig before Done. SoftInstrument `review files|open` unchanged.
 
 ## Entry
 
@@ -31,7 +31,7 @@
 - **BuildBoard ×3 per CallTool** — Handle + CollectWork/PulseLine + PublishGlass each rebuilt board (3× TaskManagerSnapshot / WithDb on ~165MB WitDB → ~20–36s `timeout_wake`). ThreadStatic board cache + Invalidate on mutation (lived 2026-08-05).
 - **PublishGlass extra snapshot + all-Stages load** — after board-cache, PublishGlass still called `TaskManagerSnapshot` again; snapshot loaded every Stage row. Fix: glass uses Board titles; stages filtered to ActiveIntentId (lived 2026-08-05 residual).
 - Glass form roundtrip for operator remarks when dialog + TM stamp already carry the remark.
-- Treating SoftOrgan `go=review` (code-review desk) as Review Results — TM is `review <remark>` / `review list`.
+- Treating SoftInstrument `go=review` (code-review desk) as Review Results — TM is `review <remark>` / `review list`.
 - `feature` with `@phase/#Product` must not dedupe onto a bare-title twin (chrome query → create tagged or match chrome-bearing only) @ 0.5.553+.
 - Intent unique-prefix CLOSED @ 0.5.648 — Dig densest SoftFL… stems; truncated title must not FeatureDone/focus onto content twin. Stages keep unique prefix (slash-title seed).
 - Asking operator how focus/done works without reading Leaf + Mutations.
@@ -45,7 +45,7 @@
 ## last_ship
 - **2026-08-09 citizen Autoi FocusLane=Face (0.5.690)** — densest after focus-lanes: `ResolveFocusLane` bound tip Who (Кир); prefer_citizen woke Sierra Turn on tip lane. Ship: `BindCitizenFocusLane` · `TryApplyCitizenFocusLane` on prefer_citizen · `ResolveCitizenFace` → `WorkFocusSwitchLane`. Tip≠Face preserved. Test CitizenFocusLaneBindTests **1**. Mentions SoftFL alone.
 - **2026-08-09 Multi-principal focus-lanes (0.5.689)** — densest after tip≠Face: singleton `work_focus` Id=1 stole focus; Stage.Executor tags Who but FocusStage demoted peer actives. Ship: `work_focus_lanes` · `FocusLane` · `cmd=lane Who` · protect other-lane Status · board `[»]`. Tests WorkFocusLaneTests **3**. Mentions SoftFL alone.
-- **2026-08-08 SoftFL Stage.Executor** — operator SoftFL ACCEPT (TM Who so Кир/Sierra don't collide). Densify Product pattern: WitDB `Executor` + ALTER, REPL `executor|assignee`, title `~Who`, board `~Sierra`. Normalize Sierra|Кир|Света. Files-list = existing `dig=` (no invent). Tests StageExecutorTests **9** + StageProductTests **9** = 18/18. SoftOrgan invent REJECT.
+- **2026-08-08 SoftFL Stage.Executor** — operator SoftFL ACCEPT (TM Who so Кир/Sierra don't collide). Densify Product pattern: WitDB `Executor` + ALTER, REPL `executor|assignee`, title `~Who`, board `~Sierra`. Normalize Sierra|Кир|Света. Files-list = existing `dig=` (no invent). Tests StageExecutorTests **9** + StageProductTests **9** = 18/18. SoftInstrument invent REJECT.
 - **2026-08-06 done dig= title footgun** — REPL Clock swallowed inline dig=/evidence=/domain= as task title (`task not found: dig=…`). `MergeClockDoneShipArgs` + pathish join; parity with wave shipped. Domain=`iderepl`. SoftFL REJECT.
 - **2026-08-06 evidence-path spaces** — REPL `MergeWaveShipArgs` joins pathish keys across spaces (lived Personal Cursor Folder). Tests IdeWaveShipShieldTests (+ Feature_done human_face isolated from live Autoi half-a). Domain=`throughput`.
 - **2026-08-06 StageProduct dig-safe** — `IntentHasStageProduct` never `AsEnumerable`: SQL `Any` + `ToUpper` (NormalizeProduct want). Same lived thrash class as StageEvents Connection closed. Dig: StageProduct.cs leftover after StageEvents fix; #CIDE feature_done shield path. Tests StageProductTests (IntentHasStageProduct_matches_without_materialize). Wave FullReady-product-dig-next.
@@ -56,7 +56,7 @@
 - **2026-08-05 StageEvents ship-safe** — `StageClockShipped` never full-scans events (server Where only + catch); `HealNullStageEventUtc` DELETE NULL Utc; `StageEventsForStage` server-first then client match with heal. Lived: Kill text-hell wall `shipped` blocked by NULL→DateTimeOffset / 172MB AsEnumerable; `done`+force closed leaf; this unblocks wall `shipped`.
 - **2026-08-05** — WitDB EF provider **1.0.3 → 12.2.0** (author: fixes for torn free-list / handle leak / GUID filter). Kept Wit seat path `intent-workspace.witdb`. SQLite cutover aborted. Upstream #121–#123 filed; dogfood on 12.2.0.
 - **2026-08-05 Review dig fix** — OutWit server `Where(StageId==guid)` empty on durable WitDB; dig/list/review via client StageId match (`StageEventsForStage`). No DROP-heal (Utc corruption). Live dogfood: open≥1, done refuse, ack N-id.
-- **2026-08-05 Review Results MLP** — operator remarks on leaf (`review`/`remark`/`rr`) · open dig · ack · done refuse `open_operator_reviews` · SoftOrgan `review files` narrowed · tests IdeTaskManagerReviewTests
+- **2026-08-05 Review Results MLP** — operator remarks on leaf (`review`/`remark`/`rr`) · open dig · ack · done refuse `open_operator_reviews` · SoftInstrument `review files` narrowed · tests IdeTaskManagerReviewTests
 - **2026-08-04 SickLeaveNight648 mid** — ignite hygiene + glass DIG REJECT reopen; product dig PathMutate vs Autoi duplex seeded.
 - **2026-08-04 invent DIG FindIntent648** — DIG REJECT SoftFL/Meta/Citizen/OOM-eol reopen; DIG ACCEPT densest = throughput-wave idle → SickLeaveNight648 (ignite stale-arms → CIDE/glass citizen15 → product wave).
 - **2026-08-04 Dig FindIntent@0.5.648** — DIG REJECT SoftFL/Meta/Citizen reopen; DIG ACCEPT board CLOSED hygiene under FeatureDone@0.5.647 + FindIntent unique-prefix CLOSED; inventory sole gap = throughput-wave idle; BoardClosedHygiene648 1/4 (Meta defer/BATCH/SoftFL peel shipped; Dig FindIntent feature shipped).
@@ -64,7 +64,7 @@
 - **2026-08-04 SoftFL CLOSED dig** — DIG REJECT SoftFL reopen (inventory CLOSED). densest ACCEPT: board CLOSED noise hygiene under FeatureDone @0.5.647 live dogfood; IntentSelect clears stage by design (restore in FeatureDone); dual `-Target` terminal habit ≠ code mill.
 - **2026-08-04 invent DIG** — SoftFL/Meta/WitDB/Hol/Glass residual/Citizen GREEN CLOSED. densest ACCEPT: FeatureDone always cleared focus on foreign `shipped` (hygiene stole invent dig). SoftFL WARN×4 DIG REJECT reopen. Wave SickLeaveInvent.
 
-- **2026-08-04 DIG REJECT** — post-SoftOrgan densest dig: WitDB torn quarantine already lived @0.5.628 (heal+VL+tm stamp); Hol habit ≠ product organ (throughput list→batch→ship / a×b already flying). SoftFL/Meta peel reopen = regression. Board CLOSED noise → hygiene; densest next ≠ re-mill hosts/peel.
+- **2026-08-04 DIG REJECT** — post-SoftInstrument densest dig: WitDB torn quarantine already lived @0.5.628 (heal+VL+tm stamp); Hol habit ≠ product organ (throughput list→batch→ship / a×b already flying). SoftFL/Meta peel reopen = regression. Board CLOSED noise → hygiene; densest next ≠ re-mill hosts/peel.
 - **0.5.628** — WitDB torn free-list / pageNumber OOR: `WorkspaceDbTornHeal` quarantine `*.torn-*.bak` + EnsureCreated inside `WithDb` (one retry); IdeTaskManager soft-fail wraps BuildBoard (`torn_witdb`). Tests WorkspaceDbTornHealTests. Lived: dual hard · quarantine 1.1GB+39MB seats · `cdp_open`+`go=plan` green · fresh ~220KB/~176KB.
 - **0.5.623** — WitDB: Status/SceneList/ScenePark/SceneSwitch/StageEnqueue|Get|Complete|Fail via `WithDb` (was ungated `Open()` → concurrent IOException). Test IntentWorkspaceWithDbGateTests. Lived: `@intent work op=status|scene_list` `ack=4/4`.
 - 0.5.553: FindIntent chrome query refuses bare-title twin (survivor seat wrong-board) · 2026-08-03

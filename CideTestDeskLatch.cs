@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace CdpMcp;
 
 /// <summary>
-/// Agent Test-SA pulse → CIDE/Glass SoftOrgan (instant).
+/// Agent Test-SA pulse → CIDE/Glass SoftInstrument (instant).
 /// Writes %LocalAppData%/cdp-mcp/test_desk-LATEST.json; Glass MFD Tests glance + quiet chrome.
 /// Live Tests host SSOT = CIDE Avalonia <c>TestsMfdPageView</c>. Green last_run stays silent (Dark Cockpit).
 /// </summary>

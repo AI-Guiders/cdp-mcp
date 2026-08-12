@@ -15,16 +15,16 @@ internal static partial class IdeCockpitSoftDispatch
         DocumentBufferStore docStore,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsSoft(goVerb, SoftOrganKind.Quality))
+        if (!IsSoft(goVerb, SoftInstrumentKind.Quality))
             return false;
 
         mfd = "gates";
         var detailFull = OptString(args, "go_detail") is { } d
             && d.Equals("full", StringComparison.OrdinalIgnoreCase);
         goResult = SoftBoard(
-            SoftOrganKind.Quality, session, docStore, null, null, args,
+            SoftInstrumentKind.Quality, session, docStore, null, null, args,
             flattenOrganArgs: true, wantFull: detailFull);
-        PlaceSoft(ref goVerb, SoftOrganKind.Quality);
+        PlaceSoft(ref goVerb, SoftInstrumentKind.Quality);
         return true;
     }
 
@@ -35,12 +35,12 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsSoft(goVerb, SoftOrganKind.Report))
+        if (!IsSoft(goVerb, SoftInstrumentKind.Report))
             return false;
 
         goResult = SoftBoard(
-            SoftOrganKind.Report, session, null, null, null, args, flattenOrganArgs: true);
-        PlaceSoft(ref goVerb, SoftOrganKind.Report);
+            SoftInstrumentKind.Report, session, null, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftInstrumentKind.Report);
         return true;
     }
 
@@ -51,12 +51,12 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsSoft(goVerb, SoftOrganKind.FindDesk))
+        if (!IsSoft(goVerb, SoftInstrumentKind.FindDesk))
             return false;
 
         goResult = SoftBoard(
-            SoftOrganKind.FindDesk, session, docStore, null, null, args, flattenOrganArgs: true);
-        PlaceSoft(ref goVerb, SoftOrganKind.FindDesk);
+            SoftInstrumentKind.FindDesk, session, docStore, null, null, args, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftInstrumentKind.FindDesk);
         return true;
     }
 
@@ -67,15 +67,15 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsSoft(goVerb, SoftOrganKind.SaDesk))
+        if (!IsSoft(goVerb, SoftInstrumentKind.SaDesk))
             return false;
 
         // SoftFL: cockpit go_detail ≠ IdeSaChannel depth; empty TileArgs used to default slim→RunGates hang.
         // Map go_detail→depth and force pulse when neither set (desk refresh must stay cheap).
         var saArgs = EnsureSaDeskDepth(args);
         goResult = SoftBoard(
-            SoftOrganKind.SaDesk, session, docStore, null, null, saArgs, flattenOrganArgs: true);
-        PlaceSoft(ref goVerb, SoftOrganKind.SaDesk);
+            SoftInstrumentKind.SaDesk, session, docStore, null, null, saArgs, flattenOrganArgs: true);
+        PlaceSoft(ref goVerb, SoftInstrumentKind.SaDesk);
         return true;
     }
 
@@ -86,13 +86,13 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsSoft(goVerb, SoftOrganKind.RefactorPlan))
+        if (!IsSoft(goVerb, SoftInstrumentKind.RefactorPlan))
             return false;
 
         goResult = SoftBoard(
-            SoftOrganKind.RefactorPlan, session, docStore, null, null, args,
+            SoftInstrumentKind.RefactorPlan, session, docStore, null, null, args,
             flattenOrganArgs: true);
-        PlaceSoft(ref goVerb, SoftOrganKind.RefactorPlan);
+        PlaceSoft(ref goVerb, SoftInstrumentKind.RefactorPlan);
         return true;
     }
 
@@ -103,11 +103,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsSoft(goVerb, SoftOrganKind.DebugDesk))
+        if (!IsSoft(goVerb, SoftInstrumentKind.DebugDesk))
             return false;
 
-        goResult = SoftBoard(SoftOrganKind.DebugDesk, session, null, null, null, args);
-        PlaceSoft(ref goVerb, SoftOrganKind.DebugDesk);
+        goResult = SoftBoard(SoftInstrumentKind.DebugDesk, session, null, null, null, args);
+        PlaceSoft(ref goVerb, SoftInstrumentKind.DebugDesk);
         return true;
     }
 
@@ -117,11 +117,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsSoft(goVerb, SoftOrganKind.TestDesk))
+        if (!IsSoft(goVerb, SoftInstrumentKind.TestDesk))
             return false;
 
-        goResult = SoftBoard(SoftOrganKind.TestDesk, session, null, null, null, args);
-        PlaceSoft(ref goVerb, SoftOrganKind.TestDesk);
+        goResult = SoftBoard(SoftInstrumentKind.TestDesk, session, null, null, null, args);
+        PlaceSoft(ref goVerb, SoftInstrumentKind.TestDesk);
         return true;
     }
 
@@ -131,11 +131,11 @@ internal static partial class IdeCockpitSoftDispatch
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        if (!IsSoft(goVerb, SoftOrganKind.BuildDesk))
+        if (!IsSoft(goVerb, SoftInstrumentKind.BuildDesk))
             return false;
 
-        goResult = SoftBoard(SoftOrganKind.BuildDesk, session, null, null, null, args);
-        PlaceSoft(ref goVerb, SoftOrganKind.BuildDesk);
+        goResult = SoftBoard(SoftInstrumentKind.BuildDesk, session, null, null, null, args);
+        PlaceSoft(ref goVerb, SoftInstrumentKind.BuildDesk);
         return true;
     }
 }

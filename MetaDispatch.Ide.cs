@@ -28,7 +28,7 @@ internal static partial class MetaDispatch
         var allAffordances = d.AllAffordances;
         var settings = d.Settings;
         var mcpVersion = d.McpVersion;
-        var SoftOrganMetaNames = d.SoftOrganMetaNames;
+        var SoftInstrumentMetaNames = d.SoftInstrumentMetaNames;
         var Pretty = d.Pretty;
         var shellHabitat = d.ShellHabitat;
         var mcpOutlet = d.McpOutlet;

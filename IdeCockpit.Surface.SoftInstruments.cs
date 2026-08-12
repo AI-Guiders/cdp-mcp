@@ -10,14 +10,14 @@ using TerminalMcp.Core;
 
 namespace CdpMcp;
 
-/// <summary>Soft-organ seat pane resolve — alias → ISoftOrganBoard → Present; else fallback snap/dispatch.</summary>
+/// <summary>Soft-instrument seat pane resolve — alias → ISoftInstrumentBoard → Present; else fallback snap/dispatch.</summary>
 internal static partial class IdeCockpit
 {
-    static readonly SoftOrganAliasCatalog SoftOrganAliases = new();
-    static readonly SoftOrganBoardMetaCatalog SoftOrganMeta = new();
+    static readonly SoftInstrumentAliasCatalog SoftInstrumentAliases = new();
+    static readonly SoftInstrumentBoardMetaCatalog SoftInstrumentMeta = new();
     static readonly SeatFallbackSnapUnit SeatFallbackSnap = new();
 
-    static async Task<object> ResolveSeatOrganPaneAsync(
+    static async Task<object> ResolveSeatInstrumentPaneAsync(
         string organ,
         string planPin,
         bool wantFull,
@@ -45,15 +45,15 @@ internal static partial class IdeCockpit
         Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>> dispatch,
         CancellationToken cancellationToken)
     {
-        if (SoftOrganAliases.TryResolve(planPin) is SoftOrganKind kind)
+        if (SoftInstrumentAliases.TryResolve(planPin) is SoftInstrumentKind kind)
         {
-            ISoftOrganBoard board = new IdeSoftOrganBoard(new SoftOrganSeatBag(
+            ISoftInstrumentBoard board = new IdeSoftInstrumentBoard(new SoftInstrumentSeatBag(
                 tileArgs,
                 session,
                 docStore,
                 workspaceStore,
                 workspaceState,
-                Extras: new SoftOrganSeatExtras(
+                Extras: new SoftInstrumentSeatExtras(
                     alertInputs,
                     () => BuildSysOrgan(session, git, shell, buffer, debug, test, work),
                     chkCtx,
@@ -79,12 +79,12 @@ internal static partial class IdeCockpit
     }
 
     static object Present(
-        SoftOrganKind kind,
+        SoftInstrumentKind kind,
         object board,
         bool wantFull,
         string? pulse = null,
         string? schema = null) =>
-        SeatOrganPanePresenter.Present(SoftOrganMeta.Require(kind), wantFull, board, pulse, schema);
+        SeatInstrumentPanePresenter.Present(SoftInstrumentMeta.Require(kind), wantFull, board, pulse, schema);
 
     static object BuildScriptSnapPane(SessionContext session)
     {

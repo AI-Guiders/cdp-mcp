@@ -4,7 +4,7 @@ using Cdp.Core;
 
 namespace CdpMcp;
 
-/// <summary>Citizen @intent BATCH-9 soft-organ hosts — Ide*Channel with fused SoftOrganSeatExtras.</summary>
+/// <summary>Citizen @intent BATCH-9 soft-instrument hosts — Ide*Channel with fused SoftInstrumentSeatExtras.</summary>
 internal static partial class CitizenRouteHost
 {
     internal static Func<SessionContext, IReadOnlyDictionary<string, JsonElement>, object>? ReportHandleOverride { get; set; }
@@ -15,26 +15,26 @@ internal static partial class CitizenRouteHost
     internal static Func<IdeChkChannel.ProbeCtx, IReadOnlyDictionary<string, JsonElement>, object>? EclHandleOverride { get; set; }
     internal static Func<IdeReviewChannel.Inputs, IReadOnlyDictionary<string, JsonElement>, object>? ReviewHandleOverride { get; set; }
     internal static Func<IdeAlertChannel.Inputs, IReadOnlyDictionary<string, JsonElement>, object>? AlertHandleOverride { get; set; }
-    internal static Func<SessionContext, DocumentBufferStore, SoftOrganSeatExtras?>? SeatExtrasOverride { get; set; }
+    internal static Func<SessionContext, DocumentBufferStore, SoftInstrumentSeatExtras?>? SeatExtrasOverride { get; set; }
 
     static Applied RunReport(CitizenIntentRouter.Route route)
     {
         var op = route.Op ?? "scene";
         var session = SessionResolver?.Invoke();
         if (session is null && ReportHandleOverride is null)
-            return SoftOrganFail(route, "report", "report", "no_session");
+            return SoftInstrumentFail(route, "report", "report", "no_session");
 
-        var args = BuildSoftOrganArgs(route, op);
+        var args = BuildSoftInstrumentArgs(route, op);
         try
         {
             object result = ReportHandleOverride is { } ov
                 ? ov(session ?? new SessionContext(), args)
                 : IdeReportBoard.Handle(session!, args);
-            return FinishSoftOrgan(route, result, "report", "report", "report", "report", op, route.Path);
+            return FinishSoftInstrument(route, result, "report", "report", "report", "report", op, route.Path);
         }
         catch (Exception ex)
         {
-            return SoftOrganFail(route, "report", "report", ex.GetType().Name + ": " + ex.Message);
+            return SoftInstrumentFail(route, "report", "report", ex.GetType().Name + ": " + ex.Message);
         }
     }
 
@@ -58,19 +58,19 @@ internal static partial class CitizenRouteHost
         var op = route.Op ?? "pulse";
         var session = SessionResolver?.Invoke();
         if (session is null && handleOverride is null)
-            return SoftOrganFail(route, action, go, "no_session");
+            return SoftInstrumentFail(route, action, go, "no_session");
 
-        var args = BuildSoftOrganArgs(route, op);
+        var args = BuildSoftInstrumentArgs(route, op);
         try
         {
             object result = handleOverride is { } ov
                 ? ov(session ?? new SessionContext(), args)
                 : live(session!, args);
-            return FinishSoftOrgan(route, result, action, go, placeOrgan, go, op, route.Path);
+            return FinishSoftInstrument(route, result, action, go, placeOrgan, go, op, route.Path);
         }
         catch (Exception ex)
         {
-            return SoftOrganFail(route, action, go, ex.GetType().Name + ": " + ex.Message);
+            return SoftInstrumentFail(route, action, go, ex.GetType().Name + ": " + ex.Message);
         }
     }
 
@@ -79,7 +79,7 @@ internal static partial class CitizenRouteHost
         var op = route.Op ?? "scene";
         var session = SessionResolver?.Invoke();
         if (session is null && SysHandleOverride is null)
-            return SoftOrganFail(route, "sys", "sys", "no_session");
+            return SoftInstrumentFail(route, "sys", "sys", "no_session");
 
         try
         {
@@ -92,18 +92,18 @@ internal static partial class CitizenRouteHost
             {
                 var store = IdeLanguageTools.TryGetDocumentStore();
                 if (store is null)
-                    return SoftOrganFail(route, "sys", "sys", "doc_store_unbound");
+                    return SoftInstrumentFail(route, "sys", "sys", "doc_store_unbound");
                 var extras = ResolveSeatExtras(session!, store);
                 if (extras is null)
-                    return SoftOrganFail(route, "sys", "sys", "seat_extras_unavailable");
+                    return SoftInstrumentFail(route, "sys", "sys", "seat_extras_unavailable");
                 result = extras.Value.SysBoard();
             }
 
-            return FinishSoftOrgan(route, result, "sys", "sys", "sys", "sys", op);
+            return FinishSoftInstrument(route, result, "sys", "sys", "sys", "sys", op);
         }
         catch (Exception ex)
         {
-            return SoftOrganFail(route, "sys", "sys", ex.GetType().Name + ": " + ex.Message);
+            return SoftInstrumentFail(route, "sys", "sys", ex.GetType().Name + ": " + ex.Message);
         }
     }
 
@@ -112,13 +112,13 @@ internal static partial class CitizenRouteHost
         var op = route.Op ?? "run";
         var session = SessionResolver?.Invoke();
         if (session is null && EclHandleOverride is null)
-            return SoftOrganFail(route, "ecl", "ecl", "no_session");
+            return SoftInstrumentFail(route, "ecl", "ecl", "no_session");
 
         var store = IdeLanguageTools.TryGetDocumentStore();
         if (store is null && EclHandleOverride is null)
-            return SoftOrganFail(route, "ecl", "ecl", "doc_store_unbound");
+            return SoftInstrumentFail(route, "ecl", "ecl", "doc_store_unbound");
 
-        var args = BuildSoftOrganArgs(route, op);
+        var args = BuildSoftInstrumentArgs(route, op);
         try
         {
             object result;
@@ -128,15 +128,15 @@ internal static partial class CitizenRouteHost
             {
                 var extras = ResolveSeatExtras(session!, store!);
                 if (extras is null)
-                    return SoftOrganFail(route, "ecl", "ecl", "seat_extras_unavailable");
+                    return SoftInstrumentFail(route, "ecl", "ecl", "seat_extras_unavailable");
                 result = IdeChkChannel.Handle(extras.Value.ChkCtx, args);
             }
 
-            return FinishSoftOrgan(route, result, "ecl", "ecl", "ecl", "ecl", op, route.Path);
+            return FinishSoftInstrument(route, result, "ecl", "ecl", "ecl", "ecl", op, route.Path);
         }
         catch (Exception ex)
         {
-            return SoftOrganFail(route, "ecl", "ecl", ex.GetType().Name + ": " + ex.Message);
+            return SoftInstrumentFail(route, "ecl", "ecl", ex.GetType().Name + ": " + ex.Message);
         }
     }
 
@@ -145,13 +145,13 @@ internal static partial class CitizenRouteHost
         var op = route.Op ?? "board";
         var session = SessionResolver?.Invoke();
         if (session is null && ReviewHandleOverride is null)
-            return SoftOrganFail(route, "review", "review", "no_session");
+            return SoftInstrumentFail(route, "review", "review", "no_session");
 
         var store = IdeLanguageTools.TryGetDocumentStore();
         if (store is null && ReviewHandleOverride is null)
-            return SoftOrganFail(route, "review", "review", "doc_store_unbound");
+            return SoftInstrumentFail(route, "review", "review", "doc_store_unbound");
 
-        var args = BuildSoftOrganArgs(route, op);
+        var args = BuildSoftInstrumentArgs(route, op);
         try
         {
             object result;
@@ -161,7 +161,7 @@ internal static partial class CitizenRouteHost
             {
                 var extras = ResolveSeatExtras(session!, store!);
                 if (extras is null)
-                    return SoftOrganFail(route, "review", "review", "seat_extras_unavailable");
+                    return SoftInstrumentFail(route, "review", "review", "seat_extras_unavailable");
                 var inputs = new IdeReviewChannel.Inputs(
                     session!,
                     extras.Value.GitDirty,
@@ -173,11 +173,11 @@ internal static partial class CitizenRouteHost
                 result = IdeReviewChannel.Handle(inputs, args);
             }
 
-            return FinishSoftOrgan(route, result, "review", "review", "review", "review", op, route.Path);
+            return FinishSoftInstrument(route, result, "review", "review", "review", "review", op, route.Path);
         }
         catch (Exception ex)
         {
-            return SoftOrganFail(route, "review", "review", ex.GetType().Name + ": " + ex.Message);
+            return SoftInstrumentFail(route, "review", "review", ex.GetType().Name + ": " + ex.Message);
         }
     }
 
@@ -186,13 +186,13 @@ internal static partial class CitizenRouteHost
         var op = route.Op ?? "pulse";
         var session = SessionResolver?.Invoke();
         if (session is null && AlertHandleOverride is null)
-            return SoftOrganFail(route, "alert", "alert", "no_session");
+            return SoftInstrumentFail(route, "alert", "alert", "no_session");
 
         var store = IdeLanguageTools.TryGetDocumentStore();
         if (store is null && AlertHandleOverride is null)
-            return SoftOrganFail(route, "alert", "alert", "doc_store_unbound");
+            return SoftInstrumentFail(route, "alert", "alert", "doc_store_unbound");
 
-        var args = BuildSoftOrganArgs(route, op);
+        var args = BuildSoftInstrumentArgs(route, op);
         try
         {
             object result;
@@ -202,22 +202,22 @@ internal static partial class CitizenRouteHost
             {
                 var extras = ResolveSeatExtras(session!, store!);
                 if (extras is null)
-                    return SoftOrganFail(route, "alert", "alert", "seat_extras_unavailable");
+                    return SoftInstrumentFail(route, "alert", "alert", "seat_extras_unavailable");
                 result = IdeAlertChannel.Handle(extras.Value.AlertInputs, args);
             }
 
-            return FinishSoftOrgan(route, result, "alert", "alert", placeOrgan: null, "alert", op);
+            return FinishSoftInstrument(route, result, "alert", "alert", placeOrgan: null, "alert", op);
         }
         catch (Exception ex)
         {
-            return SoftOrganFail(route, "alert", "alert", ex.GetType().Name + ": " + ex.Message);
+            return SoftInstrumentFail(route, "alert", "alert", ex.GetType().Name + ": " + ex.Message);
         }
     }
 
-    static Applied SoftOrganFail(CitizenIntentRouter.Route route, string action, string go, string reason) =>
+    static Applied SoftInstrumentFail(CitizenIntentRouter.Route route, string action, string go, string reason) =>
         new(route.Raw, route.Verb.ToString(), Ok: false, Action: action, Go: go, Reason: reason);
 
-    static Applied FinishSoftOrgan(
+    static Applied FinishSoftInstrument(
         CitizenIntentRouter.Route route,
         object result,
         string action,
@@ -228,8 +228,8 @@ internal static partial class CitizenRouteHost
         string? path = null)
     {
         var json = result is string s ? s : JsonSerializer.Serialize(result);
-        var ok = TryReadSoftOrganOk(json);
-        var pulse = TryReadSoftOrganPulse(json, tag, op);
+        var ok = TryReadSoftInstrumentOk(json);
+        var pulse = TryReadSoftInstrumentPulse(json, tag, op);
         string? seat = placeOrgan is { Length: > 0 } ? IdeDeskSeats.PlaceOrgan(placeOrgan) : null;
         return new Applied(
             route.Raw,
@@ -243,11 +243,11 @@ internal static partial class CitizenRouteHost
             Reason: ok ? null : (TryReadLifecycleError(json) ?? pulse ?? action + "_failed"));
     }
 
-    static SoftOrganSeatExtras? ResolveSeatExtras(SessionContext session, DocumentBufferStore store) =>
+    static SoftInstrumentSeatExtras? ResolveSeatExtras(SessionContext session, DocumentBufferStore store) =>
         SeatExtrasOverride?.Invoke(session, store)
         ?? IdeCockpit.TryBuildCitizenSeatExtras(session, store, ShellHabitatResolver);
 
-    static Dictionary<string, JsonElement> BuildSoftOrganArgs(CitizenIntentRouter.Route route, string op)
+    static Dictionary<string, JsonElement> BuildSoftInstrumentArgs(CitizenIntentRouter.Route route, string op)
     {
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
         {
@@ -255,7 +255,7 @@ internal static partial class CitizenRouteHost
         };
 
         var raw = route.Raw;
-        foreach (var key in SoftOrganArgKeys)
+        foreach (var key in SoftInstrumentArgKeys)
             PutIfPresent(args, key, CitizenIntentRouter.ExtractKeyedValue(raw, key));
 
         if (route.Path is { Length: > 0 } path && !args.ContainsKey("path") && !args.ContainsKey("id"))
@@ -267,7 +267,7 @@ internal static partial class CitizenRouteHost
         return args;
     }
 
-    static readonly string[] SoftOrganArgKeys =
+    static readonly string[] SoftInstrumentArgKeys =
     [
         "depth", "scope", "path", "id", "item", "checklist", "file", "q", "query", "link", "phase"
     ];

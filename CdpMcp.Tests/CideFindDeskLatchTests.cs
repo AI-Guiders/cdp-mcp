@@ -27,7 +27,7 @@ public class CideFindDeskLatchTests : IDisposable
             pulse: "find · project · 3 hit(s)",
             op: "run",
             where: "project",
-            query: "SoftOrgan",
+            query: "SoftInstrument",
             hitCount: 3);
 
         var latch = CideFindDeskLatch.TryRead();
@@ -37,7 +37,7 @@ public class CideFindDeskLatchTests : IDisposable
         Assert.True(latch.Active);
         Assert.Equal("run", latch.Op);
         Assert.Equal("project", latch.Where);
-        Assert.Equal("SoftOrgan", latch.Query);
+        Assert.Equal("SoftInstrument", latch.Query);
         Assert.Equal(3, latch.HitCount);
         Assert.Equal("find · project · 3 hit(s)", latch.ChromeHint);
         Assert.Null(latch.Hits);
@@ -86,7 +86,7 @@ public class CideFindDeskLatchTests : IDisposable
             pulse: "find · project · 3 hit(s)",
             op: "run",
             where: "project",
-            query: "SoftOrgan",
+            query: "SoftInstrument",
             hitCount: 3,
             hits:
             [

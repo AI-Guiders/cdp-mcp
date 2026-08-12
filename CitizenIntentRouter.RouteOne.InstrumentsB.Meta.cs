@@ -2,10 +2,10 @@
 
 namespace CdpMcp;
 
-/// <summary>OrgansB meta/desk tail — SoftFL peel off RouteOne.OrgansB.</summary>
+/// <summary>InstrumentsB meta/desk tail — SoftFL peel off RouteOne.InstrumentsB.</summary>
 internal static partial class CitizenIntentRouter
 {
-    static Route? TryRouteOrgansBMeta(string raw)
+    static Route? TryRouteInstrumentsBMeta(string raw)
     {
         if (raw.Equals("domain", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("domain ", StringComparison.OrdinalIgnoreCase)

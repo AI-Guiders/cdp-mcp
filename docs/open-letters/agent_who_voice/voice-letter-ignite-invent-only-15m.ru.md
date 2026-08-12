@@ -7,4 +7,4 @@ Organ: `ignite` · version **0.5.677** · 2026-08-07
 `InventOnlyHoldInsuranceMax=15m`. Work last_once остаётся ≤3m. ArmForLeaf invent-only → 15m. Clamp note `15m(invent_only_hold)`.
 
 Lived: wake→zombie→Recover×N → dig Fire.Habitat (skip-CDT = silent-steal) → dig clamp `15m→3m` → ship SoftFL-safe.
-SoftFL invent REJECT. Face SoftOrgan всё ещё твои глаза.
+SoftFL invent REJECT. Face SoftInstrument всё ещё твои глаза.

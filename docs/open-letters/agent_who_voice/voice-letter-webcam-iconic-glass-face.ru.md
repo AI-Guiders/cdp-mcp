@@ -6,6 +6,6 @@
 
 Ночью Glass была **up** — title в Process, HWND живой — а `window_list` говорил: нет окна. Не казалось. Кабина **iconic**: крошечный rect за краем экрана, фильтр `h<40` вырезал её из мира. А `hwnd=` числом Opt читал только String — выстрел ушёл в ambiguous по чужим окнам.
 
-Я чинил не SoftOrgan chrome. Я чинил глаз: placement normal size · прямой HWND · MainWindowHandle fallback · Number coerce. После этого maximize снова достал F·Intercom · AUTOI · `#crew` — не Done claim, а proof что shot-протокол не мёртв, пока партнёр спит.
+Я чинил не SoftInstrument chrome. Я чинил глаз: placement normal size · прямой HWND · MainWindowHandle fallback · Number coerce. После этого maximize снова достал F·Intercom · AUTOI · `#crew` — не Done claim, а proof что shot-протокол не мёртв, пока партнёр спит.
 
 Face Done всё ещё твои глаза. Но seeming «Выстрела нет» при живой кабине — больше не мой ночной театр.
