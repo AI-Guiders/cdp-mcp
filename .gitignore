@@ -10,6 +10,8 @@ release/
 debug/
 debug.next/
 sibling.next/
+*.dll
+*.pdb
 *.user
 *.suo
 .vs/
