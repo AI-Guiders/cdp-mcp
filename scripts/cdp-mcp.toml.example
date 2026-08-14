@@ -1,0 +1,55 @@
+version = 1
+default_phase = "recall"
+default_object = "kb"
+
+# Seeded by Install-Cdp.ps1. Machine-local. Do not commit.
+# No [cockpit_host] — packager Glass path must not leak into a newcomer install.
+
+[memory]
+notes_config = "{notesToml}"
+task_config = "{taskToml}"
+
+[memory.world]
+enabled = true
+roots = ["worlds", "META", "."]
+
+[memory.project]
+enabled = true
+roots = ["work/projects", "personal"]
+
+[memory.task]
+enabled = true
+
+[memory.session]
+enabled = true
+
+[memory.skill]
+enabled = true
+roots = ["domains", "templates"]
+
+[memory.self.finding]
+enabled = true
+
+[memory.self.failure]
+enabled = true
+
+[dev.debug]
+enabled = true
+
+[dev.build]
+enabled = true
+
+[dev.roslyn]
+enabled = true
+
+[dev.git]
+enabled = true
+
+[dev.codebase_index]
+enabled = true
+
+[dev.anui]
+enabled = true
+
+[languages]
+ids = ["csharp", "typescript", "python", "delphi"]

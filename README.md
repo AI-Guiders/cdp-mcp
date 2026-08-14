@@ -20,6 +20,20 @@ Meta tools (always in ListTools): `cdp_man`, `cdp_session`, `cdp_health`, `cdp_c
 - **`cdp_health` / `cdp_session`** — `explain_tool` → why a prefixed tool is hidden; health includes `typescript_worker` when warm.
 - ListTools = meta + bare IDE + shortlist for current `cdp_context` (not full union).
 
+## Install (no build)
+
+Recipient does **not** clone siblings or run `dotnet publish`. CI/`package-win-release.ps1` puts a win-x64 zip on [GitHub Releases](https://github.com/AI-Guiders/cdp-mcp/releases).
+
+```powershell
+Invoke-WebRequest https://github.com/AI-Guiders/cdp-mcp/releases/latest/download/Install-Cdp.ps1 -OutFile Install-Cdp.ps1
+# keep scripts/cdp-mcp.toml.example next to the script, or download it from the same release/repo
+.\Install-Cdp.ps1 -HostAdapter cursor   # claude | vscode | none
+```
+
+The script downloads `CdpMcp-*-win-x64.zip`, clones [kb-public](https://github.com/AI-Guiders/kb-public) (read-only), seeds an empty personal canon. Maintainer escape: `-CdpSource D:\cdp-mcp`.
+
+GitHub Actions (`.github/workflows/release.yml`) needs org secrets `GH_PAT` (private `ai-native-ui`) and `GITLAB_TOKEN` or `GITLAB_CLONE_URL` (GitLab-only siblings). Tag `v*` or Run workflow.
+
 ## Build / deploy
 
 ```powershell
