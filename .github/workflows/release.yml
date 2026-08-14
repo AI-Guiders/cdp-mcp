@@ -1,7 +1,7 @@
 name: Release win-x64
 
 on:
-  # Tag v* when GH_PAT + GITLAB_TOKEN/GITLAB_CLONE_URL exist; until then dispatch only
+  # Tag v* or workflow_dispatch; needs GH_PAT for private ai-native-ui
   # (GitHub-hosted runners do not see the local open/ tree).
   workflow_dispatch:
     inputs:
@@ -36,8 +36,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_PAT: ${{ secrets.GH_PAT }}
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          GITLAB_CLONE_URL: ${{ secrets.GITLAB_CLONE_URL }}
         shell: pwsh
         working-directory: ${{ github.workspace }}
         run: ./cdp-mcp/scripts/ci-checkout-siblings.ps1
@@ -67,3 +65,4 @@ jobs:
             cdp-mcp/artifacts/dist/SHA256SUMS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

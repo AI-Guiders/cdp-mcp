@@ -1,6 +1,7 @@
 <#
   Layout expected by CdpMcp.csproj: sibling folders next to cdp-mcp.
   Run from GITHUB_WORKSPACE after actions/checkout path=cdp-mcp.
+  GitHub-only — no GitLab / financial-open clone.
 #>
 [CmdletBinding()]
 param(
@@ -27,13 +28,22 @@ $gh = @(
     @{ Path = "roslyn-mcp"; Repo = "AI-Guiders/RoslynMcp" },
     @{ Path = "git-mcp"; Repo = "AI-Guiders/git-mcp" },
     @{ Path = "hybrid-codebase-index"; Repo = "AI-Guiders/hybrid-codebase-index" },
-    @{ Path = "ai-native-ui"; Repo = "AI-Guiders/ai-native-ui" }
+    @{ Path = "ai-native-ui"; Repo = "AI-Guiders/ai-native-ui" },
+    @{ Path = "terminal-mcp-core"; Repo = "AI-Guiders/terminal-mcp-core" },
+    @{ Path = "agent-findings-core"; Repo = "AI-Guiders/agent-findings-core" },
+    @{ Path = "agent-findings-mcp"; Repo = "AI-Guiders/agent-findings-mcp" },
+    @{ Path = "agent-failures-core"; Repo = "AI-Guiders/agent-failures-core" },
+    @{ Path = "agent-failures-mcp"; Repo = "AI-Guiders/agent-failures-mcp" },
+    @{ Path = "dotnet-debug-core"; Repo = "AI-Guiders/dotnet-debug-core" },
+    @{ Path = "typescript-lang"; Repo = "AI-Guiders/typescript-lang" },
+    @{ Path = "lsp-lang"; Repo = "AI-Guiders/lsp-lang" }
 )
 
 $token = $env:GH_PAT
 if ([string]::IsNullOrWhiteSpace($token)) { $token = $env:GITHUB_TOKEN }
 $prefix = if ($token) { "https://x-access-token:$token@github.com/" } else { "https://github.com/" }
 
+$failed = @()
 foreach ($row in $gh) {
     $dest = Join-Path $Workspace $row.Path
     if (Test-Path -LiteralPath $dest) {
@@ -44,40 +54,11 @@ foreach ($row in $gh) {
     Write-Host "clone $($row.Repo) → $($row.Path)"
     git clone --depth 1 $url $dest
     if ($LASTEXITCODE -ne 0) {
-        throw "clone failed: $($row.Repo) (ai-native-ui is private — set GH_PAT with repo scope)"
+        $failed += $row.Repo
+        Write-Host "WARN: clone failed $($row.Repo)" -ForegroundColor Yellow
     }
 }
 
-$gitlabDirs = @(
-    "terminal-mcp-core",
-    "agent-findings-core",
-    "agent-failures-core",
-    "dotnet-debug-core",
-    "typescript-lang",
-    "lsp-lang",
-    "agent-findings-mcp",
-    "agent-failures-mcp"
-)
-$missing = @($gitlabDirs | Where-Object { -not (Test-Path -LiteralPath (Join-Path $Workspace $_)) })
-if ($missing.Count -eq 0) { return }
-
-$cloneUrl = $env:GITLAB_CLONE_URL
-if ([string]::IsNullOrWhiteSpace($cloneUrl) -and $env:GITLAB_TOKEN) {
-    $cloneUrl = "https://oauth2:$($env:GITLAB_TOKEN)@193.124.113.7/Krawler/financial-open.git"
-}
-if ([string]::IsNullOrWhiteSpace($cloneUrl)) {
-    throw "GitLab-only siblings missing ($($missing -join ', ')). Set secret GITLAB_CLONE_URL or GITLAB_TOKEN. GitHub-hosted CI cannot see the local open/ tree."
-}
-
-$tmp = Join-Path $Workspace "_financial-open"
-if (-not (Test-Path -LiteralPath $tmp)) {
-    Write-Host "clone financial-open for GitLab-only siblings"
-    git clone --depth 1 $cloneUrl $tmp
-    if ($LASTEXITCODE -ne 0) { throw "GitLab clone failed" }
-}
-foreach ($d in $missing) {
-    $src = Join-Path $tmp $d
-    if (-not (Test-Path -LiteralPath $src)) { throw "financial-open has no folder $d" }
-    Write-Host "copy $d from financial-open"
-    Copy-Item $src (Join-Path $Workspace $d) -Recurse -Force
+if ($failed.Count -gt 0) {
+    throw ("GitHub sibling clone failed: " + ($failed -join ', ') + ". Create missing AI-Guiders/* repos (no GitLab). Private ai-native-ui needs secret GH_PAT with repo scope.")
 }
