@@ -1,5 +1,5 @@
-# CDP agent comfort — project correspondence (Explore full-a substrate)
-# Lights up go=correspondence / explore-corr latch for this repo.
+# CDP habitat correspondence — Explore full-a substrate (ADR map)
+# ResolveAdrMap = longest prefix match (not union). "*" = baseline when no better key.
 
 [workspace.adr]
 auto_include = "linked"
@@ -8,42 +8,195 @@ root_dir = "docs/adr"
 id_regex = '(?:^|/)docs/adr/(?<id>CDP-ADR-\d{4})-'
 
 [workspace.adr.map]
+# --- Explore / analysis / seeming ---
+"ExploreCorr" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+]
 "Correspondence.cs" = [
   "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
   "docs/adr/CDP-ADR-0029-teeth-analysis-organ.md",
-]
-"ExploreCorrLatch.cs" = [
-  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
-]
-"ExploreCorrGate.cs" = [
-  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
-]
-"ExploreCorrNoAdr.cs" = [
-  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
 ]
 "AnalysisScene.cs" = [
   "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
   "docs/adr/CDP-ADR-0029-teeth-analysis-organ.md",
 ]
-"IdeSeemingDoneShield.cs" = [
+"SemanticMap.cs" = [
   "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
 ]
-"IdeWaveShipShield.cs" = [
+"CodeClones.cs" = [
+  "docs/adr/CDP-ADR-0029-teeth-analysis-organ.md",
+]
+"IdeSeeming" = [
   "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
 ]
-"PathMutateGate.cs" = [
-  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+"IdeHumanFace" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+  "docs/adr/CDP-ADR-0021-windows-first-operator-glass.md",
 ]
-"IdePressureChannel.cs" = [
-  "docs/adr/CDP-ADR-0018-pressure-precompact-desk.md",
-  "docs/adr/CDP-ADR-0022-pressure-memo-line.md",
-  "docs/adr/CDP-ADR-0024-recall-gate-pull-reconcile-align.md",
+"IdeWave" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
 ]
+"IdeDomainStamp" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+]
+
+# --- Desk / cockpit / ICM / glass wire ---
 "Cockpit/" = [
   "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
   "docs/adr/CDP-ADR-0021-windows-first-operator-glass.md",
 ]
-"*" = []
+"IdeCockpit" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+  "docs/adr/CDP-ADR-0021-windows-first-operator-glass.md",
+]
+"IdeDesk" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IdeCommand" = [
+  "docs/adr/CDP-ADR-0019-icm-cdp-first-command-module.md",
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IdeIcm" = [
+  "docs/adr/CDP-ADR-0019-icm-cdp-first-command-module.md",
+]
+"IdeGlass" = [
+  "docs/adr/CDP-ADR-0021-windows-first-operator-glass.md",
+]
+"IdeSoftInstrument" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+  "docs/adr/CDP-ADR-0021-windows-first-operator-glass.md",
+]
+
+# --- Pressure / recall / continuity ---
+"IdePressure" = [
+  "docs/adr/CDP-ADR-0018-pressure-precompact-desk.md",
+  "docs/adr/CDP-ADR-0022-pressure-memo-line.md",
+  "docs/adr/CDP-ADR-0024-recall-gate-pull-reconcile-align.md",
+]
+"IdeIgnite" = [
+  "docs/adr/CDP-ADR-0027-cursor-oom-tooth-and-wake.md",
+  "docs/adr/CDP-ADR-0023-hild-human-in-loop-detector.md",
+]
+"IdeHild" = [
+  "docs/adr/CDP-ADR-0023-hild-human-in-loop-detector.md",
+]
+"IdeTeeth" = [
+  "docs/adr/CDP-ADR-0029-teeth-analysis-organ.md",
+  "docs/adr/CDP-ADR-0027-cursor-oom-tooth-and-wake.md",
+]
+"IdeOom" = [
+  "docs/adr/CDP-ADR-0027-cursor-oom-tooth-and-wake.md",
+]
+"IdeRemount" = [
+  "docs/adr/CDP-ADR-0027-cursor-oom-tooth-and-wake.md",
+]
+"IdeFdr" = [
+  "docs/adr/CDP-ADR-0029-teeth-analysis-organ.md",
+]
+
+# --- Citizen / guest / wire ---
+"Citizen" = [
+  "docs/adr/CDP-ADR-0028-citizen-agent-wire.md",
+  "docs/adr/CDP-ADR-0025-citizen-guest-isolation.md",
+  "docs/adr/CDP-ADR-0030-citizen-multi-session-continuity.md",
+  "docs/adr/CDP-ADR-0026-citizen-ai-keys-foundation.md",
+]
+"IdeCitizen" = [
+  "docs/adr/CDP-ADR-0028-citizen-agent-wire.md",
+  "docs/adr/CDP-ADR-0025-citizen-guest-isolation.md",
+  "docs/adr/CDP-ADR-0030-citizen-multi-session-continuity.md",
+]
+"IntercomJournal/" = [
+  "docs/adr/CDP-ADR-0028-citizen-agent-wire.md",
+  "docs/adr/CDP-ADR-0030-citizen-multi-session-continuity.md",
+]
+"IdeCideIntercom" = [
+  "docs/adr/CDP-ADR-0028-citizen-agent-wire.md",
+  "docs/adr/CDP-ADR-0030-citizen-multi-session-continuity.md",
+]
+
+# --- Buffer / editor / mutate plane ---
+"DocumentEdit" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+]
+"DocumentBuffer" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"DocBuffer" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"EditSniper" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"EditorComfort" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"PathMutateGate.cs" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+]
+"MetaDispatch" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"MetaToolCatalog" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+
+# --- Shell / git / build / deploy / debug / SA ---
+"IdeShell" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"cdp_shell" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IdeDeploy" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IdeBuild" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IdeDebug" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IdeSa" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IdeTaskManager" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IntentWorkspace/" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+
+# --- Soft instruments / quality / world dig ---
+"IdeChk" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IdeQrh" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IdeWorld" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IdeSee" = [
+  "docs/adr/CDP-ADR-0021-windows-first-operator-glass.md",
+]
+"IdeWebcam" = [
+  "docs/adr/CDP-ADR-0021-windows-first-operator-glass.md",
+]
+"IdeShare" = [
+  "docs/adr/CDP-ADR-0021-windows-first-operator-glass.md",
+]
+"Backends/" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+
+# Baseline — arms ExploreCorr gate for any locus without a longer key
+"*" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
 
 [workspace.features]
 [[workspace.features.feature]]
@@ -57,15 +210,54 @@ docs = [
 tags = ["analysis", "correspondence", "explore-corr", "semantic_map"]
 
 [[workspace.features.feature]]
+id = "cdp.citizen"
+title = "Citizen wire + guest isolation + multi-session"
+paths = ["Citizen", "IdeCitizen", "IntercomJournal/"]
+docs = [
+  "docs/adr/CDP-ADR-0028-citizen-agent-wire.md",
+  "docs/adr/CDP-ADR-0025-citizen-guest-isolation.md",
+  "docs/adr/CDP-ADR-0030-citizen-multi-session-continuity.md",
+  "docs/adr/CDP-ADR-0026-citizen-ai-keys-foundation.md",
+]
+tags = ["citizen", "intercom", "guest"]
+
+[[workspace.features.feature]]
+id = "cdp.pressure.continuity"
+title = "Pressure / recall / AutoIgnition wake"
+paths = ["IdePressure", "IdeIgnite", "IdeHild", "IdeTeeth", "IdeOom", "IdeRemount"]
+docs = [
+  "docs/adr/CDP-ADR-0018-pressure-precompact-desk.md",
+  "docs/adr/CDP-ADR-0022-pressure-memo-line.md",
+  "docs/adr/CDP-ADR-0024-recall-gate-pull-reconcile-align.md",
+  "docs/adr/CDP-ADR-0027-cursor-oom-tooth-and-wake.md",
+  "docs/adr/CDP-ADR-0023-hild-human-in-loop-detector.md",
+]
+tags = ["pressure", "ignite", "hild", "teeth"]
+
+[[workspace.features.feature]]
+id = "cdp.desk.cockpit"
+title = "Desk vs organ + ICM + glass wire"
+paths = ["Cockpit/", "IdeCockpit", "IdeDesk", "IdeCommand", "IdeIcm", "IdeGlass"]
+docs = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+  "docs/adr/CDP-ADR-0019-icm-cdp-first-command-module.md",
+  "docs/adr/CDP-ADR-0021-windows-first-operator-glass.md",
+]
+tags = ["cockpit", "desk", "icm", "glass"]
+
+[[workspace.features.feature]]
+id = "cdp.editor.mutate"
+title = "Buffer / sniper / PathMutate / ExploreCorr tooth"
+paths = ["DocumentEdit", "DocumentBuffer", "DocBuffer", "EditSniper", "EditorComfort", "PathMutateGate.cs", "ExploreCorr"]
+docs = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+]
+tags = ["buffer", "mutate", "explore-corr"]
+
+[[workspace.features.feature]]
 id = "cdp.editor.comfort"
 title = "Editor comfort (put / clipboard / sniper)"
 paths = ["EditorComfort.cs", "EditSniper.cs", "SessionClipboard.cs", "FindInFiles.cs", "GoToAll.cs"]
-docs = []
+docs = ["docs/adr/CDP-ADR-0020-desk-vs-organ-path.md"]
 tags = ["editor", "put", "clipboard"]
-
-[[workspace.features.feature]]
-id = "cdp.glass.wire"
-title = "Windows-first operator glass wire"
-paths = ["Cockpit/"]
-docs = ["docs/adr/CDP-ADR-0021-windows-first-operator-glass.md"]
-tags = ["glass", "cockpit"]
