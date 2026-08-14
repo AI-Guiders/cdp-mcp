@@ -172,6 +172,25 @@ internal static partial class MetaToolCatalog
                 op = new { type = "string", description = "scene|pulse|month" }
             }
         }),
+    Meta("cdp_freshness", "KB freshness MLP soft organ — harness walks watchlist URLs; returns Digest/Atom-shaped entries (not raw HTML). Digest ≠ Проверено stamp. op=scene|pulse|watchlist|scan|digest|explain|aliases. alias=/urls=/domain=. Alias go=freshness|freshness_desk.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|pulse|watchlist|scan|digest|explain|aliases" },
+                alias = new { type = "string", description = "built-in alias id (baseline2026|php|laravel|avalonia|node) or CSV" },
+                aliases = new { type = "string", description = "alias of alias=" },
+                urls = new { type = "string", description = "CSV of https URLs" },
+                url = new { type = "string", description = "single URL (explain|scan)" },
+                domain = new { type = "string", description = "worlds/<domain> slug — extract https from md" },
+                world = new { type = "string", description = "alias of domain=" },
+                path = new { type = "string", description = "md/file path — extract https" },
+                file = new { type = "string", description = "alias of path=" },
+                take = new { type = "integer", description = "scan: max URLs (default 12, max 40)" },
+                persist = new { type = "boolean", description = "scan: write cache (default true)" }
+            }
+        }),
     Meta("cdp_rules", "Healthy-agent standing rules [A] from .cdp/rules/*.md (ε body, dig/parallel, not biped). op=scene|pulse|list|card. Alias go=rules|standing. Remount Autoi appends Standing appendix. Not eQRH; not Cursor alwaysApply dump.",
         new
         {
