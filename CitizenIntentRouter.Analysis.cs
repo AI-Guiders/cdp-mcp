@@ -97,10 +97,11 @@ internal static partial class CitizenIntentRouter
             "desk" or "status" or "show" or "pulse" or "scene" or "" => "map",
             "clone" or "duplicates" or "code_clones" => "clones",
             "corr" or "docs" or "adr_map" or "context" => "correspondence",
+            "noadr" or "skip_adr" => "no_adr",
             "semantic" or "related" or "nav_map" => "semantic_map",
             _ => feature
         };
 
     static bool IsAnalysisFeature(string? feature) =>
-        feature is "map" or "clones" or "correspondence" or "semantic_map";
+        feature is "map" or "clones" or "correspondence" or "semantic_map" or "no_adr";
 }

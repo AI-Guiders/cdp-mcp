@@ -35,6 +35,8 @@ internal static class AnalysisScene
                 Task.FromResult(CodeClones.Run(store, session, args)),
             "correspondence" or "corr" or "docs" or "adr_map" or "context" =>
                 Task.FromResult(Correspondence.Run(store, session, args)),
+            "no_adr" or "noadr" or "skip_adr" =>
+                Task.FromResult(ExploreCorrNoAdr.Run(store, session, args)),
             "semantic_map" or "semantic" or "related" or "nav_map" =>
                 SemanticMap.RunAsync(store, session, byDomain, args, ct),
             _ => Task.FromResult(JsonSerializer.Serialize(new
@@ -43,7 +45,7 @@ internal static class AnalysisScene
                 ok = false,
                 error = "unknown_feature",
                 feature,
-                hint = "feature omit → scene map; feature=correspondence|semantic_map|clones"
+                hint = "feature omit → scene map; feature=correspondence|no_adr|semantic_map|clones"
             }, Pretty))
         };
     }
@@ -104,6 +106,15 @@ internal static class AnalysisScene
                     hint =
                         "Roslyn navigation neighbors around a file. mode=related|…; path=/anchor=; results=anchors.",
                     go_args = new { feature = "semantic_map", mode = "related" }
+                },
+                new
+                {
+                    id = "no_adr",
+                    title = "Explicit no-ADR (Explore latch)",
+                    hint =
+                        "When locus has no useful ADR: feature=no_adr why=short-reason path=. " +
+                        "Empty why refused. Prefer correspondence when map has docs.",
+                    go_args = new { feature = "no_adr" }
                 },
                 new
                 {

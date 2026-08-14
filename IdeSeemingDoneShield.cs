@@ -12,6 +12,7 @@ internal static class IdeSeemingDoneShield
     internal const string RefuseHumanFaceId = IdeHumanFaceShield.RefuseId;
     internal const string RefuseDomainStampId = IdeDomainStampShield.RefuseId;
     internal const string RefuseThrowCursorId = "seeming_throw_cursor_done";
+    internal const string RefuseExploreCorrId = ExploreCorrLatch.RefuseId;
 
     static readonly string[] HumanFaceTokens =
     [
@@ -108,6 +109,8 @@ internal static class IdeSeemingDoneShield
 
         RefuseThrowCursorWithoutWebAiFace(args, textBlob, verb);
 
+        RefuseExploreCorrWithoutLatch(args, verb);
+
         IdeDomainStampPending.Clear();
     }
 
@@ -140,6 +143,34 @@ internal static class IdeSeemingDoneShield
             "evidence=…webai….png (M·WebAiPortal Face lived). Lynx dump / PlaceOrgan chrome alone = seeming. " +
             "force=true escape.");
     }
+    static void RefuseExploreCorrWithoutLatch(
+        IReadOnlyDictionary<string, JsonElement>? args,
+        string verb)
+    {
+        if (!ExploreCorrLatch.IsEnabled())
+            return;
+
+        var root = Opt(args, "project_root")
+                   ?? Opt(args, "workspace_path")
+                   ?? IdePressureChannel.TryPeekProjectRoot();
+        if (string.IsNullOrWhiteSpace(root))
+            return;
+
+        var ws = ExploreCorrLatch.FindWorkspaceRoot(root, root);
+        if (string.IsNullOrWhiteSpace(ws))
+            return;
+        if (!File.Exists(Path.Combine(ws, ".cascade", "workspace.toml")))
+            return;
+
+        if (ExploreCorrLatch.HasAnyFresh(ws))
+            return;
+
+        throw new ArgumentException(
+            $"{verb} refused — {RefuseExploreCorrId}: human-faced Done without Explore corr latch " +
+            "(cdp_analysis_scene feature=correspondence path= or feature=no_adr why=). " +
+            "ADR unread = seeming. force=true escape.");
+    }
+
 
     static bool HasWebAiFaceEvidence(IReadOnlyDictionary<string, JsonElement>? args)
     {

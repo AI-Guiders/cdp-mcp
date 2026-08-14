@@ -110,6 +110,8 @@ internal static class Correspondence
             }
         }
 
+        ExploreCorrLatch.StampCorr(result.WorkspaceRoot, result.FileRel, docAnchors.Length);
+
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
@@ -125,6 +127,7 @@ internal static class Correspondence
             reverse_anchors = reverse,
             context = WorkspaceCorrespondence.BuildContext(result),
             count = docAnchors.Length + reverse.Length,
+            explore_corr = ExploreCorrLatch.Pulse(result.WorkspaceRoot),
             land,
             next = new object[]
             {

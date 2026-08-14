@@ -52,6 +52,9 @@ internal static partial class CitizenRouteHost
         if (CitizenScarGate.TryRefuse(route) is { } scarRefuse)
             return scarRefuse;
 
+        if (ExploreCorrGate.TryRefuseRoute(route) is { } corrRefuse)
+            return corrRefuse;
+
         return route.Verb switch
         {
             CitizenIntentRouter.Verb.Go
@@ -169,7 +172,6 @@ internal static partial class CitizenRouteHost
                 Reason: route.Reason ?? "unrecognized")
         };
     }
-
 
     static Applied PlaceGo(CitizenIntentRouter.Route route)
     {

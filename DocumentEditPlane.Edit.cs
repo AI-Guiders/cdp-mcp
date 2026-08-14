@@ -17,6 +17,11 @@ internal static partial class DocumentEditPlane
         // Diagnostics run AFTER the gate: Roslyn/MSBuild is not parallel-safe and held the
         // mutate lock for minutes (dogfood hang on parallel anchor edits).
         var pathKey = ResolvePathKey(store, session, args);
+        ExploreCorrGate.RefuseMutateIfNeeded(
+            pathKey,
+            session.ScmRoot ?? session.ProjectRoot,
+            args,
+            verb: "cdp_buffer edit");
         var pathExistedBefore = File.Exists(pathKey);
         var applied = await store.MutateAsync(pathKey, async () =>
         {

@@ -215,6 +215,11 @@ internal static partial class DocumentEditPlane
         CancellationToken cancellationToken)
     {
         var path = ResolveUserPath(session, RequireString(args, "path"));
+        ExploreCorrGate.RefuseMutateIfNeeded(
+            path,
+            session.ScmRoot ?? session.ProjectRoot,
+            args,
+            verb: "cdp_buffer create");
         var overwrite = BoolOr(args, "overwrite", defaultValue: false);
         var existed = File.Exists(path);
         var text = OptString(args, "text");

@@ -20,6 +20,29 @@ internal static partial class IdeSaChannel
         if (dirty is { Risk: "secret" })
             return ("need_more", "Dirty path looks secret-sensitive — exclude before refactor ship.");
 
+        if (dirty is { Path.Length: > 0 } card
+            && ExploreCorrLatch.IsEnabled()
+            && ExploreCorrLatch.HasMappedAdrs(card.Path, rootHint: null))
+        {
+            var ws = ExploreCorrLatch.FindWorkspaceRoot(card.Path, null);
+            if (ws is { Length: > 0 })
+            {
+                var rel = card.Path;
+                try
+                {
+                    var root = Path.GetFullPath(ws).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    var full = Path.GetFullPath(card.Path);
+                    if (full.StartsWith(root, StringComparison.OrdinalIgnoreCase) && full.Length > root.Length)
+                        rel = full[(root.Length + 1)..].Replace('\\', '/');
+                }
+                catch { /* keep abs */ }
+
+                if (!ExploreCorrLatch.HasSatisfied(ws, rel))
+                    return ("need_more",
+                        "ADR-mapped dirty locus — Explore full-a: correspondence dig or no_adr why= before Act.");
+            }
+        }
+
         if (hardFail && sizeDebt)
             return ("split", "Quality fail on size/method length — extract before more growth.");
 
