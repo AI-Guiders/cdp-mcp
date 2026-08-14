@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Publish self-contained win-x64 CdpMcp and zip it for GitHub Releases.
+  Publish self-contained win-x64 CdpMcp and zip it for GitLab Generic Packages.
   No KillRunning. Does not touch live D:\cdp-mcp.
 #>
 [CmdletBinding()]
