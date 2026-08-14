@@ -32,7 +32,7 @@ Invoke-WebRequest https://github.com/AI-Guiders/cdp-mcp/releases/latest/download
 
 The script downloads `CdpMcp-*-win-x64.zip`, clones [kb-public](https://github.com/AI-Guiders/kb-public) (read-only), seeds an empty personal canon. Maintainer escape: `-CdpSource D:\cdp-mcp`.
 
-GitHub Actions (`.github/workflows/release.yml`) needs org secret `GH_PAT` (private `ai-native-ui`). Former GitLab-only siblings now live under AI-Guiders/* on GitHub. Tag `v*` or Run workflow.
+GitHub Actions (`.github/workflows/release.yml`) All build siblings (including `ai-native-ui`) are public under Hippocratic-2.1 on AI-Guiders/*. Optional org secret `GH_PAT` only if clone rate-limits bite. Tag `v*` or Run workflow.
 
 ## Build / deploy
 

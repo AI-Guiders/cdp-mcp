@@ -1,7 +1,7 @@
 name: Release win-x64
 
 on:
-  # Tag v* or workflow_dispatch; needs GH_PAT for private ai-native-ui
+  # Tag v* or workflow_dispatch; optional GH_PAT if clone rate-limits
   # (GitHub-hosted runners do not see the local open/ tree).
   workflow_dispatch:
     inputs:

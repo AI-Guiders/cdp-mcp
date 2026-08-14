@@ -60,5 +60,5 @@ foreach ($row in $gh) {
 }
 
 if ($failed.Count -gt 0) {
-    throw ("GitHub sibling clone failed: " + ($failed -join ', ') + ". Create missing AI-Guiders/* repos (no GitLab). Private ai-native-ui needs secret GH_PAT with repo scope.")
+    throw ("GitHub sibling clone failed: " + ($failed -join ', ') + ". Create missing AI-Guiders/* repos (no GitLab). Optional GH_PAT if anonymous clone is rate-limited.")
 }
