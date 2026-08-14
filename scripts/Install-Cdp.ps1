@@ -1,22 +1,18 @@
 <#
 .SYNOPSIS
-  Install CDP from a GitLab Generic Package zip (no clone, no build).
+  Install CDP from a GitHub Release zip (no clone, no build).
 
 .DESCRIPTION
-  Default: download CdpMcp-*-win-x64.zip from Krawler/financial-open package cdp-mcp,
+  Default: download CdpMcp-*-win-x64.zip from AI-Guiders/cdp-mcp latest release,
   seed kb-public + empty personal canon, merge host MCP json.
   -CdpSource is an escape for a local published folder (maintainers).
-  Private GitLab: set GITLAB_TOKEN (api read) or -GitLabToken.
 #>
 [CmdletBinding()]
 param(
     [string]$Root = (Join-Path $env:LOCALAPPDATA "AIGuiders"),
     [string]$CdpSource = "",
-    [string]$GitLabUrl = $(if ($env:GITLAB_URL) { $env:GITLAB_URL } else { "http://193.124.113.7" }),
-    [string]$GitLabProject = $(if ($env:CDP_GITLAB_PROJECT) { $env:CDP_GITLAB_PROJECT } else { "Krawler/financial-open" }),
-    [string]$PackageName = "cdp-mcp",
+    [string]$ReleaseRepo = "AI-Guiders/cdp-mcp",
     [string]$ReleaseTag = "latest",
-    [string]$GitLabToken = "",
     [string]$KbPublicRepo = "https://github.com/AI-Guiders/kb-public.git",
     [ValidateSet("cursor", "claude", "vscode", "none")]
     [string]$HostAdapter = "cursor",
@@ -38,56 +34,24 @@ function Write-Utf8File([string]$Path, [string]$Text) {
 
 function Convert-ToTomlPath([string]$Path) { return ($Path -replace "\\", "/") }
 
-function Get-GitlabHeaders {
-    $h = @{ "User-Agent" = "Install-Cdp" }
-    $t = $GitLabToken
-    if ([string]::IsNullOrWhiteSpace($t)) { $t = $env:GITLAB_TOKEN }
-    if (-not [string]::IsNullOrWhiteSpace($t)) { $h["PRIVATE-TOKEN"] = $t }
-    return $h
-}
-
-function Get-GitlabProjectId([string]$Path) {
-    return [uri]::EscapeDataString($Path)
-}
-
-function Get-GitlabGenericUrl([string]$Version, [string]$FileName) {
-    $base = $GitLabUrl.TrimEnd('/')
-    $id = Get-GitlabProjectId $GitLabProject
-    return "$base/api/v4/projects/$id/packages/generic/$PackageName/$Version/$FileName"
-}
-
-function Resolve-CdpPackageVersion {
-    $tag = $ReleaseTag.Trim()
-    if ($tag -ne "latest") { return $tag.TrimStart('v') }
-    $base = $GitLabUrl.TrimEnd('/')
-    $id = Get-GitlabProjectId $GitLabProject
-    $api = "$base/api/v4/projects/$id/packages?package_name=$PackageName&package_type=generic&sort=desc&per_page=5"
-    Write-Host "GitLab packages $GitLabProject / $PackageName"
-    if ($WhatIf) { return "0.0.0-whatif" }
-    $pkgs = Invoke-RestMethod -Uri $api -Headers (Get-GitlabHeaders)
-    $hit = @($pkgs) | Select-Object -First 1
-    if (-not $hit) {
-        throw "No generic package '$PackageName' in $GitLabProject. Publish with publish-gitlab-package.ps1 or pass -ReleaseTag 0.5.715. Private project needs GITLAB_TOKEN."
+function Get-CdpGithubPayload {
+    $api = if ($ReleaseTag -eq "latest") {
+        "https://api.github.com/repos/$ReleaseRepo/releases/latest"
+    } else {
+        "https://api.github.com/repos/$ReleaseRepo/releases/tags/$ReleaseTag"
     }
-    return [string]$hit.version
-}
-
-function Get-CdpGitlabFile([string]$Version, [string]$FileName, [string]$OutFile) {
-    $url = Get-GitlabGenericUrl $Version $FileName
-    Write-Host "Download $FileName"
-    Invoke-WebRequest -Uri $url -OutFile $OutFile -Headers (Get-GitlabHeaders)
-}
-
-function Get-CdpGitlabPayload {
-    $ver = Resolve-CdpPackageVersion
-    $zipName = "CdpMcp-$ver-win-x64.zip"
-    if ($WhatIf) {
-        Write-Host "WhatIf: download $zipName from $GitLabProject"
-        return Join-Path $env:TEMP "cdp-payload-whatif"
+    $headers = @{ "User-Agent" = "Install-Cdp"; Accept = "application/vnd.github+json" }
+    Write-Host "GitHub $api"
+    if ($WhatIf) { Write-Host "WhatIf: download CdpMcp-*-win-x64.zip"; return Join-Path $env:TEMP "cdp-payload-whatif" }
+    $rel = Invoke-RestMethod -Uri $api -Headers $headers
+    $asset = @($rel.assets) | Where-Object { $_.name -match '^CdpMcp-.*-win-x64\.zip$' } | Select-Object -First 1
+    if (-not $asset) {
+        throw "Release $($rel.tag_name) has no CdpMcp-*-win-x64.zip. Wait for CI or pass -CdpSource."
     }
-    $zip = Join-Path $env:TEMP $zipName
-    Get-CdpGitlabFile $ver $zipName $zip
-    $dest = Join-Path $env:TEMP ("cdp-payload-" + $ver)
+    $zip = Join-Path $env:TEMP $asset.name
+    Write-Host "Download $($asset.name)"
+    Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zip -Headers @{ "User-Agent" = "Install-Cdp" }
+    $dest = Join-Path $env:TEMP ("cdp-payload-" + $rel.tag_name)
     if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Recurse -Force }
     New-Item -ItemType Directory -Force -Path $dest | Out-Null
     Expand-Archive -LiteralPath $zip -DestinationPath $dest -Force
@@ -104,7 +68,7 @@ function Resolve-CdpSourceFolder {
     if (-not $ForceDownload -and (Test-Path -LiteralPath $existing)) {
         return (Split-Path -Parent $existing)
     }
-    return Get-CdpGitlabPayload
+    return Get-CdpGithubPayload
 }
 
 function Merge-McpServers([string]$TargetPath, [string]$Command, [string[]]$Args) {
@@ -133,10 +97,9 @@ function Merge-McpServers([string]$TargetPath, [string]$Command, [string[]]$Args
 $templateToml = Join-Path $PSScriptRoot "cdp-mcp.toml.example"
 if (-not (Test-Path -LiteralPath $templateToml)) {
     $fallback = Join-Path $env:TEMP "cdp-mcp.toml.example"
-    Write-Host "Fetch toml example from GitLab package"
+    Write-Host "Fetch toml example from GitHub"
     if (-not $WhatIf) {
-        $ver = Resolve-CdpPackageVersion
-        Get-CdpGitlabFile $ver "cdp-mcp.toml.example" $fallback
+        Invoke-WebRequest "https://raw.githubusercontent.com/AI-Guiders/cdp-mcp/main/scripts/cdp-mcp.toml.example" -OutFile $fallback -Headers @{ "User-Agent" = "Install-Cdp" }
     }
     $templateToml = $fallback
 }
@@ -154,7 +117,6 @@ $exe = Join-Path $cdpDst "CdpMcp.exe"
 Write-Host "Install CDP → $Root" -ForegroundColor Cyan
 Write-Host "  source: $cdpSrc"
 Write-Host "  host:   $HostAdapter"
-Write-Host "  gitlab: $GitLabUrl  $GitLabProject"
 
 if ($WhatIf) {
     Write-Host "WhatIf: copy payload $cdpSrc → $cdpDst"

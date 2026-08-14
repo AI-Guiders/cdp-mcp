@@ -22,30 +22,17 @@ Meta tools (always in ListTools): `cdp_man`, `cdp_session`, `cdp_health`, `cdp_c
 
 ## Install (no build)
 
-Recipient does **not** clone siblings or run `dotnet publish`. Maintainers put a win-x64 zip on GitLab Generic Package `cdp-mcp` of `Krawler/financial-open` (same gesture as agent-notes-mcp).
+Recipient does **not** clone siblings or run `dotnet publish`. CI/`package-win-release.ps1` puts a win-x64 zip on [GitHub Releases](https://github.com/AI-Guiders/cdp-mcp/releases).
 
 ```powershell
-$env:GITLAB_URL = "http://193.124.113.7"   # if not already set
-$env:GITLAB_TOKEN = "<pat with api read>"  # needed when the project is private
-$ver = "0.5.715"
-$p = [uri]::EscapeDataString("Krawler/financial-open")
-$base = "$env:GITLAB_URL/api/v4/projects/$p/packages/generic/cdp-mcp/$ver"
-Invoke-WebRequest "$base/Install-Cdp.ps1" -OutFile Install-Cdp.ps1 -Headers @{ "PRIVATE-TOKEN" = $env:GITLAB_TOKEN }
-Invoke-WebRequest "$base/cdp-mcp.toml.example" -OutFile cdp-mcp.toml.example -Headers @{ "PRIVATE-TOKEN" = $env:GITLAB_TOKEN }
-.\Install-Cdp.ps1 -HostAdapter cursor -ReleaseTag $ver   # claude | vscode | none
+Invoke-WebRequest https://github.com/AI-Guiders/cdp-mcp/releases/latest/download/Install-Cdp.ps1 -OutFile Install-Cdp.ps1
+# keep scripts/cdp-mcp.toml.example next to the script, or download it from the same release/repo
+.\Install-Cdp.ps1 -HostAdapter cursor   # claude | vscode | none
 ```
 
-The script downloads `CdpMcp-*-win-x64.zip` from GitLab, clones [kb-public](https://github.com/AI-Guiders/kb-public) (read-only public slice), seeds an empty personal canon. Maintainer escape: `-CdpSource D:\cdp-mcp`.
+The script downloads `CdpMcp-*-win-x64.zip`, clones [kb-public](https://github.com/AI-Guiders/kb-public) (read-only), seeds an empty personal canon. Maintainer escape: `-CdpSource D:\cdp-mcp`.
 
-Publish from a Windows machine that already has the open siblings (no GitHub Actions):
-
-```powershell
-.\scripts\package-win-release.ps1
-.\scripts\publish-gitlab-package.ps1          # GITLAB_URL + GITLAB_TOKEN
-.\scripts\publish-gitlab-package.ps1 -CreateRelease
-```
-
-GitLab CI (`.gitlab-ci.yml` in `Krawler/financial-open`) is a **windows** runner job, web/tag/manual only — same tag as cascade-ide. PowerShell publish is the live path when the runner is not the office tree.
+GitHub Actions (`.github/workflows/release.yml`) needs org secret `GH_PAT` (private `ai-native-ui`). Former GitLab-only siblings now live under AI-Guiders/* on GitHub. Tag `v*` or Run workflow.
 
 ## Build / deploy
 
@@ -76,10 +63,9 @@ Hard-deploy only the instance you are replacing (`-Target …`). Prefer editing 
 
 `cdp_buffer` Instant Save: `edit`/`close` default `flush=true`; dirty `close` needs `discard=true` to drop.
 
-## Source
+## GitHub
 
-Git tree (submodule of financial-open): https://github.com/AI-Guiders/cdp-mcp
-Win-x64 payload: GitLab Generic Package `cdp-mcp` on `Krawler/financial-open`.
+Canonical repo: https://github.com/AI-Guiders/cdp-mcp
 
 ## License
 
@@ -92,4 +78,5 @@ Win-x64 payload: GitLab Generic Package `cdp-mcp` on `Krawler/financial-open`.
   Human Rights Principles / Human Rights Laws in the license text.
 - Short summary here does not replace [`LICENSE`](LICENSE).
 - Not OSI MIT: open code with conscience bound in SPDX.
+
 
