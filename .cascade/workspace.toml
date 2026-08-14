@@ -1,21 +1,60 @@
-# CDP agent comfort — project correspondence (wave1)
-# Lights up go=correspondence for this repo.
+# CDP agent comfort — project correspondence (Explore full-a substrate)
+# Lights up go=correspondence / explore-corr latch for this repo.
 
 [workspace.adr]
 auto_include = "linked"
 max_related = 8
-root_dir = "docs"
+root_dir = "docs/adr"
+id_regex = '(?:^|/)docs/adr/(?<id>CDP-ADR-\d{4})-'
 
 [workspace.adr.map]
+"Correspondence.cs" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+  "docs/adr/CDP-ADR-0029-teeth-analysis-organ.md",
+]
+"ExploreCorrLatch.cs" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+]
+"ExploreCorrGate.cs" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+]
+"ExploreCorrNoAdr.cs" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+]
+"AnalysisScene.cs" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+  "docs/adr/CDP-ADR-0029-teeth-analysis-organ.md",
+]
+"IdeSeemingDoneShield.cs" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+]
+"IdeWaveShipShield.cs" = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+]
+"PathMutateGate.cs" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+]
+"IdePressureChannel.cs" = [
+  "docs/adr/CDP-ADR-0018-pressure-precompact-desk.md",
+  "docs/adr/CDP-ADR-0022-pressure-memo-line.md",
+  "docs/adr/CDP-ADR-0024-recall-gate-pull-reconcile-align.md",
+]
+"Cockpit/" = [
+  "docs/adr/CDP-ADR-0020-desk-vs-organ-path.md",
+  "docs/adr/CDP-ADR-0021-windows-first-operator-glass.md",
+]
 "*" = []
 
 [workspace.features]
 [[workspace.features.feature]]
 id = "cdp.analysis"
-title = "Analysis scene (correspondence / semantic_map / clones)"
-paths = ["Correspondence.cs", "SemanticMap.cs", "AnalysisScene.cs", "CodeClones.cs"]
-docs = []
-tags = ["analysis", "correspondence", "semantic_map"]
+title = "Analysis scene (correspondence / semantic_map / clones / no_adr)"
+paths = ["Correspondence.cs", "ExploreCorrLatch.cs", "ExploreCorrGate.cs", "ExploreCorrNoAdr.cs", "SemanticMap.cs", "AnalysisScene.cs", "CodeClones.cs"]
+docs = [
+  "docs/adr/CDP-ADR-0031-explore-corr-full-a-before-act.md",
+  "docs/adr/CDP-ADR-0029-teeth-analysis-organ.md",
+]
+tags = ["analysis", "correspondence", "explore-corr", "semantic_map"]
 
 [[workspace.features.feature]]
 id = "cdp.editor.comfort"
@@ -23,3 +62,10 @@ title = "Editor comfort (put / clipboard / sniper)"
 paths = ["EditorComfort.cs", "EditSniper.cs", "SessionClipboard.cs", "FindInFiles.cs", "GoToAll.cs"]
 docs = []
 tags = ["editor", "put", "clipboard"]
+
+[[workspace.features.feature]]
+id = "cdp.glass.wire"
+title = "Windows-first operator glass wire"
+paths = ["Cockpit/"]
+docs = ["docs/adr/CDP-ADR-0021-windows-first-operator-glass.md"]
+tags = ["glass", "cockpit"]
