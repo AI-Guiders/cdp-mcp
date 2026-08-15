@@ -18,7 +18,7 @@ param(
     [ValidateSet("", "win-x64", "linux-x64", "osx-x64", "osx-arm64")]
     [string]$Runtime = "",
     [string]$KbPublicRepo = "https://github.com/AI-Guiders/kb-public.git",
-    [ValidateSet("cursor", "claude", "vscode", "none")]
+    [ValidateSet("cursor", "claude", "vscode", "windsurf", "antigravity", "none")]
     [string]$HostAdapter = "cursor",
     [switch]$Upgrade,
     [switch]$SkipKbClone,
@@ -204,6 +204,22 @@ function Get-ClaudeConfigPath {
     return (Join-Path (Get-HomeDir) ".config/Claude/claude_desktop_config.json")
 }
 
+function Get-WindsurfMcpPath {
+    # Codeium path survived rebrand; file is mcp_config.json (not mcp.json).
+    return (Join-Path (Join-Path (Join-Path (Get-HomeDir) ".codeium") "windsurf") "mcp_config.json")
+}
+
+function Get-AntigravityMcpPath {
+    # Antigravity 2.x shared: ~/.gemini/config/mcp_config.json
+    # Older IDE-only: ~/.gemini/antigravity/mcp_config.json — prefer existing file.
+    $gemini = Join-Path (Get-HomeDir) ".gemini"
+    $shared = Join-Path (Join-Path $gemini "config") "mcp_config.json"
+    $legacy = Join-Path (Join-Path $gemini "antigravity") "mcp_config.json"
+    if (Test-Path -LiteralPath $shared) { return $shared }
+    if (Test-Path -LiteralPath $legacy) { return $legacy }
+    return $shared
+}
+
 if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Get-DefaultInstallRoot }
 $rid = Get-CdpRuntimeId
 $binName = Get-CdpBinaryName
@@ -355,11 +371,22 @@ if (-not $WhatIf) { New-Item -ItemType Directory -Force -Path $snippetsDir | Out
 Write-Utf8File (Join-Path $snippetsDir "cursor.mcp.json") $snippetJson
 Write-Utf8File (Join-Path $snippetsDir "claude.mcp.json") $snippetJson
 Write-Utf8File (Join-Path $snippetsDir "vscode.mcp.json") $snippetJson
+Write-Utf8File (Join-Path $snippetsDir "windsurf.mcp.json") $snippetJson
+Write-Utf8File (Join-Path $snippetsDir "antigravity.mcp.json") $snippetJson
 
 switch ($HostAdapter) {
     "cursor" { Merge-McpServers (Get-CursorMcpPath) $exe @("--config", $configArg); Write-Host "Reload MCP in Cursor." }
     "claude" { Merge-McpServers (Get-ClaudeConfigPath) $exe @("--config", $configArg); Write-Host "Restart Claude Desktop." }
     "vscode" { Write-Host "VS Code: copy host-snippets/vscode.mcp.json into user MCP settings." }
+    "windsurf" {
+        Merge-McpServers (Get-WindsurfMcpPath) $exe @("--config", $configArg)
+        Write-Host "Refresh MCP in Windsurf Cascade (Manage MCPs → Refresh)."
+        Write-Host "WARN: Windsurf caps ~100 tools across all MCP servers — CDP shortlists, but heavy mounts may hit the ceiling." -ForegroundColor Yellow
+    }
+    "antigravity" {
+        Merge-McpServers (Get-AntigravityMcpPath) $exe @("--config", $configArg)
+        Write-Host "Refresh MCP in Antigravity (MCP Store / View raw config). Path: $(Get-AntigravityMcpPath)"
+    }
     default { Write-Host "Host none — snippets under $snippetsDir" }
 }
 

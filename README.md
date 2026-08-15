@@ -30,7 +30,7 @@ Requires **PowerShell 7+** on Mac/Linux (`brew install --cask powershell` / dist
 # Windows / macOS / Linux (pwsh)
 Invoke-WebRequest https://github.com/AI-Guiders/cdp-mcp/releases/latest/download/Install-Cdp.ps1 -OutFile Install-Cdp.ps1
 # keep scripts/cdp-mcp.toml.example next to the script, or download it from the same release/repo
-pwsh -File ./Install-Cdp.ps1 -HostAdapter cursor   # claude | vscode | none
+pwsh -File ./Install-Cdp.ps1 -HostAdapter cursor   # claude | vscode | windsurf | antigravity | none
 ```
 
 The script auto-detects RID, downloads `CdpMcp-*-{rid}.zip`, clones [kb-public](https://github.com/AI-Guiders/kb-public) (read-only), seeds an empty personal canon. Default install root: `%LOCALAPPDATA%\AIGuiders` (Windows), `~/Library/Application Support/AIGuiders` (macOS), `~/.local/share/AIGuiders` (Linux). Override: `-Root`, `-Runtime`, maintainer escape `-CdpSource`.
