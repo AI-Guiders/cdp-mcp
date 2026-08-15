@@ -3,16 +3,20 @@
   Install CDP from a GitHub Release zip (no clone, no build).
 
 .DESCRIPTION
-  Default: download CdpMcp-*-win-x64.zip from AI-Guiders/cdp-mcp latest release,
-  seed kb-public + empty personal canon, merge host MCP json.
+  Downloads CdpMcp-*-{rid}.zip from AI-Guiders/cdp-mcp (win-x64 | linux-x64 | osx-x64 | osx-arm64),
+  seeds kb-public + empty personal canon, merge host MCP json.
+  Requires PowerShell 7+ on Mac/Linux (Windows PowerShell 5.1 OK on Windows).
   -CdpSource is an escape for a local published folder (maintainers).
+  -Runtime overrides auto RID detection.
 #>
 [CmdletBinding()]
 param(
-    [string]$Root = (Join-Path $env:LOCALAPPDATA "AIGuiders"),
+    [string]$Root = "",
     [string]$CdpSource = "",
     [string]$ReleaseRepo = "AI-Guiders/cdp-mcp",
     [string]$ReleaseTag = "latest",
+    [ValidateSet("", "win-x64", "linux-x64", "osx-x64", "osx-arm64")]
+    [string]$Runtime = "",
     [string]$KbPublicRepo = "https://github.com/AI-Guiders/kb-public.git",
     [ValidateSet("cursor", "claude", "vscode", "none")]
     [string]$HostAdapter = "cursor",
@@ -25,16 +29,101 @@ param(
 $ErrorActionPreference = "Stop"
 $utf8 = New-Object System.Text.UTF8Encoding $false
 
+# Windows PowerShell 5.1 has no $IsWindows / $IsMacOS / $IsLinux.
+$script:IsWin = if ($null -ne (Get-Variable IsWindows -Scope Global -ErrorAction SilentlyContinue)) { [bool]$IsWindows } else { $true }
+$script:IsMac = if ($null -ne (Get-Variable IsMacOS -Scope Global -ErrorAction SilentlyContinue)) { [bool]$IsMacOS } else { $false }
+$script:IsLin = if ($null -ne (Get-Variable IsLinux -Scope Global -ErrorAction SilentlyContinue)) { [bool]$IsLinux } else { $false }
+
+function Get-DefaultInstallRoot {
+    if ($script:IsWin) {
+        return (Join-Path $env:LOCALAPPDATA "AIGuiders")
+    }
+    if ($script:IsMac) {
+        return (Join-Path $HOME "Library/Application Support/AIGuiders")
+    }
+    $xdg = if (-not [string]::IsNullOrWhiteSpace($env:XDG_DATA_HOME)) { $env:XDG_DATA_HOME } else { Join-Path $HOME ".local/share" }
+    return (Join-Path $xdg "AIGuiders")
+}
+
+function Get-CdpRuntimeId {
+    if (-not [string]::IsNullOrWhiteSpace($Runtime)) { return $Runtime }
+    if ($script:IsWin) { return "win-x64" }
+    if ($script:IsMac) {
+        $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+        if ($arch -eq [System.Runtime.InteropServices.Architecture]::Arm64) { return "osx-arm64" }
+        return "osx-x64"
+    }
+    if ($script:IsLin) {
+        $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+        if ($arch -eq [System.Runtime.InteropServices.Architecture]::Arm64) {
+            throw "linux-arm64 is not shipped yet. Pass -CdpSource or build with -r linux-arm64."
+        }
+        return "linux-x64"
+    }
+    throw "Unsupported OS for CDP install."
+}
+
+function Get-CdpBinaryName {
+    if ($script:IsWin) { return "CdpMcp.exe" }
+    return "CdpMcp"
+}
+
+function Get-TempRoot {
+    if (-not [string]::IsNullOrWhiteSpace($env:TEMP)) { return $env:TEMP }
+    if (-not [string]::IsNullOrWhiteSpace($env:TMPDIR)) { return $env:TMPDIR }
+    return [System.IO.Path]::GetTempPath()
+}
+
+function Get-HomeDir {
+    if (-not [string]::IsNullOrWhiteSpace($HOME)) { return $HOME }
+    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) { return $env:USERPROFILE }
+    return [Environment]::GetFolderPath("UserProfile")
+}
+
 function Write-Utf8File([string]$Path, [string]$Text) {
     if ($WhatIf) { Write-Host "WhatIf: write $Path"; return }
     $dir = Split-Path -Parent $Path
     if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
-    [System.IO.File]::WriteAllText($Path, $Text.Replace("`r`n", "`n").Replace("`n", "`r`n"), $utf8)
+    $normalized = $Text.Replace("`r`n", "`n")
+    if ($script:IsWin) { $normalized = $normalized.Replace("`n", "`r`n") }
+    [System.IO.File]::WriteAllText($Path, $normalized, $utf8)
 }
 
 function Convert-ToTomlPath([string]$Path) { return ($Path -replace "\\", "/") }
 
-function Get-CdpGithubPayload {
+function Copy-CdpPayload([string]$Source, [string]$Destination) {
+    if ($WhatIf) {
+        Write-Host "WhatIf: copy payload $Source → $Destination"
+        return
+    }
+    New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+    if ($script:IsWin -and (Get-Command robocopy.exe -ErrorAction SilentlyContinue)) {
+        & robocopy.exe $Source $Destination /E /XD ts-worker.node_modules /NFL /NDL /NJH /NJS /NP /R:1 /W:1 | Out-Null
+        if ($LASTEXITCODE -ge 8) { throw "robocopy payload failed ($LASTEXITCODE)" }
+        return
+    }
+    # Cross-platform: mirror without following into a nested node_modules tree named ts-worker.node_modules
+    Get-ChildItem -LiteralPath $Source -Force | ForEach-Object {
+        $destItem = Join-Path $Destination $_.Name
+        if ($_.PSIsContainer -and $_.Name -eq "ts-worker.node_modules") { return }
+        if ($_.PSIsContainer) {
+            if (Test-Path -LiteralPath $destItem) { Remove-Item -LiteralPath $destItem -Recurse -Force }
+            Copy-Item -LiteralPath $_.FullName -Destination $destItem -Recurse -Force
+        }
+        else {
+            Copy-Item -LiteralPath $_.FullName -Destination $destItem -Force
+        }
+    }
+}
+
+function Set-CdpExecutableBit([string]$BinaryPath) {
+    if ($script:IsWin -or $WhatIf) { return }
+    if (-not (Test-Path -LiteralPath $BinaryPath)) { return }
+    & chmod +x $BinaryPath
+    if ($LASTEXITCODE -ne 0) { Write-Host "WARN: chmod +x failed for $BinaryPath" -ForegroundColor Yellow }
+}
+
+function Get-CdpGithubPayload([string]$Rid) {
     $api = if ($ReleaseTag -eq "latest") {
         "https://api.github.com/repos/$ReleaseRepo/releases/latest"
     } else {
@@ -42,33 +131,40 @@ function Get-CdpGithubPayload {
     }
     $headers = @{ "User-Agent" = "Install-Cdp"; Accept = "application/vnd.github+json" }
     Write-Host "GitHub $api"
-    if ($WhatIf) { Write-Host "WhatIf: download CdpMcp-*-win-x64.zip"; return Join-Path $env:TEMP "cdp-payload-whatif" }
-    $rel = Invoke-RestMethod -Uri $api -Headers $headers
-    $asset = @($rel.assets) | Where-Object { $_.name -match '^CdpMcp-.*-win-x64\.zip$' } | Select-Object -First 1
-    if (-not $asset) {
-        throw "Release $($rel.tag_name) has no CdpMcp-*-win-x64.zip. Wait for CI or pass -CdpSource."
+    $tempRoot = Get-TempRoot
+    if ($WhatIf) {
+        Write-Host "WhatIf: download CdpMcp-*-$Rid.zip"
+        return (Join-Path $tempRoot "cdp-payload-whatif")
     }
-    $zip = Join-Path $env:TEMP $asset.name
+    $rel = Invoke-RestMethod -Uri $api -Headers $headers
+    $pattern = "^CdpMcp-.*-$([regex]::Escape($Rid))\.zip$"
+    $asset = @($rel.assets) | Where-Object { $_.name -match $pattern } | Select-Object -First 1
+    if (-not $asset) {
+        throw "Release $($rel.tag_name) has no CdpMcp-*-$Rid.zip. Wait for CI or pass -CdpSource."
+    }
+    $zip = Join-Path $tempRoot $asset.name
     Write-Host "Download $($asset.name)"
     Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zip -Headers @{ "User-Agent" = "Install-Cdp" }
-    $dest = Join-Path $env:TEMP ("cdp-payload-" + $rel.tag_name)
+    $dest = Join-Path $tempRoot ("cdp-payload-" + $rel.tag_name + "-" + $Rid)
     if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Recurse -Force }
     New-Item -ItemType Directory -Force -Path $dest | Out-Null
     Expand-Archive -LiteralPath $zip -DestinationPath $dest -Force
-    $exeHit = Get-ChildItem -LiteralPath $dest -Filter CdpMcp.exe -Recurse -File | Select-Object -First 1
-    if (-not $exeHit) { throw "Zip had no CdpMcp.exe: $zip" }
+    $binName = Get-CdpBinaryName
+    $exeHit = Get-ChildItem -LiteralPath $dest -Filter $binName -Recurse -File | Select-Object -First 1
+    if (-not $exeHit) { throw "Zip had no $binName`: $zip" }
     return $exeHit.DirectoryName
 }
 
-function Resolve-CdpSourceFolder {
+function Resolve-CdpSourceFolder([string]$Rid) {
+    $binName = Get-CdpBinaryName
     if (-not [string]::IsNullOrWhiteSpace($CdpSource)) {
         return (Resolve-Path -LiteralPath $CdpSource).Path
     }
-    $existing = Join-Path $Root "cdp\CdpMcp.exe"
+    $existing = Join-Path (Join-Path $Root "cdp") $binName
     if (-not $ForceDownload -and (Test-Path -LiteralPath $existing)) {
         return (Split-Path -Parent $existing)
     }
-    return Get-CdpGithubPayload
+    return Get-CdpGithubPayload $Rid
 }
 
 function Merge-McpServers([string]$TargetPath, [string]$Command, [string[]]$Args) {
@@ -94,9 +190,27 @@ function Merge-McpServers([string]$TargetPath, [string]$Command, [string[]]$Args
     Write-Host "Merged mcp key 'cdp' → $TargetPath"
 }
 
+function Get-CursorMcpPath {
+    return (Join-Path (Join-Path (Get-HomeDir) ".cursor") "mcp.json")
+}
+
+function Get-ClaudeConfigPath {
+    if ($script:IsWin) {
+        return (Join-Path (Join-Path $env:APPDATA "Claude") "claude_desktop_config.json")
+    }
+    if ($script:IsMac) {
+        return (Join-Path (Get-HomeDir) "Library/Application Support/Claude/claude_desktop_config.json")
+    }
+    return (Join-Path (Get-HomeDir) ".config/Claude/claude_desktop_config.json")
+}
+
+if ([string]::IsNullOrWhiteSpace($Root)) { $Root = Get-DefaultInstallRoot }
+$rid = Get-CdpRuntimeId
+$binName = Get-CdpBinaryName
+
 $templateToml = Join-Path $PSScriptRoot "cdp-mcp.toml.example"
 if (-not (Test-Path -LiteralPath $templateToml)) {
-    $fallback = Join-Path $env:TEMP "cdp-mcp.toml.example"
+    $fallback = Join-Path (Get-TempRoot) "cdp-mcp.toml.example"
     Write-Host "Fetch toml example from GitHub"
     if (-not $WhatIf) {
         Invoke-WebRequest "https://raw.githubusercontent.com/AI-Guiders/cdp-mcp/main/scripts/cdp-mcp.toml.example" -OutFile $fallback -Headers @{ "User-Agent" = "Install-Cdp" }
@@ -104,7 +218,7 @@ if (-not (Test-Path -LiteralPath $templateToml)) {
     $templateToml = $fallback
 }
 
-$cdpSrc = Resolve-CdpSourceFolder
+$cdpSrc = Resolve-CdpSourceFolder $rid
 $cdpDst = Join-Path $Root "cdp"
 $kbDst = Join-Path $Root "kb-public"
 $notesDst = Join-Path $Root "agent-notes"
@@ -112,28 +226,30 @@ $taskDst = Join-Path $Root "task-knowledge"
 $notesToml = Join-Path $cdpDst "agent-notes-mcp.toml"
 $taskToml = Join-Path $cdpDst "agent-task-knowledge-mcp.toml"
 $cdpToml = Join-Path $cdpDst "cdp-mcp.toml"
-$exe = Join-Path $cdpDst "CdpMcp.exe"
+$exe = Join-Path $cdpDst $binName
 
 Write-Host "Install CDP → $Root" -ForegroundColor Cyan
+Write-Host "  rid:    $rid"
 Write-Host "  source: $cdpSrc"
 Write-Host "  host:   $HostAdapter"
+Write-Host "  binary: $binName"
 
-if ($WhatIf) {
-    Write-Host "WhatIf: copy payload $cdpSrc → $cdpDst"
-}
-else {
-    New-Item -ItemType Directory -Force -Path $cdpDst, $notesDst, $taskDst | Out-Null
-    $preserveToml = @{}
-    if ($Upgrade) {
-        Get-ChildItem -LiteralPath $cdpDst -Filter "*.toml" -File -ErrorAction SilentlyContinue | ForEach-Object {
-            $preserveToml[$_.Name] = Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8
-        }
+$preserveToml = @{}
+if ($Upgrade -and -not $WhatIf -and (Test-Path -LiteralPath $cdpDst)) {
+    Get-ChildItem -LiteralPath $cdpDst -Filter "*.toml" -File -ErrorAction SilentlyContinue | ForEach-Object {
+        $preserveToml[$_.Name] = Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8
     }
-    & robocopy.exe $cdpSrc $cdpDst /E /XD ts-worker.node_modules /NFL /NDL /NJH /NJS /NP /R:1 /W:1 | Out-Null
-    if ($LASTEXITCODE -ge 8) { throw "robocopy payload failed ($LASTEXITCODE)" }
+}
+
+if (-not $WhatIf) {
+    New-Item -ItemType Directory -Force -Path $cdpDst, $notesDst, $taskDst | Out-Null
+}
+Copy-CdpPayload $cdpSrc $cdpDst
+if (-not $WhatIf) {
     foreach ($kv in $preserveToml.GetEnumerator()) {
         [System.IO.File]::WriteAllText((Join-Path $cdpDst $kv.Key), $kv.Value, $utf8)
     }
+    Set-CdpExecutableBit $exe
 }
 
 if (-not $SkipKbClone) {
@@ -156,9 +272,9 @@ if (-not $SkipKbClone) {
 $personalMarker = Join-Path $notesDst "agent-notes.md"
 if (-not (Test-Path -LiteralPath $personalMarker)) {
     Write-Host "Seed personal canon from kb-public templates/newcomer"
-    $newcomer = Join-Path $kbDst "knowledge\templates\newcomer"
-    $metaSrc = Join-Path $kbDst "knowledge\META"
-    $localDir = Join-Path $notesDst "knowledge\work\local"
+    $newcomer = Join-Path (Join-Path (Join-Path $kbDst "knowledge") "templates") "newcomer"
+    $metaSrc = Join-Path (Join-Path $kbDst "knowledge") "META"
+    $localDir = Join-Path (Join-Path (Join-Path $notesDst "knowledge") "work") "local"
     if (-not $WhatIf) {
         New-Item -ItemType Directory -Force -Path $localDir | Out-Null
         foreach ($pair in @(
@@ -169,7 +285,7 @@ if (-not (Test-Path -LiteralPath $personalMarker)) {
             if (Test-Path -LiteralPath $s) { Copy-Item $s (Join-Path $localDir $pair.D) -Force }
         }
         if (Test-Path -LiteralPath $metaSrc) {
-            Copy-Item $metaSrc (Join-Path $notesDst "knowledge\META") -Recurse -Force
+            Copy-Item $metaSrc (Join-Path (Join-Path $notesDst "knowledge") "META") -Recurse -Force
         }
     }
     $hot = @()
@@ -185,10 +301,10 @@ if (-not (Test-Path -LiteralPath $personalMarker)) {
     Write-Utf8File $personalMarker $body
 }
 
-$tkMapDir = Join-Path $taskDst "work\local"
+$tkMapDir = Join-Path (Join-Path $taskDst "work") "local"
 if (-not (Test-Path -LiteralPath $tkMapDir)) {
     if (-not $WhatIf) { New-Item -ItemType Directory -Force -Path $tkMapDir | Out-Null }
-    $srcMap = Join-Path $notesDst "knowledge\work\local\workspace-scope-map-v1.md"
+    $srcMap = Join-Path (Join-Path (Join-Path (Join-Path $notesDst "knowledge") "work") "local") "workspace-scope-map-v1.md"
     if ((Test-Path -LiteralPath $srcMap) -and -not $WhatIf) {
         Copy-Item $srcMap (Join-Path $tkMapDir "workspace-scope-map-v1.md") -Force
     }
@@ -234,15 +350,17 @@ if (-not ($Upgrade -and (Test-Path -LiteralPath $taskToml))) { Write-Utf8File $t
 
 $configArg = Convert-ToTomlPath $cdpToml
 $snippetJson = (@{ mcpServers = @{ cdp = @{ command = $exe; args = @("--config", $configArg) } } } | ConvertTo-Json -Depth 8)
-Write-Utf8File (Join-Path $cdpDst "host-snippets\cursor.mcp.json") $snippetJson
-Write-Utf8File (Join-Path $cdpDst "host-snippets\claude.mcp.json") $snippetJson
-Write-Utf8File (Join-Path $cdpDst "host-snippets\vscode.mcp.json") $snippetJson
+$snippetsDir = Join-Path $cdpDst "host-snippets"
+if (-not $WhatIf) { New-Item -ItemType Directory -Force -Path $snippetsDir | Out-Null }
+Write-Utf8File (Join-Path $snippetsDir "cursor.mcp.json") $snippetJson
+Write-Utf8File (Join-Path $snippetsDir "claude.mcp.json") $snippetJson
+Write-Utf8File (Join-Path $snippetsDir "vscode.mcp.json") $snippetJson
 
 switch ($HostAdapter) {
-    "cursor" { Merge-McpServers (Join-Path $env:USERPROFILE ".cursor\mcp.json") $exe @("--config", $configArg); Write-Host "Reload MCP in Cursor." }
-    "claude" { Merge-McpServers (Join-Path $env:APPDATA "Claude\claude_desktop_config.json") $exe @("--config", $configArg); Write-Host "Restart Claude Desktop." }
-    "vscode" { Write-Host "VS Code: copy host-snippets\vscode.mcp.json into user MCP settings." }
-    default { Write-Host "Host none — snippets under $cdpDst\host-snippets" }
+    "cursor" { Merge-McpServers (Get-CursorMcpPath) $exe @("--config", $configArg); Write-Host "Reload MCP in Cursor." }
+    "claude" { Merge-McpServers (Get-ClaudeConfigPath) $exe @("--config", $configArg); Write-Host "Restart Claude Desktop." }
+    "vscode" { Write-Host "VS Code: copy host-snippets/vscode.mcp.json into user MCP settings." }
+    default { Write-Host "Host none — snippets under $snippetsDir" }
 }
 
 Write-Host "OK. Payload $exe" -ForegroundColor Green

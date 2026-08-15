@@ -1,11 +1,15 @@
 <#
 .SYNOPSIS
-  Publish self-contained win-x64 CdpMcp and zip it for GitHub Releases.
+  Publish self-contained CdpMcp for a RID and zip it for GitHub Releases.
   No KillRunning. Does not touch live D:\cdp-mcp.
+
+.PARAMETER Runtime
+  win-x64 | linux-x64 | osx-x64 | osx-arm64
 #>
 [CmdletBinding()]
 param(
     [string]$Configuration = "Release",
+    [ValidateSet("win-x64", "linux-x64", "osx-x64", "osx-arm64")]
     [string]$Runtime = "win-x64"
 )
 
@@ -20,10 +24,11 @@ if (-not (Test-Path -LiteralPath $csproj)) { throw "CdpMcp.csproj not found: $cs
 $ver = ([regex]::Match((Get-Content -LiteralPath $csproj -Raw), '<Version>([^<]+)</Version>')).Groups[1].Value
 if ([string]::IsNullOrWhiteSpace($ver)) { $ver = "0.0.0" }
 
-$publishDir = Join-Path $here "artifacts\publish\$Runtime"
-$distDir = Join-Path $here "artifacts\dist"
+$publishDir = Join-Path (Join-Path (Join-Path $here "artifacts") "publish") $Runtime
+$distDir = Join-Path (Join-Path $here "artifacts") "dist"
 $zipName = "CdpMcp-$ver-$Runtime.zip"
 $zipPath = Join-Path $distDir $zipName
+$sumsPath = Join-Path $distDir "SHA256SUMS-$Runtime"
 
 Write-Host "Publish CdpMcp $ver $Runtime → $publishDir"
 if (Test-Path -LiteralPath $publishDir) {
@@ -34,10 +39,20 @@ New-Item -ItemType Directory -Force -Path $publishDir, $distDir | Out-Null
 & dotnet publish $csproj -c $Configuration -r $Runtime --self-contained true -o $publishDir
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-$workerSrc = Join-Path $open "typescript-lang\worker"
+$binName = if ($Runtime -like "win-*") { "CdpMcp.exe" } else { "CdpMcp" }
+$binPath = Join-Path $publishDir $binName
+if (-not (Test-Path -LiteralPath $binPath)) {
+    throw "Publish output missing $binName under $publishDir"
+}
+if ($Runtime -notlike "win-*") {
+    & chmod +x $binPath
+    if ($LASTEXITCODE -ne 0) { Write-Host "WARN: chmod +x $binPath failed" -ForegroundColor Yellow }
+}
+
+$workerSrc = Join-Path (Join-Path $open "typescript-lang") "worker"
 $workerDst = Join-Path $publishDir "ts-worker"
 if (Test-Path -LiteralPath (Join-Path $workerSrc "index.mjs")) {
-    if (-not (Test-Path -LiteralPath (Join-Path $workerSrc "node_modules\typescript"))) {
+    if (-not (Test-Path -LiteralPath (Join-Path (Join-Path $workerSrc "node_modules") "typescript"))) {
         Push-Location $workerSrc
         try { & npm install --omit=dev; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }
         finally { Pop-Location }
@@ -62,14 +77,37 @@ if (Test-Path -LiteralPath $tomlSrc) {
 }
 
 if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
-Push-Location $publishDir
-try {
-    & tar.exe -a -c -f $zipPath *
-    if ($LASTEXITCODE -ne 0) { throw "tar zip failed: $zipPath" }
+
+function New-CdpReleaseZip([string]$SourceDir, [string]$OutZip) {
+    $isWin = if ($null -ne (Get-Variable IsWindows -Scope Global -ErrorAction SilentlyContinue)) { [bool]$IsWindows } else { $true }
+    if ($isWin -and (Get-Command tar.exe -ErrorAction SilentlyContinue)) {
+        Push-Location $SourceDir
+        try {
+            & tar.exe -a -c -f $OutZip *
+            if ($LASTEXITCODE -ne 0) { throw "tar zip failed: $OutZip" }
+        }
+        finally { Pop-Location }
+        return
+    }
+    # Linux/macOS runners: Compress-Archive (pwsh) — portable zip
+    $items = @(Get-ChildItem -LiteralPath $SourceDir -Force | ForEach-Object { $_.FullName })
+    if ($items.Count -eq 0) { throw "Nothing to zip under $SourceDir" }
+    Compress-Archive -Path $items -DestinationPath $OutZip -Force
 }
-finally { Pop-Location }
+
+New-CdpReleaseZip $publishDir $zipPath
 
 $sha = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
-Set-Content -LiteralPath (Join-Path $distDir "SHA256SUMS") -Value "$sha  $zipName" -Encoding ascii
+Set-Content -LiteralPath $sumsPath -Value "$sha  $zipName" -Encoding ascii
+# Also append/merge into SHA256SUMS for single-artifact convenience when one RID
+$merged = Join-Path $distDir "SHA256SUMS"
+if (Test-Path -LiteralPath $merged) {
+    $existing = Get-Content -LiteralPath $merged -ErrorAction SilentlyContinue
+    $rest = @($existing | Where-Object { $_ -notmatch [regex]::Escape($zipName) + '$' })
+    Set-Content -LiteralPath $merged -Value (@($rest) + "$sha  $zipName") -Encoding ascii
+}
+else {
+    Set-Content -LiteralPath $merged -Value "$sha  $zipName" -Encoding ascii
+}
 Write-Host "OK $zipPath"
 Write-Host "SHA256 $sha"
