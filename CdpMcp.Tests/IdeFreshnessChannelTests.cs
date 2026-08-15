@@ -15,7 +15,7 @@ public sealed class IdeFreshnessChannelTests
         using var doc = JsonDocument.Parse(json);
         Assert.Equal("freshness_channel/v1", doc.RootElement.GetProperty("schema").GetString());
         Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
-        Assert.Equal("W1", doc.RootElement.GetProperty("mlp").GetProperty("status").GetString());
+        Assert.Equal("W2-W4", doc.RootElement.GetProperty("mlp").GetProperty("status").GetString());
         Assert.True(doc.RootElement.GetProperty("safety").GetProperty("digest_is_not_provereno").GetBoolean());
     }
 
@@ -71,6 +71,59 @@ public sealed class IdeFreshnessChannelTests
         using var doc = JsonDocument.Parse(json);
         Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal("watchlist_empty", doc.RootElement.GetProperty("error").GetString());
+    }
+
+    [Fact]
+    public void Nrt_extract_triggers_from_markdown()
+    {
+        const string md = """
+            ## Next review triggers
+            - PHP 8.5 stable
+            - Laravel 13+
+
+            ## Other
+            - ignore
+            """;
+        var triggers = IdeFreshnessNrt.ExtractTriggers(md);
+        Assert.Equal(2, triggers.Count);
+        Assert.Contains("PHP 8.5 stable", triggers[0], StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Nrt_op_resolves_php_alias()
+    {
+        var json = IdeFreshnessChannel.HandleJson(new SessionContext(), Dict(("op", "nrt"), ("alias", "php")));
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal("freshness_nrt/v1", doc.RootElement.GetProperty("schema").GetString());
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal("software-php-laravel", doc.RootElement.GetProperty("domain").GetString());
+        Assert.True(doc.RootElement.GetProperty("triggers").GetArrayLength() >= 1);
+    }
+
+    [Fact]
+    public void Arm_nightly_schedule_persists()
+    {
+        var json = IdeFreshnessChannel.HandleJson(
+            new SessionContext(),
+            Dict(("op", "arm"), ("when", "nightly"), ("alias", "avalonia")));
+        using var doc = JsonDocument.Parse(json);
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.True(doc.RootElement.GetProperty("armed").GetBoolean());
+        Assert.Equal("nightly", doc.RootElement.GetProperty("when").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(doc.RootElement.GetProperty("due_utc").GetString()));
+
+        var disarm = IdeFreshnessChannel.HandleJson(new SessionContext(), Dict(("op", "disarm")));
+        using var d2 = JsonDocument.Parse(disarm);
+        Assert.False(d2.RootElement.GetProperty("armed").GetBoolean());
+    }
+
+    [Fact]
+    public void Clear_all_cache_ok()
+    {
+        var json = IdeFreshnessChannel.HandleJson(new SessionContext(), Dict(("op", "clear")));
+        using var doc = JsonDocument.Parse(json);
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal("all", doc.RootElement.GetProperty("scope").GetString());
     }
 
     static Dictionary<string, JsonElement> Dict(params (string Key, string Value)[] pairs)

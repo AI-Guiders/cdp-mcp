@@ -60,5 +60,28 @@ internal static class IdeFreshnessCache
         File.WriteAllText(path, JsonSerializer.Serialize(store, JsonOpts));
     }
 
+    public static int ClearAll()
+    {
+        var store = Load();
+        var n = store.Entries.Count;
+        store.Entries.Clear();
+        Save(store);
+        return n;
+    }
+
+    public static int ClearKeys(IEnumerable<string> urlsOrKeys)
+    {
+        var store = Load();
+        var removed = 0;
+        foreach (var raw in urlsOrKeys)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) continue;
+            var key = Key(raw);
+            if (store.Entries.Remove(key)) removed++;
+        }
+        if (removed > 0) Save(store);
+        return removed;
+    }
+
     public static string Key(string url) => url.Trim();
 }

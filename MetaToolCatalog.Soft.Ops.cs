@@ -172,7 +172,7 @@ internal static partial class MetaToolCatalog
                 op = new { type = "string", description = "scene|pulse|month" }
             }
         }),
-    Meta("cdp_freshness", "KB freshness MLP soft organ — harness walks watchlist URLs; returns Digest/Atom-shaped entries (not raw HTML). Digest ≠ Проверено stamp. op=scene|pulse|watchlist|scan|digest|explain|aliases. alias=/urls=/domain=. Alias go=freshness|freshness_desk.",
+    Meta("cdp_freshness", "KB freshness MLP soft desk — harness walks watchlist URLs; returns Digest/Atom-shaped entries (not raw HTML). Digest ≠ Проверено stamp. op=scene|pulse|watchlist|scan|digest|explain|aliases|clear|nrt|schedule|arm|disarm|tick. alias=/urls=/domain=. Alias go=freshness|freshness_desk.",
         new
         {
             type = "object",
