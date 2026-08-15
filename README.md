@@ -22,17 +22,20 @@ Meta tools (always in ListTools): `cdp_man`, `cdp_session`, `cdp_health`, `cdp_c
 
 ## Install (no build)
 
-Recipient does **not** clone siblings or run `dotnet publish`. CI/`package-win-release.ps1` puts a win-x64 zip on [GitHub Releases](https://github.com/AI-Guiders/cdp-mcp/releases).
+Recipient does **not** clone siblings or run `dotnet publish`. CI/`package-win-release.ps1` puts RID zips on [GitHub Releases](https://github.com/AI-Guiders/cdp-mcp/releases): `win-x64`, `linux-x64`, `osx-arm64`, `osx-x64`.
+
+Requires **PowerShell 7+** on Mac/Linux (`brew install --cask powershell` / distro package). Windows PowerShell 5.1 is fine on Windows.
 
 ```powershell
+# Windows / macOS / Linux (pwsh)
 Invoke-WebRequest https://github.com/AI-Guiders/cdp-mcp/releases/latest/download/Install-Cdp.ps1 -OutFile Install-Cdp.ps1
 # keep scripts/cdp-mcp.toml.example next to the script, or download it from the same release/repo
-.\Install-Cdp.ps1 -HostAdapter cursor   # claude | vscode | none
+pwsh -File ./Install-Cdp.ps1 -HostAdapter cursor   # claude | vscode | none
 ```
 
-The script downloads `CdpMcp-*-win-x64.zip`, clones [kb-public](https://github.com/AI-Guiders/kb-public) (read-only), seeds an empty personal canon. Maintainer escape: `-CdpSource D:\cdp-mcp`.
+The script auto-detects RID, downloads `CdpMcp-*-{rid}.zip`, clones [kb-public](https://github.com/AI-Guiders/kb-public) (read-only), seeds an empty personal canon. Default install root: `%LOCALAPPDATA%\AIGuiders` (Windows), `~/Library/Application Support/AIGuiders` (macOS), `~/.local/share/AIGuiders` (Linux). Override: `-Root`, `-Runtime`, maintainer escape `-CdpSource`.
 
-GitHub Actions (`.github/workflows/release.yml`) All build siblings (including `ai-native-ui`) are public under Hippocratic-2.1 on AI-Guiders/*. Optional org secret `GH_PAT` only if clone rate-limits bite. Tag `v*` or Run workflow.
+GitHub Actions (`.github/workflows/release.yml`) builds a matrix of RID runners. All build siblings (including `ai-native-ui`) are public under Hippocratic-2.1 on AI-Guiders/*. Optional org secret `GH_PAT` only if clone rate-limits bite. Tag `v*` or Run workflow.
 
 ## Build / deploy
 
