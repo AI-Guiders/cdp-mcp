@@ -1,8 +1,11 @@
-name: Release win-x64
+name: Release multi-RID
 
 on:
   # Tag v* or workflow_dispatch; optional GH_PAT if clone rate-limits
   # (GitHub-hosted runners do not see the local open/ tree).
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
@@ -14,8 +17,20 @@ permissions:
   contents: write
 
 jobs:
-  package-win:
-    runs-on: windows-latest
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            runtime: win-x64
+          - runner: ubuntu-latest
+            runtime: linux-x64
+          - runner: macos-latest
+            runtime: osx-arm64
+          - runner: macos-13
+            runtime: osx-x64
+    runs-on: ${{ matrix.runner }}
     env:
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: "1"
@@ -40,29 +55,57 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: ./cdp-mcp/scripts/ci-checkout-siblings.ps1
 
-      - name: Package win-x64 zip
+      - name: Package ${{ matrix.runtime }} zip
         shell: pwsh
-        run: ./cdp-mcp/scripts/package-win-release.ps1
+        run: ./cdp-mcp/scripts/package-win-release.ps1 -Runtime ${{ matrix.runtime }}
 
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cdp-win-x64
+          name: cdp-${{ matrix.runtime }}
           path: |
             cdp-mcp/artifacts/dist/*.zip
             cdp-mcp/artifacts/dist/Install-Cdp.ps1
-            cdp-mcp/artifacts/dist/SHA256SUMS
+            cdp-mcp/artifacts/dist/cdp-mcp.toml.example
+            cdp-mcp/artifacts/dist/SHA256SUMS*
+
+  release:
+    needs: package
+    if: ${{ github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.tag != '') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all RID artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: Flatten + merge SHA256SUMS
+        shell: pwsh
+        run: |
+          $out = "flattened"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $lines = [System.Collections.Generic.List[string]]::new()
+          Get-ChildItem -Path release-assets -Recurse -File | ForEach-Object {
+            if ($_.Name -like "SHA256SUMS*") {
+              Get-Content $_.FullName | ForEach-Object { if ($_ -match '\S') { [void]$lines.Add($_) } }
+            }
+            elseif ($_.Name -match '\.zip$' -or $_.Name -eq "Install-Cdp.ps1" -or $_.Name -eq "cdp-mcp.toml.example") {
+              Copy-Item $_.FullName (Join-Path $out $_.Name) -Force
+            }
+          }
+          $uniq = $lines | Sort-Object -Unique
+          Set-Content -Path (Join-Path $out "SHA256SUMS") -Value $uniq -Encoding ascii
+          Get-ChildItem $out | Format-Table Name, Length
 
       - name: GitHub Release
-        if: ${{ github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.tag != '') }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
           generate_release_notes: true
           files: |
-            cdp-mcp/artifacts/dist/*.zip
-            cdp-mcp/artifacts/dist/Install-Cdp.ps1
-            cdp-mcp/artifacts/dist/SHA256SUMS
+            flattened/*.zip
+            flattened/Install-Cdp.ps1
+            flattened/cdp-mcp.toml.example
+            flattened/SHA256SUMS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
