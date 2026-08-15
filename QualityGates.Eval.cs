@@ -23,7 +23,7 @@ internal static partial class QualityGates
                 "file_lines",
                 lines,
                 policy.SuggestSniperFileLines,
-                $"{shortPath}: {lines} lines — harness suggests go=scope before thick edit",
+                $"{shortPath}: {lines} lines — harness suggests go=scope before thick edit; FileLines → OOA&D/DRY/KISS (partial = narrow)",
                 "go=scope"));
         }
 
@@ -38,7 +38,7 @@ internal static partial class QualityGates
                 lines,
                 policy.FileLinesFail,
                 $"{shortPath}: {lines} ≥ fail {policy.FileLinesFail}",
-                "go=scope → split / extract"));
+                "go=scope → OOA&D/DRY/KISS extract (partial = narrow)"));
         }
         else if (policy.FileLinesWarn > 0 && lines >= policy.FileLinesWarn)
         {
@@ -51,7 +51,7 @@ internal static partial class QualityGates
                 lines,
                 policy.FileLinesWarn,
                 $"{shortPath}: {lines} ≥ warn {policy.FileLinesWarn}",
-                "go=scope → consider split"));
+                "go=scope → OOA&D/DRY/KISS — real types; partial = narrow"));
         }
 
         if (string.Equals(buf.Language, "csharp", StringComparison.OrdinalIgnoreCase)
@@ -73,7 +73,7 @@ internal static partial class QualityGates
                         m.Lines,
                         policy.MethodLinesFail,
                         $"{shortPath}::{m.Name}: {m.Lines} ≥ fail {policy.MethodLinesFail}",
-                        "go=scope from=/till= → extract");
+                        "go=scope from=/till= → OOA&D/extract");
                 }
                 else if (policy.MethodLinesWarn > 0 && m.Lines >= policy.MethodLinesWarn)
                 {
@@ -86,7 +86,7 @@ internal static partial class QualityGates
                         m.Lines,
                         policy.MethodLinesWarn,
                         $"{shortPath}::{m.Name}: {m.Lines} ≥ warn {policy.MethodLinesWarn}",
-                        "go=scope from=/till= → consider extract");
+                        "go=scope from=/till= → OOA&D/extract");
                 }
 
                 if (hit is null)

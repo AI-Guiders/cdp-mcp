@@ -7,6 +7,8 @@
 ## Invariants
 
 - Soft-warn FileLinesWarn from overlay `.cdp/quality-gates.toml` (this repo: warn=350).
+- **On `file_lines` / `method_lines` warn:** default response = **OOA&D + DRY + KISS** (named types by responsibility, facade thin, shared state owned once) — not SoftFL densify. Dig: `software.authoring` / `playbook-ooad-agent-operational-v1.md`.
+- **`partial` is a narrow case** (codegen / designer / rare hand split of one type across files). Metric peel via `Foo.Bar.cs` ≠ design. `partial ≠ split` · tooth `partial_family`.
 - Default `go=quality` / Snap: **open buffers only** (cockpit alert must not thrash on closed fat files).
 - `scope=disk|project|map`: whole-project `*.cs` map — warn/fail + near-miss (floor = suggest_sniper or warn−50); skip bin/obj/.git.
 - Disk scan is **file lines only** (no method scan) — ADX token tax.
@@ -30,13 +32,16 @@
 
 ## Dig-before-peel (Senior ritual)
 
-1. Name the seam in one sentence (what changes together / who owns state).
-2. If state is shared (`Gate`/`Arms`) — leave a thin schedule/API peel; move the **loop/probe** to a real type.
-3. Wire callers + tests to the real type (no forever facade on the God type).
-4. Stamp domain `last_ship` with peel count delta — not "file_lines green".
+1. Treat FileLines as **design pressure**, not a peel ticket — run OOA&D/nouns-verbs (or short DRY/KISS cut) first.
+2. Name the seam in one sentence (what changes together / who owns state).
+3. If state is shared (`Gate`/`Arms`) — leave a thin schedule/API peel; move the **loop/probe** to a real type.
+4. Wire callers + tests to the real type (no forever facade on the God type).
+5. `partial` only when the compiler/tooling already requires one type across files — never as SoftFL.
+6. Stamp domain `last_ship` with peel count delta — not "file_lines green".
 
 ## last_ship
 
+- **2026-08-15 FileLines → OOA&D/DRY/KISS @ 0.5.719** — warn `go=` steers real types; `partial` stamped as narrow case · domain + gate copy · SoftFL invent REJECT
 - **2026-08-07 wave1 real seams** — `IdeIgniteConnectionWatch` + `IdeIgniteOomWatch` extracted from ArmHost peels · schedule stays `IdeIgniteArmHost.OomSchedule` (Arms/Gate) · family 26→25 peels · tests ConnectionWatch 3/3 + PartialFamily 2/2 · dig-before-peel ritual stamped
 - **2026-08-07 partial_family tooth** — `QualityGates.PartialFamily` · warn when ≥4 dotted peels **or** family sum ≥ file_lines_warn · message peel≠seam · `.g.cs`/Designer skipped · tests QualityGatesPartialFamily · SoftFL invent REJECT (operator-directed tooth)
 - Soft FileLines BATCH close @ **0.5.640** — densest peels + Wire Head/Tail; top FileLines 341; feature CLOSED · VL#146 · 2026-08-03

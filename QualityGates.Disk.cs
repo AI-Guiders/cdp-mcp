@@ -133,7 +133,7 @@ internal static partial class QualityGates
                 lines,
                 policy.FileLinesFail,
                 $"{shortPath}: {lines} ≥ fail {policy.FileLinesFail}",
-                "go=scope → split / extract");
+                "go=scope → OOA&D/DRY/KISS extract (partial = narrow)");
         }
 
         if (policy.FileLinesWarn > 0 && lines >= policy.FileLinesWarn)
@@ -147,7 +147,7 @@ internal static partial class QualityGates
                 lines,
                 policy.FileLinesWarn,
                 $"{shortPath}: {lines} ≥ warn {policy.FileLinesWarn}",
-                "go=scope → consider peel");
+                "go=scope → OOA&D/DRY/KISS — real types; partial = narrow");
         }
 
         if (nearFloor > 0
@@ -163,7 +163,7 @@ internal static partial class QualityGates
                 lines,
                 nearFloor,
                 $"{shortPath}: {lines} near-miss (≥{nearFloor}, <warn {policy.FileLinesWarn})",
-                "go=scope → peel before warn");
+                "go=scope → OOA&D before warn; partial = narrow");
         }
 
         return null;

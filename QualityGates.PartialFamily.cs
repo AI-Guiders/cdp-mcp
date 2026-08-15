@@ -130,7 +130,7 @@ internal static partial class QualityGates
             metric,
             value,
             threshold,
-            $"{stem}: {files} partial files · {sum} lines — file_lines peel ≠ seam (partial ≠ split); extract type or exclude",
-            "go=scope → real extract / discuss exclude — not more partials");
+            $"{stem}: {files} partial files · {sum} lines — file_lines peel ≠ seam (partial ≠ split); OOA&D/DRY/KISS → real type (partial = narrow)",
+            "go=scope → OOA&D extract / discuss exclude — not more SoftFL partials");
     }
 }
