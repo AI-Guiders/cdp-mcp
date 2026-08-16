@@ -40,6 +40,7 @@ internal static partial class MetaToolCatalog
             include_raw = new { type = "boolean", description = "include stdout_tail/stderr_tail (default slim pulse+locus)" },
             include_raw_output = new { type = "boolean", description = "alias of include_raw" },
             background = new { type = "boolean", description = "true (default) = enqueue deploy job, return immediately, AutoIgnition wake on peer_ship. false or wait=true = block (minutes; MCP may timeout). dry_run always sync." },
+            durable = new { type = "boolean", description = "true (default for background deploy) = out-of-process durable queue; survives KillRunning/remount. false = in-process Layer 1 only." },
             ignite_arm = new { type = "boolean", description = "When background=true: auto arm when=peer_ship (default true)." },
             wait = new { type = "boolean", description = "true = foreground sync (background=false)." }
         }

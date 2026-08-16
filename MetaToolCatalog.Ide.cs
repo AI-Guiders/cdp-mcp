@@ -24,6 +24,7 @@ internal static partial class MetaToolCatalog
             include_raw_output = new { type = "boolean", description = "forces detail=full" },
             timeout_seconds = new { type = "integer" },
             background = new { type = "boolean", description = "true (default) = enqueue in-process job, return immediately, AutoIgnition wake on build_finished. false or wait=true = block until done." },
+            durable = new { type = "boolean", description = "true = out-of-process durable queue (supervisor + CdpMcp worker); survives MCP kill/remount. false (default) = in-process Layer 1." },
             ignite_arm = new { type = "boolean", description = "When background=true: auto arm when=build_finished (default true)." },
             wait = new { type = "boolean", description = "true = foreground sync (background=false); may MCP-timeout on long builds." }
         }
@@ -59,6 +60,7 @@ internal static partial class MetaToolCatalog
             include_raw_output = new { type = "boolean", description = "forces detail=full" },
             timeout_seconds = new { type = "integer" },
             background = new { type = "boolean", description = "true (default) = enqueue in-process job, return immediately, AutoIgnition wake on test_finished. false or wait=true = block until done." },
+            durable = new { type = "boolean", description = "true = out-of-process durable queue; survives MCP kill/remount. false (default) = in-process." },
             ignite_arm = new { type = "boolean", description = "When background=true: auto arm when=test_finished (default true)." },
             wait = new { type = "boolean", description = "true = foreground sync (background=false); may MCP-timeout on long test runs." }
         }

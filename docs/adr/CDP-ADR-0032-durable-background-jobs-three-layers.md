@@ -45,6 +45,15 @@ Not a fourth layer — harden transport:
 | 2b | terminal-mcp ignite wire | terminal-mcp ✅ |
 | 3a | Job store + enqueue protocol | terminal-mcp-core ✅ |
 | 3b | Supervisor host + dogfood Fremus/deploy | terminal-mcp-supervisor ✅ |
+| 3c | CDP lifecycle durable enqueue (`cdp_build`/`cdp_deploy` → `CdpMcp --durable-job`) | cdp-mcp ✅ 0.5.720+ |
+
+### Layer 3c — CDP lifecycle durable enqueue ✅ shipped 0.5.720+
+
+- `cdp_deploy` + `background=true`: **default `durable=true`** (opt-out `durable=false`).
+- `cdp_build` / `cdp_test`: `durable=true` explicit; else Layer 1 in-proc.
+- Enqueue → `DurableJobStore.EnqueueLifecycle` → supervisor spawns `CdpMcp.exe --durable-job <id>` → worker runs build/test/deploy, `Finish` + `IdeIgniteArmHost.Notify`.
+- Poll: same `cdp_lifecycle_last` / `cdp_lifecycle_scene` (falls through to durable store).
+- **DoD:** dual-seat `cdp_deploy mode=rollout` survives KillRunning without `terminal_*` escape hatch.
 
 ## References
 

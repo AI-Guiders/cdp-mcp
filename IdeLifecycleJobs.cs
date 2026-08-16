@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using Cdp.Core;
 using CdpMcp.Backends;
+using TerminalMcp.Core;
 
 namespace CdpMcp;
 
@@ -48,35 +49,66 @@ internal static class IdeLifecycleJobs
         return true;
     }
 
+    /// <summary>durable=true explicit; deploy+background defaults durable (opt-out durable=false).</summary>
+    public static bool ResolveDurable(IReadOnlyDictionary<string, JsonElement> args, string kind)
+    {
+        if (IsTruthy(args, "dry_run") || IsTruthy(args, "peek") || !ResolveBackground(args))
+            return false;
+        if (args.TryGetValue("durable", out var el))
+        {
+            return el.ValueKind switch
+            {
+                JsonValueKind.False => false,
+                JsonValueKind.True => true,
+                JsonValueKind.String => !IsFalseToken(el.GetString()),
+                JsonValueKind.Number => el.TryGetInt32(out var n) && n != 0,
+                _ => true
+            };
+        }
+
+        return kind.Equals("deploy", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static string StartBuild(
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args,
         ICdpBackendModule? buildMod,
         JsonSerializerOptions pretty)
-        => Start(
+    {
+        if (ResolveDurable(args, "build"))
+            return StartDurable(session, "build", "build_finished", args, pretty);
+        return Start(
             "build",
             "build_finished",
             args,
             pretty,
             ct => IdeSessionLifecycle.BuildAsync(session, args, buildMod, ct));
+    }
 
     public static string StartTest(
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args,
         ICdpBackendModule? buildMod,
         JsonSerializerOptions pretty)
-        => Start(
+    {
+        if (ResolveDurable(args, "test"))
+            return StartDurable(session, "test", "test_finished", args, pretty);
+        return Start(
             "test",
             "test_finished",
             args,
             pretty,
             ct => IdeSessionLifecycle.TestAsync(session, args, buildMod, ct));
+    }
 
     public static string StartDeploy(
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args,
         JsonSerializerOptions pretty)
-        => Start(
+    {
+        if (ResolveDurable(args, "deploy"))
+            return StartDurable(session, "deploy", "peer_ship", args, pretty);
+        return Start(
             "deploy",
             "peer_ship",
             args,
@@ -84,9 +116,22 @@ internal static class IdeLifecycleJobs
             _ => Task.FromResult(IdeDeploy.Run(session, args)),
             onFinished: (ok, _) =>
                 IdeIgniteArmHost.Notify("peer_ship", ok, pulse: "deploy", detail: ok ? "ok" : "fail"));
+    }
 
     public static string Scene()
     {
+        var durableJson = DurableJobStore.Scene(Pretty);
+        try
+        {
+            using var doc = JsonDocument.Parse(durableJson);
+            if (doc.RootElement.TryGetProperty("jobs", out var jobs) && jobs.GetArrayLength() > 0)
+                return durableJson;
+        }
+        catch
+        {
+            /* fall through */
+        }
+
         var items = Jobs.Values
             .OrderByDescending(e => e.StartedUtc)
             .Take(24)
@@ -113,16 +158,24 @@ internal static class IdeLifecycleJobs
 
     public static string Last(IReadOnlyDictionary<string, JsonElement> args)
     {
+        string? jobId = args.TryGetValue("job_id", out var idEl) && idEl.ValueKind == JsonValueKind.String
+            ? idEl.GetString()
+            : null;
+        string? kind = args.TryGetValue("kind", out var kindEl) && kindEl.ValueKind == JsonValueKind.String
+            ? kindEl.GetString()
+            : null;
+        var durable = DurableJobStore.Last(jobId, kind, Pretty);
+        if (!durable.Contains("\"job_not_found\"", StringComparison.Ordinal))
+            return durable;
+
         Entry? entry = null;
-        if (args.TryGetValue("job_id", out var idEl) && idEl.ValueKind == JsonValueKind.String)
-            Jobs.TryGetValue(idEl.GetString() ?? "", out entry);
-        if (entry is null && args.TryGetValue("kind", out var kindEl) && kindEl.ValueKind == JsonValueKind.String)
+        if (!string.IsNullOrWhiteSpace(jobId))
+            Jobs.TryGetValue(jobId, out entry);
+        if (entry is null && !string.IsNullOrWhiteSpace(kind))
         {
-            var kind = kindEl.GetString();
-            if (!string.IsNullOrWhiteSpace(kind)
-                && ActiveByKind.TryGetValue(kind, out var activeId))
+            if (ActiveByKind.TryGetValue(kind, out var activeId))
                 Jobs.TryGetValue(activeId, out entry);
-            if (entry is null && !string.IsNullOrWhiteSpace(kind))
+            if (entry is null)
             {
                 entry = Jobs.Values
                     .Where(e => e.Kind.Equals(kind, StringComparison.OrdinalIgnoreCase))
@@ -249,6 +302,57 @@ internal static class IdeLifecycleJobs
             hint = $"Job enqueued — MCP returns now. Wake on {igniteEvent} or poll cdp_lifecycle_last kind={kind}."
         }, pretty);
         return IdeLifecycleIgnite.AnnotateStarted(pretty, started, igniteEvent, armId);
+    }
+
+    static string StartDurable(
+        SessionContext session,
+        string kind,
+        string igniteEvent,
+        IReadOnlyDictionary<string, JsonElement> args,
+        JsonSerializerOptions pretty)
+    {
+        var targetHint = Opt(args, "path")
+                         ?? Opt(args, "solution_path")
+                         ?? Opt(args, "target")
+                         ?? Opt(args, "mode")
+                         ?? kind;
+
+        string? armId = null;
+        if (ResolveIgniteArm(args))
+            IdeLifecycleIgnite.TryAutoArm(igniteEvent, kind, targetHint, enabled: true, out armId);
+
+        var life = new DurableLifecyclePayload
+        {
+            ProjectRoot = session.ProjectRoot,
+            ScmRoot = session.ScmRoot,
+            SolutionOrProjectPath = session.SolutionOrProjectPath,
+            ProjectKind = session.ProjectKind,
+            TsConfigPath = session.TsConfigPath,
+            ArgsJson = JsonSerializer.Serialize(args)
+        };
+
+        var queued = DurableJobStore.EnqueueLifecycle(kind, igniteEvent, life, targetHint, armId, pretty);
+        DurableJobSupervisorHost.TryEnsureRunning();
+        return armId is null
+            ? queued
+            : IdeLifecycleIgnite.AnnotateStarted(pretty, queued, igniteEvent, armId);
+    }
+
+    static bool ResolveIgniteArm(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (args.TryGetValue("ignite_arm", out var el))
+        {
+            return el.ValueKind switch
+            {
+                JsonValueKind.False => false,
+                JsonValueKind.True => true,
+                JsonValueKind.String => !IsFalseToken(el.GetString()),
+                JsonValueKind.Number => el.TryGetInt32(out var n) && n != 0,
+                _ => true
+            };
+        }
+
+        return true;
     }
 
     static bool LooksOk(string json)

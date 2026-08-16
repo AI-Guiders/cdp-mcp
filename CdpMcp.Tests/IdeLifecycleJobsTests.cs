@@ -30,6 +30,25 @@ public sealed class IdeLifecycleJobsTests
     }
 
     [Fact]
+    public void ResolveDurable_deploy_defaults_true_build_requires_explicit()
+    {
+        Assert.True(IdeLifecycleJobs.ResolveDurable(new Dictionary<string, JsonElement>(), "deploy"));
+        Assert.False(IdeLifecycleJobs.ResolveDurable(new Dictionary<string, JsonElement>(), "build"));
+        Assert.True(IdeLifecycleJobs.ResolveDurable(new Dictionary<string, JsonElement>
+        {
+            ["durable"] = JsonSerializer.SerializeToElement(true)
+        }, "build"));
+        Assert.False(IdeLifecycleJobs.ResolveDurable(new Dictionary<string, JsonElement>
+        {
+            ["durable"] = JsonSerializer.SerializeToElement(false)
+        }, "deploy"));
+        Assert.False(IdeLifecycleJobs.ResolveDurable(new Dictionary<string, JsonElement>
+        {
+            ["dry_run"] = JsonSerializer.SerializeToElement(true)
+        }, "deploy"));
+    }
+
+    [Fact]
     public void TryAutoArmLifecycle_arms_build_finished()
     {
         try

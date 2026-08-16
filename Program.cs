@@ -13,6 +13,13 @@ using Tool = ModelContextProtocol.Protocol.Tool;
 
 IdeSeatProcessReclaim.Ensure();
 
+var durableJobIdx = Array.IndexOf(args, "--durable-job");
+if (durableJobIdx >= 0 && durableJobIdx + 1 < args.Length)
+{
+    IdeIgniteArmHost.EnsureStarted();
+    Environment.Exit(await IdeDurableJobRunner.RunAsync(args[durableJobIdx + 1]));
+}
+
 var configPath = args.SkipWhile(a => a != "--config").Skip(1).FirstOrDefault()
     ?? Environment.GetEnvironmentVariable("CDP_MCP_CONFIG")
     ?? Path.Combine(AppContext.BaseDirectory, "config", "cdp-mcp.toml");
