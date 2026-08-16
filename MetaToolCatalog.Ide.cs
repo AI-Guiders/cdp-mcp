@@ -9,7 +9,7 @@ internal static partial class MetaToolCatalog
 {
     static IEnumerable<Tool> IdeLifecycle() =>
     [
-    Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell. Default detail=auto: green→pulse; fail→errors[].",
+    Meta("cdp_build", "IDE Build: session project after cdp_open. Harness picks projection (csharp→dotnet / typescript→npm|tsc). Prefer over shell. Default detail=auto: green→pulse; fail→errors[]. Background default=true: returns immediately, wake on build_finished.",
     new
     {
         type = "object",
@@ -22,7 +22,10 @@ internal static partial class MetaToolCatalog
             no_restore = new { type = "boolean" },
             detail = new { type = "string", description = "auto (default: green→pulse, fail→slim) | pulse | slim | full" },
             include_raw_output = new { type = "boolean", description = "forces detail=full" },
-            timeout_seconds = new { type = "integer" }
+            timeout_seconds = new { type = "integer" },
+            background = new { type = "boolean", description = "true (default) = enqueue in-process job, return immediately, AutoIgnition wake on build_finished. false or wait=true = block until done." },
+            ignite_arm = new { type = "boolean", description = "When background=true: auto arm when=build_finished (default true)." },
+            wait = new { type = "boolean", description = "true = foreground sync (background=false); may MCP-timeout on long builds." }
         }
     }),
     Meta("cdp_run", "IDE Run: session project. csharp→dotnet run; typescript→npm start|dev. Prefer over shell.", new
@@ -54,7 +57,10 @@ internal static partial class MetaToolCatalog
             filter = new { type = "string", description = "VSTest --filter" },
             detail = new { type = "string", description = "auto (default: green→pulse, fail→slim) | pulse | slim | full" },
             include_raw_output = new { type = "boolean", description = "forces detail=full" },
-            timeout_seconds = new { type = "integer" }
+            timeout_seconds = new { type = "integer" },
+            background = new { type = "boolean", description = "true (default) = enqueue in-process job, return immediately, AutoIgnition wake on test_finished. false or wait=true = block until done." },
+            ignite_arm = new { type = "boolean", description = "When background=true: auto arm when=test_finished (default true)." },
+            wait = new { type = "boolean", description = "true = foreground sync (background=false); may MCP-timeout on long test runs." }
         }
     }),
     Meta("cdp_test_scene", "Test Runner map (git_scene analogue): discover FQNs via `dotnet test --list-tests` + last_run cache. Prefer before cdp_test / shell archaeology.", new
@@ -158,6 +164,20 @@ internal static partial class MetaToolCatalog
             detail = new { type = "string", description = "auto|pulse|slim|full (same as cdp_test)" },
             include_raw_output = new { type = "boolean" },
             timeout_seconds = new { type = "integer" }
+        }
+    }),
+    Meta("cdp_lifecycle_scene", "Background build/test/deploy jobs (in-process). Lists running + recent jobs. Poll with cdp_lifecycle_last.", new
+    {
+        type = "object",
+        properties = new { }
+    }),
+    Meta("cdp_lifecycle_last", "Last result for a background lifecycle job. kind=build|test|deploy or job_id= from start response.", new
+    {
+        type = "object",
+        properties = new
+        {
+            kind = new { type = "string", description = "build|test|deploy" },
+            job_id = new { type = "string", description = "From lifecycle_job start response" }
         }
     }),
     ];

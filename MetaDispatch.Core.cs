@@ -29,7 +29,11 @@ internal static partial class MetaDispatch
             case "cdp_restore":
                 return RestoreJson(d, callArgs);
             case "cdp_deploy":
+            {
+                if (IdeLifecycleJobs.ResolveBackground(callArgs))
+                    return IdeLifecycleJobs.StartDeploy(d.Session, callArgs, d.Pretty);
                 return IdeDeploy.Run(d.Session, callArgs);
+            }
             case "cdp_elicit":
                 return await IdeElicit.RunAsync(d.ServerRef, callArgs, cancellationToken).ConfigureAwait(false);
             case "cdp_land":

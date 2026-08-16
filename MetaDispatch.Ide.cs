@@ -132,11 +132,23 @@ internal static partial class MetaDispatch
         }, Pretty);
     }
     case "cdp_build":
+    {
+        if (IdeLifecycleJobs.ResolveBackground(callArgs))
+            return IdeLifecycleJobs.StartBuild(session, callArgs, byDomain.GetValueOrDefault("build"), Pretty);
         return await IdeSessionLifecycle.BuildAsync(
             session, callArgs, byDomain.GetValueOrDefault("build"), cancellationToken).ConfigureAwait(false);
+    }
     case "cdp_test":
+    {
+        if (IdeLifecycleJobs.ResolveBackground(callArgs))
+            return IdeLifecycleJobs.StartTest(session, callArgs, byDomain.GetValueOrDefault("build"), Pretty);
         return await IdeSessionLifecycle.TestAsync(
             session, callArgs, byDomain.GetValueOrDefault("build"), cancellationToken).ConfigureAwait(false);
+    }
+    case "cdp_lifecycle_scene":
+        return IdeLifecycleJobs.Scene();
+    case "cdp_lifecycle_last":
+        return IdeLifecycleJobs.Last(callArgs);
     case "cdp_test_scene":
         return await IdeSessionLifecycle.TestSceneAsync(
             session, callArgs, byDomain.GetValueOrDefault("build"), cancellationToken).ConfigureAwait(false);

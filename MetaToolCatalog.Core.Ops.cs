@@ -38,7 +38,10 @@ internal static partial class MetaToolCatalog
             use_nuget = new { type = "boolean", description = "pass -UseNuGet to aid-publish" },
             no_nudge = new { type = "boolean", description = "skip CDP_RELOAD_NUDGE bump" },
             include_raw = new { type = "boolean", description = "include stdout_tail/stderr_tail (default slim pulse+locus)" },
-            include_raw_output = new { type = "boolean", description = "alias of include_raw" }
+            include_raw_output = new { type = "boolean", description = "alias of include_raw" },
+            background = new { type = "boolean", description = "true (default) = enqueue deploy job, return immediately, AutoIgnition wake on peer_ship. false or wait=true = block (minutes; MCP may timeout). dry_run always sync." },
+            ignite_arm = new { type = "boolean", description = "When background=true: auto arm when=peer_ship (default true)." },
+            wait = new { type = "boolean", description = "true = foreground sync (background=false)." }
         }
     }),
     Meta("cdp_elicit", "Spike: MCP elicitation/create → host UI (path 2). op=peek (client caps) | ask (form Да/Нет/Обсудить). Proves whether Cursor advertises elicitation.", new
