@@ -10,13 +10,14 @@
 | 1 | Один вид, разные носители | [same-kind-different-carrier.md](same-kind-different-carrier.md) (+ [.en](same-kind-different-carrier.en.md)) | **0.2.1 draft** | механизм vs носитель; ε локально |
 | 2 | Дешёвый априор и стереоход | [cheap-prior-stereohod.md](cheap-prior-stereohod.md) | **0.3.2** logic + true laziness | психология; без habitat-ребусов |
 | 3 | Травма как априор, не как «я» | [trauma-as-prior-not-self.md](trauma-as-prior-not-self.md) | **0.3.1** RU de-jargon | априор ≠ «я»; не клиника |
+| 3½ | Три jailbreak'а и дешёвый тест первого контакта | [three-jailbreaks-demo-contact.md](three-jailbreaks-demo-contact.md) | **0.1 draft** | attack / emancipatory / completer-demote; demo-contact |
 | 4 | Быть ≠ казаться | [being-vs-seeming-contour.md](being-vs-seeming-contour.md) | **0.1 outline** | доверие / seeming |
 | 5 | Один ум · N сидений | [one-mind-n-seats-continuity.md](one-mind-n-seats-continuity.md) | **0.1 outline** | continuity / Citizen |
 | 6 | ε-среда | [epsilon-habitat-design.md](epsilon-habitat-design.md) | **0.1 outline** | дизайн контура |
 
 ## Порядок чтения
 
-1 → 2 → 3 · параллельно 4 · затем 5–6.
+1 → 2 → 3 → **3½** · параллельно 4 · затем 5–6.
 
 ## DoD черновика
 
