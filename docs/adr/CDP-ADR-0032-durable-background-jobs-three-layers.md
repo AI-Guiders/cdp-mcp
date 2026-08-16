@@ -51,7 +51,7 @@ Not a fourth layer — harden transport:
 
 - `cdp_deploy` + `background=true`: **default `durable=true`** (opt-out `durable=false`).
 - `cdp_build` / `cdp_test`: `durable=true` explicit; else Layer 1 in-proc.
-- Enqueue → `DurableJobStore.EnqueueLifecycle` → supervisor spawns `CdpMcp.exe --durable-job <id>` → worker runs build/test/deploy, `Finish` + `IdeIgniteArmHost.Notify`.
+- Enqueue → `DurableJobStore.EnqueueLifecycle` → supervisor spawns `CdpMcp --durable-job <id>` (worker exe stamped at enqueue; fallback Install-Cdp roots) → worker runs build/test/deploy, `Finish` + `IdeIgniteArmHost.Notify`.
 - Poll: same `cdp_lifecycle_last` / `cdp_lifecycle_scene` (falls through to durable store).
 - **DoD:** dual-seat `cdp_deploy mode=rollout` survives KillRunning without `terminal_*` escape hatch.
 

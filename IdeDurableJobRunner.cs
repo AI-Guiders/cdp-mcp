@@ -5,7 +5,7 @@ using TerminalMcp.Core;
 
 namespace CdpMcp;
 
-/// <summary>Out-of-process worker: <c>CdpMcp.exe --durable-job &lt;id&gt;</c> (ADR-0032).</summary>
+/// <summary>Out-of-process worker: <c>CdpMcp --durable-job &lt;id&gt;</c> (ADR-0032).</summary>
 internal static class IdeDurableJobRunner
 {
     static readonly JsonSerializerOptions JsonOpts = new()
