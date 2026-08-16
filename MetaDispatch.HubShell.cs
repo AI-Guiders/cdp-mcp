@@ -71,9 +71,14 @@ internal static partial class MetaDispatch
         int? codepage = callArgs.TryGetValue("codepage", out var cpEl) && cpEl.TryGetInt32(out var cp)
             ? cp
             : IdeSettingsHabitat.EffectiveShellCodepage();
-        return AttachShellEvidence(Pretty, 
-            shellHabitat.Run(ShellDefaults(session), cmd, tab, cwd, shell, timeout, background, codepage, argv),
-            session);
+        var json = shellHabitat.Run(ShellDefaults(session), cmd, tab, cwd, shell, timeout, background, codepage, argv);
+        if (background && IdeShellIgnite.ResolveIgniteArmEnabled(callArgs, background: true))
+        {
+            IdeShellIgnite.TryAutoArmBackground(tab, cmd ?? (argv is { Length: > 0 } ? string.Join(' ', argv) : null), enabled: true, out var armId);
+            json = IdeShellIgnite.AnnotateBackgroundRun(Pretty, json, armId);
+        }
+
+        return AttachShellEvidence(Pretty, json, session);
     }
     case "cdp_shell_history":
     {
@@ -91,9 +96,26 @@ internal static partial class MetaDispatch
             ? to
             : IdeSettingsHabitat.EffectiveShellTimeout();
         var background = callArgs.TryGetValue("background", out var bgEl) && bgEl.ValueKind == JsonValueKind.True;
-        return AttachShellEvidence(Pretty, 
-            shellHabitat.Rerun(ShellDefaults(session), tab, index, timeout, background),
-            session);
+        var json = shellHabitat.Rerun(ShellDefaults(session), tab, index, timeout, background);
+        if (background && IdeShellIgnite.ResolveIgniteArmEnabled(callArgs, background: true))
+        {
+            string? command = null;
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("command", out var cmdEl))
+                    command = cmdEl.GetString();
+            }
+            catch
+            {
+                /* best-effort */
+            }
+
+            IdeShellIgnite.TryAutoArmBackground(tab, command, enabled: true, out var armId);
+            json = IdeShellIgnite.AnnotateBackgroundRun(Pretty, json, armId);
+        }
+
+        return AttachShellEvidence(Pretty, json, session);
     }
     case "cdp_shell_last":
     {

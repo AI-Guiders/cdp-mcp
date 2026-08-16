@@ -202,7 +202,8 @@ internal static partial class MetaToolCatalog
             shell = new { type = "string", description = "Prefer: pwsh | cmd | or unix shell path." },
             codepage = new { type = "integer", description = "Console/pipe code page; sticky on tab. Default 65001 (UTF-8)." },
             timeout_seconds = new { type = "integer", description = "1..600 (default 60). Ignored when background=true." },
-            background = new { type = "boolean", description = "true = long-run in CDP process; poll scene/last; kill to stop." }
+            background = new { type = "boolean", description = "true = long-run in CDP process; poll scene/last; kill to stop. Auto-arms shell_finished wake unless ignite_arm=false." },
+            ignite_arm = new { type = "boolean", description = "When background=true: auto arm AutoIgnition when=shell_finished (default true). Set false to skip." }
         }
     }),
     Meta("cdp_shell_history", "[A] Last N commands for a tab (cmd/cwd/exit/preview; no full stdout dump).", new

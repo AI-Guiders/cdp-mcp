@@ -116,16 +116,7 @@ var shellHabitat = new TerminalMcp.Core.ShellHabitat();
 CitizenRouteHost.ShellHabitatResolver = () => shellHabitat;
 CitizenRouteHost.ShellDefaultsResolver = () => ProgramHost.ShellDefaults(session);
 CitizenRouteHost.ByDomainResolver = () => byDomain;
-shellHabitat.Finished += info =>
-{
-    IdeIgniteArmHost.Notify(
-        "shell_finished",
-        ok: info.ExitCode == 0,
-        pulse: info.Tab,
-        detail: info.Command.Length > 120 ? info.Command[..120] : info.Command);
-    if (info.ExitCode != 0)
-        IdeStageCycle.TryAppend("shell.fail", "shell", info.Command, info.Tab);
-};
+shellHabitat.Finished += IdeShellIgnite.OnShellFinished;
 var mcpOutlet = new McpOutletHabitat();
 var internetBrowser = new InternetBrowserHabitat();
 CitizenRouteHost.BrowserHabitatResolver = () => internetBrowser;
