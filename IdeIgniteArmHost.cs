@@ -98,4 +98,17 @@ internal static partial class IdeIgniteArmHost
         foreach (var arm in hits)
             QueueFire(arm, ok, pulse, detail);
     }
+
+    /// <summary>Durable worker must await CDT delivery before process exit.</summary>
+    internal static async Task WaitForArmDeliveryAsync(string armId, TimeSpan timeout)
+    {
+        var deadline = DateTimeOffset.UtcNow + timeout;
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            var arm = Snapshot().FirstOrDefault(a => a.Id.Equals(armId, StringComparison.OrdinalIgnoreCase));
+            if (arm?.Status is "fired" or "error")
+                return;
+            await Task.Delay(500).ConfigureAwait(false);
+        }
+    }
 }

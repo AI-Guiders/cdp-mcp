@@ -1,5 +1,6 @@
 #nullable enable
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text.Json;
 using Cdp.Core;
 using CdpMcp.Backends;
@@ -321,6 +322,11 @@ internal static class IdeLifecycleJobs
         if (ResolveIgniteArm(args))
             IdeLifecycleIgnite.TryAutoArm(igniteEvent, kind, targetHint, enabled: true, out armId);
 
+        var workerExe = ResolveWorkerExePath();
+        var igniteSeat = IdeIgniteArmHost.Seat;
+        if (string.IsNullOrWhiteSpace(igniteSeat))
+            igniteSeat = DurableHostPaths.DeriveIgniteSeat(workerExe) ?? igniteSeat;
+
         var life = new DurableLifecyclePayload
         {
             ProjectRoot = session.ProjectRoot,
@@ -328,10 +334,11 @@ internal static class IdeLifecycleJobs
             SolutionOrProjectPath = session.SolutionOrProjectPath,
             ProjectKind = session.ProjectKind,
             TsConfigPath = session.TsConfigPath,
-            WorkerExePath = Environment.ProcessPath,
-            IgniteSeat = IdeIgniteArmHost.Seat,
+            WorkerExePath = workerExe,
+            IgniteSeat = igniteSeat,
             ArgsJson = JsonSerializer.Serialize(args)
         };
+        PinDeployLifecycle(kind, life);
 
         var queued = DurableJobStore.EnqueueLifecycle(kind, igniteEvent, life, targetHint, armId, pretty);
         DurableJobSupervisorHost.TryEnsureRunning();
@@ -399,4 +406,42 @@ internal static class IdeLifecycleJobs
         => args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String
             ? el.GetString()
             : null;
+
+    internal static string? ResolveWorkerExePath()
+    {
+        var path = Environment.ProcessPath;
+        if (!string.IsNullOrWhiteSpace(path))
+            return path;
+
+        path = Process.GetCurrentProcess().MainModule?.FileName;
+        if (!string.IsNullOrWhiteSpace(path))
+            return path;
+
+        var bundled = Path.Combine(AppContext.BaseDirectory, "CdpMcp.exe");
+        return File.Exists(bundled) ? bundled : null;
+    }
+
+    static void PinDeployLifecycle(string kind, DurableLifecyclePayload life)
+    {
+        if (!kind.Equals("deploy", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var session = new SessionContext
+        {
+            ProjectRoot = life.ProjectRoot,
+            ScmRoot = life.ScmRoot,
+            SolutionOrProjectPath = life.SolutionOrProjectPath,
+            ProjectKind = life.ProjectKind,
+            TsConfigPath = life.TsConfigPath
+        };
+        var script = IdeDeploy.ResolveScript(session, null);
+        if (script is null)
+            return;
+
+        var cdpRoot = Path.GetDirectoryName(script)!;
+        life.ProjectRoot = cdpRoot;
+        life.ScmRoot = cdpRoot;
+        life.SolutionOrProjectPath = Path.Combine(cdpRoot, "CdpMcp.csproj");
+        life.ProjectKind = "csproj";
+    }
 }

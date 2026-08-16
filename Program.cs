@@ -14,6 +14,10 @@ using Tool = ModelContextProtocol.Protocol.Tool;
 
 IdeSeatProcessReclaim.Ensure();
 
+var notifyIdx = Array.IndexOf(args, "--ignite-notify");
+if (notifyIdx >= 0)
+    Environment.Exit(await IdeIgniteNotifyCli.RunAsync(args));
+
 var durableJobIdx = Array.IndexOf(args, "--durable-job");
 if (durableJobIdx >= 0 && durableJobIdx + 1 < args.Length)
 {

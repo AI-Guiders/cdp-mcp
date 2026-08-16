@@ -45,12 +45,12 @@ internal static class IdeDurableJobRunner
         {
             result = JsonSerializer.Serialize(new { ok = false, error = ex.Message });
             DurableJobStore.Finish(jobId, ok: false, result, ex.Message);
-            Notify(record, ok: false, ex.Message);
+            await NotifyAsync(record, ok: false, ex.Message).ConfigureAwait(false);
             return 1;
         }
 
         DurableJobStore.Finish(jobId, ok, result, ok ? null : "failed");
-        Notify(record, ok, ok ? record.Kind : "fail");
+        await NotifyAsync(record, ok, ok ? record.Kind : "fail").ConfigureAwait(false);
         return ok ? 0 : 1;
     }
 
@@ -63,13 +63,19 @@ internal static class IdeDurableJobRunner
             Environment.SetEnvironmentVariable("CDP_IGNITE_SEAT", seat);
     }
 
-    static void Notify(DurableJobRecord record, bool ok, string? detail)
+    static async Task NotifyAsync(DurableJobRecord record, bool ok, string? detail)
     {
         if (record.Lifecycle is not null)
             ApplyIgniteSeat(record.Lifecycle);
 
-        // Full AutoIgnition path: Composer CDT (not habitat/citizen latch).
+        IdeIgniteArmHost.EnsureStarted();
         IdeIgniteArmHost.Notify(record.IgniteEvent, ok, pulse: record.Kind, detail: detail);
+
+        if (!string.IsNullOrWhiteSpace(record.ArmId))
+            await IdeIgniteArmHost.WaitForArmDeliveryAsync(record.ArmId, TimeSpan.FromSeconds(120))
+                .ConfigureAwait(false);
+        else if (IdeIgniteArmHost.IsEventTriggeredArm(record.IgniteEvent))
+            await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
     }
 
     static SessionContext RestoreSession(DurableLifecyclePayload life) => new()
