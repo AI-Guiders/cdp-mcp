@@ -14,14 +14,14 @@ Three layers, one contract (`lifecycle_job/v0` + `shell_finished` / `build_finis
 - Poll: `cdp_lifecycle_last`, `cdp_lifecycle_scene`.
 - **Limit:** job dies with CDP process (remount, hard deploy KillRunning).
 
-### Layer 2 — Sibling terminal-mcp parity
+### Layer 2 — Sibling terminal-mcp parity ✅ shipped 0.1.8+
 
 - **Goal:** same `background` + `ignite_arm` on `terminal_run` / `terminal_rerun` when CDP is down or job must outlive CDP.
 - **Mechanism:** extract shared **`Cdp.Ignite.Client`** (wake latch + arm store + `Notify(event)`) from `IdeIgniteArmHost` / `IdeIgniteWakeLatch`; reference from `terminal-mcp` + `TerminalMcp.Core`.
 - **Wire:** `Program.cs` subscribe `ShellHabitat.Finished` → `shell_finished` notify (background only); auto-arm on `background=true` (mirror `IdeShellIgnite`).
 - **DoD:** Fremus mirror started via `terminal_*` survives CDP redeploy; wake fires without manual `cdp_ignite op=arm`.
 
-### Layer 3 — Out-of-process job supervisor
+### Layer 3 — Out-of-process job supervisor ✅ shipped 0.1.0+
 
 - **Goal:** durable queue survives MCP remount, CDP kill, Cursor restart (best-effort).
 - **Shape:** lightweight Windows tray / service (`agent-job-supervisor` or `TerminalMcp.Supervisor`) + SSOT `%LocalAppData%/cdp-mcp/jobs/` (jsonl + per-job state).
@@ -41,10 +41,10 @@ Not a fourth layer — harden transport:
 | Phase | Deliverable | Repo |
 |-------|-------------|------|
 | 1 | IdeLifecycleJobs + shell auto-arm | cdp-mcp ✅ |
-| 2a | `Cdp.Ignite.Client` extract | cdp-core or new package |
-| 2b | terminal-mcp ignite wire | terminal-mcp |
-| 3a | Job store + enqueue protocol | terminal-mcp-core |
-| 3b | Supervisor host + dogfood Fremus/deploy | terminal-mcp / new exe |
+| 2a | `Cdp.Ignite.Client` extract | cdp-ignite-client ✅ |
+| 2b | terminal-mcp ignite wire | terminal-mcp ✅ |
+| 3a | Job store + enqueue protocol | terminal-mcp-core ✅ |
+| 3b | Supervisor host + dogfood Fremus/deploy | terminal-mcp-supervisor ✅ |
 
 ## References
 
