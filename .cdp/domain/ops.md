@@ -24,6 +24,7 @@
 - `-Target debug` (relative) → lands in repo `cdp-mcp\debug\`, not seat `D:\cdp-mcp-debug` — health still lag; use absolute `D:\cdp-mcp-debug` or `cdp_deploy target=sibling|debug`.
 - Manual `Stop-Process` of same-seat pile while live MCP is among them (prefer remount after `IdeSeatProcessReclaim`; skip via `CDP_SKIP_SEAT_RECLAIM=1` only for intentional multi).
 - Immediate KillRunning on every `Not connected` when process may still be healthy — prefer `Recover-CdpSeatRemount.ps1 -SoftFirst` (nudge only), escalate to kill if still dead.
+- **Green flash then `Not connected` after deploy** — often Cursor MCP stdio zombie while `CdpMcp.exe` still runs; `Recover-CdpSeatRemount.ps1 -Seat cdp` (per-seat nudge). Use **cdp-debug** survivor during primary hard deploy.
 - Running `pwsh -File CdpReloadNudge.ps1 -Server cdp` expecting a bump — pre-entry the file was library-only (silent no-op). Use `-File` after entry ship, or `.` + `Invoke-CdpReloadNudge`.
 
 ## last_ship
