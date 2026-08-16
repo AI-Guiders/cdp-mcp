@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using Cdp.Ignite.Client;
 using TerminalMcp.Core;
 
 namespace CdpMcp;
@@ -20,6 +21,8 @@ internal static class IdeDurableJobRunner
             Console.Error.WriteLine($"[durable-job] not found or not lifecycle: {jobId}");
             return 2;
         }
+
+        ApplyIgniteSeat(record.Lifecycle);
 
         var session = RestoreSession(record.Lifecycle);
         var args = DeserializeArgs(record.Lifecycle.ArgsJson);
@@ -52,8 +55,24 @@ internal static class IdeDurableJobRunner
         return ok ? 0 : 1;
     }
 
+    internal static void ApplyIgniteSeat(DurableLifecyclePayload life)
+    {
+        var seat = life.IgniteSeat;
+        if (string.IsNullOrWhiteSpace(seat) && !string.IsNullOrWhiteSpace(life.WorkerExePath))
+            seat = IdeDeploy.ClassifySeat(Path.GetDirectoryName(Path.GetFullPath(life.WorkerExePath)));
+        if (!string.IsNullOrWhiteSpace(seat))
+            Environment.SetEnvironmentVariable("CDP_IGNITE_SEAT", seat);
+    }
+
     static void Notify(DurableJobRecord record, bool ok, string? detail)
     {
+        if (record.Lifecycle is not null)
+            ApplyIgniteSeat(record.Lifecycle);
+
+        // Out-of-proc worker may run a different install path than the arming seat — use shared store.
+        if (IgniteArmStore.Notify(record.IgniteEvent, ok, pulse: record.Kind, detail: detail) > 0)
+            return;
+
         IdeIgniteArmHost.Notify(record.IgniteEvent, ok, pulse: record.Kind, detail: detail);
     }
 

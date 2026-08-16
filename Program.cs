@@ -9,6 +9,7 @@ using CdpMcp.Backends;
 using CdpMcp.IntentWorkspace;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
+using TerminalMcp.Core;
 using Tool = ModelContextProtocol.Protocol.Tool;
 
 IdeSeatProcessReclaim.Ensure();
@@ -16,6 +17,9 @@ IdeSeatProcessReclaim.Ensure();
 var durableJobIdx = Array.IndexOf(args, "--durable-job");
 if (durableJobIdx >= 0 && durableJobIdx + 1 < args.Length)
 {
+    if (DurableJobStore.TryReadRecordPublic(args[durableJobIdx + 1], out var durableRec)
+        && durableRec.Lifecycle is { } life)
+        IdeDurableJobRunner.ApplyIgniteSeat(life);
     IdeIgniteArmHost.EnsureStarted();
     Environment.Exit(await IdeDurableJobRunner.RunAsync(args[durableJobIdx + 1]));
 }

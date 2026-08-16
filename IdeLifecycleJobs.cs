@@ -329,6 +329,7 @@ internal static class IdeLifecycleJobs
             ProjectKind = session.ProjectKind,
             TsConfigPath = session.TsConfigPath,
             WorkerExePath = Environment.ProcessPath,
+            IgniteSeat = IdeIgniteArmHost.Seat,
             ArgsJson = JsonSerializer.Serialize(args)
         };
 
