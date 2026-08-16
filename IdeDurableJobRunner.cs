@@ -1,7 +1,6 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
-using Cdp.Ignite.Client;
 using TerminalMcp.Core;
 
 namespace CdpMcp;
@@ -69,10 +68,7 @@ internal static class IdeDurableJobRunner
         if (record.Lifecycle is not null)
             ApplyIgniteSeat(record.Lifecycle);
 
-        // Out-of-proc worker may run a different install path than the arming seat — use shared store.
-        if (IgniteArmStore.Notify(record.IgniteEvent, ok, pulse: record.Kind, detail: detail) > 0)
-            return;
-
+        // Full AutoIgnition path: Composer CDT (not habitat/citizen latch).
         IdeIgniteArmHost.Notify(record.IgniteEvent, ok, pulse: record.Kind, detail: detail);
     }
 

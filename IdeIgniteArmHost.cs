@@ -30,12 +30,20 @@ internal static partial class IdeIgniteArmHost
     static int HostStarted;
     static CancellationTokenSource? HostCts;
 
-    public static string Seat { get; } = IdeDeploy.ClassifySeat(IdeDeploy.ResolveSelfInstallRoot());
+    static string ResolveSeat()
+    {
+        var fromEnv = Environment.GetEnvironmentVariable("CDP_IGNITE_SEAT")?.Trim();
+        if (!string.IsNullOrEmpty(fromEnv))
+            return fromEnv;
+        return IdeDeploy.ClassifySeat(IdeDeploy.ResolveSelfInstallRoot());
+    }
 
-    public static string StorePath { get; } = Path.Combine(
+    public static string Seat => ResolveSeat();
+
+    public static string StorePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "cdp-mcp",
-        Seat switch
+        ResolveSeat() switch
         {
             "cdp-debug" => "ignite-arms-cdp-debug.json",
             "cdp" => "ignite-arms-cdp.json",
