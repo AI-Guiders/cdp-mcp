@@ -107,7 +107,7 @@ internal static class IdeIgniteOomWatch
         CdtWasUp = false;
         CdtDownSinceUtc ??= DateTimeOffset.UtcNow;
         // Arm OOM wake immediately (reason=oom) so remount-empty HILD cannot steal with minimal Resume.
-        if (IdeIgniteArmHost.TryScheduleOomWake() is { } scheduled)
+        if (IdeIgniteArmHost.TryScheduleOomWake(lastError: "oom_dialog") is { } scheduled)
         {
             Interlocked.Increment(ref OomWakeScheduled);
             Interlocked.Exchange(ref OomWakeLastScheduleTicks, DateTime.UtcNow.Ticks);
@@ -165,10 +165,19 @@ internal static class IdeIgniteOomWatch
         IdeTeethTape.NoteGuest(null, cdtUp: true);
         IdeTeethTape.Record("cdt_edge", detail: "up", downMs: downMs);
 
+        if (!ShouldScheduleCdtEdgeOomWake())
+        {
+            var detail = !IdeOomWake.CdtEdgeEnabled
+                ? "oom_wake_suppressed_cdt_edge_off"
+                : "oom_wake_suppressed_remount";
+            IdeTeethTape.Record("cdt_edge", detail: detail, downMs: downMs);
+            return;
+        }
+
         if (InCooldown(OomWakeLastScheduleTicks, IdeOomWake.WakeCooldown))
             return;
 
-        if (IdeIgniteArmHost.TryScheduleOomWake() is not { } scheduled)
+        if (IdeIgniteArmHost.TryScheduleOomWake(lastError: "cdt_recovered_after_down") is not { } scheduled)
             return;
 
         Interlocked.Increment(ref OomWakeScheduled);
@@ -186,4 +195,10 @@ internal static class IdeIgniteOomWatch
         var elapsed = DateTime.UtcNow - new DateTime(lastTicks, DateTimeKind.Utc);
         return elapsed < cooldown;
     }
+
+    /// <summary>Test/diagnostic hook — CDT-edge OOM schedule allowed?</summary>
+    internal static bool ShouldScheduleCdtEdgeOomWake() =>
+        IdeOomWake.CdtEdgeEnabled
+        && !IdeRemountWake.HasAnyPending()
+        && !IdeIgniteArmHost.HasArmedRemountWake();
 }

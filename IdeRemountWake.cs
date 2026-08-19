@@ -44,6 +44,21 @@ internal static class IdeRemountWake
     public static bool HasPending(string? seat = null) =>
         File.Exists(PendingPathForSeat(NormalizeSeat(seat ?? IdeIgniteArmHost.Seat)));
 
+    /// <summary>True when any seat has unconsumed remount pending (suppress false OOM on deploy blips).</summary>
+    public static bool HasAnyPending()
+    {
+        if (!Directory.Exists(StateRoot))
+            return false;
+        try
+        {
+            return Directory.GetFiles(StateRoot, "remount-wake-*.pending.json").Length > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public static string NormalizeSeat(string? seat) =>
         (seat ?? "").Trim().ToLowerInvariant() switch
         {

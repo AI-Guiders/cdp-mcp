@@ -22,4 +22,12 @@ internal static class IdeOomWake
 
     /// <summary>Do not schedule another OOM wake sooner than this.</summary>
     public static TimeSpan WakeCooldown { get; set; } = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// CDT down→up edge scheduling (false positives on remount/deploy blips).
+    /// Set env <c>CDP_OOM_WAKE_CDT_EDGE=0</c> to disable; default on but suppressed when remount owns continuity.
+    /// Real OOM dialog tooth always schedules regardless.
+    /// </summary>
+    public static bool CdtEdgeEnabled =>
+        !string.Equals(Environment.GetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE"), "0", StringComparison.Ordinal);
 }

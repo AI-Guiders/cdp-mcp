@@ -246,7 +246,7 @@ internal static partial class IdeIgniteArmHost
                 && a.Status is "armed" or "firing");
     }
 
-    static bool HasArmedRemountWake()
+    internal static bool HasArmedRemountWake()
     {
         EnsureLoaded();
         lock (Gate)

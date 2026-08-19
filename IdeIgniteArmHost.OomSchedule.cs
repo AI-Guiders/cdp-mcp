@@ -9,7 +9,7 @@ namespace CdpMcp;
 internal static partial class IdeIgniteArmHost
 {
     /// <summary>Arm one-shot timer charge_mode=oom (system wake — not superseded).</summary>
-    internal static object? TryScheduleOomWake()
+    internal static object? TryScheduleOomWake(string lastError = "cdt_recovered_after_down")
     {
         // Dual-seat: only one process schedules within WakeCooldown.
         if (!IdeOomCrossProcessClaim.TryClaimSchedule(IdeOomWake.WakeCooldown))
@@ -52,7 +52,7 @@ internal static partial class IdeIgniteArmHost
                 InRaw = $"{dueSec}s",
                 Status = "armed",
                 CreatedUtc = now,
-                LastError = "cdt_recovered_after_down"
+                LastError = lastError
             };
             Arms.Add(arm);
             PersistUnlocked();
