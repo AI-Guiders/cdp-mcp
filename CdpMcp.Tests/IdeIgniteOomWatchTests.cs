@@ -39,6 +39,13 @@ public sealed class IdeIgniteOomWatchTests : IDisposable
     }
 
     [Fact]
+    public void ShouldScheduleCdtEdgeOomWake_false_by_default()
+    {
+        Environment.SetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE", null);
+        Assert.False(IdeIgniteOomWatch.ShouldScheduleCdtEdgeOomWake());
+    }
+
+    [Fact]
     public void ShouldScheduleCdtEdgeOomWake_false_when_cdt_edge_env_off()
     {
         Environment.SetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE", "0");
@@ -46,9 +53,9 @@ public sealed class IdeIgniteOomWatchTests : IDisposable
     }
 
     [Fact]
-    public void ShouldScheduleCdtEdgeOomWake_true_when_no_remount_and_edge_on()
+    public void ShouldScheduleCdtEdgeOomWake_true_when_edge_opt_in_and_no_remount()
     {
-        Environment.SetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE", null);
+        Environment.SetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE", "1");
         Assert.False(IdeRemountWake.HasPending("cdp"));
         Assert.True(IdeIgniteOomWatch.ShouldScheduleCdtEdgeOomWake());
     }

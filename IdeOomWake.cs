@@ -4,7 +4,8 @@ namespace CdpMcp;
 
 /// <summary>
 /// Cursor guest-host OOM ("Window terminated unexpectedly (reason: 'oom')") —
-/// tooth (native New Window) + AutoIgnition wake after CDT recovers.
+/// tooth (native Reopen dialog) + AutoIgnition wake on dialog evidence.
+/// CDT down→up alone is not OOM (false positives); legacy opt-in via env.
 /// </summary>
 internal static class IdeOomWake
 {
@@ -24,10 +25,10 @@ internal static class IdeOomWake
     public static TimeSpan WakeCooldown { get; set; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// CDT down→up edge scheduling (false positives on remount/deploy blips).
-    /// Set env <c>CDP_OOM_WAKE_CDT_EDGE=0</c> to disable; default on but suppressed when remount owns continuity.
-    /// Real OOM dialog tooth always schedules regardless.
+    /// Legacy CDT down→up → oom-wake (false positives on remount/reconnect blips).
+    /// Default off — real OOM = native dialog only. Opt-in: <c>CDP_OOM_WAKE_CDT_EDGE=1</c>.
+    /// When on, still suppressed while remount owns continuity.
     /// </summary>
     public static bool CdtEdgeEnabled =>
-        !string.Equals(Environment.GetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE"), "0", StringComparison.Ordinal);
+        string.Equals(Environment.GetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE"), "1", StringComparison.Ordinal);
 }

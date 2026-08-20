@@ -4,8 +4,8 @@ namespace CdpMcp;
 
 /// <summary>
 /// Always-on guest-host OOM tooth + wake:
-/// (1) native Cursor dialog reason=oom → click New Window;
-/// (2) CDT :9222 down→up edge after MinDown → schedule oom-wake arm.
+/// (1) native Cursor OOM dialog → Reopen + schedule oom-wake (real OOM);
+/// (2) optional CDT :9222 down→up edge — legacy false-positive path (env CDP_OOM_WAKE_CDT_EDGE=1).
 /// Starts from Program (not EnsureStarted) — same as HILD.
 /// Real type (not IdeIgniteArmHost.*.cs metric peel). Arm store stays on IdeIgniteArmHost.
 /// </summary>
@@ -167,10 +167,7 @@ internal static class IdeIgniteOomWatch
 
         if (!ShouldScheduleCdtEdgeOomWake())
         {
-            var detail = !IdeOomWake.CdtEdgeEnabled
-                ? "oom_wake_suppressed_cdt_edge_off"
-                : "oom_wake_suppressed_remount";
-            IdeTeethTape.Record("cdt_edge", detail: detail, downMs: downMs);
+            IdeTeethTape.Record("cdt_edge", detail: CdtEdgeSuppressDetail(), downMs: downMs);
             return;
         }
 
@@ -201,4 +198,11 @@ internal static class IdeIgniteOomWatch
         IdeOomWake.CdtEdgeEnabled
         && !IdeRemountWake.HasAnyPending()
         && !IdeIgniteArmHost.HasArmedRemountWake();
+
+    static string CdtEdgeSuppressDetail() =>
+        !IdeOomWake.CdtEdgeEnabled
+            ? "oom_wake_suppressed_cdt_edge_off"
+            : IdeRemountWake.HasAnyPending() || IdeIgniteArmHost.HasArmedRemountWake()
+                ? "oom_wake_suppressed_remount"
+                : "oom_wake_suppressed_cdt_edge";
 }
