@@ -49,9 +49,9 @@ enabled = true
 [dev.anui]
 enabled = true
 
-# Language axis — not a closed enum. Omit section → built-in defaults (csharp/typescript/python/delphi).
+# Language axis — not a closed enum. Omit section → built-in defaults (csharp/typescript/python/delphi/powershell).
 [languages]
-ids = ["csharp", "typescript", "python", "delphi"]
+ids = ["csharp", "typescript", "python", "delphi", "powershell"]
 
 [languages.aliases]
 cs = "csharp"
@@ -61,6 +61,9 @@ tsx = "typescript"
 py = "python"
 pas = "delphi"
 objectpascal = "delphi"
+ps1 = "powershell"
+pwsh = "powershell"
+ps = "powershell"
 
 [[languages.detect]]
 id = "csharp"
@@ -91,6 +94,18 @@ id = "python"
 kind = "pyproject"
 file_name = "pyproject.toml"
 priority = 40
+
+[[languages.detect]]
+id = "powershell"
+kind = "ps1"
+extension = ".ps1"
+priority = 50
+
+[[languages.detect]]
+id = "powershell"
+kind = "psm1"
+extension = ".psm1"
+priority = 51
 
 # LSP presets — commodity IDE verbs (definition/rename/codeAction…) for non-Roslyn languages.
 # Omit → built-in: basedpyright-langserver, fallback pyright-langserver (npm/pip on PATH).

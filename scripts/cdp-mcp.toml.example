@@ -52,4 +52,4 @@ enabled = true
 enabled = true
 
 [languages]
-ids = ["csharp", "typescript", "python", "delphi"]
+ids = ["csharp", "typescript", "python", "delphi", "powershell"]
