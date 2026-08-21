@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "cdp": {
+      "command": "D:\\cdp-mcp\\CdpMcpBridge.exe",
+      "args": [
+        "--config",
+        "D:/cdp-mcp/cdp-mcp.toml"
+      ],
+      "env": {
+        "CDP_MCP_TOOLSET": "0.4.0-session"
+      }
+    },
+    "cdp-debug": {
+      "command": "D:\\cdp-mcp-debug\\CdpMcpBridge.exe",
+      "args": [
+        "--config",
+        "D:/cdp-mcp-debug/cdp-mcp.toml"
+      ],
+      "env": {
+        "CDP_MCP_TOOLSET": "0.4.0-session"
+      }
+    }
+  },
+  "_comment": "ADR-0198: Cursor spawns thin bridge only. Durable substrate = D:\\cdp-service\\CdpService.exe (--service). Start via Start-CdpService.ps1 or publish-and-deploy -Mode hard."
+}

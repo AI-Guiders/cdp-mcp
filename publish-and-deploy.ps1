@@ -1,100 +1,63 @@
-# Publish Release (win-x64, self-contained) and mirror for Cursor MCP.
-# Run from an EXTERNAL terminal (Cursor Shell / WT) — not via cdp_shell_*:
-# hard mode KillRunning cannot terminate the MCP host from inside its own process tree.
+# Publish Release (win-x64, self-contained) — ADR-0198 sidecar layout.
+# Run from EXTERNAL terminal only (not cdp_shell_*).
 #
-# Modes:
-#   soft (default) — stage to <Target>.next WITHOUT killing live MCP; write
-#                    <Target>\cdp-pending-update.json so cdp_health.runtime.pending_update shows it.
-#   hard           — KillRunning + deploy to <Target>; clear pending; auto-bump
-#                    ~/.cursor/mcp.json CDP_RELOAD_NUDGE for THAT seat only (kj-1349)
-#                    unless -NoNudgeMcp. -NudgeAllSeats = legacy dual remount escape.
-#
-# Run:  cd ...\cdp-mcp  ;  .\publish-and-deploy.ps1
-#       .\publish-and-deploy.ps1 -Mode hard
-#       .\publish-and-deploy.ps1 -UseNuGet   # force AIGuiders.Cdp.* packages even if sibling csproj exist
-# Optional: -Target "D:\cdp-mcp" (release) or "D:\cdp-mcp-debug" (experimental spare).
-# Existing <Target>\cdp-mcp.toml is kept (template seeds only when missing).
+#   D:\cdp-service\   CdpService.exe — durable substrate (KillRunning target)
+#   D:\cdp-mcp\       CdpMcpBridge.exe — Cursor stdio child (cheap remount)
 [CmdletBinding()]
 param(
-    [string] $Target = "D:\cdp-mcp",
+    [string] $BridgeTarget = "D:\cdp-mcp",
+    [string] $ServiceTarget = "D:\cdp-service",
+    [string] $Target = "",
     [ValidateSet("soft", "hard")]
     [string] $Mode = "soft",
-    # Prefer NuGet for Cdp.Core / Cdp.ScriptableIde (ignore sibling ProjectReference).
-    # Other backends still need the monorepo until they have package fallbacks.
     [switch] $UseNuGet,
-    # Hard mode: skip auto CDP_RELOAD_NUDGE bump in ~/.cursor/mcp.json.
     [switch] $NoNudgeMcp,
-    # Escape: bump every CDP_RELOAD_NUDGE (pre-0.5.661 global thrash — avoid).
     [switch] $NudgeAllSeats
 )
 
+if ($Target) {
+    Write-Warning "-Target is deprecated; mapped to -BridgeTarget (ADR-0198)."
+    if (-not $PSBoundParameters.ContainsKey('BridgeTarget')) { $BridgeTarget = $Target }
+}
+
 $ErrorActionPreference = "Stop"
 $here = $PSScriptRoot
-$csproj = Join-Path $here "CdpMcp.csproj"
-if (-not (Test-Path -LiteralPath $csproj)) {
-    Write-Error "CdpMcp.csproj not found under $here"
-    exit 1
-}
+$serviceCsproj = Join-Path $here "CdpMcp.csproj"
+$bridgeCsproj = Join-Path $here "CdpMcpBridge\CdpMcpBridge.csproj"
+if (-not (Test-Path -LiteralPath $serviceCsproj)) { Write-Error "Missing $serviceCsproj"; exit 1 }
+if (-not (Test-Path -LiteralPath $bridgeCsproj)) { Write-Error "Missing $bridgeCsproj"; exit 1 }
 
 . (Join-Path $here "CdpReloadNudge.ps1")
 
-$deployRoot = if ($Mode -eq "soft") { "$Target.next" } else { $Target }
-$pendingMarker = Join-Path $Target "cdp-pending-update.json"
-$liveConfig = Join-Path $Target "cdp-mcp.toml"
-$configBackup = $null
-# aid-publish replaces the target tree — stash live toml before hard wipe.
-if ($Mode -eq "hard" -and (Test-Path -LiteralPath $liveConfig)) {
-    $configBackup = Join-Path $env:TEMP ("cdp-mcp-toml-" + [guid]::NewGuid().ToString("N") + ".toml")
-    Copy-Item -LiteralPath $liveConfig -Destination $configBackup -Force
-    Write-Host "Backed up live config: $liveConfig"
-}
-
-Push-Location $here
-try {
+function Publish-CdpProject {
+    param(
+        [string] $Project,
+        [string] $DeployRoot,
+        [switch] $KillRunning
+    )
     $publishArgs = @(
-        "-Project", $csproj,
-        "-Target", $deployRoot,
+        "-Project", $Project,
+        "-Target", $DeployRoot,
         "-Runtime", "win-x64",
         "-Configuration", "Release",
         "-SelfContained"
     )
-    if ($Mode -eq "hard") {
-        $publishArgs += "-KillRunning"
-    }
-    if ($UseNuGet) {
-        Write-Host "aid-publish -UseNuGet (/p:AidUseNuGet=true)"
-        $publishArgs += "-UseNuGet"
-    }
+    if ($KillRunning) { $publishArgs += "-KillRunning" }
+    if ($UseNuGet) { $publishArgs += "-UseNuGet" }
 
     if (Test-Path -LiteralPath (Join-Path $here ".config\dotnet-tools.json")) {
         & dotnet tool restore | Out-Null
         & dotnet aid-publish @publishArgs
     } else {
-        & aid-publish @publishArgs
+        & dotnet aid-publish @publishArgs
     }
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
 
-    $configSrc = Join-Path $here "config\cdp-mcp.toml"
-    if (-not (Test-Path -LiteralPath $configSrc)) {
-        Write-Error "Missing config template: $configSrc"
-        exit 1
-    }
-    $configDst = Join-Path $deployRoot "cdp-mcp.toml"
-    if ($configBackup -and (Test-Path -LiteralPath $configBackup)) {
-        Copy-Item -LiteralPath $configBackup -Destination $configDst -Force
-        Remove-Item -LiteralPath $configBackup -Force -ErrorAction SilentlyContinue
-        Write-Host "Restored live config: $configDst"
-    } elseif (Test-Path -LiteralPath $configDst) {
-        Write-Host "Keep existing config: $configDst (template not applied)"
-    } else {
-        Copy-Item -LiteralPath $configSrc -Destination $configDst -Force
-        Write-Host "Seeded config from template: $configDst"
-    }
-
-
-    # TypeScript LanguageService worker (Node) — side-by-side with CdpMcp.exe
+function Copy-TsWorker {
+    param([string] $DeployRoot)
     $workerSrc = Join-Path $here "..\typescript-lang\worker"
-    $workerDst = Join-Path $deployRoot "ts-worker"
+    $workerDst = Join-Path $DeployRoot "ts-worker"
     if (-not (Test-Path -LiteralPath (Join-Path $workerSrc "index.mjs"))) {
         Write-Error "Missing TS worker: $workerSrc\index.mjs"
         exit 1
@@ -105,95 +68,119 @@ try {
         try {
             & npm install --omit=dev
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-        } finally {
-            Pop-Location
-        }
+        } finally { Pop-Location }
     }
-    if (Test-Path -LiteralPath $workerDst) {
-        Remove-Item -LiteralPath $workerDst -Recurse -Force
-    }
+    if (Test-Path -LiteralPath $workerDst) { Remove-Item -LiteralPath $workerDst -Recurse -Force }
     Copy-Item -LiteralPath $workerSrc -Destination $workerDst -Recurse -Force
+}
 
-    $exe = Join-Path $deployRoot "CdpMcp.exe"
-    $liveExe = Join-Path $Target "CdpMcp.exe"
-    $exeJson = $liveExe.Replace('\', '\\')
-    $liveConfig = Join-Path $Target "cdp-mcp.toml"
-    $configJson = $liveConfig.Replace('\', '/')
+function Ensure-Config {
+    param(
+        [string] $DeployRoot,
+        [string] $LiveConfigPath,
+        [string] $ConfigBackup
+    )
+    $configSrc = Join-Path $here "config\cdp-mcp.toml"
+    if (-not (Test-Path -LiteralPath $configSrc)) { Write-Error "Missing config template: $configSrc"; exit 1 }
+    $configDst = Join-Path $DeployRoot "cdp-mcp.toml"
+    if ($ConfigBackup -and (Test-Path -LiteralPath $ConfigBackup)) {
+        Copy-Item -LiteralPath $ConfigBackup -Destination $configDst -Force
+        Remove-Item -LiteralPath $ConfigBackup -Force -ErrorAction SilentlyContinue
+        Write-Host "Restored live config: $configDst"
+    } elseif (Test-Path -LiteralPath $configDst) {
+        Write-Host "Keep existing config: $configDst"
+    } else {
+        Copy-Item -LiteralPath $configSrc -Destination $configDst -Force
+        Write-Host "Seeded config: $configDst"
+    }
+    return $configDst
+}
+
+$serviceDeployRoot = if ($Mode -eq "soft") { "$ServiceTarget.next" } else { $ServiceTarget }
+$bridgeDeployRoot = if ($Mode -eq "soft") { "$BridgeTarget.next" } else { $BridgeTarget }
+$pendingMarker = Join-Path $ServiceTarget "cdp-pending-update.json"
+$liveServiceConfig = Join-Path $ServiceTarget "cdp-mcp.toml"
+$liveBridgeConfig = Join-Path $BridgeTarget "cdp-mcp.toml"
+$configBackup = $null
+if ($Mode -eq "hard" -and (Test-Path -LiteralPath $liveServiceConfig)) {
+    $configBackup = Join-Path $env:TEMP ("cdp-mcp-toml-" + [guid]::NewGuid().ToString("N") + ".toml")
+    Copy-Item -LiteralPath $liveServiceConfig -Destination $configBackup -Force
+    Write-Host "Backed up live service config: $liveServiceConfig"
+}
+
+Push-Location $here
+try {
+    Write-Host "Publish CdpService → $serviceDeployRoot"
+    Publish-CdpProject -Project $serviceCsproj -DeployRoot $serviceDeployRoot -KillRunning:($Mode -eq "hard")
+    Copy-TsWorker -DeployRoot $serviceDeployRoot
+    $serviceExeSrc = Join-Path $serviceDeployRoot "CdpMcp.exe"
+    $serviceExeDst = Join-Path $serviceDeployRoot "CdpService.exe"
+    if (Test-Path -LiteralPath $serviceExeSrc) {
+        Copy-Item -LiteralPath $serviceExeSrc -Destination $serviceExeDst -Force
+    }
+    $serviceConfigDst = Ensure-Config -DeployRoot $serviceDeployRoot -LiveConfigPath $liveServiceConfig -ConfigBackup $configBackup
+
+    Write-Host "Publish CdpMcpBridge → $bridgeDeployRoot"
+    New-Item -ItemType Directory -Force -Path $bridgeDeployRoot | Out-Null
+    Publish-CdpProject -Project $bridgeCsproj -DeployRoot $bridgeDeployRoot
+    if (Test-Path -LiteralPath $liveBridgeConfig) {
+        Copy-Item -LiteralPath $liveBridgeConfig -Destination (Join-Path $bridgeDeployRoot "cdp-mcp.toml") -Force
+    } else {
+        Copy-Item -LiteralPath $serviceConfigDst -Destination (Join-Path $bridgeDeployRoot "cdp-mcp.toml") -Force
+    }
+
+    $bridgeExe = Join-Path $bridgeDeployRoot "CdpMcpBridge.exe"
+    $liveBridgeExe = Join-Path $BridgeTarget "CdpMcpBridge.exe"
+    $bridgeExeJson = $liveBridgeExe.Replace('\', '\\')
+    $bridgeConfigJson = $liveBridgeConfig.Replace('\', '/')
 
     if ($Mode -eq "soft") {
-        New-Item -ItemType Directory -Force -Path $Target | Out-Null
+        New-Item -ItemType Directory -Force -Path $ServiceTarget | Out-Null
         $ver = $null
-        try {
-            $ver = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($exe).FileVersion
-        } catch { }
+        try { $ver = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($serviceExeDst).FileVersion } catch { }
         $pending = [ordered]@{
-            schema         = "cdp_pending_update/v0"
-            mode           = "soft"
-            staged_at_utc  = (Get-Date).ToUniversalTime().ToString("o")
-            staged_root    = $deployRoot
-            staged_exe     = $exe
-            version        = $ver
-            apply_hint     = "From external terminal: .\publish-and-deploy.ps1 -Mode hard  (or copy $deployRoot → $Target), then Reload CDP MCP in Cursor."
+            schema        = "cdp_pending_update/v0"
+            mode          = "soft"
+            staged_at_utc = (Get-Date).ToUniversalTime().ToString("o")
+            service_root  = $serviceDeployRoot
+            bridge_root   = $bridgeDeployRoot
+            version       = $ver
+            apply_hint    = ".\publish-and-deploy.ps1 -Mode hard"
         }
         ($pending | ConvertTo-Json -Depth 5) | Set-Content -LiteralPath $pendingMarker -Encoding utf8
-        Write-Host ""
-        Write-Host "SOFT staged: $exe"
-        Write-Host "Pending:    $pendingMarker"
-        Write-Host "Live still: $liveExe (Reload not required yet; cdp_health.runtime.pending_update shows stage)"
-        Write-Host "Apply:      .\publish-and-deploy.ps1 -Mode hard"
+        Write-Host "SOFT staged service: $serviceDeployRoot"
+        Write-Host "SOFT staged bridge:  $bridgeDeployRoot"
+        Write-Host "Pending: $pendingMarker"
     } else {
-        if (Test-Path -LiteralPath $pendingMarker) {
-            Remove-Item -LiteralPath $pendingMarker -Force
-        }
-        Write-Host ""
-        Write-Host "HARD deployed: $exe"
-        Write-Host "Config:        $configDst"
-        Write-Host "Pending cleared."
+        if (Test-Path -LiteralPath $pendingMarker) { Remove-Item -LiteralPath $pendingMarker -Force }
+        Write-Host "HARD deployed service: $serviceExeDst"
+        Write-Host "HARD deployed bridge:  $bridgeExe"
 
-        $wakeSeat = $null
-        try {
-            $wake = Write-CdpRemountWakePending -TargetRoot $Target -Reason 'hard_deploy'
-            $wakeSeat = $wake.Seat
-            Write-Host "Remount wake:  $($wake.Path) seat=$($wake.Seat)"
-        } catch {
-            Write-Host "Remount wake:  failed — $($_.Exception.Message)"
-            $wakeSeat = Resolve-CdpRemountSeatName -TargetRoot $Target
-        }
+        & (Join-Path $here "Start-CdpService.ps1") -Target $ServiceTarget -Config $serviceConfigDst
 
         if (-not $NoNudgeMcp) {
             try {
-                $server = Resolve-CdpMcpServerName -Seat $wakeSeat -TargetRoot $Target
-                if ($NudgeAllSeats) {
-                    $nudge = Invoke-CdpReloadNudge -AllSeats
-                } elseif ($server) {
-                    $nudge = Invoke-CdpReloadNudge -Server $server
-                } else {
-                    $nudge = @{ Ok = $false; Error = "unknown seat for Target=$Target (pass -NudgeAllSeats escape)" }
-                }
+                $nudge = if ($NudgeAllSeats) { Invoke-CdpReloadNudge -AllSeats } else { Invoke-CdpReloadNudge -Server "cdp" }
                 if ($nudge.Ok) {
-                    $who = if ($nudge.Servers) { ($nudge.Servers -join ',') } else { '?' }
-                    Write-Host "MCP nudge:     $($nudge.Path) seat=$who CDP_RELOAD_NUDGE=$($nudge.Value) (×$($nudge.Count))"
+                    Write-Host "MCP nudge (bridge): $($nudge.Path) CDP_RELOAD_NUDGE=$($nudge.Value)"
                 } else {
-                    Write-Host "MCP nudge:     skipped — $($nudge.Error) (human Reload fallback)"
+                    Write-Host "MCP nudge skipped: $($nudge.Error)"
                 }
             } catch {
-                Write-Host "MCP nudge:     failed — $($_.Exception.Message) (human Reload fallback)"
+                Write-Host "MCP nudge failed: $($_.Exception.Message)"
             }
-        } else {
-            Write-Host "MCP nudge:     skipped (-NoNudgeMcp). Toggle/reload MCP in Cursor if disconnected."
         }
     }
 
     Write-Host ""
-    Write-Host "Cursor MCP (live path):"
+    Write-Host "Cursor MCP (bridge — ADR-0198):"
     Write-Host @"
   "cdp": {
-    "command": "$exeJson",
-    "args": ["--config", "$configJson"],
+    "command": "$bridgeExeJson",
+    "args": ["--config", "$bridgeConfigJson"],
     "env": { "CDP_MCP_TOOLSET": "0.4.0-session" }
   }
 "@
 } finally {
     Pop-Location
 }
-

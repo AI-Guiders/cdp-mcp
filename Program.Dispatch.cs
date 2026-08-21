@@ -108,7 +108,7 @@ internal sealed class ProgramHostDeps
     public required IntentWorkspaceState WorkspaceState { get; init; }
     public required string WorkspaceDbPath { get; init; }
     public McpServer? ServerRef { get; set; }
-    public required Action NotifyListChanged { get; init; }
+    public Action NotifyListChanged { get; set; } = static () => { };
     public required Action EnsureOpenRecentWired { get; init; }
     public required Action EnsureWorkspaceDb { get; init; }
     public required Func<List<Tool>> BuildVisibleTools { get; init; }

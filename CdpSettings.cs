@@ -16,6 +16,7 @@ internal sealed partial class CdpSettings
     public IReadOnlyList<LspLaunchPreset> LspPresets { get; init; } = LspLaunchPreset.BuiltInDefaults;
     public IntentWorkspaceSettings IntentWorkspace { get; init; } = new();
     public CockpitHostSettings CockpitHost { get; init; } = new();
+    public CdpServiceSettings Service { get; init; } = new();
     public VendorCatalogOptions Vendor { get; init; } = VendorCatalog.CreateBuiltInDefaults();
 
     /// <summary>worlds + META + "." knowledge-root hub (SHOWCASE.md, index-*.md).</summary>
@@ -40,6 +41,7 @@ internal sealed partial class CdpSettings
         var dev = doc.Dev ?? new CdpTomlDev();
         var intentWs = doc.IntentWorkspace ?? new CdpTomlIntentWorkspace();
         var cockpitHost = doc.CockpitHost ?? new CdpTomlCockpitHost();
+        var service = doc.Service ?? new CdpTomlService();
 
         return new CdpSettings
         {
@@ -79,6 +81,13 @@ internal sealed partial class CdpSettings
             {
                 Exe = string.IsNullOrWhiteSpace(cockpitHost.Exe) ? null : cockpitHost.Exe.Trim()
             },
+            Service = new CdpServiceSettings
+            {
+                Enabled = service.Enabled ?? true,
+                Bind = string.IsNullOrWhiteSpace(service.Bind) ? "127.0.0.1" : service.Bind.Trim(),
+                Port = service.Port is > 0 and < 65536 ? service.Port.Value : 8771,
+                TokenPath = string.IsNullOrWhiteSpace(service.TokenPath) ? null : service.TokenPath.Trim()
+            },
             Vendor = VendorCatalog.CreateBuiltInDefaults()
         };
     }
@@ -93,6 +102,15 @@ internal sealed partial class CdpSettings
         public CdpTomlLanguages? Languages { get; set; }
         public CdpTomlIntentWorkspace? IntentWorkspace { get; set; }
         public CdpTomlCockpitHost? CockpitHost { get; set; }
+        public CdpTomlService? Service { get; set; }
+    }
+
+    private sealed class CdpTomlService
+    {
+        public bool? Enabled { get; set; }
+        public string? Bind { get; set; }
+        public int? Port { get; set; }
+        public string? TokenPath { get; set; }
     }
 
     private sealed class CdpTomlCockpitHost
