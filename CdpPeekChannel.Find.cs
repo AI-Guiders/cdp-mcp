@@ -20,6 +20,8 @@ internal static partial class CdpPeekChannel
                 "Call via MCP host; query= mode needs rg + session.");
         }
 
+        var bindNote = TryLazyBindForFind(session, langs, args);
+
         var findArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         foreach (var kv in args)
         {
@@ -32,6 +34,17 @@ internal static partial class CdpPeekChannel
         findArgs["peek"] = JsonSerializer.SerializeToElement(false);
         if (!findArgs.ContainsKey("scope"))
             findArgs["scope"] = JsonSerializer.SerializeToElement("project");
+
+        var regexApplied = ShouldInferFindRegex(query, args);
+        if (regexApplied)
+            findArgs["regex"] = JsonSerializer.SerializeToElement(true);
+        else if (BoolOr(args, "regex", defaultValue: false))
+            regexApplied = true;
+
+        var rawGlob = Opt(args, "glob") ?? Opt(args, "g");
+        var normalizedGlob = NormalizeFindGlob(rawGlob);
+        if (normalizedGlob is { Length: > 0 })
+            findArgs["glob"] = JsonSerializer.SerializeToElement(normalizedGlob);
 
         var max = Math.Clamp(IntOr(args, "max") ?? IntOr(args, "head_limit") ?? 5, 1, 20);
         findArgs["max"] = JsonSerializer.SerializeToElement(max);
@@ -90,6 +103,10 @@ internal static partial class CdpPeekChannel
             }
         }
 
+        var zeroHint = windows.Count == 0
+            ? BuildFindZeroHint(query, args, session, normalizedGlob, regexApplied)
+            : null;
+
         return new
         {
             schema = SchemaVersion,
@@ -97,10 +114,16 @@ internal static partial class CdpPeekChannel
             tool = ToolName,
             mode = "find",
             query,
+            regex = regexApplied,
+            glob = normalizedGlob,
+            bind = bindNote,
             scope = root.TryGetProperty("scope", out var sc) ? sc.GetString() : null,
             count = windows.Count,
             windows,
-            hint = "Pick anchor → cdp_edit_sniper or cdp_buffer op=edit. More hits: raise max= or cdp_search shape=list."
+            hint = windows.Count > 0
+                ? "Pick anchor → cdp_edit_sniper or cdp_buffer op=edit. More hits: raise max= or cdp_search shape=list."
+                : zeroHint,
+            find = windows.Count == 0 ? JsonSerializer.Deserialize<object>(json) : null
         };
     }
 }

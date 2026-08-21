@@ -162,4 +162,88 @@ public class CdpPeekChannelTests : IDisposable
         var tool = MetaToolCatalog.Build().Single(t => t.Name == "cdp_peek");
         Assert.Contains("ADR-0201", tool.Description);
     }
+
+    [Fact]
+    public void Find_alternation_auto_regex()
+    {
+        var file = Path.Combine(_root, "src", "FindAlt.cs");
+        Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+        File.WriteAllText(file, "class Alpha {}\nclass Beta {}\n");
+
+        var store = new DocumentBufferStore();
+        var json = CdpPeekChannel.HandleJson(_session, LanguageRegistry.Default, store,
+            new Dictionary<string, JsonElement>
+            {
+                ["query"] = JsonSerializer.SerializeToElement("Alpha|Beta"),
+                ["glob"] = JsonSerializer.SerializeToElement("*.cs"),
+                ["max"] = JsonSerializer.SerializeToElement(5)
+            });
+
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        Assert.True(root.GetProperty("ok").GetBoolean(), json);
+        Assert.Equal("find", root.GetProperty("mode").GetString());
+        Assert.True(root.GetProperty("regex").GetBoolean());
+        Assert.True(root.GetProperty("count").GetInt32() >= 1, json);
+    }
+
+    [Fact]
+    public void Find_bare_filename_glob_normalized()
+    {
+        var file = Path.Combine(_root, "nested", "Target.cs");
+        Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+        File.WriteAllText(file, "needle-in-nested-target\n");
+
+        var store = new DocumentBufferStore();
+        var json = CdpPeekChannel.HandleJson(_session, LanguageRegistry.Default, store,
+            new Dictionary<string, JsonElement>
+            {
+                ["query"] = JsonSerializer.SerializeToElement("needle-in-nested-target"),
+                ["glob"] = JsonSerializer.SerializeToElement("Target.cs"),
+                ["max"] = JsonSerializer.SerializeToElement(3)
+            });
+
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        Assert.True(root.GetProperty("ok").GetBoolean(), json);
+        Assert.Equal("**/Target.cs", root.GetProperty("glob").GetString());
+        Assert.True(root.GetProperty("count").GetInt32() >= 1, json);
+    }
+
+    [Fact]
+    public void Find_lazy_bind_from_path()
+    {
+        var outer = Directory.CreateTempSubdirectory("cdp-peek-find-bind-");
+        try
+        {
+            var proj = Path.Combine(outer.FullName, "proj");
+            Directory.CreateDirectory(proj);
+            File.WriteAllText(Path.Combine(proj, "App.csproj"), "<Project Sdk=\"Microsoft.NET.Sdk\" />");
+            var src = Path.Combine(proj, "src", "Worker.cs");
+            Directory.CreateDirectory(Path.GetDirectoryName(src)!);
+            File.WriteAllText(src, "class Worker { const string Token = \"lazy-find-token\"; }\n");
+
+            var session = new SessionContext();
+            var store = new DocumentBufferStore();
+            var json = CdpPeekChannel.HandleJson(session, LanguageRegistry.Default, store,
+                new Dictionary<string, JsonElement>
+                {
+                    ["query"] = JsonSerializer.SerializeToElement("lazy-find-token"),
+                    ["path"] = JsonSerializer.SerializeToElement(proj),
+                    ["glob"] = JsonSerializer.SerializeToElement("*.cs"),
+                    ["max"] = JsonSerializer.SerializeToElement(3)
+                });
+
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            Assert.True(root.GetProperty("ok").GetBoolean(), json);
+            Assert.NotNull(session.ProjectRoot);
+            Assert.Contains("lazy_bind", root.GetProperty("bind").GetString() ?? "", StringComparison.OrdinalIgnoreCase);
+            Assert.True(root.GetProperty("count").GetInt32() >= 1, json);
+        }
+        finally
+        {
+            TryDelete(outer.FullName);
+        }
+    }
 }
