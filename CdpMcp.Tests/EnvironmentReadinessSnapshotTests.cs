@@ -5,7 +5,7 @@ using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness;
 using AIGuiders.Platform.Cockpit.DataBus;
 using Cdp.Core;
 using CdpMcp.Cockpit.DataBus;
-using CdpMcp.Cockpit.DataAcquisition;
+using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness.DataAcquisition;
 using CdpMcp.Cockpit.EnvironmentReadiness;
 using Xunit;
 

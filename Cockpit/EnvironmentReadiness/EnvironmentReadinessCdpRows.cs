@@ -1,5 +1,7 @@
 #nullable enable
 
+using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness;
+using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness.ComputingUnits;
 using AIGuiders.Platform.Cockpit.Channels.Primitives;
 using Cdp.Core;
 
@@ -127,5 +129,5 @@ internal static class EnvironmentReadinessCdpRows
             EnvironmentReadinessCellIdsCdp.CdpSection,
             "CDP habitat",
             children,
-            LampShortLabel: "CDP");
+            lampShortLabel: "CDP");
 }

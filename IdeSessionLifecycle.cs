@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Cockpit.DataBus;
 
 namespace CdpMcp;
 
@@ -135,7 +136,14 @@ internal static partial class IdeSessionLifecycle
         return dict;
     }
 
-    public static async Task<string> BuildAsync(
+    public static Task<string> BuildAsync(
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args,
+        ICdpBackendModule? buildMod,
+        CancellationToken ct) =>
+        LifecycleDataBusBridge.WithBuildStateAsync(() => BuildCoreAsync(session, args, buildMod, ct));
+
+    static async Task<string> BuildCoreAsync(
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args,
         ICdpBackendModule? buildMod,
@@ -171,7 +179,14 @@ internal static partial class IdeSessionLifecycle
         return result;
     }
 
-    public static async Task<string> TestAsync(
+    public static Task<string> TestAsync(
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args,
+        ICdpBackendModule? buildMod,
+        CancellationToken ct) =>
+        LifecycleDataBusBridge.WithTestStateAsync(() => TestCoreAsync(session, args, buildMod, ct));
+
+    static async Task<string> TestCoreAsync(
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args,
         ICdpBackendModule? buildMod,

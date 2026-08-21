@@ -1,14 +1,16 @@
 #nullable enable
 
 using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness;
+using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness.ComputingUnits;
+using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness.DataAcquisition;
 using AIGuiders.Platform.Cockpit.Channels.Primitives;
 using AIGuiders.Platform.Cockpit.DataBus;
-using CdpMcp.Cockpit.DataAcquisition;
 using CdpMcp.Cockpit.DataBus;
+using Cdp.Core;
 
 namespace CdpMcp.Cockpit.EnvironmentReadiness;
 
-/// <summary>Headless ER snapshot: CIDE quarry + CDP habitat rows (ADR-0002).</summary>
+/// <summary>Headless ER snapshot: platform W4 kit + CDP habitat rows (ADR-0002).</summary>
 internal static class EnvironmentReadinessSnapshotBuilder
 {
     public readonly record struct Input(
@@ -22,28 +24,26 @@ internal static class EnvironmentReadinessSnapshotBuilder
         CancellationToken cancellationToken = default)
     {
         var ctx = input.Channel;
-        var env = EnvironmentReadinessEnvSnapshot.FromProcess(ctx.Settings.AgentNotesConfigPath);
-        var agent = EnvironmentReadinessLampRows.BuildAgentRow(ctx.IsMcpStdioHost, ctx.ActiveAiProvider);
-        var envRows = EnvironmentReadinessLampRows.BuildEnvProbeRows(env, ctx.Settings.AgentNotesConfigPath);
-        var lspRows = EnvironmentReadinessLampRows.BuildLspRows(input.Dev, ctx.Lsp);
-        var dotnet = await EnvironmentReadinessLampRows.ProbeDotnetAsync(cancellationToken).ConfigureAwait(false);
+        var csharp = new EnvironmentReadinessCSharpProbeOptions(
+            input.Dev.Roslyn.Enabled,
+            "CDP: диагностика C# через in-process Roslyn (cdp_health backends). Внешний csharp-ls не обязателен.");
 
-        var devDetails = new List<AnnunciatorLampItem>(1 + lspRows.Count + 1) { agent };
-        devDetails.AddRange(lspRows);
-        devDetails.Add(dotnet);
+        var core = await EnvironmentReadinessSnapshotUnit.BuildCoreAsync(
+            new EnvironmentReadinessSnapshotUnit.Input(
+                ctx,
+                csharp,
+                "Не задан: укажи memory.notes_config в cdp-mcp.toml (тот же файл, что --config в mcp.json)."),
+            cancellationToken).ConfigureAwait(false);
 
         var cdpDetails = EnvironmentReadinessCdpRows.Build(input.Dev, input.CockpitHost, input.Service);
-
-        var rows = new List<AnnunciatorLampItem>(devDetails.Count + envRows.Count + cdpDetails.Count + 4);
-        rows.Add(EnvironmentReadinessLampRows.BuildDevToolsSectionRow(devDetails));
-        rows.AddRange(devDetails);
-        rows.Add(EnvironmentReadinessLampRows.BuildEnvSectionRow(envRows));
-        rows.AddRange(envRows);
-        rows.Add(EnvironmentReadinessCdpRows.BuildCdpSectionRow(cdpDetails));
-        rows.AddRange(cdpDetails);
+        var extension = new List<AnnunciatorLampItem>(cdpDetails.Count + 1)
+        {
+            EnvironmentReadinessCdpRows.BuildCdpSectionRow(cdpDetails),
+        };
+        extension.AddRange(cdpDetails);
 
         PublishLspState(ctx.Lsp);
-        return new EnvironmentReadinessSnapshot(rows);
+        return EnvironmentReadinessSnapshotUnit.MergeExtension(core, extension);
     }
 
     static void PublishLspState(IdeHostStateChanged lsp)
