@@ -34,7 +34,8 @@ internal static class ExploreCorrNoAdr
             abs = Path.IsPathRooted(pathArg)
                 ? Path.GetFullPath(pathArg)
                 : Path.GetFullPath(Path.Combine(
-                    session.ScmRoot ?? session.ProjectRoot ?? Directory.GetCurrentDirectory(),
+                    // Prefer project root over scm root (scm root can remain stale after switching).
+                    session.ProjectRoot ?? session.ScmRoot ?? Directory.GetCurrentDirectory(),
                     pathArg));
         }
         else if (store.All.FirstOrDefault() is { Path.Length: > 0 } doc)
@@ -52,7 +53,8 @@ internal static class ExploreCorrNoAdr
             }, Pretty);
         }
 
-        var rootHint = session.ScmRoot ?? session.ProjectRoot;
+        // Prefer the active project root for resolving correspondence relative paths.
+        var rootHint = session.ProjectRoot ?? session.ScmRoot;
         var ws = ExploreCorrLatch.FindWorkspaceRoot(abs, rootHint)
                  ?? rootHint
                  ?? Path.GetDirectoryName(abs)

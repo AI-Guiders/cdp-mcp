@@ -19,7 +19,10 @@ internal static class Correspondence
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        var rootHint = session.ScmRoot ?? session.ProjectRoot;
+        // Prefer the active "project root" over "scm root".
+        // In practice, scm root can be stale when switching projects during the same session,
+        // which breaks relative path resolution for correspondence.
+        var rootHint = session.ProjectRoot ?? session.ScmRoot;
         var pathArg = OptString(args, "path") ?? OptString(args, "file");
         var wire = OptString(args, "anchor") ?? OptString(args, "from") ?? OptString(args, "at");
 
@@ -146,7 +149,8 @@ internal static class Correspondence
     {
         if (Path.IsPathRooted(pathArg))
             return Path.GetFullPath(pathArg);
-        var root = session.ScmRoot ?? session.ProjectRoot ?? Directory.GetCurrentDirectory();
+        // Same precedence as above: project root first, scm root second.
+        var root = session.ProjectRoot ?? session.ScmRoot ?? Directory.GetCurrentDirectory();
         return Path.GetFullPath(Path.Combine(root, pathArg));
     }
 
