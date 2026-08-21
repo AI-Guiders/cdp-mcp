@@ -100,7 +100,15 @@ internal static class CdpServiceHost
 
         app.MapGet("/api/v1/cdp/capabilities", (CdpHostRuntime rt) => Results.Json(new
         {
-            tools = rt.ListTools().Select(t => new { name = t.Name, description = t.Description }).ToArray()
+            // Bridge ListTools needs inputSchema — name/description alone yields empty schemas in Cursor.
+            tools = rt.ListTools().Select(t => new
+            {
+                name = t.Name,
+                description = t.Description,
+                inputSchema = t.InputSchema.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
+                    ? JsonSerializer.SerializeToElement(new { type = "object", properties = new { } })
+                    : t.InputSchema
+            }).ToArray()
         }));
 
         app.MapPost("/api/v1/cdp/invoke", async (

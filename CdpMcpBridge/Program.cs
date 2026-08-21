@@ -57,7 +57,10 @@ var options = new McpServerOptions
                     .Select(t => new Tool
                     {
                         Name = t.Name,
-                        Description = t.Description
+                        Description = t.Description,
+                        InputSchema = t.InputSchema.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
+                            ? JsonSerializer.SerializeToElement(new { type = "object", properties = new { } })
+                            : t.InputSchema
                     })
                     .ToList();
                 return new ListToolsResult { Tools = tools };
@@ -155,6 +158,7 @@ internal sealed class CdpCapabilityTool
 {
     public string Name { get; set; } = "";
     public string? Description { get; set; }
+    public JsonElement InputSchema { get; set; }
 }
 
 internal sealed class CdpInvokeRequest
