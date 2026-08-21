@@ -191,6 +191,15 @@ internal static partial class MetaToolCatalog
                 persist = new { type = "boolean", description = "scan: write cache (default true)" }
             }
         }),
+    Meta("cdp_env_readiness", "Environment Readiness soft desk — installed/running/PATH/agent-notes/CDP backends. CIDE quarry rows + CDP habitat (Roslyn, seat, freshness). op=scene|pulse|rows|scan. Alias go=env|environment|environment_readiness.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|pulse|rows|scan" },
+            }
+        }),
     Meta("cdp_rules", "Healthy-agent standing rules [A] from .cdp/rules/*.md (ε body, dig/parallel, not biped). op=scene|pulse|list|card. Alias go=rules|standing. Remount Autoi appends Standing appendix. Not eQRH; not Cursor alwaysApply dump.",
         new
         {
