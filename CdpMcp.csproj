@@ -9,9 +9,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.730</Version>
+    <Version>0.5.731</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
+    <GuidersPlatformRoot Condition="'$(GuidersPlatformRoot)' == ''">..\guiders-platform</GuidersPlatformRoot>
+    <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == '' AND '$(AidUseNuGet)' != 'true' AND Exists('$(GuidersPlatformRoot)\AIGuiders.Platform.sln')">true</UseLocalGuidersPlatform>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -49,19 +51,28 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
     <PackageReference Include="OutWit.Database.EntityFramework" Version="14.0.1" />
     <PackageReference Include="AIGuiders.WebcamMcp.Shared" Version="0.1.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Abstractions" Version="0.3.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Ids" Version="0.3.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.DataBus" Version="0.3.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Transport" Version="0.3.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Channels" Version="0.3.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Composition" Version="0.3.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Cds" Version="0.3.0" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Abstractions" Version="0.3.3" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Ids" Version="0.3.3" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.DataBus" Version="0.3.3" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Transport" Version="0.3.3" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Channels" Version="0.3.3" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Composition" Version="0.3.3" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Cds" Version="0.3.3" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260225" />
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260225" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.3" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Whisper.net" Version="1.9.0" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.9.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalGuidersPlatform)' == 'true'">
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Abstractions\AIGuiders.Platform.Cockpit.Abstractions.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Ids\AIGuiders.Platform.Cockpit.Ids.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.DataBus\AIGuiders.Platform.Cockpit.DataBus.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Transport\AIGuiders.Platform.Cockpit.Transport.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Channels\AIGuiders.Platform.Cockpit.Channels.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Composition\AIGuiders.Platform.Cockpit.Composition.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Cds\AIGuiders.Platform.Cockpit.Cds.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\cdp-core\Cdp.Core.csproj" Condition="'$(AidUseNuGet)' != 'true' AND Exists('..\cdp-core\Cdp.Core.csproj')" />

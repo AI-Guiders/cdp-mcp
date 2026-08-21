@@ -200,6 +200,15 @@ internal static partial class MetaToolCatalog
                 op = new { type = "string", description = "scene|pulse|rows|scan" },
             }
         }),
+    Meta("cdp_ide_health", "IDE Health soft desk — build/tests/debug/git strip fold (platform CCU quarry). op=scene|pulse|segments. Alias go=ide_health|workspace_health|wh.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "scene|pulse|segments|strip" },
+            }
+        }),
     Meta("cdp_rules", "Healthy-agent standing rules [A] from .cdp/rules/*.md (ε body, dig/parallel, not biped). op=scene|pulse|list|card. Alias go=rules|standing. Remount Autoi appends Standing appendix. Not eQRH; not Cursor alwaysApply dump.",
         new
         {

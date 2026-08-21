@@ -26,6 +26,7 @@
 
 ## last_ship
 
+- **2026-08-22 IdeHealth CCU W3 (0.5.731 / platform 0.3.3)** — `cdp_ide_health` soft desk: platform `IdeHealthSnapshotUnit` + `IdeHealthOutputComposer` · CDP `IdeHealthDeskProbe` (git/test/debug/LSP latches) · go=`ide_health|wh|workspace_health` · tests IdeHealthSnapshotTests **2/2** · platform IdeHealthCcuTests **3/3**.
 - 2026-08-04: VisualAttentionAxB webcam verify green (P plan-LATEST · F Autoi compact · M gitignore) — Glass Done human-flight attention leaf closed; next sealed = Citizen Done.
 - 2026-08-04: live dogfood — `cdp_cockpit_host op=start` after down/agent-only; dual-cockpit · ICM bound · Intercom send visible path. Invariant: Glass Done human flight requires `gui_host=up` — agent-only ≠ Done.
 - 2026-08-03: cockpit_host toml mtime refresh + Start path= stamp — rediscover stays on Glass without remount · `36b5355` · Glass cabin crash fixed cascade-ide `5ffc45f2`
