@@ -92,6 +92,43 @@ internal sealed partial class LspOptionsToolkit
 
     static ServerRow ProbePreset(LspLaunchPreset preset, string searchQuery)
     {
+        if (preset.Id.Equals("powershell", StringComparison.OrdinalIgnoreCase))
+        {
+            if (Ps1EditorServices.TryProbe(out var doc) && doc is not null)
+            {
+                using (doc)
+                {
+                    var source = doc.RootElement.TryGetProperty("source", out var s) ? s.GetString() : null;
+                    var module = doc.RootElement.TryGetProperty("module", out var m) ? m.GetString() : null;
+                    try
+                    {
+                        var resolved = LspCommandResolver.Resolve(preset);
+                        return new ServerRow(
+                            preset.Id,
+                            true,
+                            preset.Command,
+                            resolved.Display + " · PSES:" + source,
+                            module,
+                            searchQuery,
+                            null);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new ServerRow(preset.Id, false, preset.Command, null, module, searchQuery, ex.Message);
+                    }
+                }
+            }
+
+            return new ServerRow(
+                preset.Id,
+                false,
+                preset.Command,
+                null,
+                null,
+                searchQuery,
+                "PSES missing — op=lsp_ensure id=powershell (Open VSX → CDP quarantine)");
+        }
+
         try
         {
             var resolved = LspCommandResolver.Resolve(preset);

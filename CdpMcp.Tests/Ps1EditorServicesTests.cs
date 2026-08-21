@@ -39,6 +39,37 @@ public sealed class Ps1EditorServicesTests
         using var doc = System.Text.Json.JsonDocument.Parse(stdout);
         Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
         var source = doc.RootElement.GetProperty("source").GetString();
-        Assert.True(source is "vscode-extension" or "module" or "env");
+        Assert.True(source is "cdp-quarantine" or "vscode-extension" or "module" or "env");
+    }
+
+    [Fact]
+    public void ResolvePses_prefers_cdp_quarantine_over_host_extension()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "cdp-pes-q-" + Guid.NewGuid().ToString("N"));
+        var bundled = Path.Combine(root, "ms-vscode.powershell", "9.9.9", "extension", "modules");
+        var psd1Dir = Path.Combine(bundled, "PowerShellEditorServices");
+        Directory.CreateDirectory(psd1Dir);
+        File.WriteAllText(Path.Combine(psd1Dir, "PowerShellEditorServices.psd1"), "{}");
+        try
+        {
+            var script = Ps1EditorServices.ResolveBootstrapScript("Resolve-PsEditorServices.ps1");
+            var psi = new System.Diagnostics.ProcessStartInfo("pwsh", $"-NoProfile -ExecutionPolicy Bypass -File \"{script}\" -Probe")
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+            };
+            psi.Environment["CDP_PLUGINS_ROOT"] = root;
+            using var proc = System.Diagnostics.Process.Start(psi)!;
+            var stdout = proc.StandardOutput.ReadToEnd();
+            proc.WaitForExit(30_000);
+            Assert.Equal(0, proc.ExitCode);
+            using var doc = System.Text.Json.JsonDocument.Parse(stdout);
+            Assert.Equal("cdp-quarantine", doc.RootElement.GetProperty("source").GetString());
+        }
+        finally
+        {
+            try { Directory.Delete(root, recursive: true); } catch { /* ignore */ }
+        }
     }
 }
