@@ -13,9 +13,13 @@ internal sealed class CdpBridgeCapabilitiesWatcher
     readonly TimeSpan _pollInterval;
     long _lastRev;
 
-    internal CdpBridgeCapabilitiesWatcher(CdpBridgeSettings settings, TimeSpan pollInterval)
+    internal CdpBridgeCapabilitiesWatcher(
+        CdpBridgeSettings settings,
+        string bridgeSessionId,
+        string workspaceKey,
+        TimeSpan pollInterval)
     {
-        _authHttp = CdpBridgeHttpClient.Create(settings);
+        _authHttp = CdpBridgeHttpClient.Create(settings, bridgeSessionId, workspaceKey);
         _healthHttp = new HttpClient { BaseAddress = settings.BaseUrl };
         _pollInterval = pollInterval;
     }

@@ -151,7 +151,11 @@ await using var server = McpServer.Create(transport, options);
 Console.Error.WriteLine($"CdpMcpBridge → {settings.BaseUrl}");
 
 using var watchCts = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken.None);
-var watcher = new CdpBridgeCapabilitiesWatcher(settings, CdpBridgeCapabilitiesPoll.ResolveInterval());
+var watcher = new CdpBridgeCapabilitiesWatcher(
+    settings,
+    bridgeSessionId,
+    workspaceKey,
+    CdpBridgeCapabilitiesPoll.ResolveInterval());
 var watchTask = watcher.RunAsync(server, watchCts.Token);
 
 try
