@@ -19,6 +19,7 @@
 
 ## last_ship
 
+- **2026-08-21 ADR-0200 per-conversation tenant (multi-chat one Agents)** — `X-CDP-Conversation-Id` from MCP `_meta` (`cursor/composerId` | `progressToken`); per-conversation `CdpTenantComposerLatch`; bridge AsyncLocal; `cdp_context composer=` scoped to conversation. Tests 9/9.
 - **2026-08-21 ADR-0200 tenant multiplex (full)** — `CdpSharedKernel` + `CdpTenantRegistry` (idle eviction); per-tenant Session/buffers/**shell**/WitDB/settings/pressure state_root; bridge roots→workspace hash + `X-CDP-*` headers; `cdp_context composer=` latch + `/tenant/composer`; `CdpTenantDispatch`. Tests 5/5.
 - 2026-08-02 → **0.5.510**: citizen `@intent mcp` host-execute → `McpOutletHabitat.DispatchAsync` (scene/call/mount/tools/…). Dig: go=mcp place-only.
 - Ops FileLines near-miss peel: helpers → `McpOutletHabitat.Ops.Helpers.cs` (Ops 296→159) @ 0.5.455 · 2026-08-02
