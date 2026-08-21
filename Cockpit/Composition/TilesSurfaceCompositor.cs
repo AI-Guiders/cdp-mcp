@@ -1,34 +1,15 @@
 #nullable enable
-using CdpMcp.Cockpit.ComputingUnits;
 
 namespace CdpMcp.Cockpit.Composition;
 
-/// <summary>Legacy tiles-mode desk surface inputs (prefer seats).</summary>
-public readonly record struct TilesSurfaceScene(
-    string SchemaVersion,
-    string Mfd,
-    object Session,
-    object? Tiles,
-    object? Alert,
-    object Next,
-    object? Focus,
-    object? Go,
-    object? Warm,
-    string[] Pins,
-    string[] Layouts,
-    object? Loci,
-    string[]? GoVerbs);
-
-public readonly record struct TilesSurfacePayload(int PinCount);
-
 /// <summary>ISurfaceCompositor for tiles desk JSON (ADR 0036) — legacy mode.</summary>
 public sealed class TilesSurfaceCompositor
-    : ISurfaceCompositor<TilesSurfaceScene, TilesSurfacePayload, DeskDetailUnit.Snapshot, Dictionary<string, object?>>
+    : ISurfaceCompositor<TilesSurfaceScene, TilesSurfacePayload, DeskDetailDecision, Dictionary<string, object?>>
 {
     public Dictionary<string, object?> Compose(
         TilesSurfaceScene scene,
         TilesSurfacePayload payload,
-        in DeskDetailUnit.Snapshot decision)
+        in DeskDetailDecision decision)
     {
         _ = payload;
         var dict = new Dictionary<string, object?>

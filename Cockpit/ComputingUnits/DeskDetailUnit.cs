@@ -1,4 +1,5 @@
 #nullable enable
+
 namespace CdpMcp.Cockpit.ComputingUnits;
 
 /// <summary>CCU: resolve desk_detail / nav_detail (ADR 0097).</summary>
@@ -6,9 +7,7 @@ public sealed class DeskDetailUnit : ICockpitComputeUnit
 {
     public readonly record struct Input(string? DeskDetailRaw, string? FocusId);
 
-    public readonly record struct Snapshot(string DeskDetail, bool WantNav) : ICockpitComputeUnitPayload;
-
-    public Snapshot Compute(in Input input)
+    public DeskDetailDecision Compute(in Input input)
     {
         var raw = (input.DeskDetailRaw ?? "slim").Trim().ToLowerInvariant();
         if (raw is "compact")
@@ -19,6 +18,6 @@ public sealed class DeskDetailUnit : ICockpitComputeUnit
             raw = "slim";
         if (raw is not ("slim" or "nav" or "full"))
             raw = "slim";
-        return new Snapshot(raw, raw is "nav" or "full");
+        return new DeskDetailDecision(raw, raw is "nav" or "full");
     }
 }

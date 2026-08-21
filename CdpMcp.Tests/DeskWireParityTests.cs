@@ -28,7 +28,7 @@ public sealed partial class DeskWireParityTests
     public void AttentionRoutingUnit_forces_nav_desk_detail()
     {
         var unit = new AttentionRoutingUnit();
-        var snap = unit.Compute(new AttentionRoutingUnit.Input("sys", "nav", true, null));
+        var snap = unit.Compute(new AttentionRoutingInput("sys", "nav", true, null));
         Assert.Equal("nav", snap.Mfd);
         Assert.Null(snap.GoVerb);
         Assert.True(snap.DeskDetailNavForced);
@@ -71,7 +71,7 @@ public sealed partial class DeskWireParityTests
         DeskSurfaceBuiltEvent? got = null;
         using var sub = DeskDataBusHost.Current.Subscribe<DeskSurfaceBuiltEvent>(e => got = e);
         var comp = new SeatsSurfaceCompositor();
-        var decision = new DeskDetailUnit.Snapshot("nav", true);
+        var decision = new DeskDetailDecision("nav", true);
         var dict = comp.Compose(
             new SeatsSurfaceScene(
                 "cockpit/v1.20", "sa", new { }, new { }, new { },
@@ -109,7 +109,7 @@ public sealed partial class DeskWireParityTests
     public void TilesSurfaceCompositor_sets_tiles_mode_without_seats()
     {
         var comp = new TilesSurfaceCompositor();
-        var decision = new DeskDetailUnit.Snapshot("slim", false);
+        var decision = new DeskDetailDecision("slim", false);
         var dict = comp.Compose(
             new TilesSurfaceScene(
                 "cockpit/v1.20", "sa", new { }, new { pin = "git" }, null,

@@ -17,7 +17,7 @@ internal static partial class IdeCockpit
         IReadOnlyDictionary<string, JsonElement> args)
     {
         var mfdExplicit = OptString(args, "mfd") ?? OptString(args, "page");
-        var snap = AttentionRouter.Route(new AttentionRoutingUnit.Input(
+        var snap = AttentionRouter.Route(new AttentionRoutingInput(
             MfdExplicit: mfdExplicit,
             GoVerb: OptString(args, "go") ?? OptString(args, "do"),
             SeatsMode: IdeDeskSeats.IsSeatsMode(),
@@ -32,7 +32,7 @@ internal static partial class IdeCockpit
 
     static readonly DeskDetailUnit DeskDetail = new();
 
-    static DeskDetailUnit.Snapshot ResolveDeskDetailSnap(
+    static DeskDetailDecision ResolveDeskDetailSnap(
         IReadOnlyDictionary<string, JsonElement> args, string? focusId)
     {
         var raw = OptString(args, "desk_detail") ?? OptString(args, "nav_detail");

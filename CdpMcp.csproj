@@ -49,10 +49,13 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
     <PackageReference Include="OutWit.Database.EntityFramework" Version="14.0.1" />
     <PackageReference Include="AIGuiders.WebcamMcp.Shared" Version="0.1.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Abstractions" Version="0.2.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Ids" Version="0.2.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.DataBus" Version="0.2.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Transport" Version="0.2.0" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Abstractions" Version="0.3.0" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Ids" Version="0.3.0" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.DataBus" Version="0.3.0" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Transport" Version="0.3.0" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Channels" Version="0.3.0" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Composition" Version="0.3.0" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Cds" Version="0.3.0" />
     <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260225" />
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260225" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.3" />

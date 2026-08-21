@@ -11,5 +11,5 @@ internal static partial class IdeCockpit
     static readonly DeskGoMapCatalog DeskGoMaps = new();
 
     /// <summary>Allowlist desk verbs → organ tools. Cockpit stays a пульт, not the organ.</summary>
-    static IReadOnlyDictionary<string, DeskGoMapCatalog.Entry> GoMap => DeskGoMaps.Map;
+    static IReadOnlyDictionary<string, DeskGoMapEntry> GoMap => DeskGoMaps.Map;
 }

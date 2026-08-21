@@ -1,39 +1,16 @@
 #nullable enable
-using CdpMcp.Cockpit.ComputingUnits;
 using CdpMcp.Cockpit.DataBus;
 
 namespace CdpMcp.Cockpit.Composition;
 
-/// <summary>Inputs already projected by peels — compositor assembles seats surface DTO.</summary>
-public readonly record struct SeatsSurfaceScene(
-    string SchemaVersion,
-    string Mfd,
-    object View,
-    object Seats,
-    object Session,
-    object? Instrument,
-    object? Alert,
-    object? Pressure,
-    object Next,
-    object? Focus,
-    object? Go,
-    object? Warm,
-    string?[] Pins,
-    string[] Layouts,
-    string? ThrashNote,
-    object? Loci,
-    string[]? GoVerbs);
-
-public readonly record struct SeatsSurfacePayload(int SeatCount);
-
 /// <summary>ISurfaceCompositor for seats desk JSON (ADR 0036) — no Avalonia.</summary>
 public sealed class SeatsSurfaceCompositor
-    : ISurfaceCompositor<SeatsSurfaceScene, SeatsSurfacePayload, DeskDetailUnit.Snapshot, Dictionary<string, object?>>
+    : ISurfaceCompositor<SeatsSurfaceScene, SeatsSurfacePayload, DeskDetailDecision, Dictionary<string, object?>>
 {
     public Dictionary<string, object?> Compose(
         SeatsSurfaceScene scene,
         SeatsSurfacePayload payload,
-        in DeskDetailUnit.Snapshot decision)
+        in DeskDetailDecision decision)
     {
         var dict = new Dictionary<string, object?>
         {

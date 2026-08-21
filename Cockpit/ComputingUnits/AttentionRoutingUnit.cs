@@ -1,5 +1,4 @@
 #nullable enable
-using CdpMcp.Cockpit.ComputingUnits;
 
 namespace CdpMcp.Cockpit.ComputingUnits;
 
@@ -11,18 +10,7 @@ public sealed class AttentionRoutingUnit : ICockpitComputeUnit
         "nav", "sys", "chk", "ecl", "qrh", "gates"
     };
 
-    public readonly record struct Input(
-        string? MfdExplicit,
-        string? GoVerb,
-        bool SeatsMode,
-        string? DefaultMfd);
-
-    public readonly record struct Snapshot(
-        string Mfd,
-        string? GoVerb,
-        bool DeskDetailNavForced) : ICockpitComputeUnitPayload;
-
-    public Snapshot Compute(in Input input)
+    public AttentionRoutingDecision Compute(in AttentionRoutingInput input)
     {
         var mfd = (input.MfdExplicit
                    ?? (input.SeatsMode ? "nav" : input.DefaultMfd)
@@ -63,6 +51,6 @@ public sealed class AttentionRoutingUnit : ICockpitComputeUnit
             goVerb = null;
         }
 
-        return new Snapshot(mfd, goVerb, forceNav);
+        return new AttentionRoutingDecision(mfd, goVerb, forceNav);
     }
 }
