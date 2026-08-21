@@ -29,6 +29,7 @@
 
 ## last_ship
 
+- **2026-08-21 cdp_deploy mode=apply** — promote staged `.next` → live without republish: stop CdpService, robocopy mirror, clear `cdp-pending-update.json`, restart + bridge nudge. `mode=soft` then `mode=apply` for tool-only ships. Commit 368c2ca.
 - **2026-08-21 Open-stack WitDB pin 14.0.1** — `OutWit.Database.EntityFramework` **12.8.0 → 14.0.1** (nuget.org latest); aligned CDP + Forge + Cascade. EF Relational 10.0.10 transitive unchanged. `dotnet build` CDP green. — `deploy-20260816041304-a9de7e` idle ok 7.2s · debug→sibling · `worker_exe_path`+`ignite_seat` · both **0.5.725** lag=false · `peer_ship` CDT invoked (teeth 04:13:13). Worker `WaitForArmDeliveryAsync` before exit.
 - **2026-08-16 ADR-0032 L3c durable deploy smoke GREEN** — `deploy-20260816040847-197a58` idle ok · debug→sibling hard 8.7s · `worker_exe_path`+`ignite_seat` stamped · both seats **0.5.724** lag=false. Gap: worker exited before async `peer_ship` CDT → **0.5.725** `WaitForArmDeliveryAsync`. Supervisor `TryNotifyIgniteViaCdp` on failure (0.5.724).
 - **2026-08-16 ADR-0032 L3c RID-aware durable lifecycle** — `WorkerExePath` stamped at enqueue; supervisor resolves `CdpMcp`/`CdpMcp.exe` + Install-Cdp roots (linux/mac/win). Supervisor multi-RID publish. 0.5.721+.
