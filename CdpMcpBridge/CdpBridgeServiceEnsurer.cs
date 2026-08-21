@@ -35,25 +35,29 @@ internal sealed class CdpBridgeServiceEnsurer
         if (!CanAutoStart)
             return false;
 
-        var mutexName = $"Global\\CdpBridgeServiceEnsurer-{ _settings.BaseUrl.Port}";
-        using var mutex = new Mutex(initiallyOwned: false, name: mutexName);
-        var owns = false;
+        _ = TryStartUnderProcessLock();
+        return await WaitUntilHealthyAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Cross-process start gate — no await while lock held (Mutex is thread-affine; await resumes on another pool thread).
+    /// </summary>
+    bool TryStartUnderProcessLock()
+    {
+        var lockPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "cdp-mcp",
+            $"service-start-{_settings.BaseUrl.Port}.lock");
+
+        Directory.CreateDirectory(Path.GetDirectoryName(lockPath)!);
+
+        FileStream? lockStream = null;
         try
         {
-            try
-            {
-                owns = mutex.WaitOne(TimeSpan.FromSeconds(20));
-            }
-            catch (AbandonedMutexException)
-            {
-                owns = true;
-            }
+            lockStream = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
 
-            if (!owns)
-                return await ProbeHealthyAsync(cancellationToken).ConfigureAwait(false);
-
-            if (await ProbeHealthyAsync(cancellationToken).ConfigureAwait(false))
-                return true;
+            if (ProbeHealthySync())
+                return false;
 
             if (!TryStartServiceProcess(out var startError))
             {
@@ -61,12 +65,29 @@ internal sealed class CdpBridgeServiceEnsurer
                 return false;
             }
 
-            return await WaitUntilHealthyAsync(cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+        catch (IOException)
+        {
+            // Another bridge instance is starting — caller will poll health outside the lock.
+            return false;
         }
         finally
         {
-            if (owns)
-                mutex.ReleaseMutex();
+            lockStream?.Dispose();
+        }
+    }
+
+    bool ProbeHealthySync()
+    {
+        try
+        {
+            using var response = _probe.GetAsync(_healthUrl).GetAwaiter().GetResult();
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex) when (IsConnectionFailure(ex) || ex is TaskCanceledException)
+        {
+            return false;
         }
     }
 
