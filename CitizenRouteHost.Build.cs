@@ -12,6 +12,59 @@ internal static partial class CitizenRouteHost
 
     /// <summary>Tests: inject fake edit JSON; live uses DocumentEditPlane.DispatchAsync.</summary>
     internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? EditCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? UndoCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? ClipCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? ReplaceAllCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? NavCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? PutCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? ScratchCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? TakeCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? ShareCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? DiskCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? SniperCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? BufferCallOverride { get; set; }
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? FindBufCallOverride { get; set; }
+
+    internal static void PutIfPresent(Dictionary<string, JsonElement> args, string key, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            args[key] = JsonSerializer.SerializeToElement(value);
+    }
+
+    internal static void PutBoolIfPresent(Dictionary<string, JsonElement> args, string key, string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return;
+        if (!TryParseLooseBool(raw.Trim(), out var b))
+            return;
+        args[key] = JsonSerializer.SerializeToElement(b);
+    }
+
+    internal static void PutIntIfPresent(Dictionary<string, JsonElement> args, string key, string? raw)
+    {
+        if (!string.IsNullOrWhiteSpace(raw) && int.TryParse(raw.Trim(), out var n))
+            args[key] = JsonSerializer.SerializeToElement(n);
+    }
+
+    static bool TryParseLooseBool(string raw, out bool value)
+    {
+        if (bool.TryParse(raw, out value))
+            return true;
+        if (raw.Equals("1", StringComparison.Ordinal) || raw.Equals("yes", StringComparison.OrdinalIgnoreCase))
+        {
+            value = true;
+            return true;
+        }
+
+        if (raw.Equals("0", StringComparison.Ordinal) || raw.Equals("no", StringComparison.OrdinalIgnoreCase))
+        {
+            value = false;
+            return true;
+        }
+
+        value = false;
+        return false;
+    }
 
     /// <summary>Tests / remount isolation.</summary>
     internal static void UnbindLifecycle()

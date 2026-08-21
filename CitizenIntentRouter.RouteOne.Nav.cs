@@ -37,7 +37,7 @@ internal static partial class CitizenIntentRouter
             || raw.Equals("edit_history", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("edit_history ", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteUndo(raw);
+            return CitizenBufferUndo.Route(raw);
         }
 
         if (raw.Equals("copy", StringComparison.OrdinalIgnoreCase)
@@ -56,7 +56,7 @@ internal static partial class CitizenIntentRouter
             || raw.Equals("clipboard_clear", StringComparison.OrdinalIgnoreCase)
             || raw.Equals("clip_clear", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteClip(raw);
+            return CitizenBufferClip.Route(raw);
         }
 
         if (raw.Equals("back", StringComparison.OrdinalIgnoreCase)
@@ -69,7 +69,7 @@ internal static partial class CitizenIntentRouter
             || raw.Equals("recent_files", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("recent_files ", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteNav(raw);
+            return CitizenBufferNav.Route(raw);
         }
 
         if (raw.Equals("find_all", StringComparison.OrdinalIgnoreCase)
@@ -83,7 +83,7 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("buf_find_all", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("buffer_find_all", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteFindBuf(raw);
+            return CitizenBufferFindBuf.Route(raw);
         }
 
         if (raw.Equals("find", StringComparison.OrdinalIgnoreCase)
@@ -93,8 +93,8 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("search ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("search query=", StringComparison.OrdinalIgnoreCase))
         {
-            if (LooksLikeBufferFindScope(raw))
-                return RouteFindBuf(raw);
+            if (CitizenBufferFindBuf.LooksLikeBufferFindScope(raw))
+                return CitizenBufferFindBuf.Route(raw);
             return RouteFind(raw);
         }
 

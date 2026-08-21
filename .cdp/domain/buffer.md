@@ -28,7 +28,7 @@
 
 ## last_ship
 
-- **2026-08-21 citizen @intent edit old_string= (ADX-HX-002 peer wire)** — DocumentEditPlane M: in-locus patch already lived (0.5.680); gap was citizen `@intent edit|anchor` dropping `old_string=`/`force=` before `BuildEditArgs`. Ship: `CitizenIntentRouter.Edit` parses `old_string|old` → `Route.OldString`; `CitizenRouteHost.Edit` forwards to `cdp_buffer` edit anchor. Tests CitizenEditHost **7/7**.
+- **2026-08-21 buffer plane OOA&D peel (CitizenBuffer*)** — Wave0: `CitizenEditResponse` + `CitizenBufferComfort` + `CitizenRouteHost.Build` *CallOverride/PutIf*. Peel 12 organs → standalone `CitizenBuffer{Edit,Clip,Undo,Nav,Put,Buffer,FindBuf,ReplaceAll,Sniper,Take,Share,Disk,Scratch}` + direct wire in `CitizenRouteHost` / `RouteOne.*`; deleted 24 partial pairs + `EditMeta`. Tests Citizen*Host **49/49**.
 - **2026-08-21 anchor L: line_literal place=replace** — `[F:;L:]` now uses full-line corridor (ExpandToFullLines, EditSniper parity) — fixes partial column replace / CS1513 on line peek anchors. Test `Place_replace_on_L_anchor_replaces_full_line_not_partial_column`.
 - 0.5.680: SoftFL ADX-HX-002 — `old_string=` + anchor M: patches in-locus; large M: `place=replace` tiny body refuses without force (UnbindLifecycle wipe) · AnchorPlace 16/16 · live dogfood refuse+in_locus · 2026-08-07
 - 0.5.664: `edit_op=replace` accepts `text=` alias + refuses missing body (PublishGlass wipe) · DocumentEditPlaneReplaceTests 4/4 · 2026-08-04

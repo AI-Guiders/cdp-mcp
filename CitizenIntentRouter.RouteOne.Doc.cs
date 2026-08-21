@@ -13,27 +13,27 @@ internal static partial class CitizenIntentRouter
             || raw.Equals("replaceall", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("replaceall ", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteReplaceAll(raw);
+            return CitizenBufferReplaceAll.Route(raw);
         }
 
         if (raw.Equals("put", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("put ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("put path=", StringComparison.OrdinalIgnoreCase))
         {
-            return RoutePut(raw);
+            return CitizenBufferPut.Route(raw);
         }
 
         if (raw.Equals("scratch", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("scratch ", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteScratch(raw);
+            return CitizenBufferScratch.Route(raw);
         }
 
         if (raw.Equals("take", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("take ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("take path=", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteTake(raw);
+            return CitizenBufferTake.Route(raw);
         }
 
         if (raw.Equals("share", StringComparison.OrdinalIgnoreCase)
@@ -42,7 +42,7 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("share with=", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("share from=", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteShare(raw);
+            return CitizenBufferShare.Route(raw);
         }
 
         if (raw.Equals("scope", StringComparison.OrdinalIgnoreCase)
@@ -64,7 +64,7 @@ internal static partial class CitizenIntentRouter
             || raw.Equals("outline", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("outline ", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteSniper(raw);
+            return CitizenBufferSniper.Route(raw);
         }
 
         if (raw.Equals("reload", StringComparison.OrdinalIgnoreCase)
@@ -81,7 +81,7 @@ internal static partial class CitizenIntentRouter
             || raw.Equals("peek_disk", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("peek_disk ", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteDisk(raw);
+            return CitizenBufferDisk.Route(raw);
         }
 
         if (raw.Equals("read", StringComparison.OrdinalIgnoreCase)
@@ -109,7 +109,7 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("buffer_open", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("buf_diags", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteBuffer(raw);
+            return CitizenBufferBuffer.Route(raw);
         }
 
         if (raw.StartsWith("replace ", StringComparison.OrdinalIgnoreCase)

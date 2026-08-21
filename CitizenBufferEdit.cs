@@ -162,11 +162,11 @@ internal static class CitizenBufferEdit
                 }
     
                 var jsonText = result is string s ? s : JsonSerializer.Serialize(result);
-                var ok = CitizenRouteHost.TryReadEditOk(jsonText);
-                var pulse = CitizenRouteHost.TryReadEditPulse(jsonText, place);
+                var ok = CitizenEditResponse.TryReadEditOk(jsonText);
+                var pulse = CitizenEditResponse.TryReadEditPulse(jsonText, place);
                 string? full = null;
                 string? docId = null;
-                CitizenRouteHost.TryReadEditMeta(jsonText, out full, out docId);
+                CitizenEditResponse.TryReadEditMeta(jsonText, out full, out docId);
                 var seat = IdeDeskSeats.PlaceOrgan("editor_scene");
                 if (full is { Length: > 0 })
                     CitizenRouteHost.PublishGlassLandOpen(full);
