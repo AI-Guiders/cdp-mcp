@@ -130,7 +130,7 @@ internal static partial class CitizenRouteHost
         return args;
     }
 
-    static void PutIfPresent(Dictionary<string, JsonElement> args, string key, string? value)
+    internal static void PutIfPresent(Dictionary<string, JsonElement> args, string key, string? value)
     {
         if (!string.IsNullOrWhiteSpace(value))
             args[key] = JsonSerializer.SerializeToElement(value);

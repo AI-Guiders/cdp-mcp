@@ -14,7 +14,7 @@ internal static partial class CitizenIntentRouter
             || raw.StartsWith("anchor ", StringComparison.OrdinalIgnoreCase)
             || raw.StartsWith("anchor path=", StringComparison.OrdinalIgnoreCase))
         {
-            return RouteEdit(raw);
+            return CitizenBufferEdit.Route(raw);
         }
 
         if (raw.Equals("deploy", StringComparison.OrdinalIgnoreCase)

@@ -10,6 +10,9 @@ internal static partial class CitizenRouteHost
     internal static Func<SessionContext?>? SessionResolver { get; set; }
     internal static Func<ICdpBackendModule?>? BuildModuleResolver { get; set; }
 
+    /// <summary>Tests: inject fake edit JSON; live uses DocumentEditPlane.DispatchAsync.</summary>
+    internal static Func<IReadOnlyDictionary<string, JsonElement>, object>? EditCallOverride { get; set; }
+
     /// <summary>Tests / remount isolation.</summary>
     internal static void UnbindLifecycle()
     {
@@ -171,7 +174,7 @@ internal static partial class CitizenRouteHost
         }
     }
 
-    static string? TryReadLifecycleError(string json)
+    internal static string? TryReadLifecycleError(string json)
     {
         try
         {
@@ -212,7 +215,7 @@ internal static partial class CitizenRouteHost
     /// <summary>Observe inventory gaps×N — must fit full list (was 240/280; ×9 ≈277+).</summary>
     internal const int InventoryObservePulseMax = 480;
 
-    static string? TruncPulse(string? s, int max = 240)
+    internal static string? TruncPulse(string? s, int max = 240)
     {
         if (string.IsNullOrWhiteSpace(s))
             return null;

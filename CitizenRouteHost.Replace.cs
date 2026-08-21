@@ -63,7 +63,7 @@ internal static partial class CitizenRouteHost
     }
 
     /// <summary>Glass LatchHub land peel — open path so projector feels partner invent (disk alone skips when not open).</summary>
-    static void PublishGlassLandOpen(string? fullPath)
+    internal static void PublishGlassLandOpen(string? fullPath)
     {
         if (string.IsNullOrWhiteSpace(fullPath))
             return;

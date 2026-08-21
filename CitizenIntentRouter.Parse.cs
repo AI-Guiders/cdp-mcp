@@ -3,7 +3,7 @@
 namespace CdpMcp;
 internal static partial class CitizenIntentRouter
 {
-    static string? ExtractPath(string raw)
+    internal static string? ExtractPath(string raw)
     {
         const string pathEq = "path=";
         var idx = raw.IndexOf(pathEq, StringComparison.OrdinalIgnoreCase);

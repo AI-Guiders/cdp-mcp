@@ -144,7 +144,7 @@ internal static partial class CitizenRouteHost
             args[key] = JsonSerializer.SerializeToElement(n);
     }
 
-    static void PutBoolIfPresent(Dictionary<string, JsonElement> args, string key, string? raw)
+    internal static void PutBoolIfPresent(Dictionary<string, JsonElement> args, string key, string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw))
             return;
