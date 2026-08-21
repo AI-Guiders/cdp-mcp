@@ -54,6 +54,18 @@ public sealed class CitizenEditHostTests
     }
 
     [Fact]
+    public void Route_edit_parses_old_string_for_anchor_in_locus()
+    {
+        var r = CitizenIntentRouter.RouteOne(
+            "edit path=a.cs anchor=\"[F:a.cs;M:KeepMe]\" place=replace old_string=\"var a = 1;\" text=\"var a = 99;\"");
+        Assert.True(r.Ok);
+        Assert.Equal(CitizenIntentRouter.Verb.Edit, r.Verb);
+        Assert.Equal("var a = 1;", r.OldString);
+        Assert.Equal("var a = 99;", r.NewString);
+        Assert.Equal("replace", r.Op);
+    }
+
+    [Fact]
     public void Execute_edit_passes_anchor_args_via_override()
     {
         CitizenRouteHost.UnbindLifecycle();
@@ -80,6 +92,37 @@ public sealed class CitizenEditHostTests
             Assert.Equal("hello", seen["text"].GetString());
             Assert.Equal("before", seen["place"].GetString());
             Assert.True(seen["flush"].GetBoolean());
+        }
+        finally
+        {
+            CitizenRouteHost.EditCallOverride = null;
+            CitizenRouteHost.UnbindLifecycle();
+        }
+    }
+
+    [Fact]
+    public void Execute_edit_passes_old_string_and_force_via_override()
+    {
+        CitizenRouteHost.UnbindLifecycle();
+        IReadOnlyDictionary<string, JsonElement>? seen = null;
+        CitizenRouteHost.EditCallOverride = args =>
+        {
+            seen = args;
+            return """{"ok":true,"op":"anchor","meta":{"path":"D:\\tmp\\a.cs","doc_id":"doc-1"}}""";
+        };
+        try
+        {
+            var applied = CitizenRouteHost.Execute([
+                CitizenIntentRouter.RouteOne(
+                    "edit path=a.cs anchor=\"[F:a.cs;M:KeepMe]\" place=replace old_string=\"var a = 1;\" text=\"var a = 99;\" force=true")
+            ]);
+            Assert.Single(applied);
+            Assert.True(applied[0].Ok);
+            Assert.NotNull(seen);
+            Assert.Equal("var a = 1;", seen!["old_string"].GetString());
+            Assert.Equal("var a = 99;", seen["text"].GetString());
+            Assert.Equal("replace", seen["place"].GetString());
+            Assert.True(seen["force"].GetBoolean());
         }
         finally
         {

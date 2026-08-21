@@ -32,6 +32,8 @@ internal static partial class CitizenIntentRouter
             ?? ExtractKeyedValue(raw, "body")
             ?? ExtractKeyedValue(raw, "new")
             ?? ExtractKeyedValue(raw, "new_string");
+        var oldString = ExtractKeyedValue(raw, "old_string")
+            ?? ExtractKeyedValue(raw, "old");
         var place = ExtractKeyedValue(raw, "place") ?? ExtractKeyedValue(raw, "at_place");
 
         if (string.IsNullOrWhiteSpace(path))
@@ -58,6 +60,7 @@ internal static partial class CitizenIntentRouter
             Ok: true,
             Path: path.Trim(),
             Detail: anchor.Trim(),
+            OldString: string.IsNullOrWhiteSpace(oldString) ? null : oldString,
             NewString: text,
             Op: place,
             Go: "buffer");

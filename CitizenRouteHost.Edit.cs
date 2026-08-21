@@ -47,7 +47,7 @@ internal static partial class CitizenRouteHost
         }
 
         var place = string.IsNullOrWhiteSpace(route.Op) ? "replace" : route.Op!;
-        var args = BuildEditArgs(path, anchor, route.NewString, place);
+        var args = BuildEditArgs(route, path, anchor, route.NewString, place);
 
         try
         {
@@ -131,9 +131,14 @@ internal static partial class CitizenRouteHost
         }
     }
 
-    static Dictionary<string, JsonElement> BuildEditArgs(string path, string anchor, string text, string place)
+    static Dictionary<string, JsonElement> BuildEditArgs(
+        CitizenIntentRouter.Route route,
+        string path,
+        string anchor,
+        string text,
+        string place)
     {
-        return new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+        var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
         {
             ["op"] = JsonSerializer.SerializeToElement("edit"),
             ["edit_op"] = JsonSerializer.SerializeToElement("anchor"),
@@ -144,6 +149,16 @@ internal static partial class CitizenRouteHost
             ["flush"] = JsonSerializer.SerializeToElement(true),
             ["diagnose"] = JsonSerializer.SerializeToElement(true)
         };
+
+        PutIfPresent(
+            args,
+            "old_string",
+            CitizenIntentRouter.ExtractKeyedValue(route.Raw, "old_string")
+            ?? CitizenIntentRouter.ExtractKeyedValue(route.Raw, "old")
+            ?? route.OldString);
+        PutBoolIfPresent(args, "force", CitizenIntentRouter.ExtractKeyedValue(route.Raw, "force"));
+
+        return args;
     }
 
     static bool TryReadEditOk(string json)
