@@ -107,20 +107,12 @@ internal sealed class BridgeTomlService
 
 internal static class CdpBridgeHttpClient
 {
-    internal static HttpClient Create(
-        CdpBridgeSettings settings,
-        string bridgeSessionId,
-        string workspaceKey,
-        string? composer = null)
+    internal static HttpClient Create(CdpBridgeSettings settings, CdpBridgeTenantHeadersState tenantState)
     {
-        var http = new HttpClient { BaseAddress = settings.BaseUrl };
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.Token);
-        http.DefaultRequestHeaders.TryAddWithoutValidation("X-CDP-Bridge-Session", bridgeSessionId);
-        http.DefaultRequestHeaders.TryAddWithoutValidation("X-CDP-Workspace-Key", workspaceKey);
-        var comp = composer
-                   ?? Environment.GetEnvironmentVariable("CDP_COMPOSER")
-                   ?? "main";
-        http.DefaultRequestHeaders.TryAddWithoutValidation("X-CDP-Composer", comp);
-        return http;
+        var handler = new CdpBridgeTenantHeadersHandler(tenantState, settings.BaseUrl, settings.Token)
+        {
+            InnerHandler = new HttpClientHandler()
+        };
+        return new HttpClient(handler) { BaseAddress = settings.BaseUrl };
     }
 }

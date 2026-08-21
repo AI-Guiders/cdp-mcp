@@ -1,6 +1,8 @@
 #nullable enable
 using Cdp.Core;
+using CdpMcp.Backends;
 using Microsoft.AspNetCore.Http;
+using TerminalMcp.Core;
 using Xunit;
 
 namespace CdpMcp.Tests;
@@ -31,21 +33,66 @@ public sealed class CdpTenantMultiplexTests
     }
 
     [Fact]
-    public void Registry_creates_distinct_slices_per_key()
+    public void ComposerLatch_tracks_bridge_session()
+    {
+        Assert.True(CdpTenantComposerLatch.TrySet("bridge-a", "chat-b"));
+        Assert.Equal("chat-b", CdpTenantComposerLatch.Get("bridge-a"));
+    }
+
+    [Fact]
+    public void Registry_creates_distinct_slices_with_isolated_shell()
     {
         var settings = CdpSettings.Load(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "..", "config", "cdp-mcp.toml"));
         var session = new SessionContext();
         var doc = new DocumentBufferStore();
         var ws = new WorkspaceDbHost(settings.IntentWorkspace.DatabasePath, session);
-        var registry = new CdpTenantRegistry(
+        var shell = new ShellHabitat();
+        var ideSettings = new IdeSettingsHabitat(
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "config", "cdp-mcp.toml"),
             settings,
-            new CdpTenantSlice(CdpTenantKey.LegacyDefault, session, doc, ws, CdpProfile.StateRoot));
+            session,
+            shell,
+            () => ProgramHost.ShellDefaults(session));
+        var kernel = new CdpSharedKernel
+        {
+            ConfigPath = "config/cdp-mcp.toml",
+            Settings = settings,
+            Modules = [],
+            ByDomain = new Dictionary<string, ICdpBackendModule>(),
+            AllAffordances = [],
+            McpVersion = "0.0.0",
+            Pretty = new System.Text.Json.JsonSerializerOptions(),
+            McpOutlet = new McpOutletHabitat(),
+            InternetBrowser = new InternetBrowserHabitat(),
+            AnTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            TkTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            FindTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            FailTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            DbgTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            BtTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            RoslynTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            GitTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            HciTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            AnuiTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>()
+        };
+        var registry = new CdpTenantRegistry(
+            kernel,
+            CdpTenantSliceFactory.WrapLegacy(
+                CdpTenantKey.LegacyDefault,
+                session,
+                doc,
+                ws,
+                shell,
+                ideSettings,
+                null,
+                CdpProfile.StateRoot));
 
         var a = registry.Resolve(CdpTenantKey.Normalize("a", "ws1", "main"));
         var b = registry.Resolve(CdpTenantKey.Normalize("b", "ws1", "main"));
         Assert.NotSame(a, b);
         Assert.NotSame(a.Session, b.Session);
+        Assert.NotSame(a.Shell, b.Shell);
         Assert.Equal(2, registry.ActiveCount);
     }
 

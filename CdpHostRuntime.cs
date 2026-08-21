@@ -328,13 +328,39 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         CitizenRouteHost.MetaDispatchResolver = DispatchAsync;
         IdeCommandModule.Bind(DispatchAsync);
 
-        var defaultSlice = new CdpTenantSlice(
+        var defaultSlice = CdpTenantSliceFactory.WrapLegacy(
             CdpTenantKey.LegacyDefault,
             session,
             docStore,
             workspace,
+            shellHabitat,
+            ideSettings,
+            diskSyncWatch,
             CdpProfile.StateRoot);
-        var tenantRegistry = new CdpTenantRegistry(settings, defaultSlice);
+
+        var kernel = new CdpSharedKernel
+        {
+            ConfigPath = configPath,
+            Settings = settings,
+            Modules = modules,
+            ByDomain = byDomain,
+            AllAffordances = allAffordances,
+            McpVersion = mcpVersion,
+            Pretty = pretty,
+            McpOutlet = mcpOutlet,
+            InternetBrowser = internetBrowser,
+            AnTools = anTools,
+            TkTools = tkTools,
+            FindTools = findTools,
+            FailTools = failTools,
+            DbgTools = dbgTools,
+            BtTools = btTools,
+            RoslynTools = roslynTools,
+            GitTools = gitTools,
+            HciTools = hciTools,
+            AnuiTools = anuiTools
+        };
+        var tenantRegistry = new CdpTenantRegistry(kernel, defaultSlice);
 
         var runtime = new CdpHostRuntime(
             session,
@@ -386,16 +412,22 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         using var execScope = CdpTenantExecutionContext.Enter(slice);
         var priorSessionResolver = CitizenRouteHost.SessionResolver;
         var priorProjectRoot = IdeCockpitHostChannel.ProjectRootResolver;
+        var priorShellResolver = CitizenRouteHost.ShellHabitatResolver;
+        var priorShellDefaults = CitizenRouteHost.ShellDefaultsResolver;
         try
         {
             CitizenRouteHost.SessionResolver = () => slice.Session;
             IdeCockpitHostChannel.ProjectRootResolver = () => slice.Session.ProjectRoot;
+            CitizenRouteHost.ShellHabitatResolver = () => slice.Shell;
+            CitizenRouteHost.ShellDefaultsResolver = () => ProgramHost.ShellDefaults(slice.Session);
             return await InvokeToolCoreAsync(name, callArgs, cancellationToken, slice).ConfigureAwait(false);
         }
         finally
         {
             CitizenRouteHost.SessionResolver = priorSessionResolver;
             IdeCockpitHostChannel.ProjectRootResolver = priorProjectRoot;
+            CitizenRouteHost.ShellHabitatResolver = priorShellResolver;
+            CitizenRouteHost.ShellDefaultsResolver = priorShellDefaults;
         }
     }
 
@@ -497,6 +529,7 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
     {
         _diskSyncWatch?.Dispose();
         _intercomCannon?.Dispose();
+        _tenantRegistry.Dispose();
         return ValueTask.CompletedTask;
     }
 }

@@ -1,21 +1,25 @@
 #nullable enable
 using System.Collections.Concurrent;
-using Cdp.Core;
-using Cdp.ScriptableIde;
 
 namespace CdpMcp;
 
-internal sealed class CdpTenantRegistry
+internal sealed class CdpTenantRegistry : IDisposable
 {
     readonly ConcurrentDictionary<string, CdpTenantSlice> _slices = new(StringComparer.Ordinal);
-    readonly string? _witDbPathOverride;
+    readonly CdpSharedKernel _kernel;
     readonly CdpTenantSlice _default;
+    readonly Timer _evictionTimer;
+    readonly TimeSpan _idleTtl;
 
-    public CdpTenantRegistry(CdpSettings settings, CdpTenantSlice defaultSlice)
+    public CdpTenantRegistry(CdpSharedKernel kernel, CdpTenantSlice defaultSlice)
     {
-        _witDbPathOverride = settings.IntentWorkspace.DatabasePath;
+        _kernel = kernel;
         _default = defaultSlice;
+        _idleTtl = ResolveIdleTtl();
+        _evictionTimer = new Timer(_ => EvictIdle(), null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
     }
+
+    public CdpSharedKernel Kernel => _kernel;
 
     public CdpTenantSlice Default => _default;
 
@@ -24,18 +28,41 @@ internal sealed class CdpTenantRegistry
     public CdpTenantSlice Resolve(CdpTenantKey? key)
     {
         if (key is null || key.Value.IsLegacyDefault)
+        {
+            _default.Touch();
             return _default;
+        }
 
-        var wire = key.Value.Wire;
-        return _slices.GetOrAdd(wire, _ => CreateSlice(key.Value));
+        var normalized = key.Value;
+        var composer = CdpTenantComposerLatch.Get(normalized.BridgeSession);
+        if (!string.Equals(composer, normalized.Composer, StringComparison.Ordinal))
+            normalized = normalized with { Composer = composer };
+
+        var wire = normalized.Wire;
+        var slice = _slices.GetOrAdd(wire, _ => CdpTenantSliceFactory.Create(_kernel, normalized));
+        slice.Touch();
+        return slice;
     }
 
-    CdpTenantSlice CreateSlice(CdpTenantKey key)
+    static TimeSpan ResolveIdleTtl()
     {
-        var tenantRoot = key.ResolveTenantStateRoot();
-        var session = new SessionContext();
-        var docStore = new DocumentBufferStore();
-        var workspace = new WorkspaceDbHost(_witDbPathOverride, session);
-        return new CdpTenantSlice(key, session, docStore, workspace, tenantRoot);
+        var raw = Environment.GetEnvironmentVariable("CDP_TENANT_IDLE_TTL_MINUTES");
+        if (int.TryParse(raw, out var minutes) && minutes is >= 5 and <= 24 * 60)
+            return TimeSpan.FromMinutes(minutes);
+        return TimeSpan.FromMinutes(45);
     }
+
+    void EvictIdle()
+    {
+        var cutoff = DateTimeOffset.UtcNow - _idleTtl;
+        foreach (var pair in _slices)
+        {
+            if (pair.Value.LastAccessUtc > cutoff)
+                continue;
+            if (_slices.TryRemove(pair.Key, out var removed))
+                removed.Dispose();
+        }
+    }
+
+    public void Dispose() => _evictionTimer.Dispose();
 }

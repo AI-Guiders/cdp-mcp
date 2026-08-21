@@ -15,11 +15,10 @@ internal sealed class CdpBridgeCapabilitiesWatcher
 
     internal CdpBridgeCapabilitiesWatcher(
         CdpBridgeSettings settings,
-        string bridgeSessionId,
-        string workspaceKey,
+        CdpBridgeTenantHeadersState tenantState,
         TimeSpan pollInterval)
     {
-        _authHttp = CdpBridgeHttpClient.Create(settings, bridgeSessionId, workspaceKey);
+        _authHttp = CdpBridgeHttpClient.Create(settings, tenantState);
         _healthHttp = new HttpClient { BaseAddress = settings.BaseUrl };
         _pollInterval = pollInterval;
     }

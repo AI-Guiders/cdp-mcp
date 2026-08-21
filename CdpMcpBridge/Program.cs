@@ -22,9 +22,13 @@ if (!load.IsSuccess || load.Settings is null)
 }
 
 var settings = load.Settings;
-var bridgeSessionId = Guid.NewGuid().ToString("N");
-var workspaceKey = CdpBridgeIdentity.ResolveWorkspaceKey(load.ConfigPath);
-using var http = CdpBridgeHttpClient.Create(settings, bridgeSessionId, workspaceKey);
+var tenantState = new CdpBridgeTenantHeadersState
+{
+    BridgeSessionId = Guid.NewGuid().ToString("N"),
+    WorkspaceKey = CdpBridgeIdentity.ResolveWorkspaceKey(load.ConfigPath),
+    Composer = Environment.GetEnvironmentVariable("CDP_COMPOSER") ?? "main"
+};
+using var http = CdpBridgeHttpClient.Create(settings, tenantState);
 var jsonOptions = new JsonSerializerOptions
 {
     PropertyNameCaseInsensitive = true,
@@ -148,15 +152,12 @@ static void PrintUsage()
 
 var transport = new StdioServerTransport("CdpMcpBridge");
 await using var server = McpServer.Create(transport, options);
-Console.Error.WriteLine($"CdpMcpBridge → {settings.BaseUrl}");
+Console.Error.WriteLine($"CdpMcpBridge → {settings.BaseUrl} bridge={tenantState.BridgeSessionId} ws={tenantState.WorkspaceKey}");
 
 using var watchCts = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken.None);
-var watcher = new CdpBridgeCapabilitiesWatcher(
-    settings,
-    bridgeSessionId,
-    workspaceKey,
-    CdpBridgeCapabilitiesPoll.ResolveInterval());
+var watcher = new CdpBridgeCapabilitiesWatcher(settings, tenantState, CdpBridgeCapabilitiesPoll.ResolveInterval());
 var watchTask = watcher.RunAsync(server, watchCts.Token);
+var rootsTask = CdpBridgeRootsSync.RunAsync(server, tenantState, watchCts.Token);
 
 try
 {

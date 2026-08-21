@@ -1,6 +1,6 @@
 # CDP-ADR-0200: Sidecar tenant multiplex (one IDE · N composers)
 
-**Status:** Accepted · Implementing  
+**Status:** Accepted · Implemented  
 **Date:** 2026-08-21  
 **Extends:** ADR-0198 (sidecar) · ADR-0199 (workspace isolation) · ADR-0030 (multiplex direction)
 

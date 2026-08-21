@@ -98,8 +98,17 @@ internal static class CdpServiceHost
             version = rt.McpVersion,
             backends = rt.Backends.Keys.ToArray(),
             capabilitiesRev = rt.CapabilitiesRevision,
-            tenants = rt.TenantCount
+            tenants = rt.TenantCount,
+            multiplex = "ADR-0200"
         }));
+
+        app.MapGet("/api/v1/cdp/tenant/composer", (HttpContext http) =>
+        {
+            var key = CdpTenantHeaders.TryParse(http.Request.Headers);
+            if (key is null)
+                return Results.Json(new { composer = "main", adr = "0200" });
+            return Results.Json(CdpTenantComposerLatch.Snapshot(key.Value.BridgeSession));
+        });
 
         app.MapGet("/api/v1/cdp/capabilities", (CdpHostRuntime rt) => Results.Json(new
         {

@@ -59,6 +59,13 @@ internal static partial class MetaDispatch
             changed = true;
         }
 
+        if (callArgs.TryGetValue("composer", out var composerEl))
+        {
+            var bridge = CdpTenantExecutionContext.CurrentSlice?.Key.BridgeSession;
+            if (CdpTenantComposerLatch.TrySet(bridge, composerEl.GetString()))
+                changed = true;
+        }
+
         if (changed)
             NotifyListChanged();
 
