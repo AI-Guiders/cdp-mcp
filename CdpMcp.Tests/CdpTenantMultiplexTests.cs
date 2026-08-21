@@ -1,4 +1,5 @@
 #nullable enable
+using System.Text.Json;
 using Cdp.Core;
 using CdpMcp.Backends;
 using Microsoft.AspNetCore.Http;
@@ -37,6 +38,7 @@ public sealed class CdpTenantMultiplexTests
     {
         Assert.True(CdpTenantComposerLatch.TrySet("bridge-a", "chat-b"));
         Assert.Equal("chat-b", CdpTenantComposerLatch.Get("bridge-a"));
+        Assert.Equal("chat-b", CdpTenantComposerLatch.ResolveDefaultChat("bridge-a"));
     }
 
     [Fact]
@@ -94,6 +96,73 @@ public sealed class CdpTenantMultiplexTests
         Assert.NotSame(a.Session, b.Session);
         Assert.NotSame(a.Shell, b.Shell);
         Assert.Equal(2, registry.ActiveCount);
+    }
+
+    [Fact]
+    public void ComposerLatch_resolve_default_chat_skips_main()
+    {
+        CdpTenantComposerLatch.TrySet("bridge-a", "CDP ADR continuation");
+        Assert.Equal("CDP ADR continuation", CdpTenantComposerLatch.ResolveDefaultChat("bridge-a"));
+        Assert.Null(CdpTenantComposerLatch.ResolveDefaultChat("unknown"));
+        Assert.Null(CdpTenantComposerLatch.ResolveDefaultChat(null));
+        CdpTenantComposerLatch.TrySet("bridge-main", "main");
+        Assert.Null(CdpTenantComposerLatch.ResolveDefaultChat("bridge-main"));
+    }
+
+    [Fact]
+    public void Arm_defaults_chat_from_tenant_composer_latch()
+    {
+        var settings = CdpSettings.Load(Path.Combine(
+            AppContext.BaseDirectory, "..", "..", "..", "..", "config", "cdp-mcp.toml"));
+        var kernel = new CdpSharedKernel
+        {
+            ConfigPath = "config/cdp-mcp.toml",
+            Settings = settings,
+            Modules = [],
+            ByDomain = new Dictionary<string, ICdpBackendModule>(),
+            AllAffordances = [],
+            McpVersion = "0.0.0",
+            Pretty = new JsonSerializerOptions(),
+            McpOutlet = new McpOutletHabitat(),
+            InternetBrowser = new InternetBrowserHabitat(),
+            AnTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            TkTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            FindTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            FailTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            DbgTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            BtTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            RoslynTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            GitTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            HciTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            AnuiTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>()
+        };
+        var slice = CdpTenantSliceFactory.Create(
+            kernel,
+            CdpTenantKey.Normalize("bridge-arm", "ws1", "main"));
+        CdpTenantComposerLatch.TrySet("bridge-arm", "CDP ADR continuation");
+
+        using (CdpTenantExecutionContext.Enter(slice))
+        {
+            var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["when"] = JsonSerializer.SerializeToElement("timer"),
+                ["in"] = JsonSerializer.SerializeToElement("5m"),
+                ["task"] = JsonSerializer.SerializeToElement("test leaf"),
+                ["force"] = JsonSerializer.SerializeToElement(true)
+            };
+            var json = JsonSerializer.Serialize(IdeIgniteArmHost.Arm(args));
+            using var doc = JsonDocument.Parse(json);
+            var chat = doc.RootElement.GetProperty("arm").GetProperty("chat").GetString();
+            Assert.Equal("CDP ADR continuation", chat);
+            var armId = doc.RootElement.GetProperty("arm").GetProperty("id").GetString();
+            if (armId is not null)
+                IdeIgniteArmHost.Disarm(new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["id"] = JsonSerializer.SerializeToElement(armId)
+                });
+        }
+
+        slice.Dispose();
     }
 
     [Fact]

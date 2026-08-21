@@ -24,6 +24,9 @@ internal static partial class IdeIgniteArmHost
         var inRaw = Opt(args, "in") ?? Opt(args, "after") ?? Opt(args, "delay");
         var port = OptInt(args, "port") ?? IdeIgniteChannel.DefaultPort;
         var chat = Opt(args, "chat") ?? Opt(args, "title");
+        if (string.IsNullOrWhiteSpace(chat))
+            chat = CdpTenantComposerLatch.ResolveDefaultChat(
+                CdpTenantExecutionContext.CurrentSlice?.Key.BridgeSession);
         var once = OptBool(args, "once") ?? true;
         var lastOnce = ResolveLastOnce(args);
         if (lastOnce) once = true; // last_once implies once

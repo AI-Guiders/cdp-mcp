@@ -6,10 +6,22 @@ namespace CdpMcp;
 /// <summary>Per-bridge composer identity for same-window multi-chat (ADR-0200).</summary>
 internal static class CdpTenantComposerLatch
 {
-    static readonly ConcurrentDictionary<string, string> ByBridge = new(StringComparer.Ordinal);
+    readonly record struct ComposerLatch(string Composer, string? ChatTitle);
+
+    static readonly ConcurrentDictionary<string, ComposerLatch> ByBridge = new(StringComparer.Ordinal);
 
     public static string Get(string bridgeSession) =>
-        ByBridge.TryGetValue(bridgeSession, out var c) ? c : "main";
+        ByBridge.TryGetValue(bridgeSession, out var latch) ? latch.Composer : "main";
+
+    /// <summary>CDT chat= default — human title (spaces preserved), not sanitized tenant segment.</summary>
+    public static string? ResolveDefaultChat(string? bridgeSession)
+    {
+        if (string.IsNullOrWhiteSpace(bridgeSession))
+            return null;
+        if (!ByBridge.TryGetValue(bridgeSession, out var latch))
+            return null;
+        return latch.ChatTitle;
+    }
 
     public static bool TrySet(string? bridgeSession, string? composer)
     {
@@ -17,15 +29,23 @@ internal static class CdpTenantComposerLatch
             || bridgeSession.Equals(CdpTenantKey.LegacyDefault.BridgeSession, StringComparison.Ordinal))
             return false;
 
-        var key = CdpTenantKey.Normalize(bridgeSession, "default", composer);
-        ByBridge[bridgeSession] = key.Composer;
+        var raw = string.IsNullOrWhiteSpace(composer) ? "main" : composer.Trim();
+        var key = CdpTenantKey.Normalize(bridgeSession, "default", raw);
+        var chatTitle = key.Composer.Equals("main", StringComparison.OrdinalIgnoreCase) ? null : raw;
+        ByBridge[bridgeSession] = new ComposerLatch(key.Composer, chatTitle);
         return true;
     }
 
-    public static object Snapshot(string bridgeSession) => new
+    public static object Snapshot(string bridgeSession)
     {
-        bridge = bridgeSession,
-        composer = Get(bridgeSession),
-        adr = "0200"
-    };
+        if (!ByBridge.TryGetValue(bridgeSession, out var latch))
+            return new { bridge = bridgeSession, composer = "main", chat = (string?)null, adr = "0200" };
+        return new
+        {
+            bridge = bridgeSession,
+            composer = latch.Composer,
+            chat = latch.ChatTitle,
+            adr = "0200"
+        };
+    }
 }
