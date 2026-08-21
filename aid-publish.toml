@@ -1,0 +1,10 @@
+version = 1
+
+# aid-publish: backup these paths from Target before mirror, restore after.
+# Operator-owned live config survives deploy wipe.
+
+[preserve]
+enabled = true
+files = [
+  "cdp-mcp.toml",
+]

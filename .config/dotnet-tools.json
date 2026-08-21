@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "aiguiders.dotnettools.publishfixedtarget": {
-      "version": "0.1.5",
+      "version": "0.1.6",
       "commands": [
         "aid-publish"
       ]
