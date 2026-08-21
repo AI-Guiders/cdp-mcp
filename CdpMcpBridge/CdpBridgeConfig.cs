@@ -9,6 +9,7 @@ internal sealed class CdpBridgeSettings
 {
     public required Uri BaseUrl { get; init; }
     public required string Token { get; init; }
+    public string? TokenPath { get; init; }
 }
 
 internal sealed class CdpBridgeConfigLoadResult
@@ -56,18 +57,19 @@ internal static class CdpBridgeConfigLoader
             uri = new Uri($"http://{bind}:{port}/");
         }
 
+        var resolvedTokenPath = string.IsNullOrWhiteSpace(tokenPath)
+            ? Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "cdp-mcp",
+                "service-token")
+            : tokenPath.Trim();
+
         var token = Environment.GetEnvironmentVariable("CDP_SERVICE_TOKEN");
         if (string.IsNullOrWhiteSpace(token))
         {
-            var path = string.IsNullOrWhiteSpace(tokenPath)
-                ? Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "cdp-mcp",
-                    "service-token")
-                : tokenPath.Trim();
-            if (!File.Exists(path))
-                return new() { IsSuccess = false, Error = $"Service token missing: {path}. Start CdpService first." };
-            token = File.ReadAllText(path).Trim();
+            if (!File.Exists(resolvedTokenPath))
+                return new() { IsSuccess = false, Error = $"Service token missing: {resolvedTokenPath}. Start CdpService first." };
+            token = File.ReadAllText(resolvedTokenPath).Trim();
         }
 
         if (string.IsNullOrWhiteSpace(token))
@@ -76,7 +78,7 @@ internal static class CdpBridgeConfigLoader
         return new()
         {
             IsSuccess = true,
-            Settings = new CdpBridgeSettings { BaseUrl = uri, Token = token },
+            Settings = new CdpBridgeSettings { BaseUrl = uri, Token = token, TokenPath = resolvedTokenPath },
             ConfigPath = configPath
         };
     }
@@ -109,7 +111,11 @@ internal static class CdpBridgeHttpClient
 {
     internal static HttpClient Create(CdpBridgeSettings settings, CdpBridgeTenantHeadersState tenantState)
     {
-        var handler = new CdpBridgeTenantHeadersHandler(tenantState, settings.BaseUrl, settings.Token)
+        var handler = new CdpBridgeTenantHeadersHandler(
+            tenantState,
+            settings.BaseUrl,
+            settings.Token,
+            settings.TokenPath)
         {
             InnerHandler = new HttpClientHandler()
         };

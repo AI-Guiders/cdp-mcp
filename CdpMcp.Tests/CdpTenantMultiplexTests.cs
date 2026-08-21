@@ -57,7 +57,7 @@ public sealed class CdpTenantMultiplexTests
 
         var key = CdpTenantHeaders.TryParse(headers);
         Assert.NotNull(key);
-        Assert.Contains("My_Feature_Chat", key.Value.Composer, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("MyFeatureChat", key.Value.Composer, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

@@ -22,6 +22,7 @@
     <ProjectReference Include="..\CdpMcp.csproj">
       <AdditionalProperties>SelfContained=false</AdditionalProperties>
     </ProjectReference>
+    <ProjectReference Include="..\CdpMcpBridge\CdpMcpBridge.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="IdeIgniteArmHostTests.Continuity.cs">
