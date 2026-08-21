@@ -89,7 +89,7 @@ jobs:
             if ($_.Name -like "SHA256SUMS*") {
               Get-Content $_.FullName | ForEach-Object { if ($_ -match '\S') { [void]$lines.Add($_) } }
             }
-            elseif ($_.Name -match '\.zip$' -or $_.Name -eq "Install-Cdp.ps1" -or $_.Name -eq "cdp-mcp.toml.example") {
+            elseif ($_.Name -match '\.zip$' -or $_.Name -eq "Install-Cdp.ps1" -or $_.Name -eq "install-cdp.sh" -or $_.Name -eq "cdp-mcp.toml.example") {
               Copy-Item $_.FullName (Join-Path $out $_.Name) -Force
             }
           }

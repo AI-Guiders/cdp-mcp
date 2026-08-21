@@ -24,10 +24,18 @@ Meta tools (always in ListTools): `cdp_man`, `cdp_session`, `cdp_health`, `cdp_c
 
 Recipient does **not** clone siblings or run `dotnet publish`. CI/`package-win-release.ps1` puts RID zips on [GitHub Releases](https://github.com/AI-Guiders/cdp-mcp/releases): `win-x64`, `linux-x64`, `osx-arm64`, `osx-x64`.
 
-Requires **PowerShell 7+** on Mac/Linux (`brew install --cask powershell` / distro package). Windows PowerShell 5.1 is fine on Windows.
+Linux/macOS: **bash only** — `curl` + `unzip` + `git` + `python3` (no PowerShell).
+Windows: PowerShell 5.1+ (`Install-Cdp.ps1`) or pwsh.
+
+```bash
+# Linux / macOS (bash — no pwsh)
+curl -fsSL -o install-cdp.sh https://github.com/AI-Guiders/cdp-mcp/releases/latest/download/install-cdp.sh
+chmod +x install-cdp.sh
+./install-cdp.sh --host-adapter cursor
+```
 
 ```powershell
-# Windows / macOS / Linux (pwsh)
+# Windows (PowerShell 5.1+ or pwsh)
 Invoke-WebRequest https://github.com/AI-Guiders/cdp-mcp/releases/latest/download/Install-Cdp.ps1 -OutFile Install-Cdp.ps1
 # keep scripts/cdp-mcp.toml.example next to the script, or download it from the same release/repo
 pwsh -File ./Install-Cdp.ps1 -HostAdapter cursor   # claude | vscode | windsurf | antigravity | none

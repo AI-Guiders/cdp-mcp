@@ -71,6 +71,10 @@ $installSrc = Join-Path $PSScriptRoot "Install-Cdp.ps1"
 if (Test-Path -LiteralPath $installSrc) {
     Copy-Item $installSrc (Join-Path $distDir "Install-Cdp.ps1") -Force
 }
+$installSh = Join-Path $PSScriptRoot "install-cdp.sh"
+if (Test-Path -LiteralPath $installSh) {
+    Copy-Item $installSh (Join-Path $distDir "install-cdp.sh") -Force
+}
 $tomlSrc = Join-Path $PSScriptRoot "cdp-mcp.toml.example"
 if (Test-Path -LiteralPath $tomlSrc) {
     Copy-Item $tomlSrc (Join-Path $distDir "cdp-mcp.toml.example") -Force
