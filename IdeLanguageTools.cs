@@ -11,7 +11,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Bare IDE verbs + <c>cdp_open</c> helpers. Harness routes by <see cref="SessionContext.Language"/>.
-/// csharp → Roslyn; typescript → TS worker; languages with [[languages.lsp]] → <see cref="LspClient"/>.
+/// csharp → Roslyn; typescript → TS worker; powershell diagnostics → Parser AST; powershell LSP → PSES; other [[languages.lsp]] → <see cref="LspClient"/>.
 /// </summary>
 internal static partial class IdeLanguageTools
 {
