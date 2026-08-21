@@ -1,13 +1,19 @@
 using CdpMcp;
 using TerminalMcp.Core;
 
-IdeSeatProcessReclaim.Ensure();
-
 var notifyIdx = Array.IndexOf(args, "--ignite-notify");
+var durableJobIdx = Array.IndexOf(args, "--durable-job");
+if (notifyIdx < 0 && durableJobIdx < 0)
+    IdeSeatProcessReclaim.Ensure();
+else
+    Environment.SetEnvironmentVariable(IdeSeatProcessReclaim.SkipEnv, "1");
+
+
+
 if (notifyIdx >= 0)
     Environment.Exit(await IdeIgniteNotifyCli.RunAsync(args));
 
-var durableJobIdx = Array.IndexOf(args, "--durable-job");
+
 if (durableJobIdx >= 0 && durableJobIdx + 1 < args.Length)
 {
     if (DurableJobStore.TryReadRecordPublic(args[durableJobIdx + 1], out var durableRec)
