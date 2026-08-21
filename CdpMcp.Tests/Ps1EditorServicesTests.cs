@@ -21,4 +21,24 @@ public sealed class Ps1EditorServicesTests
         var path = Ps1EditorServices.ResolveBootstrapScript("Start-PsEditorServices.ps1");
         Assert.True(File.Exists(path));
     }
+
+    [Fact]
+    public void ResolvePses_probe_finds_vscode_extension_bundle()
+    {
+        var script = Ps1EditorServices.ResolveBootstrapScript("Resolve-PsEditorServices.ps1");
+        var psi = new System.Diagnostics.ProcessStartInfo("pwsh", $"-NoProfile -ExecutionPolicy Bypass -File \"{script}\" -Probe")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+        using var proc = System.Diagnostics.Process.Start(psi)!;
+        var stdout = proc.StandardOutput.ReadToEnd();
+        proc.WaitForExit(30_000);
+        Assert.Equal(0, proc.ExitCode);
+        using var doc = System.Text.Json.JsonDocument.Parse(stdout);
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+        var source = doc.RootElement.GetProperty("source").GetString();
+        Assert.True(source is "vscode-extension" or "module" or "env");
+    }
 }

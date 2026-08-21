@@ -1,13 +1,10 @@
 #Requires -Version 7
 # CDP: PowerShell Editor Services — LanguageServiceOnly over stdio (PSES LSP).
 $ErrorActionPreference = 'Stop'
-$mod = Get-Module PowerShellEditorServices -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1
-if (-not $mod) {
-    Write-Error 'PowerShellEditorServices not installed. cdp_settings op=lsp_ensure id=powershell'
-    exit 1
-}
-Import-Module $mod.Path -Force
-$bundled = Split-Path $mod.Path -Parent
+. (Join-Path $PSScriptRoot 'Resolve-PsEditorServices.ps1')
+$pes = Resolve-CdpPsesBundle
+Import-Module $pes.ModulePath -Force
+$bundled = $pes.BundledModulesPath
 $log = Join-Path $env:TEMP "cdp-pes-lsp-$PID.log"
 $session = Join-Path $env:TEMP "cdp-pes-lsp-$PID.json"
 Start-EditorServices `

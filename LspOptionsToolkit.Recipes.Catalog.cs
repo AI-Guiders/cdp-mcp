@@ -127,9 +127,13 @@ internal sealed partial class LspOptionsToolkit
         ["powershell"] = new(
             "powershell",
             "PowerShell (PSES)",
-            "PowerShellEditorServices",
-            "Install-Module PowerShellEditorServices",
+            "ms-vscode.powershell / PowerShellEditorServices",
+            "cursor --install-extension ms-vscode.powershell",
             Ps1EditorServices.BuildLspPreset(),
-            [new("psgallery", ["pwsh", "-NoProfile", "-Command", "Install-Module PowerShellEditorServices -Scope CurrentUser -Force -AllowClobber"])]),
+            [
+                new("cursor-ext", ["cursor", "--install-extension", "ms-vscode.powershell"]),
+                new("code-ext", ["code", "--install-extension", "ms-vscode.powershell"]),
+                new("psgallery", ["pwsh", "-NoProfile", "-Command", "Install-Module PowerShellEditorServices -Scope CurrentUser -Force -AllowClobber"])
+            ]),
     };
 }
