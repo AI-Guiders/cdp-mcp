@@ -6,6 +6,7 @@
 [CmdletBinding()]
 param(
     [string] $BridgeTarget = "D:\cdp-mcp",
+    [string] $BridgeDebugTarget = "D:\cdp-mcp-debug",
     [string] $ServiceTarget = "D:\cdp-service",
     [string] $Target = "",
     [ValidateSet("soft", "hard")]
@@ -86,8 +87,8 @@ function Copy-TsWorker {
 function Ensure-Config {
     param(
         [string] $DeployRoot,
-        [string] $LiveConfigPath,
-        [string] $ConfigBackup
+        [string] $ConfigBackup,
+        [string] $FallbackConfig = ""
     )
     $configSrc = Join-Path $here "config\cdp-mcp.toml"
     if (-not (Test-Path -LiteralPath $configSrc)) { Write-Error "Missing config template: $configSrc"; exit 1 }
@@ -98,6 +99,9 @@ function Ensure-Config {
         Write-Host "Restored live config: $configDst"
     } elseif (Test-Path -LiteralPath $configDst) {
         Write-Host "Keep existing config: $configDst"
+    } elseif ($FallbackConfig -and (Test-Path -LiteralPath $FallbackConfig)) {
+        Copy-Item -LiteralPath $FallbackConfig -Destination $configDst -Force
+        Write-Host "Copied config from fallback: $configDst"
     } else {
         Copy-Item -LiteralPath $configSrc -Destination $configDst -Force
         Write-Host "Seeded config: $configDst"
@@ -105,17 +109,54 @@ function Ensure-Config {
     return $configDst
 }
 
+function Backup-LiveConfig {
+    param([string] $LiveConfigPath)
+    if (-not (Test-Path -LiteralPath $LiveConfigPath)) { return $null }
+    $backup = Join-Path $env:TEMP ("cdp-mcp-toml-" + [guid]::NewGuid().ToString("N") + ".toml")
+    Copy-Item -LiteralPath $LiveConfigPath -Destination $backup -Force
+    Write-Host "Backed up live config: $LiveConfigPath"
+    return $backup
+}
+
+function Publish-BridgeSeat {
+    param(
+        [string] $BridgeRoot,
+        [string] $FallbackConfig
+    )
+    $liveConfig = Join-Path $BridgeRoot "cdp-mcp.toml"
+    $configBackup = Backup-LiveConfig -LiveConfigPath $liveConfig
+    if (-not $configBackup -and $FallbackConfig -and (Test-Path -LiteralPath $FallbackConfig)) {
+        $configBackup = Backup-LiveConfig -LiveConfigPath $FallbackConfig
+    }
+
+    # aid-publish replaces the target tree — stop bridge holding DLL locks.
+    Get-Process -Name CdpMcpBridge, CdpMcp -ErrorAction SilentlyContinue | ForEach-Object {
+        try {
+            $path = $_.MainModule.FileName
+            if ($path -and ($path.StartsWith($BridgeRoot, [StringComparison]::OrdinalIgnoreCase))) {
+                Write-Host "Stopping lock holder: $($_.ProcessName) ($path)"
+                Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+            }
+        } catch { }
+    }
+    Start-Sleep -Milliseconds 500
+
+    New-Item -ItemType Directory -Force -Path $BridgeRoot | Out-Null
+    Publish-CdpProject -Project $bridgeCsproj -DeployRoot $BridgeRoot
+    Ensure-Config -DeployRoot $BridgeRoot -ConfigBackup $configBackup -FallbackConfig $FallbackConfig
+}
+
 $serviceDeployRoot = if ($Mode -eq "soft") { "$ServiceTarget.next" } else { $ServiceTarget }
 $bridgeDeployRoot = if ($Mode -eq "soft") { "$BridgeTarget.next" } else { $BridgeTarget }
 $pendingMarker = Join-Path $ServiceTarget "cdp-pending-update.json"
 $liveServiceConfig = Join-Path $ServiceTarget "cdp-mcp.toml"
 $liveBridgeConfig = Join-Path $BridgeTarget "cdp-mcp.toml"
-$configBackup = $null
-if ($Mode -eq "hard" -and (Test-Path -LiteralPath $liveServiceConfig)) {
-    $configBackup = Join-Path $env:TEMP ("cdp-mcp-toml-" + [guid]::NewGuid().ToString("N") + ".toml")
-    Copy-Item -LiteralPath $liveServiceConfig -Destination $configBackup -Force
-    Write-Host "Backed up live service config: $liveServiceConfig"
-}
+$liveBridgeDebugConfig = Join-Path $BridgeDebugTarget "cdp-mcp.toml"
+$configSource = if (Test-Path -LiteralPath $liveServiceConfig) { $liveServiceConfig }
+    elseif (Test-Path -LiteralPath $liveBridgeConfig) { $liveBridgeConfig }
+    elseif (Test-Path -LiteralPath $liveBridgeDebugConfig) { $liveBridgeDebugConfig }
+    else { $null }
+$configBackup = if ($Mode -eq "hard" -and $configSource) { Backup-LiveConfig -LiveConfigPath $configSource } else { $null }
 
 Push-Location $here
 try {
@@ -127,15 +168,15 @@ try {
     if (Test-Path -LiteralPath $serviceExeSrc) {
         Copy-Item -LiteralPath $serviceExeSrc -Destination $serviceExeDst -Force
     }
-    $serviceConfigDst = Ensure-Config -DeployRoot $serviceDeployRoot -LiveConfigPath $liveServiceConfig -ConfigBackup $configBackup
+    $serviceConfigDst = Ensure-Config -DeployRoot $serviceDeployRoot -ConfigBackup $configBackup
 
     Write-Host "Publish CdpMcpBridge → $bridgeDeployRoot"
-    New-Item -ItemType Directory -Force -Path $bridgeDeployRoot | Out-Null
-    Publish-CdpProject -Project $bridgeCsproj -DeployRoot $bridgeDeployRoot
-    if (Test-Path -LiteralPath $liveBridgeConfig) {
-        Copy-Item -LiteralPath $liveBridgeConfig -Destination (Join-Path $bridgeDeployRoot "cdp-mcp.toml") -Force
-    } else {
-        Copy-Item -LiteralPath $serviceConfigDst -Destination (Join-Path $bridgeDeployRoot "cdp-mcp.toml") -Force
+    Publish-BridgeSeat -BridgeRoot $bridgeDeployRoot -FallbackConfig $serviceConfigDst
+
+    if ($BridgeDebugTarget -and $BridgeDebugTarget -ne $BridgeTarget) {
+        Write-Host "Publish CdpMcpBridge → $BridgeDebugTarget"
+        $debugDeployRoot = if ($Mode -eq "soft") { "$BridgeDebugTarget.next" } else { $BridgeDebugTarget }
+        Publish-BridgeSeat -BridgeRoot $debugDeployRoot -FallbackConfig $serviceConfigDst
     }
 
     $bridgeExe = Join-Path $bridgeDeployRoot "CdpMcpBridge.exe"
