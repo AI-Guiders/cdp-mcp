@@ -31,7 +31,8 @@ Windows: PowerShell 5.1+ (`Install-Cdp.ps1`) or pwsh.
 # Linux / macOS (bash — no pwsh)
 curl -fsSL -o install-cdp.sh https://github.com/AI-Guiders/cdp-mcp/releases/latest/download/install-cdp.sh
 chmod +x install-cdp.sh
-./install-cdp.sh --host-adapter cursor
+./install-cdp.sh --host-adapter cursor   # claude | vscode | windsurf | antigravity | none
+# Unknown harness: --host-adapter none → cdp/host-snippets/*.mcp.json
 ```
 
 ```powershell

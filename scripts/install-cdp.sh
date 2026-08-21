@@ -136,6 +136,31 @@ claude_config_path() {
     *) echo "$HOME/.config/Claude/claude_desktop_config.json" ;;
   esac
 }
+windsurf_mcp_path() { echo "$HOME/.codeium/windsurf/mcp_config.json"; }
+antigravity_mcp_path() {
+  local shared="$HOME/.gemini/config/mcp_config.json"
+  local legacy="$HOME/.gemini/antigravity/mcp_config.json"
+  if [[ -f "$shared" ]]; then echo "$shared"
+  elif [[ -f "$legacy" ]]; then echo "$legacy"
+  else echo "$shared"
+  fi
+}
+
+write_host_snippets() {
+  local snippets_dir="$1" command="$2" config="$3"
+  [[ "$WHATIF" == 1 ]] && { echo "WhatIf: write host-snippets under $snippets_dir"; return; }
+  mkdir -p "$snippets_dir"
+  python3 - "$snippets_dir" "$command" "$config" <<'PY'
+import json, os, sys
+snippets_dir, cmd, cfg = sys.argv[1:4]
+payload = {"mcpServers": {"cdp": {"command": cmd, "args": ["--config", cfg]}}}
+text = json.dumps(payload, indent=2) + "\n"
+for name in ("cursor", "claude", "vscode", "windsurf", "antigravity"):
+    with open(os.path.join(snippets_dir, f"{name}.mcp.json"), "w", encoding="utf-8") as f:
+        f.write(text)
+print(f"Wrote host-snippets under {snippets_dir}")
+PY
+}
 
 CDP_SRC="$(resolve_source)"
 CDP_DST="$ROOT/cdp"
@@ -183,11 +208,23 @@ if [[ "$WHATIF" == 0 && "$UPGRADE" == 0 || ! -f "$CDP_TOML" ]]; then
   sed -e "s|{notesToml}|$NOTES_TOML|g" -e "s|{taskToml}|$TASK_TOML|g" "$TEMPLATE" > "$CDP_TOML"
 fi
 
+SNIPPETS_DIR="$CDP_DST/host-snippets"
+write_host_snippets "$SNIPPETS_DIR" "$EXE" "$CONFIG_ARG"
+
 case "$HOST_ADAPTER" in
   cursor) merge_mcp_json "$(cursor_mcp_path)" "$EXE" "$CONFIG_ARG"; echo "Reload MCP in Cursor." ;;
   claude) merge_mcp_json "$(claude_config_path)" "$EXE" "$CONFIG_ARG"; echo "Restart Claude Desktop." ;;
-  none) echo "Host none — configure MCP manually: $EXE --config $CONFIG_ARG" ;;
-  *) echo "Host $HOST_ADAPTER — merge manually; see host-snippets in Install-Cdp.ps1" ;;
+  vscode) echo "VS Code: copy host-snippets/vscode.mcp.json into user MCP settings." ;;
+  windsurf)
+    merge_mcp_json "$(windsurf_mcp_path)" "$EXE" "$CONFIG_ARG"
+    echo "Refresh MCP in Windsurf Cascade (Manage MCPs → Refresh)."
+    echo "WARN: Windsurf caps ~100 tools across all MCP servers — CDP shortlists, but heavy mounts may hit the ceiling." >&2
+    ;;
+  antigravity)
+    merge_mcp_json "$(antigravity_mcp_path)" "$EXE" "$CONFIG_ARG"
+    echo "Refresh MCP in Antigravity (MCP Store / View raw config). Path: $(antigravity_mcp_path)"
+    ;;
+  none|*) echo "Host none — snippets under $SNIPPETS_DIR" ;;
 esac
 
 echo "OK. Payload $EXE"
