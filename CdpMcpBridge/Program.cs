@@ -29,6 +29,7 @@ var tenantState = new CdpBridgeTenantHeadersState
     Composer = Environment.GetEnvironmentVariable("CDP_COMPOSER") ?? "main"
 };
 using var http = CdpBridgeHttpClient.Create(settings, tenantState);
+var serviceEnsurer = new CdpBridgeServiceEnsurer(settings);
 var jsonOptions = new JsonSerializerOptions
 {
     PropertyNameCaseInsensitive = true,
@@ -42,7 +43,8 @@ var options = new McpServerOptions
         CDP MCP bridge — thin stdio transport to durable CdpService (ADR-0198).
         SSOT handlers live in CdpService; this process only forwards ListTools/CallTool.
         Watches capabilitiesRev (ADR-0202) and emits tools/list_changed when CdpService rev bumps.
-        If tools fail with unreachable — run Start-CdpService.ps1 or cdp deploy hard.
+        When [service] install_dir is set, bridge auto-starts CdpService on connection refused (then retries).
+        Otherwise run Start-CdpService.ps1 or cdp deploy hard.
         """,
     ProtocolVersion = "2024-11-05",
     Capabilities = new ServerCapabilities
@@ -55,25 +57,34 @@ var options = new McpServerOptions
         {
             try
             {
-                using var response = await http.GetAsync("/api/v1/cdp/capabilities", cancellationToken)
-                    .ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                var payload = await response.Content.ReadFromJsonAsync<CdpCapabilitiesResponse>(jsonOptions, cancellationToken)
-                    .ConfigureAwait(false);
-                var tools = (payload?.Tools ?? [])
-                    .Select(t => new Tool
+                return await CdpBridgeTransport.WithEnsureRetryAsync(
+                    serviceEnsurer,
+                    async ct =>
                     {
-                        Name = t.Name,
-                        Description = t.Description,
-                        InputSchema = t.InputSchema.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
-                            ? JsonSerializer.SerializeToElement(new { type = "object", properties = new { } })
-                            : t.InputSchema
-                    })
-                    .ToList();
-                return new ListToolsResult { Tools = tools };
+                        using var response = await http.GetAsync("/api/v1/cdp/capabilities", ct)
+                            .ConfigureAwait(false);
+                        response.EnsureSuccessStatusCode();
+                        var payload = await response.Content.ReadFromJsonAsync<CdpCapabilitiesResponse>(jsonOptions, ct)
+                            .ConfigureAwait(false);
+                        var tools = (payload?.Tools ?? [])
+                            .Select(t => new Tool
+                            {
+                                Name = t.Name,
+                                Description = t.Description,
+                                InputSchema = t.InputSchema.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
+                                    ? JsonSerializer.SerializeToElement(new { type = "object", properties = new { } })
+                                    : t.InputSchema
+                            })
+                            .ToList();
+                        return new ListToolsResult { Tools = tools };
+                    },
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
+                var hint = serviceEnsurer.CanAutoStart
+                    ? "Auto-start failed or service still down."
+                    : "Set [service] install_dir or run Start-CdpService.ps1.";
                 return new ListToolsResult
                 {
                     Tools =
@@ -81,7 +92,7 @@ var options = new McpServerOptions
                         new Tool
                         {
                             Name = "cdp_health",
-                            Description = $"CdpService unreachable at {settings.BaseUrl}: {ex.Message}. Start CdpService."
+                            Description = $"CdpService unreachable at {settings.BaseUrl}: {ex.Message}. {hint}"
                         }
                     ]
                 };
@@ -99,27 +110,36 @@ var options = new McpServerOptions
 
             try
             {
-                var payload = new CdpInvokeRequest
-                {
-                    Tool = name,
-                    Arguments = args.Count == 0
-                        ? null
-                        : args.ToDictionary(static p => p.Key, static p => p.Value)
-                };
-                using var response = await http.PostAsJsonAsync("/api/v1/cdp/invoke", payload, jsonOptions, cancellationToken)
-                    .ConfigureAwait(false);
-                var body = await response.Content.ReadFromJsonAsync<CdpInvokeResponse>(jsonOptions, cancellationToken)
-                    .ConfigureAwait(false)
-                    ?? new CdpInvokeResponse { Success = false, Body = await response.Content.ReadAsStringAsync(cancellationToken) };
-                return new CallToolResult
-                {
-                    Content = [new TextContentBlock { Text = body.Body }],
-                    IsError = !body.Success
-                };
+                return await CdpBridgeTransport.WithEnsureRetryAsync(
+                    serviceEnsurer,
+                    async ct =>
+                    {
+                        var payload = new CdpInvokeRequest
+                        {
+                            Tool = name,
+                            Arguments = args.Count == 0
+                                ? null
+                                : args.ToDictionary(static p => p.Key, static p => p.Value)
+                        };
+                        using var response = await http.PostAsJsonAsync("/api/v1/cdp/invoke", payload, jsonOptions, ct)
+                            .ConfigureAwait(false);
+                        var body = await response.Content.ReadFromJsonAsync<CdpInvokeResponse>(jsonOptions, ct)
+                            .ConfigureAwait(false)
+                            ?? new CdpInvokeResponse { Success = false, Body = await response.Content.ReadAsStringAsync(ct) };
+                        return new CallToolResult
+                        {
+                            Content = [new TextContentBlock { Text = body.Body }],
+                            IsError = !body.Success
+                        };
+                    },
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                return Error($"CdpService unreachable at {settings.BaseUrl}: {ex.Message}");
+                var hint = serviceEnsurer.CanAutoStart
+                    ? "Auto-start failed or service still down."
+                    : "Set [service] install_dir or run Start-CdpService.ps1.";
+                return Error($"CdpService unreachable at {settings.BaseUrl}: {ex.Message}. {hint}");
             }
         }
     }
@@ -146,6 +166,8 @@ static void PrintUsage()
           bind = "127.0.0.1"
           port = 8771
           token_path = ""   # optional; default %LocalAppData%/cdp-mcp/service-token
+          install_dir = "D:/cdp-service"  # bridge auto-starts sidecar when down
+          auto_start = true               # default true when install_dir set
 
         Env overrides:
           CDP_SERVICE_URL=http://127.0.0.1:8771

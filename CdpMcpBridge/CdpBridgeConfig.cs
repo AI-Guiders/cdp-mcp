@@ -10,6 +10,12 @@ internal sealed class CdpBridgeSettings
     public required Uri BaseUrl { get; init; }
     public required string Token { get; init; }
     public string? TokenPath { get; init; }
+    /// <summary>Durable seat root (e.g. D:\cdp-service) for bridge auto-start.</summary>
+    public string? InstallDir { get; init; }
+    /// <summary>Bridge --config path; passed to service on auto-start when present.</summary>
+    public string? ServiceConfigPath { get; init; }
+    /// <summary>When true and <see cref="InstallDir"/> set, probe /healthz and spawn sidecar on connection refused.</summary>
+    public bool AutoStart { get; init; }
 }
 
 internal sealed class CdpBridgeConfigLoadResult
@@ -75,10 +81,30 @@ internal static class CdpBridgeConfigLoader
         if (string.IsNullOrWhiteSpace(token))
             return new() { IsSuccess = false, Error = "Empty service token." };
 
+        var installDir = Environment.GetEnvironmentVariable("CDP_SERVICE_INSTALL_DIR");
+        if (string.IsNullOrWhiteSpace(installDir))
+            installDir = service?.InstallDir;
+        installDir = string.IsNullOrWhiteSpace(installDir) ? null : Path.GetFullPath(installDir.Trim());
+
+        var autoStart = service?.AutoStart;
+        if (Environment.GetEnvironmentVariable("CDP_SERVICE_AUTO_START") is { Length: > 0 } autoRaw
+            && bool.TryParse(autoRaw, out var autoEnv))
+            autoStart = autoEnv;
+        else if (autoStart is null)
+            autoStart = !string.IsNullOrWhiteSpace(installDir);
+
         return new()
         {
             IsSuccess = true,
-            Settings = new CdpBridgeSettings { BaseUrl = uri, Token = token, TokenPath = resolvedTokenPath },
+            Settings = new CdpBridgeSettings
+            {
+                BaseUrl = uri,
+                Token = token,
+                TokenPath = resolvedTokenPath,
+                InstallDir = installDir,
+                ServiceConfigPath = configPath,
+                AutoStart = autoStart.Value
+            },
             ConfigPath = configPath
         };
     }
@@ -105,6 +131,8 @@ internal sealed class BridgeTomlService
     public string? Bind { get; set; }
     public int? Port { get; set; }
     public string? TokenPath { get; set; }
+    public string? InstallDir { get; set; }
+    public bool? AutoStart { get; set; }
 }
 
 internal static class CdpBridgeHttpClient

@@ -19,6 +19,7 @@
 
 ## last_ship
 
+- **2026-08-21 bridge auto-start ensurer** — `CdpBridgeServiceEnsurer`: `[service] install_dir` + `auto_start` (default on when install_dir set); global mutex; probe `/healthz`; spawn `CdpService.exe --service`; retry capabilities/invoke once via `CdpBridgeTransport`. Test `CdpBridgeServiceEnsurerTests`.
 - **2026-08-21 bridge Bearer auth (401 fix)** — `CdpBridgeTenantHeadersHandler` now sends `Authorization: Bearer` on all outbound invoke/capabilities requests (regression from ADR-0200 latch-only auth); token reload on 401 from `service-token`. Test `CdpBridgeTenantHeadersHandlerTests`.
 - **2026-08-21 ADR-0200 per-conversation tenant (multi-chat one Agents)** — `X-CDP-Conversation-Id` from MCP `_meta` (`cursor/composerId` | `progressToken`); per-conversation `CdpTenantComposerLatch`; bridge AsyncLocal; `cdp_context composer=` scoped to conversation. Tests 9/9.
 - **2026-08-21 ADR-0200 tenant multiplex (full)** — `CdpSharedKernel` + `CdpTenantRegistry` (idle eviction); per-tenant Session/buffers/**shell**/WitDB/settings/pressure state_root; bridge roots→workspace hash + `X-CDP-*` headers; `cdp_context composer=` latch + `/tenant/composer`; `CdpTenantDispatch`. Tests 5/5.
