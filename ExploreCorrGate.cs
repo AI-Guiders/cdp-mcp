@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using Cdp.ScriptableIde;
 
 namespace CdpMcp;
 
@@ -16,7 +17,8 @@ internal static class ExploreCorrGate
         string? absPath,
         string? rootHint,
         IReadOnlyDictionary<string, JsonElement>? args,
-        string verb = "mutate")
+        string verb = "mutate",
+        bool pathExistedBefore = true)
     {
         if (!ExploreCorrLatch.IsEnabled())
             return;
@@ -34,6 +36,12 @@ internal static class ExploreCorrGate
         {
             return;
         }
+
+        var tier = ExploreCorrPolicy.ResolveMode(full, rootHint);
+        if (tier == ExploreCorrPolicy.Mode.Off)
+            return;
+        if (tier == ExploreCorrPolicy.Mode.Card && !pathExistedBefore)
+            return;
 
         if (!ExploreCorrLatch.HasMappedAdrs(full, rootHint))
             return;
@@ -76,6 +84,14 @@ internal static class ExploreCorrGate
         {
             return null;
         }
+
+        var tier = ExploreCorrPolicy.ResolveMode(full, rootHint);
+        if (tier == ExploreCorrPolicy.Mode.Off)
+            return null;
+        if (tier == ExploreCorrPolicy.Mode.Card
+            && (route.Verb == CitizenIntentRouter.Verb.Create
+                || !File.Exists(full)))
+            return null;
 
         if (!ExploreCorrLatch.HasMappedAdrs(full, rootHint))
             return null;
