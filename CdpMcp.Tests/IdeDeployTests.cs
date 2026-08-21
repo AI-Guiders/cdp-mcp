@@ -117,6 +117,46 @@ public sealed class IdeDeployTests
     }
 
     [Fact]
+    public void ResolveTarget_apply_defaults_to_service_install()
+    {
+        var d = IdeDeploy.ResolveTarget(
+            IdeDeploy.DebugTarget,
+            "cdp-debug",
+            targetRaw: null,
+            mode: "apply",
+            force: false);
+        Assert.True(d.Ok);
+        Assert.Equal(IdeDeploy.ServiceTarget, d.Target);
+    }
+
+    [Theory]
+    [InlineData("apply", "apply")]
+    [InlineData("pending", "apply")]
+    [InlineData("APPLY", "apply")]
+    public void NormalizeMode_apply_aliases(string input, string expected)
+    {
+        var root = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", ".."));
+        while (root is not null
+               && !File.Exists(Path.Combine(root, "CdpMcp.csproj"))
+               && Directory.GetParent(root) is { } parent)
+            root = parent.FullName;
+
+        var json = IdeDeploy.Run(
+            new SessionContext { ProjectRoot = root },
+            new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["mode"] = JsonSerializer.SerializeToElement(input),
+                ["dry_run"] = JsonSerializer.SerializeToElement(true)
+            });
+        using var doc = JsonDocument.Parse(json);
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
+        Assert.Equal(expected, doc.RootElement.GetProperty("mode").GetString());
+        Assert.Contains("-Mode apply", doc.RootElement.GetProperty("argv").GetString()!, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Repl_deploy_dry_routes_go_deploy()
     {
         var empty = new Dictionary<string, JsonElement>(StringComparer.Ordinal);

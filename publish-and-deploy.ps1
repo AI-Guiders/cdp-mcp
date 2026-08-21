@@ -9,7 +9,7 @@ param(
     [string] $BridgeDebugTarget = "D:\cdp-mcp-debug",
     [string] $ServiceTarget = "D:\cdp-service",
     [string] $Target = "",
-    [ValidateSet("soft", "hard")]
+    [ValidateSet("soft", "hard", "apply")]
     [string] $Mode = "soft",
     [switch] $UseNuGet,
     [switch] $NoNudgeMcp,
@@ -130,6 +130,147 @@ function Publish-BridgeSeat {
     Ensure-Config -DeployRoot $BridgeRoot -FallbackConfig $FallbackConfig
 }
 
+function Stop-LockHoldersUnder {
+    param([string] $Root)
+    if (-not $Root) { return }
+    Get-Process CdpService, CdpMcp, CdpMcpBridge -ErrorAction SilentlyContinue | ForEach-Object {
+        try {
+            $path = $_.MainModule.FileName
+            if ($path -and ($path.StartsWith($Root, [StringComparison]::OrdinalIgnoreCase))) {
+                Write-Host "Stopping lock holder: $($_.ProcessName) ($path)"
+                Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+            }
+        } catch { }
+    }
+    Start-Sleep -Milliseconds 800
+}
+
+function Promote-StagedTree {
+    param(
+        [string] $StagedRoot,
+        [string] $LiveRoot,
+        [string[]] $PreserveNames = @("cdp-mcp.toml")
+    )
+    if (-not (Test-Path -LiteralPath $StagedRoot)) {
+        Write-Error "Staged tree missing: $StagedRoot"
+        exit 1
+    }
+    New-Item -ItemType Directory -Force -Path $LiveRoot | Out-Null
+
+    $backups = @{}
+    foreach ($name in $PreserveNames) {
+        $livePath = Join-Path $LiveRoot $name
+        if (Test-Path -LiteralPath $livePath) {
+            $backups[$name] = Get-Content -LiteralPath $livePath -Raw -ErrorAction SilentlyContinue
+        }
+    }
+
+    $robocopy = Get-Command robocopy -ErrorAction SilentlyContinue
+    if ($robocopy) {
+        & robocopy $StagedRoot $LiveRoot /MIR /NFL /NDL /NJH /NJS /NC /NS /NP | Out-Null
+        $rc = $LASTEXITCODE
+        if ($rc -ge 8) {
+            Write-Error "robocopy promote failed exit=$rc ($StagedRoot -> $LiveRoot)"
+            exit $rc
+        }
+    } else {
+        Write-Warning "robocopy missing — Copy-Item fallback (slower)."
+        Get-ChildItem -LiteralPath $LiveRoot -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        Copy-Item -LiteralPath (Join-Path $StagedRoot '*') -Destination $LiveRoot -Recurse -Force
+    }
+
+    foreach ($name in $backups.Keys) {
+        if ($null -ne $backups[$name]) {
+            Set-Content -LiteralPath (Join-Path $LiveRoot $name) -Value $backups[$name] -Encoding utf8
+            Write-Host "Preserve: kept live config $name"
+        }
+    }
+}
+
+function Resolve-LiveFromStaged {
+    param([string] $StagedRoot, [string] $DefaultLive)
+    if (-not $StagedRoot) { return $DefaultLive }
+    if ($StagedRoot.EndsWith(".next", [StringComparison]::OrdinalIgnoreCase)) {
+        return $StagedRoot.Substring(0, $StagedRoot.Length - 5)
+    }
+    return $DefaultLive
+}
+
+function Apply-PendingUpdate {
+    param(
+        [string] $ServiceTarget,
+        [string] $BridgeTarget,
+        [string] $BridgeDebugTarget,
+        [switch] $NoNudgeMcp,
+        [switch] $NudgeAllSeats
+    )
+    $pendingMarker = Join-Path $ServiceTarget "cdp-pending-update.json"
+    if (-not (Test-Path -LiteralPath $pendingMarker)) {
+        Write-Error "No pending update at $pendingMarker — run -Mode soft first."
+        exit 1
+    }
+
+    $pending = Get-Content -LiteralPath $pendingMarker -Raw | ConvertFrom-Json
+    $serviceNext = [string]$pending.service_root
+    if (-not $serviceNext) { $serviceNext = "$ServiceTarget.next" }
+
+    Write-Host "APPLY pending staged_at=$($pending.staged_at_utc)"
+    Write-Host "  service: $serviceNext -> $ServiceTarget"
+
+    Stop-LockHoldersUnder -Root $ServiceTarget
+    Stop-LockHoldersUnder -Root $BridgeTarget
+    if ($BridgeDebugTarget -and ($BridgeDebugTarget -ne $BridgeTarget)) {
+        Stop-LockHoldersUnder -Root $BridgeDebugTarget
+    }
+
+    Promote-StagedTree -StagedRoot $serviceNext -LiveRoot $ServiceTarget
+
+    $bridgePromotes = @(
+        @{ Staged = [string]$pending.bridge_root; Live = $BridgeTarget },
+        @{ Staged = "$BridgeTarget.next"; Live = $BridgeTarget },
+        @{ Staged = "$BridgeDebugTarget.next"; Live = $BridgeDebugTarget }
+    )
+    $seen = @{}
+    foreach ($bp in $bridgePromotes) {
+        $staged = $bp.Staged
+        if (-not $staged -or $seen.ContainsKey($staged.ToLowerInvariant())) { continue }
+        if (-not (Test-Path -LiteralPath $staged)) { continue }
+        $live = Resolve-LiveFromStaged -StagedRoot $staged -DefaultLive $bp.Live
+        if ($live -and ($live -ne $ServiceTarget)) {
+            Write-Host "  bridge: $staged -> $live"
+            Promote-StagedTree -StagedRoot $staged -LiveRoot $live
+            $seen[$staged.ToLowerInvariant()] = $true
+        }
+    }
+
+    Remove-Item -LiteralPath $pendingMarker -Force -ErrorAction SilentlyContinue
+    foreach ($nextDir in @("$ServiceTarget.next", "$BridgeTarget.next", "$BridgeDebugTarget.next")) {
+        if (Test-Path -LiteralPath $nextDir) {
+            Remove-Item -LiteralPath $nextDir -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Cleaned staged: $nextDir"
+        }
+    }
+
+    $serviceConfig = Join-Path $ServiceTarget "cdp-mcp.toml"
+    & (Join-Path $here "Start-CdpService.ps1") -Target $ServiceTarget -Config $serviceConfig
+
+    if (-not $NoNudgeMcp) {
+        try {
+            $nudge = if ($NudgeAllSeats) { Invoke-CdpReloadNudge -AllSeats } else { Invoke-CdpReloadNudge -Server "cdp" }
+            if ($nudge.Ok) {
+                Write-Host "MCP nudge (bridge): $($nudge.Path) CDP_RELOAD_NUDGE=$($nudge.Value)"
+            } else {
+                Write-Host "MCP nudge skipped: $($nudge.Error)"
+            }
+        } catch {
+            Write-Host "MCP nudge failed: $($_.Exception.Message)"
+        }
+    }
+
+    $serviceExe = Join-Path $ServiceTarget "CdpService.exe"
+    Write-Host "APPLY ok service: $serviceExe"
+}
+
 $serviceDeployRoot = if ($Mode -eq "soft") { "$ServiceTarget.next" } else { $ServiceTarget }
 $bridgeDeployRoot = if ($Mode -eq "soft") { "$BridgeTarget.next" } else { $BridgeTarget }
 $pendingMarker = Join-Path $ServiceTarget "cdp-pending-update.json"
@@ -138,6 +279,12 @@ $liveBridgeDebugConfig = Join-Path $BridgeDebugTarget "cdp-mcp.toml"
 
 Push-Location $here
 try {
+    if ($Mode -eq "apply") {
+        Apply-PendingUpdate -ServiceTarget $ServiceTarget -BridgeTarget $BridgeTarget `
+            -BridgeDebugTarget $BridgeDebugTarget -NoNudgeMcp:$NoNudgeMcp -NudgeAllSeats:$NudgeAllSeats
+        exit $LASTEXITCODE
+    }
+
     Write-Host "Publish CdpService → $serviceDeployRoot"
     Publish-CdpProject -Project $serviceCsproj -DeployRoot $serviceDeployRoot -KillRunning:($Mode -eq "hard")
     Copy-TsWorker -DeployRoot $serviceDeployRoot
@@ -173,7 +320,7 @@ try {
             service_root  = $serviceDeployRoot
             bridge_root   = $bridgeDeployRoot
             version       = $ver
-            apply_hint    = ".\publish-and-deploy.ps1 -Mode hard"
+            apply_hint    = "cdp_deploy mode=apply (promote .next, no republish) or .\publish-and-deploy.ps1 -Mode apply"
         }
         ($pending | ConvertTo-Json -Depth 5) | Set-Content -LiteralPath $pendingMarker -Encoding utf8
         Write-Host "SOFT staged service: $serviceDeployRoot"

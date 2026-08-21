@@ -7,7 +7,14 @@ internal static partial class IdeDeploy
     static string NormalizeMode(string mode)
     {
         var m = mode.Trim().ToLowerInvariant();
-        return m is "soft" or "hard" or "rollout" ? m : "hard";
+        return m switch
+        {
+            "soft" or "s" or "stage" => "soft",
+            "hard" or "h" or "kill" => "hard",
+            "rollout" or "r" or "dual" => "rollout",
+            "apply" or "a" or "pending" or "apply_pending" => "apply",
+            _ => "hard"
+        };
     }
 
     static bool SamePath(string? a, string? b)

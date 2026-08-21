@@ -22,18 +22,24 @@ internal static partial class IdeDeploy
 
         object? igniteWake = null;
         object? remountWake = null;
-        if (exit == 0 && mode == "hard")
+        if (exit == 0 && mode is "hard" or "apply")
         {
-            try { IdeRemountWake.MarkPending(resolved.Target!, "hard_deploy"); }
+            try { IdeRemountWake.MarkPending(resolved.Target!, mode == "hard" ? "hard_deploy" : "apply_pending"); }
             catch { /* best-effort — ps1 also writes pending */ }
-            try { igniteWake = IdeIgniteArmHost.WakeAfterHardDeploy(); }
-            catch { /* best-effort — deploy already succeeded */ }
-            var targetSeat = ClassifySeat(resolved.Target);
+            if (mode == "hard")
+            {
+                try { igniteWake = IdeIgniteArmHost.WakeAfterHardDeploy(); }
+                catch { /* best-effort — deploy already succeeded */ }
+            }
+
+            var targetSeat = mode == "apply" ? "cdp" : ClassifySeat(resolved.Target);
             remountWake = new
             {
                 pending_seat = targetSeat,
                 pending_path = IdeRemountWake.PendingPathForSeat(targetSeat),
-                hint = "Target MCP boot consumes pending → Autoi 'MCP remounted / initialized'"
+                hint = mode == "apply"
+                    ? "Service restarted from staged .next — bump bridge remount if tools stale (CDP_RELOAD_NUDGE)."
+                    : "Target MCP boot consumes pending → Autoi 'MCP remounted / initialized'"
             };
         }
 
@@ -66,11 +72,14 @@ internal static partial class IdeDeploy
                 }
                 : null,
             hint = exit == 0
-                ? (mode == "hard"
-                    ? (includeRaw
+                ? mode switch
+                {
+                    "hard" => includeRaw
                         ? "Hard deploy done. Remount-wake pending armed for target; survivor reclaimed overdue Autoi arms."
-                        : "Hard deploy done. Target remount Autoi will say initialized; survivor reclaims overdue arms.")
-                    : "Soft staged (.next + pending_update). Apply with mode=hard when ready.")
+                        : "Hard deploy done. Target remount Autoi will say initialized; survivor reclaims overdue arms.",
+                    "apply" => "Pending staged update applied (.next → live). cdp_health pending_update should be null.",
+                    _ => "Soft staged (.next + pending_update). Apply with mode=apply (no republish) or mode=hard to rebuild."
+                }
                 : "Deploy failed — see stderr_tail / exit_code. include_raw=true for full tails."
         }, Pretty);
     }

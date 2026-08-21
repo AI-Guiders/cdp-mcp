@@ -17,6 +17,7 @@ internal static partial class IdeDeploy
     public const string Schema = "deploy/v0";
     public const string ReleaseTarget = @"D:\cdp-mcp";
     public const string DebugTarget = @"D:\cdp-mcp-debug";
+    public const string ServiceTarget = @"D:\cdp-service";
     public const string ScriptName = "publish-and-deploy.ps1";
 
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
@@ -48,7 +49,7 @@ internal static partial class IdeDeploy
                 $"Open cdp-mcp (or pass script= path to {ScriptName}). Sticky warm restores last desk — then retry go=deploy.");
         }
 
-        var psiArgs = BuildPsArgs(script, mode, resolved.Target!, useNuGet, noNudge);
+        var psiArgs = BuildPsArgs(script, mode, resolved.Target!, useNuGet, noNudge, serviceTarget: resolved.Target);
         if (dryRun)
             return DryRunPayload(mode, selfRoot, seat, resolved, script, psiArgs);
 
@@ -76,20 +77,37 @@ internal static partial class IdeDeploy
             var t = line.Trim();
             if (t.StartsWith("OK:", StringComparison.OrdinalIgnoreCase)
                 || t.StartsWith("HARD deployed:", StringComparison.OrdinalIgnoreCase)
-                || t.StartsWith("SOFT staged:", StringComparison.OrdinalIgnoreCase))
+                || t.StartsWith("SOFT staged:", StringComparison.OrdinalIgnoreCase)
+                || t.StartsWith("APPLY ok", StringComparison.OrdinalIgnoreCase))
                 return Tail(t, 160);
         }
 
         return null;
     }
 
-    static string BuildPsArgs(string script, string mode, string target, bool useNuGet, bool noNudge)
+    static string BuildPsArgs(
+        string script,
+        string mode,
+        string target,
+        bool useNuGet,
+        bool noNudge,
+        string? serviceTarget = null)
     {
         var sb = new StringBuilder();
         sb.Append("-NoProfile -ExecutionPolicy Bypass -File ");
         sb.Append(Quote(script));
         sb.Append(" -Mode ").Append(mode);
-        sb.Append(" -Target ").Append(Quote(target));
+        if (mode == "apply")
+        {
+            sb.Append(" -ServiceTarget ").Append(Quote(serviceTarget ?? ServiceTarget));
+            sb.Append(" -BridgeTarget ").Append(Quote(ReleaseTarget));
+            sb.Append(" -BridgeDebugTarget ").Append(Quote(DebugTarget));
+        }
+        else
+        {
+            sb.Append(" -Target ").Append(Quote(target));
+        }
+
         if (useNuGet)
             sb.Append(" -UseNuGet");
         if (noNudge)

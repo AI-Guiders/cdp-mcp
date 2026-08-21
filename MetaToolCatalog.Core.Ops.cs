@@ -25,12 +25,12 @@ internal static partial class MetaToolCatalog
             op = new { type = "string", description = "restore (default) | peek" }
         }
     }),
-    Meta("cdp_deploy", "Dual-instance Deploy — runs publish-and-deploy.ps1. Hard defaults to sibling install (D:\\cdp-mcp ↔ D:\\cdp-mcp-debug) so KillRunning does not target self. Soft stages .next. mode=rollout: soft sibling→soft self→hard sibling + hard_self.argv for terminal_*. Crystal: switch seat → go=deploy (desk auto-warms). dry_run= to preview. Alias go=deploy.", new
+    Meta("cdp_deploy", "Dual-instance Deploy — runs publish-and-deploy.ps1. Soft stages .next + pending_update. mode=apply promotes staged .next → live (no republish). Hard republishes + KillRunning (defaults sibling). mode=rollout: soft sibling→soft self→hard sibling. dry_run= preview. Alias go=deploy.", new
     {
         type = "object",
         properties = new
         {
-            mode = new { type = "string", description = "soft|hard|rollout (default hard; rollout=soft sibling→soft self→hard sibling)" },
+            mode = new { type = "string", description = "soft|apply|hard|rollout (default hard; apply=promote pending .next)" },
             target = new { type = "string", description = "sibling|self|release|debug|path (default sibling)" },
             force = new { type = "boolean", description = "allow hard deploy onto self install (escape)" },
             dry_run = new { type = "boolean", description = "resolve policy only — no powershell" },

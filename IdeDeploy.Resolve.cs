@@ -86,6 +86,19 @@ internal static partial class IdeDeploy
             target = Path.GetFullPath(raw);
         }
 
+        if (mode == "apply")
+        {
+            var service = raw.Length == 0
+                          || raw.Equals("sibling", StringComparison.OrdinalIgnoreCase)
+                          || raw.Equals("service", StringComparison.OrdinalIgnoreCase)
+                ? ServiceTarget
+                : raw.Equals("self", StringComparison.OrdinalIgnoreCase)
+                  || raw.Equals("here", StringComparison.OrdinalIgnoreCase)
+                    ? (selfRoot ?? ServiceTarget)
+                    : target;
+            return new TargetDecision(true, service, sibling, null, null);
+        }
+
         if (mode == "hard" && SamePath(target, selfRoot) && !force)
         {
             return new TargetDecision(
