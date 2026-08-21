@@ -31,6 +31,28 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
         """;
 
     [Fact]
+    public async Task Place_replace_on_L_anchor_replaces_full_line_not_partial_column()
+    {
+        const string body = """
+            namespace Fixture;
+
+            internal static class SceneMap
+            {
+                public static void KeepMe() { var tail = 1; }
+            }
+            """;
+        await using var fx = await AnchorFixture.CreateAsync(body);
+        var json = await fx.EditAnchorAsync(
+            place: "replace",
+            text: "        public static void Replaced() { }",
+            anchor: "[F:SceneMap.cs;L:5;]");
+
+        Assert.Contains("\"family\": \"line_literal\"", json, StringComparison.Ordinal);
+        Assert.Contains("Replaced", fx.Text, StringComparison.Ordinal);
+        Assert.DoesNotContain("var tail = 1", fx.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Place_before_on_method_inserts_sibling_outside()
     {
         await using var fx = await AnchorFixture.CreateAsync(FixtureBody);

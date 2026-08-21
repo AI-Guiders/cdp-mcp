@@ -51,6 +51,57 @@ internal static partial class DocumentEditPlane
                 throw new ArgumentException(
                     $"axes_mismatch: csharp axes on language={buf.Language}. path={buf.Path}");
 
+            // L-only: line_literal full-line corridor (EditSniper parity) — not Roslyn node partial span.
+            if (IsLineOnlyCorridor(span))
+            {
+                var ls = span.LineStart!.Value;
+                var le = span.LineEnd ?? ls;
+                var lineRange = ExpandToFullLines(
+                    buf.Text, new BracketSyntaxResolve.TextRange(ls, 1, le, 1));
+                var oldLine = OptString(args, "old_string");
+                if (oldLine is { Length: > 0 } && place is "replace")
+                {
+                    store.ApplyReplaceInRange(
+                        buf,
+                        lineRange.LineStart, lineRange.ColumnStart, lineRange.LineEnd, lineRange.ColumnEnd,
+                        oldLine, replacement);
+                    return new
+                    {
+                        family = "line_literal",
+                        wire = BracketLocate.Format(span),
+                        resolve = "line_literal+old_string",
+                        place = "in_locus",
+                        range = new
+                        {
+                            start_line = lineRange.LineStart,
+                            start_column = lineRange.ColumnStart,
+                            end_line = lineRange.LineEnd,
+                            end_column = lineRange.ColumnEnd
+                        }
+                    };
+                }
+
+                var linePlace = place is "into" ? "before" : place is "end" ? "after" : place;
+                ApplyPlacedRange(
+                    store, buf, linePlace,
+                    lineRange.LineStart, lineRange.ColumnStart, lineRange.LineEnd, lineRange.ColumnEnd,
+                    replacement);
+                return new
+                {
+                    family = "line_literal",
+                    wire = BracketLocate.Format(span),
+                    resolve = "line_literal",
+                    place,
+                    range = new
+                    {
+                        start_line = lineRange.LineStart,
+                        start_column = lineRange.ColumnStart,
+                        end_line = lineRange.LineEnd,
+                        end_column = lineRange.ColumnEnd
+                    }
+                };
+            }
+
             if (!BracketSyntaxResolve.TryFindAttachTarget(buf.Path, buf.Text, span, out var target, out var detail))
                 throw new ArgumentException($"Anchor resolve failed ({detail}): {wire}");
 
@@ -302,6 +353,29 @@ internal static partial class DocumentEditPlane
 
         // after — exclusive end point of resolved locus (also zero-width when body-narrowed)
         store.ApplyReplaceRange(buf, lineEnd, colEnd, lineEnd, colEnd, text);
+    }
+
+    static bool IsLineOnlyCorridor(BracketLocate.Span span) =>
+        span.LineStart is not null
+        && string.IsNullOrWhiteSpace(span.MemberKey)
+        && string.IsNullOrWhiteSpace(span.ScopeKind)
+        && string.IsNullOrWhiteSpace(span.TextNeedle)
+        && string.IsNullOrWhiteSpace(span.Role)
+        && string.IsNullOrWhiteSpace(span.XmlPath)
+        && string.IsNullOrWhiteSpace(span.Attr);
+
+    static BracketSyntaxResolve.TextRange ExpandToFullLines(
+        string text,
+        BracketSyntaxResolve.TextRange zone)
+    {
+        var lines = text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
+        if (lines.Length == 0)
+            return new BracketSyntaxResolve.TextRange(1, 1, 1, 1);
+
+        var ls = Math.Clamp(zone.LineStart, 1, lines.Length);
+        var le = Math.Clamp(zone.LineEnd, ls, lines.Length);
+        var endCol = Math.Max(1, lines[le - 1].Length + 1);
+        return new BracketSyntaxResolve.TextRange(ls, 1, le, endCol);
     }
 
     /// <summary>

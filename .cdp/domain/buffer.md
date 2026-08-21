@@ -28,6 +28,7 @@
 
 ## last_ship
 
+- **2026-08-21 anchor L: line_literal place=replace** — `[F:;L:]` now uses full-line corridor (ExpandToFullLines, EditSniper parity) — fixes partial column replace / CS1513 on line peek anchors. Test `Place_replace_on_L_anchor_replaces_full_line_not_partial_column`.
 - 0.5.680: SoftFL ADX-HX-002 — `old_string=` + anchor M: patches in-locus; large M: `place=replace` tiny body refuses without force (UnbindLifecycle wipe) · AnchorPlace 16/16 · live dogfood refuse+in_locus · 2026-08-07
 - 0.5.664: `edit_op=replace` accepts `text=` alias + refuses missing body (PublishGlass wipe) · DocumentEditPlaneReplaceTests 4/4 · 2026-08-04
 - 0.5.580: citizen `@intent read|close|buffers|doc_diagnostics` → DocumentEditPlane core (peer without Cursor buffer) · 2026-08-03
