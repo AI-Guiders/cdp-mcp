@@ -85,6 +85,7 @@ internal static class CitizenScarGate
                 or CitizenIntentRouter.Verb.Files
                 or CitizenIntentRouter.Verb.Disk
                 or CitizenIntentRouter.Verb.FindBuf
+                or CitizenIntentRouter.Verb.FilePeek
                 or CitizenIntentRouter.Verb.Shell
                 or CitizenIntentRouter.Verb.Man
                 or CitizenIntentRouter.Verb.Health

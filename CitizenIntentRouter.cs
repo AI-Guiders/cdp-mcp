@@ -107,6 +107,7 @@ internal static partial class CitizenIntentRouter
         Sniper,
         Buffer,
         FindBuf,
+        FilePeek,
         Detail,
         Cmd,
         Refuse,

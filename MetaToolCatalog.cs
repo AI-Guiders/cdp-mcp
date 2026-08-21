@@ -8,7 +8,7 @@ namespace CdpMcp;
 internal static partial class MetaToolCatalog
 {
     public static List<Tool> Build() =>
-        [..Core(), ..CoreOps(), ..SoftInstruments(), ..SoftOps(), ..IdeLifecycle(), ..IdePkg(), ..HubShell()];
+        [..Core(), ..CorePeek(), ..CoreOps(), ..SoftInstruments(), ..SoftOps(), ..IdeLifecycle(), ..IdePkg(), ..HubShell()];
 
     static Tool Meta(string name, string desc, object schema) => new()
     {

@@ -16,7 +16,7 @@ internal static partial class MetaDispatch
         }
 
         return "TOC: cdp_cockpit (hub where-am-I), cdp_session (A omnibus; include_pack=true for pack dogfood), cdp_health(explain_tool?), cdp_capabilities, " +
-               "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_editor_scene|cdp_edit_sniper|cdp_edit_plan (map→aim→slices), " +
+               "cdp_context(phase,object,intent?,language?), cdp_open(path), cdp_peek(path|paths[]|query|anchor — read-only eyes, ADR-0201), cdp_editor_scene|cdp_edit_sniper|cdp_edit_plan (map→aim→slices), " +
                "cdp_build|cdp_run|cdp_test|cdp_test_scene|cdp_test_plan (session IDE lifecycle), " +
                "cdp_analysis_scene (code analysis domain; feature=clones), " +
                "cdp_script_scene (script habitat put→diags→run), " +

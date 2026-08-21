@@ -95,6 +95,7 @@ internal static partial class CitizenRouteHost
             CitizenIntentRouter.Verb.EditorScene => RunEditorScene(route),
             CitizenIntentRouter.Verb.Man => RunMan(route),
             CitizenIntentRouter.Verb.Health => RunHealth(route),
+            CitizenIntentRouter.Verb.FilePeek => RunFilePeek(route),
             CitizenIntentRouter.Verb.DialogMemory => RunDialogMemory(route),
             CitizenIntentRouter.Verb.Context => RunContext(route),
             CitizenIntentRouter.Verb.Quality => RunQuality(route),
