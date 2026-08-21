@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.Z3" Version="4.12.2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\PlatformCockpit.GlobalUsings.cs" Link="PlatformCockpit.GlobalUsings.cs" />
     <ProjectReference Include="..\CdpMcp.csproj">
       <AdditionalProperties>SelfContained=false</AdditionalProperties>
     </ProjectReference>

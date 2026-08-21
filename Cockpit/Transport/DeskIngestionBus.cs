@@ -3,50 +3,25 @@ using System.Threading.Channels;
 
 namespace CdpMcp.Cockpit.Transport;
 
-/// <summary>Typed desk ingress event (ADR 0094) — MCP/cockpit request into the wire.</summary>
-public readonly record struct DeskIngressEvent(
-    string Source,
-    string? CmdLine,
-    string? GoVerb,
-    DateTimeOffset Utc);
-
 /// <summary>
-/// Process-local ingestion bus: bounded <see cref="Channel{T}"/> with Wait backpressure (CIDE BuildLogIngestion spirit).
+/// Process-local desk ingress on <see cref="BoundedIngressBus{IngressEvent}"/> (ADR 0094).
 /// </summary>
 public sealed class DeskIngestionBus : IDisposable
 {
-    public const int DefaultCapacity = 64;
+    readonly BoundedIngressBus<IngressEvent> _bus;
 
-    readonly Channel<DeskIngressEvent> _channel;
-    long _published;
-    long _dropped;
-
-    public DeskIngestionBus(int capacity = DefaultCapacity)
+    public DeskIngestionBus(int capacity = BoundedIngressBus<IngressEvent>.DefaultCapacity)
     {
-        _channel = Channel.CreateBounded<DeskIngressEvent>(new BoundedChannelOptions(Math.Max(1, capacity))
-        {
-            SingleReader = false,
-            SingleWriter = false,
-            FullMode = BoundedChannelFullMode.DropOldest
-        });
+        _bus = new BoundedIngressBus<IngressEvent>(capacity);
     }
 
-    public ChannelReader<DeskIngressEvent> Reader => _channel.Reader;
+    public ChannelReader<IngressEvent> Reader => _bus.Reader;
 
-    public long Published => Interlocked.Read(ref _published);
-    public long Dropped => Interlocked.Read(ref _dropped);
+    public long Published => _bus.Published;
 
-    public bool TryPublish(DeskIngressEvent evt)
-    {
-        if (_channel.Writer.TryWrite(evt))
-        {
-            Interlocked.Increment(ref _published);
-            return true;
-        }
+    public long Dropped => _bus.Dropped;
 
-        Interlocked.Increment(ref _dropped);
-        return false;
-    }
+    public bool TryPublish(IngressEvent evt) => _bus.TryPublish(evt);
 
     public object Pulse() => new
     {
@@ -54,13 +29,13 @@ public sealed class DeskIngestionBus : IDisposable
         adr = "0094",
         real = true,
         queue = "channel",
-        capacity = DefaultCapacity,
+        capacity = BoundedIngressBus<IngressEvent>.DefaultCapacity,
         published = Published,
         dropped = Dropped,
-        count = _channel.Reader.Count
+        count = _bus.Reader.Count
     };
 
-    public void Dispose() => _channel.Writer.TryComplete();
+    public void Dispose() => _bus.Dispose();
 }
 
 /// <summary>Process host for desk ingestion (one bus per MCP process).</summary>

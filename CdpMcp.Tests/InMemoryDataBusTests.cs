@@ -1,5 +1,4 @@
 #nullable enable
-using CdpMcp.Cockpit.DataBus;
 using Xunit;
 
 namespace CdpMcp.Tests;

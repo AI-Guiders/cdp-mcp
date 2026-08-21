@@ -18,7 +18,7 @@ public sealed partial class DeskWireParityTests
     public void DeskIngestionBus_publishes_on_channel()
     {
         using var bus = new DeskIngestionBus(8);
-        Assert.True(bus.TryPublish(new DeskIngressEvent("t", "cmd", "sa", DateTimeOffset.UtcNow)));
+        Assert.True(bus.TryPublish(new IngressEvent("t", "cmd", "sa", DateTimeOffset.UtcNow)));
         Assert.Equal(1, bus.Published);
         Assert.True(bus.Reader.TryRead(out var evt));
         Assert.Equal("t", evt.Source);

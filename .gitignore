@@ -4,6 +4,7 @@ publish/
 publish-release/
 dist/
 artifacts/
+.nuget-local/
 # Dual-instance deploy seats (go=deploy) — local runtime binaries, not source
 self/
 sibling/

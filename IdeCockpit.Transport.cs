@@ -25,7 +25,7 @@ internal static partial class IdeCockpit
         var source = OptString(args, "transport_source") ?? "mcp_cockpit";
         var go = OptString(args, "go") ?? OptString(args, "do");
         var utc = DateTimeOffset.UtcNow;
-        DeskIngestionHost.Current.TryPublish(new DeskIngressEvent(source, cmd, go, utc));
+        DeskIngestionHost.Current.TryPublish(new IngressEvent(source, cmd, go, utc));
         return new TransportEnvelope(args, cmd, source, utc);
     }
 
