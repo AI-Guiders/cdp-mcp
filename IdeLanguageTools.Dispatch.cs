@@ -59,9 +59,36 @@ internal static partial class IdeLanguageTools
             return await DispatchTypescriptAsync(name, session, args, cancellationToken).ConfigureAwait(false);
         }
 
+        if (lang.Equals(CdpLanguages.PowerShell, StringComparison.OrdinalIgnoreCase))
+        {
+            if (name == "get_diagnostics")
+            {
+                var filePath = RequireString(args, "file_path");
+                string? sourceText = args.TryGetValue("source_text", out var stEl) ? stEl.GetString() : null;
+                if (sourceText is null && _docStore is not null)
+                {
+                    var open = _docStore.All.FirstOrDefault(b =>
+                        string.Equals(b.Path, filePath, StringComparison.OrdinalIgnoreCase));
+                    sourceText = open?.Text;
+                }
+
+                if (sourceText is null && File.Exists(filePath))
+                    sourceText = await File.ReadAllTextAsync(filePath, cancellationToken).ConfigureAwait(false);
+                return await Ps1BufferDiagnostics.DiagnoseAsync(
+                        filePath,
+                        sourceText ?? "",
+                        session.ProjectRoot,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            throw new ArgumentException(
+                $"No IDE engine for powershell op '{name}' yet (get_diagnostics live via Parser AST).");
+        }
+
         if (LspPool.TryGetPreset(lang, out _))
             return await DispatchLspAsync(name, lang, session, args, cancellationToken).ConfigureAwait(false);
-        throw new ArgumentException($"No IDE engine for language '{lang}'. Call cdp_open(path) first, or configure [[languages.lsp]] / language=csharp|typescript|python.");
+        throw new ArgumentException($"No IDE engine for language '{lang}'. Call cdp_open(path) first, or configure [[languages.lsp]] / language=csharp|typescript|powershell|python.");
     }
 
     private static string ResolveLanguage(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)

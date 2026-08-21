@@ -36,7 +36,7 @@ internal sealed partial class CdpSettings
         }
         else
         {
-            aliases.AddRange([new("cs", CdpLanguages.Csharp), new("c#", CdpLanguages.Csharp), new("ts", CdpLanguages.Typescript), new("tsx", CdpLanguages.Typescript), new("py", CdpLanguages.Python), new("pas", CdpLanguages.Delphi), new("objectpascal", CdpLanguages.Delphi), ]);
+            aliases.AddRange([new("cs", CdpLanguages.Csharp), new("c#", CdpLanguages.Csharp), new("ts", CdpLanguages.Typescript), new("tsx", CdpLanguages.Typescript), new("py", CdpLanguages.Python), new("pas", CdpLanguages.Delphi), new("objectpascal", CdpLanguages.Delphi), new("ps1", CdpLanguages.PowerShell), new("pwsh", CdpLanguages.PowerShell), new("ps", CdpLanguages.PowerShell), ]);
         }
 
         IEnumerable<LanguageDetectRule> rules;

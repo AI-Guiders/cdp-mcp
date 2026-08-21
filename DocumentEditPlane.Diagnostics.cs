@@ -76,8 +76,47 @@ internal static partial class DocumentEditPlane
             return (null, "Buffer is dirty and flush=false — diagnostics would be stale; flush first.");
 
         var lang = buf.Language;
+        if (string.Equals(lang, CdpLanguages.PowerShell, StringComparison.OrdinalIgnoreCase)
+            || Ps1BufferDiagnostics.IsPs1Path(buf.Path))
+        {
+            if (buf.LastDiagnosticsJson is { Length: > 0 }
+                && buf.LastDiagnosedVersion == buf.Version
+                && string.Equals(buf.LastDiagnosedScope ?? Ps1BufferDiagnostics.Scope, scope, StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var hit = JsonSerializer.Deserialize<JsonElement>(buf.LastDiagnosticsJson);
+                    return (ResponseCaps.CapDiagnostics(hit), "cache_hit (unchanged buffer version)");
+                }
+                catch
+                {
+                    // recompute
+                }
+            }
+
+            try
+            {
+                var raw = await Ps1BufferDiagnostics.DiagnoseAsync(
+                        buf.Path,
+                        buf.Text,
+                        session.ProjectRoot,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+                buf.LastDiagnosticsJson = raw;
+                buf.LastDiagnosedUtc = DateTime.UtcNow;
+                buf.LastDiagnosedVersion = buf.Version;
+                buf.LastDiagnosedScope = Ps1BufferDiagnostics.Scope;
+                var el = JsonSerializer.Deserialize<JsonElement>(raw);
+                return (ResponseCaps.CapDiagnostics(el), null);
+            }
+            catch (Exception ex)
+            {
+                return (null, $"powershell diagnostics failed: {ex.Message}");
+            }
+        }
+
         if (lang is not "csharp" and not "typescript")
-            return (null, $"No online diagnostics for language '{lang}' (csharp|typescript only).");
+            return (null, $"No online diagnostics for language '{lang}' (csharp|typescript|powershell).");
 
         // .csx: ScriptHost allowlist — not ParseText/MSBuild (closes green-buffer / red-check).
         if (CsxBufferDiagnostics.IsCsxPath(buf.Path))
