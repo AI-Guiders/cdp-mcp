@@ -4,9 +4,9 @@ using Cdp.ScriptableIde;
 
 namespace CdpMcp;
 
-internal static partial class DocumentEditPlane
+internal static class DocumentAnchorEdit
 {
-    static object ApplyAnchorEdit(
+    internal static object Apply(
         DocumentBufferStore store,
         SessionContext session,
         DocBuffer buf,
@@ -382,7 +382,7 @@ internal static partial class DocumentEditPlane
     /// Relative <c>path=</c> → <see cref="SessionContext.ProjectRoot"/> (else process cwd).
     /// Absolute unchanged. Aligns buffer plane with anchor <c>F:</c> resolve — not MCP host home.
     /// </summary>
-    static string ResolveUserPath(SessionContext session, string path)
+    internal static string ResolveUserPath(SessionContext session, string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         var p = path.Trim();
@@ -419,7 +419,7 @@ internal static partial class DocumentEditPlane
         return buf.Path;
     }
 
-    static string ResolvePathKey(
+    internal static string ResolvePathKey(
         DocumentBufferStore store,
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
@@ -449,4 +449,19 @@ internal static partial class DocumentEditPlane
             "edit needs path=, doc_id=, or anchor with F: file (project-relative or absolute).");
     }
 
+
+    static string? OptString(IReadOnlyDictionary<string, JsonElement> args, string key) =>
+        args.TryGetValue(key, out var el) ? el.GetString() : null;
+
+    static bool BoolOr(IReadOnlyDictionary<string, JsonElement> args, string key, bool defaultValue)
+    {
+        if (!args.TryGetValue(key, out var el))
+            return defaultValue;
+        return el.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            _ => defaultValue
+        };
+    }
 }

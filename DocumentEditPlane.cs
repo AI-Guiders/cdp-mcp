@@ -99,7 +99,7 @@ internal static partial class DocumentEditPlane
             }, Pretty);
         }
 
-        var full = ResolveUserPath(session, path);
+        var full = DocumentAnchorEdit.ResolveUserPath(session, path);
         var buf = store.ReloadFromDisk(full);
         EditorComfort.ClearStack(full);
         EditorComfort.RememberFile(full);
@@ -134,7 +134,7 @@ internal static partial class DocumentEditPlane
             }, Pretty);
         }
 
-        var full = ResolveUserPath(session, path);
+        var full = DocumentAnchorEdit.ResolveUserPath(session, path);
         var buf = store.KeepDisk(full);
         return JsonSerializer.Serialize(new
         {
@@ -168,7 +168,7 @@ internal static partial class DocumentEditPlane
             }, Pretty);
         }
 
-        var full = ResolveUserPath(session, path);
+        var full = DocumentAnchorEdit.ResolveUserPath(session, path);
         return JsonSerializer.Serialize(store.PeekDisk(full, pad), Pretty);
     }
 
@@ -179,7 +179,7 @@ internal static partial class DocumentEditPlane
         IReadOnlyDictionary<string, JsonElement> args,
         CancellationToken cancellationToken)
     {
-        var path = ResolveUserPath(session, RequireString(args, "path"));
+        var path = DocumentAnchorEdit.ResolveUserPath(session, RequireString(args, "path"));
         // Default false: open of large csharp projects can dump hundreds of Roslyn items and hang the host.
         var diagnose = BoolOr(args, "diagnose", defaultValue: false);
         var refresh = BoolOr(args, "refresh", defaultValue: false);
@@ -214,7 +214,7 @@ internal static partial class DocumentEditPlane
         IReadOnlyDictionary<string, JsonElement> args,
         CancellationToken cancellationToken)
     {
-        var path = ResolveUserPath(session, RequireString(args, "path"));
+        var path = DocumentAnchorEdit.ResolveUserPath(session, RequireString(args, "path"));
         var existed = File.Exists(path);
         ExploreCorrGate.RefuseMutateIfNeeded(
             path,
@@ -249,7 +249,7 @@ internal static partial class DocumentEditPlane
         IReadOnlyDictionary<string, JsonElement> args)
     {
         var path = OptString(args, "path");
-        var resolved = path is { Length: > 0 } ? ResolveUserPath(session, path) : null;
+        var resolved = path is { Length: > 0 } ? DocumentAnchorEdit.ResolveUserPath(session, path) : null;
         var buf = store.Resolve(resolved, OptString(args, "doc_id"));
         EditorComfort.RememberFile(buf.Path);
         EditorComfort.PushLocus(session, buf.Path);

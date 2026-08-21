@@ -14,7 +14,7 @@ internal static partial class DocumentEditPlane
         CancellationToken cancellationToken)
     {
         var path = OptString(args, "path");
-        var resolved = path is { Length: > 0 } ? ResolveUserPath(session, path) : null;
+        var resolved = path is { Length: > 0 } ? DocumentAnchorEdit.ResolveUserPath(session, path) : null;
         var buf = store.Resolve(resolved, OptString(args, "doc_id"));
         var flush = BoolOr(args, "flush", defaultValue: true);
         // force=true → recompute even if version unchanged. refresh=false kept as soft "prefer cache".
@@ -211,7 +211,7 @@ internal static partial class DocumentEditPlane
         IReadOnlyDictionary<string, JsonElement> args)
     {
         var pathArg = OptString(args, "path");
-        var resolved = pathArg is { Length: > 0 } ? ResolveUserPath(session, pathArg) : null;
+        var resolved = pathArg is { Length: > 0 } ? DocumentAnchorEdit.ResolveUserPath(session, pathArg) : null;
         var buf = store.Resolve(resolved, OptString(args, "doc_id"));
         // Instant Save: close defaults to flush=true (same as edit). Discard needs explicit discard=true.
         var flush = BoolOr(args, "flush", defaultValue: true);

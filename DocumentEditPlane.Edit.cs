@@ -16,7 +16,7 @@ internal static partial class DocumentEditPlane
         // Resolve path key first (may open); then hold per-path gate for apply+flush only.
         // Diagnostics run AFTER the gate: Roslyn/MSBuild is not parallel-safe and held the
         // mutate lock for minutes (dogfood hang on parallel anchor edits).
-        var pathKey = ResolvePathKey(store, session, args);
+        var pathKey = DocumentAnchorEdit.ResolvePathKey(store, session, args);
         ExploreCorrGate.RefuseMutateIfNeeded(
             pathKey,
             session.ScmRoot ?? session.ProjectRoot,
@@ -80,7 +80,7 @@ internal static partial class DocumentEditPlane
                         break;
                     }
                     case "anchor":
-                        anchorResolved = ApplyAnchorEdit(store, session, buf, args);
+                        anchorResolved = DocumentAnchorEdit.Apply(store, session, buf, args);
                         break;
                     default:
                         throw new ArgumentException(
@@ -248,3 +248,4 @@ internal static partial class DocumentEditPlane
     }
 
 }
+
