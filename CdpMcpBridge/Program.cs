@@ -35,6 +35,7 @@ var options = new McpServerOptions
     ServerInstructions = """
         CDP MCP bridge — thin stdio transport to durable CdpService (ADR-0198).
         SSOT handlers live in CdpService; this process only forwards ListTools/CallTool.
+        Watches capabilitiesRev (ADR-0202) and emits tools/list_changed when CdpService rev bumps.
         If tools fail with unreachable — run Start-CdpService.ps1 or cdp deploy hard.
         """,
     ProtocolVersion = "2024-11-05",
@@ -146,7 +147,21 @@ static void PrintUsage()
 var transport = new StdioServerTransport("CdpMcpBridge");
 await using var server = McpServer.Create(transport, options);
 Console.Error.WriteLine($"CdpMcpBridge → {settings.BaseUrl}");
-await server.RunAsync(CancellationToken.None);
+
+using var watchCts = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken.None);
+var watcher = new CdpBridgeCapabilitiesWatcher(settings, CdpBridgeCapabilitiesPoll.ResolveInterval());
+var watchTask = watcher.RunAsync(server, watchCts.Token);
+
+try
+{
+    await server.RunAsync(CancellationToken.None);
+}
+finally
+{
+    watchCts.Cancel();
+    try { await watchTask.ConfigureAwait(false); } catch (OperationCanceledException) { }
+}
+
 return 0;
 
 internal sealed class CdpCapabilitiesResponse

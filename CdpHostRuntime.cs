@@ -44,6 +44,7 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
     readonly IDisposable? _intercomCannon;
 
     McpServer? _serverRef;
+    readonly CdpCapabilitiesRevision _capabilitiesRevision = new();
 
     CdpHostRuntime(
         SessionContext session,
@@ -108,6 +109,10 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
     internal ProgramHostDeps HostDeps => _hostDeps;
     internal string McpVersion => _mcpVersion;
     internal IReadOnlyDictionary<string, ICdpBackendModule> Backends => _byDomain;
+    internal long CapabilitiesRevision => _capabilitiesRevision.Current;
+
+    internal IAsyncEnumerable<long> WatchCapabilitiesRevisionAsync(CancellationToken cancellationToken = default) =>
+        _capabilitiesRevision.WatchAsync(cancellationToken);
 
     internal static async Task<CdpHostRuntime> CreateAsync(string configPath, CancellationToken cancellationToken = default)
     {
@@ -430,6 +435,7 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
 
     internal void NotifyListChanged()
     {
+        _capabilitiesRevision.Bump();
         if (_serverRef is null) return;
         _ = _serverRef.SendNotificationAsync(
             NotificationMethods.ToolListChangedNotification,

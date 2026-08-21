@@ -90,16 +90,18 @@ internal static class CdpServiceHost
             await next(context).ConfigureAwait(false);
         });
 
-        app.MapGet("/healthz", () => Results.Json(new
+        app.MapGet("/healthz", (CdpHostRuntime rt) => Results.Json(new
         {
             ok = true,
             service = "CdpService",
-            version = runtime.McpVersion,
-            backends = runtime.Backends.Keys.ToArray()
+            version = rt.McpVersion,
+            backends = rt.Backends.Keys.ToArray(),
+            capabilitiesRev = rt.CapabilitiesRevision
         }));
 
         app.MapGet("/api/v1/cdp/capabilities", (CdpHostRuntime rt) => Results.Json(new
         {
+            capabilitiesRev = rt.CapabilitiesRevision,
             // Bridge ListTools needs inputSchema — name/description alone yields empty schemas in Cursor.
             tools = rt.ListTools().Select(t => new
             {
@@ -110,6 +112,19 @@ internal static class CdpServiceHost
                     : t.InputSchema
             }).ToArray()
         }));
+
+        app.MapGet("/api/v1/cdp/capabilities/watch", async (HttpContext context, CdpHostRuntime rt, CancellationToken ct) =>
+        {
+            context.Response.Headers.CacheControl = "no-cache";
+            context.Response.ContentType = "text/event-stream";
+            await foreach (var rev in rt.WatchCapabilitiesRevisionAsync(ct).ConfigureAwait(false))
+            {
+                await context.Response
+                    .WriteAsync($"event: rev\ndata: {{\"capabilitiesRev\":{rev}}}\n\n", ct)
+                    .ConfigureAwait(false);
+                await context.Response.Body.FlushAsync(ct).ConfigureAwait(false);
+            }
+        });
 
         app.MapPost("/api/v1/cdp/invoke", async (
             CdpInvokeRequest request,
