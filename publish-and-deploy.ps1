@@ -45,11 +45,20 @@ function Publish-CdpProject {
     if ($KillRunning) { $publishArgs += "-KillRunning" }
     if ($UseNuGet) { $publishArgs += "-UseNuGet" }
 
-    if (Test-Path -LiteralPath (Join-Path $here ".config\dotnet-tools.json")) {
-        & dotnet tool restore | Out-Null
-        & dotnet aid-publish @publishArgs
+    $aidPublish = Get-Command aid-publish -ErrorAction SilentlyContinue
+    if ($aidPublish) {
+        & $aidPublish.Source @publishArgs
+    } elseif (Test-Path -LiteralPath (Join-Path $here ".config\dotnet-tools.json")) {
+        Push-Location $here
+        try {
+            & dotnet tool restore | Out-Null
+            & dotnet tool run aid-publish -- @publishArgs
+        } finally {
+            Pop-Location
+        }
     } else {
-        & dotnet aid-publish @publishArgs
+        Write-Error "aid-publish not found. Install: dotnet tool install -g aiguiders.dotnettools.publishfixedtarget"
+        exit 1
     }
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
