@@ -8,7 +8,7 @@ namespace CdpMcp;
 /// Habitat state isolation (ADR 0199).
 /// Priority: <c>CDP_PROFILE</c> env override → MCP client roots → session scm/project → legacy flat default.
 /// </summary>
-internal static class CdpProfile
+internal static partial class CdpProfile
 {
     static readonly object Gate = new();
     static readonly string EnvNameRaw = Normalize(Environment.GetEnvironmentVariable("CDP_PROFILE"));
@@ -33,7 +33,13 @@ internal static class CdpProfile
 
     public static string StateRoot
     {
-        get { lock (Gate) return _stateRoot; }
+        get
+        {
+            var tenant = TenantStateRootOverride.Value;
+            if (tenant is { Length: > 0 })
+                return tenant;
+            lock (Gate) return _stateRoot;
+        }
     }
 
     public static string? WorkspaceLabel

@@ -16,6 +16,7 @@ internal sealed class CdpBridgeConfigLoadResult
     public bool IsHelp { get; init; }
     public bool IsSuccess { get; init; }
     public CdpBridgeSettings? Settings { get; init; }
+    public string? ConfigPath { get; init; }
     public string? Error { get; init; }
 }
 
@@ -75,7 +76,8 @@ internal static class CdpBridgeConfigLoader
         return new()
         {
             IsSuccess = true,
-            Settings = new CdpBridgeSettings { BaseUrl = uri, Token = token }
+            Settings = new CdpBridgeSettings { BaseUrl = uri, Token = token },
+            ConfigPath = configPath
         };
     }
 
@@ -105,10 +107,20 @@ internal sealed class BridgeTomlService
 
 internal static class CdpBridgeHttpClient
 {
-    internal static HttpClient Create(CdpBridgeSettings settings)
+    internal static HttpClient Create(
+        CdpBridgeSettings settings,
+        string bridgeSessionId,
+        string workspaceKey,
+        string? composer = null)
     {
         var http = new HttpClient { BaseAddress = settings.BaseUrl };
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.Token);
+        http.DefaultRequestHeaders.TryAddWithoutValidation("X-CDP-Bridge-Session", bridgeSessionId);
+        http.DefaultRequestHeaders.TryAddWithoutValidation("X-CDP-Workspace-Key", workspaceKey);
+        var comp = composer
+                   ?? Environment.GetEnvironmentVariable("CDP_COMPOSER")
+                   ?? "main";
+        http.DefaultRequestHeaders.TryAddWithoutValidation("X-CDP-Composer", comp);
         return http;
     }
 }

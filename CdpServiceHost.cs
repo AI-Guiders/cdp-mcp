@@ -62,7 +62,8 @@ internal static class CdpServiceHost
                             var callArgs = request.Params?.Arguments is IReadOnlyDictionary<string, JsonElement> d
                                 ? d
                                 : FrozenDictionary<string, JsonElement>.Empty;
-                            var result = await rt.InvokeToolAsync(name, callArgs, ct).ConfigureAwait(false);
+                            var tenantKey = CdpTenantHeaders.TryParse(httpContext.Request.Headers);
+                            var result = await rt.InvokeToolAsync(name, callArgs, ct, tenantKey).ConfigureAwait(false);
                             return rt.ToCallToolResult(result);
                         }
                     };
@@ -96,7 +97,8 @@ internal static class CdpServiceHost
             service = "CdpService",
             version = rt.McpVersion,
             backends = rt.Backends.Keys.ToArray(),
-            capabilitiesRev = rt.CapabilitiesRevision
+            capabilitiesRev = rt.CapabilitiesRevision,
+            tenants = rt.TenantCount
         }));
 
         app.MapGet("/api/v1/cdp/capabilities", (CdpHostRuntime rt) => Results.Json(new
@@ -129,6 +131,7 @@ internal static class CdpServiceHost
         app.MapPost("/api/v1/cdp/invoke", async (
             CdpInvokeRequest request,
             CdpHostRuntime rt,
+            HttpContext http,
             CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(request.Tool))
@@ -138,7 +141,8 @@ internal static class CdpServiceHost
                 ? FrozenDictionary<string, JsonElement>.Empty
                 : request.Arguments.ToFrozenDictionary(StringComparer.Ordinal);
 
-            var result = await rt.InvokeToolAsync(request.Tool, args, ct).ConfigureAwait(false);
+            var tenantKey = CdpTenantHeaders.TryParse(http.Request.Headers);
+            var result = await rt.InvokeToolAsync(request.Tool, args, ct, tenantKey).ConfigureAwait(false);
             return Results.Json(new CdpInvokeResponse
             {
                 Success = !result.IsError,

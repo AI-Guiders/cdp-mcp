@@ -21,8 +21,8 @@ internal static partial class ProgramHost
         await IdeToolDispatch.DispatchAsync(
             new IdeToolDispatchDeps
             {
-                Session = deps.Session,
-                DocStore = deps.DocStore,
+                Session = CdpTenantDispatch.Session(deps),
+                DocStore = CdpTenantDispatch.DocStore(deps),
                 ByDomain = deps.ByDomain,
                 Settings = deps.Settings,
                 ShellHabitat = deps.ShellHabitat,
@@ -42,8 +42,8 @@ internal static partial class ProgramHost
         await MetaDispatch.DispatchAsync(
             new MetaDispatchDeps
             {
-                Session = deps.Session,
-                DocStore = deps.DocStore,
+                Session = CdpTenantDispatch.Session(deps),
+                DocStore = CdpTenantDispatch.DocStore(deps),
                 ByDomain = deps.ByDomain,
                 Modules = deps.Modules,
                 AllAffordances = deps.AllAffordances,
@@ -55,14 +55,14 @@ internal static partial class ProgramHost
                 McpOutlet = deps.McpOutlet,
                 InternetBrowser = deps.InternetBrowser,
                 IdeSettings = deps.IdeSettings,
-                WorkspaceStore = deps.WorkspaceStore,
-                WorkspaceState = deps.WorkspaceState,
-                WorkspaceDbPath = deps.WorkspaceDbPath,
+                WorkspaceStore = CdpTenantDispatch.WorkspaceStore(deps),
+                WorkspaceState = CdpTenantDispatch.WorkspaceState(deps),
+                WorkspaceDbPath = CdpTenantDispatch.WorkspaceDbPath(deps),
                 ServerRef = deps.ServerRef,
                 NotifyListChanged = () => deps.NotifyListChanged(),
                 EnsureOpenRecentWired = deps.EnsureOpenRecentWired,
-                EnsureWorkspaceDb = deps.EnsureWorkspaceDb,
-                RequireWorkspace = deps.RequireWorkspace,
+                EnsureWorkspaceDb = CdpTenantDispatch.EnsureWorkspaceDb(deps),
+                RequireWorkspace = CdpTenantDispatch.RequireWorkspace(deps),
                 BuildVisibleTools = deps.BuildVisibleTools,
                 BuildMetaTools = deps.BuildMetaTools,
                 DispatchToolAsync = (n, a, ct) => DispatchAsync(deps, n, a, ct),
@@ -80,9 +80,9 @@ internal static partial class ProgramHost
         CdpWorkDispatch.Dispatch(
             new CdpWorkDispatchDeps
             {
-                Session = deps.Session,
-                WorkspaceState = deps.WorkspaceState,
-                RequireWorkspace = deps.RequireWorkspace,
+                Session = CdpTenantDispatch.Session(deps),
+                WorkspaceState = CdpTenantDispatch.WorkspaceState(deps),
+                RequireWorkspace = CdpTenantDispatch.RequireWorkspace(deps),
                 RequireJobRunner = deps.RequireJobRunner,
                 NotifyListChanged = () => deps.NotifyListChanged()
             },

@@ -22,7 +22,9 @@ if (!load.IsSuccess || load.Settings is null)
 }
 
 var settings = load.Settings;
-using var http = CdpBridgeHttpClient.Create(settings);
+var bridgeSessionId = Guid.NewGuid().ToString("N");
+var workspaceKey = CdpBridgeIdentity.ResolveWorkspaceKey(load.ConfigPath);
+using var http = CdpBridgeHttpClient.Create(settings, bridgeSessionId, workspaceKey);
 var jsonOptions = new JsonSerializerOptions
 {
     PropertyNameCaseInsensitive = true,

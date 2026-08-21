@@ -46,6 +46,8 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
     McpServer? _serverRef;
     readonly CdpCapabilitiesRevision _capabilitiesRevision = new();
 
+    readonly CdpTenantRegistry _tenantRegistry;
+
     CdpHostRuntime(
         SessionContext session,
         WorkspaceDbHost workspace,
@@ -73,8 +75,10 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         ProgramHostDeps hostDeps,
         IdeReportJobRunner? jobRunner,
         IDisposable? diskSyncWatch,
-        IDisposable? intercomCannon)
+        IDisposable? intercomCannon,
+        CdpTenantRegistry tenantRegistry)
     {
+        _tenantRegistry = tenantRegistry;
         _session = session;
         _workspace = workspace;
         _docStore = docStore;
@@ -324,6 +328,14 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         CitizenRouteHost.MetaDispatchResolver = DispatchAsync;
         IdeCommandModule.Bind(DispatchAsync);
 
+        var defaultSlice = new CdpTenantSlice(
+            CdpTenantKey.LegacyDefault,
+            session,
+            docStore,
+            workspace,
+            CdpProfile.StateRoot);
+        var tenantRegistry = new CdpTenantRegistry(settings, defaultSlice);
+
         var runtime = new CdpHostRuntime(
             session,
             workspace,
@@ -351,7 +363,8 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
             hostDeps,
             jobRunner,
             diskSyncWatch,
-            intercomCannon);
+            intercomCannon,
+            tenantRegistry);
 
         hostDeps.NotifyListChanged = () => runtime.NotifyListChanged();
         return runtime;
@@ -359,10 +372,38 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
 
     internal List<Tool> ListTools() => _hostDeps.BuildVisibleTools();
 
+    internal int TenantCount => _tenantRegistry.ActiveCount;
+
     internal async Task<CdpInvokeResult> InvokeToolAsync(
         string name,
         IReadOnlyDictionary<string, JsonElement> callArgs,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        CdpTenantKey? tenantKey = null)
+    {
+        callArgs ??= FrozenDictionary<string, JsonElement>.Empty;
+        var slice = _tenantRegistry.Resolve(tenantKey);
+        using var profileScope = slice.EnterScope();
+        using var execScope = CdpTenantExecutionContext.Enter(slice);
+        var priorSessionResolver = CitizenRouteHost.SessionResolver;
+        var priorProjectRoot = IdeCockpitHostChannel.ProjectRootResolver;
+        try
+        {
+            CitizenRouteHost.SessionResolver = () => slice.Session;
+            IdeCockpitHostChannel.ProjectRootResolver = () => slice.Session.ProjectRoot;
+            return await InvokeToolCoreAsync(name, callArgs, cancellationToken, slice).ConfigureAwait(false);
+        }
+        finally
+        {
+            CitizenRouteHost.SessionResolver = priorSessionResolver;
+            IdeCockpitHostChannel.ProjectRootResolver = priorProjectRoot;
+        }
+    }
+
+    async Task<CdpInvokeResult> InvokeToolCoreAsync(
+        string name,
+        IReadOnlyDictionary<string, JsonElement> callArgs,
+        CancellationToken cancellationToken,
+        CdpTenantSlice slice)
     {
         callArgs ??= FrozenDictionary<string, JsonElement>.Empty;
         try
@@ -370,7 +411,7 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
             cancellationToken.ThrowIfCancellationRequested();
             if (_serverRef is not null)
                 await CdpClientWorkspace.RefreshAsync(_serverRef, cancellationToken).ConfigureAwait(false);
-            CdpClientWorkspace.EnsureSessionFallback(_session);
+            CdpClientWorkspace.EnsureSessionFallback(slice.Session);
             var text = await IdeToolCallWatch.RunAsync(
                     name,
                     callArgs,
