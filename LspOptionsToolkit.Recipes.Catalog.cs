@@ -124,5 +124,12 @@ internal sealed partial class LspOptionsToolkit
                 RootMarkers = ["tsconfig.json", "package.json", ".git"]
             },
             [new("npm", ["npm", "install", "-g", "typescript-language-server", "typescript"])]),
+        ["powershell"] = new(
+            "powershell",
+            "PowerShell (PSES)",
+            "PowerShellEditorServices",
+            "Install-Module PowerShellEditorServices",
+            Ps1EditorServices.BuildLspPreset(),
+            [new("psgallery", ["pwsh", "-NoProfile", "-Command", "Install-Module PowerShellEditorServices -Scope CurrentUser -Force -AllowClobber"])]),
     };
 }

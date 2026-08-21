@@ -67,6 +67,7 @@ internal static partial class Ps1Scene
 		IReadOnlyDictionary<string, JsonElement> args,
 		CancellationToken ct = default)
 	{
+		IdeDeskSeats.PlaceOrgan("ps1_scene");
 		var op = (OptString(args, "op") ?? OptString(args, "feature") ?? "scene").Trim().ToLowerInvariant();
 		return op switch
 		{

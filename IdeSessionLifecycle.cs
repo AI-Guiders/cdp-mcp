@@ -15,6 +15,9 @@ internal static partial class IdeSessionLifecycle
             return session.Language!;
         if (!string.IsNullOrWhiteSpace(session.TsConfigPath))
             return CdpLanguages.Typescript;
+        if (!string.IsNullOrWhiteSpace(session.SolutionOrProjectPath)
+            && Ps1BufferDiagnostics.IsPs1Path(session.SolutionOrProjectPath))
+            return CdpLanguages.PowerShell;
         if (!string.IsNullOrWhiteSpace(session.SolutionOrProjectPath))
             return CdpLanguages.Csharp;
         return CdpLanguages.Any;

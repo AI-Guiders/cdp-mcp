@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.726</Version>
+    <Version>0.5.727</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
   </PropertyGroup>
@@ -119,6 +119,15 @@
     <None Update="config\cdp-mcp.toml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="scripts\Start-PsEditorServices.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="scripts\Start-PsDebugAdapter.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="scripts\Test-StagedPs1Ast.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <!-- RoslynMcp sets RoslynMcpWorkspace=true: skip local analyzer ProjectReference so MCP does not lock bin\… DLL (same as CascadeIDE). CLI/CI keep analyzers. -->
@@ -132,6 +141,9 @@
       <DependentUpon>IdeLanguageTools.cs</DependentUpon>
     </Compile>
     <Compile Update="IdeLanguageTools.Dispatch.cs">
+      <DependentUpon>IdeLanguageTools.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IdeLanguageTools.Dispatch.Ps1.cs">
       <DependentUpon>IdeLanguageTools.cs</DependentUpon>
     </Compile>
   </ItemGroup>

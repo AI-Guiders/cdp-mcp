@@ -52,7 +52,7 @@ internal sealed class DebugBackend(CdpSettings settings) : ICdpBackendModule
             "debug_set_breakpoints" => BreakpointToolHandlers.HandleSetBreakpoints(args),
             "debug_list_breakpoints" => BreakpointToolHandlers.HandleListBreakpoints(args),
             "debug_clear_breakpoints" => BreakpointToolHandlers.HandleClearBreakpoints(args),
-            "debug_launch" => await DebugLaunchToolHandlers.HandleDebugLaunch(args),
+            "debug_launch" => await RouteDebugLaunchAsync(args),
             "debug_attach" => await DebugLaunchToolHandlers.HandleDebugAttach(args),
             "debug_continue" => await DebugControlToolHandlers.HandleDebugContinue(args),
             "debug_step_over" => await DebugControlToolHandlers.HandleDebugStepOver(args),
@@ -65,6 +65,14 @@ internal sealed class DebugBackend(CdpSettings settings) : ICdpBackendModule
             "debug_variable_children" => await DebugControlToolHandlers.HandleDebugVariableChildren(args),
             _ => throw new ArgumentException($"Unknown debug tool: {underlyingName}.")
         };
+    }
+
+    static async Task<string> RouteDebugLaunchAsync(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (McpArgumentHelpers.TryGetString(args, "target_path", out var target)
+            && Ps1DebugLaunch.IsPs1Target(target))
+            return await Ps1DebugLaunch.HandleLaunchAsync(args).ConfigureAwait(false);
+        return await DebugLaunchToolHandlers.HandleDebugLaunch(args).ConfigureAwait(false);
     }
 }
 

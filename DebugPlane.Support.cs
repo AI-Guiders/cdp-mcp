@@ -125,6 +125,22 @@ internal static partial class DebugPlane
 
         ws ??= session.ProjectRoot ?? session.ScmRoot;
         target ??= session.SolutionOrProjectPath;
+        if (target is null
+            && string.Equals(session.Language, CdpLanguages.PowerShell, StringComparison.OrdinalIgnoreCase)
+            && session.ProjectRoot is { Length: > 0 } pr
+            && args is not null)
+        {
+            var pathArg = OptString(args, "path") ?? OptString(args, "file_path");
+            if (pathArg is { Length: > 0 })
+            {
+                var resolved = Path.IsPathRooted(pathArg)
+                    ? Path.GetFullPath(pathArg)
+                    : Path.GetFullPath(Path.Combine(pr, pathArg));
+                if (Ps1BufferDiagnostics.IsPs1Path(resolved))
+                    target = resolved;
+            }
+        }
+
         string? note = null;
         if (ws is null)
             note = "No session project — call cdp_open or pass workspace_path.";

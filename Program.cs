@@ -32,7 +32,10 @@ var configPath = args.SkipWhile(a => a != "--config").Skip(1).FirstOrDefault()
     ?? Environment.GetEnvironmentVariable("CDP_MCP_CONFIG")
     ?? Path.Combine(AppContext.BaseDirectory, "config", "cdp-mcp.toml");
 var settings = CdpSettings.Load(configPath);
-IdeLanguageTools.Configure(settings.Languages, settings.LspPresets);
+var lspPresets = settings.LspPresets.ToList();
+if (!lspPresets.Any(p => p.Id.Equals("powershell", StringComparison.OrdinalIgnoreCase)))
+    lspPresets.Add(Ps1EditorServices.BuildLspPreset());
+IdeLanguageTools.Configure(settings.Languages, lspPresets);
 IdeCockpitHostChannel.Configure(settings.CockpitHost, configPath);
 VendorCatalog.Configure(settings.Vendor);
 IdeIgniteArmHost.EnsureStarted();

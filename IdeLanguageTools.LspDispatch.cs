@@ -66,6 +66,26 @@ internal static partial class IdeLanguageTools
             return JsonSerializer.Serialize(new { schema = "lsp_diagnostics/v0", language = languageId, diagnostics = diags.Select(d => new { severity = d.Severity, code = d.Code, message = d.Message, source = d.Source, range = RangeDto(d.Range) }) }, Pretty);
         }
 
+        if (name == "get_completions")
+        {
+            var path = Path.GetFullPath(RequireString(args, "file_path"));
+            await EnsureLspDocAsync(client, path, langId, cancellationToken).ConfigureAwait(false);
+            var line = RequireInt(args, "line");
+            var col = IntOrNull(args, "column") ?? IntOrNull(args, "character") ?? 1;
+            var raw = await client.CompletionAsync(path, line, col, cancellationToken).ConfigureAwait(false);
+            return JsonSerializer.Serialize(new { schema = "lsp_completion/v0", language = languageId, completion = raw }, Pretty);
+        }
+
+        if (name == "get_signature_help")
+        {
+            var path = Path.GetFullPath(RequireString(args, "file_path"));
+            await EnsureLspDocAsync(client, path, langId, cancellationToken).ConfigureAwait(false);
+            var line = RequireInt(args, "line");
+            var col = IntOrNull(args, "column") ?? IntOrNull(args, "character") ?? 1;
+            var raw = await client.SignatureHelpAsync(path, line, col, cancellationToken).ConfigureAwait(false);
+            return JsonSerializer.Serialize(new { schema = "lsp_signature_help/v0", language = languageId, signature_help = raw }, Pretty);
+        }
+
         throw new ArgumentException($"Unsupported bare verb for LSP language '{languageId}': {name}");
     }
 
@@ -185,5 +205,16 @@ internal static partial class IdeLanguageTools
         }
 
         return i;
+    }
+
+    static int? IntOrNull(IReadOnlyDictionary<string, JsonElement> args, string key)
+    {
+        if (!args.TryGetValue(key, out var el))
+            return null;
+        if (el.TryGetInt32(out var n))
+            return n;
+        if (el.ValueKind == JsonValueKind.String && int.TryParse(el.GetString(), out var fromText))
+            return fromText;
+        return null;
     }
 }

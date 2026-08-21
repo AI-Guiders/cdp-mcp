@@ -100,6 +100,45 @@ internal static partial class IdeRepl
             return (merged, null);
         }
 
+        // PS ISE organ (parity with script_scene).
+        if (head is "ps1" or "ise" or "pwsh")
+        {
+            if (tokens.Count >= 2)
+            {
+                var sub = tokens[1].ToLowerInvariant();
+                if (sub is "check" or "compile")
+                {
+                    merged["go"] = JsonSerializer.SerializeToElement("ps1_check");
+                    if (tokens.Count >= 3)
+                        ApplyGoArgsOnly(merged, tokens, start: 2);
+                    return (merged, null);
+                }
+
+                if (sub is "run")
+                {
+                    merged["go"] = JsonSerializer.SerializeToElement("ps1_run");
+                    if (tokens.Count >= 3)
+                        ApplyGoArgsOnly(merged, tokens, start: 2);
+                    return (merged, null);
+                }
+
+                if (sub is "open" or "put" or "new")
+                {
+                    merged["go"] = JsonSerializer.SerializeToElement(sub is "open" ? "ps1_open" : "ps1_put");
+                    if (tokens.Count >= 3)
+                        ApplyGoArgsOnly(merged, tokens, start: 2);
+                    return (merged, null);
+                }
+
+                merged["go"] = JsonSerializer.SerializeToElement("ps1_open");
+                ApplyGoArgsOnly(merged, tokens, start: 1);
+                return (merged, null);
+            }
+
+            merged["go"] = JsonSerializer.SerializeToElement("ps1_scene");
+            return (merged, null);
+        }
+
         if (head is "check" or "compile")
         {
             merged["go"] = JsonSerializer.SerializeToElement("script_check");

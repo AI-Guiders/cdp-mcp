@@ -60,31 +60,7 @@ internal static partial class IdeLanguageTools
         }
 
         if (lang.Equals(CdpLanguages.PowerShell, StringComparison.OrdinalIgnoreCase))
-        {
-            if (name == "get_diagnostics")
-            {
-                var filePath = RequireString(args, "file_path");
-                string? sourceText = args.TryGetValue("source_text", out var stEl) ? stEl.GetString() : null;
-                if (sourceText is null && _docStore is not null)
-                {
-                    var open = _docStore.All.FirstOrDefault(b =>
-                        string.Equals(b.Path, filePath, StringComparison.OrdinalIgnoreCase));
-                    sourceText = open?.Text;
-                }
-
-                if (sourceText is null && File.Exists(filePath))
-                    sourceText = await File.ReadAllTextAsync(filePath, cancellationToken).ConfigureAwait(false);
-                return await Ps1BufferDiagnostics.DiagnoseAsync(
-                        filePath,
-                        sourceText ?? "",
-                        session.ProjectRoot,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
-            throw new ArgumentException(
-                $"No IDE engine for powershell op '{name}' yet (get_diagnostics live via Parser AST).");
-        }
+            return await DispatchPowerShellAsync(name, session, byDomain, args, cancellationToken).ConfigureAwait(false);
 
         if (LspPool.TryGetPreset(lang, out _))
             return await DispatchLspAsync(name, lang, session, args, cancellationToken).ConfigureAwait(false);
