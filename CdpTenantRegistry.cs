@@ -34,7 +34,8 @@ internal sealed class CdpTenantRegistry : IDisposable
         }
 
         var normalized = key.Value;
-        var composer = CdpTenantComposerLatch.Get(normalized.BridgeSession);
+        var conversationId = CdpTenantRoutingContext.CurrentConversationId;
+        var composer = CdpTenantComposerLatch.Get(normalized.BridgeSession, conversationId);
         if (!string.Equals(composer, normalized.Composer, StringComparison.Ordinal))
             normalized = normalized with { Composer = composer };
 

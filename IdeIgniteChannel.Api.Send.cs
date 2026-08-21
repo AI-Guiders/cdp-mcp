@@ -17,7 +17,8 @@ internal static partial class IdeIgniteChannel
         var chat = Opt(args, "chat") ?? Opt(args, "title") ?? Opt(args, "agent");
         if (string.IsNullOrWhiteSpace(chat))
             chat = CdpTenantComposerLatch.ResolveDefaultChat(
-                CdpTenantExecutionContext.CurrentSlice?.Key.BridgeSession);
+                CdpTenantExecutionContext.CurrentSlice?.Key.BridgeSession,
+                CdpTenantRoutingContext.CurrentConversationId);
         var waitSec = OptInt(args, "wait_seconds") ?? OptInt(args, "timeout") ?? 90;
         return await FireAsync(port, message!, chat, waitSec, ct).ConfigureAwait(false);
     }

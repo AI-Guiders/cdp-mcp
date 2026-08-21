@@ -34,6 +34,33 @@ public sealed class CdpTenantMultiplexTests
     }
 
     [Fact]
+    public void ComposerLatch_per_conversation_isolated()
+    {
+        Assert.True(CdpTenantComposerLatch.TrySet("bridge-a", "Chat Alpha", "conv-a"));
+        Assert.True(CdpTenantComposerLatch.TrySet("bridge-a", "Chat Beta", "conv-b"));
+        Assert.Equal("Chat Alpha", CdpTenantComposerLatch.ResolveDefaultChat("bridge-a", "conv-a"));
+        Assert.Equal("Chat Beta", CdpTenantComposerLatch.ResolveDefaultChat("bridge-a", "conv-b"));
+        Assert.Null(CdpTenantComposerLatch.ResolveDefaultChat("bridge-a", "conv-unknown"));
+    }
+
+    [Fact]
+    public void TenantHeaders_resolve_latched_composer_per_conversation()
+    {
+        CdpTenantComposerLatch.TrySet("b1", "My Feature Chat", "pt:turn-1");
+        var headers = new HeaderDictionary
+        {
+            [CdpTenantHeaders.BridgeSession] = "b1",
+            [CdpTenantHeaders.WorkspaceKey] = "cdp",
+            [CdpTenantHeaders.Composer] = "main",
+            [CdpTenantHeaders.ConversationId] = "pt:turn-1"
+        };
+
+        var key = CdpTenantHeaders.TryParse(headers);
+        Assert.NotNull(key);
+        Assert.Contains("My_Feature_Chat", key.Value.Composer, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void ComposerLatch_tracks_bridge_session()
     {
         Assert.True(CdpTenantComposerLatch.TrySet("bridge-a", "chat-b"));

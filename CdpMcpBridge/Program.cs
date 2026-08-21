@@ -89,6 +89,9 @@ var options = new McpServerOptions
         },
         CallToolHandler = async (request, cancellationToken) =>
         {
+            var conversationId = CdpBridgeConversationMeta.TryResolve(request.Params);
+            using var conversationScope = CdpBridgeConversationContext.Bind(conversationId);
+
             var name = request.Params?.Name ?? "";
             var args = request.Params?.Arguments is IReadOnlyDictionary<string, JsonElement> dictionary
                 ? dictionary

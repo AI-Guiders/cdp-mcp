@@ -107,7 +107,8 @@ internal static class CdpServiceHost
             var key = CdpTenantHeaders.TryParse(http.Request.Headers);
             if (key is null)
                 return Results.Json(new { composer = "main", adr = "0200" });
-            return Results.Json(CdpTenantComposerLatch.Snapshot(key.Value.BridgeSession));
+            var conversationId = CdpTenantHeaders.ReadConversationId(http.Request.Headers);
+            return Results.Json(CdpTenantComposerLatch.Snapshot(key.Value.BridgeSession, conversationId));
         });
 
         app.MapGet("/api/v1/cdp/capabilities", (CdpHostRuntime rt) => Results.Json(new
@@ -150,7 +151,9 @@ internal static class CdpServiceHost
                 ? FrozenDictionary<string, JsonElement>.Empty
                 : request.Arguments.ToFrozenDictionary(StringComparer.Ordinal);
 
-            var tenantKey = CdpTenantHeaders.TryParse(http.Request.Headers);
+        var tenantKey = CdpTenantHeaders.TryParse(http.Request.Headers);
+            var conversationId = CdpTenantHeaders.ReadConversationId(http.Request.Headers);
+            using var routingScope = CdpTenantRoutingContext.Enter(conversationId);
             var result = await rt.InvokeToolAsync(request.Tool, args, ct, tenantKey).ConfigureAwait(false);
             return Results.Json(new CdpInvokeResponse
             {
