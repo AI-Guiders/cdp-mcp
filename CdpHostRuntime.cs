@@ -131,7 +131,6 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         IdeIgniteArmHost.EnsureStarted();
 
         var session = new SessionContext();
-        IdeCockpitHostChannel.ProjectRootResolver = () => session.ProjectRoot;
 
         var workspace = new WorkspaceDbHost(settings.IntentWorkspace.DatabasePath, session);
         CdpProfile.OnStateRootChanged(() =>
@@ -187,7 +186,6 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         if (settings.Dev.Anui.Enabled) modules.Add(new AnuiBackend(settings));
 
         var byDomain = modules.Where(m => m.IsEnabled).ToDictionary(m => m.Domain, StringComparer.Ordinal);
-        CitizenRouteHost.SessionResolver = () => session;
         CitizenRouteHost.BuildModuleResolver = () => byDomain.GetValueOrDefault("build");
         IdeReportJobRunner? jobRunner = null;
         IdeReportJobRunner RequireJobRunner()
@@ -219,8 +217,14 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         IdeIgniteArmHost.PublishGlass();
         IdeLanguageTools.BindDocumentStore(docStore);
         var shellHabitat = new ShellHabitat();
-        CitizenRouteHost.ShellHabitatResolver = () => shellHabitat;
-        CitizenRouteHost.ShellDefaultsResolver = () => ProgramHost.ShellDefaults(session);
+        IdeCockpitHostChannel.ProjectRootResolver = () =>
+            CdpTenantExecutionContext.CurrentSlice?.Session.ProjectRoot ?? session.ProjectRoot;
+        CitizenRouteHost.SessionResolver = () =>
+            CdpTenantExecutionContext.CurrentSlice?.Session ?? session;
+        CitizenRouteHost.ShellHabitatResolver = () =>
+            CdpTenantExecutionContext.CurrentSlice?.Shell ?? shellHabitat;
+        CitizenRouteHost.ShellDefaultsResolver = () =>
+            ProgramHost.ShellDefaults(CdpTenantExecutionContext.CurrentSlice?.Session ?? session);
         CitizenRouteHost.ByDomainResolver = () => byDomain;
         shellHabitat.Finished += IdeShellIgnite.OnShellFinished;
         var mcpOutlet = new McpOutletHabitat();
@@ -412,25 +416,7 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         var slice = _tenantRegistry.Resolve(tenantKey);
         using var profileScope = slice.EnterScope();
         using var execScope = CdpTenantExecutionContext.Enter(slice);
-        var priorSessionResolver = CitizenRouteHost.SessionResolver;
-        var priorProjectRoot = IdeCockpitHostChannel.ProjectRootResolver;
-        var priorShellResolver = CitizenRouteHost.ShellHabitatResolver;
-        var priorShellDefaults = CitizenRouteHost.ShellDefaultsResolver;
-        try
-        {
-            CitizenRouteHost.SessionResolver = () => slice.Session;
-            IdeCockpitHostChannel.ProjectRootResolver = () => slice.Session.ProjectRoot;
-            CitizenRouteHost.ShellHabitatResolver = () => slice.Shell;
-            CitizenRouteHost.ShellDefaultsResolver = () => ProgramHost.ShellDefaults(slice.Session);
-            return await InvokeToolCoreAsync(name, callArgs, cancellationToken, slice).ConfigureAwait(false);
-        }
-        finally
-        {
-            CitizenRouteHost.SessionResolver = priorSessionResolver;
-            IdeCockpitHostChannel.ProjectRootResolver = priorProjectRoot;
-            CitizenRouteHost.ShellHabitatResolver = priorShellResolver;
-            CitizenRouteHost.ShellDefaultsResolver = priorShellDefaults;
-        }
+        return await InvokeToolCoreAsync(name, callArgs, cancellationToken, slice).ConfigureAwait(false);
     }
 
     async Task<CdpInvokeResult> InvokeToolCoreAsync(

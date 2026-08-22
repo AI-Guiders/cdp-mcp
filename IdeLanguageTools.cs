@@ -37,9 +37,6 @@ internal static partial class IdeLanguageTools
         "apply_code_action"
     };
 
-    private static readonly object TsGate = new();
-    private static TypescriptLanguageClient? _ts;
-    private static string? _tsOpenedRoot;
     private static LanguageRegistry _langs = LanguageRegistry.Default;
     private static readonly LspSessionPool LspPool = new();
     private static DocumentBufferStore? _docStore;
@@ -51,15 +48,20 @@ internal static partial class IdeLanguageTools
     }
 
     /// <summary>Hot-reload LSP presets after Options install/add (no MCP remount).</summary>
-    public static void ReconfigureLsp(IReadOnlyList<LspLaunchPreset> presets) =>
-        LspPool.Configure(presets.Count > 0 ? presets : LspLaunchPreset.BuiltInDefaults);
+    public static void ReconfigureLsp(IReadOnlyList<LspLaunchPreset> presets)
+    {
+        var normalized = presets.Count > 0 ? presets : LspLaunchPreset.BuiltInDefaults;
+        LspPool.Configure(normalized);
+        foreach (var pool in TenantLspPools.Values)
+            pool.Configure(normalized);
+    }
 
     public static IReadOnlyList<LspLaunchPreset> CurrentLspPresets => LspPool.Presets;
 
     public static void BindDocumentStore(DocumentBufferStore? store) => _docStore = store;
 
     /// <summary>Citizen find host-execute — IdeFindChannel needs live buffer store.</summary>
-    public static DocumentBufferStore? TryGetDocumentStore() => _docStore;
+    public static DocumentBufferStore? TryGetDocumentStore() => ActiveDocStore;
 
 
     /// <summary>Citizen route host / buffer open — relative path resolves under projectRoot.</summary>
@@ -73,7 +75,7 @@ internal static partial class IdeLanguageTools
         fullPath = null;
         docId = null;
         error = null;
-        if (_docStore is null)
+        if (ActiveDocStore is null)
         {
             error = "doc_store_unbound";
             return false;
@@ -88,7 +90,7 @@ internal static partial class IdeLanguageTools
         try
         {
             var resolved = ResolveOpenPath(path.Trim(), projectRoot);
-            var buf = _docStore.Open(resolved);
+            var buf = ActiveDocStore.Open(resolved);
             fullPath = buf.Path;
             docId = buf.DocId;
             return true;
@@ -153,7 +155,7 @@ internal static partial class IdeLanguageTools
             session_object = CdpEnumParse.ToWire(session.Object),
             recent_count = OpenRecentStore.List().Count,
             recent_store = OpenRecentStore.Location,
-            lsp_preset = LspPool.TryGetPreset(open.Language ?? "", out var p) ? p.Id : null
+            lsp_preset = ResolveLspPool().TryGetPreset(open.Language ?? "", out var p) ? p.Id : null
         }, new JsonSerializerOptions { WriteIndented = true });
     }
 
@@ -181,7 +183,24 @@ internal static partial class IdeLanguageTools
 
     public static async Task CloseProjectAsync()
     {
-        await LspPool.StopAllAsync().ConfigureAwait(false);
+        await ResolveLspPool().StopAllAsync().ConfigureAwait(false);
+        var slot = TsSlot();
+        lock (slot.Gate)
+        {
+            if (slot.Client is null)
+                return;
+        }
+
+        TypescriptLanguageClient? stale;
+        lock (slot.Gate)
+        {
+            stale = slot.Client;
+            slot.Client = null;
+            slot.OpenedRoot = null;
+        }
+
+        if (stale is not null)
+            await stale.DisposeAsync().ConfigureAwait(false);
     }
 
 
@@ -191,7 +210,7 @@ internal static partial class IdeLanguageTools
 
     public static object LspHealth(bool resolveProbe = true) => new
     {
-        presets = LspPool.Presets.Select(p => resolveProbe
+        presets = ResolveLspPool().Presets.Select(p => resolveProbe
             ? (object)new
             {
                 p.Id,
@@ -207,7 +226,7 @@ internal static partial class IdeLanguageTools
                 candidates = p.CommandCandidates,
                 args = p.Args
             }),
-        sessions = LspPool.HealthSnapshot(),
+        sessions = ResolveLspPool().HealthSnapshot(),
         probe = resolveProbe,
         note = resolveProbe
             ? "Python default prefers basedpyright-langserver (richer codeAction) over pyright-langserver."

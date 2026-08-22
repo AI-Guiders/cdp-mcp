@@ -13,7 +13,7 @@ internal static partial class IdeLanguageTools
     private static async Task<string> DispatchLspAsync(string name, string languageId, SessionContext session, IReadOnlyDictionary<string, JsonElement> args, CancellationToken cancellationToken)
     {
         var root = session.ProjectRoot ?? throw new ArgumentException("cdp_open a project first (e.g. pyproject.toml) for LSP languages.");
-        var client = await LspPool.GetOrStartAsync(languageId, root, cancellationToken).ConfigureAwait(false);
+        var client = await ResolveLspPool().GetOrStartAsync(languageId, root, cancellationToken).ConfigureAwait(false);
         var langId = client.Preset.LanguageIds.FirstOrDefault() ?? languageId;
         if (name == "apply_code_action")
         {
@@ -92,7 +92,7 @@ internal static partial class IdeLanguageTools
     static async Task EnsureLspDocAsync(LspClient client, string path, string languageId, CancellationToken ct)
     {
         string? text = null;
-        if (_docStore?.TryGet(path, out var buf) == true)
+        if (ActiveDocStore?.TryGet(path, out var buf) == true)
             text = buf.Text;
         await client.EnsureOpenAsync(path, text, languageId, ct).ConfigureAwait(false);
     }
@@ -150,7 +150,7 @@ internal static partial class IdeLanguageTools
 
     static bool ApplyEditsToFile(string path, IReadOnlyList<LspTextEdit> edits)
     {
-        var text = _docStore?.TryGet(path, out var buf) == true ? buf.Text : File.ReadAllText(path);
+        var text = ActiveDocStore?.TryGet(path, out var buf) == true ? buf.Text : File.ReadAllText(path);
         // Apply from end to start so offsets stay valid
         var ordered = edits.Select(e =>
         {
@@ -168,12 +168,12 @@ internal static partial class IdeLanguageTools
         }
 
         var next = sb.ToString();
-        if (_docStore?.TryGet(path, out var openBuf) == true)
+        if (ActiveDocStore?.TryGet(path, out var openBuf) == true)
         {
             openBuf.Text = next;
             openBuf.Version++;
             openBuf.Dirty = true;
-            _docStore.Flush(openBuf, allowShrink: true);
+            ActiveDocStore.Flush(openBuf, allowShrink: true);
         }
         else
         {

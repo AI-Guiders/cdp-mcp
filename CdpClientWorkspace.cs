@@ -91,6 +91,8 @@ internal static class CdpClientWorkspace
     /// <summary>Cheap sync hook before tools that touch WitDB / settings.</summary>
     public static void EnsureSessionFallback(SessionContext session)
     {
+        if (CdpProfile.HasTenantOverride)
+            return;
         var root = session.ScmRoot ?? session.ProjectRoot;
         CdpProfile.ApplySessionWorkspace(root);
     }

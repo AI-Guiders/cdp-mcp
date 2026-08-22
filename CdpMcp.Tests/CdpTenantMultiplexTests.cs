@@ -273,4 +273,75 @@ public sealed class CdpTenantMultiplexTests
 
         Assert.Equal(baseRoot, CdpProfile.StateRoot);
     }
+
+    [Fact]
+    public async Task Parallel_tenant_resolvers_stay_isolated_without_global_swap()
+    {
+        var legacy = new SessionContext { ProjectRoot = @"D:\legacy" };
+        var prior = CitizenRouteHost.SessionResolver;
+        CitizenRouteHost.SessionResolver = () =>
+            CdpTenantExecutionContext.CurrentSlice?.Session ?? legacy;
+
+        try
+        {
+            var settings = CdpSettings.Load(Path.Combine(
+                AppContext.BaseDirectory, "..", "..", "..", "..", "config", "cdp-mcp.toml"));
+            var kernel = new CdpSharedKernel
+            {
+                ConfigPath = "config/cdp-mcp.toml",
+                Settings = settings,
+                Modules = [],
+                ByDomain = new Dictionary<string, ICdpBackendModule>(),
+                AllAffordances = [],
+                McpVersion = "0.0.0",
+                Pretty = new JsonSerializerOptions(),
+                McpOutlet = new McpOutletHabitat(),
+                InternetBrowser = new InternetBrowserHabitat(),
+                AnTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                TkTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                FindTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                FailTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                DbgTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                BtTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                RoslynTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                GitTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                HciTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                AnuiTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>()
+            };
+            var registry = new CdpTenantRegistry(
+                kernel,
+                CdpTenantSliceFactory.Create(kernel, CdpTenantKey.LegacyDefault));
+
+            var forge = registry.Resolve(CdpTenantKey.Normalize("bridge-forge", "cdp", "main"));
+            var cursor = registry.Resolve(CdpTenantKey.Normalize("bridge-cursor", "default", "main"));
+            forge.Session.ProjectRoot = @"D:\repo\agent-forge";
+            cursor.Session.ProjectRoot = @"D:\repo\cdp-mcp";
+
+            async Task<string?> ProbeAsync(CdpTenantSlice slice)
+            {
+                using var _ = CdpTenantExecutionContext.Enter(slice);
+                await Task.Delay(Random.Shared.Next(1, 15)).ConfigureAwait(false);
+                return CitizenRouteHost.SessionResolver?.Invoke()?.ProjectRoot;
+            }
+
+            var tasks = Enumerable.Range(0, 48)
+                .Select(i => ProbeAsync(i % 2 == 0 ? forge : cursor))
+                .ToArray();
+            var roots = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            Assert.All(roots, r => Assert.True(
+                string.Equals(r, @"D:\repo\agent-forge", StringComparison.Ordinal)
+                || string.Equals(r, @"D:\repo\cdp-mcp", StringComparison.Ordinal)));
+
+            Assert.NotSame(forge.DocStore, cursor.DocStore);
+            using (CdpTenantExecutionContext.Enter(forge))
+                Assert.Same(forge.DocStore, IdeLanguageTools.TryGetDocumentStore());
+            using (CdpTenantExecutionContext.Enter(cursor))
+                Assert.Same(cursor.DocStore, IdeLanguageTools.TryGetDocumentStore());
+        }
+        finally
+        {
+            CitizenRouteHost.SessionResolver = prior;
+        }
+    }
 }
