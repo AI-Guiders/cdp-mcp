@@ -92,6 +92,7 @@
 - Charge without human-face criteria on Glass/#CIDE (pre-0.5.653) — night invents dump Done; ontology must live in charge + TM refuse, not polite agreement.
 - Charge/course without world-dig research freedom (pre-0.5.662) — Autoi slap-slap under doubt; training memory as dig; invent mill Done without dig=.
 - Wake latch `ignite-wake-LATEST.json` stamps on **arm fire / Publish** — deploy alone does not refresh charge; re-arm or `CDP_WAKE_REFRESH=1` test after habitat ship.
+- **Boot refresh (0.5.736+):** `EnsureStarted` → `TrySanitizeStashCourseOnBoot` + `RefreshCanonicalIfStale` when `habitat_version` / `charge_template_rev` / marker drift. Latch fields: `habitat_version`, `charge_template_rev`. Bump `ChargeTemplateRev` when wake semantics change.
 - Who-voice / DIG REJECT mill when sealed course already names human-faced work (pre-2026-08-04 being≠seeming) — казаться; contract when partner away = do named work.
 - `#CIDE` Done with wrong-window PNG or without Read into chat (pre-2026-08-04 «Выстрела нет») — File.Exists alone = seeming; shot title=`M · MFD host` + Read.
 

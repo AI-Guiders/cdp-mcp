@@ -149,6 +149,26 @@ internal static partial class IdePressureChannel
         return ClampCourse(c);
     }
 
+    /// <summary>Process boot: merge criteria + purge legacy Glass rows into live stash body.</summary>
+    internal static bool TrySanitizeStashCourseOnBoot()
+    {
+        PressureDoc? doc;
+        lock (Gate)
+            doc = Load();
+
+        if (doc?.Body is not { Length: > 0 } body || !HasOperatorPriority(body))
+            return false;
+
+        var merged = MergeCriteriaIntoSealedSection(body);
+        if (string.Equals(merged, body, StringComparison.Ordinal))
+            return false;
+
+        doc.Body = merged;
+        doc.StashUtc = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+        Save(doc);
+        return true;
+    }
+
     internal static bool HasCriteriaAxes(string course) =>
         course.Contains("Before act", StringComparison.OrdinalIgnoreCase)
         || course.Contains("Viewer?", StringComparison.OrdinalIgnoreCase)

@@ -10,7 +10,7 @@ namespace CdpMcp;
 /// Channel: composer (CDT adapter) | habitat (duplex prefer skip-CDT, or autonomous stamp before Guest CDT).
 /// Course: sealed operator_priority from pressure stash (habitat; not dumped into Composer charge).
 /// </summary>
-internal static class IdeIgniteWakeLatch
+internal static partial class IdeIgniteWakeLatch
 {
     public const string Schema = "ignite_wake_latch/v0";
     public const string ChannelComposer = "composer";
@@ -28,6 +28,9 @@ internal static class IdeIgniteWakeLatch
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
+
+    /// <summary>Test hook: disable boot latch refresh (EnsureStarted hygiene).</summary>
+    internal static bool BootRefreshEnabled { get; set; } = true;
 
     /// <summary>Test hook: redirect latch root.</summary>
     internal static string? RootOverrideForTests { get; set; }
@@ -80,6 +83,8 @@ internal static class IdeIgniteWakeLatch
                 Channel = ch,
                 Charge = body,
                 Course = sealedCourse,
+                HabitatVersion = HabitatVersion(),
+                ChargeTemplateRev = IdeIgniteChannel.ChargeTemplateRev,
                 Reason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim(),
                 Task = string.IsNullOrWhiteSpace(task) ? null : task.Trim(),
                 StampedUtc = DateTimeOffset.UtcNow
@@ -134,6 +139,10 @@ internal static class IdeIgniteWakeLatch
         public string Charge { get; set; } = "";
         /// <summary>Sealed operator_priority from pressure — habitat course, not Composer dump.</summary>
         public string? Course { get; set; }
+        /// <summary>Assembly version at publish (deploy drift detector).</summary>
+        public string? HabitatVersion { get; set; }
+        /// <summary>Charge policy revision — bump when wake template semantics change.</summary>
+        public string? ChargeTemplateRev { get; set; }
         public string? Reason { get; set; }
         public string? Task { get; set; }
         public DateTimeOffset StampedUtc { get; set; }

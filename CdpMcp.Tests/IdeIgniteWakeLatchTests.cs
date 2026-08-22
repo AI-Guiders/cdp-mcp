@@ -10,6 +10,7 @@ public partial class IdeIgniteWakeLatchTests : IDisposable
     {
         _root = Path.Combine(Path.GetTempPath(), "cdp-ignite-wake-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_root);
+        IdeIgniteWakeLatch.BootRefreshEnabled = false;
         IdeIgniteWakeLatch.RootOverrideForTests = _root;
         CideIntercomPresenceLatch.RootOverrideForTests = _root;
         CideIntercomVoiceLatch.RootOverrideForTests = _root;
@@ -17,12 +18,56 @@ public partial class IdeIgniteWakeLatchTests : IDisposable
 
     public void Dispose()
     {
+        IdeIgniteWakeLatch.BootRefreshEnabled = true;
         IdeIgniteArmHost.BindAutonomous(null);
         IdeCitizenChannel.ResetAutoiWakeHooksForTests();
         IdeIgniteWakeLatch.RootOverrideForTests = null;
         CideIntercomPresenceLatch.RootOverrideForTests = null;
         CideIntercomVoiceLatch.RootOverrideForTests = null;
         try { Directory.Delete(_root, recursive: true); } catch { /* ignore */ }
+    }
+
+    [Fact]
+    public void RefreshCanonicalIfStale_republishes_when_version_or_markers_stale()
+    {
+        var staleJson = """
+            {
+              "schema": "ignite_wake_latch/v0",
+              "arm_id": "arm-stale",
+              "channel": "composer",
+              "charge": "do not rewrite for agent convenience",
+              "course": "## operator_priority\n1. Glass Done (human flight)\n4. Glass + Citizen DEFERRED",
+              "task": "F1b Forge Windows pilot Setup",
+              "habitat_version": "0.0.1",
+              "charge_template_rev": "stale",
+              "stamped_utc": "2026-08-22T00:00:00+00:00"
+            }
+            """;
+        File.WriteAllText(IdeIgniteWakeLatch.LatchPath, staleJson);
+
+        var doc = IdeIgniteWakeLatch.RefreshCanonicalIfStale("test_refresh");
+        Assert.NotNull(doc);
+        Assert.Equal("arm-stale", doc!.ArmId);
+        Assert.Equal("F1b Forge Windows pilot Setup", doc.Task);
+        Assert.Contains("joint course", doc.Charge, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(IdeIgniteWakeLatch.HabitatVersion(), doc.HabitatVersion);
+        Assert.Equal(IdeIgniteChannel.ChargeTemplateRev, doc.ChargeTemplateRev);
+        Assert.DoesNotContain("Glass Done (human flight)", doc.Course ?? "", StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RefreshCanonicalIfStale_skips_when_fresh()
+    {
+        var charge = IdeIgniteChannel.ComposeArmFireCharge();
+        var course = IdePressureChannel.TryPeekSealedCourse();
+        IdeIgniteWakeLatch.Publish(
+            "arm-fresh", charge, IdeIgniteWakeLatch.ChannelComposer,
+            reason: "seed", task: "leaf", course: course);
+
+        var doc = IdeIgniteWakeLatch.RefreshCanonicalIfStale();
+        Assert.NotNull(doc);
+        Assert.Equal("arm-fresh", doc!.ArmId);
+        Assert.Equal("seed", doc.Reason);
     }
 
     [Fact]
@@ -33,19 +78,12 @@ public partial class IdeIgniteWakeLatchTests : IDisposable
 
         IdeIgniteWakeLatch.RootOverrideForTests = null;
         IdePressureChannel.SealedCourseOverrideForTests = null;
+        IdePressureChannel.TrySanitizeStashCourseOnBoot();
 
-        var charge = IdeIgniteChannel.ComposeArmFireCharge();
-        var doc = IdeIgniteWakeLatch.Publish(
-            "wake-refresh-" + DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss"),
-            charge,
-            IdeIgniteWakeLatch.ChannelComposer,
-            reason: "wake_refresh",
-            task: "F1b Forge Windows pilot Setup");
-
+        var doc = IdeIgniteWakeLatch.RefreshCanonicalIfStale("wake_refresh");
         Assert.NotNull(doc);
         Assert.Contains("joint course", doc!.Charge!, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("do not rewrite for agent convenience", doc.Charge!, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("Glass Done (human flight)", doc.Course ?? "", StringComparison.Ordinal);
     }
 
     [Fact]
