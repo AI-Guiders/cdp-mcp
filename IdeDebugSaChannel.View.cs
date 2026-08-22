@@ -1,5 +1,7 @@
 #nullable enable
 
+using CdpMcp.Habitat;
+
 namespace CdpMcp;
 
 internal static partial class IdeDebugSaChannel
@@ -30,7 +32,6 @@ internal static partial class IdeDebugSaChannel
         if (snap.ActiveDap)
             return ("stop_rebuild", "DAP active (not stopped) — debug_stop before rebuild (PDB lock).");
 
-        // idle
         var launchOk = snap.LaunchPath is { Length: > 0 } && File.Exists(snap.LaunchPath);
         if (!launchOk && snap.Target is { Length: > 0 })
             return ("need_more", "No launch dll resolved — build first or check target_path.");
@@ -44,62 +45,61 @@ internal static partial class IdeDebugSaChannel
         return ("idle", "No active DAP — launch when ready, or attach.");
     }
 
-    static object[] BuildNext(Snap snap, string verdict)
+    static readonly Dictionary<string, NextHint[]> DebugNextRows = new(StringComparer.Ordinal)
     {
-        var list = new List<object>();
+        ["continue"] =
+        [
+            new("debug", "stop_context", "op=stop_context — frame/locals"),
+            new("debug", "continue", "op=continue"),
+            new("debug", "step_over", "op=step_over"),
+        ],
+        ["step"] =
+        [
+            new("debug", "step_over", "op=step_over"),
+            new("debug", "step_into", "op=step_into"),
+        ],
+        ["stop_rebuild"] =
+        [
+            new("debug", "debug_stop", "op=stop — release PDB"),
+            new("build", "Rebuild", "after stop"),
+            new("qrh", "QRH dap-pdb-lock", "procedure"),
+        ],
+        ["fix_bp"] =
+        [
+            new("debug", "bp_add", "op=bp_add path+line"),
+            new("debug", "bp_list", "op=bp_list"),
+        ],
+        ["attach"] =
+        [
+            new("debug", "launch", "op=launch"),
+            new("debug", "attach", "op=attach process_id="),
+        ],
+        ["idle"] =
+        [
+            new("debug", "launch", "op=launch"),
+            new("debug", "scene", "op=scene"),
+        ],
+    };
 
-        switch (verdict)
-        {
-            case "continue":
-                list.Add(new { go = "debug", label = "stop_context", why = "op=stop_context — frame/locals" });
-                list.Add(new { go = "debug", label = "continue", why = "op=continue" });
-                list.Add(new { go = "debug", label = "step_over", why = "op=step_over" });
-                break;
-            case "step":
-                list.Add(new { go = "debug", label = "step_over", why = "op=step_over" });
-                list.Add(new { go = "debug", label = "step_into", why = "op=step_into" });
-                break;
-            case "stop_rebuild":
-                list.Add(new { go = "debug", label = "debug_stop", why = "op=stop — release PDB" });
-                list.Add(new { go = "build", label = "Rebuild", why = "after stop" });
-                list.Add(new { go = "qrh", label = "QRH dap-pdb-lock", why = "procedure" });
-                break;
-            case "fix_bp":
-                list.Add(new { go = "debug", label = "bp_add", why = "op=bp_add path+line" });
-                list.Add(new { go = "debug", label = "bp_list", why = "op=bp_list" });
-                break;
-            case "attach":
-                list.Add(new { go = "debug", label = "launch", why = "op=launch" });
-                list.Add(new { go = "debug", label = "attach", why = "op=attach process_id=" });
-                break;
-            case "idle":
-                list.Add(new { go = "debug", label = "launch", why = "op=launch" });
-                list.Add(new { go = "debug", label = "scene", why = "op=scene" });
-                break;
-            default:
-                list.Add(new { go = "debug", label = "scene", why = "op=scene" });
-                list.Add(new { go = "open", label = "cdp_open", why = "root project" });
-                break;
-        }
+    static readonly NextHint[] DebugNextFallback =
+    [
+        new("debug", "scene", "op=scene"),
+        new("open", "cdp_open", "root project"),
+    ];
 
-        list.Add(new { go = "alert", label = "EICAS", why = "attention SA (1-bit DAP)" });
-        list.Add(new { go = "ecl", label = "ECL dap-rebuild", why = "checklist" });
+    static readonly NextHint[] DebugNextTail =
+    [
+        new("alert", "EICAS", "attention SA (1-bit DAP)"),
+        new("ecl", "ECL dap-rebuild", "checklist"),
+    ];
 
-        if (snap.Stopped)
-            list.Insert(0, new { go = "debug", label = "stop_context", why = "evidence before act" });
+    static readonly NextHint[] DebugStoppedPrefix = [new("debug", "stop_context", "evidence before act")];
 
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        var deduped = new List<object>();
-        foreach (var item in list)
-        {
-            var t = item.GetType();
-            var key = (t.GetProperty("label")?.GetValue(item) as string ?? "") + "\0" +
-                      (t.GetProperty("why")?.GetValue(item) as string ?? "");
-            if (!seen.Add(key)) continue;
-            deduped.Add(item);
-        }
-
-        return deduped.ToArray();
-    }
-
+    static object[] BuildNext(Snap snap, string verdict) =>
+        NextHintTable.Resolve(
+            verdict,
+            DebugNextRows,
+            DebugNextFallback,
+            prefix: snap.Stopped ? DebugStoppedPrefix : default,
+            suffix: DebugNextTail);
 }

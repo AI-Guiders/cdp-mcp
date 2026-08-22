@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Habitat;
 
 namespace CdpMcp;
 
@@ -93,35 +94,32 @@ internal static partial class IdePressureChannel
         };
     }
 
-    static object[] GateSceneNext(string? gate)
+    static readonly Dictionary<string, NextHint[]> GateNextRows = new(StringComparer.Ordinal)
     {
-        var list = new List<object>();
-        switch (gate)
-        {
-            case GatePull:
-                list.Add(new { go = GoName, label = "Reconcile (self-steer)", why = "op=reconcile — decide Domain/TM/next" });
-                list.Add(new { go = GoName, label = "Memo line", why = "op=line limit=5" });
-                list.Add(new { go = "plan", label = "Task Manager", why = "focus may need invent/park" });
-                break;
-            case GateReconcile:
-                list.Add(new { go = GoName, label = "Align", why = "op=align — stash+TM persist" });
-                list.Add(new { go = GoName, label = "Stash", why = "op=stash body=" });
-                list.Add(new { go = "plan", label = "Task Manager", why = "confirm focus after steer" });
-                break;
-            case GateAlign:
-                list.Add(new { go = GoName, label = "Ready", why = "op=ready — exit recall" });
-                break;
-            case GateReady:
-                list.Add(new { go = "plan", label = "Task Manager", why = "act on focused feature" });
-                list.Add(new { go = GoName, label = "Clear L1", why = "op=clear when compact done" });
-                break;
-            default:
-                list.Add(new { go = GoName, label = "Recall pull", why = "op=recall" });
-                break;
-        }
+        [GatePull] =
+        [
+            new(GoName, "Reconcile (self-steer)", "op=reconcile — decide Domain/TM/next"),
+            new(GoName, "Memo line", "op=line limit=5"),
+            new("plan", "Task Manager", "focus may need invent/park"),
+        ],
+        [GateReconcile] =
+        [
+            new(GoName, "Align", "op=align — stash+TM persist"),
+            new(GoName, "Stash", "op=stash body="),
+            new("plan", "Task Manager", "confirm focus after steer"),
+        ],
+        [GateAlign] = [new(GoName, "Ready", "op=ready — exit recall")],
+        [GateReady] =
+        [
+            new("plan", "Task Manager", "act on focused feature"),
+            new(GoName, "Clear L1", "op=clear when compact done"),
+        ],
+    };
 
-        return list.ToArray();
-    }
+    static readonly NextHint[] GateNextFallback = [new(GoName, "Recall pull", "op=recall")];
+
+    static object[] GateSceneNext(string? gate) =>
+        NextHintTable.Resolve(gate, GateNextRows, GateNextFallback);
 
     /// <summary>Stash body + plan and/or ignite note — enough to skip ceremony.</summary>
     static bool SsotSufficient(PressureDoc doc) =>

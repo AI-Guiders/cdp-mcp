@@ -1,5 +1,7 @@
 #nullable enable
 
+using CdpMcp.Habitat;
+
 namespace CdpMcp;
 
 internal static partial class IdeTestSaChannel
@@ -30,50 +32,38 @@ internal static partial class IdeTestSaChannel
         return ("green", "last_run green — leave, or rerun via cdp_test if intent demands.");
     }
 
-    static object[] BuildNext(Snap snap, string verdict)
+    static readonly Dictionary<string, NextHint[]> TestNextRows = new(StringComparer.Ordinal)
     {
-        var list = new List<object>();
-        switch (verdict)
-        {
-            case "discover":
-                list.Add(new { go = "test_scene", label = "Discover", why = "cdp_test_scene — FQNs + last_run" });
-                list.Add(new { go = "test", label = "Run", why = "cdp_test after discover" });
-                break;
-            case "retest":
-                list.Add(new { go = "test_plan", label = "Retest failed", why = "cdp_test_plan failed_first=true" });
-                list.Add(new { go = "test_scene", label = "Scene", why = "inspect last_run" });
-                break;
-            case "green":
-                list.Add(new { go = "test_scene", label = "Scene", why = "confirm last_run" });
-                list.Add(new { go = "review", label = "Review", why = "judgment after verify" });
-                break;
-            case "run":
-                list.Add(new { go = "test", label = "Run", why = "cdp_test" });
-                break;
-            default:
-                list.Add(new { go = "open", label = "cdp_open", why = "root project" });
-                list.Add(new { go = "test_scene", label = "Scene", why = "after open" });
-                break;
-        }
+        ["discover"] =
+        [
+            new("test_scene", "Discover", "cdp_test_scene — FQNs + last_run"),
+            new("test", "Run", "cdp_test after discover"),
+        ],
+        ["retest"] =
+        [
+            new("test_plan", "Retest failed", "cdp_test_plan failed_first=true"),
+            new("test_scene", "Scene", "inspect last_run"),
+        ],
+        ["green"] =
+        [
+            new("test_scene", "Scene", "confirm last_run"),
+            new("review", "Review", "judgment after verify"),
+        ],
+        ["run"] = [new("test", "Run", "cdp_test")],
+    };
 
-        list.Add(new { go = "alert", label = "EICAS", why = "attention SA" });
-        list.Add(new { go = "ecl", label = "ECL verify", why = "checklist" });
-        return Dedup(list);
-    }
+    static readonly NextHint[] TestNextFallback =
+    [
+        new("open", "cdp_open", "root project"),
+        new("test_scene", "Scene", "after open"),
+    ];
 
-    static object[] Dedup(List<object> list)
-    {
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        var outList = new List<object>();
-        foreach (var item in list)
-        {
-            var t = item.GetType();
-            var key = (t.GetProperty("label")?.GetValue(item) as string ?? "") + "\0" +
-                      (t.GetProperty("why")?.GetValue(item) as string ?? "");
-            if (!seen.Add(key)) continue;
-            outList.Add(item);
-        }
+    static readonly NextHint[] TestNextTail =
+    [
+        new("alert", "EICAS", "attention SA"),
+        new("ecl", "ECL verify", "checklist"),
+    ];
 
-        return outList.ToArray();
-    }
+    static object[] BuildNext(Snap snap, string verdict) =>
+        NextHintTable.Resolve(verdict, TestNextRows, TestNextFallback, suffix: TestNextTail);
 }

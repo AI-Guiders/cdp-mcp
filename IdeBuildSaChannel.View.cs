@@ -1,5 +1,7 @@
 #nullable enable
 
+using CdpMcp.Habitat;
+
 namespace CdpMcp;
 
 internal static partial class IdeBuildSaChannel
@@ -40,60 +42,42 @@ internal static partial class IdeBuildSaChannel
         return ("clean", "Clean tree, not ahead — nothing to ship.");
     }
 
-    static object[] BuildNext(Snap snap, string verdict)
+    static readonly Dictionary<string, NextHint[]> BuildNextRows = new(StringComparer.Ordinal)
     {
-        var list = new List<object>();
-        switch (verdict)
-        {
-            case "stop_rebuild":
-                list.Add(new { go = "debug_desk", label = "Debug-SA", why = "fuse before stop" });
-                list.Add(new { go = "debug", label = "debug_stop", why = "op=stop — release PDB" });
-                list.Add(new { go = "build", label = "Rebuild", why = "cdp_build after stop" });
-                list.Add(new { go = "qrh", label = "QRH dap-pdb-lock", why = "procedure" });
-                break;
-            case "preflight":
-                list.Add(new { go = "git_scene", label = "Git scene", why = "confirm dirty" });
-                list.Add(new { go = "git_draft", label = "git_preflight", why = "exclude secrets" });
-                break;
-            case "ship":
-                list.Add(new { go = "git_draft", label = "git_plan", why = "logical commits" });
-                list.Add(new { go = "ecl", label = "ECL ship", why = "checklist" });
-                list.Add(new { go = "qrh", label = "QRH ship-dirty", why = "procedure" });
-                break;
-            case "push":
-                list.Add(new { go = "git_scene", label = "Git scene", why = "ahead/behind" });
-                list.Add(new { go = "ecl", label = "ECL ship push", why = "standing allow" });
-                break;
-            case "build":
-                list.Add(new { go = "build", label = "cdp_build", why = "session project" });
-                list.Add(new { go = "test_desk", label = "Test-SA", why = "after build" });
-                break;
-            case "clean":
-                list.Add(new { go = "git_scene", label = "Git scene", why = "confirm clean" });
-                break;
-            default:
-                list.Add(new { go = "open", label = "cdp_open", why = "root project" });
-                break;
-        }
+        ["stop_rebuild"] =
+        [
+            new("debug_desk", "Debug-SA", "fuse before stop"),
+            new("debug", "debug_stop", "op=stop — release PDB"),
+            new("build", "Rebuild", "cdp_build after stop"),
+            new("qrh", "QRH dap-pdb-lock", "procedure"),
+        ],
+        ["preflight"] =
+        [
+            new("git_scene", "Git scene", "confirm dirty"),
+            new("git_draft", "git_preflight", "exclude secrets"),
+        ],
+        ["ship"] =
+        [
+            new("git_draft", "git_plan", "logical commits"),
+            new("ecl", "ECL ship", "checklist"),
+            new("qrh", "QRH ship-dirty", "procedure"),
+        ],
+        ["push"] =
+        [
+            new("git_scene", "Git scene", "ahead/behind"),
+            new("ecl", "ECL ship push", "standing allow"),
+        ],
+        ["build"] =
+        [
+            new("build", "cdp_build", "session project"),
+            new("test_desk", "Test-SA", "after build"),
+        ],
+        ["clean"] = [new("git_scene", "Git scene", "confirm clean")],
+    };
 
-        list.Add(new { go = "alert", label = "EICAS", why = "attention SA" });
-        return Dedup(list);
-    }
+    static readonly NextHint[] BuildNextFallback = [new("open", "cdp_open", "root project")];
+    static readonly NextHint[] BuildNextTail = [new("alert", "EICAS", "attention SA")];
 
-    static object[] Dedup(List<object> list)
-    {
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        var outList = new List<object>();
-        foreach (var item in list)
-        {
-            var t = item.GetType();
-            var key = (t.GetProperty("label")?.GetValue(item) as string ?? "") + "\0" +
-                      (t.GetProperty("why")?.GetValue(item) as string ?? "");
-            if (!seen.Add(key)) continue;
-            outList.Add(item);
-        }
-
-        return outList.ToArray();
-    }
-
+    static object[] BuildNext(Snap snap, string verdict) =>
+        NextHintTable.Resolve(verdict, BuildNextRows, BuildNextFallback, suffix: BuildNextTail);
 }
