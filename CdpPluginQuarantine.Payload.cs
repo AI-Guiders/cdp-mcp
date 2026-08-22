@@ -88,17 +88,7 @@ internal static partial class CdpPluginQuarantine
                 return false;
 
             kind = "jar";
-            var n = name.ToLowerInvariant();
-            if (n.Contains("plantuml")) score = 120;
-            else if (n.EndsWith("-all.jar") || n.Contains("-all-")) score = 115;
-            else if (n.Contains("cli")) score = 112;
-            else if (n is "spotbugs.jar" or "checkstyle.jar" or "pmd.jar") score = 110;
-            else if (n.StartsWith("checkstyle") || n.StartsWith("pmd-") || n.StartsWith("spotbugs"))
-                score = underLib ? 100 : 108;
-            else if (n.Contains("plugin"))
-                score = 45;
-            else
-                score = underLib ? 70 : 95;
+            score = ScoreJarName(name, underLib);
             return true;
         }
 
