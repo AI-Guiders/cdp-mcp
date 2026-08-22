@@ -15,6 +15,7 @@ internal static partial class IdeIgniteArmHost
         charge_mode = a.ChargeMode,
         message = a.Message.Length > 160 ? a.Message[..160] + "…" : a.Message,
         chat = a.Chat,
+        conversation_id = a.ConversationId,
         port = a.Port,
         once = a.Once,
         last_once = a.LastOnce,
@@ -42,6 +43,7 @@ internal static partial class IdeIgniteArmHost
         Task = a.Task,
         Reason = a.Reason,
         Chat = a.Chat,
+        ConversationId = a.ConversationId,
         Port = a.Port,
         Once = a.Once,
         LastOnce = a.LastOnce,
@@ -166,6 +168,8 @@ internal static partial class IdeIgniteArmHost
         /// <summary>Wake provenance for agent (e.g. oom) — not TM body.</summary>
         public string? Reason { get; set; }
         public string? Chat { get; set; }
+        /// <summary>ADR-0200: MCP conversation id stamped at arm — fire-time latch lookup.</summary>
+        public string? ConversationId { get; set; }
         public int Port { get; set; } = IdeIgniteChannel.DefaultPort;
         public bool Once { get; set; } = true;
         /// <summary>Await-operator latch: after successful fire → status=awaiting; block repeat last_once arms.</summary>

@@ -17,7 +17,11 @@ internal static partial class IdeIgniteChannel
         CdtSession session;
         try
         {
-            session = await CdtSession.ConnectPageAsync(port, ct).ConfigureAwait(false);
+            session = await CdtSession.ConnectPageAsync(port, chat, ct).ConfigureAwait(false);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.StartsWith("chat_not_found", StringComparison.Ordinal))
+        {
+            return Err("send", "chat_not_found", ex.Message, port);
         }
         catch (InvalidOperationException ex) when (ex.Message.StartsWith("no_agent_composer", StringComparison.Ordinal)
             || ex.Message.StartsWith("no_page_target", StringComparison.Ordinal))

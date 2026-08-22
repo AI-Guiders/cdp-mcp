@@ -10,8 +10,41 @@ internal static partial class IdeIgniteArmHost
     internal static void BindTenantResolver(Func<CdpTenantKey, CdpTenantSlice> resolve) =>
         TenantResolve = resolve;
 
-    internal static void StampTenantWire(IgniteArm arm) =>
+    internal static void StampTenantWire(IgniteArm arm)
+    {
         arm.TenantWire = CdpTenantExecutionContext.CurrentSlice?.Key.Wire;
+        arm.ConversationId = CdpTenantRoutingContext.CurrentConversationId;
+        if (string.IsNullOrWhiteSpace(arm.Chat))
+            arm.Chat = ResolveChatFromTenantLatch(arm.TenantWire, arm.ConversationId, null);
+    }
+
+    /// <summary>CDT chat= — arm field, then per-conversation latch, then bridge-wide latch.</summary>
+    internal static string? ResolveChatFromTenantLatch(
+        string? tenantWire,
+        string? conversationId,
+        string? armChat)
+    {
+        if (!string.IsNullOrWhiteSpace(armChat))
+            return armChat.Trim();
+
+        string? bridge = null;
+        if (!string.IsNullOrWhiteSpace(tenantWire) && TryParseTenantWire(tenantWire, out var key))
+            bridge = key.BridgeSession;
+
+        if (string.IsNullOrWhiteSpace(bridge)
+            && CdpTenantExecutionContext.CurrentSlice is { } slice
+            && !slice.Key.IsLegacyDefault)
+            bridge = slice.Key.BridgeSession;
+
+        if (string.IsNullOrWhiteSpace(bridge))
+            return null;
+
+        var byConv = CdpTenantComposerLatch.ResolveDefaultChat(bridge, conversationId);
+        if (!string.IsNullOrWhiteSpace(byConv))
+            return byConv;
+
+        return CdpTenantComposerLatch.ResolveDefaultChat(bridge, null);
+    }
 
     internal static IDisposable? EnterTenantWireScope(string? tenantWire)
     {

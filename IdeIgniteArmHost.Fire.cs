@@ -167,8 +167,9 @@ internal static partial class IdeIgniteArmHost
 
             // Mark send only when CDT inject starts — not during wait-idle (Stop).
             MarkSendInvoked(arm.Id);
+            var chat = IdeIgniteArmHost.ResolveChatFromTenantLatch(arm.TenantWire, arm.ConversationId, arm.Chat);
             var result = await IdeIgniteChannel.FireAsync(
-                arm.Port, msg, arm.Chat, arm.WaitSeconds, ct).ConfigureAwait(false);
+                arm.Port, msg, chat, arm.WaitSeconds, ct).ConfigureAwait(false);
             ApplyFireOutcome(arm, result);
         }
         catch (OperationCanceledException)

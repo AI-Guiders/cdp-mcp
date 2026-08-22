@@ -51,7 +51,7 @@ internal static partial class IdeIgniteChannel
     {
         try
         {
-            await using var session = await CdtSession.ConnectPageAsync(port, ct).ConfigureAwait(false);
+            await using var session = await CdtSession.ConnectPageAsync(port, null, ct).ConfigureAwait(false);
             var state = await session.EvalStateAsync(ct).ConfigureAwait(false);
             if (!state.ComposerScoped)
                 return (false, "no_composer", state.InputText);

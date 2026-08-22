@@ -27,7 +27,7 @@ internal static partial class IdeIgniteChannel
         {
             try
             {
-                await using var session = await CdtSession.ConnectPageAsync(port, ct).ConfigureAwait(false);
+                await using var session = await CdtSession.ConnectPageAsync(port, null, ct).ConfigureAwait(false);
                 pageTitle = session.PageTitle;
                 state = await session.EvalStateAsync(ct).ConfigureAwait(false);
             }
@@ -81,7 +81,7 @@ internal static partial class IdeIgniteChannel
 
     static async Task<object> ChatsAsync(int port, CancellationToken ct)
     {
-        await using var session = await CdtSession.ConnectPageAsync(port, ct).ConfigureAwait(false);
+        await using var session = await CdtSession.ConnectPageAsync(port, null, ct).ConfigureAwait(false);
         var chats = await session.EvalAsync<JsonElement>(ChatListJs, ct).ConfigureAwait(false);
         return new
         {

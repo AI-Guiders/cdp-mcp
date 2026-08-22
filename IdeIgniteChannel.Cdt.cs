@@ -21,7 +21,7 @@ internal static partial class IdeIgniteChannel
 
         public string PageTitle { get; }
 
-        public static async Task<CdtSession> ConnectPageAsync(int port, CancellationToken ct)
+        public static async Task<CdtSession> ConnectPageAsync(int port, string? chatHint, CancellationToken ct)
         {
             var list = await GetJsonAsync(port, "/json/list", ct).ConfigureAwait(false);
             var ranked = RankPageTargets(list);
@@ -30,6 +30,7 @@ internal static partial class IdeIgniteChannel
 
             var tried = new List<string>();
             Exception? last = null;
+            var needChat = !string.IsNullOrWhiteSpace(chatHint);
             foreach (var target in ranked)
             {
                 tried.Add($"{target.Title} (score={target.Score})");
@@ -37,6 +38,20 @@ internal static partial class IdeIgniteChannel
                 try
                 {
                     session = await OpenWsAsync(target.Title, target.WsUrl, ct).ConfigureAwait(false);
+                    if (needChat)
+                    {
+                        var focus = await session.EvalAsync<FocusChatResult>(FocusChatJs(chatHint!), ct)
+                            .ConfigureAwait(false);
+                        if (focus is not { Ok: true })
+                        {
+                            await session.DisposeAsync().ConfigureAwait(false);
+                            session = null;
+                            continue;
+                        }
+
+                        await Task.Delay(400, ct).ConfigureAwait(false);
+                    }
+
                     // Agent shell may still be mounting TipTap — brief settle before giving up.
                     for (var i = 0; i < 8; i++)
                     {
@@ -63,6 +78,16 @@ internal static partial class IdeIgniteChannel
             }
 
             var detail = string.Join(" | ", tried);
+            if (needChat)
+            {
+                throw new InvalidOperationException(
+                    "chat_not_found: no CDT page could focus chat="
+                    + chatHint
+                    + ". Tried: "
+                    + detail
+                    + (last is null ? "" : "; last=" + last.Message));
+            }
+
             throw new InvalidOperationException(
                 "no_agent_composer: no CDT page with ui-prompt-input (ComposerScoped). Tried: " + detail
                 + (last is null ? "" : "; last=" + last.Message));
