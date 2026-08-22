@@ -113,6 +113,7 @@ internal static partial class IdeIgniteArmHost
             Status = "armed",
             CreatedUtc = DateTimeOffset.UtcNow
         };
+        StampTenantWire(arm);
         return true;
     }
 

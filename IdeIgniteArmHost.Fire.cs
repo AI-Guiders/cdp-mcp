@@ -93,6 +93,7 @@ internal static partial class IdeIgniteArmHost
     static async Task RunFireAsync(
         IgniteArm arm, bool ok, string? pulse, string? detail, CancellationToken ct)
     {
+        using var tenantScope = EnterArmTenantScope(arm);
         try
         {
             // New ignition supersedes post-fire Connection Problems watch.

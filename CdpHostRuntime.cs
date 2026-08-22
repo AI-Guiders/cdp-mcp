@@ -372,6 +372,7 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
             AnuiTools = anuiTools
         };
         var tenantRegistry = new CdpTenantRegistry(kernel, defaultSlice);
+        IdeIgniteArmHost.BindTenantResolver(key => tenantRegistry.Resolve(key));
 
         var runtime = new CdpHostRuntime(
             session,

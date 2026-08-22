@@ -455,4 +455,76 @@ public sealed class CdpTenantMultiplexTests
             IdeStageCycle.Unbind();
         }
     }
+
+    [Fact]
+    public void Arm_stamps_tenant_wire_when_slice_active()
+    {
+        if (!string.Equals(
+                Environment.GetEnvironmentVariable("CDP_PROFILE") ?? "default",
+                "default",
+                StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var settings = CdpSettings.Load(Path.Combine(
+            AppContext.BaseDirectory, "..", "..", "..", "..", "config", "cdp-mcp.toml"));
+        var kernel = new CdpSharedKernel
+        {
+            ConfigPath = "config/cdp-mcp.toml",
+            Settings = settings,
+            Modules = [],
+            ByDomain = new Dictionary<string, ICdpBackendModule>(),
+            AllAffordances = [],
+            McpVersion = "0.0.0",
+            Pretty = new JsonSerializerOptions(),
+            McpOutlet = new McpOutletHabitat(),
+            InternetBrowser = new InternetBrowserHabitat(),
+            AnTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            TkTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            FindTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            FailTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            DbgTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            BtTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            RoslynTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            GitTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            HciTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            AnuiTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>()
+        };
+        var registry = new CdpTenantRegistry(
+            kernel,
+            CdpTenantSliceFactory.Create(kernel, CdpTenantKey.LegacyDefault));
+        IdeIgniteArmHost.BindTenantResolver(key => registry.Resolve(key));
+
+        var slice = registry.Resolve(CdpTenantKey.Normalize("bridge-arm-stamp", "cdp", "main"));
+        try
+        {
+            using (slice.EnterScope())
+            using (CdpTenantExecutionContext.Enter(slice))
+            {
+                IdeIgniteArmHost.EnsureStarted();
+                var armId = "tenant-wire-test-" + Guid.NewGuid().ToString("N")[..8];
+                var result = IdeIgniteArmHost.Arm(new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["id"] = JsonSerializer.SerializeToElement(armId),
+                    ["task"] = JsonSerializer.SerializeToElement("tenant wire stamp"),
+                    ["when"] = JsonSerializer.SerializeToElement("manual"),
+                    ["force"] = JsonSerializer.SerializeToElement(true),
+                });
+                using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
+                Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
+
+                var armed = IdeIgniteArmHost.Snapshot().First(a => a.Id == armId);
+                Assert.Equal(slice.Key.Wire, armed.TenantWire);
+
+                IdeIgniteArmHost.Disarm(new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["id"] = JsonSerializer.SerializeToElement(armId),
+                    ["force"] = JsonSerializer.SerializeToElement(true),
+                });
+            }
+        }
+        finally
+        {
+            slice.Dispose();
+        }
+    }
 }

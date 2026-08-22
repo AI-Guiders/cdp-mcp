@@ -50,6 +50,7 @@ internal static partial class IdeIgniteArmHost
         WaitSeconds = a.WaitSeconds,
         DueUtc = a.DueUtc,
         InRaw = a.InRaw,
+        TenantWire = a.TenantWire,
         Status = a.Status,
         LastError = a.LastError,
         CreatedUtc = a.CreatedUtc,
@@ -174,6 +175,8 @@ internal static partial class IdeIgniteArmHost
         public int WaitSeconds { get; set; } = 90;
         public DateTimeOffset? DueUtc { get; set; }
         public string? InRaw { get; set; }
+        /// <summary>ADR-0200: tenant wire stamped at arm time — fire enters slice for TM/wake/flight.</summary>
+        public string? TenantWire { get; set; }
         public string Status { get; set; } = "armed";
         public string? LastError { get; set; }
         public DateTimeOffset CreatedUtc { get; set; }
