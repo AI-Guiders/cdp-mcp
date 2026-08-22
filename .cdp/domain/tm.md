@@ -16,6 +16,7 @@
 - `shipped` without prior `start` → implicit wall start (ADX ceremony tax).
 - Soft-warn FileLinesWarn=400; `IntentWorkspaceStore` is `partial` by concern (Core/Intent/Stage/Scene/Persist/Find + Leaf/StageCriteria(+Norm)/StageEvents/StageProduct/StageExecutor).
 - WitDB path = `StateRoot/{seat}/intent-workspace.witdb` (per-seat; dual seats never share FileShare.None). Primary `cdp` once Moves legacy flat file.
+- **ADR-0200 tenant TM:** `IdeStageCycle.TryWorkspace` resolves `CdpTenantExecutionContext.CurrentSlice.Workspace` first — no last-`Ensure` global bind bleed; ignite flight probe + wake preflight share the same tenant WitDB.
 - **All store DB I/O via `WithDb`** (file Mutex + in-proc Lock + transient retry). Never bare `Open()` for Status/Scene*/Stage* — concurrent desk readers race FileShare.None (fixed 0.5.623).
 - **Review Results** (operator remarks): `cmd=review <text>|list|ack <id>` (alias remark|rr) — durable stage_events on open leaf; pulse `review×N`; `done`/`shipped` soft-refuse while open (`IdeReviewShield`, force= escape). Dialog stays dialog — agent stamps; dig before Done. SoftInstrument `review files|open` unchanged.
 
@@ -43,6 +44,7 @@
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
+- **2026-08-22 ADR-0200 tenant TM peel** — `IdeStageCycle` tenant-first (`CurrentSlice.Workspace`); removed `WorkspaceDbHost.Ensure` global `Bind` last-wins; flight probe + citizen focus lane on slice; legacy bind once at host boot. Tests `Parallel_tenant_stage_cycle_reads_isolated_witdb`.
 - **2026-08-09 citizen Autoi FocusLane=Face (0.5.690)** — densest after focus-lanes: `ResolveFocusLane` bound tip Who (Кир); prefer_citizen woke Sierra Turn on tip lane. Ship: `BindCitizenFocusLane` · `TryApplyCitizenFocusLane` on prefer_citizen · `ResolveCitizenFace` → `WorkFocusSwitchLane`. Tip≠Face preserved. Test CitizenFocusLaneBindTests **1**. Mentions SoftFL alone.
 - **2026-08-09 Multi-principal focus-lanes (0.5.689)** — densest after tip≠Face: singleton `work_focus` Id=1 stole focus; Stage.Executor tags Who but FocusStage demoted peer actives. Ship: `work_focus_lanes` · `FocusLane` · `cmd=lane Who` · protect other-lane Status · board `[»]`. Tests WorkFocusLaneTests **3**. Mentions SoftFL alone.
 - **2026-08-08 SoftFL Stage.Executor** — operator SoftFL ACCEPT (TM Who so Кир/Sierra don't collide). Densify Product pattern: WitDB `Executor` + ALTER, REPL `executor|assignee`, title `~Who`, board `~Sierra`. Normalize Sierra|Кир|Света. Files-list = existing `dig=` (no invent). Tests StageExecutorTests **9** + StageProductTests **9** = 18/18. SoftInstrument invent REJECT.

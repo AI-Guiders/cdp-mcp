@@ -85,7 +85,6 @@ internal sealed class WorkspaceDbHost
 
                 IdeDeskSeats.Bind(_store);
                 ScriptScene.Bind(_store);
-                IdeStageCycle.Bind(_store, () => State, () => CdpEnumParse.ToWire(_session.Phase));
                 OpenRecentStore.Configure(new WitDbOpenRecentBackend(_store, path));
                 _openedPath = path;
             }

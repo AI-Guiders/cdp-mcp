@@ -141,12 +141,13 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
 
         IdeIgniteArmHost.BindFlightProbe(() =>
         {
-            if (workspace.State.ActiveStageId is null)
+            var ws = CdpTenantExecutionContext.CurrentSlice?.Workspace ?? workspace;
+            if (ws.State.ActiveStageId is null)
                 return ContinuityFlight.NoActiveTask;
             try
             {
-                workspace.Ensure();
-                return IdeTaskManager.ProbeContinuityFlight(workspace.Store, workspace.State);
+                ws.Ensure();
+                return IdeTaskManager.ProbeContinuityFlight(ws.Store!, ws.State);
             }
             catch
             {
@@ -155,12 +156,13 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         });
         IdeIgniteArmHost.BindCitizenFocusLane(() =>
         {
-            workspace.Ensure();
-            var store = workspace.Store;
+            var ws = CdpTenantExecutionContext.CurrentSlice?.Workspace ?? workspace;
+            ws.Ensure();
+            var store = ws.Store;
             if (store is null)
                 return;
             var (who, _) = CitizenGlassDialogBridge.ResolveCitizenFace();
-            store.WorkFocusSwitchLane(workspace.State, who);
+            store.WorkFocusSwitchLane(ws.State, who);
         });
 
         void EnsureOpenRecentWired() => workspace.Ensure();
@@ -323,6 +325,11 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         };
 
         IdeStageCycle.SetEnsure(workspace.Ensure);
+        workspace.Ensure();
+        IdeStageCycle.Bind(
+            workspace.Require(),
+            () => workspace.State,
+            () => CdpEnumParse.ToWire(session.Phase));
 
         Task<string> DispatchAsync(
             string name,

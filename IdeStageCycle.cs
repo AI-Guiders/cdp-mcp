@@ -1,4 +1,5 @@
 #nullable enable
+using Cdp.Core;
 using CdpMcp.IntentWorkspace;
 
 namespace CdpMcp;
@@ -7,6 +8,7 @@ namespace CdpMcp;
 /// Stage-cycle event ledger — SA diagnostic pointers while wall clock is open.
 /// Phase segments (phase.start / phase.complete) share the same clock gate.
 /// Only binds when ActiveStage has Start and no Completed. Not a score.
+/// ADR-0200: tenant slice workspace wins over legacy static bind (no last-Ensure-wins bleed).
 /// </summary>
 internal static class IdeStageCycle
 {
@@ -18,6 +20,7 @@ internal static class IdeStageCycle
     /// <summary>Process wire: lazy WitDB open when peek finds no bind (citizen cmd= cold path).</summary>
     public static void SetEnsure(Action? ensure) => _ensure = ensure;
 
+    /// <summary>Legacy singleton bind — used when no <see cref="CdpTenantExecutionContext"/> slice (tests, cold paths).</summary>
     public static void Bind(
         IntentWorkspaceStore store,
         Func<IntentWorkspaceState> statePeek,
@@ -40,6 +43,12 @@ internal static class IdeStageCycle
     public static bool TryWorkspace(
         out IntentWorkspaceStore store,
         out IntentWorkspaceState state,
+        out string? phase) =>
+        TryResolveWorkspace(out store, out state, out phase);
+
+    static bool TryResolveWorkspace(
+        out IntentWorkspaceStore store,
+        out IntentWorkspaceState state,
         out string? phase)
     {
         store = null!;
@@ -47,15 +56,28 @@ internal static class IdeStageCycle
         phase = null;
         try
         {
+            var slice = CdpTenantExecutionContext.CurrentSlice;
+            if (slice is not null)
+            {
+                slice.Workspace.Ensure();
+                var tenantStore = slice.Workspace.Store;
+                if (tenantStore is null)
+                    return false;
+                store = tenantStore;
+                state = slice.Workspace.State;
+                phase = CdpEnumParse.ToWire(slice.Session.Phase);
+                return true;
+            }
+
             if (_store is null)
                 _ensure?.Invoke();
 
-            var s = _store;
-            var st = _statePeek?.Invoke();
-            if (s is null || st is null)
+            var legacyStore = _store;
+            var legacyState = _statePeek?.Invoke();
+            if (legacyStore is null || legacyState is null)
                 return false;
-            store = s;
-            state = st;
+            store = legacyStore;
+            state = legacyState;
             phase = _phasePeek?.Invoke();
             return true;
         }
@@ -73,9 +95,7 @@ internal static class IdeStageCycle
     {
         try
         {
-            var store = _store;
-            var state = _statePeek?.Invoke();
-            if (store is null || state is null)
+            if (!TryResolveWorkspace(out var store, out var state, out _))
                 return false;
             if (state.ActiveStageId is not { } sid)
                 return false;
@@ -129,6 +149,8 @@ internal static class IdeStageCycle
         var p = NormalizePhase(phase);
         if (p.Length > 0)
             return p;
+        if (TryResolveWorkspace(out _, out _, out var peekPhase))
+            return NormalizePhase(peekPhase);
         return NormalizePhase(_phasePeek?.Invoke());
     }
 

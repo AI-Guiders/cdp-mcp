@@ -344,4 +344,115 @@ public sealed class CdpTenantMultiplexTests
             CitizenRouteHost.SessionResolver = prior;
         }
     }
+
+    [Fact]
+    public async Task Parallel_tenant_stage_cycle_reads_isolated_witdb()
+    {
+        if (!string.Equals(
+                Environment.GetEnvironmentVariable("CDP_PROFILE") ?? "default",
+                "default",
+                StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var prior = CitizenRouteHost.SessionResolver;
+        try
+        {
+            var settings = CdpSettings.Load(Path.Combine(
+                AppContext.BaseDirectory, "..", "..", "..", "..", "config", "cdp-mcp.toml"));
+            var kernel = new CdpSharedKernel
+            {
+                ConfigPath = "config/cdp-mcp.toml",
+                Settings = settings,
+                Modules = [],
+                ByDomain = new Dictionary<string, ICdpBackendModule>(),
+                AllAffordances = [],
+                McpVersion = "0.0.0",
+                Pretty = new JsonSerializerOptions(),
+                McpOutlet = new McpOutletHabitat(),
+                InternetBrowser = new InternetBrowserHabitat(),
+                AnTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                TkTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                FindTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                FailTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                DbgTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                BtTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                RoslynTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                GitTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                HciTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+                AnuiTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>()
+            };
+            var registry = new CdpTenantRegistry(
+                kernel,
+                CdpTenantSliceFactory.Create(kernel, CdpTenantKey.LegacyDefault));
+
+            var forge = registry.Resolve(CdpTenantKey.Normalize("bridge-forge", "cdp", "main"));
+            var cursor = registry.Resolve(CdpTenantKey.Normalize("bridge-cursor", "default", "main"));
+
+            using (forge.EnterScope())
+            {
+                forge.Workspace.Ensure();
+                var store = forge.Workspace.Require();
+                var state = forge.Workspace.State;
+                store.IntentUpsert(state, "Forge Epic", null);
+                var leaf = store.StageUpsert(state, "Tenant TM peel", null, null, null).stage_id;
+                state.ActiveStageId = leaf;
+            }
+
+            using (cursor.EnterScope())
+            {
+                cursor.Workspace.Ensure();
+                var store = cursor.Workspace.Require();
+                var state = cursor.Workspace.State;
+                store.IntentUpsert(state, "CDP Platform", null);
+                var leaf = store.StageUpsert(state, "Tenant TM peel", null, null, null).stage_id;
+                state.ActiveStageId = leaf;
+            }
+
+            async Task<string?> ProbeFeatureTitleAsync(CdpTenantSlice slice)
+            {
+                using var profile = slice.EnterScope();
+                using var exec = CdpTenantExecutionContext.Enter(slice);
+                await Task.Delay(Random.Shared.Next(1, 15)).ConfigureAwait(false);
+                if (!IdeStageCycle.TryWorkspace(out var store, out var state, out _))
+                    return null;
+                var snap = store.TaskManagerSnapshot(state);
+                return snap.Features.Count == 0 ? null : snap.Features[0].Title;
+            }
+
+            var titles = await Task.WhenAll(
+                Enumerable.Range(0, 48)
+                    .Select(i => ProbeFeatureTitleAsync(i % 2 == 0 ? forge : cursor))
+                    .ToArray()).ConfigureAwait(false);
+
+            foreach (var (title, i) in titles.Select((t, idx) => (t, idx)))
+            {
+                if (i % 2 == 0)
+                    Assert.StartsWith("Forge", title ?? "", StringComparison.Ordinal);
+                else
+                    Assert.StartsWith("CDP", title ?? "", StringComparison.Ordinal);
+            }
+
+            using (forge.EnterScope())
+            using (CdpTenantExecutionContext.Enter(forge))
+            {
+                var preflight = IdeIgniteChannel.WakeChargePreflight.Probe();
+                Assert.Contains("feature=Forge Epic", preflight.TmStatusLine, StringComparison.Ordinal);
+            }
+
+            using (cursor.EnterScope())
+            using (CdpTenantExecutionContext.Enter(cursor))
+            {
+                var preflight = IdeIgniteChannel.WakeChargePreflight.Probe();
+                Assert.Contains("feature=CDP Platform", preflight.TmStatusLine, StringComparison.Ordinal);
+            }
+
+            forge.Dispose();
+            cursor.Dispose();
+        }
+        finally
+        {
+            CitizenRouteHost.SessionResolver = prior;
+            IdeStageCycle.Unbind();
+        }
+    }
 }
