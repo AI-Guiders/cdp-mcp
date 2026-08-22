@@ -13,7 +13,9 @@
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
     <GuidersPlatformRoot Condition="'$(GuidersPlatformRoot)' == ''">..\guiders-platform</GuidersPlatformRoot>
-    <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == '' AND '$(AidUseNuGet)' != 'true' AND Exists('$(GuidersPlatformRoot)\AIGuiders.Platform.sln')">true</UseLocalGuidersPlatform>
+    <GuidersPlatformVersion Condition="'$(GuidersPlatformVersion)' == ''">0.4.1</GuidersPlatformVersion>
+    <!-- Default nuget.org; platform dev: /p:UseLocalGuidersPlatform=true when sibling guiders-platform exists -->
+    <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == ''">false</UseLocalGuidersPlatform>
     <GuidersCoreRoot Condition="'$(GuidersCoreRoot)' == ''">..\guiders-core</GuidersCoreRoot>
     <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == '' AND '$(AidUseNuGet)' != 'true' AND Exists('$(GuidersCoreRoot)\src\Cdp.Core\Cdp.Core.csproj')">true</UseLocalGuidersCore>
   </PropertyGroup>
@@ -53,14 +55,14 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
     <PackageReference Include="OutWit.Database.EntityFramework" Version="14.0.1" />
     <PackageReference Include="AIGuiders.WebcamMcp.Shared" Version="0.1.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Abstractions" Version="0.4.0" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Ids" Version="0.4.0" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.DataBus" Version="0.4.0" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Transport" Version="0.4.0" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Channels" Version="0.4.0" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Composition" Version="0.4.0" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Cds" Version="0.4.0" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.CommandPlane" Version="0.4.0" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Abstractions" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Ids" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.DataBus" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Transport" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Channels" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Composition" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Cockpit.Cds" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.CommandPlane" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260225" />
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260225" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.3" />
