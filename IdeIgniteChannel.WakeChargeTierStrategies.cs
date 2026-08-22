@@ -1,38 +1,26 @@
 #nullable enable
+using CdpMcp.Habitat;
 
 namespace CdpMcp;
 
 internal static partial class IdeIgniteChannel
 {
-    internal interface IWakeChargeTierStrategy
-    {
-        bool Applies(WakePreflightContext context);
-        WakeChargePreflight Select(WakePreflightContext context);
-    }
-
     internal static class WakeChargeTierStrategyChain
     {
-        static readonly IWakeChargeTierStrategy[] Ordered =
+        static readonly IRule<WakePreflightContext, WakeChargePreflight>[] Ordered =
         [
-            new WakeProbeFaultStrategy(),
-            new WakeUnboundWorkspaceStrategy(),
-            new WakeEmptyFeaturesStrategy(),
-            new WakeNoIncompleteLeafStrategy(),
-            new WakeMissingLeafTitleStrategy(),
-            new WakeFocusedLeafStrategy(),
+            new WakeProbeFaultRule(),
+            new WakeUnboundWorkspaceRule(),
+            new WakeEmptyFeaturesRule(),
+            new WakeNoIncompleteLeafRule(),
+            new WakeMissingLeafTitleRule(),
+            new WakeFocusedLeafRule(),
         ];
 
-        public static WakeChargePreflight Select(WakePreflightContext context)
-        {
-            foreach (var strategy in Ordered)
-            {
-                if (!strategy.Applies(context))
-                    continue;
-                return WakeChargePressureAutoFullPolicy.Apply(context, strategy.Select(context));
-            }
-
-            throw new InvalidOperationException("wake tier strategy chain fell through");
-        }
+        public static WakeChargePreflight Select(WakePreflightContext context) =>
+            RuleChain.Pipe(
+                RuleChain.FirstMatch(context, Ordered),
+                p => WakeChargePressureAutoFullPolicy.Apply(context, p));
     }
 
     /// <summary>Minimal + empty hot stash → Full (compaction insurance).</summary>
@@ -48,7 +36,7 @@ internal static partial class IdeIgniteChannel
         }
     }
 
-    sealed class WakeProbeFaultStrategy : IWakeChargeTierStrategy
+    sealed class WakeProbeFaultRule : IRule<WakePreflightContext, WakeChargePreflight>
     {
         public bool Applies(WakePreflightContext context) => context.Faulted;
 
@@ -56,7 +44,7 @@ internal static partial class IdeIgniteChannel
             WakeChargePreflight.Full("TM: probe error — assume amnesia; cdp_pressure op=recall then go=plan.");
     }
 
-    sealed class WakeUnboundWorkspaceStrategy : IWakeChargeTierStrategy
+    sealed class WakeUnboundWorkspaceRule : IRule<WakePreflightContext, WakeChargePreflight>
     {
         public bool Applies(WakePreflightContext context) => !context.Faulted && !context.WorkspaceBound;
 
@@ -64,7 +52,7 @@ internal static partial class IdeIgniteChannel
             WakeChargePreflight.Full("TM: unbound — workspace not loaded; cdp_open then go=plan; treat as amnesia until TM seeded.");
     }
 
-    sealed class WakeEmptyFeaturesStrategy : IWakeChargeTierStrategy
+    sealed class WakeEmptyFeaturesRule : IRule<WakePreflightContext, WakeChargePreflight>
     {
         public bool Applies(WakePreflightContext context) =>
             context.WorkspaceBound && context.FeatureCount == 0;
@@ -73,7 +61,7 @@ internal static partial class IdeIgniteChannel
             WakeChargePreflight.Full("TM: empty — no features; seed from sealed course (go=plan feature … task …), not board hygiene.");
     }
 
-    sealed class WakeNoIncompleteLeafStrategy : IWakeChargeTierStrategy
+    sealed class WakeNoIncompleteLeafRule : IRule<WakePreflightContext, WakeChargePreflight>
     {
         public bool Applies(WakePreflightContext context) =>
             context.WorkspaceBound && context.FeatureCount > 0 && context.WakeLeafId is null;
@@ -82,7 +70,7 @@ internal static partial class IdeIgniteChannel
             WakeChargePreflight.Full("TM: no incomplete leaf — all done/parked; seed next leaf from sealed course before invent.");
     }
 
-    sealed class WakeMissingLeafTitleStrategy : IWakeChargeTierStrategy
+    sealed class WakeMissingLeafTitleRule : IRule<WakePreflightContext, WakeChargePreflight>
     {
         public bool Applies(WakePreflightContext context) =>
             context.WakeLeafId is not null && string.IsNullOrWhiteSpace(context.LeafTitle);
@@ -91,7 +79,7 @@ internal static partial class IdeIgniteChannel
             WakeChargePreflight.Full("TM: incomplete leaf has no title — go=plan focus/done hygiene, then resume.");
     }
 
-    sealed class WakeFocusedLeafStrategy : IWakeChargeTierStrategy
+    sealed class WakeFocusedLeafRule : IRule<WakePreflightContext, WakeChargePreflight>
     {
         public bool Applies(WakePreflightContext context) =>
             context.WakeLeafId is not null && !string.IsNullOrWhiteSpace(context.LeafTitle);
