@@ -11,7 +11,7 @@ internal static partial class IdeIgniteWakeLatch
     /// </summary>
     internal static WakeDoc? RefreshCanonicalIfStale(string? reason = null)
     {
-        var charge = IdeIgniteChannel.ComposeArmFireCharge();
+        var charge = IdeIgniteChannel.ComposeArmFireCharge(IdeIgniteChannel.WakeChargePreflight.ForHabitatLatch());
         var course = IdePressureChannel.TryPeekSealedCourse();
         var current = TryRead();
 

@@ -201,7 +201,7 @@ internal static partial class IdeIgniteArmHost
                         ? IdeIgniteChannel.ComposeEscalateWakeCharge(
                             IdePressureChannel.TryPeekProjectRoot(),
                             IdeDomainPulse.FocusHintFromPlanLatch())
-                        : IdeIgniteChannel.ComposeArmFireCharge();
+                        : IdeIgniteChannel.ComposeArmFireCharge(IdeIgniteChannel.WakeChargePreflight.Probe());
 
     static void MarkSendInvoked(string armId)
     {

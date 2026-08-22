@@ -9,7 +9,7 @@ internal static partial class IdeIgniteChannel
     /// <summary>
     /// Bump when wake charge template semantics change (independent of assembly patch version).
     /// </summary>
-    internal const string ChargeTemplateRev = "20260822-joint-course-ownership";
+    internal const string ChargeTemplateRev = "20260822-wake-tiered-tm-preflight";
 
     /// <summary>
     /// Composer wake charge — no TM stage body, shell, toolchain, or commands (cockpit holds SSOT).
@@ -21,6 +21,14 @@ internal static partial class IdeIgniteChannel
     /// Honest compaction hint — host may summarize without warning; pairs with cdp_pressure stash + memo line.
     /// Sealed course lives in pressure + ignite-wake-LATEST.course — not a full dump in Composer (cybersec).
     /// </summary>
+    /// <summary>Routine timer wake — pointer only; full refuse/axe blocks are tier Full.</summary>
+    internal const string ChargeAmnesiaStub =
+        """
+
+        ---
+        Compaction/amnesia: cdp_pressure op=recall → ## operator_priority (joint course). ignite-wake-LATEST.json course= if recall empty. Dispute with arguments — not silent rewrite.
+        """;
+
     internal const string ChargeAmnesiaPostfix =
         """
 
@@ -113,9 +121,25 @@ internal static partial class IdeIgniteChannel
     static readonly Regex ShellWord = new(@"\bshell\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     internal static string ComposeArmFireCharge() =>
-        SanitizeComposerCharge(
-            CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix + ChargeOwnershipPostfix);
+        ComposeArmFireCharge(WakeChargePreflight.Probe());
+
+    internal static string ComposeArmFireCharge(WakeChargePreflight preflight) =>
+        ComposeWakeBody(preflight, preflight.Tier);
+
+    internal static string ComposeWakeBody(WakeChargePreflight preflight, WakeChargeTier tier, string? leadPrefix = null)
+    {
+        var body = (string.IsNullOrWhiteSpace(leadPrefix) ? "" : leadPrefix.TrimEnd() + " ")
+            + CanonicalComposerCharge + "\n"
+            + ChargeCoursePointer + "\n"
+            + preflight.TmStatusLine;
+
+        body += tier == WakeChargeTier.Minimal
+            ? ChargeAmnesiaStub + ChargeOwnershipPostfix
+            : ChargeAmnesiaPostfix + ChargeHumanFacePostfix + ChargeWorldDigPostfix
+                + ChargeDomainStampPostfix + ChargeOwnershipPostfix;
+
+        return SanitizeComposerCharge(body);
+    }
 
     /// <summary>Lead line for hard-remount boot wake — agent hears remount provenance, not silent DeskWarm.</summary>
     internal const string RemountInitializedLead =
@@ -127,15 +151,15 @@ internal static partial class IdeIgniteChannel
 
     internal static string ComposeRemountInitializedCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = RemountInitializedLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix + ChargeOwnershipPostfix;
+        var preflight = WakeChargePreflight.Probe();
+        var core = ComposeWakeBody(preflight, WakeChargeTier.Full, RemountInitializedLead);
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
     internal static string ComposeOomWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = OomWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix + ChargeOwnershipPostfix;
+        var preflight = WakeChargePreflight.Probe();
+        var core = ComposeWakeBody(preflight, WakeChargeTier.Full, OomWakeLead);
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
@@ -145,8 +169,8 @@ internal static partial class IdeIgniteChannel
 
     internal static string ComposeEscalateWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
-        var core = EscalateWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix + ChargeOwnershipPostfix;
+        var preflight = WakeChargePreflight.Probe();
+        var core = ComposeWakeBody(preflight, WakeChargeTier.Full, EscalateWakeLead);
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
@@ -188,9 +212,11 @@ internal static partial class IdeIgniteChannel
     {
         var name = string.IsNullOrWhiteSpace(tool) ? "(tool)" : tool.Trim();
         var sec = Math.Max(1, thresholdSeconds);
+        var preflight = WakeChargePreflight.Probe();
         return SanitizeComposerCharge(
-            $"Tool call still running past wake threshold: {name} >{sec}s. Habitat=CDP. Check share from=self / cdp_pressure op=recall. Prefer wait for result or abort stuck host turn."
-            + ChargeAmnesiaPostfix);
+            $"Tool call still running past wake threshold: {name} >{sec}s. Habitat=CDP. Check share from=self / cdp_pressure op=recall. Prefer wait for result or abort stuck host turn.\n"
+            + preflight.TmStatusLine
+            + ChargeAmnesiaStub);
     }
 
     internal static string EventTokenForCharge(string eventId) =>
