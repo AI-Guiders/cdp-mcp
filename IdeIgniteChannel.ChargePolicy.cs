@@ -9,7 +9,7 @@ internal static partial class IdeIgniteChannel
     /// <summary>
     /// Bump when wake charge template semantics change (independent of assembly patch version).
     /// </summary>
-    internal const string ChargeTemplateRev = "20260822-wake-tier-strategy-preflight";
+    internal const string ChargeTemplateRev = "20260822-wake-minimal-arm-cap-deferred-glass";
 
     /// <summary>
     /// Composer wake charge — no TM stage body, shell, toolchain, or commands (cockpit holds SSOT).
@@ -133,10 +133,16 @@ internal static partial class IdeIgniteChannel
             + ChargeCoursePointer + "\n"
             + preflight.TmStatusLine;
 
+        var includeHumanFace = tier == WakeChargeTier.Full
+            && !IdePressureChannel.IsGlassCitizenDeferredInSealedCourse();
+
         body += tier == WakeChargeTier.Minimal
             ? ChargeAmnesiaStub + ChargeOwnershipPostfix
-            : ChargeAmnesiaPostfix + ChargeHumanFacePostfix + ChargeWorldDigPostfix
-                + ChargeDomainStampPostfix + ChargeOwnershipPostfix;
+            : ChargeAmnesiaPostfix
+                + (includeHumanFace ? ChargeHumanFacePostfix : "")
+                + ChargeWorldDigPostfix
+                + ChargeDomainStampPostfix
+                + ChargeOwnershipPostfix;
 
         return SanitizeComposerCharge(body);
     }

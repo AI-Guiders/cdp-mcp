@@ -14,6 +14,25 @@ public sealed class IdeIgniteFireChargeComposeRulesTests
     };
 
     [Fact]
+    public void ComposeFireCharge_minimal_arm_caps_tier_when_preflight_full()
+    {
+        IdeStageCycle.Unbind();
+        try
+        {
+            var charge = InvokeCompose(MinimalArm());
+            Assert.Contains("TM:", charge, StringComparison.Ordinal);
+            Assert.Contains(IdeIgniteChannel.CanonicalComposerCharge, charge, StringComparison.Ordinal);
+            Assert.DoesNotContain("Human-face axe", charge, StringComparison.Ordinal);
+            Assert.DoesNotContain("World dig (research freedom", charge, StringComparison.Ordinal);
+            Assert.Contains("Compaction/amnesia", charge, StringComparison.Ordinal);
+        }
+        finally
+        {
+            IdeStageCycle.Unbind();
+        }
+    }
+
+    [Fact]
     public void ComposeFireCharge_minimal_uses_preflight_tm_line()
     {
         var charge = InvokeCompose(MinimalArm());

@@ -12,6 +12,10 @@ internal static partial class IdeIgniteArmHost
         return m is "custom" or "expand" or "legacy";
     }
 
+    /// <summary>Arm charge=minimal caps Composer body at Minimal tier (lifecycle test_finished, default ARM).</summary>
+    internal static bool IsMinimalChargeMode(string? mode) =>
+        string.Equals((mode ?? "minimal").Trim(), "minimal", StringComparison.OrdinalIgnoreCase);
+
     static bool IsRemountChargeMode(string? mode) =>
         string.Equals(
             (mode ?? "").Trim(),

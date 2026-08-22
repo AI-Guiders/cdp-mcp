@@ -159,15 +159,43 @@ public class IdeIgniteWakeChargePreflightTests
     [Fact]
     public void ComposeArmFireCharge_full_includes_extended_blocks()
     {
-        IdeStageCycle.Unbind();
-        var charge = IdeIgniteChannel.ComposeArmFireCharge(
-            new IdeIgniteChannel.WakeChargePreflight(
-                IdeIgniteChannel.WakeChargeTier.Full,
-                "TM: empty — test"));
-        Assert.Contains("Human-face axe", charge, StringComparison.Ordinal);
-        Assert.Contains("World dig", charge, StringComparison.Ordinal);
-        Assert.Contains("Domain stamp", charge, StringComparison.Ordinal);
-        Assert.Contains("Body recall", charge, StringComparison.Ordinal);
+        IdePressureChannel.SealedCourseOverrideForTests =
+            "## operator_priority (SEALED)\n1. Glass Done\n2. Citizen Done";
+        try
+        {
+            var charge = IdeIgniteChannel.ComposeArmFireCharge(
+                new IdeIgniteChannel.WakeChargePreflight(
+                    IdeIgniteChannel.WakeChargeTier.Full,
+                    "TM: empty — test"));
+            Assert.Contains("Human-face axe", charge, StringComparison.Ordinal);
+            Assert.Contains("World dig", charge, StringComparison.Ordinal);
+            Assert.Contains("Domain stamp", charge, StringComparison.Ordinal);
+            Assert.Contains("Body recall", charge, StringComparison.Ordinal);
+        }
+        finally
+        {
+            IdePressureChannel.SealedCourseOverrideForTests = null;
+        }
+    }
+
+    [Fact]
+    public void ComposeArmFireCharge_full_omits_human_face_when_glass_deferred()
+    {
+        IdePressureChannel.SealedCourseOverrideForTests = IdePressureChannel.CanonicalSealedCourse;
+        try
+        {
+            var charge = IdeIgniteChannel.ComposeArmFireCharge(
+                new IdeIgniteChannel.WakeChargePreflight(
+                    IdeIgniteChannel.WakeChargeTier.Full,
+                    "TM: empty — test"));
+            Assert.DoesNotContain("Human-face axe", charge, StringComparison.Ordinal);
+            Assert.Contains("World dig", charge, StringComparison.Ordinal);
+            Assert.Contains("Domain stamp", charge, StringComparison.Ordinal);
+        }
+        finally
+        {
+            IdePressureChannel.SealedCourseOverrideForTests = null;
+        }
     }
 
     static Dictionary<string, JsonElement> Dict(params string[] kv)

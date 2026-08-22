@@ -78,7 +78,13 @@ internal static partial class IdeIgniteArmHost
     {
         public bool Applies(FireChargeComposeContext context) => true;
 
-        public string Select(FireChargeComposeContext context) =>
-            IdeIgniteChannel.ComposeArmFireCharge(IdeIgniteChannel.WakeChargePreflight.Probe());
+        public string Select(FireChargeComposeContext context)
+        {
+            var preflight = IdeIgniteChannel.WakeChargePreflight.Probe();
+            var tier = IsMinimalChargeMode(context.Arm.ChargeMode)
+                ? IdeIgniteChannel.WakeChargeTier.Minimal
+                : preflight.Tier;
+            return IdeIgniteChannel.ComposeWakeBody(preflight, tier);
+        }
     }
 }

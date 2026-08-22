@@ -237,6 +237,17 @@ internal static partial class IdePressureChannel
             || trimmedLine.Contains("Citizen Done", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>Sealed course defers Glass/Citizen — omit human-face Composer postfix (course sidecar keeps axes).</summary>
+    internal static bool IsGlassCitizenDeferredInSealedCourse()
+    {
+        var course = TryPeekSealedCourse();
+        if (string.IsNullOrWhiteSpace(course))
+            return false;
+        return course.Contains("DEFERRED", StringComparison.OrdinalIgnoreCase)
+            && course.Contains("Glass", StringComparison.OrdinalIgnoreCase)
+            && course.Contains("Citizen", StringComparison.OrdinalIgnoreCase);
+    }
+
     internal static bool HasWorldDigAxis(string course) =>
         course.Contains("World dig", StringComparison.OrdinalIgnoreCase)
         || course.Contains("world_dig", StringComparison.OrdinalIgnoreCase)
