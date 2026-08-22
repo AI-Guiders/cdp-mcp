@@ -53,6 +53,7 @@ Not a fourth layer — harden transport:
 - `cdp_build` / `cdp_test`: `durable=true` explicit; else Layer 1 in-proc.
 - Enqueue → `DurableJobStore.EnqueueLifecycle` → supervisor spawns `CdpMcp --durable-job <id>` (worker exe stamped at enqueue; fallback Install-Cdp roots) → worker runs build/test/deploy, `Finish` + `IdeIgniteArmHost.Notify`.
 - Poll: same `cdp_lifecycle_last` / `cdp_lifecycle_scene` (falls through to durable store).
+- **Bridge (ADR-0203):** lifecycle poll reads durable store locally when CdpService is down; `cdp_deploy apply|hard|rollout` blocks at bridge until job + health — agents must not shell-escape on `Not connected`.
 - **DoD:** dual-seat `cdp_deploy mode=rollout` survives KillRunning without `terminal_*` escape hatch.
 
 ## References

@@ -42,7 +42,8 @@ internal static partial class MetaToolCatalog
             background = new { type = "boolean", description = "true (default) = enqueue deploy job, return immediately, AutoIgnition wake on peer_ship. false or wait=true = block (minutes; MCP may timeout). dry_run always sync." },
             durable = new { type = "boolean", description = "true (default for background deploy) = out-of-process durable queue; survives KillRunning/remount. false = in-process Layer 1 only." },
             ignite_arm = new { type = "boolean", description = "When background=true: auto arm when=peer_ship (default true)." },
-            wait = new { type = "boolean", description = "true = foreground sync (background=false)." }
+            wait = new { type = "boolean", description = "true = bridge blocks until durable deploy completes (default for apply|hard|rollout). Stripped before service enqueue — do not use for in-proc sync." },
+            bridge_wait = new { type = "boolean", description = "false = return immediately after enqueue even for apply|hard|rollout. Default true for service-killing modes." },
         }
     }),
     Meta("cdp_elicit", "Spike: MCP elicitation/create → host UI (path 2). op=peek (client caps) | ask (form Да/Нет/Обсудить). Proves whether Cursor advertises elicitation.", new

@@ -36,14 +36,18 @@ var jsonOptions = new JsonSerializerOptions
     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 };
 
+var invokeRouter = new CdpBridgeInvokeRouter(settings, http, serviceEnsurer, jsonOptions);
+
 var options = new McpServerOptions
 {
-    ServerInfo = new Implementation { Name = "CdpMcpBridge", Version = "0.1.0" },
+    ServerInfo = new Implementation { Name = "CdpMcpBridge", Version = "0.2.0" },
     ServerInstructions = """
         CDP MCP bridge — thin stdio transport to durable CdpService (ADR-0198).
-        SSOT handlers live in CdpService; this process only forwards ListTools/CallTool.
+        SSOT handlers live in CdpService; bridge forwards ListTools/CallTool.
         Watches capabilitiesRev (ADR-0202) and emits tools/list_changed when CdpService rev bumps.
-        When [service] install_dir is set, bridge auto-starts CdpService on connection refused (then retries).
+        Deploy gap (ADR-0203): cdp_deploy apply|hard|rollout blocks until durable job + service health;
+        cdp_lifecycle_* reads local job store when service is down; ensurer skips auto-start during deploy.
+        When [service] install_dir is set, bridge auto-starts CdpService on connection refused (cold boot only).
         Otherwise run Start-CdpService.ps1 or cdp deploy hard.
         """,
     ProtocolVersion = "2024-11-05",
@@ -57,8 +61,9 @@ var options = new McpServerOptions
         {
             try
             {
-                return await CdpBridgeTransport.WithEnsureRetryAsync(
+                return await CdpBridgeTransport.WithRetryAsync(
                     serviceEnsurer,
+                    CdpBridgeInvokeContext.Default,
                     async ct =>
                     {
                         using var response = await http.GetAsync("/api/v1/cdp/capabilities", ct)
@@ -110,35 +115,16 @@ var options = new McpServerOptions
 
             try
             {
-                return await CdpBridgeTransport.WithEnsureRetryAsync(
-                    serviceEnsurer,
-                    async ct =>
-                    {
-                        var payload = new CdpInvokeRequest
-                        {
-                            Tool = name,
-                            Arguments = args.Count == 0
-                                ? null
-                                : args.ToDictionary(static p => p.Key, static p => p.Value)
-                        };
-                        using var response = await http.PostAsJsonAsync("/api/v1/cdp/invoke", payload, jsonOptions, ct)
-                            .ConfigureAwait(false);
-                        var body = await response.Content.ReadFromJsonAsync<CdpInvokeResponse>(jsonOptions, ct)
-                            .ConfigureAwait(false)
-                            ?? new CdpInvokeResponse { Success = false, Body = await response.Content.ReadAsStringAsync(ct) };
-                        return new CallToolResult
-                        {
-                            Content = [new TextContentBlock { Text = body.Body }],
-                            IsError = !body.Success
-                        };
-                    },
-                    cancellationToken).ConfigureAwait(false);
+                return await invokeRouter.InvokeAsync(name, args, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
+                var deployHint = CdpBridgeDurableAccess.HasInFlightDeploy()
+                    ? " Durable deploy in flight — bridge will resume when supervisor restarts CdpService."
+                    : "";
                 var hint = serviceEnsurer.CanAutoStart
-                    ? "Auto-start failed or service still down."
-                    : "Set [service] install_dir or run Start-CdpService.ps1.";
+                    ? "Auto-start failed or service still down." + deployHint
+                    : "Set [service] install_dir or run Start-CdpService.ps1." + deployHint;
                 return Error($"CdpService unreachable at {settings.BaseUrl}: {ex.Message}. {hint}");
             }
         }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Sockets;
+using TerminalMcp.Core;
 
 namespace CdpMcpBridge;
 
@@ -27,12 +28,16 @@ internal sealed class CdpBridgeServiceEnsurer
     internal bool CanAutoStart =>
         _settings.AutoStart && !string.IsNullOrWhiteSpace(_settings.InstallDir);
 
+    /// <summary>Supervisor owns CdpService restart during durable deploy — bridge must not race it.</summary>
+    internal bool ShouldSuppressAutoStart() =>
+        DurableJobStore.TryGetInFlightKind("deploy") is not null;
+
     internal async Task<bool> TryEnsureRunningAsync(CancellationToken cancellationToken)
     {
         if (await ProbeHealthyAsync(cancellationToken).ConfigureAwait(false))
             return true;
 
-        if (!CanAutoStart)
+        if (!CanAutoStart || ShouldSuppressAutoStart())
             return false;
 
         _ = TryStartUnderProcessLock();
@@ -57,6 +62,9 @@ internal sealed class CdpBridgeServiceEnsurer
             lockStream = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
 
             if (ProbeHealthySync())
+                return false;
+
+            if (ShouldSuppressAutoStart())
                 return false;
 
             if (!TryStartServiceProcess(out var startError))
@@ -193,29 +201,5 @@ internal sealed class CdpBridgeServiceEnsurer
         }
 
         return false;
-    }
-}
-
-internal static class CdpBridgeTransport
-{
-    internal static async Task<T> WithEnsureRetryAsync<T>(
-        CdpBridgeServiceEnsurer ensurer,
-        Func<CancellationToken, Task<T>> action,
-        CancellationToken cancellationToken)
-    {
-        for (var attempt = 0; attempt < 2; attempt++)
-        {
-            try
-            {
-                return await action(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (attempt == 0 && CdpBridgeServiceEnsurer.IsConnectionFailure(ex))
-            {
-                if (!await ensurer.TryEnsureRunningAsync(cancellationToken).ConfigureAwait(false))
-                    throw;
-            }
-        }
-
-        throw new InvalidOperationException("CdpBridgeTransport retry exhausted.");
     }
 }

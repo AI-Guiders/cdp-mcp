@@ -19,6 +19,7 @@
 
 ## last_ship
 
+- **2026-08-22 bridge deploy-gap survival (ADR-0203)** — `CdpBridgeInvokeRouter`: apply|hard|rollout blocks until durable job + health; lifecycle local fallback from `DurableJobStore`; ensurer suppress during in-flight deploy; `bridge_wait=false` opt-out. Tests `CdpBridgeDeployGapTests`. Bridge 0.2.0.
 - **2026-08-21 bridge auto-start ensurer** — `CdpBridgeServiceEnsurer`: `[service] install_dir` + `auto_start`; file lock (no await-under-Mutex — thread-affine ReleaseMutex fix); probe `/healthz`; spawn sidecar; retry HTTP once. Test `CdpBridgeServiceEnsurerTests`.
 - **2026-08-21 bridge Bearer auth (401 fix)** — `CdpBridgeTenantHeadersHandler` now sends `Authorization: Bearer` on all outbound invoke/capabilities requests (regression from ADR-0200 latch-only auth); token reload on 401 from `service-token`. Test `CdpBridgeTenantHeadersHandlerTests`.
 - **2026-08-21 ADR-0200 per-conversation tenant (multi-chat one Agents)** — `X-CDP-Conversation-Id` from MCP `_meta` (`cursor/composerId` | `progressToken`); per-conversation `CdpTenantComposerLatch`; bridge AsyncLocal; `cdp_context composer=` scoped to conversation. Tests 9/9.

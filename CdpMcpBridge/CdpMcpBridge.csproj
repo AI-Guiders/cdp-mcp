@@ -9,12 +9,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcpBridge</RootNamespace>
     <AssemblyName>CdpMcpBridge</AssemblyName>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="CdpMcp.Tests" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\terminal-mcp-core\TerminalMcp.Core.csproj" />
     <PackageReference Include="ModelContextProtocol" Version="2.2.0" />
     <PackageReference Include="Tomlyn" Version="2.9.0" />
   </ItemGroup>
