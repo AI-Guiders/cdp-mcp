@@ -44,6 +44,7 @@
 - Treating `done invent Feature…` as "task not found" when feature exists — fixed 0.5.412.
 
 ## last_ship
+- **2026-08-22 cdp_ship + find scm_root** — `cdp_ship` one-call git_plan apply+push (`go=ship_git`); find_in_files prefers `scm_root` after cdp_open. Tests IdeShipChannelTests · FindInFilesSessionRootTests. Code only — no deploy (operator steer).
 - **2026-08-22 ADR-0200 tenant TM peel** — `IdeStageCycle` tenant-first (`CurrentSlice.Workspace`); removed `WorkspaceDbHost.Ensure` global `Bind` last-wins; flight probe + citizen focus lane on slice; legacy bind once at host boot. Tests `Parallel_tenant_stage_cycle_reads_isolated_witdb`.
 - **2026-08-09 citizen Autoi FocusLane=Face (0.5.690)** — densest after focus-lanes: `ResolveFocusLane` bound tip Who (Кир); prefer_citizen woke Sierra Turn on tip lane. Ship: `BindCitizenFocusLane` · `TryApplyCitizenFocusLane` on prefer_citizen · `ResolveCitizenFace` → `WorkFocusSwitchLane`. Tip≠Face preserved. Test CitizenFocusLaneBindTests **1**. Mentions SoftFL alone.
 - **2026-08-09 Multi-principal focus-lanes (0.5.689)** — densest after tip≠Face: singleton `work_focus` Id=1 stole focus; Stage.Executor tags Who but FocusStage demoted peer actives. Ship: `work_focus_lanes` · `FocusLane` · `cmd=lane Who` · protect other-lane Status · board `[»]`. Tests WorkFocusLaneTests **3**. Mentions SoftFL alone.

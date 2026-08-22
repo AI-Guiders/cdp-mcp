@@ -117,13 +117,24 @@ internal static partial class IdeIgniteArmHost
 
     /// <summary>Pull long last_once while TM ContinuityFlight.Fly under autonomous — agent-park police.
     /// Skip invent-only Hold arms (≤15m insurance; DIG REJECT mill ≠ park).</summary>
-    static void PullForwardLongWorkTimersOnLeafFly() =>
+    static void PullForwardLongWorkTimersOnLeafFly(string? tenantWire = null) =>
         PullForwardLongWorkTimers(
             compute: TryComputeLeafFlyPullForwardDue,
             lastError: "leaf_fly_pull_forward",
             tape: "leaf_pull_forward",
             log: "leaf Fly",
-            skip: static a => IsInventOnlyHoldTask(a.Task));
+            skip: a => IsInventOnlyHoldTask(a.Task) || !ArmTenantWireEquals(a, tenantWire));
+
+    static void TryPullForwardLongWorkTimersOnLeafFlyPerTenant()
+    {
+        foreach (var wire in DistinctTenantWiresFromArmedWorkTimers())
+        {
+            using var scope = EnterTenantWireScope(wire);
+            if (ProbeFlight() != ContinuityFlight.Fly)
+                continue;
+            PullForwardLongWorkTimersOnLeafFly(wire);
+        }
+    }
 
     delegate bool HabitPullForwardCompute(
         DateTimeOffset? dueUtc,

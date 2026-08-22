@@ -11,8 +11,8 @@ internal static partial class IdeIgniteArmHost
         while (await timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
         {
             // Autonomous + TM leaf Fly: pull long last_once parks even when partner is here.
-            if (IsAutonomousArmed() && ProbeFlight() == ContinuityFlight.Fly)
-                PullForwardLongWorkTimersOnLeafFly();
+            if (IsAutonomousArmed())
+                TryPullForwardLongWorkTimersOnLeafFlyPerTenant();
 
             List<IgniteArm> due;
             lock (Gate)
