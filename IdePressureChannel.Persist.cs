@@ -56,6 +56,13 @@ internal static partial class IdePressureChannel
         }
     }
 
+    /// <summary>Hot L1 stash body present — used by ignite wake tier (auto-full when empty).</summary>
+    internal static bool HasHotStashBody()
+    {
+        var doc = Load();
+        return doc?.Body is { Length: > 0 };
+    }
+
     /// <summary>
     /// One-shot: flat StateRoot pressure files → seat subdir (cdp / cdp-debug / other).
     /// </summary>

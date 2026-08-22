@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Cdp.Core;
 using CdpMcp.IntentWorkspace;
 using Microsoft.EntityFrameworkCore;
 using OutWit.Database.EntityFramework.Extensions;
@@ -5,6 +7,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection("CdpProfileIsolation")]
 public class IdeIgniteWakeChargePreflightTests
 {
     [Fact]
@@ -46,7 +49,7 @@ public class IdeIgniteWakeChargePreflightTests
     }
 
     [Fact]
-    public void Probe_focused_leaf_is_minimal_tier_with_status_line()
+    public void Probe_focused_leaf_empty_pressure_upgrades_to_full()
     {
         var path = Path.Combine(Path.GetTempPath(), "cdp-wake-pf2-" + Guid.NewGuid().ToString("N") + ".db");
         try
@@ -59,10 +62,9 @@ public class IdeIgniteWakeChargePreflightTests
             Bind(store, state);
 
             var preflight = IdeIgniteChannel.WakeChargePreflight.Probe();
-            Assert.Equal(IdeIgniteChannel.WakeChargeTier.Minimal, preflight.Tier);
+            Assert.Equal(IdeIgniteChannel.WakeChargeTier.Full, preflight.Tier);
             Assert.Contains("[>]", preflight.TmStatusLine, StringComparison.Ordinal);
-            Assert.Contains("F1b Windows Setup", preflight.TmStatusLine, StringComparison.Ordinal);
-            Assert.Contains("feature=Forge pilot", preflight.TmStatusLine, StringComparison.Ordinal);
+            Assert.Contains("pressure=empty", preflight.TmStatusLine, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
@@ -72,11 +74,66 @@ public class IdeIgniteWakeChargePreflightTests
     }
 
     [Fact]
-    public void ComposeArmFireCharge_minimal_omits_human_face_postfix()
+    public void Probe_focused_leaf_with_hot_stash_is_minimal()
     {
-        var path = Path.Combine(Path.GetTempPath(), "cdp-wake-pf3-" + Guid.NewGuid().ToString("N") + ".db");
+        if (!string.Equals(
+                Environment.GetEnvironmentVariable("CDP_PROFILE") ?? "default",
+                "default",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var iso = $"D:\\tmp\\cdp-wake-pressure-{Guid.NewGuid():N}";
+        var path = Path.Combine(Path.GetTempPath(), "cdp-wake-pf-stash-" + Guid.NewGuid().ToString("N") + ".db");
+        CdpProfile.ApplyClientRoots([iso]);
         try
         {
+            var session = new SessionContext { ProjectRoot = iso, Phase = CdpPhase.Recall, Object = CdpObjectKind.Code };
+            _ = IdePressureChannel.Handle(session, Dict("op", "stash", "body", "## operator_priority\nForge F1b"));
+
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "Forge pilot", null);
+            var leaf = store.StageUpsert(state, "F1b Windows Setup", null, null, null).stage_id;
+            state.ActiveStageId = leaf;
+            Bind(store, state);
+
+            Assert.True(IdePressureChannel.HasHotStashBody());
+
+            var preflight = IdeIgniteChannel.WakeChargePreflight.Probe();
+            Assert.Equal(IdeIgniteChannel.WakeChargeTier.Minimal, preflight.Tier);
+            Assert.Contains("[>]", preflight.TmStatusLine, StringComparison.Ordinal);
+            Assert.DoesNotContain("pressure=empty", preflight.TmStatusLine, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            IdeStageCycle.Unbind();
+            CdpProfile.ApplyClientRoots(["D:\\tmp\\cdp-wake-pressure-cleanup"]);
+            try { Directory.Delete(iso, recursive: true); } catch { /* ignore */ }
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
+    public void ComposeArmFireCharge_minimal_omits_human_face_postfix()
+    {
+        if (!string.Equals(
+                Environment.GetEnvironmentVariable("CDP_PROFILE") ?? "default",
+                "default",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var iso = $"D:\\tmp\\cdp-wake-min-{Guid.NewGuid():N}";
+        var path = Path.Combine(Path.GetTempPath(), "cdp-wake-pf3-" + Guid.NewGuid().ToString("N") + ".db");
+        CdpProfile.ApplyClientRoots([iso]);
+        try
+        {
+            var session = new SessionContext { ProjectRoot = iso, Phase = CdpPhase.Recall, Object = CdpObjectKind.Code };
+            _ = IdePressureChannel.Handle(session, Dict("op", "stash", "body", "## Next\nF1b leaf"));
+
             var store = BootStore(path);
             var state = new IntentWorkspaceState { DatabasePath = path };
             store.IntentUpsert(state, "Forge pilot", null);
@@ -93,6 +150,8 @@ public class IdeIgniteWakeChargePreflightTests
         finally
         {
             IdeStageCycle.Unbind();
+            CdpProfile.ApplyClientRoots(["D:\\tmp\\cdp-wake-min-cleanup"]);
+            try { Directory.Delete(iso, recursive: true); } catch { /* ignore */ }
             try { File.Delete(path); } catch { /* ignore */ }
         }
     }
@@ -109,6 +168,14 @@ public class IdeIgniteWakeChargePreflightTests
         Assert.Contains("World dig", charge, StringComparison.Ordinal);
         Assert.Contains("Domain stamp", charge, StringComparison.Ordinal);
         Assert.Contains("Body recall", charge, StringComparison.Ordinal);
+    }
+
+    static Dictionary<string, JsonElement> Dict(params string[] kv)
+    {
+        var d = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        for (var i = 0; i + 1 < kv.Length; i += 2)
+            d[kv[i]] = JsonSerializer.SerializeToElement(kv[i + 1]);
+        return d;
     }
 
     static void Bind(IntentWorkspaceStore store, IntentWorkspaceState state) =>

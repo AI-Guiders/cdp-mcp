@@ -9,7 +9,7 @@ internal static partial class IdeIgniteChannel
     /// <summary>
     /// Bump when wake charge template semantics change (independent of assembly patch version).
     /// </summary>
-    internal const string ChargeTemplateRev = "20260822-wake-tiered-tm-preflight";
+    internal const string ChargeTemplateRev = "20260822-wake-tier-strategy-preflight";
 
     /// <summary>
     /// Composer wake charge — no TM stage body, shell, toolchain, or commands (cockpit holds SSOT).
