@@ -18,6 +18,31 @@ internal static partial class IdeCockpit
         };
     }
 
+    /// <summary>Human Face invite on go= PlaceOrgan (BringCabin + Prefer P / SelectMfd).</summary>
+    internal static bool ShowFaceFromArgs(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        if (!args.TryGetValue("show_face", out var el))
+            return false;
+        return el.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.String => bool.TryParse(el.GetString(), out var b) && b,
+            JsonValueKind.Number => el.TryGetInt32(out var n) && n != 0,
+            _ => false
+        };
+    }
+
+    static void PlaceOrganIfSeats(IReadOnlyDictionary<string, JsonElement> args, string pin)
+    {
+        if (!IdeDeskSeats.IsSeatsMode() || !IsPlaceableOrgan(pin))
+            return;
+        IdeDeskSeats.PlaceOrgan(pin, showFace: ShowFaceFromArgs(args));
+    }
+
+    internal static void PlaceOrganIfSeatsForTests(IReadOnlyDictionary<string, JsonElement> args, string pin) =>
+        PlaceOrganIfSeats(args, pin);
+
     static string? OptString(IReadOnlyDictionary<string, JsonElement> args, string key) =>
         args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String
             ? el.GetString()

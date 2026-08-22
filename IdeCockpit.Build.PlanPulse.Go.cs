@@ -45,8 +45,7 @@ internal static partial class IdeCockpit
         if (pin is "editor_scene")
         {
             goResult = EditorSnapPane(buffer);
-            if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(rawPin))
-                IdeDeskSeats.PlaceOrgan(rawPin);
+            PlaceOrganIfSeats(args, rawPin);
             return (goResult, git, shell, browser, mcpPulse, resultPin);
         }
 
@@ -55,8 +54,7 @@ internal static partial class IdeCockpit
             git = await TryGitAsync(session, byDomain, includeSubmodules, cancellationToken)
                 .ConfigureAwait(false);
             goResult = WorldSnapPane(pin, git, shell, browser, mcpPulse);
-            if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(rawPin))
-                IdeDeskSeats.PlaceOrgan(rawPin);
+            PlaceOrganIfSeats(args, rawPin);
             return (goResult, git, shell, browser, mcpPulse, resultPin);
         }
 

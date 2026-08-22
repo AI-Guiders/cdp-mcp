@@ -32,6 +32,7 @@ internal static partial class IdeCockpit
     /// <summary>Plan soft-dispatch already filled goResult — sync slim desk.</summary>
     static string FinishPlanPulseDesk(SessionContext session, DocumentBufferStore docStore, ShellHabitat shellHabitat, InternetBrowserHabitat internetBrowser, IdeSettingsHabitat ideSettings, IntentWorkspaceStore? workspaceStore, IntentWorkspaceState workspaceState, IReadOnlyDictionary<string, JsonElement> args, string mfd, string? focusId, object? goResult, object? warm)
     {
+        PlaceOrganIfSeats(args, "plan");
         var buffer = CollectBuffer(docStore.Scene());
         var shell = CollectShell(shellHabitat.Scene());
         var browser = internetBrowser.Pulse();

@@ -37,6 +37,7 @@ internal static partial class MetaToolCatalog
             repl = new { type = "string", description = "Alias of cmd." },
             go_args = new { type = "object", description = "Optional args merged into the target organ tool." },
             go_detail = new { type = "string", description = "[A] pulse (default) | [C] full = organ dump in go.result only (desk stays fast-path)." },
+            show_face = new { type = "boolean", description = "go= PlaceOrgan human Face invite — BringCabin + Prefer P (plan) or SelectMfd when organ maps MFD. Default false (quiet pin)." },
             layout = new { type = "string", description = "Seat preset: cockpit | code+net | code+shell | code+git | desk. Sticky replace-in-seat." },
             seat = new { type = "string", description = "Explicit seat: p|forward|m (with organ=)." },
             organ = new { type = "string", description = "Organ pin for seat= (or pin=)." },

@@ -44,8 +44,7 @@ internal static partial class IdeCockpit
         {
             var pin = ResolvePinName(pinEarly) ?? pinEarly;
             goResult = WorldSnapPane(pin, git, shell, browser, mcpPulse);
-            if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(pin))
-                IdeDeskSeats.PlaceOrgan(pin);
+            PlaceOrganIfSeats(args, pin);
             return (goResult, null, git, shell, browser, mcpPulse);
         }
 
@@ -55,8 +54,7 @@ internal static partial class IdeCockpit
         var pinGo = ResolvePinName(goVerb.Trim()) ?? goVerb.Trim();
         goResult = await DispatchGoAsync(goVerb.Trim(), args, buffer, focusId, dispatch, cancellationToken)
             .ConfigureAwait(false);
-        if (IdeDeskSeats.IsSeatsMode() && IsPlaceableOrgan(pinGo))
-            IdeDeskSeats.PlaceOrgan(pinGo);
+        PlaceOrganIfSeats(args, pinGo);
 
         if (IdeWorldChannel.IsWorldOrgan(pinGo))
         {
