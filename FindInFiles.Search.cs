@@ -53,8 +53,8 @@ internal static partial class FindInFiles
             return true;
         }
 
-        var root = session.ProjectRoot;
-        if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
+        var root = SessionSearchRoot(session);
+        if (string.IsNullOrWhiteSpace(root))
         {
             error = "no_project";
             hint = "cdp_open first — or use scope=external path= for disk-wide find";
@@ -72,6 +72,18 @@ internal static partial class FindInFiles
 
         cwd = root!;
         return true;
+    }
+
+    /// <summary>Prefer session <see cref="SessionContext.ScmRoot"/> after cdp_open; else project root.</summary>
+    internal static string? SessionSearchRoot(SessionContext session)
+    {
+        var scm = session.ScmRoot;
+        if (!string.IsNullOrWhiteSpace(scm) && Directory.Exists(scm))
+            return scm;
+        var root = session.ProjectRoot;
+        if (!string.IsNullOrWhiteSpace(root) && Directory.Exists(root))
+            return root;
+        return null;
     }
 
     static List<Hit> ParseJsonHits(SessionContext session, string stdout, int max)

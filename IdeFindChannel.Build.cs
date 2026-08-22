@@ -103,7 +103,7 @@ internal static partial class IdeFindChannel
             case "changed":
             {
                 whereWire = "dirty";
-                var root = session.ProjectRoot;
+                var root = session.ScmRoot ?? session.ProjectRoot;
                 if (root is not { Length: > 0 })
                 {
                     error = "no_project";

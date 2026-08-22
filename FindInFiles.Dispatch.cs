@@ -80,8 +80,8 @@ internal static partial class FindInFiles
                 : (Path.GetDirectoryName(searchRoot)
                    ?? session.ProjectRoot
                    ?? Environment.CurrentDirectory);
-            if (!external && session.ProjectRoot is { Length: > 0 } && Directory.Exists(session.ProjectRoot))
-                cwd = session.ProjectRoot!;
+            if (!external && SessionSearchRoot(session) is { Length: > 0 } sessionRoot && Directory.Exists(sessionRoot))
+                cwd = sessionRoot;
             return true;
         }
 
