@@ -58,9 +58,11 @@ dotnet test ..\cdp-core\Cdp.Core.Tests\Cdp.Core.Tests.csproj -c Release
 dotnet run --project tools\CdpProbe\CdpProbe.csproj -c Release
 ```
 
-**Platform** (`AIGuiders.Platform.*` + CommandPlane) — **nuget.org by default** (`GuidersPlatformVersion`, currently **0.4.1**). Sibling `guiders-platform` only when `/p:UseLocalGuidersPlatform=true`.
+**Platform** (`AIGuiders.Platform.*` + CommandPlane) and **Core** (`AIGuiders.Cdp.*`, Agent*, MCP cores, …) — **nuget.org by default**. Sibling monorepos only via `/p:UseLocalGuidersPlatform=true` or `/p:UseLocalGuidersCore=true`.
 
-`-UseNuGet` → `aid-publish -UseNuGet` → MSBuild `AidUseNuGet=true` (AIGuiders.Cdp.Core + AIGuiders.Cdp.ScriptableIde). Other Core backends still need the open monorepo until they grow the same package fallbacks. Requires `aid-publish` ≥ **0.1.5**.
+`AgentNotes.Mcp.Hosting` is not on NuGet — still compiled from `guiders-core` or `agent-notes-mcp` sibling when present (CI clones the latter).
+
+`-UseNuGet` on `publish-and-deploy.ps1` is a legacy alias (NuGet is already default). Requires `aid-publish` ≥ **0.1.5**.
 
 Default deploy path: `D:\cdp-mcp\CdpMcp.exe` + `cdp-mcp.toml` + `ts-worker/` (Node on PATH required for TypeScript).
 

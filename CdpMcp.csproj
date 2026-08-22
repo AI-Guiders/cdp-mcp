@@ -10,14 +10,16 @@
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
     <Version>0.5.744</Version>
-    <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true -->
+    <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true (legacy alias; NuGet is default since 0.5.745) -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
     <GuidersPlatformRoot Condition="'$(GuidersPlatformRoot)' == ''">..\guiders-platform</GuidersPlatformRoot>
     <GuidersPlatformVersion Condition="'$(GuidersPlatformVersion)' == ''">0.4.1</GuidersPlatformVersion>
     <!-- Default nuget.org; platform dev: /p:UseLocalGuidersPlatform=true when sibling guiders-platform exists -->
     <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == ''">false</UseLocalGuidersPlatform>
     <GuidersCoreRoot Condition="'$(GuidersCoreRoot)' == ''">..\guiders-core</GuidersCoreRoot>
-    <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == '' AND '$(AidUseNuGet)' != 'true' AND Exists('$(GuidersCoreRoot)\src\Cdp.Core\Cdp.Core.csproj')">true</UseLocalGuidersCore>
+    <!-- Default nuget.org; core dev: /p:UseLocalGuidersCore=true when sibling guiders-core exists -->
+    <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == ''">false</UseLocalGuidersCore>
+    <AgentNotesCoreFromSibling Condition="Exists('$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj') OR Exists('..\agent-notes-core\AgentNotes.Core.csproj')">true</AgentNotesCoreFromSibling>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -99,25 +101,28 @@
     <ProjectReference Include="$(GuidersCoreRoot)\src\Cdp.Lsp.Core\Cdp.Lsp.Core.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersCore)' != 'true'">
-    <ProjectReference Include="..\cdp-core\Cdp.Core.csproj" Condition="'$(AidUseNuGet)' != 'true' AND Exists('..\cdp-core\Cdp.Core.csproj')" />
-    <PackageReference Include="AIGuiders.Cdp.Core" Version="0.4.19" Condition="'$(AidUseNuGet)' == 'true' OR !Exists('..\cdp-core\Cdp.Core.csproj')" />
-    <ProjectReference Include="..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj" Condition="'$(AidUseNuGet)' != 'true' AND Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
-    <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.52" Condition="'$(AidUseNuGet)' == 'true' OR !Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
-    <ProjectReference Include="..\terminal-mcp-core\TerminalMcp.Core.csproj" Condition="Exists('..\terminal-mcp-core\TerminalMcp.Core.csproj')" />
-    <PackageReference Include="AIGuiders.TerminalMcp.Core" Version="0.1.0" Condition="!Exists('..\terminal-mcp-core\TerminalMcp.Core.csproj')" />
-    <ProjectReference Include="..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" Condition="Exists('..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj')" />
-    <ProjectReference Include="..\agent-notes-core\AgentNotes.Core.csproj" Condition="Exists('..\agent-notes-core\AgentNotes.Core.csproj')" />
-    <ProjectReference Include="..\agent-task-knowledge-core\AgentTaskKnowledge.Core.csproj" Condition="Exists('..\agent-task-knowledge-core\AgentTaskKnowledge.Core.csproj')" />
-    <ProjectReference Include="..\agent-findings-core\AgentFindings.Core.csproj" Condition="Exists('..\agent-findings-core\AgentFindings.Core.csproj')" />
-    <ProjectReference Include="..\agent-failures-core\AgentFailures.Core.csproj" Condition="Exists('..\agent-failures-core\AgentFailures.Core.csproj')" />
-    <ProjectReference Include="..\dotnet-debug-core\DotnetDebug.Core.csproj" Condition="Exists('..\dotnet-debug-core\DotnetDebug.Core.csproj')" />
-    <ProjectReference Include="..\dotnet-build-test-core\DotNetBuildTest.Core.csproj" Condition="Exists('..\dotnet-build-test-core\DotNetBuildTest.Core.csproj')" />
-    <ProjectReference Include="..\cdp-evidence\Cdp.Evidence.csproj" Condition="Exists('..\cdp-evidence\Cdp.Evidence.csproj')" />
-    <ProjectReference Include="..\roslyn-mcp-core\RoslynMcp.Core.csproj" Condition="Exists('..\roslyn-mcp-core\RoslynMcp.Core.csproj')" />
-    <ProjectReference Include="..\git-mcp-core\GitMcp.Core.csproj" Condition="Exists('..\git-mcp-core\GitMcp.Core.csproj')" />
-    <ProjectReference Include="..\hybrid-codebase-index-core\HybridCodebaseIndex.Core.csproj" Condition="Exists('..\hybrid-codebase-index-core\HybridCodebaseIndex.Core.csproj')" />
-    <ProjectReference Include="..\typescript-lang\TypescriptLang.Core\TypescriptLang.Core.csproj" Condition="Exists('..\typescript-lang\TypescriptLang.Core\TypescriptLang.Core.csproj')" />
-    <ProjectReference Include="..\lsp-lang\Cdp.Lsp.Core\Cdp.Lsp.Core.csproj" Condition="Exists('..\lsp-lang\Cdp.Lsp.Core\Cdp.Lsp.Core.csproj')" />
+    <PackageReference Include="AIGuiders.Cdp.Core" Version="0.4.22" />
+    <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.58" />
+    <PackageReference Include="AIGuiders.TerminalMcp.Core" Version="0.1.5" />
+    <PackageReference Include="AIGuiders.AgentTaskKnowledge.Core" Version="0.3.1" />
+    <PackageReference Include="AIGuiders.AgentFindings.Core" Version="0.2.0" />
+    <PackageReference Include="AIGuiders.AgentFailures.Core" Version="0.2.0" />
+    <PackageReference Include="AIGuiders.DotnetDebugMCP.Core" Version="0.2.1" />
+    <PackageReference Include="AIGuiders.DotNetBuildTest.Core" Version="0.1.4" />
+    <PackageReference Include="AIGuiders.Cdp.Evidence" Version="0.1.1" />
+    <PackageReference Include="AIGuiders.RoslynMcp.Core" Version="0.1.11" />
+    <PackageReference Include="AIGuiders.GitMcp.Core" Version="1.0.3" />
+    <PackageReference Include="AIGuiders.HybridCodebaseIndex.Core" Version="0.1.3" />
+    <PackageReference Include="AIGuiders.TypescriptLang.Core" Version="0.1.0" />
+    <PackageReference Include="AIGuiders.Cdp.Lsp.Core" Version="0.1.2" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj" Condition="'$(AgentNotesCoreFromSibling)' == 'true' AND Exists('$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj')" />
+    <ProjectReference Include="..\agent-notes-core\AgentNotes.Core.csproj" Condition="'$(AgentNotesCoreFromSibling)' == 'true' AND !Exists('$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj') AND Exists('..\agent-notes-core\AgentNotes.Core.csproj')" />
+    <PackageReference Include="AIGuiders.AgentNotes.Core" Version="2.2.2" Condition="'$(AgentNotesCoreFromSibling)' != 'true'" />
+  </ItemGroup>
+  <!-- AgentNotes.Mcp.Hosting is not on NuGet; compile from guiders-core or agent-notes-mcp sibling -->
+  <ItemGroup Condition="'$(UseLocalGuidersCore)' != 'true'">
+    <ProjectReference Include="$(GuidersCoreRoot)\src\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" Condition="Exists('$(GuidersCoreRoot)\src\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj')" />
+    <ProjectReference Include="..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" Condition="!Exists('$(GuidersCoreRoot)\src\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj') AND Exists('..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj')" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ai-native-ui\src\Anui.Agent\Anui.Agent.csproj" />

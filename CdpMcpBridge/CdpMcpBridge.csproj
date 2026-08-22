@@ -11,14 +11,15 @@
     <AssemblyName>CdpMcpBridge</AssemblyName>
     <Version>0.2.0</Version>
     <GuidersCoreRoot Condition="'$(GuidersCoreRoot)' == ''">..\..\guiders-core</GuidersCoreRoot>
-    <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == '' AND Exists('$(GuidersCoreRoot)\src\TerminalMcp.Core\TerminalMcp.Core.csproj')">true</UseLocalGuidersCore>
+    <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == ''">false</UseLocalGuidersCore>
+    <TerminalMcpCoreVersion Condition="'$(TerminalMcpCoreVersion)' == ''">0.1.5</TerminalMcpCoreVersion>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="CdpMcp.Tests" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(GuidersCoreRoot)\src\TerminalMcp.Core\TerminalMcp.Core.csproj" Condition="'$(UseLocalGuidersCore)' == 'true'" />
-    <ProjectReference Include="..\..\terminal-mcp-core\TerminalMcp.Core.csproj" Condition="'$(UseLocalGuidersCore)' != 'true'" />
+    <PackageReference Include="AIGuiders.TerminalMcp.Core" Version="$(TerminalMcpCoreVersion)" Condition="'$(UseLocalGuidersCore)' != 'true'" />
     <PackageReference Include="ModelContextProtocol" Version="2.2.0" />
     <PackageReference Include="Tomlyn" Version="2.9.0" />
   </ItemGroup>
