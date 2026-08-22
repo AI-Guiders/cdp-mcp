@@ -60,6 +60,8 @@ internal static partial class MetaDispatch
         return IdeTestSaChannel.HandleJson(session, callArgs);
     case "cdp_build_sa":
         return IdeBuildSaChannel.HandleJson(session, callArgs);
+    case "cdp_ship":
+        return IdeShipChannel.HandleJson(session, callArgs, byDomain);
     case "cdp_crm":
         return IdeCrmChannel.HandleJson(session, workspaceStore, workspaceState, callArgs);
     case "cdp_arch":

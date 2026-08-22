@@ -54,6 +54,22 @@ internal static partial class MetaToolCatalog
             depth = new { type = "string", description = "pulse|slim (default)|full" }
         }
     }),
+    Meta("cdp_ship", "One-call logical ship: git_plan draft→slices→apply+push (deploy off by default). After cdp_open scm_root is implicit. Alias go=ship_git (NOT go=ship=take; NOT go=ship_desk=Build-SA).", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "run (default) | pulse | last" },
+            message = new { type = "string", description = "Commit message when slices omitted — auto-slice all dirty paths" },
+            slices = new { type = "array", description = "Explicit git_plan slices[{root,paths,message}]" },
+            push = new { type = "boolean", description = "Push after apply (default true)" },
+            deploy = new { type = "boolean", description = "Run cdp_deploy after successful apply (default false)" },
+            deploy_mode = new { type = "string", description = "hard|soft|rollout when deploy=true" },
+            dry_run = new { type = "boolean", description = "Draft+validate only — no commit" },
+            force = new { type = "boolean", description = "Ship despite secret-risk paths" },
+            skip_secrets = new { type = "boolean", description = "Skip secret-risk gate" }
+        }
+    }),
     Meta("cdp_crm", "CRM callout panel (ADR-0014). Closed codes: approved|stabilized|go_around|hold|unable|negative|say_again|continue|roger|wilco. op=scene|call|respond|last|clear|lexicon. Alias go=crm. Operator act → SSOT; agent reads pulse — no reject essays in chat.", new
     {
         type = "object",

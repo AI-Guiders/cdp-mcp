@@ -18,6 +18,7 @@ internal static class VisibleToolCatalog
         "cdp_debug_sa",
         "cdp_test_sa",
         "cdp_build_sa",
+        "cdp_ship",
         "cdp_crm",
         "cdp_arch",
         "cdp_onboard",
