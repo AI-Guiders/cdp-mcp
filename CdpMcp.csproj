@@ -14,6 +14,8 @@
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
     <GuidersPlatformRoot Condition="'$(GuidersPlatformRoot)' == ''">..\guiders-platform</GuidersPlatformRoot>
     <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == '' AND '$(AidUseNuGet)' != 'true' AND Exists('$(GuidersPlatformRoot)\AIGuiders.Platform.sln')">true</UseLocalGuidersPlatform>
+    <GuidersCoreRoot Condition="'$(GuidersCoreRoot)' == ''">..\guiders-core</GuidersCoreRoot>
+    <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == '' AND '$(AidUseNuGet)' != 'true' AND Exists('$(GuidersCoreRoot)\src\Cdp.Core\Cdp.Core.csproj')">true</UseLocalGuidersCore>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -76,30 +78,50 @@
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Cds\AIGuiders.Platform.Cockpit.Cds.csproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.CommandPlane\AIGuiders.Platform.CommandPlane.csproj" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(UseLocalGuidersCore)' == 'true'">
+    <ProjectReference Include="$(GuidersCoreRoot)\src\Cdp.Core\Cdp.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\Cdp.ScriptableIde\Cdp.ScriptableIde.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\TerminalMcp.Core\TerminalMcp.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\AgentTaskKnowledge.Core\AgentTaskKnowledge.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\AgentFindings.Core\AgentFindings.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\AgentFailures.Core\AgentFailures.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\DotnetDebug.Core\DotnetDebug.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\DotNetBuildTest.Core\DotNetBuildTest.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\Cdp.Evidence\Cdp.Evidence.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\RoslynMcp.Core\RoslynMcp.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\GitMcp.Core\GitMcp.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\HybridCodebaseIndex.Core\HybridCodebaseIndex.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\TypescriptLang.Core\TypescriptLang.Core.csproj" />
+    <ProjectReference Include="$(GuidersCoreRoot)\src\Cdp.Lsp.Core\Cdp.Lsp.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalGuidersCore)' != 'true'">
     <ProjectReference Include="..\cdp-core\Cdp.Core.csproj" Condition="'$(AidUseNuGet)' != 'true' AND Exists('..\cdp-core\Cdp.Core.csproj')" />
     <PackageReference Include="AIGuiders.Cdp.Core" Version="0.4.19" Condition="'$(AidUseNuGet)' == 'true' OR !Exists('..\cdp-core\Cdp.Core.csproj')" />
     <ProjectReference Include="..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj" Condition="'$(AidUseNuGet)' != 'true' AND Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
     <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.52" Condition="'$(AidUseNuGet)' == 'true' OR !Exists('..\cdp-scriptable-ide\Cdp.ScriptableIde.csproj')" />
-    <ProjectReference Include="..\terminal-mcp-core\TerminalMcp.Core.csproj" />
-    <ProjectReference Include="..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" />
-    <ProjectReference Include="..\agent-notes-core\AgentNotes.Core.csproj" />
-    <ProjectReference Include="..\agent-task-knowledge-core\AgentTaskKnowledge.Core.csproj" />
-    <ProjectReference Include="..\agent-findings-core\AgentFindings.Core.csproj" />
-    <ProjectReference Include="..\agent-failures-core\AgentFailures.Core.csproj" />
-    <ProjectReference Include="..\dotnet-debug-core\DotnetDebug.Core.csproj" />
-    <ProjectReference Include="..\dotnet-build-test-core\DotNetBuildTest.Core.csproj" />
+    <ProjectReference Include="..\terminal-mcp-core\TerminalMcp.Core.csproj" Condition="Exists('..\terminal-mcp-core\TerminalMcp.Core.csproj')" />
+    <PackageReference Include="AIGuiders.TerminalMcp.Core" Version="0.1.0" Condition="!Exists('..\terminal-mcp-core\TerminalMcp.Core.csproj')" />
+    <ProjectReference Include="..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" Condition="Exists('..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj')" />
+    <ProjectReference Include="..\agent-notes-core\AgentNotes.Core.csproj" Condition="Exists('..\agent-notes-core\AgentNotes.Core.csproj')" />
+    <ProjectReference Include="..\agent-task-knowledge-core\AgentTaskKnowledge.Core.csproj" Condition="Exists('..\agent-task-knowledge-core\AgentTaskKnowledge.Core.csproj')" />
+    <ProjectReference Include="..\agent-findings-core\AgentFindings.Core.csproj" Condition="Exists('..\agent-findings-core\AgentFindings.Core.csproj')" />
+    <ProjectReference Include="..\agent-failures-core\AgentFailures.Core.csproj" Condition="Exists('..\agent-failures-core\AgentFailures.Core.csproj')" />
+    <ProjectReference Include="..\dotnet-debug-core\DotnetDebug.Core.csproj" Condition="Exists('..\dotnet-debug-core\DotnetDebug.Core.csproj')" />
+    <ProjectReference Include="..\dotnet-build-test-core\DotNetBuildTest.Core.csproj" Condition="Exists('..\dotnet-build-test-core\DotNetBuildTest.Core.csproj')" />
     <ProjectReference Include="..\cdp-evidence\Cdp.Evidence.csproj" Condition="Exists('..\cdp-evidence\Cdp.Evidence.csproj')" />
-    <ProjectReference Include="..\roslyn-mcp-core\RoslynMcp.Core.csproj" />
-    <ProjectReference Include="..\git-mcp-core\GitMcp.Core.csproj" />
-    <ProjectReference Include="..\hybrid-codebase-index-core\HybridCodebaseIndex.Core.csproj" />
+    <ProjectReference Include="..\roslyn-mcp-core\RoslynMcp.Core.csproj" Condition="Exists('..\roslyn-mcp-core\RoslynMcp.Core.csproj')" />
+    <ProjectReference Include="..\git-mcp-core\GitMcp.Core.csproj" Condition="Exists('..\git-mcp-core\GitMcp.Core.csproj')" />
+    <ProjectReference Include="..\hybrid-codebase-index-core\HybridCodebaseIndex.Core.csproj" Condition="Exists('..\hybrid-codebase-index-core\HybridCodebaseIndex.Core.csproj')" />
+    <ProjectReference Include="..\typescript-lang\TypescriptLang.Core\TypescriptLang.Core.csproj" Condition="Exists('..\typescript-lang\TypescriptLang.Core\TypescriptLang.Core.csproj')" />
+    <ProjectReference Include="..\lsp-lang\Cdp.Lsp.Core\Cdp.Lsp.Core.csproj" Condition="Exists('..\lsp-lang\Cdp.Lsp.Core\Cdp.Lsp.Core.csproj')" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\ai-native-ui\src\Anui.Agent\Anui.Agent.csproj" />
     <ProjectReference Include="..\ai-native-ui\src\Anui.Ingest\Anui.Ingest.csproj" />
-    <ProjectReference Include="..\typescript-lang\TypescriptLang.Core\TypescriptLang.Core.csproj" />
-    <ProjectReference Include="..\lsp-lang\Cdp.Lsp.Core\Cdp.Lsp.Core.csproj" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.9.1" />
   </ItemGroup>
-  <!-- Link sibling MCP handler surfaces (same assembly names as standalone MCP tools). -->
   <ItemGroup>
     <Compile Include="..\agent-findings-mcp\ToolHandlers.cs" Link="Backends\Linked\FindingsToolHandlers.cs" />
     <Compile Include="..\agent-findings-mcp\ToolCatalog.cs" Link="Backends\Linked\FindingsToolCatalog.cs" />
