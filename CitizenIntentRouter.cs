@@ -205,16 +205,7 @@ static Route RouteMcp(string raw)
         }
 
         op = string.IsNullOrWhiteSpace(op) ? "scene" : op.Trim().ToLowerInvariant();
-        if (op is "status" or "list")
-            op = "scene";
-        else if (op is "invoke")
-            op = "call";
-        else if (op is "list_tools")
-            op = "tools";
-        else if (op is "connect" or "add")
-            op = "mount";
-        else if (op is "catalog")
-            op = "presets";
+        op = Habitat.PrefixOpTable.Normalize(op, Habitat.CitizenOpAliasMaps.Mcp);
 
         if (!IsMcpOp(op))
             return new Route(Verb.Unknown, raw, Ok: false, Reason: "mcp_op_unknown");

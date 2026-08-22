@@ -17,12 +17,7 @@ internal static partial class CitizenIntentRouter
         }
 
         op = string.IsNullOrWhiteSpace(op) ? "scene" : op.Trim().ToLowerInvariant();
-        if (op is "status")
-            op = "scene";
-        else if (op is "list")
-            op = "bp_list";
-        else if (op is "cont")
-            op = "continue";
+        op = Habitat.PrefixOpTable.Normalize(op, Habitat.CitizenOpAliasMaps.Debug);
 
         if (!IsDebugOp(op))
             return new Route(Verb.Unknown, raw, Ok: false, Reason: "debug_op_unknown");

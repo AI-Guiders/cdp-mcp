@@ -1,32 +1,25 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Habitat;
 
 namespace CdpMcp;
 
 internal static class CitizenBufferFindBuf
 {
+    static readonly PrefixOpRule[] FindBufPrefixRules =
+    [
+        new("find_all", "find_all", "findall", "buf_find_all", "buffer_find_all"),
+        new("find", "buf_find", "buffer_find", "find_in", "find_buffer", "find ", "search ", "find", "search"),
+    ];
+
     internal static CitizenIntentRouter.Route Route(string raw)
     {
         var head = raw.Trim();
-        string op;
-        if (head.StartsWith("find_all", StringComparison.OrdinalIgnoreCase) || head.StartsWith("findall", StringComparison.OrdinalIgnoreCase)
-            || head.StartsWith("buf_find_all", StringComparison.OrdinalIgnoreCase) || head.StartsWith("buffer_find_all", StringComparison.OrdinalIgnoreCase))
-            op = "find_all";
-        else if (head.StartsWith("buf_find", StringComparison.OrdinalIgnoreCase) || head.StartsWith("buffer_find", StringComparison.OrdinalIgnoreCase)
-            || head.StartsWith("find_in", StringComparison.OrdinalIgnoreCase) || head.StartsWith("find_buffer", StringComparison.OrdinalIgnoreCase))
-            op = "find";
-        else if (head.StartsWith("find ", StringComparison.OrdinalIgnoreCase) || head.StartsWith("search ", StringComparison.OrdinalIgnoreCase)
-            || head.Equals("find", StringComparison.OrdinalIgnoreCase) || head.Equals("search", StringComparison.OrdinalIgnoreCase))
-            op = "find";
-        else
-            op = CitizenIntentRouter.ExtractKeyedValue(raw, "op") ?? "find";
-        op = op.Trim().ToLowerInvariant() switch
-        {
-            "find_all" or "findall" or "all" => "find_all",
-            "find" or "buf_find" or "buffer_find" or "find_in" or "find_buffer" => "find",
-            _ => op.Trim().ToLowerInvariant()
-        };
+        var op = PrefixOpTable.Match(head, FindBufPrefixRules)
+            ?? CitizenIntentRouter.ExtractKeyedValue(raw, "op")
+            ?? "find";
+        op = PrefixOpTable.Normalize(op, CitizenOpAliasMaps.FindBuf);
         if (op is not "find" and not "find_all")
             return new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Unknown, raw, Ok: false, Reason: "findbuf_op_unknown");
         var query = CitizenIntentRouter.ExtractKeyedValue(raw, "query")

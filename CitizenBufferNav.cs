@@ -1,22 +1,32 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Habitat;
 
 namespace CdpMcp;
 
 internal static class CitizenBufferNav
 {
+    static readonly PrefixOpRule[] NavPrefixRules =
+    [
+        new("forward", "forward"),
+        new("back", "back"),
+        new("recent_files", "recent_files", "recent"),
+    ];
+
     internal static CitizenIntentRouter.Route Route(string raw)
     {
         var head = raw.Trim();
-        string op;
-        if (head.StartsWith("forward", StringComparison.OrdinalIgnoreCase)) op = "forward";
-        else if (head.StartsWith("back", StringComparison.OrdinalIgnoreCase)) op = "back";
-        else if (head.StartsWith("recent_files", StringComparison.OrdinalIgnoreCase) || head.Equals("recent", StringComparison.OrdinalIgnoreCase)) op = "recent_files";
-        else if (head.StartsWith("nav_status", StringComparison.OrdinalIgnoreCase) || head.Equals("nav", StringComparison.OrdinalIgnoreCase) || head.StartsWith("nav ", StringComparison.OrdinalIgnoreCase))
+        string? op;
+        if (head.StartsWith("nav_status", StringComparison.OrdinalIgnoreCase)
+            || head.Equals("nav", StringComparison.OrdinalIgnoreCase)
+            || head.StartsWith("nav ", StringComparison.OrdinalIgnoreCase))
             op = CitizenIntentRouter.ExtractKeyedValue(raw, "op") is { Length: > 0 } keyed ? keyed : "nav";
-        else op = CitizenIntentRouter.ExtractKeyedValue(raw, "op") ?? "nav";
-        op = op.Trim().ToLowerInvariant() switch { "b" or "back" or "prev" => "back", "f" or "fwd" or "forward" or "next" => "forward", "status" or "nav" or "nav_status" => "nav", "recent" or "recent_files" or "mru" => "recent_files", _ => op.Trim().ToLowerInvariant() };
+        else
+            op = PrefixOpTable.Match(head, NavPrefixRules)
+                ?? CitizenIntentRouter.ExtractKeyedValue(raw, "op")
+                ?? "nav";
+        op = PrefixOpTable.Normalize(op, CitizenOpAliasMaps.Nav);
         if (op is not "back" and not "forward" and not "nav" and not "recent_files")
             return new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Unknown, raw, Ok: false, Reason: "nav_op_unknown");
         return new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Nav, raw, Ok: true, Op: op, Go: "buffer");

@@ -1,59 +1,49 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Habitat;
 
 namespace CdpMcp;
 
 internal static class CitizenBufferSniper
 {
+    static readonly PrefixOpRule[] SniperSubRules =
+    [
+        new("status", "status", "show"),
+        new("clear", "clear", "scope_clear"),
+        new("scope", "scope", "set"),
+        new("peek", "peek", "view"),
+        new("target", "target", "outline"),
+        new("aim", "aim"),
+    ];
+
+    static readonly PrefixOpRule[] SniperTopRules =
+    [
+        new("clear", "scope_clear", "sniperclear", "sniper_clear"),
+        new("scope", "scope", "set "),
+        new("peek", "peek", "peek ", "peek wire=", "peek pad="),
+        new("target", "target", "outline"),
+        new("aim", "aim"),
+    ];
+
     internal static CitizenIntentRouter.Route Route(string raw)
     {
         var head = raw.Trim();
         string? op;
         if (head.StartsWith("sniper", StringComparison.OrdinalIgnoreCase))
         {
-            var rest = head.Length > 6 ? head[6..].TrimStart() : "";
-            if (rest.Length == 0 || rest.StartsWith("status", StringComparison.OrdinalIgnoreCase) || rest.StartsWith("show", StringComparison.OrdinalIgnoreCase))
-                op = "status";
-            else if (rest.StartsWith("clear", StringComparison.OrdinalIgnoreCase) || rest.StartsWith("scope_clear", StringComparison.OrdinalIgnoreCase))
-                op = "clear";
-            else if (rest.StartsWith("scope", StringComparison.OrdinalIgnoreCase) || rest.StartsWith("set", StringComparison.OrdinalIgnoreCase))
+            op = PrefixOpTable.MatchSubcommand(head, "sniper", SniperSubRules, whenEmpty: "status");
+            if (op is null
+                && (CitizenIntentRouter.ExtractKeyedValue(raw, "from") is { Length: > 0 }
+                    || CitizenIntentRouter.ExtractKeyedValue(raw, "anchor") is { Length: > 0 }))
                 op = "scope";
-            else if (rest.StartsWith("peek", StringComparison.OrdinalIgnoreCase) || rest.StartsWith("view", StringComparison.OrdinalIgnoreCase))
-                op = "peek";
-            else if (rest.StartsWith("target", StringComparison.OrdinalIgnoreCase) || rest.StartsWith("outline", StringComparison.OrdinalIgnoreCase))
-                op = "target";
-            else if (rest.StartsWith("aim", StringComparison.OrdinalIgnoreCase))
-                op = "aim";
-            else if (CitizenIntentRouter.ExtractKeyedValue(raw, "from") is { Length: > 0 }
-                || CitizenIntentRouter.ExtractKeyedValue(raw, "anchor") is { Length: > 0 })
-                op = "scope";
-            else
-                op = CitizenIntentRouter.ExtractKeyedValue(raw, "op") ?? "status";
+            op ??= CitizenIntentRouter.ExtractKeyedValue(raw, "op") ?? "status";
         }
-        else if (head.StartsWith("scope_clear", StringComparison.OrdinalIgnoreCase) || head.StartsWith("sniperclear", StringComparison.OrdinalIgnoreCase) || head.StartsWith("sniper_clear", StringComparison.OrdinalIgnoreCase))
-            op = "clear";
-        else if (head.StartsWith("scope", StringComparison.OrdinalIgnoreCase) || head.StartsWith("set ", StringComparison.OrdinalIgnoreCase))
-            op = "scope";
-        else if (head.Equals("peek", StringComparison.OrdinalIgnoreCase) || head.StartsWith("peek ", StringComparison.OrdinalIgnoreCase)
-            || head.StartsWith("peek wire=", StringComparison.OrdinalIgnoreCase) || head.StartsWith("peek pad=", StringComparison.OrdinalIgnoreCase))
-            op = "peek";
-        else if (head.StartsWith("target", StringComparison.OrdinalIgnoreCase) || head.StartsWith("outline", StringComparison.OrdinalIgnoreCase))
-            op = "target";
-        else if (head.StartsWith("aim", StringComparison.OrdinalIgnoreCase))
-            op = "aim";
         else
-            op = CitizenIntentRouter.ExtractKeyedValue(raw, "op") ?? "status";
-        op = op.Trim().ToLowerInvariant() switch
-        {
-            "scope" or "set" or "lock" => "scope",
-            "peek" or "view" => "peek",
-            "target" or "outline" => "target",
-            "aim" => "aim",
-            "clear" or "scope_clear" or "sniperclear" or "sniper_clear" => "clear",
-            "status" or "show" => "status",
-            _ => op.Trim().ToLowerInvariant()
-        };
+            op = PrefixOpTable.Match(head, SniperTopRules)
+                ?? CitizenIntentRouter.ExtractKeyedValue(raw, "op")
+                ?? "status";
+        op = PrefixOpTable.Normalize(op, CitizenOpAliasMaps.Sniper);
         if (op is not "scope" and not "peek" and not "target" and not "aim" and not "clear" and not "status")
             return new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Unknown, raw, Ok: false, Reason: "sniper_op_unknown");
         var from = CitizenIntentRouter.ExtractKeyedValue(raw, "from")

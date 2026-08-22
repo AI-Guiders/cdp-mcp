@@ -1,10 +1,16 @@
 #nullable enable
 
+using CdpMcp.Habitat;
+
 namespace CdpMcp;
 
 /// <summary>Citizen @intent file_peek|eyes|cdp_peek — read-only eyes (ADR-0201).</summary>
 internal static partial class CitizenIntentRouter
 {
+    static readonly PrefixOpRule[] FilePeekIntentRules =
+    [
+        new("peek", "cdp_peek", "cdp_peek ", "file_peek", "file_peek ", "eyes", "eyes ", "eyes path="),
+    ];
     static Route RouteFilePeek(string raw)
     {
         var path = ExtractKeyedValue(raw, "path") ?? ExtractPath(raw);
@@ -25,18 +31,6 @@ internal static partial class CitizenIntentRouter
             Go: CdpPeekChannel.ToolName);
     }
 
-    static bool IsFilePeekIntent(string raw)
-    {
-        if (raw.Equals("cdp_peek", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("cdp_peek ", StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (raw.Equals("file_peek", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("file_peek ", StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (raw.Equals("eyes", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("eyes ", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("eyes path=", StringComparison.OrdinalIgnoreCase))
-            return true;
-        return false;
-    }
+    static bool IsFilePeekIntent(string raw) =>
+        PrefixOpTable.Match(raw.Trim(), FilePeekIntentRules) is not null;
 }

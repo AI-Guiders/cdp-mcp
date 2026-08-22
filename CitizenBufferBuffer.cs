@@ -1,11 +1,28 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Habitat;
 
 namespace CdpMcp;
 
 internal static class CitizenBufferBuffer
 {
+    static readonly PrefixOpRule[] BufferSubRules =
+    [
+        new("read", "read"),
+        new("close", "close"),
+        new("scene", "scene", "buffers", "list"),
+        new("diagnostics", "diagnostics", "diags", "diag"),
+    ];
+
+    static readonly PrefixOpRule[] BufferTopRules =
+    [
+        new("read", "doc_read", "buffer_read", "read ", "read path=", "read"),
+        new("close", "doc_close", "buffer_close", "close ", "close path=", "close"),
+        new("scene", "buffers", "buffers ", "doc_scene", "buffer_scene"),
+        new("diagnostics", "doc_diagnostics", "buffer_diagnostics", "buf_diagnostics", "buf_diags"),
+    ];
+
     internal static CitizenIntentRouter.Route Route(string raw)
     {
         var head = raw.Trim();
@@ -13,53 +30,21 @@ internal static class CitizenBufferBuffer
         if (head.StartsWith("buffer ", StringComparison.OrdinalIgnoreCase) || head.Equals("buffer", StringComparison.OrdinalIgnoreCase))
         {
             var rest = head.Length > 6 ? head[6..].TrimStart() : "";
-            if (rest.Length == 0) op = "scene";
-            else if (rest.StartsWith("read", StringComparison.OrdinalIgnoreCase)) op = "read";
-            else if (rest.StartsWith("close", StringComparison.OrdinalIgnoreCase)) op = "close";
-            else if (rest.StartsWith("scene", StringComparison.OrdinalIgnoreCase) || rest.StartsWith("buffers", StringComparison.OrdinalIgnoreCase) || rest.StartsWith("list", StringComparison.OrdinalIgnoreCase))
-                op = "scene";
-            else if (rest.StartsWith("open", StringComparison.OrdinalIgnoreCase) || rest.StartsWith("doc_open", StringComparison.OrdinalIgnoreCase) || rest.StartsWith("buffer_open", StringComparison.OrdinalIgnoreCase))
-            {
-                var openPath = CitizenIntentRouter.ExtractKeyedValue(raw, "path") ?? CitizenIntentRouter.ExtractPath(raw);
-                return string.IsNullOrWhiteSpace(openPath)
-                    ? new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Unknown, raw, Ok: false, Reason: "open_path_empty")
-                    : new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Open, raw, Ok: true, Path: openPath.Trim(), Go: "buffer");
-            }
-            else if (rest.StartsWith("diagnostics", StringComparison.OrdinalIgnoreCase) || rest.StartsWith("diags", StringComparison.OrdinalIgnoreCase) || rest.StartsWith("diag", StringComparison.OrdinalIgnoreCase))
-                op = "diagnostics";
-            else
-                op = CitizenIntentRouter.ExtractKeyedValue(raw, "op") ?? "scene";
+            if (rest.StartsWith("open", StringComparison.OrdinalIgnoreCase)
+                || rest.StartsWith("doc_open", StringComparison.OrdinalIgnoreCase)
+                || rest.StartsWith("buffer_open", StringComparison.OrdinalIgnoreCase))
+                return RouteOpen(raw);
+            op = PrefixOpTable.MatchSubcommand(head, "buffer", BufferSubRules, whenEmpty: "scene")
+                ?? CitizenIntentRouter.ExtractKeyedValue(raw, "op")
+                ?? "scene";
         }
         else if (head.StartsWith("doc_open", StringComparison.OrdinalIgnoreCase) || head.StartsWith("buffer_open", StringComparison.OrdinalIgnoreCase))
-        {
-            var openPath = CitizenIntentRouter.ExtractKeyedValue(raw, "path") ?? CitizenIntentRouter.ExtractPath(raw);
-            return string.IsNullOrWhiteSpace(openPath)
-                ? new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Unknown, raw, Ok: false, Reason: "open_path_empty")
-                : new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Open, raw, Ok: true, Path: openPath.Trim(), Go: "buffer");
-        }
-        else if (head.StartsWith("doc_read", StringComparison.OrdinalIgnoreCase) || head.StartsWith("buffer_read", StringComparison.OrdinalIgnoreCase)
-            || head.Equals("read", StringComparison.OrdinalIgnoreCase) || head.StartsWith("read ", StringComparison.OrdinalIgnoreCase) || head.StartsWith("read path=", StringComparison.OrdinalIgnoreCase))
-            op = "read";
-        else if (head.StartsWith("doc_close", StringComparison.OrdinalIgnoreCase) || head.StartsWith("buffer_close", StringComparison.OrdinalIgnoreCase)
-            || head.Equals("close", StringComparison.OrdinalIgnoreCase) || head.StartsWith("close ", StringComparison.OrdinalIgnoreCase) || head.StartsWith("close path=", StringComparison.OrdinalIgnoreCase))
-            op = "close";
-        else if (head.Equals("buffers", StringComparison.OrdinalIgnoreCase) || head.StartsWith("buffers ", StringComparison.OrdinalIgnoreCase)
-            || head.Equals("doc_scene", StringComparison.OrdinalIgnoreCase) || head.StartsWith("doc_scene", StringComparison.OrdinalIgnoreCase)
-            || head.Equals("buffer_scene", StringComparison.OrdinalIgnoreCase) || head.StartsWith("buffer_scene", StringComparison.OrdinalIgnoreCase))
-            op = "scene";
-        else if (head.StartsWith("doc_diagnostics", StringComparison.OrdinalIgnoreCase) || head.StartsWith("buffer_diagnostics", StringComparison.OrdinalIgnoreCase)
-            || head.StartsWith("buf_diagnostics", StringComparison.OrdinalIgnoreCase) || head.StartsWith("buf_diags", StringComparison.OrdinalIgnoreCase))
-            op = "diagnostics";
+            return RouteOpen(raw);
         else
-            op = CitizenIntentRouter.ExtractKeyedValue(raw, "op") ?? "scene";
-        op = op.Trim().ToLowerInvariant() switch
-        {
-            "read" or "doc_read" or "buffer_read" => "read",
-            "close" or "doc_close" or "buffer_close" => "close",
-            "scene" or "buffers" or "list" or "doc_scene" or "buffer_scene" => "scene",
-            "diagnostics" or "diags" or "diag" or "doc_diagnostics" or "buffer_diagnostics" or "buf_diagnostics" or "buf_diags" => "diagnostics",
-            _ => op.Trim().ToLowerInvariant()
-        };
+            op = PrefixOpTable.Match(head, BufferTopRules)
+                ?? CitizenIntentRouter.ExtractKeyedValue(raw, "op")
+                ?? "scene";
+        op = PrefixOpTable.Normalize(op, CitizenOpAliasMaps.Buffer);
         if (op is not "read" and not "close" and not "scene" and not "diagnostics")
             return new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Unknown, raw, Ok: false, Reason: "buffer_op_unknown");
         var path = CitizenIntentRouter.ExtractKeyedValue(raw, "path") ?? CitizenIntentRouter.ExtractPath(raw);
@@ -72,6 +57,14 @@ internal static class CitizenBufferBuffer
             OldString: string.IsNullOrWhiteSpace(docId) ? null : docId.Trim(),
             Detail: string.IsNullOrWhiteSpace(start) ? null : start.Trim(),
             NewString: string.IsNullOrWhiteSpace(end) ? null : end.Trim(), Go: "buffer");
+    }
+
+    static CitizenIntentRouter.Route RouteOpen(string raw)
+    {
+        var openPath = CitizenIntentRouter.ExtractKeyedValue(raw, "path") ?? CitizenIntentRouter.ExtractPath(raw);
+        return string.IsNullOrWhiteSpace(openPath)
+            ? new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Unknown, raw, Ok: false, Reason: "open_path_empty")
+            : new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Open, raw, Ok: true, Path: openPath.Trim(), Go: "buffer");
     }
 
     internal static CitizenRouteHost.Applied Execute(

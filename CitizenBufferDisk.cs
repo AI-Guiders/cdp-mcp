@@ -1,31 +1,26 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Habitat;
 
 namespace CdpMcp;
 
 internal static class CitizenBufferDisk
 {
+    static readonly PrefixOpRule[] DiskPrefixRules =
+    [
+        new("disk_peek", "disk_peek", "diskpeek", "peek_disk"),
+        new("keep_disk", "keep_disk", "keepdisk", "dont_reload", "don't_reload"),
+        new("reload", "reload"),
+    ];
+
     internal static CitizenIntentRouter.Route Route(string raw)
     {
         var head = raw.Trim();
-        string? op;
-        if (head.StartsWith("disk_peek", StringComparison.OrdinalIgnoreCase) || head.StartsWith("diskpeek", StringComparison.OrdinalIgnoreCase) || head.StartsWith("peek_disk", StringComparison.OrdinalIgnoreCase))
-            op = "disk_peek";
-        else if (head.StartsWith("keep_disk", StringComparison.OrdinalIgnoreCase) || head.StartsWith("keepdisk", StringComparison.OrdinalIgnoreCase)
-            || head.StartsWith("dont_reload", StringComparison.OrdinalIgnoreCase) || head.StartsWith("don't_reload", StringComparison.OrdinalIgnoreCase))
-            op = "keep_disk";
-        else if (head.StartsWith("reload", StringComparison.OrdinalIgnoreCase))
-            op = "reload";
-        else
-            op = CitizenIntentRouter.ExtractKeyedValue(raw, "op") ?? "reload";
-        op = op.Trim().ToLowerInvariant() switch
-        {
-            "reload" or "from_disk" or "revert_disk" => "reload",
-            "keep_disk" or "keepdisk" or "dont_reload" or "don't_reload" or "keep" => "keep_disk",
-            "disk_peek" or "diskpeek" or "peek_disk" or "peek" => "disk_peek",
-            _ => op.Trim().ToLowerInvariant()
-        };
+        var op = PrefixOpTable.Match(head, DiskPrefixRules)
+            ?? CitizenIntentRouter.ExtractKeyedValue(raw, "op")
+            ?? "reload";
+        op = PrefixOpTable.Normalize(op, CitizenOpAliasMaps.Disk);
         if (op is not "reload" and not "keep_disk" and not "disk_peek")
             return new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Unknown, raw, Ok: false, Reason: "disk_op_unknown");
         var path = CitizenIntentRouter.ExtractKeyedValue(raw, "path") ?? CitizenIntentRouter.ExtractPath(raw);

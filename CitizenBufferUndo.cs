@@ -1,30 +1,26 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Habitat;
 
 namespace CdpMcp;
 
 /// <summary>Citizen @intent undo|redo|edit_history — route + buffer execute (OOA&D peel).</summary>
 internal static class CitizenBufferUndo
 {
+    static readonly PrefixOpRule[] UndoPrefixRules =
+    [
+        new("redo", "redo"),
+        new("history", "edit_history"),
+    ];
+
     internal static CitizenIntentRouter.Route Route(string raw)
     {
         var head = raw.Trim();
-        string? op;
-        if (head.StartsWith("redo", StringComparison.OrdinalIgnoreCase))
-            op = "redo";
-        else if (head.StartsWith("edit_history", StringComparison.OrdinalIgnoreCase))
-            op = "history";
-        else
-            op = CitizenIntentRouter.ExtractKeyedValue(raw, "op") ?? "undo";
-
-        op = op.Trim().ToLowerInvariant() switch
-        {
-            "u" or "undo" or "revert" => "undo",
-            "r" or "redo" or "unundo" => "redo",
-            "h" or "history" or "stack" or "edit_history" => "history",
-            _ => op.Trim().ToLowerInvariant()
-        };
+        var op = PrefixOpTable.Match(head, UndoPrefixRules)
+            ?? CitizenIntentRouter.ExtractKeyedValue(raw, "op")
+            ?? "undo";
+        op = PrefixOpTable.Normalize(op, CitizenOpAliasMaps.Undo);
 
         if (op is not "undo" and not "redo" and not "history")
             return new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Unknown, raw, Ok: false, Reason: "undo_op_unknown");

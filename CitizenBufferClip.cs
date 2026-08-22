@@ -1,41 +1,29 @@
 #nullable enable
 using System.Text.Json;
 using Cdp.Core;
+using CdpMcp.Habitat;
 
 namespace CdpMcp;
 
 /// <summary>Citizen @intent copy|cut|paste|clipboard — route + buffer execute (OOA&D peel).</summary>
 internal static class CitizenBufferClip
 {
+    static readonly PrefixOpRule[] ClipPrefixRules =
+    [
+        new("cut", "cut"),
+        new("paste", "paste"),
+        new("clipboard_clear", "clipboard_clear", "clip_clear"),
+        new("clipboard", "clipboard", "clip ", "clip"),
+        new("copy", "copy"),
+    ];
+
     internal static CitizenIntentRouter.Route Route(string raw)
     {
         var head = raw.Trim();
-        string op;
-        if (head.StartsWith("cut", StringComparison.OrdinalIgnoreCase))
-            op = "cut";
-        else if (head.StartsWith("paste", StringComparison.OrdinalIgnoreCase))
-            op = "paste";
-        else if (head.StartsWith("clipboard_clear", StringComparison.OrdinalIgnoreCase)
-                 || head.StartsWith("clip_clear", StringComparison.OrdinalIgnoreCase))
-            op = "clipboard_clear";
-        else if (head.StartsWith("clipboard", StringComparison.OrdinalIgnoreCase)
-                 || head.Equals("clip", StringComparison.OrdinalIgnoreCase)
-                 || head.StartsWith("clip ", StringComparison.OrdinalIgnoreCase))
-            op = "clipboard";
-        else if (head.StartsWith("copy", StringComparison.OrdinalIgnoreCase))
-            op = "copy";
-        else
-            op = CitizenIntentRouter.ExtractKeyedValue(raw, "op") ?? "clipboard";
-
-        op = op.Trim().ToLowerInvariant() switch
-        {
-            "cp" or "copy" => "copy",
-            "cut" or "scissors" => "cut",
-            "paste" or "p" => "paste",
-            "clip" or "clipboard" or "clips" => "clipboard",
-            "clipboard_clear" or "clip_clear" or "clear_clip" => "clipboard_clear",
-            _ => op.Trim().ToLowerInvariant()
-        };
+        var op = PrefixOpTable.Match(head, ClipPrefixRules)
+            ?? CitizenIntentRouter.ExtractKeyedValue(raw, "op")
+            ?? "clipboard";
+        op = PrefixOpTable.Normalize(op, CitizenOpAliasMaps.Clip);
 
         if (op is not "copy" and not "cut" and not "paste" and not "clipboard" and not "clipboard_clear")
             return new CitizenIntentRouter.Route(CitizenIntentRouter.Verb.Unknown, raw, Ok: false, Reason: "clip_op_unknown");

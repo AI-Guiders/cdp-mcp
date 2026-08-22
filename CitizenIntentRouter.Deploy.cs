@@ -1,21 +1,26 @@
 #nullable enable
 
+using CdpMcp.Habitat;
+
 namespace CdpMcp;
 
 /// <summary>Citizen @intent deploy — dual-instance publish without Cursor MCP (go=deploy place-only).</summary>
 internal static partial class CitizenIntentRouter
 {
+    static readonly PrefixOpRule[] DeployModePrefixRules =
+    [
+        new("hard", "hard_deploy"),
+        new("soft", "soft_deploy"),
+    ];
+
     static Route RouteDeploy(string raw)
     {
         var head = raw.Trim();
         string? mode = ExtractKeyedValue(raw, "mode");
         if (string.IsNullOrWhiteSpace(mode))
         {
-            if (head.StartsWith("hard_deploy", StringComparison.OrdinalIgnoreCase))
-                mode = "hard";
-            else if (head.StartsWith("soft_deploy", StringComparison.OrdinalIgnoreCase))
-                mode = "soft";
-            else if (raw.StartsWith("deploy ", StringComparison.OrdinalIgnoreCase))
+            mode = PrefixOpTable.Match(head, DeployModePrefixRules);
+            if (string.IsNullOrWhiteSpace(mode) && raw.StartsWith("deploy ", StringComparison.OrdinalIgnoreCase))
             {
                 var rest = raw["deploy ".Length..].Trim();
                 var headSp = rest.IndexOf(' ');
