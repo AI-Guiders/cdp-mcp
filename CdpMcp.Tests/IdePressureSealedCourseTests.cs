@@ -129,4 +129,55 @@ public sealed class IdePressureSealedCourseTests : IDisposable
             try { Directory.Delete(root, recursive: true); } catch { /* ignore */ }
         }
     }
+
+    [Fact]
+    public void PurgeLegacyGlassFirstLines_strips_polluted_stash_rows()
+    {
+        var polluted = """
+            ## operator_priority (SEALED)
+            1. guiders-platform P1-P7 DONE
+            4. Glass + Citizen DEFERRED
+            1. Glass Done (human flight)
+            2. Citizen Done stable → 15.08
+            Before act:
+            - Viewer? human eyes
+            """;
+        var clean = IdePressureChannel.PurgeLegacyGlassFirstLines(polluted);
+        Assert.Contains("DEFERRED", clean, StringComparison.Ordinal);
+        Assert.DoesNotContain("Glass Done (human flight)", clean, StringComparison.Ordinal);
+        Assert.DoesNotContain("Citizen Done stable", clean, StringComparison.Ordinal);
+        Assert.Contains("guiders-platform", clean, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EnsureCourseCriteria_appends_ownership_when_missing()
+    {
+        var course = IdePressureChannel.EnsureCourseCriteria(
+            """
+            ## operator_priority (SEALED)
+            1. Forge demo-ready
+            Before act (not resume-and-invent):
+            - Viewer? human eyes
+            Being ≠ seeming: when partner away, do named sealed work.
+            """);
+        Assert.NotNull(course);
+        Assert.Contains("Yours is yours", course!, StringComparison.Ordinal);
+        Assert.Contains("patch queue", course, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Diagnosis-only", course, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EnsureCourseCriteria_purges_legacy_glass_when_deferred_present()
+    {
+        var polluted = """
+            ## operator_priority (SEALED)
+            1. Forge demo-ready
+            4. Glass + Citizen DEFERRED
+            1. Glass Done (human flight)
+            """;
+        var clean = IdePressureChannel.EnsureCourseCriteria(polluted);
+        Assert.NotNull(clean);
+        Assert.DoesNotContain("Glass Done (human flight)", clean, StringComparison.Ordinal);
+        Assert.Contains("DEFERRED", clean, StringComparison.Ordinal);
+    }
 }

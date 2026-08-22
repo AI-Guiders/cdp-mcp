@@ -65,6 +65,17 @@ public class IdeIgniteChannelTests
     }
 
     [Fact]
+    public void ComposeArmFireCharge_rejects_legacy_glass_drive_pointer()
+    {
+        var charge = IdeIgniteChannel.ComposeArmFireCharge();
+        Assert.DoesNotContain("Drive Glass Done", IdeIgniteChannel.ChargeCoursePointer, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("deferred ≠ drive", charge, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Fly TM focused leaf", charge, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("твоё — твоё", charge, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("patch queue", charge, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void ComposeRemountInitializedCharge_includes_initialized_lead()
     {
         var charge = IdeIgniteChannel.ComposeRemountInitializedCharge();

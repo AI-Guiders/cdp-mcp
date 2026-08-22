@@ -14,6 +14,7 @@
 - Hot stash last-wins; memo line append-only. After compact: `op=recall` → **ready** when SSOT (body≥40 + plan/ignite) else **pull** → `op=reconcile` → `op=align` → `op=ready`; `strict=true` forces pull; `op=steer|ssot|fast` shortcut. · `op=line`.
 - Remount Autoi charge (0.5.310+) appends Domain pulse [A] when cards exist.
 - Anti-pattern: waiting for operator to name a slice when memo+README/TM already suffice (external locus).
+- Anti-pattern: diagnosis theater — root-cause named in chat but habitat SSOT unpatch'd; operator ≠ patch queue (ownership axis).
 - Anti-pattern: 4-op ceremony when stash already has body+plan/ignite (use ssot_auto / steer).
 
 ## Entry

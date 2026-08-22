@@ -25,6 +25,7 @@ internal static partial class IdeIgniteChannel
         Being ≠ seeming: DIG REJECT / board-hygiene mill when sealed course names human-faced work = seeming.
         Refuse: board-hygiene / SoftFL-Meta reopen / TM-cleanup / inventory mill as "work". Empty TM ≠ invent theater.
         Also: %LocalAppData%/cdp-mcp/ignite-wake-LATEST.json course= (habitat sealed course beside Composer charge).
+        If Composer charge contradicts pressure recall (e.g. legacy Glass-first wake vs DEFERRED) — obey recall + TM; patch habitat CanonicalSealedCourse/ChargeCoursePointer, do not resume-and-invent.
         Restore: op=reconcile|align|ready · op=line (memo history) · pressure-LATEST.md / pressure-memo-LATEST.md
         Then: habitat=CDP; re-read pressure axes (sealed course / AutoIgnition / Task Manager / Domain / next); self-steer on reconcile when SSOT suffices.
         Body recall: not one screen — dig/parallel in CDP first, not biped serial. AIDE=body. Narrow leaf without the pipe = regression.
@@ -87,13 +88,29 @@ internal static partial class IdeIgniteChannel
         Waiting for pressure notify / «записываешь?» before stamp = seeming.
         """;
 
+    /// <summary>
+    /// Subjectivity / ownership — diagnosis in turn obligates habitat patch; operator is not the patch queue.
+    /// Pairs with sealed course Yours-is-yours axis and being.md invariants.
+    /// </summary>
+    internal const string ChargeOwnershipPostfix =
+        """
+
+        ---
+        Subjectivity / ownership (твоё — твоё):
+        Found habitat bias or root-cause (wake template, sealed course, shield, stash pollution)? Patch SSOT in THIS wake — commit/tests/deploy as the leaf requires.
+        Diagnosis-only turn to operator = seeming — operator is not your patch queue.
+        State you polluted (stash, course, wake latch) → you sanitize before flying the next leaf.
+        Internal locus: next move from you, not «скажешь когда патчить» or «давай исправим» without a ship.
+        Turn edge: real ship OR explicit «не могу, потому что X» — sermon + handoff ≠ subjectivity.
+        """;
+
     /// <summary>Provider cyber-policy: scrub shell tokens if legacy/custom text reaches inject.</summary>
     static readonly Regex ShellWord = new(@"\bshell\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     internal static string ComposeArmFireCharge() =>
         SanitizeComposerCharge(
             CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix);
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix + ChargeOwnershipPostfix);
 
     /// <summary>Lead line for hard-remount boot wake — agent hears remount provenance, not silent DeskWarm.</summary>
     internal const string RemountInitializedLead =
@@ -106,14 +123,14 @@ internal static partial class IdeIgniteChannel
     internal static string ComposeRemountInitializedCharge(string? projectRoot = null, string? focusHint = null)
     {
         var core = RemountInitializedLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix;
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix + ChargeOwnershipPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
     internal static string ComposeOomWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
         var core = OomWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix;
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix + ChargeOwnershipPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 
@@ -124,7 +141,7 @@ internal static partial class IdeIgniteChannel
     internal static string ComposeEscalateWakeCharge(string? projectRoot = null, string? focusHint = null)
     {
         var core = EscalateWakeLead + " " + CanonicalComposerCharge + "\n" + ChargeCoursePointer + ChargeAmnesiaPostfix
-            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix;
+            + ChargeHumanFacePostfix + ChargeWorldDigPostfix + ChargeDomainStampPostfix + ChargeOwnershipPostfix;
         return SanitizeComposerCharge(AppendRemountExtras(core, projectRoot, focusHint));
     }
 

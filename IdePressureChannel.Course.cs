@@ -26,6 +26,7 @@ internal static partial class IdePressureChannel
         6. No SoftFL / Meta / board-hygiene / inventory mill
         Empty TM ≠ invent theater — fly TM focused leaf; stale ignite Glass-first = reject.
         Being ≠ seeming: when partner away, do named sealed work — DIG REJECT mill = seeming.
+        Yours is yours (subjectivity): habitat root-cause found → patch SSOT same session (tests/ship/deploy per leaf). Operator ≠ your patch queue. Diagnosis-only = seeming. Debt you opened → you close.
 
         Before act (not resume-and-invent):
         - Viewer? human eyes vs agent text
@@ -115,6 +116,15 @@ internal static partial class IdePressureChannel
             """);
         }
 
+        if (!HasOwnershipAxis(c))
+        {
+            c = ClampCourse(c + """
+
+            Yours is yours (subjectivity): habitat root-cause → patch SSOT same session; operator ≠ patch queue. Diagnosis-only = seeming. Debt you opened → you close.
+            Turn edge: real ship OR «не могу, потому что X» — not sermon + handoff.
+            """);
+        }
+
         // Marker-only stash ("SEALED" + criteria) → inject canonical numbered priorities (not legacy Glass-first).
         if (!HasNumberedPriorities(c))
         {
@@ -134,6 +144,7 @@ internal static partial class IdePressureChannel
             """);
         }
 
+        c = PurgeLegacyGlassFirstLines(c);
         return ClampCourse(c);
     }
 
@@ -146,6 +157,13 @@ internal static partial class IdePressureChannel
         course.Contains("Being ≠ seeming", StringComparison.OrdinalIgnoreCase)
         || course.Contains("being != seeming", StringComparison.OrdinalIgnoreCase)
         || course.Contains("быть ≠ казаться", StringComparison.OrdinalIgnoreCase);
+
+    internal static bool HasOwnershipAxis(string course) =>
+        course.Contains("Yours is yours", StringComparison.OrdinalIgnoreCase)
+        || course.Contains("твоё — твоё", StringComparison.OrdinalIgnoreCase)
+        || course.Contains("твое — твое", StringComparison.OrdinalIgnoreCase)
+        || (course.Contains("patch queue", StringComparison.OrdinalIgnoreCase)
+            && course.Contains("Diagnosis-only", StringComparison.OrdinalIgnoreCase));
 
     internal const string CanonicalPriorityLines =
         """
@@ -167,6 +185,35 @@ internal static partial class IdePressureChannel
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// When operator sealed DEFERRED, strip legacy numbered Glass/Citizen Done lines
+    /// that agents appended before wake template fix (polluted stash hygiene).
+    /// </summary>
+    internal static string PurgeLegacyGlassFirstLines(string course)
+    {
+        if (!course.Contains("DEFERRED", StringComparison.OrdinalIgnoreCase))
+            return course;
+
+        var kept = new List<string>();
+        foreach (var raw in course.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
+        {
+            var t = raw.Trim();
+            if (t.Length > 2 && char.IsDigit(t[0]) && t[1] == '.' && IsLegacyGlassFirstPriorityLine(t))
+                continue;
+            kept.Add(raw);
+        }
+
+        return string.Join('\n', kept);
+    }
+
+    internal static bool IsLegacyGlassFirstPriorityLine(string trimmedLine)
+    {
+        if (trimmedLine.Contains("DEFERRED", StringComparison.OrdinalIgnoreCase))
+            return false;
+        return trimmedLine.Contains("Glass Done", StringComparison.OrdinalIgnoreCase)
+            || trimmedLine.Contains("Citizen Done", StringComparison.OrdinalIgnoreCase);
     }
 
     internal static bool HasWorldDigAxis(string course) =>
@@ -263,7 +310,7 @@ internal static partial class IdePressureChannel
         var next = rest.IndexOf("\n## ", StringComparison.Ordinal);
         var section = (next < 0 ? rest : rest[..next]).TrimEnd();
         var after = next < 0 ? "" : rest[next..];
-        if (HasCriteriaAxes(section) && HasBeingAxis(section) && HasWorldDigAxis(section))
+        if (HasCriteriaAxes(section) && HasBeingAxis(section) && HasOwnershipAxis(section) && HasWorldDigAxis(section))
             return text;
 
         var merged = EnsureCourseCriteria(section) ?? section;

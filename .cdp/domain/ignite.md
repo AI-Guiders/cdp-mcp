@@ -57,6 +57,8 @@
 - Confusing VS Code stall (Reopen/Close/Keep Waiting) with Windows "End task" hung dialog.
 - Stamping FiredUtc / dropping once arms on mid-wait-idle remount (pre-0.5.497) — silent continuity suicide.
 - Digging CDT-down from health `cdt=?` (pre-0.5.498 PulseLine never live-sampled).
+- **Diagnosis without habitat patch** — explaining stale Glass-first wake to operator but not shipping `CanonicalSealedCourse` / `ChargeCoursePointer` fix (pre-0.5.732) — every resume re-biases agents; patch SSOT first.
+- **Obeying Composer `Drive Glass Done` when pressure/TM says DEFERRED** — charge is pointer; `course=` + recall win; stale latch until deploy.
 - Dual-seat twin OOM wake (pre-0.5.499) — both click dialog + schedule → twin `no_agent_composer` silent once-drop.
 - Recover Not-connected zombie without remount-wake pending (pre-0.5.503 opt-in `-StampRemountPending`) — silent no Autoi initialized wake after remount.
 - Hard sibling deploy bumps **both** seats' `CDP_RELOAD_NUDGE` (pre-0.5.661) — survivor seat remount thrash / Not connected while only sibling was killed; nudge is per-seat (`CdpReloadNudge.ps1`; `-NudgeAllSeats` escape).
@@ -96,6 +98,8 @@
 ## last_ship
 
 - **2026-08-22 wake sealed course v0.5.732** — `CanonicalSealedCourse` + `ChargeCoursePointer`: platform → Forge → ANPM → Glass/Citizen **DEFERRED** (not «Drive Glass Done»). `EnsureCourseCriteria` stops auto-injecting legacy Glass-first goals; `HasNumberedPriorities` + `CanonicalPriorityLines`. Face `WhyLine` prefers first numbered priority. Tests IdePressureSealedCourse + IdeHumanFacePlan updated.
+- **2026-08-22 ownership axis v0.5.734** — `ChargeOwnershipPostfix` + sealed course `HasOwnershipAxis`; diagnosis-only = seeming; operator ≠ patch queue. being.md + playbook § Твоё — твоё.
+- **2026-08-22 stash hygiene v0.5.733** — `PurgeLegacyGlassFirstLines` strips polluted numbered Glass/Citizen Done rows when DEFERRED present; `ChargeAmnesiaPostfix` says obey recall over stale charge; antipattern `diagnosis_without_habitat_patch`. Regression: `ComposeArmFireCharge` must not contain `Drive Glass Done`.
 - **2026-08-21 ADR-0200 composer→chat (tenant wake routing)** — `CdpTenantComposerLatch.ResolveDefaultChat`; `cdp_ignite op=arm|send` without `chat=` picks tenant `composer` latch (substring CDT focus). Set via `cdp_context composer="<chat title>"`. Tests `CdpTenantMultiplexTests`.
 - **2026-08-20 OOM wake dialog-only (false positive fix)** — lived: CDT `:9222` blip → `reason=oom` charge without native dialog (Юпитер вечер). Ship: `CdtEdgeEnabled` default **off**; real OOM = `TryClickOomNewWindow` dialog tooth only; legacy CDT-edge opt-in `CDP_OOM_WAKE_CDT_EDGE=1`. ADR-0027 updated. Tests `IdeIgniteOomWatchTests`. — lived: timer ≠ «подожди пока Face шипнет». Ship: `when=peer_ship` (+leaf_done|ship aliases) · `NotifyPeerShip` from TM done/shipped · Intercom explicit ship cue (citizen|guest; CoT dump alone ≠ fire). SoftFL invent ACCEPT dig=IdeIgniteArmHost.PeerShip. AW §5a stamped. SoftInstrument invent REJECT.
 - **2026-08-09 Face busy hold ttl=0 (0.5.695)** — densest after prefer_citizen mute: 120s TTL stale mid-Turn broke `IsHabitatPartnerLive` → Autoi Radio still mid-Face. Ship + tests with citizen bridge. SoftFL invent ACCEPT dig=ignite.md+citizen.md. SoftInstrument invent REJECT.
