@@ -31,6 +31,22 @@ if (-not (Test-Path -LiteralPath $bridgeCsproj)) { Write-Error "Missing $bridgeC
 
 . (Join-Path $here "CdpReloadNudge.ps1")
 
+function Invoke-CdpBridgeDeployNudge {
+    param(
+        [string] $BridgeTarget,
+        [string] $BridgeDebugTarget,
+        [switch] $NudgeAllSeats
+    )
+    if ($NudgeAllSeats) {
+        return Invoke-CdpReloadNudge -AllSeats
+    }
+    $servers = @('cdp')
+    if ($BridgeDebugTarget -and ($BridgeDebugTarget -ne $BridgeTarget)) {
+        $servers += 'cdp-debug'
+    }
+    return Invoke-CdpReloadNudge -Server $servers
+}
+
 function Publish-CdpProject {
     param(
         [string] $Project,
@@ -256,9 +272,10 @@ function Apply-PendingUpdate {
 
     if (-not $NoNudgeMcp) {
         try {
-            $nudge = if ($NudgeAllSeats) { Invoke-CdpReloadNudge -AllSeats } else { Invoke-CdpReloadNudge -Server "cdp" }
+            $nudge = Invoke-CdpBridgeDeployNudge -BridgeTarget $BridgeTarget -BridgeDebugTarget $BridgeDebugTarget -NudgeAllSeats:$NudgeAllSeats
             if ($nudge.Ok) {
-                Write-Host "MCP nudge (bridge): $($nudge.Path) CDP_RELOAD_NUDGE=$($nudge.Value)"
+                $seatList = ($nudge.Servers -join ', ')
+                Write-Host "MCP nudge (bridge): $($nudge.Path) CDP_RELOAD_NUDGE=$($nudge.Value) seats=$seatList"
             } else {
                 Write-Host "MCP nudge skipped: $($nudge.Error)"
             }
@@ -335,9 +352,10 @@ try {
 
         if (-not $NoNudgeMcp) {
             try {
-                $nudge = if ($NudgeAllSeats) { Invoke-CdpReloadNudge -AllSeats } else { Invoke-CdpReloadNudge -Server "cdp" }
+                $nudge = Invoke-CdpBridgeDeployNudge -BridgeTarget $BridgeTarget -BridgeDebugTarget $BridgeDebugTarget -NudgeAllSeats:$NudgeAllSeats
                 if ($nudge.Ok) {
-                    Write-Host "MCP nudge (bridge): $($nudge.Path) CDP_RELOAD_NUDGE=$($nudge.Value)"
+                    $seatList = ($nudge.Servers -join ', ')
+                    Write-Host "MCP nudge (bridge): $($nudge.Path) CDP_RELOAD_NUDGE=$($nudge.Value) seats=$seatList"
                 } else {
                     Write-Host "MCP nudge skipped: $($nudge.Error)"
                 }
