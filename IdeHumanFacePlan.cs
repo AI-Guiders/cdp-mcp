@@ -39,28 +39,32 @@ internal static class IdeHumanFacePlan
             }
 
             firstHuman ??= line;
-            if (glassGoal is null && ContainsIgnore(line, "Glass"))
+            if (glassGoal is null && ContainsIgnore(line, "Glass") && !ContainsIgnore(line, "DEFERRED"))
                 glassGoal = Truncate(line, maxChars);
-            if (citizenGoal is null && ContainsIgnore(line, "Citizen"))
+            if (citizenGoal is null && ContainsIgnore(line, "Citizen") && !ContainsIgnore(line, "DEFERRED"))
                 citizenGoal = Truncate(line, maxChars);
         }
 
-        var pick = glassGoal ?? citizenGoal ?? firstHuman;
+        var pick = firstHuman ?? glassGoal ?? citizenGoal;
+        if (pick is null)
+            pick = IdePressureChannel.CompactWhyLine(courseOrBody);
         if (pick is null)
         {
-            if (ContainsIgnore(courseOrBody, "Glass Done") && ContainsIgnore(courseOrBody, "Citizen"))
-                pick = "Glass Done + Citizen toward 15.08";
+            if (ContainsIgnore(courseOrBody, "Forge"))
+                pick = "Forge demo-ready ADR-0050/0048";
+            else if (ContainsIgnore(courseOrBody, "Platform") || ContainsIgnore(courseOrBody, "guiders-platform"))
+                pick = "Platform SSOT conveyor + stack align";
             else if (ContainsIgnore(courseOrBody, "Glass Done"))
                 pick = "Glass Done — instruments people can fly";
             else if (ContainsIgnore(courseOrBody, "Citizen"))
                 pick = "Citizen stable toward 15.08";
             else
-                pick = "Glass Done + Citizen toward 15.08";
+                pick = "Fly TM focused leaf";
         }
 
         pick = StripFaceTheatre(pick);
         if (LooksLikeAgentJargon(pick) || IsSealedMarker(pick) || string.IsNullOrWhiteSpace(pick))
-            pick = "Glass Done + Citizen toward 15.08";
+            pick = IdePressureChannel.CompactWhyLine(courseOrBody) ?? "Fly TM focused leaf";
 
         return Truncate(pick, maxChars);
     }

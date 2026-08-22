@@ -37,7 +37,7 @@ internal static partial class IdeIgniteChannel
     /// Full course stamps into ignite-wake-LATEST.course + pressure stash.
     /// </summary>
     internal const string ChargeCoursePointer =
-        "Course: sealed operator_priority (viewer? · cheap? · axe? · domain? · world dig?) — recall first. Not resume-and-invent. Empty TM ≠ board hygiene. Drive Glass Done + Citizen Done.";
+        "Course: sealed operator_priority (viewer? · cheap? · axe? · domain? · world dig?) — recall first. Not resume-and-invent. Empty TM ≠ board hygiene. Fly TM focused leaf; Glass/Citizen only when TM authorizes — deferred ≠ drive.";
 
     /// <summary>
     /// Full think is mandatory when cheap dump is illegal — axe in habitat, not a wish.

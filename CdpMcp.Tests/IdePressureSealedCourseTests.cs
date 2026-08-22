@@ -44,7 +44,7 @@ public sealed class IdePressureSealedCourseTests : IDisposable
         Assert.NotNull(course);
         Assert.Contains("Viewer?", course, StringComparison.Ordinal);
         Assert.Contains("Before act", course, StringComparison.Ordinal);
-        Assert.Contains("Glass Done", course, StringComparison.Ordinal);
+        Assert.Contains("Platform SSOT", course, StringComparison.Ordinal);
         Assert.Contains("Being ≠ seeming", course, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -78,7 +78,7 @@ public sealed class IdePressureSealedCourseTests : IDisposable
     public void CompactWhyLine_first_priority_not_dump()
     {
         var why = IdePressureChannel.CompactWhyLine(IdePressureChannel.CanonicalSealedCourse);
-        Assert.Equal("Glass Done (human flight)", why);
+        Assert.Equal("Platform SSOT conveyor + stack align (when active in TM)", why);
     }
 
     [Fact]

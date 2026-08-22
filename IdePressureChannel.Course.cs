@@ -18,11 +18,13 @@ internal static partial class IdePressureChannel
     internal const string CanonicalSealedCourse =
         """
         ## operator_priority (SEALED — do not rewrite)
-        1. Glass Done (human flight)
-        2. Citizen Done stable → 15.08
-        3. Autoi ON with course
-        4. No SoftFL / Meta / board-hygiene / inventory mill
-        Empty TM ≠ invent theater — invent only on real product gap under Glass Done.
+        1. Platform SSOT conveyor + stack align (when active in TM)
+        2. Forge demo-ready ADR-0050/0048 (job survival — Mon deadline)
+        3. ANPM offline CAD rollout
+        4. Glass + Citizen DEFERRED — lift defer only when operator/TM says so
+        5. Autoi ON with course
+        6. No SoftFL / Meta / board-hygiene / inventory mill
+        Empty TM ≠ invent theater — fly TM focused leaf; stale ignite Glass-first = reject.
         Being ≠ seeming: when partner away, do named sealed work — DIG REJECT mill = seeming.
 
         Before act (not resume-and-invent):
@@ -113,15 +115,11 @@ internal static partial class IdePressureChannel
             """);
         }
 
-        // Marker-only stash ("SEALED" + criteria) → inject human goals for Face/Autoi.
-        if (!HasGlassCitizenGoals(c))
+        // Marker-only stash ("SEALED" + criteria) → inject canonical numbered priorities (not legacy Glass-first).
+        if (!HasNumberedPriorities(c))
         {
             var injectAt = c.IndexOf("\nBefore act", StringComparison.OrdinalIgnoreCase);
-            var goals = """
-
-            1. Glass Done (human flight)
-            2. Citizen Done stable → 15.08
-            """;
+            var goals = "\n" + CanonicalPriorityLines;
             if (injectAt > 0)
                 c = ClampCourse(c[..injectAt] + goals + c[injectAt..]);
             else
@@ -149,9 +147,27 @@ internal static partial class IdePressureChannel
         || course.Contains("being != seeming", StringComparison.OrdinalIgnoreCase)
         || course.Contains("быть ≠ казаться", StringComparison.OrdinalIgnoreCase);
 
-    internal static bool HasGlassCitizenGoals(string course) =>
-        course.Contains("Glass Done", StringComparison.OrdinalIgnoreCase)
-        || course.Contains("Citizen Done", StringComparison.OrdinalIgnoreCase);
+    internal const string CanonicalPriorityLines =
+        """
+        1. Platform SSOT conveyor + stack align (when active in TM)
+        2. Forge demo-ready ADR-0050/0048 (job survival — Mon deadline)
+        3. ANPM offline CAD rollout
+        4. Glass + Citizen DEFERRED — lift defer only when operator/TM says so
+        5. Autoi ON with course
+        6. No SoftFL / Meta / board-hygiene / inventory mill
+        """;
+
+    internal static bool HasNumberedPriorities(string course)
+    {
+        foreach (var raw in course.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
+        {
+            var line = raw.Trim();
+            if (line.Length > 2 && char.IsDigit(line[0]) && line[1] == '.')
+                return true;
+        }
+
+        return false;
+    }
 
     internal static bool HasWorldDigAxis(string course) =>
         course.Contains("World dig", StringComparison.OrdinalIgnoreCase)
@@ -203,7 +219,7 @@ internal static partial class IdePressureChannel
             return line;
         }
 
-        return "Glass Done + Citizen toward 15.08";
+        return "Fly TM focused leaf";
     }
 
     /// <summary>

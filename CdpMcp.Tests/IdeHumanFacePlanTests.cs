@@ -5,10 +5,10 @@ namespace CdpMcp.Tests;
 public class IdeHumanFacePlanTests
 {
     [Fact]
-    public void WhyLine_canonical_prefers_Glass_Done()
+    public void WhyLine_canonical_prefers_platform_conveyor()
     {
         var why = IdeHumanFacePlan.WhyLine(IdePressureChannel.CanonicalSealedCourse);
-        Assert.Equal("Glass Done (human flight)", why);
+        Assert.Equal("Platform SSOT conveyor + stack align (when active in TM)", why);
         Assert.False(IdeHumanFacePlan.LooksLikeAgentJargon(why!));
     }
 
@@ -57,7 +57,7 @@ public class IdeHumanFacePlanTests
         var why = IdeHumanFacePlan.WhyLine(course);
         Assert.NotNull(why);
         Assert.DoesNotContain("SEALED", why!, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Glass Done", why, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("Fly TM focused leaf", why);
     }
 
     [Fact]
