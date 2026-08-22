@@ -99,6 +99,15 @@ internal static class CdpServiceHost
             backends = rt.Backends.Keys.ToArray(),
             capabilitiesRev = rt.CapabilitiesRevision,
             tenants = rt.TenantCount,
+            tenants_active = rt.TenantSnapshots.Select(t => new
+            {
+                wire = t.Wire,
+                bridge = t.BridgeSession,
+                workspace = t.WorkspaceKey,
+                composer = t.Composer,
+                last_touch_utc = t.LastTouchUtc,
+                project_root = t.ProjectRoot
+            }),
             multiplex = "ADR-0200"
         }));
 

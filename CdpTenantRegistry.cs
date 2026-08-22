@@ -25,6 +25,18 @@ internal sealed class CdpTenantRegistry : IDisposable
 
     public int ActiveCount => _slices.Count;
 
+    public IReadOnlyList<CdpTenantSnapshot> SnapshotActive() =>
+        _slices.Values
+            .Select(static s => new CdpTenantSnapshot(
+                s.Key.Wire,
+                s.Key.BridgeSession,
+                s.Key.WorkspaceKey,
+                s.Key.Composer,
+                s.LastAccessUtc,
+                s.Session.ProjectRoot))
+            .OrderByDescending(static s => s.LastTouchUtc)
+            .ToArray();
+
     public CdpTenantSlice Resolve(CdpTenantKey? key)
     {
         if (key is null || key.Value.IsLegacyDefault)

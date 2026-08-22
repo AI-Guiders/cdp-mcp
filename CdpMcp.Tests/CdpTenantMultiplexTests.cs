@@ -126,6 +126,69 @@ public sealed class CdpTenantMultiplexTests
     }
 
     [Fact]
+    public void Registry_snapshot_active_lists_wire_and_project_root()
+    {
+        var settings = CdpSettings.Load(Path.Combine(
+            AppContext.BaseDirectory, "..", "..", "..", "..", "config", "cdp-mcp.toml"));
+        var session = new SessionContext();
+        var doc = new DocumentBufferStore();
+        var ws = new WorkspaceDbHost(settings.IntentWorkspace.DatabasePath, session);
+        var shell = new ShellHabitat();
+        var ideSettings = new IdeSettingsHabitat(
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "config", "cdp-mcp.toml"),
+            settings,
+            session,
+            shell,
+            () => ProgramHost.ShellDefaults(session));
+        var kernel = new CdpSharedKernel
+        {
+            ConfigPath = "config/cdp-mcp.toml",
+            Settings = settings,
+            Modules = [],
+            ByDomain = new Dictionary<string, ICdpBackendModule>(),
+            AllAffordances = [],
+            McpVersion = "0.0.0",
+            Pretty = new JsonSerializerOptions(),
+            McpOutlet = new McpOutletHabitat(),
+            InternetBrowser = new InternetBrowserHabitat(),
+            AnTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            TkTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            FindTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            FailTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            DbgTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            BtTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            RoslynTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            GitTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            HciTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>(),
+            AnuiTools = new Dictionary<string, ModelContextProtocol.Protocol.Tool>()
+        };
+        var registry = new CdpTenantRegistry(
+            kernel,
+            CdpTenantSliceFactory.WrapLegacy(
+                CdpTenantKey.LegacyDefault,
+                session,
+                doc,
+                ws,
+                shell,
+                ideSettings,
+                null,
+                CdpProfile.StateRoot));
+
+        var forgeKey = CdpTenantKey.Normalize("bridge-forge", "cdp", "forge-chat");
+        var cursorKey = CdpTenantKey.Normalize("bridge-cursor", "default", "cursor-chat");
+        var forgeSlice = registry.Resolve(forgeKey);
+        var cursorSlice = registry.Resolve(cursorKey);
+        forgeSlice.Session.ProjectRoot = @"D:\repo\agent-forge";
+        cursorSlice.Session.ProjectRoot = @"D:\repo\cdp-mcp";
+
+        var snap = registry.SnapshotActive();
+        Assert.Equal(2, snap.Count);
+        Assert.Contains(snap, s => s.BridgeSession == "bridge-forge" && s.WorkspaceKey == "cdp" && s.ProjectRoot == @"D:\repo\agent-forge");
+        Assert.Contains(snap, s => s.BridgeSession == "bridge-cursor" && s.WorkspaceKey == "default" && s.ProjectRoot == @"D:\repo\cdp-mcp");
+        Assert.True(snap[0].LastTouchUtc >= snap[1].LastTouchUtc);
+    }
+
+    [Fact]
     public void ComposerLatch_resolve_default_chat_skips_main()
     {
         CdpTenantComposerLatch.TrySet("bridge-a", "CDP ADR continuation");

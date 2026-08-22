@@ -400,6 +400,8 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
 
     internal int TenantCount => _tenantRegistry.ActiveCount;
 
+    internal IReadOnlyList<CdpTenantSnapshot> TenantSnapshots => _tenantRegistry.SnapshotActive();
+
     internal async Task<CdpInvokeResult> InvokeToolAsync(
         string name,
         IReadOnlyDictionary<string, JsonElement> callArgs,
