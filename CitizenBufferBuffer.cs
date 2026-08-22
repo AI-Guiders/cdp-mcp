@@ -7,6 +7,11 @@ namespace CdpMcp;
 
 internal static class CitizenBufferBuffer
 {
+    static readonly PrefixOpRule[] BufferOpenRules =
+    [
+        new("open", "doc_open", "buffer_open", "open"),
+    ];
+
     static readonly PrefixOpRule[] BufferSubRules =
     [
         new("read", "read"),
@@ -26,20 +31,17 @@ internal static class CitizenBufferBuffer
     internal static CitizenIntentRouter.Route Route(string raw)
     {
         var head = raw.Trim();
+        if (PrefixOpTable.Match(head, BufferOpenRules) is not null
+            || PrefixOpTable.MatchSubcommand(head, "buffer", BufferOpenRules) is not null)
+            return RouteOpen(raw);
+
         string? op;
         if (head.StartsWith("buffer ", StringComparison.OrdinalIgnoreCase) || head.Equals("buffer", StringComparison.OrdinalIgnoreCase))
         {
-            var rest = head.Length > 6 ? head[6..].TrimStart() : "";
-            if (rest.StartsWith("open", StringComparison.OrdinalIgnoreCase)
-                || rest.StartsWith("doc_open", StringComparison.OrdinalIgnoreCase)
-                || rest.StartsWith("buffer_open", StringComparison.OrdinalIgnoreCase))
-                return RouteOpen(raw);
             op = PrefixOpTable.MatchSubcommand(head, "buffer", BufferSubRules, whenEmpty: "scene")
                 ?? CitizenIntentRouter.ExtractKeyedValue(raw, "op")
                 ?? "scene";
         }
-        else if (head.StartsWith("doc_open", StringComparison.OrdinalIgnoreCase) || head.StartsWith("buffer_open", StringComparison.OrdinalIgnoreCase))
-            return RouteOpen(raw);
         else
             op = PrefixOpTable.Match(head, BufferTopRules)
                 ?? CitizenIntentRouter.ExtractKeyedValue(raw, "op")
