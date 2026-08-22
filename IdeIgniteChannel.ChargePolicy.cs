@@ -21,7 +21,7 @@ internal static partial class IdeIgniteChannel
 
         ---
         If you feel completely lost / thread amnesia: compaction likely happened.
-        FIRST: cdp_pressure op=recall → ## operator_priority (SEALED) — do not rewrite for agent convenience.
+        FIRST: cdp_pressure op=recall → ## operator_priority (SEALED) — joint course; dispute with arguments (team→PO), not silent rewrite for convenience.
         Being ≠ seeming: DIG REJECT / board-hygiene mill when sealed course names human-faced work = seeming.
         Refuse: board-hygiene / SoftFL-Meta reopen / TM-cleanup / inventory mill as "work". Empty TM ≠ invent theater.
         Also: %LocalAppData%/cdp-mcp/ignite-wake-LATEST.json course= (habitat sealed course beside Composer charge).

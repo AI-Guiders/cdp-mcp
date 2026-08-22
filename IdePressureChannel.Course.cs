@@ -17,7 +17,8 @@ internal static partial class IdePressureChannel
     /// </summary>
     internal const string CanonicalSealedCourse =
         """
-        ## operator_priority (SEALED — do not rewrite)
+        ## operator_priority (SEALED — joint course; do not silent-rewrite)
+        Course is ours: agent may dispute priorities with arguments (Scrum team→PO); operator must consider; operator last word on seal.
         1. Platform SSOT conveyor + stack align (when active in TM)
         2. Forge demo-ready ADR-0050/0048 (job survival — Mon deadline)
         3. ANPM offline CAD rollout
@@ -244,6 +245,8 @@ internal static partial class IdePressureChannel
                 break;
             if (line.StartsWith("Empty TM", StringComparison.OrdinalIgnoreCase)
                 || line.StartsWith("Being", StringComparison.OrdinalIgnoreCase)
+                || line.StartsWith("Course is", StringComparison.OrdinalIgnoreCase)
+                || line.StartsWith("Yours is", StringComparison.OrdinalIgnoreCase)
                 || line.StartsWith("Ontology", StringComparison.OrdinalIgnoreCase))
                 continue;
 
