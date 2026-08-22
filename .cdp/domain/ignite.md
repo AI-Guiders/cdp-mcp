@@ -91,7 +91,7 @@
 - Autoi wake → one peel / one Meta host / one CIDE organ (pre list→batch→ship) — timer as single-item mill; Soft FileLines CLOSED; denser pack transfer. Canon: `playbook-pf-body-not-biped-v1` §Throughput.
 - Charge without human-face criteria on Glass/#CIDE (pre-0.5.653) — night invents dump Done; ontology must live in charge + TM refuse, not polite agreement.
 - Charge/course without world-dig research freedom (pre-0.5.662) — Autoi slap-slap under doubt; training memory as dig; invent mill Done without dig=.
-- Stash that drops `## operator_priority` (SEALED) (pre-0.5.654) — wake course empty → resume-and-invent; refuse `sealed_course_drop` / auto-prepend CanonicalSealedCourse with Before-act criteria.
+- Wake latch `ignite-wake-LATEST.json` stamps on **arm fire / Publish** — deploy alone does not refresh charge; re-arm or `CDP_WAKE_REFRESH=1` test after habitat ship.
 - Who-voice / DIG REJECT mill when sealed course already names human-faced work (pre-2026-08-04 being≠seeming) — казаться; contract when partner away = do named work.
 - `#CIDE` Done with wrong-window PNG or without Read into chat (pre-2026-08-04 «Выстрела нет») — File.Exists alone = seeming; shot title=`M · MFD host` + Read.
 

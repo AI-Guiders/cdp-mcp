@@ -26,6 +26,29 @@ public partial class IdeIgniteWakeLatchTests : IDisposable
     }
 
     [Fact]
+    public void RefreshProductionLatch_when_CDP_WAKE_REFRESH()
+    {
+        if (!string.Equals(Environment.GetEnvironmentVariable("CDP_WAKE_REFRESH"), "1", StringComparison.Ordinal))
+            return;
+
+        IdeIgniteWakeLatch.RootOverrideForTests = null;
+        IdePressureChannel.SealedCourseOverrideForTests = null;
+
+        var charge = IdeIgniteChannel.ComposeArmFireCharge();
+        var doc = IdeIgniteWakeLatch.Publish(
+            "wake-refresh-" + DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss"),
+            charge,
+            IdeIgniteWakeLatch.ChannelComposer,
+            reason: "wake_refresh",
+            task: "F1b Forge Windows pilot Setup");
+
+        Assert.NotNull(doc);
+        Assert.Contains("joint course", doc!.Charge!, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("do not rewrite for agent convenience", doc.Charge!, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Glass Done (human flight)", doc.Course ?? "", StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Publish_writes_channel_and_charge()
     {
         var doc = IdeIgniteWakeLatch.Publish(
