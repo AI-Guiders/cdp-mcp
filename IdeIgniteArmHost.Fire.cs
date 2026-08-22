@@ -186,23 +186,6 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static string ComposeFireCharge(IgniteArm arm, bool ok, string? pulse, string? detail) =>
-        IsCustomChargeMode(arm.ChargeMode)
-            ? IdeIgniteChannel.SanitizeComposerCharge(Expand(arm.Message, arm, ok, pulse, detail))
-            : IsRemountChargeMode(arm.ChargeMode)
-                ? IdeIgniteChannel.ComposeRemountInitializedCharge(
-                    IdePressureChannel.TryPeekProjectRoot(),
-                    IdeDomainPulse.FocusHintFromPlanLatch())
-                : IsOomChargeMode(arm.ChargeMode)
-                    ? IdeIgniteChannel.ComposeOomWakeCharge(
-                        IdePressureChannel.TryPeekProjectRoot(),
-                        IdeDomainPulse.FocusHintFromPlanLatch())
-                    : IsEscalateChargeMode(arm.ChargeMode)
-                        ? IdeIgniteChannel.ComposeEscalateWakeCharge(
-                            IdePressureChannel.TryPeekProjectRoot(),
-                            IdeDomainPulse.FocusHintFromPlanLatch())
-                        : IdeIgniteChannel.ComposeArmFireCharge(IdeIgniteChannel.WakeChargePreflight.Probe());
-
     static void MarkSendInvoked(string armId)
     {
         lock (Gate)

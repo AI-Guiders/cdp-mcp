@@ -28,6 +28,20 @@ internal static class RuleChain
         throw new InvalidOperationException("rule chain fell through");
     }
 
+    /// <summary>True when any applicable rule selects true (staleness / guard rails).</summary>
+    public static bool AnyMatch<TContext>(
+        TContext context,
+        ReadOnlySpan<IRule<TContext, bool>> rules)
+    {
+        foreach (var rule in rules)
+        {
+            if (rule.Applies(context) && rule.Select(context))
+                return true;
+        }
+
+        return false;
+    }
+
     /// <summary>Post-select decorator stack (policy wrap after FirstMatch).</summary>
     public static T Pipe<T>(T value, params Func<T, T>[] decorators)
     {
