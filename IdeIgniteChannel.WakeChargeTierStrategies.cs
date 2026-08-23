@@ -23,7 +23,7 @@ internal static partial class IdeIgniteChannel
                 p => WakeChargePressureAutoFullPolicy.Apply(context, p));
     }
 
-    /// <summary>Minimal + empty hot stash → Full (compaction insurance).</summary>
+    /// <summary>Minimal + no recall SSOT (tenant/peer/wake latch) → Full (compaction insurance).</summary>
     internal static class WakeChargePressureAutoFullPolicy
     {
         public static WakeChargePreflight Apply(WakePreflightContext context, WakeChargePreflight selected)
@@ -32,7 +32,7 @@ internal static partial class IdeIgniteChannel
                 return selected;
 
             return WakeChargePreflight.Full(
-                selected.TmStatusLine + " · pressure=empty (hot stash missing — full wake)");
+                selected.TmStatusLine + " · pressure=empty (recall SSOT missing — full wake)");
         }
     }
 

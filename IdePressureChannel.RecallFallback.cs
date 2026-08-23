@@ -139,4 +139,15 @@ internal static partial class IdePressureChannel
 
         return null;
     }
+
+    /// <summary>Wake tier SSOT — tenant, peer, or ignite-wake course (not canonical-only).</summary>
+    internal static bool HasRecallSsotForWake()
+    {
+        var doc = Load();
+        if (doc?.Body is { Length: > 0 })
+            return true;
+        if (TryPeekPeerTenantStash()?.Body is { Length: > 0 })
+            return true;
+        return IdeIgniteWakeLatch.TryRead()?.Course is { Length: > 0 };
+    }
 }

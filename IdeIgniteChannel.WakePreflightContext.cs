@@ -24,7 +24,7 @@ internal static partial class IdeIgniteChannel
                 if (!IdeStageCycle.TryWorkspace(out var store, out var state, out _))
                     return new WakePreflightContext
                     {
-                        HotStashPresent = IdePressureChannel.HasHotStashBody(),
+                        HotStashPresent = IdePressureChannel.HasRecallSsotForWake(),
                     };
 
                 var snap = store.TaskManagerSnapshot(state);
@@ -42,7 +42,7 @@ internal static partial class IdeIgniteChannel
                     LeafTitle = title,
                     FeatureTitle = feature,
                     LeafFocused = leafId is not null && state.ActiveStageId == leafId,
-                    HotStashPresent = IdePressureChannel.HasHotStashBody(),
+                    HotStashPresent = IdePressureChannel.HasRecallSsotForWake(),
                 };
             }
             catch
@@ -50,7 +50,7 @@ internal static partial class IdeIgniteChannel
                 return new WakePreflightContext
                 {
                     Faulted = true,
-                    HotStashPresent = IdePressureChannel.HasHotStashBody(),
+                    HotStashPresent = IdePressureChannel.HasRecallSsotForWake(),
                 };
             }
         }

@@ -51,6 +51,9 @@ public class IdeIgniteWakeChargePreflightTests
     [Fact]
     public void Probe_focused_leaf_empty_pressure_upgrades_to_full()
     {
+        var latchRoot = Path.Combine(Path.GetTempPath(), "cdp-wake-pf-latch-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(latchRoot);
+        IdeIgniteWakeLatch.RootOverrideForTests = latchRoot;
         var path = Path.Combine(Path.GetTempPath(), "cdp-wake-pf2-" + Guid.NewGuid().ToString("N") + ".db");
         try
         {
@@ -68,7 +71,43 @@ public class IdeIgniteWakeChargePreflightTests
         }
         finally
         {
+            IdeIgniteWakeLatch.RootOverrideForTests = null;
             IdeStageCycle.Unbind();
+            try { Directory.Delete(latchRoot, recursive: true); } catch { /* ignore */ }
+            try { File.Delete(path); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
+    public void Probe_focused_leaf_with_wake_latch_course_stays_minimal()
+    {
+        var latchRoot = Path.Combine(Path.GetTempPath(), "cdp-wake-pf-latch2-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(latchRoot);
+        IdeIgniteWakeLatch.RootOverrideForTests = latchRoot;
+        _ = IdeIgniteWakeLatch.Publish(
+            "test-arm",
+            "Resume TM.",
+            IdeIgniteWakeLatch.ChannelHabitat,
+            course: "## operator_priority (SEALED)\n1. Forge demo-ready");
+        var path = Path.Combine(Path.GetTempPath(), "cdp-wake-pf-latch3-" + Guid.NewGuid().ToString("N") + ".db");
+        try
+        {
+            var store = BootStore(path);
+            var state = new IntentWorkspaceState { DatabasePath = path };
+            store.IntentUpsert(state, "Forge pilot", null);
+            var leaf = store.StageUpsert(state, "F1b Windows Setup", null, null, null).stage_id;
+            state.ActiveStageId = leaf;
+            Bind(store, state);
+
+            var preflight = IdeIgniteChannel.WakeChargePreflight.Probe();
+            Assert.Equal(IdeIgniteChannel.WakeChargeTier.Minimal, preflight.Tier);
+            Assert.DoesNotContain("pressure=empty", preflight.TmStatusLine, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            IdeIgniteWakeLatch.RootOverrideForTests = null;
+            IdeStageCycle.Unbind();
+            try { Directory.Delete(latchRoot, recursive: true); } catch { /* ignore */ }
             try { File.Delete(path); } catch { /* ignore */ }
         }
     }
