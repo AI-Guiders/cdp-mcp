@@ -49,7 +49,7 @@ GitHub Actions (`.github/workflows/release.yml`) builds a matrix of RID runners.
 ## Build / deploy
 
 ```powershell
-dotnet test ..\cdp-core\Cdp.Core.Tests\Cdp.Core.Tests.csproj -c Release
+dotnet test ..\guiders-core\tests\Cdp.Core.Tests\Cdp.Core.Tests.csproj -c Release
 .\publish-and-deploy.ps1
 .\publish-and-deploy.ps1 -Mode hard
 .\publish-and-deploy.ps1 -Mode hard -Target D:\cdp-mcp-debug   # experimental spare

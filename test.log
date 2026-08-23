@@ -1,0 +1,441 @@
+  Determining projects to restore...
+  Restored D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CdpMcp.Tests.csproj (in 826 ms).
+  28 of 29 projects are up-to-date for restore.
+  Cdp.Evidence -> D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-evidence\bin\Debug\net10.0\Cdp.Evidence.dll
+  AgentTaskKnowledge.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\agent-task-knowledge-core\bin\Debug\net10.0\AgentTaskKnowledge.Core.dll
+  GitMcp.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\git-mcp-core\bin\Debug\net10.0\GitMcp.Core.dll
+  Cdp.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-core\bin\Debug\net10.0\Cdp.Core.dll
+  HybridCodebaseIndex.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\hybrid-codebase-index-core\bin\Debug\net10.0\HybridCodebaseIndex.Core.dll
+  AgentNotes.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\agent-notes-core\bin\Debug\net10.0\AgentNotes.Core.dll
+  AgentFindings.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\agent-findings-core\bin\Debug\net10.0\AgentFindings.Core.dll
+  DotNetBuildTestParsers -> D:\Experiments\Personal Cursor Folder\Financial\software\open\dotnet-build-test-parsers\bin\Debug\net10.0\DotNetBuildTestParsers.dll
+  AgentFailures.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\agent-failures-core\bin\Debug\net10.0\AgentFailures.Core.dll
+  DotnetDebug.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\dotnet-debug-core\bin\Debug\net10.0\DotnetDebug.Core.dll
+  Cdp.Lsp.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\lsp-lang\Cdp.Lsp.Core\bin\Debug\net10.0\Cdp.Lsp.Core.dll
+  Anui.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\ai-native-ui\src\Anui.Core\bin\Debug\net10.0\Anui.Core.dll
+  RoslynMcp.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\roslyn-mcp-core\bin\Debug\net10.0\RoslynMcp.Core.dll
+  TypescriptLang.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\typescript-lang\TypescriptLang.Core\bin\Debug\net10.0\TypescriptLang.Core.dll
+  Anui.Ingest -> D:\Experiments\Personal Cursor Folder\Financial\software\open\ai-native-ui\src\Anui.Ingest\bin\Debug\net10.0\Anui.Ingest.dll
+  Anui.Layout -> D:\Experiments\Personal Cursor Folder\Financial\software\open\ai-native-ui\src\Anui.Layout\bin\Debug\net10.0\Anui.Layout.dll
+  DotNetBuildTest.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\dotnet-build-test-core\bin\Debug\net10.0\DotNetBuildTest.Core.dll
+  TerminalMcp.Core -> D:\Experiments\Personal Cursor Folder\Financial\software\open\terminal-mcp-core\bin\Debug\net10.0\TerminalMcp.Core.dll
+  Anui.Evidence -> D:\Experiments\Personal Cursor Folder\Financial\software\open\ai-native-ui\src\Anui.Evidence\bin\Debug\net10.0\Anui.Evidence.dll
+  Anui.Adapters.Abstractions -> D:\Experiments\Personal Cursor Folder\Financial\software\open\ai-native-ui\src\Anui.Adapters.Abstractions\bin\Debug\net10.0\Anui.Adapters.Abstractions.dll
+  Anui.Invariants -> D:\Experiments\Personal Cursor Folder\Financial\software\open\ai-native-ui\src\Anui.Invariants\bin\Debug\net10.0\Anui.Invariants.dll
+  Anui.Evidence.Avalonia -> D:\Experiments\Personal Cursor Folder\Financial\software\open\ai-native-ui\src\Anui.Evidence.Avalonia\bin\Debug\net10.0\Anui.Evidence.Avalonia.dll
+  Anui.Host -> D:\Experiments\Personal Cursor Folder\Financial\software\open\ai-native-ui\src\Anui.Host\bin\Debug\net10.0\Anui.Host.dll
+  AgentNotes.Mcp.Hosting -> D:\Experiments\Personal Cursor Folder\Financial\software\open\agent-notes-mcp\AgentNotes.Mcp.Hosting\bin\Debug\net10.0\AgentNotes.Mcp.Hosting.dll
+  Cdp.ScriptableIde -> D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-scriptable-ide\bin\Debug\net10.0\Cdp.ScriptableIde.dll
+  Anui.Agent -> D:\Experiments\Personal Cursor Folder\Financial\software\open\ai-native-ui\src\Anui.Agent\bin\Debug\net10.0\Anui.Agent.dll
+  CdpMcp.ArchitectureAnalyzers -> D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.ArchitectureAnalyzers\bin\Debug\netstandard2.0\CdpMcp.ArchitectureAnalyzers.dll
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\Program.cs(280,22): warning CS8601: Possible null reference assignment. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Check.cs(28,20): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Check.cs(45,15): warning CS8602: Dereference of a possibly null reference. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Check.cs(58,31): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.cs(101,17): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.cs(102,24): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.cs(105,51): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.cs(114,13): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.cs(137,24): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.cs(147,18): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.cs(148,29): warning CS8604: Possible null reference argument for parameter 'path' in 'DirectoryInfo Directory.CreateDirectory(string path)'. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.cs(166,24): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.cs(196,24): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.cs(213,56): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.cs(236,17): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Helpers.cs(37,25): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Helpers.cs(48,17): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Helpers.cs(49,18): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Helpers.cs(55,20): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Helpers.cs(70,20): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Helpers.cs(82,26): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Helpers.cs(100,24): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Helpers.cs(126,17): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Helpers.Flatten.cs(81,40): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Helpers.Flatten.cs(87,72): warning CS8619: Nullability of reference types in value of type '(string Path, string Mode, bool Ok, DateTime AtUtc, string Pulse, string? BodyJson, string[] Board)?' doesn't match target type '(string, string, bool, DateTime, string, string, string[])?'. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Helpers.Flatten.cs(125,17): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\ScriptScene.Run.cs(32,24): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\Correspondence.cs(116,58): warning CS8604: Possible null reference argument for parameter 'fileRel' in 'void ExploreCorrLatch.StampCorr(string workspaceRoot, string fileRel, int adrCount)'. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeDomainStampShield.cs(50,27): warning CS8604: Possible null reference argument for parameter 'args' in 'string? IdeDomainStampShield.Opt(IReadOnlyDictionary<string, JsonElement> args, string key)'. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdePressureChannel.cs(171,17): warning CS8604: Possible null reference argument for parameter 'nextStep' in 'ExplainCard IdeExplainability.New(string source, string reason, string authority, string nextStep)'. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdePressureChannel.cs(180,17): warning CS8604: Possible null reference argument for parameter 'nextStep' in 'ExplainCard IdeExplainability.New(string source, string reason, string authority, string nextStep)'. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeRefactorPlanChannel.Ops.cs(126,33): warning CS8604: Possible null reference argument for parameter 'budget' in 'string IdeRefactorPlanChannel.BudgetPulse(object budget)'. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeSeemingDoneShield.cs(100,24): warning CS8604: Possible null reference argument for parameter 'args' in 'string? IdeSeemingDoneShield.Opt(IReadOnlyDictionary<string, JsonElement> args, string key)'. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeSeemingDoneShield.cs(153,24): warning CS8604: Possible null reference argument for parameter 'args' in 'string? IdeSeemingDoneShield.Opt(IReadOnlyDictionary<string, JsonElement> args, string key)'. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Mount.cs(31,23): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Mount.cs(32,24): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Mount.cs(35,20): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Mount.cs(45,23): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Mount.cs(51,55): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Mount.cs(108,31): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Mount.cs(108,57): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Mount.cs(110,20): warning CS8603: Possible null reference return. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Mount.cs(113,25): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.cs(20,25): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.cs(20,51): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.cs(22,11): warning CS8603: Possible null reference return. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.cs(24,17): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.cs(34,29): warning CS8601: Possible null reference assignment. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.cs(41,23): warning CS8601: Possible null reference assignment. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.cs(46,76): warning CS8620: Argument of type 'Dictionary<string, object>' cannot be used for parameter 'arguments' of type 'IReadOnlyDictionary<string, object?>' in 'ValueTask<CallToolResult> McpClient.CallToolAsync(string toolName, IReadOnlyDictionary<string, object?>? arguments = null, IProgress<ProgressNotificationValue>? progress = null, RequestOptions? options = null, CancellationToken cancellationToken = default(CancellationToken))' due to differences in the nullability of reference types. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.cs(73,15): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.cs(78,35): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.cs(140,36): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.cs(151,17): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\McpOutletHabitat.Ops.Helpers.cs(142,149): warning CS8603: Possible null reference return. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CitizenRouteHost.SoftInstrumentMeta9.cs(200,29): warning CS8625: Cannot convert null literal to non-nullable reference type. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Window.Native.cs(30,30): warning CA1416: This call site is reachable on all platforms. 'Graphics.FromImage(Image)' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Window.Native.cs(29,22): warning CA1416: This call site is reachable on all platforms. 'Bitmap' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Window.Native.cs(31,19): warning CA1416: This call site is reachable on all platforms. 'Graphics.GetHdc()' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Window.Native.cs(29,48): warning CA1416: This call site is reachable on all platforms. 'PixelFormat.Format32bppArgb' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Window.Native.cs(54,13): warning CA1416: This call site is reachable on all platforms. 'Graphics.ReleaseHdc(nint)' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(223,9): warning CA1416: This call site is reachable on all platforms. 'EncoderParameters.Param' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(215,13): warning CA1416: This call site is reachable on all platforms. 'Image.Save(string, ImageFormat)' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(220,34): warning CA1416: This call site is reachable on all platforms. 'ImageCodecInfo.FormatID' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(220,48): warning CA1416: This call site is reachable on all platforms. 'ImageFormat.Guid' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(222,24): warning CA1416: This call site is reachable on all platforms. 'EncoderParameters' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(215,31): warning CA1416: This call site is reachable on all platforms. 'ImageFormat.Png' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(226,9): warning CA1416: This call site is reachable on all platforms. 'Image.Save(string, ImageCodecInfo, EncoderParameters?)' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(219,23): warning CA1416: This call site is reachable on all platforms. 'ImageCodecInfo.GetImageEncoders()' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(220,48): warning CA1416: This call site is reachable on all platforms. 'ImageFormat.Jpeg' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(219,23): warning CA1416: This call site is reachable on all platforms. 'ImageCodecInfo' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(223,23): warning CA1416: This call site is reachable on all platforms. 'EncoderParameter' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Ocr.cs(224,13): warning CA1416: This call site is reachable on all platforms. 'Encoder.Quality' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Screen.cs(90,17): warning CA1416: This call site is reachable on all platforms. 'Graphics.CopyFromScreen(int, int, int, int, Size, CopyPixelOperation)' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Screen.cs(88,35): warning CA1416: This call site is reachable on all platforms. 'Graphics.FromImage(Image)' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Screen.cs(84,32): warning CA1416: This call site is reachable on all platforms. 'Bitmap' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Screen.cs(96,21): warning CA1416: This call site is reachable on all platforms. 'CopyPixelOperation.SourceCopy' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\IdeWebcamChannel.Screen.cs(87,17): warning CA1416: This call site is reachable on all platforms. 'PixelFormat.Format24bppRgb' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj]
+  AspectInjector|2.8.2: Found 0 aspects, 0 injections
+  CdpMcp -> D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\bin\Debug\net10.0\CdpMcp.dll
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CideSeatsLatchTests.cs(211,33): warning CS8602: Dereference of a possibly null reference. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CdpMcp.Tests.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CideSeatsLatchTests.cs(267,32): warning CS8602: Dereference of a possibly null reference. [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CdpMcp.Tests.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenIdeHostTests.cs(254,17): warning xUnit1013: Public method 'Execute_related_passes_mode_via_override' on test class 'CitizenIdeHostTests' should be marked as a Fact. Reduce the visibility of the method, or add a Fact attribute to the method. (https://xunit.net/xunit.analyzers/rules/xUnit1013) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CdpMcp.Tests.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\GlassSurfaceIpcTests.cs(71,19): warning xUnit1031: Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead. (https://xunit.net/xunit.analyzers/rules/xUnit1031) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CdpMcp.Tests.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\IdePlanPromoteTests.cs(64,13): warning xUnit2009: Do not use Assert.True() to check for substrings. Use Assert.EndsWith instead. (https://xunit.net/xunit.analyzers/rules/xUnit2009) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CdpMcp.Tests.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\IdePluginsChannelTests.cs(144,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CdpMcp.Tests.csproj]
+D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\ProjectSceneHostHabitatTests.cs(54,71): warning xUnit1030: Test methods should not call ConfigureAwait(false), as it may bypass parallelization limits. Omit ConfigureAwait, or use ConfigureAwait(true) to avoid CA2007. (https://xunit.net/xunit.analyzers/rules/xUnit1030) [D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CdpMcp.Tests.csproj]
+  AspectInjector|2.8.2: Found 0 aspects, 0 injections
+  CdpMcp.Tests -> D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\bin\Debug\net10.0\CdpMcp.Tests.dll
+Test run for D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\bin\Debug\net10.0\CdpMcp.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:01.56]     CdpMcp.Tests.IdePressureWaveFieldTests.Stash_wave_arg_roundtrips_on_recall [FAIL]
+  Failed CdpMcp.Tests.IdePressureWaveFieldTests.Stash_wave_arg_roundtrips_on_recall [21 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "{"ok":false,"schema":"pressure_channel/v1"···
+Not found: "gamma"
+  Stack Trace:
+     at CdpMcp.Tests.IdePressureWaveFieldTests.Stash_wave_arg_roundtrips_on_recall() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\IdeThroughputWaveTests.cs:line 255
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.81]     CdpMcp.Tests.CitizenPeerAckHostTests.Channel_live_mock_turn_surfaces_peer_ack [FAIL]
+  Failed CdpMcp.Tests.CitizenPeerAckHostTests.Channel_live_mock_turn_surfaces_peer_ack [280 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "ok · gen=2 · mcp=live · compact=no · ack="···
+Not found: "ack=2/2"
+  Stack Trace:
+     at CdpMcp.Tests.CitizenPeerAckHostTests.Channel_live_mock_turn_surfaces_peer_ack() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenPeerAckHostTests.cs:line 135
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:01.97]     CdpMcp.Tests.CitizenRouteHostTests.Execute_replace_mutates_disk_via_buffer_gate [FAIL]
+  Failed CdpMcp.Tests.CitizenRouteHostTests.Execute_replace_mutates_disk_via_buffer_gate [16 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at CdpMcp.Tests.CitizenRouteHostTests.Execute_replace_mutates_disk_via_buffer_gate() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenRouteHostTests.cs:line 179
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:02.50]     CdpMcp.Tests.CideAlertLatchTests.Publish_warn_keeps_pulse_and_lines [FAIL]
+  Failed CdpMcp.Tests.CideAlertLatchTests.Publish_warn_keeps_pulse_and_lines [12 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "warn"
+Actual:   "clear"
+           ↑ (pos 0)
+  Stack Trace:
+     at CdpMcp.Tests.CideAlertLatchTests.Publish_warn_keeps_pulse_and_lines() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CideAlertLatchTests.cs:line 55
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:03.57]     CdpMcp.Tests.Ps1BufferDiagnosticsTests.DiagnoseAsync_syntax_error [FAIL]
+  Failed CdpMcp.Tests.Ps1BufferDiagnosticsTests.DiagnoseAsync_syntax_error [811 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at CdpMcp.Tests.Ps1BufferDiagnosticsTests.DiagnoseAsync_syntax_error() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\Ps1BufferDiagnosticsTests.cs:line 48
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:09.77]     CdpMcp.Tests.Ps1SceneTests.Put_check_run_roundtrip_under_temp_project [FAIL]
+  Failed CdpMcp.Tests.Ps1SceneTests.Put_check_run_roundtrip_under_temp_project [6 s]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    ""
+Not found: "ps1-ok"
+  Stack Trace:
+     at CdpMcp.Tests.Ps1SceneTests.Put_check_run_roundtrip_under_temp_project() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\Ps1SceneTests.cs:line 76
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:10.15]     CdpMcp.Tests.CitizenFocusLaneBindTests.TryApplyCitizenFocusLane_switches_to_Face_not_tip [FAIL]
+  Failed CdpMcp.Tests.CitizenFocusLaneBindTests.TryApplyCitizenFocusLane_switches_to_Face_not_tip [8 s]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "Sierra"
+Actual:   "Citizen"
+           ↑ (pos 0)
+  Stack Trace:
+     at CdpMcp.Tests.CitizenFocusLaneBindTests.TryApplyCitizenFocusLane_switches_to_Face_not_tip() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenFocusLaneBindTests.cs:line 49
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:10.40]     CdpMcp.Tests.IdeToolCallWatchTests.RunAsync_fires_threshold_hook_when_execute_sync_blocks [FAIL]
+  Failed CdpMcp.Tests.IdeToolCallWatchTests.RunAsync_fires_threshold_hook_when_execute_sync_blocks [3 s]
+  Error Message:
+   Assert.NotNull() Failure: Value of type 'Nullable<ThresholdHit>' does not have a value
+  Stack Trace:
+     at CdpMcp.Tests.IdeToolCallWatchTests.RunAsync_fires_threshold_hook_when_execute_sync_blocks() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\IdeToolCallWatchTests.cs:line 86
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:10.87]     CdpMcp.Tests.CitizenInventedHandsTests.TryProcessOnce_recovers_invented_find_hands_and_arms_peer_ready [FAIL]
+  Failed CdpMcp.Tests.CitizenInventedHandsTests.TryProcessOnce_recovers_invented_find_hands_and_arms_peer_ready [111 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+                            ↓ (pos 17)
+Expected: "reason=peer_ready_next_open — no SoftFL l"···
+Actual:   "reason=peer_ready — SoftFL apply PASTE fr"···
+                            ↑ (pos 17)
+  Stack Trace:
+     at CdpMcp.Tests.CitizenInventedHandsTests.TryProcessOnce_recovers_invented_find_hands_and_arms_peer_ready() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenInventedHandsTests.cs:line 85
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:12.88]     CdpMcp.Tests.IdeLifecycleJobsTests.TryAutoArmLifecycle_arms_build_finished [FAIL]
+  Failed CdpMcp.Tests.IdeLifecycleJobsTests.TryAutoArmLifecycle_arms_build_finished [2 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at CdpMcp.Tests.IdeLifecycleJobsTests.TryAutoArmLifecycle_arms_build_finished() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\IdeLifecycleJobsTests.cs:line 56
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:16.04]     CdpMcp.Tests.IdeIgniteWakeLatchTests.MirrorTimerWakeToIntercom_tool_wake_publishes_when_pf_idle [FAIL]
+  Failed CdpMcp.Tests.IdeIgniteWakeLatchTests.MirrorTimerWakeToIntercom_tool_wake_publishes_when_pf_idle [1 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at CdpMcp.Tests.IdeIgniteWakeLatchTests.MirrorTimerWakeToIntercom_tool_wake_publishes_when_pf_idle() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\IdeIgniteWakeLatchTests.Mirror.cs:line 175
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:18.37]     CdpMcp.Tests.IdeIgniteAutonomousTests.Halt_stops_world_until_partner [FAIL]
+  Failed CdpMcp.Tests.IdeIgniteAutonomousTests.Halt_stops_world_until_partner [42 ms]
+  Error Message:
+   Assert.False() Failure
+Expected: False
+Actual:   True
+  Stack Trace:
+     at CdpMcp.Tests.IdeIgniteAutonomousTests.Halt_stops_world_until_partner() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\IdeIgniteAutonomousTests.cs:line 210
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:18.60]     CdpMcp.Tests.IdeIgniteArmHostTests.Arm_with_task_only_stores_canonical_message [FAIL]
+  Failed CdpMcp.Tests.IdeIgniteArmHostTests.Arm_with_task_only_stores_canonical_message [4 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "{"schema":"ignite/v0","ok":true,"op":"lis"···
+Not found: "Resume the current authorized local devel"···
+  Stack Trace:
+     at CdpMcp.Tests.IdeIgniteArmHostTests.Arm_with_task_only_stores_canonical_message() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\IdeIgniteArmHostTests.cs:line 144
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:27.49]     CdpMcp.Tests.IdeTaskManagerTitlePrecedenceTests.Done_by_feature_title_strips_board_chrome [FAIL]
+  Failed CdpMcp.Tests.IdeTaskManagerTitlePrecedenceTests.Done_by_feature_title_strips_board_chrome [2 s]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at CdpMcp.Tests.IdeTaskManagerTitlePrecedenceTests.Done_by_feature_title_strips_board_chrome() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\IdeTaskManagerTitlePrecedenceTests.Feature.cs:line 47
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:07.58]     CdpMcp.Tests.CitizenReplaceAllHostTests.Execute_replace_all_surfaces_query_required [FAIL]
+[xUnit.net 00:01:07.58]     CdpMcp.Tests.CitizenReplaceAllHostTests.Execute_replace_all_passes_args_via_override [FAIL]
+  Failed CdpMcp.Tests.CitizenReplaceAllHostTests.Execute_replace_all_surfaces_query_required [2 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "scar_path_mutate_off_leaf: SoftFL apply a"···
+Not found: "query_required"
+  Stack Trace:
+     at CdpMcp.Tests.CitizenReplaceAllHostTests.Execute_replace_all_surfaces_query_required() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenReplaceAllHostTests.cs:line 82
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed CdpMcp.Tests.CitizenReplaceAllHostTests.Execute_replace_all_passes_args_via_override [1 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at CdpMcp.Tests.CitizenReplaceAllHostTests.Execute_replace_all_passes_args_via_override() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenReplaceAllHostTests.cs:line 53
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:07.65]     CdpMcp.Tests.CitizenPutHostTests.Execute_put_surfaces_file_exists [FAIL]
+[xUnit.net 00:01:07.65]     CdpMcp.Tests.CitizenPutHostTests.Execute_put_passes_args_via_override [FAIL]
+  Failed CdpMcp.Tests.CitizenPutHostTests.Execute_put_surfaces_file_exists [1 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "scar_path_mutate_off_leaf: SoftFL apply a"···
+Not found: "file_exists"
+  Stack Trace:
+     at CdpMcp.Tests.CitizenPutHostTests.Execute_put_surfaces_file_exists() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenPutHostTests.cs:line 88
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed CdpMcp.Tests.CitizenPutHostTests.Execute_put_passes_args_via_override [3 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at CdpMcp.Tests.CitizenPutHostTests.Execute_put_passes_args_via_override() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenPutHostTests.cs:line 60
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:08.16]     CdpMcp.Tests.CitizenEditHostTests.Execute_edit_passes_anchor_args_via_override [FAIL]
+  Failed CdpMcp.Tests.CitizenEditHostTests.Execute_edit_passes_anchor_args_via_override [3 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at CdpMcp.Tests.CitizenEditHostTests.Execute_edit_passes_anchor_args_via_override() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenEditHostTests.cs:line 73
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:08.21]     CdpMcp.Tests.CitizenDeleteHostTests.Execute_delete_removes_disk_via_buffer_gate [FAIL]
+[xUnit.net 00:01:08.21]     CdpMcp.Tests.CitizenDeleteHostTests.Execute_delete_refuses_dirty_without_force [FAIL]
+  Failed CdpMcp.Tests.CitizenDeleteHostTests.Execute_delete_removes_disk_via_buffer_gate [5 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at CdpMcp.Tests.CitizenDeleteHostTests.Execute_delete_removes_disk_via_buffer_gate() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenDeleteHostTests.cs:line 63
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed CdpMcp.Tests.CitizenDeleteHostTests.Execute_delete_refuses_dirty_without_force [4 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "scar_path_mutate_off_leaf: SoftFL apply a"···
+Not found: "dirty"
+  Stack Trace:
+     at CdpMcp.Tests.CitizenDeleteHostTests.Execute_delete_refuses_dirty_without_force() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenDeleteHostTests.cs:line 109
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:08.24]     CdpMcp.Tests.CitizenCreateHostTests.Execute_create_writes_disk_via_buffer_gate [FAIL]
+  Failed CdpMcp.Tests.CitizenCreateHostTests.Execute_create_writes_disk_via_buffer_gate [7 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at CdpMcp.Tests.CitizenCreateHostTests.Execute_create_writes_disk_via_buffer_gate() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenCreateHostTests.cs:line 64
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:08.36]     CdpMcp.Tests.CitizenBufferHostTests.Execute_close_surfaces_error [FAIL]
+  Failed CdpMcp.Tests.CitizenBufferHostTests.Execute_close_surfaces_error [1 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "scar_path_mutate_off_leaf: SoftFL apply a"···
+Not found: "not_open"
+  Stack Trace:
+     at CdpMcp.Tests.CitizenBufferHostTests.Execute_close_surfaces_error() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenBufferHostTests.cs:line 111
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:08.39]     CdpMcp.Tests.CitizenAppendHostTests.Execute_append_suffixes_disk_via_buffer_gate [FAIL]
+  Failed CdpMcp.Tests.CitizenAppendHostTests.Execute_append_suffixes_disk_via_buffer_gate [7 ms]
+  Error Message:
+   Assert.True() Failure
+Expected: True
+Actual:   False
+  Stack Trace:
+     at CdpMcp.Tests.CitizenAppendHostTests.Execute_append_suffixes_disk_via_buffer_gate() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenAppendHostTests.cs:line 65
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:08.63]     CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_sticky_who_survives_busy_and_publish [FAIL]
+[xUnit.net 00:01:08.68]     CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_arms_peer_ready_when_same_turn_observe_fails [FAIL]
+  Failed CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_sticky_who_survives_busy_and_publish [43 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+           ↓ (pos 0)
+Expected: "Sierra"
+Actual:   "Citizen"
+           ↑ (pos 0)
+  Stack Trace:
+     at CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_sticky_who_survives_busy_and_publish() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenGlassDialogBridgeTests.cs:line 242
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_arms_peer_ready_when_same_turn_observe_fails [53 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+                            ↓ (pos 17)
+Expected: "reason=peer_ready_next_open — no SoftFL l"···
+Actual:   "reason=peer_ready — SoftFL apply PASTE fr"···
+                            ↑ (pos 17)
+  Stack Trace:
+     at CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_arms_peer_ready_when_same_turn_observe_fails() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenGlassDialogBridgeTests.cs:line 125
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:09.15]     CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_arms_peer_ready_when_same_turn_observe_ran [FAIL]
+[xUnit.net 00:01:09.39]     CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_executes_routes_and_latches_peer_ack [FAIL]
+  Failed CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_arms_peer_ready_when_same_turn_observe_ran [58 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+                            ↓ (pos 17)
+Expected: "reason=peer_ready_next_open — no SoftFL l"···
+Actual:   "reason=peer_ready — SoftFL apply PASTE fr"···
+                            ↑ (pos 17)
+  Stack Trace:
+     at CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_arms_peer_ready_when_same_turn_observe_ran() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenGlassDialogBridgeTests.cs:line 80
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Failed CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_executes_routes_and_latches_peer_ack [62 ms]
+  Error Message:
+   Assert.Contains() Failure: Sub-string not found
+String:    "citizen-echo:hands please"
+Not found: "citizen-echo:observe: peer pulse seen"
+  Stack Trace:
+     at CdpMcp.Tests.CitizenGlassDialogBridgeTests.TryProcessOnce_executes_routes_and_latches_peer_ack() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CitizenGlassDialogBridgeTests.cs:line 338
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:01:10.17]     CdpMcp.Tests.CideIntercomVoiceLatchTests.Unread_for_pf_suppressed_when_body_addresses_face_who [FAIL]
+  Failed CdpMcp.Tests.CideIntercomVoiceLatchTests.Unread_for_pf_suppressed_when_body_addresses_face_who [54 ms]
+  Error Message:
+   Assert.Null() Failure: Value is not null
+Expected: null
+Actual:   IntercomVoiceDoc { Acked = False, Body = "@Sierra kitchen dig", Channel = null, FromSeat = "pm", Id = "b1b6836014a5", ··· }
+  Stack Trace:
+     at CdpMcp.Tests.CideIntercomVoiceLatchTests.Unread_for_pf_suppressed_when_body_addresses_face_who() in D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CideIntercomVoiceLatchTests.cs:line 88
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Failed!  - Failed:    29, Passed:  1828, Skipped:     0, Total:  1857, Duration: 1 m 10 s - CdpMcp.Tests.dll (net10.0)
+EXIT:1

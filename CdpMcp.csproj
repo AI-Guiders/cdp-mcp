@@ -19,7 +19,7 @@
     <GuidersCoreRoot Condition="'$(GuidersCoreRoot)' == ''">..\guiders-core</GuidersCoreRoot>
     <!-- Default nuget.org; core dev: /p:UseLocalGuidersCore=true when sibling guiders-core exists -->
     <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == ''">false</UseLocalGuidersCore>
-    <AgentNotesCoreFromSibling Condition="Exists('$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj') OR Exists('..\agent-notes-core\AgentNotes.Core.csproj')">true</AgentNotesCoreFromSibling>
+    <AgentNotesCoreFromSibling Condition="Exists('$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj')">true</AgentNotesCoreFromSibling>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -116,7 +116,6 @@
     <PackageReference Include="AIGuiders.TypescriptLang.Core" Version="0.1.0" />
     <PackageReference Include="AIGuiders.Cdp.Lsp.Core" Version="0.1.2" />
     <ProjectReference Include="$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj" Condition="'$(AgentNotesCoreFromSibling)' == 'true' AND Exists('$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj')" />
-    <ProjectReference Include="..\agent-notes-core\AgentNotes.Core.csproj" Condition="'$(AgentNotesCoreFromSibling)' == 'true' AND !Exists('$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj') AND Exists('..\agent-notes-core\AgentNotes.Core.csproj')" />
     <PackageReference Include="AIGuiders.AgentNotes.Core" Version="2.2.2" Condition="'$(AgentNotesCoreFromSibling)' != 'true'" />
   </ItemGroup>
   <!-- AgentNotes.Mcp.Hosting is not on NuGet; compile from guiders-core or agent-notes-mcp sibling -->
