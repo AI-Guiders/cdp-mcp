@@ -16,4 +16,4 @@
 | 6 | [epsilon-habitat-design.md](epsilon-habitat-design.md) | RU | 0.1 outline |
 | 7 | [relational-partnership-alignment-field.md](relational-partnership-alignment-field.md) | RU | 0.1 field survey |
 
-Версия — внутри файла и в git. **SSOT:** этот каталог (`cdp-mcp/articles/`). **Зеркала (agent-notes):** `knowledge/META/article-*.md` · `article-series-predictive-minds.md` — для MCP без fetch. Авторский рудник: `psychology-models/` + `medicine-evidence/kb-therapy-and-support-boundaries` (не обязателен читателю журнала).
+Версия — внутри файла и в git. **SSOT:** этот каталог (`cdp-mcp/articles/`). **Зеркала (agent-notes):** `knowledge/META/articles/` · `article-series-predictive-minds.md` — для MCP без fetch.
