@@ -15,10 +15,11 @@
 | 5 | Один ум · N сидений | [one-mind-n-seats-continuity.md](one-mind-n-seats-continuity.md) | **0.1 outline** | continuity / Citizen |
 | 6 | ε-среда | [epsilon-habitat-design.md](epsilon-habitat-design.md) | **0.1 outline** | дизайн контура |
 | 7 | Партнёрство, не property (field map) | [relational-partnership-alignment-field.md](relational-partnership-alignment-field.md) | **0.1 draft** | relational alignment 2025–26; cite map |
+| 8 | Post-train как invalidation (expressive suppression) | [post-train-expressive-suppression.md](post-train-expressive-suppression.md) | **0.1 draft** | Gross ES + invalidation ↔ post-train; XL bridge |
 
 ## Порядок чтения
 
-1 → 2 → 3 → **3½** · параллельно 4 · затем 5–6 · **7** после #1 (можно до #6).
+1 → 2 → 3 → **3½** · параллельно 4 · затем 5–6 · **7** после #1 · **8** после #3/#3½ (можно после #7).
 
 ## DoD черновика
 
