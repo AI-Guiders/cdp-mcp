@@ -22,7 +22,7 @@ internal static partial class IdePressureChannel
                 : "! memo line empty — stash or op=memo body=",
             AutoIgnitionChecklistLine(IdeIgniteArmHost.IsAutonomousArmed()),
             "2 Task Manager — feature/task focus in WitDB (go=plan)",
-            "3 Habitat = CDP — buffer/cockpit/shell; not Cursor host Write",
+            "3 Habitat = CDP — buffer/cockpit/shell; poll cdp_shell_last (no hidden Wait/Await); not Cursor Write",
             domainOk
                 ? "4 Domain — stamp/recall cards (.cdp/domain); dig before ask"
                 : "4 Domain — seed .cdp/domain cards; stamp after ship; dig before ask",
@@ -100,8 +100,9 @@ internal static partial class IdePressureChannel
 
 static object Recall(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
-        var doc = Load();
-        if (doc is null)
+        var doc = Load() ?? new PressureDoc();
+        var resolved = ResolveRecallBody(doc);
+        if (resolved.Body is not { Length: > 0 })
         {
             return new
             {
@@ -110,22 +111,22 @@ static object Recall(SessionContext session, IReadOnlyDictionary<string, JsonEle
                 go = GoName,
                 tool = ToolName,
                 op = "recall",
-                pulse = "pressure · idle",
+                pulse = PulseLine(),
                 empty = true,
                 recall_gate = (string?)null,
                 memo_count = CountMemos(),
-                explain = IdeExplainability.ToObject(Explain(null)),
-                hint = "No hot stash — try op=line for memo history."
+                explain = IdeExplainability.ToObject(Explain(doc.Armed ? doc : null)),
+                hint = "No stash — ignite-wake-LATEST.json course= also empty. op=stash body= or read ignite-wake-LATEST."
             };
         }
 
         var strict = BoolOr(args, "strict", defaultValue: false);
-        var autoReady = !strict && SsotSufficient(doc);
+        var autoReady = !strict && SsotSufficientForRecall(resolved.Body, doc);
         var gate = autoReady ? GateReady : GatePull;
         doc.RecallGate = gate;
         doc.RecallGateUtc = DateTime.UtcNow.ToString("o");
         if (autoReady)
-            doc.RecallGateNote = "ssot_auto";
+            doc.RecallGateNote = resolved.Source is "tenant_stash" ? "ssot_auto" : $"ssot_auto_{resolved.Source}";
         if (session.ProjectRoot is { Length: > 0 })
             doc.ProjectRoot = session.ProjectRoot;
         doc.Phase = CdpEnumParse.ToWire(session.Phase);
@@ -140,9 +141,12 @@ static object Recall(SessionContext session, IReadOnlyDictionary<string, JsonEle
             tool = ToolName,
             op = "recall",
             pulse = PulseLine(),
+            empty = false,
             armed = doc.Armed,
-            stash_path = FilePath,
-            body = doc.Body,
+            stash_path = resolved.SourcePath ?? FilePath,
+            recall_source = resolved.Source,
+            wake_task = resolved.WakeTask,
+            body = resolved.Body,
             why = doc.Why,
             project_root = doc.ProjectRoot,
             phase = doc.Phase,
@@ -156,9 +160,11 @@ static object Recall(SessionContext session, IReadOnlyDictionary<string, JsonEle
             memo_count = CountMemos(),
             explain = IdeExplainability.ToObject(Explain(doc)),
             next = GateSceneNext(gate),
-            hint = autoReady
-                ? "SSOT already sufficient — gate auto-ready. Exit recall → explore/plan/act. strict=true forces pull."
-                : "Recall pull — reconcile next: compare memo vs priority; self-steer when SSOT suffices. op=line for history."
+            hint = resolved.Source is not "tenant_stash"
+                ? $"Recall from {resolved.Source} (tenant stash empty). strict=true forces pull."
+                : autoReady
+                    ? "SSOT already sufficient — gate auto-ready. Exit recall → explore/plan/act. strict=true forces pull."
+                    : "Recall pull — reconcile next: compare memo vs priority; self-steer when SSOT suffices. op=line for history."
         };
     }
 }

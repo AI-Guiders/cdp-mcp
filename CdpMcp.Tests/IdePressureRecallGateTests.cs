@@ -27,7 +27,12 @@ public sealed class IdePressureRecallGateTests
             _ = IdePressureChannel.Handle(session, Dict("op", "arm"));
             _ = IdePressureChannel.Handle(session, Dict("op", "stash", "body", "## Domain\nGlass primary"));
 
-            using var recall = JsonDocument.Parse(IdePressureChannel.HandleJson(session, Dict("op", "recall")));
+            using var recallAuto = JsonDocument.Parse(IdePressureChannel.HandleJson(session, Dict("op", "recall")));
+            Assert.Equal("ready", recallAuto.RootElement.GetProperty("recall_gate").GetString());
+            Assert.True(recallAuto.RootElement.GetProperty("ssot_auto").GetBoolean());
+
+            using var recall = JsonDocument.Parse(IdePressureChannel.HandleJson(
+                session, DictBool("op", "recall", "strict", true)));
             Assert.Equal("pull", recall.RootElement.GetProperty("recall_gate").GetString());
             Assert.False(recall.RootElement.GetProperty("ssot_auto").GetBoolean());
             Assert.Contains("recall·pull", IdePressureChannel.PulseLine(), StringComparison.Ordinal);

@@ -35,6 +35,7 @@ internal static partial class IdePressureChannel
         - Which axe? domain antipattern / PathMutate / human_face_cide_shot / world_dig_missing / half-a
         - KB/domain for this surface? dig one card / pulse / shot before act
         - World dig? doubt/variants → domain/pack/browser/internet → compare → propose (training ≠ dig)
+        - Poll? cdp_shell_last / terminal_last — never hidden Wait/Await/block_until; Start-Sleep visible in cdp_shell when sleeping
         - Shot? evidence=path.png of right window (title=M · MFD host) + Read PNG — File.Exists alone ≠ human saw
         Ontology lives in habitat (course + refuse) — not polite agreement.
         """;

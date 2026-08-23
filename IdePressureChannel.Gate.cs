@@ -123,8 +123,7 @@ internal static partial class IdePressureChannel
 
     /// <summary>Stash body + plan and/or ignite note — enough to skip ceremony.</summary>
     static bool SsotSufficient(PressureDoc doc) =>
-        doc.Body is { Length: >= 40 }
-        && (doc.PlanNote is { Length: > 0 } || doc.IgniteNote is { Length: > 0 });
+        SsotSufficientForRecall(doc.Body, doc);
 
     /// <summary>op=steer|ssot|fast — jump to ready when SSOT ok; else land on reconcile.</summary>
     static object SteerSsot(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
