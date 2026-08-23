@@ -79,6 +79,10 @@ internal static partial class CitizenRouteHost
             "remove" => "cdp_pkg_remove",
             "update" => "cdp_pkg_update",
             "outdated" => "cdp_pkg_outdated",
+            "audit" => "cdp_pkg_audit",
+            "latest" => "cdp_pkg_latest",
+            "upgrade_plan" => "cdp_pkg_upgrade_plan",
+            "supply_chain" => "cdp_pkg_supply_chain",
             _ => "cdp_pkg_list"
         };
 
@@ -98,6 +102,10 @@ internal static partial class CitizenRouteHost
             if (op is "add" or "update")
                 PutIfPresent(args, "version", route.Detail);
         }
+        else if (op is "latest")
+            PutIfPresent(args, "id", route.Tool);
+        else if (op is "supply_chain")
+            PutIfPresent(args, "root", route.Path);
 
         return args;
     }

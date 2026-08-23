@@ -68,6 +68,27 @@ public sealed class CitizenPkgHostTests
     }
 
     [Fact]
+    public void Route_pkg_audit_and_latest()
+    {
+        var audit = CitizenIntentRouter.RouteOne("pkg audit");
+        Assert.True(audit.Ok);
+        Assert.Equal("audit", audit.Op);
+
+        var vuln = CitizenIntentRouter.RouteOne("pkg vuln");
+        Assert.True(vuln.Ok);
+        Assert.Equal("audit", vuln.Op);
+
+        var latest = CitizenIntentRouter.RouteOne("pkg latest id=Newtonsoft.Json");
+        Assert.True(latest.Ok);
+        Assert.Equal("latest", latest.Op);
+        Assert.Equal("Newtonsoft.Json", latest.Tool);
+
+        var plan = CitizenIntentRouter.RouteOne("pkg upgrade_plan");
+        Assert.True(plan.Ok);
+        Assert.Equal("upgrade_plan", plan.Op);
+    }
+
+    [Fact]
     public void Execute_pkg_list_with_override_ok()
     {
         CitizenRouteHost.UnbindLifecycle();

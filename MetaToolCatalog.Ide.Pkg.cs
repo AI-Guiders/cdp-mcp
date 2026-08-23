@@ -64,6 +64,40 @@ internal static partial class MetaToolCatalog
         type = "object",
         properties = new { path = new { type = "string" } }
     }),
+    Meta("cdp_pkg_audit", "Audit NuGet vulnerabilities (dotnet list --vulnerable JSON). Prefer before blind upgrades.", new
+    {
+        type = "object",
+        properties = new
+        {
+            path = new { type = "string", description = "Optional .csproj / .sln override" },
+            include_transitive = new { type = "boolean", description = "Include transitive packages (default true)" }
+        }
+    }),
+    Meta("cdp_pkg_latest", "Resolve latest NuGet version for a package id (NuGet.Protocol).", new
+    {
+        type = "object",
+        properties = new
+        {
+            id = new { type = "string", description = "Package id" },
+            include_prerelease = new { type = "boolean", description = "Include prerelease versions" }
+        },
+        required = new[] { "id" }
+    }),
+    Meta("cdp_pkg_upgrade_plan", "Plan vulnerability fixes: audit + latest feed lookup. Agent applies via cdp_pkg_update / csproj edits.", new
+    {
+        type = "object",
+        properties = new
+        {
+            path = new { type = "string" },
+            include_transitive = new { type = "boolean" },
+            include_prerelease = new { type = "boolean" }
+        }
+    }),
+    Meta("cdp_pkg_supply_chain", "Review NuGet.Config sources, CPM (Directory.Packages.props), basic supply-chain signals.", new
+    {
+        type = "object",
+        properties = new { root = new { type = "string", description = "Repo root (default session project dir)" } }
+    }),
     Meta("cdp_project_scene", "Project map before create (git_scene analogue): curated templates (VS-like), session anchors, existing csproj/sln. Optional include_installed=true → dotnet new list. Prefer before inventing files / guessing template=.", new
     {
         type = "object",

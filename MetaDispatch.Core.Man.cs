@@ -24,7 +24,7 @@ internal static partial class MetaDispatch
                "cdp_goto (Ctrl+T code + Ctrl+Q features → land/peek), " +
                "cdp_buffer(op=scene|open|read|edit|diagnostics|close) file buffer SSOT; edit returns diagnostics, " +
                "cdp_debug(op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|…) debug plane; session defaults, not breakpoints JSON, " +
-               "cdp_pkg_find|list|add|remove|update|outdated, cdp_project_scene|create|list|close|add_to_sln, " +
+               "cdp_pkg_find|list|add|remove|update|outdated|audit|latest|upgrade_plan|supply_chain, cdp_project_scene|create|list|close|add_to_sln, " +
                "cdp_sln_create|list|projects|add|remove, " +
                "cdp_work(op=intent|stage|scene), cdp_tools(... palette), " +
                "IDE: go_to_definition|find_usages|get_document_symbols|get_symbol_at_position|get_diagnostics|get_completions|get_signature_help|find|find_in_files|take|resolve_project_root|get_workspace_navigation_context, " +

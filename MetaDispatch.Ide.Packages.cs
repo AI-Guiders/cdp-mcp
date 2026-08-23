@@ -72,6 +72,42 @@ internal static partial class MetaDispatch
         var (bus, plan) = PackageSession(session, callArgs);
         return (await PackageOps.OutdatedAsync(bus, plan, OptionalPath(callArgs), cancellationToken).ConfigureAwait(false)).ToJson();
     }
+    case "cdp_pkg_audit":
+    {
+        var (bus, plan) = PackageSession(session, callArgs);
+        var includeTransitive = !callArgs.TryGetValue("include_transitive", out var it)
+            || it.ValueKind != JsonValueKind.False;
+        return (await PackageIntelligenceOps.AuditAsync(bus, plan, OptionalPath(callArgs), includeTransitive, cancellationToken)
+            .ConfigureAwait(false)).ToJson();
+    }
+    case "cdp_pkg_latest":
+    {
+        var id = callArgs.TryGetValue("id", out var idEl) ? idEl.GetString() : null;
+        if (string.IsNullOrWhiteSpace(id))
+            throw new ArgumentException("id is required.");
+        var includePrerelease = callArgs.TryGetValue("include_prerelease", out var ip)
+            && ip.ValueKind == JsonValueKind.True;
+        var (bus, plan) = PackageSession(session, callArgs);
+        return (await PackageIntelligenceOps.LatestAsync(bus, plan, id!, includePrerelease, cancellationToken)
+            .ConfigureAwait(false)).ToJson();
+    }
+    case "cdp_pkg_upgrade_plan":
+    {
+        var (bus, plan) = PackageSession(session, callArgs);
+        var includeTransitive = !callArgs.TryGetValue("include_transitive", out var it2)
+            || it2.ValueKind != JsonValueKind.False;
+        var includePrerelease = callArgs.TryGetValue("include_prerelease", out var ip2)
+            && ip2.ValueKind == JsonValueKind.True;
+        return (await PackageIntelligenceOps.UpgradePlanAsync(bus, plan, OptionalPath(callArgs), includeTransitive, includePrerelease, cancellationToken)
+            .ConfigureAwait(false)).ToJson();
+    }
+    case "cdp_pkg_supply_chain":
+    {
+        var (bus, plan) = PackageSession(session, callArgs);
+        var root = callArgs.TryGetValue("root", out var rEl) ? rEl.GetString() : null;
+        return (await PackageIntelligenceOps.SupplyChainAsync(bus, plan, root, cancellationToken)
+            .ConfigureAwait(false)).ToJson();
+    }
     case "cdp_project_scene":
     {
         var (bus, plan) = PackageSession(session, callArgs);

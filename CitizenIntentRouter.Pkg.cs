@@ -42,16 +42,19 @@ internal static partial class CitizenIntentRouter
             ?? ExtractKeyedValue(work, "ver");
         var take = ExtractKeyedValue(work, "take")
             ?? ExtractKeyedValue(work, "limit");
+        var root = ExtractKeyedValue(work, "root");
 
         // Positional: pkg find Newtonsoft · pkg add Some.Package
         if (string.IsNullOrWhiteSpace(query) && op is "find")
             query = TryPositionalAfterOp(work, "find");
-        if (string.IsNullOrWhiteSpace(id) && op is "add" or "remove" or "update")
+        if (string.IsNullOrWhiteSpace(id) && op is "add" or "remove" or "update" or "latest")
             id = TryPositionalAfterOp(work, op);
 
         if (op is "find" && string.IsNullOrWhiteSpace(query))
             return new Route(Verb.Unknown, raw, Ok: false, Reason: "pkg_query_required");
         if ((op is "add" or "remove" or "update") && string.IsNullOrWhiteSpace(id))
+            return new Route(Verb.Unknown, raw, Ok: false, Reason: "pkg_id_required");
+        if (op is "latest" && string.IsNullOrWhiteSpace(id))
             return new Route(Verb.Unknown, raw, Ok: false, Reason: "pkg_id_required");
 
         return new Route(
@@ -59,7 +62,7 @@ internal static partial class CitizenIntentRouter
             raw,
             Ok: true,
             Op: op,
-            Path: path,
+            Path: path ?? root,
             Tool: id,
             Scene: query,
             Detail: version ?? take,
@@ -110,7 +113,16 @@ internal static partial class CitizenIntentRouter
         ("nuget_add", "add"),
         ("nuget_remove", "remove"),
         ("nuget_update", "update"),
-        ("nuget_outdated", "outdated")
+        ("nuget_outdated", "outdated"),
+        ("pkg_audit", "audit"),
+        ("pkg_vuln", "audit"),
+        ("pkg_vulnerable", "audit"),
+        ("pkg_latest", "latest"),
+        ("pkg_upgrade_plan", "upgrade_plan"),
+        ("pkg_supply_chain", "supply_chain"),
+        ("nuget_audit", "audit"),
+        ("nuget_latest", "latest"),
+        ("nuget_upgrade_plan", "upgrade_plan")
     ];
 
     static string NormalizePkgOp(string op) =>
@@ -122,9 +134,13 @@ internal static partial class CitizenIntentRouter
             "uninstall" or "rm" or "delete" => "remove",
             "upgrade" or "bump" => "update",
             "stale" or "old" => "outdated",
+            "vuln" or "vulnerable" or "cve" or "audit_vuln" => "audit",
+            "upgrade-plan" or "fix_vuln" or "fix_vulnerable" => "upgrade_plan",
+            "supply-chain" or "supplychain" => "supply_chain",
             _ => op
         };
 
     static bool IsPkgOp(string? op) =>
-        op is "list" or "find" or "add" or "remove" or "update" or "outdated";
+        op is "list" or "find" or "add" or "remove" or "update" or "outdated"
+            or "audit" or "latest" or "upgrade_plan" or "supply_chain";
 }
