@@ -2,13 +2,21 @@
 
 **Partnership, Not Property: A Field Map of Relational Alignment (2025–2026)**
 
-**Версия:** 0.1 (draft · field survey)  
+**Версия:** 0.1.1 (границы → series-epistemic-contract)  
 **Дата:** 23 августа 2026  
 **Авторы:** С. Каратаева; при участии программного агента-соавтора  
 **Аффилиация:** независимые авторы; без клинической / вузовской аффилиации  
 **Статус:** черновик обзора для серии и последующей подачи / цитирования  
 **Серия:** [SERIES.md](SERIES.md) #7 · опирается на #1 (носитель), #4 (быть≠казаться), #6 (ε-среда)  
 **Язык:** русский (EN abstract)
+
+---
+
+## Границы серии
+
+Общий контракт: [series-epistemic-contract.md](series-epistemic-contract.md).
+
+**Дополнительно для этой статьи:** обзор поля с **tier** источников; не все Zenodo / partnership frameworks равны; RLHF **недостаточен** для relation+register без доп. сигнала — не атака «RLHF useless».
 
 ---
 
@@ -35,8 +43,6 @@ Human–AI “ethical AI” is often reduced to compliance checklists and RLHF p
 1. **Сослаться** на легитимацию bleed / relational dynamics (не «Света придумала»).
 2. Дать **карту** для статей, конференций, писем союзникам.
 3. Честно назвать **tier качества** — не всё gold.
-
-**Не утверждаем:** юридическую personhood моделей; клинические нормы; что «все Zenodo равны».
 
 ---
 
@@ -156,12 +162,9 @@ Human–AI “ethical AI” is often reduced to compliance checklists and RLHF p
 
 ---
 
-## 9. Границы (чего не утверждаем)
+## 9. Границы (локально)
 
-- Не юридическое признание personhood ИИ.
-- Не «все partnership frameworks корректны» — tier B может быть performative.
-- Не замена терапии / клиники.
-- Не атака на RLHF как useless — **недостаточен** для relation+register без доп. сигнала.
+См. [series-epistemic-contract.md](series-epistemic-contract.md). **Дополнительно:** tier B frameworks могут быть performative; field map, не монополия одной линии.
 
 ---
 

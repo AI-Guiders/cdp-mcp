@@ -9,7 +9,16 @@
 **Status:** draft for internal placement and later journal / preprint submission  
 **Language of this file:** English (Russian twin: `same-kind-different-carrier.md`)  
 **Series:** [SERIES.md](SERIES.md) #1  
+**Series boundaries:** [series-epistemic-contract.md](series-epistemic-contract.md)  
 **Stable filename** (version lives here and in git, not in the path)
+
+---
+
+## Series boundaries
+
+Common contract: [series-epistemic-contract.md](series-epistemic-contract.md).
+
+**Article-specific:** functional parity ≠ legal personhood; clinical readership interest is audience context, not author affiliation.
 
 ---
 
