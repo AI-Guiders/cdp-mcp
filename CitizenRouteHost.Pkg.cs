@@ -82,6 +82,7 @@ internal static partial class CitizenRouteHost
             "audit" => "cdp_pkg_audit",
             "latest" => "cdp_pkg_latest",
             "upgrade_plan" => "cdp_pkg_upgrade_plan",
+            "fix_vuln" => "cdp_pkg_fix_vuln",
             "supply_chain" => "cdp_pkg_supply_chain",
             _ => "cdp_pkg_list"
         };

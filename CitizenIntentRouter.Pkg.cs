@@ -119,10 +119,12 @@ internal static partial class CitizenIntentRouter
         ("pkg_vulnerable", "audit"),
         ("pkg_latest", "latest"),
         ("pkg_upgrade_plan", "upgrade_plan"),
+        ("pkg_fix_vuln", "fix_vuln"),
         ("pkg_supply_chain", "supply_chain"),
         ("nuget_audit", "audit"),
         ("nuget_latest", "latest"),
-        ("nuget_upgrade_plan", "upgrade_plan")
+        ("nuget_upgrade_plan", "upgrade_plan"),
+        ("nuget_fix_vuln", "fix_vuln")
     ];
 
     static string NormalizePkgOp(string op) =>
@@ -135,12 +137,13 @@ internal static partial class CitizenIntentRouter
             "upgrade" or "bump" => "update",
             "stale" or "old" => "outdated",
             "vuln" or "vulnerable" or "cve" or "audit_vuln" => "audit",
-            "upgrade-plan" or "fix_vuln" or "fix_vulnerable" => "upgrade_plan",
+            "upgrade-plan" or "plan_vuln" => "upgrade_plan",
+            "fix_vuln" or "fix_vulnerable" or "vuln_fix" => "fix_vuln",
             "supply-chain" or "supplychain" => "supply_chain",
             _ => op
         };
 
     static bool IsPkgOp(string? op) =>
         op is "list" or "find" or "add" or "remove" or "update" or "outdated"
-            or "audit" or "latest" or "upgrade_plan" or "supply_chain";
+            or "audit" or "latest" or "upgrade_plan" or "fix_vuln" or "supply_chain";
 }

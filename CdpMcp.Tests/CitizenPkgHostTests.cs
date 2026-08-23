@@ -86,6 +86,10 @@ public sealed class CitizenPkgHostTests
         var plan = CitizenIntentRouter.RouteOne("pkg upgrade_plan");
         Assert.True(plan.Ok);
         Assert.Equal("upgrade_plan", plan.Op);
+
+        var fix = CitizenIntentRouter.RouteOne("pkg fix_vuln");
+        Assert.True(fix.Ok);
+        Assert.Equal("fix_vuln", fix.Op);
     }
 
     [Fact]

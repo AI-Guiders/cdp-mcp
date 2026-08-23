@@ -101,6 +101,12 @@ internal static partial class MetaDispatch
         return (await PackageIntelligenceOps.UpgradePlanAsync(bus, plan, OptionalPath(callArgs), includeTransitive, includePrerelease, cancellationToken)
             .ConfigureAwait(false)).ToJson();
     }
+    case "cdp_pkg_fix_vuln":
+    {
+        var (bus, plan) = PackageSession(session, callArgs);
+        return (await PackageIntelligenceOps.FixVulnAsync(bus, plan, OptionalPath(callArgs), cancellationToken)
+            .ConfigureAwait(false)).ToJson();
+    }
     case "cdp_pkg_supply_chain":
     {
         var (bus, plan) = PackageSession(session, callArgs);

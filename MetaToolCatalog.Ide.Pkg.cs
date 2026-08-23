@@ -83,15 +83,20 @@ internal static partial class MetaToolCatalog
         },
         required = new[] { "id" }
     }),
-    Meta("cdp_pkg_upgrade_plan", "Plan vulnerability fixes: audit + latest feed lookup. Agent applies via cdp_pkg_update / csproj edits.", new
+    Meta("cdp_pkg_upgrade_plan", "Plan vulnerability fixes (audit + SDK strategy). Apply with cdp_pkg_fix_vuln.", new
     {
         type = "object",
         properties = new
         {
             path = new { type = "string" },
             include_transitive = new { type = "boolean" },
-            include_prerelease = new { type = "boolean" }
+            include_prerelease = new { type = "boolean", description = "Optional feed hint only; SDK resolves graph on apply" }
         }
+    }),
+    Meta("cdp_pkg_fix_vuln", "Apply vulnerability fixes via dotnet package update --vulnerable (SDK 10). Run cdp_pkg_upgrade_plan first.", new
+    {
+        type = "object",
+        properties = new { path = new { type = "string", description = "Optional .csproj / .sln override" } }
     }),
     Meta("cdp_pkg_supply_chain", "Review NuGet.Config sources, CPM (Directory.Packages.props), basic supply-chain signals.", new
     {
