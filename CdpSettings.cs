@@ -17,6 +17,7 @@ internal sealed partial class CdpSettings
     public IntentWorkspaceSettings IntentWorkspace { get; init; } = new();
     public CockpitHostSettings CockpitHost { get; init; } = new();
     public CdpServiceSettings Service { get; init; } = new();
+    public CitizenSettings Citizen { get; init; } = new();
     public VendorCatalogOptions Vendor { get; init; } = VendorCatalog.CreateBuiltInDefaults();
 
     /// <summary>worlds + META + "." knowledge-root hub (SHOWCASE.md, index-*.md).</summary>
@@ -42,6 +43,7 @@ internal sealed partial class CdpSettings
         var intentWs = doc.IntentWorkspace ?? new CdpTomlIntentWorkspace();
         var cockpitHost = doc.CockpitHost ?? new CdpTomlCockpitHost();
         var service = doc.Service ?? new CdpTomlService();
+        var citizen = doc.Citizen ?? new CdpTomlCitizen();
 
         return new CdpSettings
         {
@@ -88,6 +90,10 @@ internal sealed partial class CdpSettings
                 Port = service.Port is > 0 and < 65536 ? service.Port.Value : 8771,
                 TokenPath = string.IsNullOrWhiteSpace(service.TokenPath) ? null : service.TokenPath.Trim()
             },
+            Citizen = new CitizenSettings
+            {
+                Enabled = citizen.Enabled ?? true
+            },
             Vendor = VendorCatalog.CreateBuiltInDefaults()
         };
     }
@@ -103,6 +109,12 @@ internal sealed partial class CdpSettings
         public CdpTomlIntentWorkspace? IntentWorkspace { get; set; }
         public CdpTomlCockpitHost? CockpitHost { get; set; }
         public CdpTomlService? Service { get; set; }
+        public CdpTomlCitizen? Citizen { get; set; }
+    }
+
+    private sealed class CdpTomlCitizen
+    {
+        public bool? Enabled { get; set; }
     }
 
     private sealed class CdpTomlService
@@ -238,4 +250,10 @@ internal sealed class CockpitHostSettings
 {
     /// <summary>Absolute path to Glass / operator cabin exe. Start path= stamps live; env is escape only.</summary>
     public string? Exe { get; init; }
+}
+
+/// <summary>Citizen Completions host kill switch — [citizen] enabled=false stops live FM turns (AutoI prefer_citizen + Glass bridge).</summary>
+internal sealed class CitizenSettings
+{
+    public bool Enabled { get; init; } = true;
 }

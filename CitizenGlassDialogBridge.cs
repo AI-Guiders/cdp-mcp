@@ -64,6 +64,8 @@ internal static class CitizenGlassDialogBridge
     {
         if (!IdeIgniteArmHost.IsPrimaryAutoiSeat())
             return;
+        if (!IdeCitizenChannel.IsEnabled())
+            return;
         Stop();
         RecoverOrphanRunning();
         var cts = new CancellationTokenSource();

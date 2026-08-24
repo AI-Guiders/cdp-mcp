@@ -12,6 +12,27 @@ internal static partial class IdeCitizenChannel
     public const string ToolName = "cdp_citizen";
     public const string Schema = "citizen_host/v0";
 
+    /// <summary>From [citizen] enabled= in cdp-mcp.toml; env CDP_CITIZEN_ENABLED overrides (0/false/off).</summary>
+    static bool ConfigEnabled = true;
+
+    internal static void ApplySettings(CitizenSettings citizen) =>
+        ConfigEnabled = citizen.Enabled;
+
+    /// <summary>Live Completions kill switch — false ⇒ no FM tokens (AutoI prefer_citizen, Glass bridge, op=turn).</summary>
+    internal static bool IsEnabled()
+    {
+        var env = Environment.GetEnvironmentVariable("CDP_CITIZEN_ENABLED")?.Trim();
+        if (!string.IsNullOrEmpty(env))
+        {
+            if (env is "0" or "false" or "off" or "no" or "disabled")
+                return false;
+            if (env is "1" or "true" or "on" or "yes" or "enabled")
+                return true;
+        }
+
+        return ConfigEnabled;
+    }
+
     public static string HandleJson(IReadOnlyDictionary<string, JsonElement> args)
     {
         var op = Arg(args, "op") ?? "scene";
@@ -97,18 +118,22 @@ internal static partial class IdeCitizenChannel
     static string Scene()
     {
         var keys = CitizenAiKeys.Load();
+        var enabled = IsEnabled();
         var invite = InviteReady(keys);
         var cost = CitizenCostLedger.Pulse();
         var costPulse = CitizenCostLedger.PulseLine();
-        var pulse = invite.Ready
-            ? "citizen · invite=ready · keys=set · " + costPulse + " · tea"
-            : "citizen · invite=blocked · keys=" + (keys.FileExists ? "empty" : "missing");
+        var pulse = !enabled
+            ? "citizen · enabled=false · Completions off · " + costPulse
+            : invite.Ready
+                ? "citizen · invite=ready · keys=set · " + costPulse + " · tea"
+                : "citizen · invite=blocked · keys=" + (keys.FileExists ? "empty" : "missing");
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
             ok = true,
             op = "scene",
             pulse,
+            enabled,
             persona_chars = CitizenPersona.WireSystemPrompt.Length,
             dialog_persona_chars = CitizenPersona.DialogSystemPrompt.Length,
             cost,
@@ -125,10 +150,12 @@ internal static partial class IdeCitizenChannel
                 : CitizenCompletions.ProviderAnthropic,
             keys = keys.ToPublicPulse(),
             invite_ready = invite,
-            hint = invite.Ready
-                ? "invite ready — op=turn mode=dialog message=… for peer prose; mode=wire for hands. dry_run= still free. cost= ledger on live turns."
-                : "not invite-ready — copy docs/design/ai-keys.example.toml → CascadeIDE ai-keys.toml; fill open_ai_api_key (Cloud.ru) or anthropic_api_key. dry_run= explains without keys.",
-            next = invite.Ready
+            hint = !enabled
+                ? "[citizen] enabled=false (or CDP_CITIZEN_ENABLED=0) — no live Completions. Flip to true when Glass/Citizen leaf returns."
+                : invite.Ready
+                    ? "invite ready — op=turn mode=dialog message=… for peer prose; mode=wire for hands. dry_run= still free. cost= ledger on live turns."
+                    : "not invite-ready — copy docs/design/ai-keys.example.toml → CascadeIDE ai-keys.toml; fill open_ai_api_key (Cloud.ru) or anthropic_api_key. dry_run= explains without keys.",
+            next = enabled && invite.Ready
                 ? new object[]
                 {
                     new { go = "citizen", label = "Dialog tea", why = "op=turn mode=dialog message=привет" },
@@ -159,9 +186,10 @@ internal static partial class IdeCitizenChannel
         AutoiWakeTurnOverrideForTests = null;
     }
 
-    /// <summary>Live invite gate (OpenAI-compat or Anthropic key).</summary>
+    /// <summary>Live invite gate — off when [citizen] enabled=false; else OpenAI-compat or Anthropic key.</summary>
     internal static bool IsInviteReady() =>
-        InviteReadyOverrideForTests?.Invoke() ?? InviteReady(CitizenAiKeys.Load()).Ready;
+        IsEnabled()
+        && (InviteReadyOverrideForTests?.Invoke() ?? InviteReady(CitizenAiKeys.Load()).Ready);
 
     /// <summary>
     /// Autoi wake → citizen Turn (+ host-execute routes). False → Guest CDT fallthrough.
@@ -212,6 +240,15 @@ internal static partial class IdeCitizenChannel
 
     static InviteGate InviteReady(CitizenAiKeys.Snapshot keys)
     {
+        if (!IsEnabled())
+        {
+            return new InviteGate(
+                false,
+                "disabled",
+                ["citizen · enabled=false", "Completions · off"],
+                "[citizen] enabled=false — live Completions kill switch");
+        }
+
         var checklist = new List<string>
         {
             "persona · ok",
@@ -259,6 +296,10 @@ internal static partial class IdeCitizenChannel
             return Fail("message_required", "turn message=… [board=] [dry_run=true] [execute=]");
 
         var dryRun = Bool(args, "dry_run") || Bool(args, "dry");
+        if (!dryRun && !IsEnabled())
+            return Fail(
+                "citizen_disabled",
+                "[citizen] enabled=false — no live Completions (dry_run=true still free; set enabled=true or CDP_CITIZEN_ENABLED=1 to rearm)");
         var inject = !args.ContainsKey("inject") || Bool(args, "inject", defaultTrue: true);
         var execute = WantExecute(args, dryRun);
         var mode = ParseMode(args);

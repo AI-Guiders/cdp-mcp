@@ -49,6 +49,10 @@ enabled = true
 [dev.anui]
 enabled = true
 
+# Citizen Completions — default off until Glass/Citizen leaf returns (FM burn).
+[citizen]
+enabled = false
+
 # Language axis — not a closed enum. Omit section → built-in defaults (csharp/typescript/python/delphi/powershell).
 [languages]
 ids = ["csharp", "typescript", "python", "delphi", "powershell"]

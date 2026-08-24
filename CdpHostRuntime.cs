@@ -122,6 +122,7 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
     {
         cancellationToken.ThrowIfCancellationRequested();
         var settings = CdpSettings.Load(configPath);
+        IdeCitizenChannel.ApplySettings(settings.Citizen);
         var lspPresets = settings.LspPresets.ToList();
         if (!lspPresets.Any(p => p.Id.Equals("powershell", StringComparison.OrdinalIgnoreCase)))
             lspPresets.Add(Ps1EditorServices.BuildLspPreset());
