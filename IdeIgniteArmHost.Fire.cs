@@ -126,8 +126,8 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
-            // OpenCode wake: only when agent stamped session= on this arm (ADR-0205). Env is plumbing, not routing.
-            if (!string.IsNullOrWhiteSpace(arm.OpencodeSession))
+            // Explicit harness seat (agent stamps harness= at arm — installer HostAdapter analogue).
+            if (string.Equals(arm.Harness, "opencode", StringComparison.OrdinalIgnoreCase))
             {
                 MarkSendInvoked(arm.Id);
                 var oc = await IdeIgniteChannel.FireToOpencodeAsync(msg, ct, arm.OpencodeSession).ConfigureAwait(false);
@@ -135,7 +135,15 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
-            // Habitat prefer — duplex skip CDT; autonomous stamps habitat SSOT then may fall through.
+            if (string.Equals(arm.Harness, "citizen", StringComparison.OrdinalIgnoreCase))
+            {
+                MarkSendInvoked(arm.Id);
+                var cit = TryDeliverCitizenHarnessWake(arm, msg);
+                ApplyFireOutcome(arm, cit);
+                return;
+            }
+
+            // harness=cursor (default): habitat prefer — duplex skip CDT; autonomous stamps then may fall through.
             var habitat = TryDeliverHabitatWake(arm, msg);
             if (habitat is not null)
             {

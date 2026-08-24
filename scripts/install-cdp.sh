@@ -20,7 +20,7 @@ usage() {
 Usage: install-cdp.sh [options]
   --root PATH          Install root (default: ~/.local/share/AIGuiders on Linux)
   --runtime RID        linux-x64 | osx-x64 | osx-arm64 (auto-detect default)
-  --host-adapter NAME  cursor | claude | vscode | windsurf | antigravity | none
+  --host-adapter NAME  cursor | claude | vscode | windsurf | antigravity | opencode | none
   --release-tag TAG    GitHub release tag (default: latest)
   --cdp-source PATH    Local published folder (maintainers)
   --upgrade            Preserve existing *.toml under cdp/
@@ -158,6 +158,9 @@ text = json.dumps(payload, indent=2) + "\n"
 for name in ("cursor", "claude", "vscode", "windsurf", "antigravity"):
     with open(os.path.join(snippets_dir, f"{name}.mcp.json"), "w", encoding="utf-8") as f:
         f.write(text)
+oc = {"mcp": {"cdp": {"type": "local", "enabled": True, "timeout": 60000, "command": [cmd, "--config", cfg]}}}
+with open(os.path.join(snippets_dir, "opencode.mcp.json"), "w", encoding="utf-8") as f:
+    f.write(json.dumps(oc, indent=2) + "\n")
 print(f"Wrote host-snippets under {snippets_dir}")
 PY
 }
@@ -223,6 +226,12 @@ case "$HOST_ADAPTER" in
   antigravity)
     merge_mcp_json "$(antigravity_mcp_path)" "$EXE" "$CONFIG_ARG"
     echo "Refresh MCP in Antigravity (MCP Store / View raw config). Path: $(antigravity_mcp_path)"
+    ;;
+  opencode)
+    OC_CFG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/opencode.jsonc"
+    echo "OpenCode: paste mcp.cdp from host-snippets/opencode.mcp.json into $OC_CFG (JSONC — merge by hand if comments present)."
+    echo "  snippet: $SNIPPETS_DIR/opencode.mcp.json"
+    echo "  AutoI wake: cdp_ignite op=arm harness=opencode session=ses_… when=timer in=5m task=…"
     ;;
   none|*) echo "Host none — snippets under $SNIPPETS_DIR" ;;
 esac

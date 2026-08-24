@@ -18,7 +18,7 @@ param(
     [ValidateSet("", "win-x64", "linux-x64", "osx-x64", "osx-arm64")]
     [string]$Runtime = "",
     [string]$KbPublicRepo = "https://github.com/AI-Guiders/kb-public.git",
-    [ValidateSet("cursor", "claude", "vscode", "windsurf", "antigravity", "none")]
+    [ValidateSet("cursor", "claude", "vscode", "windsurf", "antigravity", "opencode", "none")]
     [string]$HostAdapter = "cursor",
     [switch]$Upgrade,
     [switch]$SkipKbClone,
@@ -209,6 +209,12 @@ function Get-WindsurfMcpPath {
     return (Join-Path (Join-Path (Join-Path (Get-HomeDir) ".codeium") "windsurf") "mcp_config.json")
 }
 
+function Get-OpencodeConfigPath {
+    # Global SSOT: ~/.config/opencode/opencode.jsonc (XDG on *nix; %USERPROFILE%\.config on Windows).
+    $xdg = if (-not [string]::IsNullOrWhiteSpace($env:XDG_CONFIG_HOME)) { $env:XDG_CONFIG_HOME } else { Join-Path (Get-HomeDir) ".config" }
+    return (Join-Path (Join-Path $xdg "opencode") "opencode.jsonc")
+}
+
 function Get-AntigravityMcpPath {
     # Antigravity 2.x shared: ~/.gemini/config/mcp_config.json
     # Older IDE-only: ~/.gemini/antigravity/mcp_config.json — prefer existing file.
@@ -373,6 +379,18 @@ Write-Utf8File (Join-Path $snippetsDir "claude.mcp.json") $snippetJson
 Write-Utf8File (Join-Path $snippetsDir "vscode.mcp.json") $snippetJson
 Write-Utf8File (Join-Path $snippetsDir "windsurf.mcp.json") $snippetJson
 Write-Utf8File (Join-Path $snippetsDir "antigravity.mcp.json") $snippetJson
+# OpenCode uses mcp.<name> local command[] (not mcpServers) — see Merge-OpencodeMcp.
+$opencodeSnippet = (@{
+    mcp = @{
+        cdp = @{
+            type = "local"
+            enabled = $true
+            timeout = 60000
+            command = @($exe, "--config", $configArg)
+        }
+    }
+} | ConvertTo-Json -Depth 8)
+Write-Utf8File (Join-Path $snippetsDir "opencode.mcp.json") $opencodeSnippet
 
 switch ($HostAdapter) {
     "cursor" { Merge-McpServers (Get-CursorMcpPath) $exe @("--config", $configArg); Write-Host "Reload MCP in Cursor." }
@@ -386,6 +404,12 @@ switch ($HostAdapter) {
     "antigravity" {
         Merge-McpServers (Get-AntigravityMcpPath) $exe @("--config", $configArg)
         Write-Host "Refresh MCP in Antigravity (MCP Store / View raw config). Path: $(Get-AntigravityMcpPath)"
+    }
+    "opencode" {
+        $ocPath = Get-OpencodeConfigPath
+        Write-Host "OpenCode: paste mcp.cdp from host-snippets/opencode.mcp.json into $ocPath (JSONC — merge by hand if comments present)."
+        Write-Host "  snippet: $(Join-Path $snippetsDir 'opencode.mcp.json')"
+        Write-Host "  AutoI wake: cdp_ignite op=arm harness=opencode session=ses_… when=timer in=5m task=…"
     }
     default { Write-Host "Host none — snippets under $snippetsDir" }
 }

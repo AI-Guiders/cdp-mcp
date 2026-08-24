@@ -94,6 +94,29 @@ internal static partial class IdeIgniteArmHost
             message = IdeIgniteChannel.CanonicalComposerCharge;
 
         var chargeMode = (Opt(args, "charge") ?? "minimal").Trim().ToLowerInvariant();
+        var session = Opt(args, "session") ?? Opt(args, "opencode_session");
+        var harnessRaw = (Opt(args, "harness") ?? Opt(args, "host") ?? "").Trim().ToLowerInvariant();
+        // Explicit seat: harness=cursor|opencode|citizen. Compat: session= alone ⇒ opencode.
+        var harness = string.IsNullOrWhiteSpace(harnessRaw)
+            ? (!string.IsNullOrWhiteSpace(session) ? "opencode" : "cursor")
+            : harnessRaw switch
+            {
+                "oc" or "opencode" or "open-code" => "opencode",
+                "citizen" or "sierra" or "completions" => "citizen",
+                "cursor" or "composer" or "cdt" or "guest" => "cursor",
+                _ => harnessRaw
+            };
+        if (harness is not ("cursor" or "opencode" or "citizen"))
+        {
+            err = Err("arm", "bad_harness", $"harness must be cursor|opencode|citizen (got '{harness}')");
+            return false;
+        }
+
+        if (harness == "opencode" && string.IsNullOrWhiteSpace(session))
+        {
+            err = Err("arm", "session_required", "harness=opencode requires session=<opencode session id>");
+            return false;
+        }
 
         arm = new IgniteArm
         {
@@ -103,7 +126,8 @@ internal static partial class IdeIgniteArmHost
             ChargeMode = chargeMode,
             Task = task,
             Chat = chat,
-            OpencodeSession = Opt(args, "session") ?? Opt(args, "opencode_session"),
+            Harness = harness,
+            OpencodeSession = session,
             Port = port,
             Once = once,
             LastOnce = lastOnce,

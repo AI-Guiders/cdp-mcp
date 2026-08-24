@@ -52,6 +52,46 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>
+    /// Explicit harness=citizen wake — Completions Turn, no Composer sample / prefer_citizen guess.
+    /// </summary>
+    internal static object TryDeliverCitizenHarnessWake(IgniteArm arm, string charge)
+    {
+        _ = IdeIgniteWakeLatch.Publish(arm.Id, charge, IdeIgniteWakeLatch.ChannelHabitat, arm.Reason, arm.Task);
+        if (IsHabitatPartnerLive())
+        {
+            IdeFlightDataRecorder.RecordWake(
+                "wake_habitat", arm.Id, ToolFromWakeArm(arm), "citizen_harness_face_busy");
+            return new
+            {
+                ok = false,
+                submit_kind = "citizen",
+                channel = "citizen",
+                error = "face_busy",
+                detail = "PF Face busy|composing — defer citizen harness wake"
+            };
+        }
+
+        if (!IdeCitizenChannel.TryDeliverAutoiWake(charge, out var reply))
+        {
+            IdeFlightDataRecorder.RecordWake(
+                "wake_habitat", arm.Id, ToolFromWakeArm(arm), "citizen_harness_invite_not_ready");
+            return new
+            {
+                ok = false,
+                submit_kind = "citizen",
+                channel = "citizen",
+                error = "invite_not_ready",
+                detail = "harness=citizen but invite_ready=false — set keys / cdp_citizen scene"
+            };
+        }
+
+        TryApplyCitizenFocusLane();
+        IdeFlightDataRecorder.RecordWake("wake_habitat", arm.Id, ToolFromWakeArm(arm), "harness_citizen");
+        PublishCitizenWakeIntercom(arm, reply ?? charge);
+        return HabitatWakeResult(arm.Id, "harness_citizen", submitKind: "citizen");
+    }
+
+    /// <summary>
     /// Composer Stop/Queue/gone: habitat deliver, skip CDT — no Intercom mirror required.
     /// When invite ready: citizen Turn consumes (prefer_citizen) — Composer host gone only.
     /// Covers Voice Publish miss / mirror false → residual no_agent_composer thrash (0.5.527).
