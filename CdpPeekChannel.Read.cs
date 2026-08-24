@@ -242,6 +242,7 @@ internal static partial class CdpPeekChannel
             has_more = hasMore,
             next_offset = nextOffset,
             chars,
+            outline_hint = OutlineHint(rel, absPath, totalLines),
             text = textBlock,
             lines = wantLines
                 ? slice.Select(l => new { n = l.N, text = l.Text, anchor = l.Anchor }).ToList()

@@ -61,6 +61,9 @@ internal static partial class CdpPeekChannel
         if (abs is null)
             return Fail(resolveErr ?? "path_invalid", $"Could not resolve path={path}", bindNote ?? "cdp_open or scope=external path= absolute.");
 
+        if (string.Equals(Opt(args, "mode"), "outline", StringComparison.OrdinalIgnoreCase))
+            return PeekOutline(session, abs, args, bindNote);
+
         return PeekFile(session, abs, args, bindNote);
     }
 

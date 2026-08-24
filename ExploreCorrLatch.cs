@@ -127,6 +127,13 @@ internal static class ExploreCorrLatch
         if (string.Equals(stamped, target, StringComparison.OrdinalIgnoreCase))
             return true;
 
+        // Redundant root prefix on the stamp (path passed relative to an outer root):
+        // match when the target rel is a suffix of the stamped rel (or vice versa) on a path boundary.
+        if (target.Length > stamped.Length && target.EndsWith("/" + stamped, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (stamped.Length > target.Length && stamped.EndsWith("/" + target, StringComparison.OrdinalIgnoreCase))
+            return true;
+
         // Directory prefix latch (map keys / folder dig).
         var prefix = stamped.EndsWith('/') ? stamped : stamped + "/";
         if (target.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))

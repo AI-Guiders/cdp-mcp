@@ -13,6 +13,17 @@ internal static class ExploreCorrGate
 {
     public const string RefuseId = ExploreCorrLatch.RefuseId;
 
+    // Docs/prose/markup are artifacts, not code↔ADR loci — the full-a gate applies to
+    // source-code mutation, not to editing text/doc files (ADR-0031 scope).
+    // Non-code extensions are skipped entirely; code keeps the full-a requirement.
+    static readonly HashSet<string> NonCodeDocExts = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".md", ".markdown", ".txt", ".rst", ".adoc", ".log", ".html", ".htm"
+    };
+
+    static bool IsCodeLocus(string full) =>
+        !NonCodeDocExts.Contains(Path.GetExtension(full));
+
     public static void RefuseMutateIfNeeded(
         string? absPath,
         string? rootHint,
@@ -36,6 +47,9 @@ internal static class ExploreCorrGate
         {
             return;
         }
+
+        if (!IsCodeLocus(full))
+            return;
 
         var tier = ExploreCorrPolicy.ResolveMode(full, rootHint);
         if (tier == ExploreCorrPolicy.Mode.Off)
@@ -84,6 +98,9 @@ internal static class ExploreCorrGate
         {
             return null;
         }
+
+        if (!IsCodeLocus(full))
+            return null;
 
         var tier = ExploreCorrPolicy.ResolveMode(full, rootHint);
         if (tier == ExploreCorrPolicy.Mode.Off)

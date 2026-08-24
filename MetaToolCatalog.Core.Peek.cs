@@ -32,7 +32,8 @@ internal static partial class MetaToolCatalog
             bind = new { type = "boolean", description = "Lazy session project detect from path (default true)" },
             include_anchors = new { type = "boolean", description = "Emit lines[].anchor (default true)" },
             text_only = new { type = "boolean", description = "Omit lines[] array" },
-            structured_only = new { type = "boolean", description = "Omit numbered text block" }
+            structured_only = new { type = "boolean", description = "Omit numbered text block" },
+            mode = new { type = "string", description = "outline: structural section map for md/json/yaml/toml (cheap markers); else normal file read" }
         }
     })
     ];
