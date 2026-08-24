@@ -89,8 +89,9 @@ function Copy-TsWorker {
     $workerSrc = Join-Path $here "..\typescript-lang\worker"
     $workerDst = Join-Path $DeployRoot "ts-worker"
     if (-not (Test-Path -LiteralPath (Join-Path $workerSrc "index.mjs"))) {
-        Write-Error "Missing TS worker: $workerSrc\index.mjs"
-        exit 1
+        # Same soft gap as package-win-release.ps1 — TS facet optional; core CdpService must still ship.
+        Write-Host "WARN: typescript-lang worker missing ($workerSrc\index.mjs) — TS facet empty; core deploy continues" -ForegroundColor Yellow
+        return
     }
     if (-not (Test-Path -LiteralPath (Join-Path $workerSrc "node_modules\typescript"))) {
         Write-Host "npm install in ts-worker source..."
