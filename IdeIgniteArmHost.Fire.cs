@@ -158,6 +158,15 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
+            // Provider dispatch: OpenCode native wake when configured; else Cursor Composer (default).
+            if (IdeIgniteChannel.IsOpencodeConfigured())
+            {
+                MarkSendInvoked(arm.Id);
+                var oc = await IdeIgniteChannel.FireToOpencodeAsync(msg, ct).ConfigureAwait(false);
+                ApplyFireOutcome(arm, oc);
+                return;
+            }
+
             // Composer adapter path — keep habitat SSOT if autonomous stamp already wrote it.
             if (!IdeIgniteWakeLatch.IsHabitatLatchForArm(arm.Id))
             {
