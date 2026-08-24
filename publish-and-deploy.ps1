@@ -86,23 +86,28 @@ function Publish-CdpProject {
 
 function Copy-TsWorker {
     param([string] $DeployRoot)
-    $workerSrc = Join-Path $here "..\typescript-lang\worker"
+    # Home: guiders-core/src/TypescriptLang.Core/worker (monorepo). Legacy sibling typescript-lang/worker as fallback.
+    $candidates = @(
+        (Join-Path $here "..\guiders-core\src\TypescriptLang.Core\worker"),
+        (Join-Path $here "..\typescript-lang\worker")
+    )
+    $workerSrc = $candidates | Where-Object { Test-Path -LiteralPath (Join-Path $_ "index.mjs") } | Select-Object -First 1
     $workerDst = Join-Path $DeployRoot "ts-worker"
-    if (-not (Test-Path -LiteralPath (Join-Path $workerSrc "index.mjs"))) {
-        # Same soft gap as package-win-release.ps1 — TS facet optional; core CdpService must still ship.
-        Write-Host "WARN: typescript-lang worker missing ($workerSrc\index.mjs) — TS facet empty; core deploy continues" -ForegroundColor Yellow
+    if (-not $workerSrc) {
+        Write-Host "WARN: TS worker missing (guiders-core/.../TypescriptLang.Core/worker) — TS facet empty; core deploy continues" -ForegroundColor Yellow
         return
     }
     if (-not (Test-Path -LiteralPath (Join-Path $workerSrc "node_modules\typescript"))) {
-        Write-Host "npm install in ts-worker source..."
+        Write-Host "npm install in ts-worker source: $workerSrc"
         Push-Location $workerSrc
         try {
-            & npm install --omit=dev
+            & npm.cmd install --omit=dev
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         } finally { Pop-Location }
     }
     if (Test-Path -LiteralPath $workerDst) { Remove-Item -LiteralPath $workerDst -Recurse -Force }
     Copy-Item -LiteralPath $workerSrc -Destination $workerDst -Recurse -Force
+    Write-Host "Copied ts-worker from $workerSrc"
 }
 
 function Ensure-Config {

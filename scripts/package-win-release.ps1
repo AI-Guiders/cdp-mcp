@@ -49,19 +49,24 @@ if ($Runtime -notlike "win-*") {
     if ($LASTEXITCODE -ne 0) { Write-Host "WARN: chmod +x $binPath failed" -ForegroundColor Yellow }
 }
 
-$workerSrc = Join-Path (Join-Path $open "typescript-lang") "worker"
+$workerSrcCandidates = @(
+    (Join-Path (Join-Path $open "guiders-core") "src\TypescriptLang.Core\worker"),
+    (Join-Path (Join-Path $open "typescript-lang") "worker")
+)
+$workerSrc = $workerSrcCandidates | Where-Object { Test-Path -LiteralPath (Join-Path $_ "index.mjs") } | Select-Object -First 1
 $workerDst = Join-Path $publishDir "ts-worker"
-if (Test-Path -LiteralPath (Join-Path $workerSrc "index.mjs")) {
+if ($workerSrc) {
     if (-not (Test-Path -LiteralPath (Join-Path (Join-Path $workerSrc "node_modules") "typescript"))) {
         Push-Location $workerSrc
-        try { & npm install --omit=dev; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }
+        try { & npm.cmd install --omit=dev; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }
         finally { Pop-Location }
     }
     if (Test-Path -LiteralPath $workerDst) { Remove-Item $workerDst -Recurse -Force }
     Copy-Item $workerSrc $workerDst -Recurse -Force
+    Write-Host "Copied ts-worker from $workerSrc"
 }
 else {
-    Write-Host "WARN: typescript-lang worker missing — TS facet will be empty in this zip" -ForegroundColor Yellow
+    Write-Host "WARN: TS worker missing (guiders-core/.../TypescriptLang.Core/worker) — TS facet empty in this zip" -ForegroundColor Yellow
 }
 
 Get-ChildItem -LiteralPath $publishDir -Filter "cdp-mcp.toml" -Recurse -File -ErrorAction SilentlyContinue |
