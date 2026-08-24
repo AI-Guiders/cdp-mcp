@@ -16,6 +16,7 @@ internal static partial class IdeIgniteArmHost
         message = a.Message.Length > 160 ? a.Message[..160] + "…" : a.Message,
         chat = a.Chat,
         conversation_id = a.ConversationId,
+        opencode_session = a.OpencodeSession,
         port = a.Port,
         once = a.Once,
         last_once = a.LastOnce,
@@ -53,6 +54,7 @@ internal static partial class IdeIgniteArmHost
         DueUtc = a.DueUtc,
         InRaw = a.InRaw,
         TenantWire = a.TenantWire,
+        OpencodeSession = a.OpencodeSession,
         Status = a.Status,
         LastError = a.LastError,
         CreatedUtc = a.CreatedUtc,
@@ -181,6 +183,8 @@ internal static partial class IdeIgniteArmHost
         public string? InRaw { get; set; }
         /// <summary>ADR-0200: tenant wire stamped at arm time — fire enters slice for TM/wake/flight.</summary>
         public string? TenantWire { get; set; }
+        /// <summary>ADR-0205: per-arm OpenCode wake target (session id) stamped at arm — overrides CDP_OPENCODE_SESSION env at fire.</summary>
+        public string? OpencodeSession { get; set; }
         public string Status { get; set; } = "armed";
         public string? LastError { get; set; }
         public DateTimeOffset CreatedUtc { get; set; }

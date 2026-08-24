@@ -41,6 +41,7 @@ internal static partial class MetaToolCatalog
             @event = new { type = "string", description = "alias of when=" },
             @in = new { type = "string", description = "arm timer: 30s|5m|2h" },
             chat = new { type = "string", description = "optional chat title substring" },
+            session = new { type = "string", description = "arm: opencode session id to wake (per-arm target; overrides CDP_OPENCODE_SESSION env)" },
             id = new { type = "string", description = "disarm id= / arm custom id" },
             all = new { type = "boolean", description = "disarm all=true (under autonomous: except autonomy means unless force)" },
             force = new { type = "boolean", description = "disarm: clear autonomy means too; arm: override epic-closed / last_once gates" },

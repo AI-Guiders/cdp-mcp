@@ -126,6 +126,15 @@ internal static partial class IdeIgniteArmHost
                 return;
             }
 
+            // OpenCode wake: only when agent stamped session= on this arm (ADR-0205). Env is plumbing, not routing.
+            if (!string.IsNullOrWhiteSpace(arm.OpencodeSession))
+            {
+                MarkSendInvoked(arm.Id);
+                var oc = await IdeIgniteChannel.FireToOpencodeAsync(msg, ct, arm.OpencodeSession).ConfigureAwait(false);
+                ApplyFireOutcome(arm, oc);
+                return;
+            }
+
             // Habitat prefer — duplex skip CDT; autonomous stamps habitat SSOT then may fall through.
             var habitat = TryDeliverHabitatWake(arm, msg);
             if (habitat is not null)
@@ -155,15 +164,6 @@ internal static partial class IdeIgniteArmHost
             {
                 MarkSendInvoked(arm.Id);
                 ApplyFireOutcome(arm, unavailable);
-                return;
-            }
-
-            // Provider dispatch: OpenCode native wake when configured; else Cursor Composer (default).
-            if (IdeIgniteChannel.IsOpencodeConfigured())
-            {
-                MarkSendInvoked(arm.Id);
-                var oc = await IdeIgniteChannel.FireToOpencodeAsync(msg, ct).ConfigureAwait(false);
-                ApplyFireOutcome(arm, oc);
                 return;
             }
 

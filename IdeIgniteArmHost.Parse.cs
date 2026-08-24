@@ -103,6 +103,7 @@ internal static partial class IdeIgniteArmHost
             ChargeMode = chargeMode,
             Task = task,
             Chat = chat,
+            OpencodeSession = Opt(args, "session") ?? Opt(args, "opencode_session"),
             Port = port,
             Once = once,
             LastOnce = lastOnce,
