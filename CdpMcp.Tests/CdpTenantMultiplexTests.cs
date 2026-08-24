@@ -528,3 +528,19 @@ public sealed class CdpTenantMultiplexTests
         }
     }
 }
+   var armed = IdeIgniteArmHost.Snapshot().First(a => a.Id == armId);
+                Assert.Equal(slice.Key.Wire, armed.TenantWire);
+
+                IdeIgniteArmHost.Disarm(new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["id"] = JsonSerializer.SerializeToElement(armId),
+                    ["force"] = JsonSerializer.SerializeToElement(true),
+                });
+            }
+        }
+        finally
+        {
+            slice.Dispose();
+        }
+    }
+}
