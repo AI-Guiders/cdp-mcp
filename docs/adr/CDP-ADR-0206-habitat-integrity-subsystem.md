@@ -13,6 +13,8 @@
 - KB: `META/integrity-core.md` (**harm POST** — sibling, not this ADR)
 - KB: `META/awareness-as-countermeasure-v1.md` (**awareness POST**)
 - KB: `map-memory-organization-variants-v1.md` (MEM-C habitat KB)
+- KB: `map-kb-three-contours-v1.md` (private · group · public — release manifest legs)
+- KB: `PUBLISHING.md` (build pipeline · manifest hook)
 - KB: `note-auto-poisoning-retract-rebuild-v0.md` (context poison — related symptom)
 
 **Trigger (operator, 2026-08-25):** Agents have **no easy way** to know if something changed on disk **outside their path** between reads. Git helps after commit; otherwise the agent may cite a file as if it were the same revision. HIS answers one question — **changed or not since last attested edition?** — with a boring algorithm (SHA-256).
@@ -82,24 +84,104 @@ artifact_key  →  { sha256, size, mtime_utc, attested_at, attested_by, provenan
 | `host_bypass` | edit outside agent gates — **main HIS scenario** |
 | `operator_declared` | operator said «я поправила» (re-attest without alarm) |
 | `external_digest` | URL leg via `cdp_freshness` |
+| `release_manifest` | verified against `habitat-release-manifest.v1.json` @ tag |
 | `unknown` | first read — baseline attest only |
 
 ### 3. Subsystem legs (one engine, many surfaces)
 
 ```text
-                    ┌─────────────────────────┐
-                    │   Habitat Integrity     │
-                    │   (Trust Registry +     │
-                    │    Drift Engine)        │
-                    └───────────┬─────────────┘
-          ┌─────────────────────┼─────────────────────┐
-          ▼                     ▼                     ▼
-   local_kb / workspace   buffer↔disk          external URLs
-   (peek/buffer/git)      (disk_peek)          (cdp_freshness)
+                         ┌──────────────────────────────┐
+                         │      Habitat Integrity         │
+                         │  Trust Registry + Drift Engine │
+                         └──────────────┬─────────────────┘
+        ┌────────────────┬───────────────┼───────────────┬────────────────┐
+        ▼                ▼               ▼               ▼                ▼
+  seat runtime     buffer↔disk      external URL   kb_private      kb_group / kb_public
+  (peek/buffer)    (disk_peek)     (cdp_freshness) release manifest release manifest
+  drift since      open buffer vs  remote bytes     @ tag/commit    @ tag/commit
+  last attest      disk edition    edition          clone = origin  clone = origin
 ```
 
+| Leg | Question | Trust anchor |
+|-----|----------|--------------|
+| **Seat runtime** | Изменился файл с прошлого **attest в этом seat**? | Seat Trust Registry |
+| **Buffer↔disk** | Буфер = диск прямо сейчас? | `disk_peek` |
+| **URL** | Удалённый ресурс = прошлый digest? | `cdp_freshness` |
+| **Release manifest** | Клон/zip **та же редакция**, что выпустил maintainer? | `habitat-release-manifest.v1.json` |
+
 - **`cdp_freshness` is not a separate world** — it feeds `external_digest` provenance into the same registry semantics.
+- **Release manifests** are not a separate world — same SHA-256 primitive; anchor is **publisher manifest at release**, not seat memory.
 - **Git** is reconcile source of truth when available, not a substitute for seat trust memory between reads.
+
+### 3a. Release manifests — all three KB contours
+
+Per [`map-kb-three-contours-v1.md`](../../../../agent-notes/knowledge/domains/agent-operations/map-kb-three-contours-v1.md): **private (canon)**, **group (org)**, **public (kb-public)** each get a **published edition fingerprint** at release boundaries.
+
+**One question (release leg):**
+
+> **∀ file in manifest: sha256(on_disk) == manifest[path]?**
+
+Covers: corrupt download/zip, partial sync, stale mirror, wrong branch checkout — **not** «maintainer maliciously changed manifest» (that needs signing later; out of v0).
+
+| Contour | `contour` id | Repo / artifact | Build / emit | Manifest required |
+|---------|--------------|-----------------|--------------|-------------------|
+| **1 Private canon** | `kb_private` | personal `agent-notes` (or fork) | optional `@ tag` · `Write-HabitatReleaseManifest.ps1` | recommended at tag; seat registry remains **runtime** primary |
+| **2a Group KB** | `kb_group` | `{ORG_SLUG}/kb` | `seed-org-kb.ps1` → `dist/group-kb/` | **yes** on every org push / release tag |
+| **2b Public KB** | `kb_public` | `{ORG_SLUG}/kb-public` | `build-public-kb.ps1` → `dist/public-kb/` | **yes** — release without manifest is incomplete |
+
+**Subset invariant (same canon build):** files present in both `kb_public` and `kb_group` manifests **must** share identical `{ path, sha256, bytes }` when built from the same source commit. Public slice ⊆ group slice.
+
+#### Schema: `habitat-release-manifest.v1.json`
+
+Committed at **artifact root** (`dist/…/` and mirrored in target repo root on push).
+
+```json
+{
+  "schema": "habitat-release-manifest/v1",
+  "contour": "kb_public",
+  "release": {
+    "id": "2026.08.25",
+    "commit": "abc123…",
+    "generated_at": "2026-08-25T01:20:00Z"
+  },
+  "publisher": {
+    "org_slug": "AI-Guiders",
+    "repo": "kb-public"
+  },
+  "tree_sha256": "…",
+  "file_count": 42,
+  "files": [
+    { "path": "knowledge/PUBLISHING.md", "sha256": "…", "bytes": 1234 }
+  ]
+}
+```
+
+- **`path`:** POSIX `/`, relative to artifact root (same layout as pushed repo).
+- **`sha256`:** lowercase hex, **SHA-256 of raw file bytes** (same newline policy as seat registry).
+- **`tree_sha256`:** SHA-256 of canonical serialization: sort `files` by `path`; for each file append `path + "\n" + sha256 + "\n"` (UTF-8). Single-bit «whole tree matches».
+- **Excluded from manifest:** `.git/`, build temp, `scripts/` when not part of published artifact (public: no `scripts/`; group: include only files actually pushed).
+
+#### Verify workflow
+
+```text
+manifest @ release_tag  +  local_root
+        →  foreach path: sha256(read(path)) == manifest.files[path].sha256
+        →  tree_sha256 recomputed == manifest.tree_sha256
+```
+
+- **CLI (v1):** `verify-habitat-release.ps1 -Contour kb_public -Manifest … -Root …`
+- **CDP (v1):** `cdp_integrity op=verify contour=kb_public|kb_group|kb_private`
+- **Bootstrap:** `Install-Cdp.ps1` kb-public clone may verify manifest @ pinned tag before seat attest.
+- **Provenance in seat registry:** successful verify → `external_digest` or `release_manifest` with `release.id` + `tree_sha256` — links seat trust to federation anchor.
+
+#### Private contour note
+
+Private manifest is **optional but valuable**: backup restore, second machine, «did rsync corrupt canon?». It does **not** replace seat Trust Registry for turn-to-turn drift (Notepad between agent reads). Both layers coexist:
+
+| Layer | When |
+|-------|------|
+| Seat registry | every `cdp_peek` / buffer read in session |
+| `kb_private` manifest | tag / export / handoff «this is edition X» |
 
 ### 4. Runtime behavior (agent-facing)
 
@@ -152,7 +234,7 @@ Wire: `cdp_integrity` desk (v1) or extend `cdp_pressure` integrity substatus (v0
 
 - Agents get **trivial revision check** (SHA-256) on habitat reads — today missing everywhere.
 - MEM-C: detect external edit between agent turns without running full `git diff`.
-- Unifies local KB drift, buffer hygiene, and URL freshness under one mental model.
+- Unifies local KB drift, buffer hygiene, URL freshness, and **kb_private / kb_group / kb_public** release verify under one mental model.
 - Supports retract/rebuild for auto-poisoning with a real quarantine bit.
 - Complements MEM-B (delegated memory): both are **trust without authorship** problems.
 
@@ -184,12 +266,17 @@ Wire: `cdp_integrity` desk (v1) or extend `cdp_pressure` integrity substatus (v0
 - [ ] Attest on `cdp_buffer` flush (agent_write)
 - [ ] Domain card `.cdp/domain/integrity.md`
 - [ ] KB pointer + MEM-C link
+- [x] Release manifest spec (`habitat-release-manifest/v1`) — three contours (this ADR §3a)
+- [ ] `PUBLISHING.md` + `map-kb-three-contours` cross-links
 
-### v1 (desk)
+### v1 (desk + manifests)
 
-- [ ] `cdp_integrity` · `go=integrity` — scene|check|attest|reconcile|quarantine|registry
+- [ ] `cdp_integrity` · `go=integrity` — scene|check|attest|reconcile|quarantine|registry|**verify**
+- [ ] `Write-HabitatReleaseManifest.ps1` shared helper; hook in `build-public-kb.ps1` + `seed-org-kb.ps1`
+- [ ] `verify-habitat-release.ps1` for `kb_public` · `kb_group` · `kb_private`
 - [ ] Git preflight hook: dirty files → drift candidates
 - [ ] Pulse on pressure organ: `integrity·drifted=N`
+- [ ] Optional: `Install-Cdp.ps1` verify kb-public manifest @ pin
 
 ### v2 (optional)
 
