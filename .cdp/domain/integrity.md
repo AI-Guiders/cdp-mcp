@@ -6,46 +6,25 @@
 
 ## Invariants
 
-- **Not harm POST** (`integrity-core`) · **not awareness POST** — **content/trust integrity** of artifacts agent cites.
-- **No static canon file list** — Trust Registry grows on attest; dynamic `artifact_key → fingerprint`.
-- **Detect, don't block** operator disk edit — drift flag in tool results; reconcile via git / operator_declared.
-- **`cdp_freshness` = external URL leg** of same subsystem (`provenance=external_digest`).
-- Drift without reconcile → agent must not silent-cite (parallel auto-poisoning).
-
-## Provenance channels
-
-`agent_write` · `git_commit` · `operator_declared` · `host_bypass` · `external_digest` · `unknown`
+- **One question:** «Этот файл **та же редакция**, что при прошлом attest, или изменён?» Answer: **SHA-256 compare** — boring, sufficient.
+- **Not harm POST** · **not awareness POST** — revision integrity for shared habitat files.
+- **No static canon list** — Trust Registry = last attested `sha256` per `artifact_key`, grown on read/write.
+- **Primary scenario:** change **outside agent gates** (host_bypass) — agent today has no easy way to know.
+- **`cdp_freshness`** = URL leg of same subsystem (external bytes).
+- `same_edition: false` → do not silent-cite; re-read or re-attest.
 
 ## Entry (v0 → v1)
 
-**v0 (today):** read ADR; on drift suspicion → `git status` / `git diff` on path; prefer `cdp_peek` over host Read.
+**v0:** `integrity { same_edition, sha256, sha256_attested }` on `cdp_peek` / `cdp_buffer` read; attest on flush.
 
-**v1 (planned):**
-
-1. `cdp_integrity op=scene`
-2. `op=check path=` / `scope=git_dirty|registry`
-3. `op=attest` after agent write (auto on buffer flush)
-4. `op=reconcile` — git + operator signals
-5. `op=quarantine path=` — handoff to retract/rebuild
-
-Piggyback: `cdp_peek` / `cdp_buffer` responses include `integrity` block when registry present.
+**v1:** `cdp_integrity op=scene|check|attest|reconcile`
 
 ## Antipatterns
 
-- Maintaining a handwritten «SSOT paths» markdown list as integrity system
-- Citing KB from context window without re-read after long gap
-- Treating `cdp_freshness` digest as «Проверено» without local attest
-- Confusing HIS with jailbreak / harm integrity
-
-## Siblings
-
-| Domain | Role |
-|--------|------|
-| `freshness` | URL fingerprints → `external_digest` |
-| `buffer` / `disk_peek` | buffer↔disk leg |
-| `pressure` | `integrity·{status}` on organ (planned) |
-| `quarantine` | plugins only today — not KB |
+- Hand-maintained SSOT path lists
+- Assuming context window = current file edition
+- Host Read without revision check when registry exists
 
 ## last_ship
 
-- **ADR-0206** — subsystem spec locked (2026-08-25)
+- **ADR-0206** — revision framing + SHA-256 (2026-08-25)
