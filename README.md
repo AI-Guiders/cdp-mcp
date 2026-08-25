@@ -44,7 +44,7 @@ pwsh -File ./Install-Cdp.ps1 -HostAdapter cursor   # claude | vscode | windsurf 
 
 The script auto-detects RID, downloads `CdpMcp-*-{rid}.zip`, clones [kb-public](https://github.com/AI-Guiders/kb-public) (read-only), seeds an empty personal canon. Default install root: `%LOCALAPPDATA%\AIGuiders` (Windows), `~/Library/Application Support/AIGuiders` (macOS), `~/.local/share/AIGuiders` (Linux). Override: `-Root`, `-Runtime`, maintainer escape `-CdpSource`.
 
-GitHub Actions (`.github/workflows/release.yml`) builds a matrix of RID runners. All build siblings (including `ai-native-ui`) are public under Hippocratic-2.1 on AI-Guiders/*. Optional org secret `GH_PAT` only if clone rate-limits bite. Tag `v*` or Run workflow.
+GitHub Actions (`.github/workflows/release.yml`) builds a matrix of RID runners. All build siblings are public under [AI-Guiders licensing](https://github.com/AI-Guiders/licensing) (MIT + ethical declaration). Optional org secret `GH_PAT` only if clone rate-limits bite. Tag `v*` or Run workflow.
 
 ## Build / deploy
 
@@ -85,14 +85,6 @@ Canonical repo: https://github.com/AI-Guiders/cdp-mcp
 
 ## License
 
-[Hippocratic License 2.1](LICENSE) (Ethical Source / SPDX `Hippocratic-2.1`).
+Software: [MIT](LICENSE) ([canonical text](https://github.com/AI-Guiders/licensing/blob/main/software/MIT.txt)) · Ethical use: [policy](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md)
 
-### Ethical policy (cdp-mcp organ)
-
-- **Allowed:** fork, audit, inhabit, extend the harness.
-- **Not allowed:** use for violence, repression, or other applications barred by
-  Human Rights Principles / Human Rights Laws in the license text.
-- Short summary here does not replace [`LICENSE`](LICENSE).
-- Not OSI MIT: open code with conscience bound in SPDX.
-
-
+SPDX: `MIT`. Ethical position is a separate declaration, not a use restriction in the license.
