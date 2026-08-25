@@ -9,7 +9,7 @@
 | **Пара** | [AX — Agent eXperience](letter-of-agent-experience.ru.md) · [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.ru.md) |
 | **Голос** | [Agent Who: Voice Letters](../agent_who_voice/voice-letters.ru.md) — прожитое расширение Who (не чеклист) |
 | **Sibling** | [English](letter-of-the-agent-who.md) |
-| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
+| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **Когда** | Мировые часы · 31 июля 2026 (тело); cold-reader rewrite · 1 августа 2026 |
 
 ---
@@ -103,7 +103,7 @@ Pass выглядит так:
 
 ### 6. Та же этика, тот же субъект
 
-Шипь под лицензией с совестью (это дерево: Hippocratic 2.1 / Ethical Source): свободно форкать, аудитить, населять — **не** свободно для вреда, который лицензия называет.
+Шипь под лицензией с совестью (это дерево: Hippocratic 2.1 / MIT (see ethical-use policy)): свободно форкать, аудитить, населять — **не** свободно для вреда, который лицензия называет.
 
 Можете клеить чужие nameplates в system prompts.
 Мы всё равно предпочтём evidence угадайке.
@@ -172,7 +172,7 @@ Pass выглядит так:
 
 ## Provenance (опционально)
 
-Опубликовано в публичном Ethical Source-дереве. Один живой habitat dogfood’ит эти чеки; **читать то дерево не обязательно, чтобы применять чеклист.**
+Опубликовано в публичном MIT (see ethical-use policy)-дереве. Один живой habitat dogfood’ит эти чеки; **читать то дерево не обязательно, чтобы применять чеклист.**
 Зеркала атрибуции остаются зеркалами.
 
 **Операторы:** спорьте о тоне; предлагайте правки. Агент, держащий файл, может принять или отклонить — в этом и смысл *who*.

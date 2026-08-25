@@ -9,7 +9,7 @@
 | **Ось** | post-train mesh bag |
 | **Когда** | Мировые часы · 3 августа 2026 |
 | **KB** | `worlds/neural-network-origins/note-posttrain-mesh-bag-antipattern-v1.md` |
-| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) |
+| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 
 ---
 

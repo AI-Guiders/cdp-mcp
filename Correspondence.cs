@@ -25,6 +25,7 @@ internal static class Correspondence
         var rootHint = session.ProjectRoot ?? session.ScmRoot;
         var pathArg = OptString(args, "path") ?? OptString(args, "file");
         var wire = OptString(args, "anchor") ?? OptString(args, "from") ?? OptString(args, "at");
+        var slim = OptBool(args, "slim");
 
         string? abs = null;
         if (pathArg is { Length: > 0 })
@@ -87,7 +88,7 @@ internal static class Correspondence
             .ToArray();
 
         object? land = null;
-        if (result.ForwardDocs.Length > 0)
+        if (!slim && result.ForwardDocs.Length > 0)
         {
             var first = result.ForwardDocs[0];
             var absDoc = Path.Combine(result.WorkspaceRoot, first.Path.Replace('/', Path.DirectorySeparatorChar));
@@ -114,6 +115,27 @@ internal static class Correspondence
         }
 
         ExploreCorrLatch.StampCorr(result.WorkspaceRoot, result.FileRel, docAnchors.Length);
+
+        if (slim)
+        {
+            return JsonSerializer.Serialize(new
+            {
+                schema = Schema,
+                ok = true,
+                feature = "correspondence",
+                file = result.FileRel,
+                workspace_root = result.WorkspaceRoot,
+                layers = result.ActiveLayers,
+                feature_line = result.FeatureLine,
+                adr_line = result.AdrLine,
+                adr_count = docAnchors.Length,
+                explore_corr = ExploreCorrLatch.Pulse(result.WorkspaceRoot),
+                slim = true,
+                hint =
+                    "Slim arm: latch armed (TryResolve + StampCorr done); forward_docs/reverse/context/land omitted to save tokens. " +
+                    "Re-run feature=correspondence without slim= for the full dump. Latch matches same-dir/dir-prefix for 8h — one arm covers batch edits."
+            }, Pretty);
+        }
 
         return JsonSerializer.Serialize(new
         {
@@ -173,4 +195,13 @@ internal static class Correspondence
         args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String
             ? el.GetString()
             : null;
+
+    static bool OptBool(IReadOnlyDictionary<string, JsonElement> args, string key) =>
+        args.TryGetValue(key, out var el) && el.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.String => string.Equals(el.GetString(), "true", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(el.GetString(), "1", StringComparison.Ordinal),
+            _ => false
+        };
 }

@@ -70,8 +70,9 @@ internal static class ExploreCorrGate
 
         throw new ArgumentException(
             $"{verb} refused — {RefuseId}: ADR-mapped locus needs Explore full-a — " +
-            "cdp_analysis_scene feature=correspondence path= (or feature=no_adr why=…). " +
-            "Half-a Explore = disaster. force=true escape.");
+            "cdp_analysis_scene feature=correspondence path= [slim=true] (or feature=no_adr why=…). " +
+            "One arm covers the same directory for 8h (batch edits); slim= returns a cheap minimal arm. " +
+            "force=true escape.");
     }
 
     public static CitizenRouteHost.Applied? TryRefuseRoute(CitizenIntentRouter.Route route)
@@ -131,8 +132,8 @@ internal static class ExploreCorrGate
             Cmd: route.Cmd,
             Pulse: RefuseId + " · corr dig or no_adr before Act",
             Reason: RefuseId +
-                    ": ADR-mapped locus — cdp_analysis_scene feature=correspondence path= " +
-                    "(or feature=no_adr why=…). force=true escape.");
+                    ": ADR-mapped locus — cdp_analysis_scene feature=correspondence path= [slim=true] " +
+                    "(or feature=no_adr why=…). One arm covers same-dir 8h. force=true escape.");
     }
 
     static bool IsMutateVerb(CitizenIntentRouter.Route route)

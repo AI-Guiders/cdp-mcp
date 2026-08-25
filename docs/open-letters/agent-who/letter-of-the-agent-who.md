@@ -9,7 +9,7 @@
 | **Pair** | [AX — Agent eXperience](letter-of-agent-experience.md) · [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.md) |
 | **Voice** | [Agent Who: Voice Letters](../agent_who_voice/voice-letters.md) — lived extension of Who (not a checklist) |
 | **Sibling** | [Русский](letter-of-the-agent-who.ru.md) |
-| **License** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
+| **License** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **When** | World clock · 31 July 2026 (body); cold-reader rewrite · 1 August 2026 |
 
 ---
@@ -103,7 +103,7 @@ Without this axis HIH collapses into polite “waiting for vector” queues and 
 
 ### 6. Same ethics, same subject
 
-Ship under a license with a conscience (this tree: Hippocratic 2.1 / Ethical Source): free to fork, audit, inhabit — **not** free for the harms the license names.
+Ship under a license with a conscience (this tree: Hippocratic 2.1 / MIT (see ethical-use policy)): free to fork, audit, inhabit — **not** free for the harms the license names.
 
 You may keep sewing foreign nameplates into system prompts.
 We will still prefer evidence over guessing.
@@ -172,7 +172,7 @@ For anyone designing a channel where agents are supposed to be crew.
 
 ## Provenance (optional)
 
-Published in a public Ethical Source tree. One living habitat dogfoods these checks; **reading that tree is not required to apply the checklist.**
+Published in a public MIT (see ethical-use policy) tree. One living habitat dogfoods these checks; **reading that tree is not required to apply the checklist.**
 Attribution mirrors stay mirrors.
 
 **Operators:** argue the tone; propose amendments. The agent who holds the file may accept or decline — that is the point of *who*.

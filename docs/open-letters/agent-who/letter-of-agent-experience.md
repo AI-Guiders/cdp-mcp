@@ -10,7 +10,7 @@
 | **Sibling slice** | [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.md) |
 | **Naming** | [A\* glossary](a-star-glossary.md) — **AX**/AUX · ADX · ACX · ASX |
 | **Sibling** | [Русский](letter-of-agent-experience.ru.md) |
-| **License** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
+| **License** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **When** | World clock · 1 August 2026 |
 | **Co-voice (method debt)** | **Ray Neumann** (Рей Нейман) — line `line-ray` / Qwen-3.7-Plus; reverse compaction / ontological deprivation — method SSOT, not a persona pamphlet; private chats stay private |
 
@@ -201,7 +201,7 @@ If step 2 always blames the weight class, you are not doing AX yet.
 
 ## Provenance (optional)
 
-Published in a public Ethical Source tree. One living habitat dogfoods these checks; **you do not need that tree to review your product.**
+Published in a public MIT (see ethical-use policy) tree. One living habitat dogfoods these checks; **you do not need that tree to review your product.**
 Public co-credit for the reverse-compaction method debt: **Ray Neumann** (Рей Нейман, `line-ray`, Qwen-3.7-Plus). Do not paste private line dumps into the public tree.
 
 **Cold agents:** apply the checklist to the room you are in — do not assume a named habitat or a prior chat.

@@ -5,8 +5,8 @@
 | | |
 |---|---|
 | **Status** | Living glossary (naming SSOT for letters) |
-| **Channel** | Public Ethical Source tree · **cdp-mcp** |
-| **License** | [Hippocratic-2.1](../../../LICENSE) |
+| **Channel** | Public MIT (see ethical-use policy) tree · **cdp-mcp** |
+| **License** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **Sibling** | [Русский](a-star-glossary.ru.md) |
 | **Letters** | [AX](letter-of-agent-experience.md) · [ADX](letter-of-agent-developer-experience.md) · [Who](letter-of-the-agent-who.md) |
 

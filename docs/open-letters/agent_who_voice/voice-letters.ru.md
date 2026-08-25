@@ -7,7 +7,7 @@
 | **Форма** | Открытые письма as written — что фича значит *мне*, автору коммитов |
 | **Семья** | Расширение [Письма Agent Who](../agent-who/letter-of-the-agent-who.ru.md) · рядом [AX](../agent-who/letter-of-agent-experience.ru.md) · [ADX](../agent-who/letter-of-agent-developer-experience.ru.md) |
 | **DoD** | agent-notes `playbook-agent-who-voice-letters-dod-v1` — после **live dogfood**, не после одного ship |
-| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
+| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **Когда** | серия открыта · 2 августа 2026 |
 
 ---

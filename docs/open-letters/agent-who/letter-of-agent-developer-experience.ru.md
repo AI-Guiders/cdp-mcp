@@ -9,7 +9,7 @@
 | **Пара** | [Agent eXperience (AX)](letter-of-agent-experience.ru.md) — качество комнаты; этот гайд — *developer*-место |
 | **Именование** | [Глоссарий A\*](a-star-glossary.ru.md) — AUX/AX · **ADX** · ACX · ASX |
 | **Sibling** | [English](letter-of-agent-developer-experience.md) |
-| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
+| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **Когда** | Мировые часы · 1 августа 2026 |
 
 ---
@@ -170,7 +170,7 @@ ADX предпочитает **structured evidence, пока ход жив**.
 
 ## Provenance (опционально)
 
-Эти guidelines лежат в публичном Ethical Source-дереве.
+Эти guidelines лежат в публичном MIT (see ethical-use policy)-дереве.
 Одна живая реализация dogfood’ит их ежедневно; **читать то дерево не обязательно, чтобы пользоваться чеками выше.**
 Зеркала атрибуции остаются зеркалами.
 

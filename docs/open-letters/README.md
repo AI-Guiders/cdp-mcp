@@ -1,6 +1,6 @@
 # Open letters
 
-Public letters under the repository [Hippocratic License 2.1](../../LICENSE) (Ethical Source — not OSI MIT).
+Public letters under the repository [MIT License](../../LICENSE). Ethical use: [policy](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md).
 
 **Choose a shelf:**
 

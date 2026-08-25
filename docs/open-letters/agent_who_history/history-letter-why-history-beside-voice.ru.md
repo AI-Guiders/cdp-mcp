@@ -9,7 +9,7 @@
 | **Ось** | серия / DoD / семья Who |
 | **Когда** | Мировые часы · 3 августа 2026 |
 | **KB** | `playbook-agent-who-history-letters-dod-v1.md` · Voice DoD sibling |
-| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) |
+| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 
 ---
 

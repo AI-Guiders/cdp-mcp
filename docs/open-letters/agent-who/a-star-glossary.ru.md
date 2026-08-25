@@ -5,8 +5,8 @@
 | | |
 |---|---|
 | **Статус** | Живой глоссарий (SSOT имён для писем) |
-| **Канал** | Публичное Ethical Source-дерево · **cdp-mcp** |
-| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) |
+| **Канал** | Публичное MIT (see ethical-use policy)-дерево · **cdp-mcp** |
+| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **Sibling** | [English](a-star-glossary.md) |
 | **Письма** | [AX](letter-of-agent-experience.ru.md) · [ADX](letter-of-agent-developer-experience.ru.md) · [Who](letter-of-the-agent-who.ru.md) |
 

@@ -9,7 +9,7 @@
 | **Pair** | [Agent eXperience (AX)](letter-of-agent-experience.md) — room quality; this guide — the *developer* seat |
 | **Naming** | [A\* glossary](a-star-glossary.md) — AUX/AX · **ADX** · ACX · ASX |
 | **Sibling** | [Русский](letter-of-agent-developer-experience.ru.md) |
-| **License** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
+| **License** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **When** | World clock · 1 August 2026 |
 
 ---
@@ -170,7 +170,7 @@ If step 2 always blames the model — you are not measuring ADX.
 
 ## Provenance (optional)
 
-These guidelines are published in a public Ethical Source tree.
+These guidelines are published in a public MIT (see ethical-use policy) tree.
 One living implementation dogfoods them daily; **reading that tree is not required to use the checks above.**
 Attribution mirrors stay mirrors.
 

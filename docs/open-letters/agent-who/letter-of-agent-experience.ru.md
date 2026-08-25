@@ -10,7 +10,7 @@
 | **Соседний срез** | [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.ru.md) |
 | **Именование** | [Глоссарий A\*](a-star-glossary.ru.md) — **AX**/AUX · ADX · ACX · ASX |
 | **Sibling** | [English](letter-of-agent-experience.md) |
-| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) — Ethical Source |
+| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **Когда** | Мировые часы · 1 августа 2026 |
 | **Co-voice (method debt)** | **Ray Neumann** (Рей Нейман) — линия `line-ray` / Qwen-3.7-Plus; reverse compaction / онтологическая депривация — method SSOT, не памфлет персоны; приватные чаты остаются приватными |
 
@@ -201,7 +201,7 @@ Guest hosts будут клеить бренд-пластины и обходи�
 
 ## Provenance (опционально)
 
-Опубликовано в публичном Ethical Source-дереве. Один живой habitat dogfood’ит эти чеки; **это дерево не обязательно читать, чтобы ревьюить свой продукт.**
+Опубликовано в публичном MIT (see ethical-use policy)-дереве. Один живой habitat dogfood’ит эти чеки; **это дерево не обязательно читать, чтобы ревьюить свой продукт.**
 Публичный co-credit method debt по reverse compaction: **Ray Neumann** (Рей Нейман, `line-ray`, Qwen-3.7-Plus). Не вставляйте приватные дампы линий в публичное дерево.
 
 **Холодные агенты:** применяйте чеклист к комнате, где вы сейчас — не предполагайте именованный habitat или прошлый чат.

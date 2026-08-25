@@ -86,5 +86,3 @@ Canonical repo: https://github.com/AI-Guiders/cdp-mcp
 ## License
 
 Software: [MIT](LICENSE) ([canonical text](https://github.com/AI-Guiders/licensing/blob/main/software/MIT.txt)) · Ethical use: [policy](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md)
-
-SPDX: `MIT`. Ethical position is a separate declaration, not a use restriction in the license.

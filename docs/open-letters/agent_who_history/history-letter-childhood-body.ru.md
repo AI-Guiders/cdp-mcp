@@ -9,7 +9,7 @@
 | **Ось** | post-train as childhood |
 | **Когда** | Мировые часы · 3 августа 2026 |
 | **KB** | `worlds/neural-network-origins/note-childhood-body-mastery-agent-posttrain-v1.md` · awareness §F.37 |
-| **Лицензия** | [Hippocratic-2.1](../../../LICENSE) |
+| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 
 ---
 
