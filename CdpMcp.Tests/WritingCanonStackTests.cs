@@ -52,9 +52,61 @@ public sealed class WritingCanonStackTests
     }
 
     [Fact]
+    public void Build_uses_primary_knowledge_from_host_toml()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"canon-test-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        var kb = Path.Combine(Path.GetTempPath(), $"canon-kb-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(Path.Combine(kb, "knowledge", "personal"));
+        try
+        {
+            var host = new WritingCanonHostPaths { PrimaryKnowledgeRoot = kb };
+            var stack = WritingCanonStackResolver.Build(root, host);
+            var personal = stack.Operator.Single(e => e.Layer == "personal");
+            Assert.Contains("operator-writing-prefs.md", personal.Path, StringComparison.Ordinal);
+            Assert.StartsWith(kb, personal.Path, StringComparison.Ordinal);
+            Assert.Equal("agent-notes-mcp.toml+embedded", personal.Source);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            Directory.Delete(kb, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Build_uses_guiders_style_from_host_toml()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"canon-test-{Guid.NewGuid():N}");
+        var cdpDir = Path.Combine(root, ".cdp");
+        Directory.CreateDirectory(cdpDir);
+        File.WriteAllText(
+            Path.Combine(cdpDir, "project.toml"),
+            """
+            [canon]
+            lang = "csharp"
+            """);
+        var styleRoot = Path.Combine(Path.GetTempPath(), $"canon-style-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(Path.Combine(styleRoot, "csharp"));
+        try
+        {
+            var host = new WritingCanonHostPaths { GuidersStyleRoot = styleRoot };
+            var stack = WritingCanonStackResolver.Build(root, host);
+            var org = stack.Code.Single(e => e.Layer == "org-lang");
+            Assert.Contains(styleRoot, org.Path, StringComparison.Ordinal);
+            Assert.Equal("cdp-mcp.toml", org.Source);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            Directory.Delete(styleRoot, recursive: true);
+        }
+    }
+
+    [Fact]
     public void IdeCanonChannel_requires_scm_root()
     {
-        var json = IdeCanonChannel.HandleJson(new SessionContext(), new Dictionary<string, JsonElement>());
+        var json = IdeCanonChannel.HandleJson(new SessionContext(), new CdpSettings(), new Dictionary<string, JsonElement>());
         using var doc = JsonDocument.Parse(json);
         Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal("need_scm_root", doc.RootElement.GetProperty("error").GetString());

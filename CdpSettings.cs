@@ -18,6 +18,7 @@ internal sealed partial class CdpSettings
     public CockpitHostSettings CockpitHost { get; init; } = new();
     public CdpServiceSettings Service { get; init; } = new();
     public CitizenSettings Citizen { get; init; } = new();
+    public CanonSettings Canon { get; init; } = new();
     public VendorCatalogOptions Vendor { get; init; } = VendorCatalog.CreateBuiltInDefaults();
 
     /// <summary>worlds + META + "." knowledge-root hub (SHOWCASE.md, index-*.md).</summary>
@@ -44,6 +45,7 @@ internal sealed partial class CdpSettings
         var cockpitHost = doc.CockpitHost ?? new CdpTomlCockpitHost();
         var service = doc.Service ?? new CdpTomlService();
         var citizen = doc.Citizen ?? new CdpTomlCitizen();
+        var canon = doc.Canon ?? new CdpTomlCanon();
 
         return new CdpSettings
         {
@@ -94,6 +96,12 @@ internal sealed partial class CdpSettings
             {
                 Enabled = citizen.Enabled ?? true
             },
+            Canon = new CanonSettings
+            {
+                GuidersStyleRoot = string.IsNullOrWhiteSpace(canon.GuidersStyleRoot)
+                    ? null
+                    : canon.GuidersStyleRoot.Trim()
+            },
             Vendor = VendorCatalog.CreateBuiltInDefaults()
         };
     }
@@ -110,6 +118,12 @@ internal sealed partial class CdpSettings
         public CdpTomlCockpitHost? CockpitHost { get; set; }
         public CdpTomlService? Service { get; set; }
         public CdpTomlCitizen? Citizen { get; set; }
+        public CdpTomlCanon? Canon { get; set; }
+    }
+
+    private sealed class CdpTomlCanon
+    {
+        public string? GuidersStyleRoot { get; set; }
     }
 
     private sealed class CdpTomlCitizen
@@ -256,4 +270,11 @@ internal sealed class CockpitHostSettings
 internal sealed class CitizenSettings
 {
     public bool Enabled { get; init; } = true;
+}
+
+/// <summary>Writing canon host paths (CDP-ADR-0207). Personal root comes from memory.notes_config chain.</summary>
+internal sealed class CanonSettings
+{
+    /// <summary>Absolute path to guiders-style repo; per-repo override: .cdp/project.toml org_style_root.</summary>
+    public string? GuidersStyleRoot { get; init; }
 }

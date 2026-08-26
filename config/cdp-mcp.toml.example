@@ -6,6 +6,10 @@ default_object = "kb"
 notes_config = "/path/to/agent-notes-mcp.toml"
 task_config = "/path/to/agent-task-knowledge-mcp.toml"
 
+[canon]
+# guiders-style repo root (L1 org-lang layer). Per-repo override: .cdp/project.toml org_style_root=
+# guiders_style_root = "/path/to/guiders-style"
+
 [memory.world]
 enabled = true
 roots = ["worlds", "META"]
