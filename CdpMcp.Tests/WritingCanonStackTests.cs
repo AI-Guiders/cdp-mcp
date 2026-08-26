@@ -92,9 +92,11 @@ public sealed class WritingCanonStackTests
         {
             var host = new WritingCanonHostPaths { GuidersStyleRoot = styleRoot };
             var stack = WritingCanonStackResolver.Build(root, host);
+            Assert.Contains(stack.Code, e => e.Layer == "org-core" && e.Path.Contains("core", StringComparison.Ordinal));
             var org = stack.Code.Single(e => e.Layer == "org-lang");
             Assert.Contains(styleRoot, org.Path, StringComparison.Ordinal);
             Assert.Equal("cdp-mcp.toml", org.Source);
+            Assert.Contains(stack.Code, e => e.Layer == "org-lang-design" && e.Path.Contains("design-patterns", StringComparison.Ordinal));
         }
         finally
         {

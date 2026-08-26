@@ -99,7 +99,7 @@
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersCore)' != 'true'">
     <PackageReference Include="AIGuiders.Cdp.Core" Version="0.4.22" />
-    <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.63" />
+    <PackageReference Include="AIGuiders.Cdp.ScriptableIde" Version="0.1.64" />
     <PackageReference Include="AIGuiders.TerminalMcp.Core" Version="0.1.5" />
     <PackageReference Include="AIGuiders.AgentTaskKnowledge.Core" Version="0.3.1" />
     <PackageReference Include="AIGuiders.AgentFindings.Core" Version="0.2.0" />
