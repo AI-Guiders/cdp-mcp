@@ -55,7 +55,7 @@ L3  scope canon (optional)    umbrella monorepo leaf only
 ──  product ADR               decision log — not daily route
 ```
 
-**guiders-style** (L1): recommended repo `AI-Guiders/guiders-style`, pin `org_style = "guiders-style@v1"` in `.cdp/project.toml`. Lang folder selected by `lang = "csharp"` etc.
+**guiders-style** (L1): recommended repo `AI-Guiders/guiders-style`, pin `org_style = "guiders-style@v1"` in `.cdp/project.toml`. Lang folder selected by `lang = "csharp"` etc. **L1 spine:** `core/principles.md` — one model per layer, patterns as compressed meaning (maintainability / handoff).
 
 ### 3. Personal operator layer (operator plane)
 
