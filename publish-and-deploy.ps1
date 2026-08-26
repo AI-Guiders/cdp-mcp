@@ -62,6 +62,10 @@ function Publish-CdpProject {
     )
     if ($KillRunning) { $publishArgs += "-KillRunning" }
     if ($UseNuGet) { $publishArgs += "-UseNuGet" }
+    else {
+        $publishArgs += "-DotnetArg"
+        $publishArgs += "-p:UseLocalGuidersCore=true"
+    }
     if (Test-Path -LiteralPath $preserveConfig) {
         $publishArgs += "-PreserveConfig", $preserveConfig
     }
