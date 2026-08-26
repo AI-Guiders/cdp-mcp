@@ -128,6 +128,8 @@ Resolution: `scm_root`; `lang` from `.cdp/project.toml` → session (`cdp_open` 
 
 P3+: soft pre-edit warnings from project canon §anti-patterns.
 
+**Shipped:** `cdp_open` embeds slim `canon_stack` (+ `canon_lang` / `canon_lang_source`) for post-compact re-anchor in one call. `cdp_restore` includes canon inside `open` when project is restored.
+
 ---
 
 ## Non-goals

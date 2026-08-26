@@ -27,6 +27,7 @@ internal static partial class MetaDispatch
             docStore,
             detectOpen: p => settings.Languages.Detect(p),
             syncShellCwd: () => shellHabitat.SyncSessionCwd(session.ProjectRoot),
-            notifyListChanged: NotifyListChanged) + "\n# list_changed: shortlist refreshed after cdp_restore";
+            notifyListChanged: NotifyListChanged,
+            cdpSettings: settings) + "\n# list_changed: shortlist refreshed after cdp_restore";
     }
 }

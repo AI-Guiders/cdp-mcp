@@ -157,6 +157,42 @@ public sealed class WritingCanonStackTests
     }
 
     [Fact]
+    public void AttachCanonToOpenJson_embeds_stack_after_open_shape()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"canon-open-{Guid.NewGuid():N}");
+        var cdpDir = Path.Combine(root, ".cdp");
+        Directory.CreateDirectory(cdpDir);
+        File.WriteAllText(
+            Path.Combine(cdpDir, "project.toml"),
+            """
+            [canon]
+            lang = "csharp"
+            """);
+        var styleRoot = Path.Combine(Path.GetTempPath(), $"canon-style-open-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(Path.Combine(styleRoot, "core"));
+        Directory.CreateDirectory(Path.Combine(styleRoot, "csharp"));
+        try
+        {
+            var session = new SessionContext { ScmRoot = root, ProjectRoot = root, Language = "csharp" };
+            var openJson = """{"root":"x","scm_root":"y"}""";
+            var merged = IdeCanonChannel.AttachCanonToOpenJson(
+                openJson,
+                session,
+                new CdpSettings { Canon = new CanonSettings { GuidersStyleRoot = styleRoot } },
+                new DocumentBufferStore());
+            using var doc = JsonDocument.Parse(merged);
+            Assert.True(doc.RootElement.TryGetProperty("canon_stack", out var stack));
+            Assert.Equal("csharp", doc.RootElement.GetProperty("canon_lang").GetString());
+            Assert.True(stack.GetProperty("code").GetArrayLength() >= 2);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            Directory.Delete(styleRoot, recursive: true);
+        }
+    }
+
+    [Fact]
     public void IdeCanonChannel_requires_scm_root()
     {
         var json = IdeCanonChannel.HandleJson(

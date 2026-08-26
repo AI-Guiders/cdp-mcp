@@ -16,13 +16,14 @@ internal static partial class DeskBookmark
         Func<string, ProjectOpenResult> detectOpen,
         Action? syncShellCwd,
         Action? notifyListChanged,
+        CdpSettings? cdpSettings = null,
         int? maxBuffers = null)
     {
         var doc = TryLoad()
                   ?? throw new InvalidOperationException(
                       $"No desk bookmark at {FilePath}. Open a project first (autosave), then restore after reload.");
 
-        var openPayload = ApplyProject(session, doc, detectOpen, syncShellCwd, notifyListChanged);
+        var openPayload = ApplyProject(session, doc, detectOpen, syncShellCwd, notifyListChanged, cdpSettings, buffers);
 
         // Re-apply phase/object/intent from bookmark after ApplyOpen (which sets explore/code).
         if (!string.IsNullOrWhiteSpace(doc.SessionJson))
@@ -39,12 +40,16 @@ internal static partial class DeskBookmark
         DeskBookmarkDoc doc,
         Func<string, ProjectOpenResult> detectOpen,
         Action? syncShellCwd,
-        Action? notifyListChanged)
+        Action? notifyListChanged,
+        CdpSettings? cdpSettings = null,
+        DocumentBufferStore? docStore = null)
     {
         if (doc.OpenPath is { Length: > 0 } && (File.Exists(doc.OpenPath) || Directory.Exists(doc.OpenPath)))
         {
             var open = detectOpen(doc.OpenPath);
             var openPayload = IdeLanguageTools.ApplyOpen(session, open);
+            if (cdpSettings is not null && docStore is not null)
+                openPayload = IdeCanonChannel.AttachCanonToOpenJson(openPayload, session, cdpSettings, docStore);
             syncShellCwd?.Invoke();
             notifyListChanged?.Invoke();
             return openPayload;

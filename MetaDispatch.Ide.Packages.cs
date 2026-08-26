@@ -165,6 +165,7 @@ internal static partial class MetaDispatch
                 var open = settings.Languages.Detect(openPath);
                 var park = docStore.ParkOutsideProject(open.Root);
                 openMeta = IdeLanguageTools.ApplyOpen(session, open, park);
+                openMeta = IdeCanonChannel.AttachCanonToOpenJson(openMeta, session, settings, docStore);
                 shellHabitat.SyncSessionCwd(session.ProjectRoot);
                 NotifyListChanged();
             }
@@ -229,6 +230,7 @@ internal static partial class MetaDispatch
                 var open = settings.Languages.Detect(openPath);
                 var park = docStore.ParkOutsideProject(open.Root);
                 openMeta = IdeLanguageTools.ApplyOpen(session, open, park);
+                openMeta = IdeCanonChannel.AttachCanonToOpenJson(openMeta, session, settings, docStore);
                 shellHabitat.SyncSessionCwd(session.ProjectRoot);
                 NotifyListChanged();
             }

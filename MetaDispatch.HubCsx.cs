@@ -119,6 +119,7 @@ internal static partial class MetaDispatch
                 var open = settings.Languages.Detect(path!);
                 var park = docStore.ParkOutsideProject(open.Root);
                 var payload = IdeLanguageTools.ApplyOpen(session, open, park);
+                payload = IdeCanonChannel.AttachCanonToOpenJson(payload, session, settings, docStore);
                 // Keep Plan in sync with session for rest of this CSX.
                 plan.Rebind(
                     open.Root,
