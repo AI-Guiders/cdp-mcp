@@ -9,6 +9,7 @@ internal static class IdeCanonChannel
     internal static string HandleJson(
         SessionContext session,
         CdpSettings cdpSettings,
+        DocumentBufferStore docStore,
         IReadOnlyDictionary<string, JsonElement> args)
     {
         var scm = session.ScmRoot ?? session.ProjectRoot;
@@ -20,7 +21,7 @@ internal static class IdeCanonChannel
                 hint = "cdp_open first — canon stack needs session scm_root.",
             });
 
-        var host = WritingCanonHostPathsResolver.FromCdpSettings(cdpSettings);
+        var host = WritingCanonHostPathsResolver.FromSession(session, cdpSettings, docStore);
         var stack = WritingCanonStackResolver.Build(scm, host);
         return JsonSerializer.Serialize(new
         {
@@ -28,10 +29,14 @@ internal static class IdeCanonChannel
             scm_root = stack.ScmRoot,
             settings_path = stack.SettingsPath,
             settings_source = stack.SettingsSource,
+            lang = stack.EffectiveLang,
+            lang_source = stack.LangSource,
             host_paths = new
             {
                 primary_knowledge_root = host.PrimaryKnowledgeRoot,
                 guiders_style_root = host.GuidersStyleRoot,
+                session_language = host.SessionLanguage,
+                buffer_language = host.BufferLanguage,
                 notes_config = cdpSettings.Memory.NotesConfig,
             },
             canon_stack = new Dictionary<string, object>

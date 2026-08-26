@@ -104,9 +104,64 @@ public sealed class WritingCanonStackTests
     }
 
     [Fact]
+    public void Build_infers_lang_from_session_when_not_in_project_toml()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"canon-test-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        var styleRoot = Path.Combine(Path.GetTempPath(), $"canon-style-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(Path.Combine(styleRoot, "typescript"));
+        try
+        {
+            var host = new WritingCanonHostPaths
+            {
+                SessionLanguage = "typescript",
+                GuidersStyleRoot = styleRoot,
+            };
+            var stack = WritingCanonStackResolver.Build(root, host);
+            Assert.Equal("typescript", stack.EffectiveLang);
+            Assert.Equal("session", stack.LangSource);
+            Assert.Contains(stack.Code, e => e.Layer == "org-lang" && e.Path.Contains("typescript", StringComparison.Ordinal));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            Directory.Delete(styleRoot, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Build_infers_lang_from_buffer_when_session_unset()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"canon-test-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        var styleRoot = Path.Combine(Path.GetTempPath(), $"canon-style-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(Path.Combine(styleRoot, "python"));
+        try
+        {
+            var host = new WritingCanonHostPaths
+            {
+                BufferLanguage = "python",
+                GuidersStyleRoot = styleRoot,
+            };
+            var stack = WritingCanonStackResolver.Build(root, host);
+            Assert.Equal("python", stack.EffectiveLang);
+            Assert.Equal("buffer", stack.LangSource);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            Directory.Delete(styleRoot, recursive: true);
+        }
+    }
+
+    [Fact]
     public void IdeCanonChannel_requires_scm_root()
     {
-        var json = IdeCanonChannel.HandleJson(new SessionContext(), new CdpSettings(), new Dictionary<string, JsonElement>());
+        var json = IdeCanonChannel.HandleJson(
+            new SessionContext(),
+            new CdpSettings(),
+            new DocumentBufferStore(),
+            new Dictionary<string, JsonElement>());
         using var doc = JsonDocument.Parse(json);
         Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal("need_scm_root", doc.RootElement.GetProperty("error").GetString());

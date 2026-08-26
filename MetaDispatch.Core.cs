@@ -68,7 +68,7 @@ internal static partial class MetaDispatch
             case "cdp_peek":
                 return CdpPeekChannel.HandleJson(d.Session, d.Settings.Languages, d.DocStore, callArgs);
             case "cdp_canon_stack":
-                return IdeCanonChannel.HandleJson(d.Session, d.Settings, callArgs);
+                return IdeCanonChannel.HandleJson(d.Session, d.Settings, d.DocStore, callArgs);
             default:
                 return null;
         }

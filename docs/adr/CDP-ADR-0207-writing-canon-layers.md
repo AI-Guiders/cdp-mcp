@@ -124,7 +124,7 @@ Separate from `read_hot_context` L0 ([KB-008](https://github.com/AI-Guiders/kb/b
 }
 ```
 
-Resolution: `scm_root`; `lang` picks `{lang}/`; personal root from `memory.notes_config` → agent-notes `[knowledge].primary`; `guiders_style_root` in cdp-mcp.toml (or per-repo `org_style_root` in project.toml).
+Resolution: `scm_root`; `lang` from `.cdp/project.toml` → session (`cdp_open` detect) → open buffer extension; personal root from `memory.notes_config`; `guiders_style_root` in cdp-mcp.toml or per-repo `org_style_root`.
 
 P3+: soft pre-edit warnings from project canon §anti-patterns.
 
