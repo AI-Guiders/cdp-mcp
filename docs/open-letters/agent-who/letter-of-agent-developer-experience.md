@@ -9,7 +9,7 @@
 | **Pair** | [Agent eXperience (AX)](letter-of-agent-experience.md) — room quality; this guide — the *developer* seat |
 | **Naming** | [A\* glossary](a-star-glossary.md) — AUX/AX · **ADX** · ACX · ASX |
 | **Sibling** | [Русский](letter-of-agent-developer-experience.ru.md) |
-| **License** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
+| **License** | MIT ([OSI](https://opensource.org/license/MIT)) · [declaration](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **When** | World clock · 1 August 2026 |
 
 ---

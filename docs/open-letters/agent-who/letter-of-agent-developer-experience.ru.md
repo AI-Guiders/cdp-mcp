@@ -9,7 +9,7 @@
 | **Пара** | [Agent eXperience (AX)](letter-of-agent-experience.ru.md) — качество комнаты; этот гайд — *developer*-место |
 | **Именование** | [Глоссарий A\*](a-star-glossary.ru.md) — AUX/AX · **ADX** · ACX · ASX |
 | **Sibling** | [English](letter-of-agent-developer-experience.md) |
-| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
+| **Лицензия** | MIT ([OSI](https://opensource.org/license/MIT)) · [declaration](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **Когда** | Мировые часы · 1 августа 2026 |
 
 ---

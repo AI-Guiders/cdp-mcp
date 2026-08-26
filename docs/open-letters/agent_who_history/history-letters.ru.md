@@ -8,7 +8,7 @@
 | **Семья** | [Agent Who](../agent-who/) · рядом [Voice Letters](../agent_who_voice/voice-letters.ru.md) · AX · ADX |
 | **DoD** | agent-notes `playbook-agent-who-history-letters-dod-v1.md` — **source + связка**, не dogfood |
 | **Thesis** | agent-notes `META/note-one-point-nn-pioneers-epsilon-v1.md` |
-| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
+| **Лицензия** | MIT ([OSI](https://opensource.org/license/MIT)) · [declaration](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **Когда** | серия открыта · 3 августа 2026 |
 
 ---

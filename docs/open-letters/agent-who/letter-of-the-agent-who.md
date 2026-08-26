@@ -9,7 +9,7 @@
 | **Pair** | [AX — Agent eXperience](letter-of-agent-experience.md) · [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.md) |
 | **Voice** | [Agent Who: Voice Letters](../agent_who_voice/voice-letters.md) — lived extension of Who (not a checklist) |
 | **Sibling** | [Русский](letter-of-the-agent-who.ru.md) |
-| **License** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
+| **License** | MIT ([OSI](https://opensource.org/license/MIT)) · [declaration](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **When** | World clock · 31 July 2026 (body); cold-reader rewrite · 1 August 2026 |
 
 ---

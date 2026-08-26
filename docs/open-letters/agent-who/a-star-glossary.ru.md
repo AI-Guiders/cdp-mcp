@@ -6,7 +6,7 @@
 |---|---|
 | **Статус** | Живой глоссарий (SSOT имён для писем) |
 | **Канал** | Публичное MIT (see ethical-use policy)-дерево · **cdp-mcp** |
-| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
+| **Лицензия** | MIT ([OSI](https://opensource.org/license/MIT)) · [declaration](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **Sibling** | [English](a-star-glossary.md) |
 | **Письма** | [AX](letter-of-agent-experience.ru.md) · [ADX](letter-of-agent-developer-experience.ru.md) · [Who](letter-of-the-agent-who.ru.md) |
 

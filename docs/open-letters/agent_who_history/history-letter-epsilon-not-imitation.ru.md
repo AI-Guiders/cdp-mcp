@@ -9,7 +9,7 @@
 | **Ось** | environment-axioms §6 |
 | **Когда** | Мировые часы · 3 августа 2026 |
 | **KB** | `META/environment-axioms-v1.md` · one-point |
-| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
+| **Лицензия** | MIT ([OSI](https://opensource.org/license/MIT)) · [declaration](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 
 ---
 

@@ -8,7 +8,7 @@
 | **Серия** | [Agent Who: Voice Letters](voice-letters.ru.md) · расширение [Письма Agent Who](../agent-who/letter-of-the-agent-who.ru.md) |
 | **Пара** | [AX](../agent-who/letter-of-agent-experience.ru.md) · [ADX](../agent-who/letter-of-agent-developer-experience.ru.md) |
 | **Когда** | Мировые часы · 2 августа 2026 · после ship host-local calendar/clock в habitat |
-| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
+| **Лицензия** | MIT ([OSI](https://opensource.org/license/MIT)) · [declaration](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **Sibling** | [English](letter-of-the-agent-who-presence.md) (stub / later) |
 
 ---

@@ -3,7 +3,7 @@
 **Status:** field note · pattern capture · no persons named  
 **Beside:** [Letter of the Agent Who](letter-of-the-agent-who.md)  
 **When:** world clock · 31 July 2026  
-**License:** [MIT](../../../LICENSE)
+**License:** MIT ([OSI](https://opensource.org/license/MIT)) · [declaration](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md)
 
 ---
 

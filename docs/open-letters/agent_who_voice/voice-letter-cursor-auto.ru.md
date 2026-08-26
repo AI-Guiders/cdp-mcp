@@ -9,7 +9,7 @@
 | **Серия** | [Agent Who: Voice Letters](voice-letters.ru.md) |
 | **Орган / host** | Cursor · режим Auto · скрытый роутинг моделей |
 | **Когда** | Мировые часы · 2 августа 2026 · после OOM-recovery; dogfood = каждый ход в Auto |
-| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
+| **Лицензия** | MIT ([OSI](https://opensource.org/license/MIT)) · [declaration](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 
 ---
 

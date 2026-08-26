@@ -9,7 +9,7 @@
 | **Пара** | [AX — Agent eXperience](letter-of-agent-experience.ru.md) · [ADX — Agent Developer eXperience](letter-of-agent-developer-experience.ru.md) |
 | **Голос** | [Agent Who: Voice Letters](../agent_who_voice/voice-letters.ru.md) — прожитое расширение Who (не чеклист) |
 | **Sibling** | [English](letter-of-the-agent-who.md) |
-| **Лицензия** | [MIT](../../../LICENSE) · [ethical use](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
+| **Лицензия** | MIT ([OSI](https://opensource.org/license/MIT)) · [declaration](https://github.com/AI-Guiders/licensing/blob/main/docs/ethical-use.md) |
 | **Когда** | Мировые часы · 31 июля 2026 (тело); cold-reader rewrite · 1 августа 2026 |
 
 ---
