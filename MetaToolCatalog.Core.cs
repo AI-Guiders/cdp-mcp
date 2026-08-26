@@ -24,6 +24,7 @@ internal static partial class MetaToolCatalog
         }
     }),
     Meta("cdp_capabilities", "Mounted domains + layers.memory facets/roots + affordance counts.", new { type = "object", properties = new { } }),
+    Meta("cdp_canon_stack", "Writing canon route stack (CDP-ADR-0207): embedded defaults + .cdp/project.toml overlay + personal/project paths. Requires cdp_open scm_root.", new { type = "object", properties = new { } }),
     Meta("cdp_context", "[A] Get/set session phase+object(+intent[+language]). Phase change auto-applies desk layout (SA). Hold: layout_hold= or desk.layout.hold. Triggers tools/list_changed.", new
     {
         type = "object",

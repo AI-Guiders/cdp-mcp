@@ -104,25 +104,29 @@ Sections: stack now · do/don’t · golden files · gates · `rev` · `supersed
 
 Paradigm shift → update canon + ADR one-liner «ops → canon §X».
 
-### 6. CDP `canon_stack` (direction)
+### 6. CDP `canon_stack`
+
+**Defaults:** embedded `Resources/cdp-project.defaults.toml` in `Cdp.ScriptableIde` (merge like AgentNotes MCP). Disk `{scm_root}/.cdp/project.toml` overlays.
+
+**Tool:** `cdp_canon_stack` after `cdp_open` — JSON `canon_stack.operator[]` + `canon_stack.code[]`.
 
 Separate from `read_hot_context` L0 ([KB-008](https://github.com/AI-Guiders/kb/blob/main/knowledge/adr/008-workspace-scope-map-hot-mcp-and-public-cut.md) — do not merge org hot with project canon).
 
 ```json
 {
   "canon_stack": {
-    "operator": [{ "layer": "personal", "path": "…/operator-writing-prefs.md", "budget": 500 }],
+    "operator": [{ "layer": "personal", "path": "…", "exists": true, "budget": 500, "preview": "…" }],
     "code": [
-      { "layer": "org-lang", "path": "guiders-style/csharp/writing-surface.md", "budget": 800 },
-      { "layer": "project", "path": "agent-forge/.cdp/canon.md", "budget": 1500 }
+      { "layer": "org-lang", "path": "…", "exists": false, "budget": 800 },
+      { "layer": "project", "path": "…/.cdp/canon.md", "exists": false, "budget": 1500 }
     ]
   }
 }
 ```
 
-Resolution: `scm_root` walk for `.cdp/project.toml`; `lang` picks `{lang}/`; `active_scope` map for optional scope leaf.
+Resolution: `scm_root`; `lang` picks `{lang}/`; env `GUIDERS_STYLE_ROOT`, `OPERATOR_WRITING_PREFS_PATH`.
 
-P2+: soft pre-edit warnings from project canon §anti-patterns.
+P3+: soft pre-edit warnings from project canon §anti-patterns.
 
 ---
 
@@ -141,7 +145,7 @@ P2+: soft pre-edit warnings from project canon §anti-patterns.
 |-------|-------------|
 | **P0** | This ADR + GUIDERS-VISION-0002 + KB-019 stub |
 | **P1** | `agent-forge/.cdp/canon.md`; `guiders-style` stub; `operator-writing-prefs.md` skeleton |
-| **P2** | `memory_session_route_context` emits `canon_stack` |
+| **P2** | `cdp_canon_stack` MCP tool; embedded `cdp-project.defaults.toml` + disk merge in `Cdp.ScriptableIde` |
 | **P3** | Pre-edit hints; optional CI «canon rev on paradigm PR» |
 
 ---
