@@ -10,14 +10,11 @@
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
     <Version>0.5.748</Version>
-    <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true (legacy alias; NuGet is default since 0.5.745) -->
+    <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true (see Directory.Build.props) -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
-    <GuidersPlatformRoot Condition="'$(GuidersPlatformRoot)' == ''">..\guiders-platform</GuidersPlatformRoot>
     <GuidersPlatformVersion Condition="'$(GuidersPlatformVersion)' == ''">0.4.1</GuidersPlatformVersion>
-    <!-- Default nuget.org; platform dev: /p:UseLocalGuidersPlatform=true when sibling guiders-platform exists -->
+    <!-- NuGet fallback when no sibling; sibling + Directory.Build.props → ProjectReference -->
     <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == ''">false</UseLocalGuidersPlatform>
-    <GuidersCoreRoot Condition="'$(GuidersCoreRoot)' == ''">..\guiders-core</GuidersCoreRoot>
-    <!-- Default nuget.org; core dev: /p:UseLocalGuidersCore=true when sibling guiders-core exists -->
     <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == ''">false</UseLocalGuidersCore>
     <AgentNotesCoreFromSibling Condition="Exists('$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj')">true</AgentNotesCoreFromSibling>
   </PropertyGroup>

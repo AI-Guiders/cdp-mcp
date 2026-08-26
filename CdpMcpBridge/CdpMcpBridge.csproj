@@ -10,8 +10,6 @@
     <RootNamespace>CdpMcpBridge</RootNamespace>
     <AssemblyName>CdpMcpBridge</AssemblyName>
     <Version>0.2.0</Version>
-    <GuidersCoreRoot Condition="'$(GuidersCoreRoot)' == ''">..\..\guiders-core</GuidersCoreRoot>
-    <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == ''">false</UseLocalGuidersCore>
     <TerminalMcpCoreVersion Condition="'$(TerminalMcpCoreVersion)' == ''">0.1.5</TerminalMcpCoreVersion>
   </PropertyGroup>
   <ItemGroup>

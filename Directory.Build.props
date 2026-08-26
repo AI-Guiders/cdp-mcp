@@ -1,0 +1,15 @@
+<Project>
+  <!-- Local overrides (not committed). See REPO_STRUCTURE.md / agent-forge pattern. -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.user.props"
+          Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.user.props')" />
+
+  <PropertyGroup>
+    <GuidersCoreRoot Condition="'$(GuidersCoreRoot)' == ''">$(MSBuildThisFileDirectory)..\guiders-core</GuidersCoreRoot>
+    <GuidersPlatformRoot Condition="'$(GuidersPlatformRoot)' == ''">$(MSBuildThisFileDirectory)..\guiders-platform</GuidersPlatformRoot>
+    <!-- aid-publish -UseNuGet → AidUseNuGet=true overrides sibling auto-detect -->
+    <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == '' and '$(AidUseNuGet)' == 'true'">false</UseLocalGuidersCore>
+    <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == '' and '$(AidUseNuGet)' == 'true'">false</UseLocalGuidersPlatform>
+    <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == '' and '$(AidUseNuGet)' != 'true' and Exists('$(GuidersCoreRoot)\src\Cdp.Core\Cdp.Core.csproj')">true</UseLocalGuidersCore>
+    <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == '' and '$(AidUseNuGet)' != 'true' and Exists('$(GuidersPlatformRoot)\src\AIGuiders.Platform.CommandPlane\AIGuiders.Platform.CommandPlane.csproj')">true</UseLocalGuidersPlatform>
+  </PropertyGroup>
+</Project>

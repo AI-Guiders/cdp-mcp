@@ -58,7 +58,7 @@ dotnet test ..\guiders-core\tests\Cdp.Core.Tests\Cdp.Core.Tests.csproj -c Releas
 dotnet run --project tools\CdpProbe\CdpProbe.csproj -c Release
 ```
 
-**Platform** (`AIGuiders.Platform.*` + CommandPlane) and **Core** (`AIGuiders.Cdp.*`, Agent*, MCP cores, …) — **nuget.org by default**. Sibling monorepos only via `/p:UseLocalGuidersPlatform=true` or `/p:UseLocalGuidersCore=true`.
+**Platform** (`AIGuiders.Platform.*` + CommandPlane) and **Core** (`AIGuiders.Cdp.*`, Agent*, MCP cores, …) — sibling `guiders-core` / `guiders-platform` via `Directory.Build.props` (auto `ProjectReference` when clone exists). Standalone clone or `aid-publish -UseNuGet` → nuget.org packages.
 
 `AgentNotes.Mcp.Hosting` is not on NuGet — still compiled from `guiders-core` or `agent-notes-mcp` sibling when present (CI clones the latter).
 

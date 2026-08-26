@@ -20,6 +20,7 @@ sibling.next/
 .hybrid-codebase-index/
 config/cdp-mcp.toml
 config/cdp-mcp.local.toml
+Directory.Build.user.props
 # Local agent scratch (cdp_buffer op=scratch)
 .cdp/scratch/
 # Local script habitat drafts (cdp_script_scene)
