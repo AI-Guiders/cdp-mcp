@@ -1,3 +1,4 @@
+using AIGuiders.Cli;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Tomlyn;
@@ -109,16 +110,8 @@ internal static class CdpBridgeConfigLoader
         };
     }
 
-    static string? ResolveConfigPath(string[] args)
-    {
-        for (var i = 0; i < args.Length; i++)
-        {
-            if (args[i] is "--config" or "-c" && i + 1 < args.Length)
-                return args[i + 1];
-        }
-
-        return Environment.GetEnvironmentVariable("CDP_MCP_CONFIG");
-    }
+    static string? ResolveConfigPath(string[] args) =>
+        ConfigPathResolver.TryResolve(args, "CDP_MCP_CONFIG");
 }
 
 internal sealed class BridgeTomlDocument

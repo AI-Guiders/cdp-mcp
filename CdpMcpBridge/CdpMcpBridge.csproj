@@ -19,6 +19,7 @@
     <ProjectReference Include="$(GuidersCoreRoot)\src\TerminalMcp.Core\TerminalMcp.Core.csproj" Condition="'$(UseLocalGuidersCore)' == 'true'" />
     <PackageReference Include="AIGuiders.TerminalMcp.Core" Version="$(TerminalMcpCoreVersion)" Condition="'$(UseLocalGuidersCore)' != 'true'" />
     <PackageReference Include="ModelContextProtocol" Version="2.2.0" />
-    <PackageReference Include="Tomlyn" Version="2.9.0" />
+    <PackageReference Include="Tomlyn" Version="2.10.1" />
+    <ProjectReference Include="..\..\AIGuiders.DotnetTools\AIGuiders.Cli\AIGuiders.Cli.csproj" />
   </ItemGroup>
 </Project>

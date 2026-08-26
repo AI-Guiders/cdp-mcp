@@ -1,5 +1,7 @@
 #nullable enable
 using System.Net;
+using Polly;
+using Polly.Retry;
 
 namespace CdpMcp;
 
@@ -100,21 +102,29 @@ internal static partial class CitizenCompletions
     /// <summary>Cursor-like reconnect: retry transient once/twice, then surface last fail.</summary>
     static TurnResult WithTransientRetry(Func<TurnResult> once)
     {
-        TurnResult? last = null;
         var max = MaxAttempts;
-        for (var attempt = 1; attempt <= max; attempt++)
+        var attempts = 0;
+        var pipeline = new ResiliencePipelineBuilder<TurnResult>()
+            .AddRetry(new RetryStrategyOptions<TurnResult>
+            {
+                MaxRetryAttempts = max - 1,
+                DelayGenerator = args => ValueTask.FromResult<TimeSpan?>(RetryBackoff(args.AttemptNumber)),
+                OnRetry = args =>
+                {
+                    if (args.Outcome.Result is TurnResult r)
+                        TransientRetryHook?.Invoke(args.AttemptNumber, max, r.Error);
+                },
+                ShouldHandle = new PredicateBuilder<TurnResult>()
+                    .HandleResult(r => !r.Ok && IsTransientError(r.Error)),
+            })
+            .Build();
+
+        var result = pipeline.Execute(() =>
         {
-            last = once();
-            if (last.Ok || !IsTransientError(last.Error) || attempt >= max)
-                return AnnotateReconnect(last, attempt);
-
-            TransientRetryHook?.Invoke(attempt, max, last.Error);
-            var delay = RetryBackoff(attempt);
-            if (delay > TimeSpan.Zero)
-                Thread.Sleep(delay);
-        }
-
-        return last!;
+            attempts++;
+            return once();
+        });
+        return AnnotateReconnect(result, attempts);
     }
 
     static TurnResult AnnotateReconnect(TurnResult r, int attempts)
