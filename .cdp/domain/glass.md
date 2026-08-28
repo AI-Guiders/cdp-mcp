@@ -5,6 +5,14 @@
 - product: `#CIDE` / `#CDP`
 - learn: `note-0-sync-glass-entity-parity` — every CDP desk entity needs CIDE/Glass presence (stub OK)
 
+## Lexicon — cockpit vs cabin
+
+English **cockpit** (aviation sense; RU «кабина пилотов» is a false friend — not *pilot cabin*): control topology, attention, protocols (`cdp_cockpit`, P/F/M, dual-cockpit). Etymology: cockfighting **pit** → cramped operator arena.
+
+**cabin**: survivable host shell and instrument chrome (`CDP GlassCockpit · Windows`, seats peel, SoftInstrumentBand) — **not** passenger cabin.
+
+> Cockpit = how control is modelled; cabin = where that model is inhabited.
+
 ## Invariants
 
 - Topology compose inside `(…)`: `+` = spatial **split** (both visible); `/` = **OneOf** XOR (full TopLevel, role switches). Example `(P/M)(F)` ≠ `(P+M)(F)`. OneOf DoD = chord **and** auto-switch. Canon: cascade-ide `docs/design/topology-oneof-slash-v0.md`. **Shipped:** parser+flags+Glass `pm_oneof_host` · chord `po` · auto M←MFD/seats · P←plan latch.
