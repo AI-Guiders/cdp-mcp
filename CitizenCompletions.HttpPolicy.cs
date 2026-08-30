@@ -113,6 +113,7 @@ internal static partial class CitizenCompletions
                 {
                     if (args.Outcome.Result is TurnResult r)
                         TransientRetryHook?.Invoke(args.AttemptNumber, max, r.Error);
+                    return ValueTask.CompletedTask;
                 },
                 ShouldHandle = new PredicateBuilder<TurnResult>()
                     .HandleResult(r => !r.Ok && IsTransientError(r.Error)),
