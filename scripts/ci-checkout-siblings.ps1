@@ -60,8 +60,11 @@ function Invoke-SiblingClone([array]$Rows, [switch]$Required) {
 }
 
 $requiredFailed = Invoke-SiblingClone $required -Required
-Invoke-SiblingClone $optional | Out-Null
+$null = Invoke-SiblingClone $optional
 
 if ($requiredFailed.Count -gt 0) {
     throw ("Required GitHub sibling clone failed: " + ($requiredFailed -join ', ') + ". Set GH_PAT (repo scope) if a repo is private.")
 }
+
+# Optional git clone failures must not override success (PowerShell propagates $LASTEXITCODE).
+$global:LASTEXITCODE = 0
