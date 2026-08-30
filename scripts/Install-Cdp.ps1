@@ -93,7 +93,7 @@ function Convert-ToTomlPath([string]$Path) { return ($Path -replace "\\", "/") }
 
 function Copy-CdpPayload([string]$Source, [string]$Destination) {
     if ($WhatIf) {
-        Write-Host "WhatIf: copy payload $Source → $Destination"
+        Write-Host "WhatIf: copy payload $Source -> $Destination"
         return
     }
     New-Item -ItemType Directory -Force -Path $Destination | Out-Null
@@ -187,7 +187,7 @@ function Merge-McpServers([string]$TargetPath, [string]$Command, [string[]]$Args
     $servers["cdp"] = [pscustomobject]@{ command = $Command; args = @($Args) }
     $mcp.mcpServers = [pscustomobject]$servers
     Write-Utf8File $TargetPath ($mcp | ConvertTo-Json -Depth 12)
-    Write-Host "Merged mcp key 'cdp' → $TargetPath"
+    Write-Host "Merged mcp key 'cdp' -> $TargetPath"
 }
 
 function Get-CursorMcpPath {
@@ -250,7 +250,7 @@ $taskToml = Join-Path $cdpDst "agent-task-knowledge-mcp.toml"
 $cdpToml = Join-Path $cdpDst "cdp-mcp.toml"
 $exe = Join-Path $cdpDst $binName
 
-Write-Host "Install CDP → $Root" -ForegroundColor Cyan
+Write-Host "Install CDP -> $Root" -ForegroundColor Cyan
 Write-Host "  rid:    $rid"
 Write-Host "  source: $cdpSrc"
 Write-Host "  host:   $HostAdapter"
@@ -276,14 +276,14 @@ if (-not $WhatIf) {
 
 if (-not $SkipKbClone) {
     if (Test-Path -LiteralPath (Join-Path $kbDst ".git")) {
-        Write-Host "kb-public exists — git pull"
+        Write-Host "kb-public exists - git pull"
         if (-not $WhatIf) {
             git -C $kbDst pull --ff-only
             if ($LASTEXITCODE -ne 0) { throw "git pull kb-public failed" }
         }
     }
     else {
-        Write-Host "Clone kb-public → $kbDst"
+        Write-Host "Clone kb-public -> $kbDst"
         if (-not $WhatIf) {
             git clone --depth 1 $KbPublicRepo $kbDst
             if ($LASTEXITCODE -ne 0) { throw "git clone kb-public failed" }
@@ -398,8 +398,8 @@ switch ($HostAdapter) {
     "vscode" { Write-Host "VS Code: copy host-snippets/vscode.mcp.json into user MCP settings." }
     "windsurf" {
         Merge-McpServers (Get-WindsurfMcpPath) $exe @("--config", $configArg)
-        Write-Host "Refresh MCP in Windsurf Cascade (Manage MCPs → Refresh)."
-        Write-Host "WARN: Windsurf caps ~100 tools across all MCP servers — CDP shortlists, but heavy mounts may hit the ceiling." -ForegroundColor Yellow
+        Write-Host "Refresh MCP in Windsurf Cascade (Manage MCPs -> Refresh)."
+        Write-Host "WARN: Windsurf caps ~100 tools across all MCP servers - CDP shortlists, but heavy mounts may hit the ceiling." -ForegroundColor Yellow
     }
     "antigravity" {
         Merge-McpServers (Get-AntigravityMcpPath) $exe @("--config", $configArg)
@@ -407,11 +407,11 @@ switch ($HostAdapter) {
     }
     "opencode" {
         $ocPath = Get-OpencodeConfigPath
-        Write-Host "OpenCode: paste mcp.cdp from host-snippets/opencode.mcp.json into $ocPath (JSONC — merge by hand if comments present)."
+        Write-Host "OpenCode: paste mcp.cdp from host-snippets/opencode.mcp.json into $ocPath (JSONC - merge by hand if comments present)."
         Write-Host "  snippet: $(Join-Path $snippetsDir 'opencode.mcp.json')"
         Write-Host "  AutoI wake: cdp_ignite op=arm harness=opencode session=ses_… when=timer in=5m task=…"
     }
-    default { Write-Host "Host none — snippets under $snippetsDir" }
+    default { Write-Host "Host none - snippets under $snippetsDir" }
 }
 
 Write-Host "OK. Payload $exe" -ForegroundColor Green
