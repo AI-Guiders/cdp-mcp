@@ -17,6 +17,7 @@ internal static partial class ProgramHost
         "IDE verbs (harness routes LSP): go_to_definition, find_usages, get_document_symbols, get_symbol_at_position, get_diagnostics, resolve_project_root, get_workspace_navigation_context. " +
         "Prefer cdp_build/cdp_run/cdp_test/cdp_pkg_*/cdp_project_*/cdp_sln_* over shell for session project. " +
         "Agent shell habitat: cdp_shell_* = primary IDE terminal; sibling terminal-mcp (terminal_*) = escape only. " +
+        "Multi-step IDE (default): batch intent in CSX — one cdp_csx_run → one ScriptReport (steps+result); avoid sprawl of separate roslyn_/git_/cdp_ calls when ≥2 related IDE actions. cdp_csx_help op=toc|of first if unsure. Sandbox: cdp_csx_run_plan → promote|discard. " +
         "CSX: cdp_script_scene (put→diags→check→run) | cdp_csx_help | cdp_csx_check | cdp_csx_run | cdp_csx_run_plan | promote | discard | cdp_evidence. " +
         "PS1: cdp_ps1_scene (ISE put→AST check→pwsh -File→last). " +
         "Domain tools prefixed memory_world_|memory_project_|memory_task_|memory_session_|memory_skill_|memory_self_finding_|memory_self_failure_|debug_|build_|roslyn_|git_|codebase_index_|anui_ (roslyn_* = legacy aliases; prefer bare IDE verbs). " +

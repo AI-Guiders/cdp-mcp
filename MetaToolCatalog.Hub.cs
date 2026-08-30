@@ -141,7 +141,7 @@ internal static partial class MetaToolCatalog
             path = new { type = "string", description = "Optional file path if text omitted." }
         }
     }),
-    Meta("cdp_csx_run", "Run CSX via ScriptHost. mode=run|dry_run. Dispatches to mounted domains (roslyn/git/debug/…).", new
+    Meta("cdp_csx_run", "Execute CSX script: batch ≥2 IDE steps into ONE ScriptReport (steps[]+result) instead of many MCP round-trips. mode=run|dry_run. code= or path=. Requires cdp_open session for sln. Help: cdp_csx_help.", new
     {
         type = "object",
         properties = new
