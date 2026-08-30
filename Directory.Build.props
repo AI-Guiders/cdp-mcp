@@ -11,5 +11,7 @@
     <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == '' and '$(AidUseNuGet)' == 'true'">false</UseLocalGuidersPlatform>
     <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == '' and '$(AidUseNuGet)' != 'true' and Exists('$(GuidersCoreRoot)\src\Cdp.Core\Cdp.Core.csproj')">true</UseLocalGuidersCore>
     <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == '' and '$(AidUseNuGet)' != 'true' and Exists('$(GuidersPlatformRoot)\src\AIGuiders.Platform.CommandPlane\AIGuiders.Platform.CommandPlane.csproj')">true</UseLocalGuidersPlatform>
+    <!-- Transitive from OutWit.Database; CdpMcp has no aspects. Avoids OOM (Killed: 9) on macOS CI. -->
+    <AspectInjector_Enabled>false</AspectInjector_Enabled>
   </PropertyGroup>
 </Project>
