@@ -338,7 +338,6 @@ version = 1
 primary = "personal"
 [knowledge.roots]
 personal = "$(Convert-ToTomlPath $notesDst)"
-public = "$(Convert-ToTomlPath $kbDst)"
 [[knowledge.read_only]]
 id = "public"
 path = "$(Convert-ToTomlPath $kbDst)"
