@@ -36,7 +36,7 @@ if (Test-Path -LiteralPath $publishDir) {
 }
 New-Item -ItemType Directory -Force -Path $publishDir, $distDir | Out-Null
 
-& dotnet publish $csproj -c $Configuration -r $Runtime --self-contained true -o $publishDir
+& dotnet publish $csproj -c $Configuration -r $Runtime --self-contained true -o $publishDir /p:AidUseNuGet=true
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $binName = if ($Runtime -like "win-*") { "CdpMcp.exe" } else { "CdpMcp" }
