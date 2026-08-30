@@ -57,8 +57,9 @@ $workerSrc = $workerSrcCandidates | Where-Object { Test-Path -LiteralPath (Join-
 $workerDst = Join-Path $publishDir "ts-worker"
 if ($workerSrc) {
     if (-not (Test-Path -LiteralPath (Join-Path (Join-Path $workerSrc "node_modules") "typescript"))) {
+        $npm = if ($null -ne (Get-Command npm.cmd -ErrorAction SilentlyContinue)) { "npm.cmd" } else { "npm" }
         Push-Location $workerSrc
-        try { & npm.cmd install --omit=dev; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }
+        try { & $npm install --omit=dev; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }
         finally { Pop-Location }
     }
     if (Test-Path -LiteralPath $workerDst) { Remove-Item $workerDst -Recurse -Force }
