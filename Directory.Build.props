@@ -22,7 +22,7 @@
           BeforeTargets="Build"
           Condition="'$(UseLocalGuidersFSharp)' == 'true' and Exists('$(GuidersFSharpRoot)\tools\FcsProjInfoProbe\FcsProjInfoProbe.fsproj')">
     <MSBuild Projects="$(GuidersFSharpRoot)\tools\FcsProjInfoProbe\FcsProjInfoProbe.fsproj"
-             Properties="Configuration=$(Configuration)" />
+             Properties="Configuration=$(Configuration);RuntimeIdentifier=;SelfContained=false;AppendRuntimeIdentifierToOutputPath=false" />
   </Target>
 
   <Target Name="CopyFcsProjInfoProbe"
