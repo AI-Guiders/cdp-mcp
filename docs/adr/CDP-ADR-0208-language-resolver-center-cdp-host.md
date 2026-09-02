@@ -1,6 +1,7 @@
 # CDP-ADR-0208: Language Resolver Center — CDP first host
 
-- **Status:** Accepted
+- **Status:** Accepted · In progress
+- **Implementation:** LRC dispatch in CDP; F# via FCS; ide-session federation pulse partial
 - **Date:** 2026-09-02
 - **Tags:** #cdp #lrc #fsharp #fcs #roslyn #gdl #ide #mcp
 - **Normative:** [GUIDERS-ADR-0061](https://github.com/AI-Guiders/guiders-dotnet-platform/blob/main/docs/adr/GUIDERS-ADR-0061-language-resolver-center.md) — federation LRC SSOT
