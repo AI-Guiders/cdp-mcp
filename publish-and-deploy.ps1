@@ -311,6 +311,12 @@ try {
     Write-Host "Publish CdpService → $serviceDeployRoot"
     Publish-CdpProject -Project $serviceCsproj -DeployRoot $serviceDeployRoot -KillRunning:($Mode -eq "hard")
     Copy-TsWorker -DeployRoot $serviceDeployRoot
+    $fcsProbeSrc = Join-Path $here "..\guiders-fsharp\tools\FcsProjInfoProbe\bin\Release\net10.0"
+    $fcsProbeDst = Join-Path $serviceDeployRoot "tools\FcsProjInfoProbe"
+    if (Test-Path -LiteralPath $fcsProbeSrc) {
+        New-Item -ItemType Directory -Force -Path $fcsProbeDst | Out-Null
+        Copy-Item -LiteralPath (Join-Path $fcsProbeSrc "*") -Destination $fcsProbeDst -Recurse -Force
+    }
     $serviceExeSrc = Join-Path $serviceDeployRoot "CdpMcp.exe"
     $serviceExeDst = Join-Path $serviceDeployRoot "CdpService.exe"
     if (Test-Path -LiteralPath $serviceExeSrc) {

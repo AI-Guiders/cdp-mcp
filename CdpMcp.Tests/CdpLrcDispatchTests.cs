@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using AIGuiders.Platform.Execution.Language;
 using Cdp.Core;
 using Xunit;
 
@@ -153,6 +154,86 @@ public sealed class CdpLrcDispatchTests
         {
             Directory.Delete(root, recursive: true);
             IdeLanguageTools.Configure(LanguageRegistry.Default);
+        }
+    }
+
+    [Fact]
+    public async Task Get_diagnostics_reports_semantic_fs_error_with_fsproj_context()
+    {
+        IdeLanguageTools.Configure(LanguageRegistry.Default);
+        IdeLanguageTools.BindDocumentStore(null);
+
+        var root = Path.Combine(Path.GetTempPath(), "cdp-lrc-sem-" + Path.GetRandomFileName());
+        Directory.CreateDirectory(root);
+        var fsproj = Path.Combine(root, "SemProj.fsproj");
+        var path = Path.Combine(root, "Sem.fs");
+        await File.WriteAllTextAsync(
+            fsproj,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+              <ItemGroup><Compile Include="Sem.fs" /></ItemGroup>
+            </Project>
+            """);
+        await File.WriteAllTextAsync(path, "module Sem\nlet x = totallyUnknownIdentifier\n");
+
+        try
+        {
+            var session = new SessionContext
+            {
+                ProjectRoot = root,
+                Language = CdpLanguages.Csharp,
+                SolutionOrProjectPath = fsproj,
+            };
+            var raw = await IdeLanguageTools.DispatchBareAsync(
+                "get_diagnostics",
+                session,
+                new Dictionary<string, ICdpBackendModule>(),
+                new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["file_path"] = JsonSerializer.SerializeToElement(path),
+                },
+                CancellationToken.None);
+
+            using var doc = JsonDocument.Parse(raw);
+            var diags = doc.RootElement.GetProperty("diagnostics");
+            Assert.True(diags.GetArrayLength() > 0, raw);
+            Assert.Equal("error", diags[0].GetProperty("severity").GetString());
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            IdeLanguageTools.Configure(LanguageRegistry.Default);
+        }
+    }
+
+    [Fact]
+    public async Task Resolver_center_reports_semantic_fs_error_with_fsproj_context()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "cdp-lrc-center-" + Path.GetRandomFileName());
+        Directory.CreateDirectory(root);
+        var fsproj = Path.Combine(root, "SemProj.fsproj");
+        var path = Path.Combine(root, "Sem.fs");
+        await File.WriteAllTextAsync(
+            fsproj,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+              <ItemGroup><Compile Include="Sem.fs" /></ItemGroup>
+            </Project>
+            """);
+        await File.WriteAllTextAsync(path, "module Sem\nlet x = totallyUnknownIdentifier\n");
+
+        try
+        {
+            var req = new LanguageRequest(path, 1, 1, null, fsproj);
+            var result = await CdpLanguageResolverHost.Center.DispatchDiagnosticsAsync(req, CancellationToken.None);
+
+            Assert.NotEmpty(result.Diagnostics);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
         }
     }
 

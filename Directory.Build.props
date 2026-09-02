@@ -15,5 +15,24 @@
     <UseLocalGuidersFSharp Condition="'$(UseLocalGuidersFSharp)' == '' and '$(AidUseNuGet)' != 'true' and Exists('$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language.Adapters.Fcs\AIGuiders.Platform.Modeling.Language.Adapters.Fcs.fsproj')">true</UseLocalGuidersFSharp>
     <!-- Transitive from OutWit.Database; CdpMcp has no aspects. Avoids OOM (Killed: 9) on macOS CI. -->
     <AspectInjector_Enabled>false</AspectInjector_Enabled>
+    <FcsProjInfoProbeExe>$(GuidersFSharpRoot)\tools\FcsProjInfoProbe\bin\$(Configuration)\net10.0\FcsProjInfoProbe.exe</FcsProjInfoProbeExe>
   </PropertyGroup>
+
+  <Target Name="BuildFcsProjInfoProbe"
+          BeforeTargets="Build"
+          Condition="'$(UseLocalGuidersFSharp)' == 'true' and Exists('$(GuidersFSharpRoot)\tools\FcsProjInfoProbe\FcsProjInfoProbe.fsproj')">
+    <MSBuild Projects="$(GuidersFSharpRoot)\tools\FcsProjInfoProbe\FcsProjInfoProbe.fsproj"
+             Properties="Configuration=$(Configuration)" />
+  </Target>
+
+  <Target Name="CopyFcsProjInfoProbe"
+          AfterTargets="Build"
+          Condition="'$(UseLocalGuidersFSharp)' == 'true' and Exists('$(FcsProjInfoProbeExe)') and '$(OutputPath)' != ''">
+    <ItemGroup>
+      <_FcsProjInfoProbeAssets Include="$(GuidersFSharpRoot)\tools\FcsProjInfoProbe\bin\$(Configuration)\net10.0\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_FcsProjInfoProbeAssets)"
+          DestinationFiles="@(_FcsProjInfoProbeAssets->'$(OutputPath)tools\FcsProjInfoProbe\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
 </Project>
