@@ -33,6 +33,29 @@ public sealed class QualityGatesSnapTests
     }
 
     [Fact]
+    public void Snap_ignores_file_lines_on_markdown_buffers()
+    {
+        var root = NewTemp("qg-md");
+        try
+        {
+            var path = Path.Combine(root, "axioms.md");
+            File.WriteAllText(path, string.Join('\n', Enumerable.Repeat("# section", 1200)) + "\n");
+
+            var store = new DocumentBufferStore();
+            store.Open(path);
+
+            var snap = QualityGates.Snap(store, root);
+            Assert.True(snap.Enabled);
+            Assert.Equal(0, snap.Warn);
+            Assert.Equal("ok", snap.Pulse);
+        }
+        finally
+        {
+            TryDelete(root);
+        }
+    }
+
+    [Fact]
     public void Snap_warn_counts_unique_files_not_every_method_card()
     {
         var root = NewTemp("qg-methods");

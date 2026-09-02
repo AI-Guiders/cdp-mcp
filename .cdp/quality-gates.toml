@@ -4,6 +4,7 @@
 # suggest_sniper=0: SA alert counts unique open buffers; sniper band (180..warn)
 # was double-noise next to real file_lines when the desk keeps many mid-size files open.
 # partial_family_*: tooth vs file_lines peel mill (partial ≠ seam). Brain still required.
+# file_lines on open buffers: code kinds only (.cs/.fs/.ts/…); prose (.md) skipped — see QualityGates.CodeKinds.cs
 [quality]
 enabled = true
 mode = "warn"

@@ -10,6 +10,7 @@
 - **On `file_lines` / `method_lines` warn:** default response = **OOA&D + DRY + KISS** (named types by responsibility, facade thin, shared state owned once) — not SoftFL densify. Dig: `software.authoring` / `playbook-ooad-agent-operational-v1.md`.
 - **`partial` is a narrow case** (codegen / designer / rare hand split of one type across files). Metric peel via `Foo.Bar.cs` ≠ design. `partial ≠ split` · tooth `partial_family`.
 - Default `go=quality` / Snap: **open buffers only** (cockpit alert must not thrash on closed fat files).
+- **`file_lines` / `suggest_sniper` — code buffers only** (`.cs`, `.fs`, `.ts`, …); prose/config (`.md`, `.toml`, `.json`, …) skipped on open-buffer eval. Disk map stays `*.cs`.
 - `scope=disk|project|map`: whole-project `*.cs` map — warn/fail + near-miss (floor = suggest_sniper or warn−50); skip bin/obj/.git.
 - Disk scan is **file lines only** (no method scan) — ADX token tax.
 - Hub `QualityGates.cs` stays under soft-warn; buffer eval + policy/load live in peels.

@@ -9,8 +9,10 @@ internal static partial class QualityGates
         var list = new List<QualityFinding>();
         var lines = CountLines(buf.Text);
         var shortPath = ShortPath(buf.Path);
+        var fileLinesSubject = IsFileLinesSubject(buf);
 
-        if (policy.SuggestSniperFileLines > 0
+        if (fileLinesSubject
+            && policy.SuggestSniperFileLines > 0
             && lines >= policy.SuggestSniperFileLines
             && (policy.FileLinesWarn <= 0 || lines < policy.FileLinesWarn)
             && !EditSniper.HasHold)
@@ -27,7 +29,7 @@ internal static partial class QualityGates
                 "go=scope"));
         }
 
-        if (policy.FileLinesFail > 0 && lines >= policy.FileLinesFail)
+        if (fileLinesSubject && policy.FileLinesFail > 0 && lines >= policy.FileLinesFail)
         {
             list.Add(new QualityFinding(
                 "file_lines",
@@ -40,7 +42,7 @@ internal static partial class QualityGates
                 $"{shortPath}: {lines} ≥ fail {policy.FileLinesFail}",
                 "go=scope → OOA&D/DRY/KISS extract (partial = narrow)"));
         }
-        else if (policy.FileLinesWarn > 0 && lines >= policy.FileLinesWarn)
+        else if (fileLinesSubject && policy.FileLinesWarn > 0 && lines >= policy.FileLinesWarn)
         {
             list.Add(new QualityFinding(
                 "file_lines",
@@ -101,12 +103,15 @@ internal static partial class QualityGates
                 list.Add(worstMethod);
         }
 
-        var familyHit = TryPartialFamilyFinding(buf.Path, policy, p =>
-            string.Equals(p, buf.Path, StringComparison.OrdinalIgnoreCase)
-                ? lines
-                : QuietLineCount(p));
-        if (familyHit is not null)
-            list.Add(familyHit);
+        if (buf.Path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+        {
+            var familyHit = TryPartialFamilyFinding(buf.Path, policy, p =>
+                string.Equals(p, buf.Path, StringComparison.OrdinalIgnoreCase)
+                    ? lines
+                    : QuietLineCount(p));
+            if (familyHit is not null)
+                list.Add(familyHit);
+        }
 
         if (string.Equals(policy.Mode, "warn", StringComparison.OrdinalIgnoreCase))
         {
