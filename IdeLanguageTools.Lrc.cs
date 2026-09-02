@@ -18,6 +18,10 @@ internal static partial class IdeLanguageTools
         "get_diagnostics",
         "get_document_symbols",
         "go_to_definition",
+        "find_usages",
+        "get_completions",
+        "get_symbol_at_position",
+        "rename_symbol",
     };
 
     static bool IsLrcLanguage(string? languageId) =>
@@ -78,6 +82,10 @@ internal static partial class IdeLanguageTools
             "get_diagnostics" => await center.DispatchDiagnosticsAsync(req, cancellationToken).ConfigureAwait(false),
             "get_document_symbols" => await center.DispatchDocumentSymbolsAsync(req, cancellationToken).ConfigureAwait(false),
             "go_to_definition" => await center.DispatchGoToDefinitionAsync(req, cancellationToken).ConfigureAwait(false),
+            "find_usages" => await center.DispatchFindUsagesAsync(req, cancellationToken).ConfigureAwait(false),
+            "get_completions" => await center.DispatchCompletionsAsync(req, cancellationToken).ConfigureAwait(false),
+            "get_symbol_at_position" => await center.DispatchSymbolAtPositionAsync(req, cancellationToken).ConfigureAwait(false),
+            "rename_symbol" => await center.DispatchRenameSymbolAsync(BuildRenameRequest(session, filePath, args), cancellationToken).ConfigureAwait(false),
             _ => throw new ArgumentException($"Unsupported LRC verb: {name}"),
         };
 
@@ -119,5 +127,17 @@ internal static partial class IdeLanguageTools
         }
 
         return new AIGuiders.Platform.Execution.Language.LanguageRequest(filePath, line, column, sourceText, solution);
+    }
+
+    static RenameSymbolRequest BuildRenameRequest(
+        SessionContext session,
+        string filePath,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var req = BuildLanguageRequest(session, filePath, args);
+        var newName = RequireString(args, "new_name");
+        var apply = args.TryGetValue("apply", out var applyEl)
+            && applyEl.ValueKind == JsonValueKind.True;
+        return new RenameSymbolRequest(req, newName, apply);
     }
 }

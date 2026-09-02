@@ -11,6 +11,10 @@ internal static partial class IdeLanguageTools
             DiagnosticsResult diagnostics => JsonSerializer.Serialize(WireDiagnostics(diagnostics), LrcJsonOptions),
             DocumentSymbolsResult symbols => JsonSerializer.Serialize(WireDocumentSymbols(symbols), LrcJsonOptions),
             LanguageNavigation navigation => JsonSerializer.Serialize(WireNavigation(navigation), LrcJsonOptions),
+            FindUsagesResult usages => JsonSerializer.Serialize(WireFindUsages(usages), LrcJsonOptions),
+            CompletionsResult completions => JsonSerializer.Serialize(WireCompletions(completions), LrcJsonOptions),
+            SymbolAtPositionResult symbol => JsonSerializer.Serialize(WireSymbolAtPosition(symbol), LrcJsonOptions),
+            RenameSymbolResult rename => JsonSerializer.Serialize(WireRename(rename), LrcJsonOptions),
             null => "null",
             _ => JsonSerializer.Serialize(result, LrcJsonOptions),
         };
@@ -52,6 +56,49 @@ internal static partial class IdeLanguageTools
                 definition = WireSpan(navigation.Definition),
                 declarations = navigation.Declarations.Select(WireSpan).ToArray(),
             };
+
+    static object WireFindUsages(FindUsagesResult result) => new
+    {
+        references = result.References.Select(WireReference).ToArray(),
+    };
+
+    static object WireReference(LanguageReference reference) => new
+    {
+        span = WireSpan(reference.Span),
+        target = WireSpan(reference.Target),
+        kind = reference.Kind,
+    };
+
+    static object WireCompletions(CompletionsResult result) => new
+    {
+        items = result.Items.Select(WireCompletion).ToArray(),
+    };
+
+    static object WireCompletion(LanguageCompletion item) => new
+    {
+        label = item.Label,
+        kind = item.Kind,
+        detail = item.Detail,
+        insertText = item.InsertText,
+    };
+
+    static object WireSymbolAtPosition(SymbolAtPositionResult symbol) => new
+    {
+        kind = symbol.Kind,
+        name = symbol.Name,
+        qualifiedName = symbol.QualifiedName,
+        span = WireSpan(symbol.Span),
+    };
+
+    static object WireRename(RenameSymbolResult result) => new
+    {
+        oldName = result.OldName,
+        newName = result.NewName,
+        symbolKind = result.SymbolKind,
+        applied = result.Applied,
+        files = result.Files,
+        changes = result.Changes.Select(c => new { path = c.Path, newText = c.NewText }).ToArray(),
+    };
 
     static object WireSpan(SourceSpan span) => new
     {

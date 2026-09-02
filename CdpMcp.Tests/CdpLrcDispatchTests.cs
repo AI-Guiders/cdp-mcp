@@ -256,4 +256,102 @@ public sealed class CdpLrcDispatchTests
             Directory.Delete(root, recursive: true);
         }
     }
+
+    [Fact]
+    public async Task All_seven_lrc_verbs_green_on_guiders_fsharp_slnx()
+    {
+        IdeLanguageTools.Configure(LanguageRegistry.Default);
+        IdeLanguageTools.BindDocumentStore(null);
+
+        var guidersRoot = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", "..", "..", "guiders-fsharp"));
+        var slnx = Path.Combine(guidersRoot, "AIGuiders.Platform.Modeling.slnx");
+        var kernelFs = Path.Combine(guidersRoot, "src", "AIGuiders.Platform.Modeling.Language", "Kernel.fs");
+        var fcsBackendFs = Path.Combine(
+            guidersRoot,
+            "src",
+            "AIGuiders.Platform.Modeling.Language.Adapters.Fcs",
+            "FcsLanguageBackend.fs");
+
+        Assert.True(File.Exists(slnx), slnx);
+        Assert.True(File.Exists(kernelFs), kernelFs);
+        Assert.True(File.Exists(fcsBackendFs), fcsBackendFs);
+
+        var session = new SessionContext
+        {
+            ProjectRoot = guidersRoot,
+            Language = CdpLanguages.Fsharp,
+            SolutionOrProjectPath = slnx,
+        };
+
+        var backends = new Dictionary<string, ICdpBackendModule>();
+        var baseArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+        {
+            ["file_path"] = JsonSerializer.SerializeToElement(kernelFs),
+            ["line"] = JsonSerializer.SerializeToElement(86),
+            ["column"] = JsonSerializer.SerializeToElement(10),
+            ["solution_or_project_path"] = JsonSerializer.SerializeToElement(slnx),
+        };
+
+        try
+        {
+            var diags = await DispatchAndParseAsync("get_diagnostics", session, backends, baseArgs);
+            Assert.True(diags.RootElement.TryGetProperty("diagnostics", out _));
+
+            var symbols = await DispatchAndParseAsync("get_document_symbols", session, backends, baseArgs);
+            Assert.True(symbols.RootElement.TryGetProperty("root", out var root));
+            Assert.Equal("Kernel.fs", root.GetProperty("name").GetString());
+
+            var definition = await DispatchAndParseAsync("go_to_definition", session, backends, baseArgs);
+            Assert.True(definition.RootElement.TryGetProperty("definition", out _));
+
+            var usages = await DispatchAndParseAsync("find_usages", session, backends, baseArgs);
+            Assert.True(usages.RootElement.TryGetProperty("references", out var refs));
+            Assert.True(refs.GetArrayLength() > 0, usages.RootElement.GetRawText());
+
+            var symbol = await DispatchAndParseAsync("get_symbol_at_position", session, backends, baseArgs);
+            Assert.Equal("LanguageRequest", symbol.RootElement.GetProperty("name").GetString());
+
+            var completionArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["file_path"] = JsonSerializer.SerializeToElement(fcsBackendFs),
+                ["line"] = JsonSerializer.SerializeToElement(37),
+                ["column"] = JsonSerializer.SerializeToElement(17),
+                ["solution_or_project_path"] = JsonSerializer.SerializeToElement(slnx),
+            };
+            var completions = await DispatchAndParseAsync("get_completions", session, backends, completionArgs);
+            Assert.True(completions.RootElement.TryGetProperty("items", out var items));
+            Assert.True(items.GetArrayLength() > 0, completions.RootElement.GetRawText());
+
+            var renameArgs = new Dictionary<string, JsonElement>(baseArgs, StringComparer.Ordinal)
+            {
+                ["new_name"] = JsonSerializer.SerializeToElement("LanguageRequestPreview"),
+                ["apply"] = JsonSerializer.SerializeToElement(false),
+            };
+            var rename = await DispatchAndParseAsync("rename_symbol", session, backends, renameArgs);
+            Assert.Equal("LanguageRequest", rename.RootElement.GetProperty("oldName").GetString());
+            Assert.False(rename.RootElement.GetProperty("applied").GetBoolean());
+            Assert.True(rename.RootElement.GetProperty("changes").GetArrayLength() > 0);
+        }
+        finally
+        {
+            IdeLanguageTools.Configure(LanguageRegistry.Default);
+        }
+    }
+
+    static async Task<JsonDocument> DispatchAndParseAsync(
+        string verb,
+        SessionContext session,
+        Dictionary<string, ICdpBackendModule> backends,
+        Dictionary<string, JsonElement> args)
+    {
+        var raw = await IdeLanguageTools.DispatchBareAsync(
+            verb,
+            session,
+            backends,
+            args,
+            CancellationToken.None);
+        return JsonDocument.Parse(raw);
+    }
 }
