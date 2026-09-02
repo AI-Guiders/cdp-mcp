@@ -1,6 +1,7 @@
 #nullable enable
 
-using AIGuiders.Platform.Cockpit.DataBus;
+using AIGuiders.Platform.Execution.Cockpit.DataBus;
+using AIGuiders.Platform.Modeling.Cockpit.DataBus;
 using CdpMcp.Cockpit.DataBus;
 
 namespace CdpMcp.Cockpit.DataBus;
@@ -10,36 +11,56 @@ internal static class LifecycleDataBusBridge
 {
     public static async Task<string> WithBuildStateAsync(Func<Task<string>> run)
     {
-        Publish(new BuildStateChanged(true));
+        Publish(new BuildStateChanged { IsBuilding = true });
         try
         {
             var result = await run().ConfigureAwait(false);
             var ok = LifecycleResultParser.LooksOk(result);
-            Publish(new BuildStateChanged(false, ok ? 0 : 1, ok));
+            Publish(new BuildStateChanged
+            {
+                IsBuilding = false,
+                LastExitCode = ok ? 0 : 1,
+                LastBuildSucceeded = ok,
+            });
             return result;
         }
         catch
         {
-            Publish(new BuildStateChanged(false, 1, false));
+            Publish(new BuildStateChanged
+            {
+                IsBuilding = false,
+                LastExitCode = 1,
+                LastBuildSucceeded = false,
+            });
             throw;
         }
     }
 
     public static async Task<string> WithTestStateAsync(Func<Task<string>> run)
     {
-        Publish(new BuildStateChanged(true));
+        Publish(new BuildStateChanged { IsBuilding = true });
         try
         {
             var result = await run().ConfigureAwait(false);
             var ok = LifecycleResultParser.LooksOk(result);
-            Publish(new BuildStateChanged(false, ok ? 0 : 1, ok));
+            Publish(new BuildStateChanged
+            {
+                IsBuilding = false,
+                LastExitCode = ok ? 0 : 1,
+                LastBuildSucceeded = ok,
+            });
             if (ok)
-                Publish(new TestsStateChanged("ok", 0));
+                Publish(new TestsStateChanged { Summary = "ok", ImpactedBadge = 0 });
             return result;
         }
         catch
         {
-            Publish(new BuildStateChanged(false, 1, false));
+            Publish(new BuildStateChanged
+            {
+                IsBuilding = false,
+                LastExitCode = 1,
+                LastBuildSucceeded = false,
+            });
             throw;
         }
     }

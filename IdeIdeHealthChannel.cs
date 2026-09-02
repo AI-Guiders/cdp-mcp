@@ -1,7 +1,7 @@
 #nullable enable
 
 using System.Text.Json;
-using AIGuiders.Platform.Cockpit.Channels.IdeHealth;
+using AIGuiders.Platform.Execution.Cockpit.Channels.IdeHealth;
 using Cdp.Core;
 using CdpMcp.Cockpit.IdeHealth;
 

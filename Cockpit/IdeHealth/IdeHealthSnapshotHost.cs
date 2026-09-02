@@ -1,7 +1,7 @@
 #nullable enable
 
-using AIGuiders.Platform.Cockpit.Channels.IdeHealth;
-using AIGuiders.Platform.Cockpit.Channels.IdeHealth.ComputingUnits;
+using AIGuiders.Platform.Execution.Cockpit.Channels.IdeHealth;
+using AIGuiders.Platform.Execution.Cockpit.Channels.IdeHealth.ComputingUnits;
 using Cdp.Core;
 using CdpMcp.Cockpit.DataBus;
 

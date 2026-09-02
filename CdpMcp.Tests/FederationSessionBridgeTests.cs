@@ -1,6 +1,7 @@
 #if CDP_FEDERATION_IDE_SESSION
 using System.Text.Json;
 using Cdp.Core;
+using Xunit;
 
 namespace CdpMcp.Tests;
 

@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.751</Version>
+    <Version>0.5.752</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true (see Directory.Build.props) -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
     <GuidersPlatformVersion Condition="'$(GuidersPlatformVersion)' == ''">0.4.1</GuidersPlatformVersion>
@@ -55,14 +55,14 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
     <PackageReference Include="OutWit.Database.EntityFramework" Version="14.0.1" />
     <PackageReference Include="AIGuiders.WebcamMcp.Shared" Version="0.1.0" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Abstractions" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Ids" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.DataBus" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Transport" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Channels" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Composition" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.Cockpit.Cds" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="AIGuiders.Platform.CommandPlane" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Abstractions" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Ids" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.DataBus" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Transport" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Channels" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Composition" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Cds" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Execution.CommandPlane" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260225" />
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260225" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.3" />
@@ -71,20 +71,18 @@
     <PackageReference Include="Whisper.net.Runtime" Version="1.9.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersPlatform)' == 'true'">
-    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Abstractions\AIGuiders.Platform.Cockpit.Abstractions.csproj" />
-    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Ids\AIGuiders.Platform.Cockpit.Ids.csproj" />
-    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.DataBus\AIGuiders.Platform.Cockpit.DataBus.csproj" />
-    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Transport\AIGuiders.Platform.Cockpit.Transport.csproj" />
-    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Channels\AIGuiders.Platform.Cockpit.Channels.csproj" />
-    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Composition\AIGuiders.Platform.Cockpit.Composition.csproj" />
-    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Cds\AIGuiders.Platform.Cockpit.Cds.csproj" />
-    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.CommandPlane\AIGuiders.Platform.CommandPlane.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Cockpit.Abstractions\AIGuiders.Platform.Execution.Cockpit.Abstractions.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Cockpit.Ids\AIGuiders.Platform.Execution.Cockpit.Ids.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Cockpit.DataBus\AIGuiders.Platform.Execution.Cockpit.DataBus.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Cockpit.Transport\AIGuiders.Platform.Execution.Cockpit.Transport.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Cockpit.Channels\AIGuiders.Platform.Execution.Cockpit.Channels.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Cockpit.Composition\AIGuiders.Platform.Execution.Cockpit.Composition.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Cockpit.Cds\AIGuiders.Platform.Execution.Cockpit.Cds.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.CommandPlane\AIGuiders.Platform.Execution.CommandPlane.csproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Language\AIGuiders.Platform.Execution.Language.csproj" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(UseFederationIdeSession)' == 'true'">
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Ide.Session\AIGuiders.Platform.Execution.Ide.Session.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(UseFederationIdeSession)' == 'true'">
+  <PropertyGroup Condition="'$(UseLocalGuidersPlatform)' == 'true'">
     <DefineConstants>$(DefineConstants);CDP_FEDERATION_IDE_SESSION</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition="'$(UseLocalGuidersFSharp)' == 'true'">

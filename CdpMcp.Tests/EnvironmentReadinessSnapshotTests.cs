@@ -1,11 +1,11 @@
 #nullable enable
 
 using System.Text.Json;
-using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness;
-using AIGuiders.Platform.Cockpit.DataBus;
+using AIGuiders.Platform.Execution.Cockpit.Channels.EnvironmentReadiness;
+using AIGuiders.Platform.Modeling.Cockpit.DataBus;
 using Cdp.Core;
 using CdpMcp.Cockpit.DataBus;
-using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness.DataAcquisition;
+using AIGuiders.Platform.Execution.Cockpit.Channels.EnvironmentReadiness.DataAcquisition;
 using CdpMcp.Cockpit.EnvironmentReadiness;
 using Xunit;
 
@@ -26,7 +26,13 @@ public sealed class EnvironmentReadinessSnapshotTests
         var ctx = new EnvironmentReadinessChannelContext(
             new EnvironmentReadinessSettings(null),
             null,
-            new IdeHostStateChanged(false, false, false, false),
+            new IdeHostStateChanged
+            {
+                CSharpLspProcessActive = false,
+                MarkdownLspProcessActive = false,
+                CSharpLspHostPresent = false,
+                MarkdownLspHostPresent = false,
+            },
             IsMcpStdioHost: true);
         var input = new EnvironmentReadinessSnapshotBuilder.Input(
             ctx,
@@ -57,11 +63,17 @@ public sealed class EnvironmentReadinessSnapshotTests
         var ctx = new EnvironmentReadinessChannelContext(
             new EnvironmentReadinessSettings(null),
             null,
-            new IdeHostStateChanged(true, false, true, false));
+            new IdeHostStateChanged
+            {
+                CSharpLspProcessActive = true,
+                MarkdownLspProcessActive = false,
+                CSharpLspHostPresent = true,
+                MarkdownLspHostPresent = false,
+            });
         var input = new EnvironmentReadinessSnapshotBuilder.Input(
             ctx, new DevSettings(), new CdpServiceSettings(), new CockpitHostSettings());
         await EnvironmentReadinessSnapshotBuilder.BuildAsync(input);
         Assert.NotNull(got);
-        Assert.True(got.Value.CSharpLspProcessActive);
+        Assert.True(got!.CSharpLspProcessActive);
     }
 }

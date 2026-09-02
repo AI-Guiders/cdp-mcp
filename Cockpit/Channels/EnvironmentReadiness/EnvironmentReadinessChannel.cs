@@ -1,6 +1,6 @@
 #nullable enable
 
-using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness;
+using AIGuiders.Platform.Execution.Cockpit.Channels.EnvironmentReadiness;
 using CdpMcp.Cockpit.ComputingUnits.EnvironmentReadiness;
 using CdpMcp.Cockpit.EnvironmentReadiness;
 

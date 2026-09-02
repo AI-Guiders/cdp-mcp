@@ -18,6 +18,10 @@ public sealed class DeskDetailUnit : ICockpitComputeUnit
             raw = "slim";
         if (raw is not ("slim" or "nav" or "full"))
             raw = "slim";
-        return new DeskDetailDecision(raw, raw is "nav" or "full");
+        return new DeskDetailDecision
+        {
+            DeskDetail = raw,
+            WantNav = raw is "nav" or "full",
+        };
     }
 }

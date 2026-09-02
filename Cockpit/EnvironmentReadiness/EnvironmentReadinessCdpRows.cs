@@ -1,8 +1,8 @@
 #nullable enable
 
-using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness;
-using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness.ComputingUnits;
-using AIGuiders.Platform.Cockpit.Channels.Primitives;
+using AIGuiders.Platform.Execution.Cockpit.Channels.EnvironmentReadiness;
+using AIGuiders.Platform.Execution.Cockpit.Channels.EnvironmentReadiness.ComputingUnits;
+using AIGuiders.Platform.Execution.Cockpit.Channels.Primitives;
 using Cdp.Core;
 
 namespace CdpMcp.Cockpit.EnvironmentReadiness;

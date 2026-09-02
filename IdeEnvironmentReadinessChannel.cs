@@ -1,8 +1,8 @@
 #nullable enable
 
 using System.Text.Json;
-using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness;
-using AIGuiders.Platform.Cockpit.Channels.Primitives;
+using AIGuiders.Platform.Execution.Cockpit.Channels.EnvironmentReadiness;
+using AIGuiders.Platform.Execution.Cockpit.Channels.Primitives;
 using Cdp.Core;
 using CdpMcp.Cockpit.Channels.EnvironmentReadiness;
 using CdpMcp.Cockpit.EnvironmentReadiness;

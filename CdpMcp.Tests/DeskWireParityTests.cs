@@ -28,9 +28,15 @@ public sealed partial class DeskWireParityTests
     public void AttentionRoutingUnit_forces_nav_desk_detail()
     {
         var unit = new AttentionRoutingUnit();
-        var snap = unit.Compute(new AttentionRoutingInput("sys", "nav", true, null));
+        var snap = unit.Compute(new AttentionRoutingInput
+        {
+            MfdExplicit = "sys",
+            GoVerb = "nav",
+            SeatsMode = true,
+            DefaultMfd = "",
+        });
         Assert.Equal("nav", snap.Mfd);
-        Assert.Null(snap.GoVerb);
+        Assert.Equal("", snap.GoVerb);
         Assert.True(snap.DeskDetailNavForced);
     }
 
@@ -48,12 +54,18 @@ public sealed partial class DeskWireParityTests
     [Fact]
     public void DeskDataBusHost_publishes_surface_built()
     {
-        DeskSurfaceBuiltEvent? got = null;
-        using var sub = DeskDataBusHost.Current.Subscribe<DeskSurfaceBuiltEvent>(e => got = e);
-        DeskDataBusHost.Current.Publish(new DeskSurfaceBuiltEvent("seats", 3, null, DateTimeOffset.UtcNow));
+        DeskSurfaceBuilt? got = null;
+        using var sub = DeskDataBusHost.Current.Subscribe<DeskSurfaceBuilt>(e => got = e);
+        DeskDataBusHost.Current.Publish(new DeskSurfaceBuilt
+        {
+            Mode = "seats",
+            SeatCount = 3,
+            Go = "",
+            Utc = DateTimeOffset.UtcNow,
+        });
         Assert.NotNull(got);
-        Assert.Equal("seats", got!.Value.Mode);
-        Assert.Equal(3, got.Value.SeatCount);
+        Assert.Equal("seats", got!.Mode);
+        Assert.Equal(3, got.SeatCount);
     }
 
     [Fact]
@@ -68,10 +80,10 @@ public sealed partial class DeskWireParityTests
     [Fact]
     public void SeatsSurfaceCompositor_publishes_and_sets_desk_detail()
     {
-        DeskSurfaceBuiltEvent? got = null;
-        using var sub = DeskDataBusHost.Current.Subscribe<DeskSurfaceBuiltEvent>(e => got = e);
+        DeskSurfaceBuilt? got = null;
+        using var sub = DeskDataBusHost.Current.Subscribe<DeskSurfaceBuilt>(e => got = e);
         var comp = new SeatsSurfaceCompositor();
-        var decision = new DeskDetailDecision("nav", true);
+        var decision = new DeskDetailDecision { DeskDetail = "nav", WantNav = true };
         var dict = comp.Compose(
             new SeatsSurfaceScene(
                 "cockpit/v1.20", "sa", new { }, new { }, new { },
@@ -83,7 +95,7 @@ public sealed partial class DeskWireParityTests
         Assert.Equal("nav", dict["desk_detail"]);
         Assert.NotNull(dict["loci"]);
         Assert.NotNull(got);
-        Assert.Equal(2, got!.Value.SeatCount);
+        Assert.Equal(2, got!.SeatCount);
     }
 
     [Fact]
@@ -109,7 +121,7 @@ public sealed partial class DeskWireParityTests
     public void TilesSurfaceCompositor_sets_tiles_mode_without_seats()
     {
         var comp = new TilesSurfaceCompositor();
-        var decision = new DeskDetailDecision("slim", false);
+        var decision = new DeskDetailDecision { DeskDetail = "slim", WantNav = false };
         var dict = comp.Compose(
             new TilesSurfaceScene(
                 "cockpit/v1.20", "sa", new { }, new { pin = "git" }, null,

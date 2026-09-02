@@ -1,6 +1,6 @@
 #nullable enable
 
-using AIGuiders.Platform.Cockpit.DataBus;
+using AIGuiders.Platform.Execution.Cockpit.DataBus;
 using CdpMcp.Cockpit.DataAcquisition;
 
 namespace CdpMcp.Cockpit.EnvironmentReadiness;
@@ -12,11 +12,13 @@ internal static class EnvironmentReadinessLspProbe
     {
         var csharp = ResolveCSharpHost();
         var markdown = ToolchainPathProbe.Resolve("marksman");
-        return new IdeHostStateChanged(
-            CSharpLspProcessActive: false,
-            MarkdownLspProcessActive: false,
-            CSharpLspHostPresent: csharp is not null,
-            MarkdownLspHostPresent: markdown is not null);
+        return new IdeHostStateChanged
+        {
+            CSharpLspProcessActive = false,
+            MarkdownLspProcessActive = false,
+            CSharpLspHostPresent = csharp is not null,
+            MarkdownLspHostPresent = markdown is not null,
+        };
     }
 
     static string? ResolveCSharpHost() =>

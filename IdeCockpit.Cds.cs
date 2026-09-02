@@ -17,11 +17,13 @@ internal static partial class IdeCockpit
         IReadOnlyDictionary<string, JsonElement> args)
     {
         var mfdExplicit = OptString(args, "mfd") ?? OptString(args, "page");
-        var snap = AttentionRouter.Route(new AttentionRoutingInput(
-            MfdExplicit: mfdExplicit,
-            GoVerb: OptString(args, "go") ?? OptString(args, "do"),
-            SeatsMode: IdeDeskSeats.IsSeatsMode(),
-            DefaultMfd: IdeSettingsHabitat.EffectiveDeskMfd()));
+        var snap = AttentionRouter.Route(new AttentionRoutingInput
+        {
+            MfdExplicit = mfdExplicit ?? "",
+            GoVerb = OptString(args, "go") ?? OptString(args, "do") ?? "",
+            SeatsMode = IdeDeskSeats.IsSeatsMode(),
+            DefaultMfd = IdeSettingsHabitat.EffectiveDeskMfd() ?? "",
+        });
 
         var goVerb = snap.GoVerb;
         if (snap.DeskDetailNavForced)

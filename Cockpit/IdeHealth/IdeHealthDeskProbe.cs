@@ -1,8 +1,8 @@
 #nullable enable
 
 using System.Diagnostics;
-using AIGuiders.Platform.Cockpit.DataBus;
-using AIGuiders.Platform.Cockpit.DataBus.Debug;
+using AIGuiders.Platform.Execution.Cockpit.DataBus;
+using AIGuiders.Platform.Modeling.Cockpit.DataBus;
 using Cdp.Core;
 using CdpMcp.Cockpit.DataBus;
 using CdpMcp.Cockpit.EnvironmentReadiness;
@@ -23,16 +23,18 @@ internal static class IdeHealthDeskProbe
 
     static void PublishStartup(SessionContext session, IDataBus bus)
     {
-        bus.Publish(new StartupProjectPathChanged(session.SolutionOrProjectPath));
+        bus.Publish(new StartupProjectPathChanged { ProjectPath = session.SolutionOrProjectPath });
     }
 
     static void PublishIdeHost(IDataBus bus)
     {
         var host = EnvironmentReadinessLspProbe.ProbeHostPresence();
-        bus.Publish(host with
+        bus.Publish(new IdeHostStateChanged
         {
             CSharpLspProcessActive = host.CSharpLspHostPresent,
             MarkdownLspProcessActive = host.MarkdownLspHostPresent,
+            CSharpLspHostPresent = host.CSharpLspHostPresent,
+            MarkdownLspHostPresent = host.MarkdownLspHostPresent,
         });
     }
 
@@ -41,7 +43,7 @@ internal static class IdeHealthDeskProbe
         var doc = CideTestDeskLatch.TryRead();
         if (doc is null || !doc.Active)
         {
-            bus.Publish(new TestsStateChanged("", 0));
+            bus.Publish(new TestsStateChanged { Summary = "", ImpactedBadge = 0 });
             return;
         }
 
@@ -50,7 +52,7 @@ internal static class IdeHealthDeskProbe
             : doc.TotalCount > 0
                 ? $"{doc.OkCount} passed / {doc.TotalCount}"
                 : doc.Pulse ?? "idle";
-        bus.Publish(new TestsStateChanged(summary, doc.Failed));
+        bus.Publish(new TestsStateChanged { Summary = summary, ImpactedBadge = doc.Failed });
     }
 
     static void PublishDebug(IDataBus bus)
@@ -58,7 +60,7 @@ internal static class IdeHealthDeskProbe
         var doc = CideDebugDeskLatch.TryRead();
         if (doc is null || !doc.ActiveDap)
         {
-            bus.Publish(new DebugStateChanged(DebugSessionSnapshot.Empty));
+            bus.Publish(new DebugStateChanged { Snapshot = DebugSessionSnapshot.Empty });
             return;
         }
 
@@ -66,23 +68,31 @@ internal static class IdeHealthDeskProbe
             .Select(f => (f.Name, f.File, f.Line))
             .ToList() ?? [];
         var locals = doc.Locals?
-            .Select(v => new DebugVariableRow(v.Name, v.Value, null))
+            .Select(v => new DebugVariableRow
+            {
+                Name = v.Name,
+                Value = v.Value,
+                Type = "",
+                VariablesReference = 0,
+            })
             .ToList() ?? [];
         IReadOnlyList<DebugVariableRootScope> scopes = locals.Count > 0
-            ? new List<DebugVariableRootScope> { new("Locals", locals) }
+            ? new List<DebugVariableRootScope> { new() { ScopeName = "Locals", Roots = locals.ToArray() } }
             : Array.Empty<DebugVariableRootScope>();
 
-        var snap = new DebugSessionSnapshot(
-            HasActiveSession: doc.ActiveDap,
-            IsExecutionStopped: doc.Stopped,
-            StoppedFile: stack.Count > 0 ? stack[0].File : null,
-            StoppedLine: stack.Count > 0 ? stack[0].Line : 0,
-            ExceptionText: null,
-            Breakpoints: Array.Empty<DebugBreakpointSnapshot>(),
-            StackFrames: stack,
-            VariableRootScopes: scopes,
-            VariablesFrameIndex: 0);
-        bus.Publish(new DebugStateChanged(snap));
+        var snap = new DebugSessionSnapshot
+        {
+            HasActiveSession = doc.ActiveDap,
+            IsExecutionStopped = doc.Stopped,
+            StoppedFile = stack.Count > 0 ? stack[0].File ?? "" : "",
+            StoppedLine = stack.Count > 0 ? stack[0].Line : 0,
+            ExceptionText = "",
+            Breakpoints = Array.Empty<DebugBreakpointSnapshot>(),
+            StackFrames = stack.Select(f => Tuple.Create(f.Name, f.File, f.Line)).ToArray(),
+            VariableRootScopes = scopes.ToArray(),
+            VariablesFrameIndex = 0,
+        };
+        bus.Publish(new DebugStateChanged { Snapshot = snap });
     }
 
     static void PublishGit(SessionContext session, IDataBus bus)
@@ -90,7 +100,7 @@ internal static class IdeHealthDeskProbe
         var root = session.ScmRoot ?? session.ProjectRoot;
         if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
         {
-            bus.Publish(new GitStateChanged("Git: —", "GIT · —"));
+            bus.Publish(new GitStateChanged { Line = "Git: —", CockpitShort = "GIT · —" });
             return;
         }
 
@@ -106,7 +116,7 @@ internal static class IdeHealthDeskProbe
             using var p = Process.Start(psi);
             if (p is null)
             {
-                bus.Publish(new GitStateChanged("Git: unavailable", "GIT · ?"));
+                bus.Publish(new GitStateChanged { Line = "Git: unavailable", CockpitShort = "GIT · ?" });
                 return;
             }
 
@@ -114,16 +124,16 @@ internal static class IdeHealthDeskProbe
             p.WaitForExit(3000);
             if (string.IsNullOrWhiteSpace(line))
             {
-                bus.Publish(new GitStateChanged("Git: clean", "GIT · ok"));
+                bus.Publish(new GitStateChanged { Line = "Git: clean", CockpitShort = "GIT · ok" });
                 return;
             }
 
             var shortLine = line.Length > 24 ? string.Concat(line.AsSpan(0, 21), "…") : line;
-            bus.Publish(new GitStateChanged($"Git: {line.Trim()}", shortLine.Trim()));
+            bus.Publish(new GitStateChanged { Line = $"Git: {line.Trim()}", CockpitShort = shortLine.Trim() });
         }
         catch
         {
-            bus.Publish(new GitStateChanged("Git: error", "GIT · err"));
+            bus.Publish(new GitStateChanged { Line = "Git: error", CockpitShort = "GIT · err" });
         }
     }
 }

@@ -50,11 +50,13 @@ public sealed class SeatsSurfaceCompositor
             dict["go_verbs"] = scene.GoVerbs;
         }
 
-        DeskDataBusHost.Current.Publish(new DeskSurfaceBuiltEvent(
-            Mode: "seats",
-            SeatCount: payload.SeatCount,
-            Go: scene.Go?.GetType().Name,
-            Utc: DateTimeOffset.UtcNow));
+        DeskDataBusHost.Current.Publish(new DeskSurfaceBuilt
+        {
+            Mode = "seats",
+            SeatCount = payload.SeatCount,
+            Go = scene.Go?.GetType().Name ?? "",
+            Utc = DateTimeOffset.UtcNow,
+        });
 
         return dict;
     }

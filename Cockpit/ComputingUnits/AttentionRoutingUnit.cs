@@ -51,6 +51,11 @@ public sealed class AttentionRoutingUnit : ICockpitComputeUnit
             goVerb = null;
         }
 
-        return new AttentionRoutingDecision(mfd, goVerb, forceNav);
+        return new AttentionRoutingDecision
+        {
+            Mfd = mfd,
+            GoVerb = goVerb ?? "",
+            DeskDetailNavForced = forceNav,
+        };
     }
 }

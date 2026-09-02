@@ -1,10 +1,10 @@
 #nullable enable
 
-using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness;
-using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness.ComputingUnits;
-using AIGuiders.Platform.Cockpit.Channels.EnvironmentReadiness.DataAcquisition;
-using AIGuiders.Platform.Cockpit.Channels.Primitives;
-using AIGuiders.Platform.Cockpit.DataBus;
+using AIGuiders.Platform.Execution.Cockpit.Channels.EnvironmentReadiness;
+using AIGuiders.Platform.Execution.Cockpit.Channels.EnvironmentReadiness.ComputingUnits;
+using AIGuiders.Platform.Execution.Cockpit.Channels.EnvironmentReadiness.DataAcquisition;
+using AIGuiders.Platform.Execution.Cockpit.Channels.Primitives;
+using AIGuiders.Platform.Execution.Cockpit.DataBus;
 using CdpMcp.Cockpit.DataBus;
 using Cdp.Core;
 
