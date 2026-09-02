@@ -9,7 +9,7 @@
     <!-- Referenced host is SelfContained=true; keep test builds lean. -->
     <SelfContained>false</SelfContained>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(UseLocalGuidersPlatform)' == 'true'">
+  <PropertyGroup Condition="'$(UseFederationIdeSession)' == 'true'">
     <DefineConstants>$(DefineConstants);CDP_FEDERATION_IDE_SESSION</DefineConstants>
   </PropertyGroup>
   <ItemGroup>

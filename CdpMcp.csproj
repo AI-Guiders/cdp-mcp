@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.750</Version>
+    <Version>0.5.751</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true (see Directory.Build.props) -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
     <GuidersPlatformVersion Condition="'$(GuidersPlatformVersion)' == ''">0.4.1</GuidersPlatformVersion>
@@ -80,9 +80,11 @@
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Cds\AIGuiders.Platform.Cockpit.Cds.csproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.CommandPlane\AIGuiders.Platform.CommandPlane.csproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Language\AIGuiders.Platform.Execution.Language.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseFederationIdeSession)' == 'true'">
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Ide.Session\AIGuiders.Platform.Execution.Ide.Session.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(UseLocalGuidersPlatform)' == 'true'">
+  <PropertyGroup Condition="'$(UseFederationIdeSession)' == 'true'">
     <DefineConstants>$(DefineConstants);CDP_FEDERATION_IDE_SESSION</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition="'$(UseLocalGuidersFSharp)' == 'true'">

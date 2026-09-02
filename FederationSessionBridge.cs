@@ -27,12 +27,12 @@ internal static class FederationSessionBridge
                 Available = true,
                 AnchorPath = graph.AnchorPath,
                 Phase = opened.Runtime.Session.Phase.ToString(),
-                ProjectCount = graph.Projects.Count,
-                ProjectEdgeCount = graph.ProjectEdges.Count,
+                ProjectCount = graph.Projects.Length,
+                ProjectEdgeCount = graph.ProjectEdges.Length,
                 FileOwnershipCount = graph.FileOwnership.Count,
                 LedgerRevision = opened.Runtime.Ledger.NextRevision - 1,
                 GraphValid = opened.IsValid,
-                IssueCount = opened.Validation.Issues.Count
+                IssueCount = opened.Validation.Issues.Length
             };
         }
         catch (Exception ex)
@@ -79,15 +79,15 @@ internal static class FederationSessionBridge
                 materialized_count = opened.Runtime.Materialized.Entries.Count,
                 projects = graph.Projects.Select(p => new
                 {
-                    id = ProjectId.value(p.Id),
+                    id = ProjectIdModule.value(p.Id),
                     path = p.AbsolutePath,
                     kind = p.Kind.ToString(),
-                    capability_count = p.Capabilities.Count
+                    capability_count = p.Capabilities.Length
                 }).ToArray(),
                 project_edges = graph.ProjectEdges.Select(e => new
                 {
-                    from = ProjectId.value(e.From),
-                    to = ProjectId.value(e.To)
+                    from = ProjectIdModule.value(e.From),
+                    to = ProjectIdModule.value(e.To)
                 }).ToArray(),
                 file_ownership_count = graph.FileOwnership.Count,
                 next = new object[]
