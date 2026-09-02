@@ -289,7 +289,7 @@ public sealed class CdpLrcDispatchTests
         var baseArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
         {
             ["file_path"] = JsonSerializer.SerializeToElement(kernelFs),
-            ["line"] = JsonSerializer.SerializeToElement(86),
+            ["line"] = JsonSerializer.SerializeToElement(87),
             ["column"] = JsonSerializer.SerializeToElement(10),
             ["solution_or_project_path"] = JsonSerializer.SerializeToElement(slnx),
         };

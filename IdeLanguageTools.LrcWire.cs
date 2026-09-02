@@ -96,6 +96,7 @@ internal static partial class IdeLanguageTools
         newName = result.NewName,
         symbolKind = result.SymbolKind,
         applied = result.Applied,
+        message = string.IsNullOrWhiteSpace(result.Message) ? null : result.Message,
         files = result.Files,
         changes = result.Changes.Select(c => new { path = c.Path, newText = c.NewText }).ToArray(),
     };

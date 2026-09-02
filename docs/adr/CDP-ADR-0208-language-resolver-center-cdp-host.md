@@ -1,7 +1,7 @@
 # CDP-ADR-0208: Language Resolver Center — CDP first host
 
-- **Status:** Accepted · In progress
-- **Implementation:** LRC dispatch in CDP; F# via FCS; ide-session federation pulse partial
+- **Status:** Accepted · In progress (P2 F# parity slice landed)
+- **Implementation:** LRC dispatch in CDP — **7 bare verbs green** on `guiders-fsharp` slnx via `Adapters.Fcs` (`CdpLrcDispatchTests`); rename active-pattern blocker + workspace `GetAllUsesOfAllSymbols` scan; ide-session federation pulse partial
 - **Date:** 2026-09-02
 - **Tags:** #cdp #lrc #fsharp #fcs #roslyn #gdl #ide #mcp
 - **Normative:** [GUIDERS-ADR-0061](https://github.com/AI-Guiders/guiders-dotnet-platform/blob/main/docs/adr/GUIDERS-ADR-0061-language-resolver-center.md) — federation LRC SSOT
@@ -90,7 +90,7 @@ Aligns with [GUIDERS-ADR-0061](https://github.com/AI-Guiders/guiders-dotnet-plat
 ```text
 P0  ADR-0208 rewrite + stop .fs → Roslyn routing (language id fix)
 P1  Sibling refs to Platform.Modeling.Language + Platform.Execution.Language scaffolds
-P2  IdeLanguageTools.Dispatch → LanguageResolverCenter (Fcs path first)
+P2  IdeLanguageTools.Dispatch → LanguageResolverCenter (Fcs path first) — **7 verbs shipped** (find/completions/symbol/rename + prior trio)
 P3  Roslyn path → federation Adapters.Roslyn (replace in-proc shape drift)
 P4  Ts worker → Adapters.TypeScript
 P5  Gdl path → Adapters.Gdl (deck + catalog pilots)
