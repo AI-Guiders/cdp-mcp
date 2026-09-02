@@ -316,8 +316,8 @@ public sealed class CdpLrcDispatchTests
             var completionArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
             {
                 ["file_path"] = JsonSerializer.SerializeToElement(fcsBackendFs),
-                ["line"] = JsonSerializer.SerializeToElement(37),
-                ["column"] = JsonSerializer.SerializeToElement(17),
+                ["line"] = JsonSerializer.SerializeToElement(38),
+                ["column"] = JsonSerializer.SerializeToElement(50),
                 ["solution_or_project_path"] = JsonSerializer.SerializeToElement(slnx),
             };
             var completions = await DispatchAndParseAsync("get_completions", session, backends, completionArgs);
