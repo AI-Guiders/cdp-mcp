@@ -43,7 +43,9 @@ internal static partial class MetaDispatch
         DeskBookmark.Save(session, docStore);
         NotifyListChanged();
 
-        // HCI-like: warm MSBuild workspace once for csharp session (background).
+        IdeWorkspaceWarm.WarmOnOpen(session);
+
+        // Roslyn MSBuild workspace — only for explicit csharp semantic/build paths (lazy).
         if (string.Equals(session.Language, "csharp", StringComparison.OrdinalIgnoreCase)
             && session.SolutionOrProjectPath is { Length: > 0 } warmPath)
         {

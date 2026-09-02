@@ -86,6 +86,7 @@
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language.Adapters.Gdl\AIGuiders.Platform.Modeling.Language.Adapters.Gdl.fsproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersCore)' == 'true'">
+    <ProjectReference Include="$(GuidersCoreRoot)\src\DotNetWorkspace.Core\DotNetWorkspace.Core.csproj" />
     <ProjectReference Include="$(GuidersCoreRoot)\src\Cdp.Core\Cdp.Core.csproj" />
     <ProjectReference Include="$(GuidersCoreRoot)\src\Cdp.ScriptableIde\Cdp.ScriptableIde.csproj" />
     <ProjectReference Include="$(GuidersCoreRoot)\src\TerminalMcp.Core\TerminalMcp.Core.csproj" />

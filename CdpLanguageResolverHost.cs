@@ -1,7 +1,6 @@
 using AIGuiders.Platform.Execution.Language;
 using AIGuiders.Platform.Modeling.Language.Adapters.Fcs;
 using AIGuiders.Platform.Modeling.Language.Adapters.Gdl;
-using RoslynMcp.ServiceLayer;
 
 namespace CdpMcp;
 
@@ -14,9 +13,8 @@ internal static class CdpLanguageResolverHost
 
     static LanguageResolverCenter Build()
     {
-        MsBuildLocatorOnce.EnsureRegistered();
         return new LanguageResolverBuilder()
-            .Register(new FcsLanguageBackend())
+            .Register(new FcsLanguageBackend(projectOptionsSource: null))
             .Register(new GdlLanguageBackend())
             .Build();
     }
