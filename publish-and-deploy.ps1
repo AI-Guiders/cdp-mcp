@@ -315,7 +315,9 @@ try {
     $fcsProbeDst = Join-Path $serviceDeployRoot "tools\FcsProjInfoProbe"
     if (Test-Path -LiteralPath $fcsProbeSrc) {
         New-Item -ItemType Directory -Force -Path $fcsProbeDst | Out-Null
-        Copy-Item -LiteralPath (Join-Path $fcsProbeSrc "*") -Destination $fcsProbeDst -Recurse -Force
+        Copy-Item -Path (Join-Path $fcsProbeSrc '*') -Destination $fcsProbeDst -Recurse -Force
+    } else {
+        Write-Warning "FcsProjInfoProbe not built at $fcsProbeSrc — run dotnet build on tools/FcsProjInfoProbe first."
     }
     $serviceExeSrc = Join-Path $serviceDeployRoot "CdpMcp.exe"
     $serviceExeDst = Join-Path $serviceDeployRoot "CdpService.exe"
