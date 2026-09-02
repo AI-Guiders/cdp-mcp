@@ -79,6 +79,11 @@
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Composition\AIGuiders.Platform.Cockpit.Composition.csproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Cockpit.Cds\AIGuiders.Platform.Cockpit.Cds.csproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.CommandPlane\AIGuiders.Platform.CommandPlane.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Language\AIGuiders.Platform.Execution.Language.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalGuidersFSharp)' == 'true'">
+    <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language.Adapters.Fcs\AIGuiders.Platform.Modeling.Language.Adapters.Fcs.fsproj" />
+    <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language.Adapters.Gdl\AIGuiders.Platform.Modeling.Language.Adapters.Gdl.fsproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersCore)' == 'true'">
     <ProjectReference Include="$(GuidersCoreRoot)\src\Cdp.Core\Cdp.Core.csproj" />

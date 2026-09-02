@@ -1,0 +1,124 @@
+using System.Text.Json;
+using AIGuiders.Platform.Execution.Language;
+using AIGuiders.Platform.Modeling.Language;
+using Cdp.Core;
+
+namespace CdpMcp;
+
+internal static partial class IdeLanguageTools
+{
+    private static readonly JsonSerializerOptions LrcJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+    };
+
+    private static readonly HashSet<string> LrcBareVerbs = new(StringComparer.Ordinal)
+    {
+        "get_diagnostics",
+        "get_document_symbols",
+        "go_to_definition",
+    };
+
+    static bool IsLrcLanguage(string? languageId) =>
+        !string.IsNullOrWhiteSpace(languageId)
+        && (languageId.Equals(CdpLanguages.Fsharp, StringComparison.OrdinalIgnoreCase)
+            || languageId.Equals(CdpLanguages.Gdl, StringComparison.OrdinalIgnoreCase));
+
+    static bool TryResolvePathLanguage(string? filePath, out string? languageId)
+    {
+        languageId = null;
+        if (string.IsNullOrWhiteSpace(filePath))
+            return false;
+
+        languageId = LanguagePathRules.ResolveLanguageId(filePath);
+        return languageId is LanguageIds.Fsharp or LanguageIds.Gdl;
+    }
+
+    static void RefuseWrongEnginePairing(string lang, string? filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+            return;
+
+        var pathLang = LanguagePathRules.ResolveLanguageId(filePath);
+        if (pathLang is null)
+            return;
+
+        if (pathLang.Equals(LanguageIds.Fsharp, StringComparison.OrdinalIgnoreCase)
+            && lang.Equals(CdpLanguages.Csharp, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException(
+                "Refusing csharp engine for .fs — open the file with cdp_open or set language=fsharp.");
+        }
+
+        if (pathLang.Equals(LanguageIds.Gdl, StringComparison.OrdinalIgnoreCase)
+            && lang.Equals(CdpLanguages.Csharp, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException(
+                "Refusing csharp engine for .gdl — open the file with cdp_open or set language=gdl.");
+        }
+    }
+
+    static async Task<string> DispatchLrcAsync(
+        string name,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args,
+        CancellationToken cancellationToken)
+    {
+        if (!LrcBareVerbs.Contains(name))
+            throw new ArgumentException($"{name} is not supported via LRC v1 (fsharp/gdl).");
+
+        var filePath = RequireString(args, "file_path");
+        RefuseWrongEnginePairing(ResolveLanguage(session, args), filePath);
+
+        var req = BuildLanguageRequest(session, filePath, args);
+        var center = CdpLanguageResolverHost.Center;
+
+        object? result = name switch
+        {
+            "get_diagnostics" => await center.DispatchDiagnosticsAsync(req, cancellationToken).ConfigureAwait(false),
+            "get_document_symbols" => await center.DispatchDocumentSymbolsAsync(req, cancellationToken).ConfigureAwait(false),
+            "go_to_definition" => await center.DispatchGoToDefinitionAsync(req, cancellationToken).ConfigureAwait(false),
+            _ => throw new ArgumentException($"Unsupported LRC verb: {name}"),
+        };
+
+        return JsonSerializer.Serialize(result, LrcJsonOptions);
+    }
+
+    static AIGuiders.Platform.Execution.Language.LanguageRequest BuildLanguageRequest(
+        SessionContext session,
+        string filePath,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var line = args.TryGetValue("line", out var lineEl) && lineEl.TryGetInt32(out var l) ? l : 1;
+        var column = args.TryGetValue("column", out var colEl) && colEl.TryGetInt32(out var c) ? c : 1;
+        string? sourceText = null;
+
+        if (args.TryGetValue("source_text", out var srcEl) && srcEl.ValueKind == JsonValueKind.String)
+            sourceText = srcEl.GetString();
+
+        if (sourceText is null && _docStore is not null)
+        {
+            try
+            {
+                var full = Path.GetFullPath(filePath);
+                var buf = _docStore.All.FirstOrDefault(b => string.Equals(b.Path, full, StringComparison.OrdinalIgnoreCase));
+                sourceText = buf?.Text;
+            }
+            catch
+            {
+                // disk text via backend
+            }
+        }
+
+        var solution = session.SolutionOrProjectPath;
+        if (args.TryGetValue("solution_or_project_path", out var solEl)
+            && solEl.ValueKind == JsonValueKind.String
+            && !string.IsNullOrWhiteSpace(solEl.GetString()))
+        {
+            solution = solEl.GetString();
+        }
+
+        return new AIGuiders.Platform.Execution.Language.LanguageRequest(filePath, line, column, sourceText, solution);
+    }
+}

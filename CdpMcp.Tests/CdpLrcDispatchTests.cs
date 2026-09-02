@@ -1,0 +1,101 @@
+#nullable enable
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
+using Cdp.Core;
+using Xunit;
+
+namespace CdpMcp.Tests;
+
+public sealed class CdpLrcDispatchTests
+{
+    [Fact]
+    public async Task Get_diagnostics_routes_fsharp_through_lrc()
+    {
+        IdeLanguageTools.Configure(LanguageRegistry.Default);
+        IdeLanguageTools.BindDocumentStore(null);
+
+        var root = Path.Combine(Path.GetTempPath(), "cdp-lrc-fs-" + Path.GetRandomFileName());
+        Directory.CreateDirectory(root);
+        var path = Path.Combine(root, "Module.fs");
+        await File.WriteAllTextAsync(path, "module Sample\nlet answer = 42\n");
+
+        try
+        {
+            var session = new SessionContext { ProjectRoot = root, Language = CdpLanguages.Fsharp };
+            var raw = await IdeLanguageTools.DispatchBareAsync(
+                "get_diagnostics",
+                session,
+                new Dictionary<string, ICdpBackendModule>(),
+                new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["file_path"] = JsonSerializer.SerializeToElement(path),
+                },
+                CancellationToken.None);
+
+            using var doc = JsonDocument.Parse(raw);
+            Assert.True(doc.RootElement.TryGetProperty("diagnostics", out var diags));
+            Assert.Equal(JsonValueKind.Array, diags.ValueKind);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            IdeLanguageTools.Configure(LanguageRegistry.Default);
+        }
+    }
+
+    [Fact]
+    public async Task Refuses_csharp_engine_for_fs_file()
+    {
+        IdeLanguageTools.Configure(LanguageRegistry.Default);
+        IdeLanguageTools.BindDocumentStore(null);
+
+        var root = Path.Combine(Path.GetTempPath(), "cdp-lrc-refuse-" + Path.GetRandomFileName());
+        Directory.CreateDirectory(root);
+        var path = Path.Combine(root, "Module.fs");
+        await File.WriteAllTextAsync(path, "let x = 1\n");
+
+        try
+        {
+            var session = new SessionContext { ProjectRoot = root, Language = CdpLanguages.Csharp };
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+                IdeLanguageTools.DispatchBareAsync(
+                    "get_diagnostics",
+                    session,
+                    new Dictionary<string, ICdpBackendModule>(),
+                    new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                    {
+                        ["file_path"] = JsonSerializer.SerializeToElement(path),
+                        ["language"] = JsonSerializer.SerializeToElement(CdpLanguages.Csharp),
+                    },
+                    CancellationToken.None));
+
+            Assert.Contains("Refusing csharp engine", ex.Message);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            IdeLanguageTools.Configure(LanguageRegistry.Default);
+        }
+    }
+
+    [Fact]
+    public void Detect_fs_file_as_fsharp()
+    {
+        var registry = LanguageRegistry.Default;
+        var root = Path.Combine(Path.GetTempPath(), "cdp-detect-fs-" + Path.GetRandomFileName());
+        Directory.CreateDirectory(root);
+        var path = Path.Combine(root, "X.fs");
+        File.WriteAllText(path, "let a = 1");
+
+        try
+        {
+            var detected = registry.Detect(path);
+            Assert.Equal(CdpLanguages.Fsharp, detected.Language);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+}

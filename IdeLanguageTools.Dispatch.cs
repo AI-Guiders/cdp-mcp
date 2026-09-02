@@ -30,6 +30,20 @@ internal static partial class IdeLanguageTools
         if (name is "take" or "get_take")
             return await DispatchTakeAsync(session, byDomain, args, cancellationToken).ConfigureAwait(false);
         var lang = ResolveLanguage(session, args);
+        if (args.TryGetValue("file_path", out var pathLangEl) && pathLangEl.GetString() is { Length: > 0 } pathForLang)
+            RefuseWrongEnginePairing(lang, pathForLang);
+
+        if (IsLrcLanguage(lang) && LrcBareVerbs.Contains(name))
+            return await DispatchLrcAsync(name, session, args, cancellationToken).ConfigureAwait(false);
+
+        if (TryResolvePathLanguage(
+                args.TryGetValue("file_path", out var fpEl) ? fpEl.GetString() : null,
+                out _)
+            && LrcBareVerbs.Contains(name))
+        {
+            return await DispatchLrcAsync(name, session, args, cancellationToken).ConfigureAwait(false);
+        }
+
         if (name == "get_workspace_navigation_context")
         {
             if (!lang.Equals(CdpLanguages.Csharp, StringComparison.OrdinalIgnoreCase) && !CdpLanguages.IsAny(lang))
