@@ -182,5 +182,14 @@ internal static partial class MetaToolCatalog
             job_id = new { type = "string", description = "From lifecycle_job start response" }
         }
     }),
+    Meta("cdp_ide_session_scene", "[A] Federation IDE session graph (Modeling.Ide.Session SSOT). Pulse project/E_proj/omega/WF after cdp_open. path= optional override.", new
+    {
+        type = "object",
+        properties = new
+        {
+            path = new { type = "string", description = "Optional .slnx/.sln/.csproj; default session anchor" },
+            anchor_path = new { type = "string", description = "Alias of path" }
+        }
+    }),
     ];
 }

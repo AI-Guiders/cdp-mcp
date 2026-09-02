@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Execution.Language</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Execution.Language.HostDelegatedLanguageBackend">
+            <summary>Wraps a host bridge that returns JSON payloads for LRC verbs.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Execution.Language.IHostLanguageBridge">
+            <summary>Host-delegated bridge for planet-local language engines (Roslyn, tsserver, …).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Execution.Language.ILanguageBackend">
+            <summary>Planet-local or in-process language service backend.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Execution.Language.LanguageIds">
+            <summary>Well-known federation language ids for Language Resolver Center.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Execution.Language.LanguagePathRules">
+            <summary>Extension-based language id resolution per GUIDERS-ADR-0061 §3.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Execution.Language.LanguageRequest">
+            <summary>Gateway request for LRC verb dispatch.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.Language.LanguageRequest.#ctor(System.String,System.Int32,System.Int32,System.String,System.String)">
+            <summary>Gateway request for LRC verb dispatch.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Execution.Language.LanguageResolverBuilder">
+            <summary>Fluent registration for <see cref="T:AIGuiders.Platform.Execution.Language.LanguageResolverCenter"/>.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Execution.Language.LanguageResolverCenter">
+            <summary>Federation gateway: resolve backends and dispatch IDE language verbs.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Execution.Language.ProjectHint">
+            <summary>Optional project/solution hint for backend resolution.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.Language.ProjectHint.#ctor(System.String,System.String)">
+            <summary>Optional project/solution hint for backend resolution.</summary>
+        </member>
+    </members>
+</doc>

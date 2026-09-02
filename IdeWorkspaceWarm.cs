@@ -1,6 +1,9 @@
 using AIGuiders.Platform.Modeling.Language.Adapters.Fcs;
 using Cdp.Core;
 using DotNetWorkspace.Core;
+#if CDP_FEDERATION_IDE_SESSION
+using AIGuiders.Platform.Execution.Ide.Session;
+#endif
 
 namespace CdpMcp;
 
@@ -26,6 +29,17 @@ internal static class IdeWorkspaceWarm
             {
                 // best-effort
             }
+
+#if CDP_FEDERATION_IDE_SESSION
+            try
+            {
+                _ = FederationSessionRuntime.Open(pathCopy);
+            }
+            catch
+            {
+                // best-effort federation graph warm
+            }
+#endif
 
             try
             {

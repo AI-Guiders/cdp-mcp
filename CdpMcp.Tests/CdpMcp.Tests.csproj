@@ -9,6 +9,9 @@
     <!-- Referenced host is SelfContained=true; keep test builds lean. -->
     <SelfContained>false</SelfContained>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(UseLocalGuidersPlatform)' == 'true'">
+    <DefineConstants>$(DefineConstants);CDP_FEDERATION_IDE_SESSION</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />

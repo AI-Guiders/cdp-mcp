@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>AIGuiders.Platform.Modeling.Gdl.Core</name></assembly>
+<members>
+<member name="T:AIGuiders.Platform.Modeling.Gdl.Core.GdlProject">
+<summary>
+ Composed declare-time project: manifest + typed document fragments.
+</summary>
+</member>
+<member name="T:AIGuiders.Platform.Modeling.Gdl.Core.GdlFragment">
+<summary>
+ Closed set of GDL quarry payloads — federation spine discriminated union.
+</summary>
+</member>
+<member name="T:AIGuiders.Platform.Modeling.Gdl.Core.CockpitLogicPayload">
+<summary>
+ Cockpit annunciation quarry (proposed &lt;c&gt;*.cockpit.logic.gdl&lt;/c&gt;).
+</summary>
+</member>
+<member name="T:AIGuiders.Platform.Modeling.Gdl.Core.DisplayBindingPayload">
+<summary>
+ Physical screen binding quarry (proposed &lt;c&gt;*.display.gdl&lt;/c&gt;).
+</summary>
+</member>
+<member name="T:AIGuiders.Platform.Modeling.Gdl.Core.DeckPayload">
+<summary>
+ Deck quarry payload — zones + presets from &lt;c&gt;*.deck.gdl&lt;/c&gt;.
+</summary>
+</member>
+<member name="T:AIGuiders.Platform.Modeling.Gdl.Core.DeckPreset">
+<summary>
+ One attention preset from &lt;c&gt;*.deck.gdl&lt;/c&gt;.
+</summary>
+</member>
+<member name="T:AIGuiders.Platform.Modeling.Gdl.Core.CatalogPayload">
+<summary>
+ Command catalog quarry payload (v0 stub — grows with Authoring.Command.Catalog IR).
+</summary>
+</member>
+<member name="T:AIGuiders.Platform.Modeling.Gdl.Core.GdlDocumentRef">
+<summary>
+ Stable reference to one GDL document in a project directory.
+ &lt;c&gt;Quarry&lt;/c&gt; is the token before &lt;c&gt;.gdl&lt;/c&gt; (e.g. &lt;c&gt;deck&lt;/c&gt;, &lt;c&gt;catalog&lt;/c&gt;).
+</summary>
+</member>
+<member name="T:AIGuiders.Platform.Modeling.Gdl.Core.GdlSpine">
+<summary>
+ Helpers for tests and future C# Authoring mappers.
+</summary>
+</member>
+</members>
+</doc>

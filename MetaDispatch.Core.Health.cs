@@ -51,6 +51,7 @@ internal static partial class MetaDispatch
                 solution_or_project_path = session.SolutionOrProjectPath,
                 tsconfig_path = session.TsConfigPath
             },
+            federation = FederationSessionBridge.TryPulse(session),
             explain_tool = explain,
             recovery_note = full
                 ? "Prefer go=deploy / cdp_deploy from the survivor seat (sibling Target). " +

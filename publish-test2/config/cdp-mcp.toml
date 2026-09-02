@@ -1,0 +1,146 @@
+version = 1
+default_phase = "recall"
+default_object = "kb"
+
+[memory]
+notes_config = "D:/agent-notes-mcp/agent-notes-mcp.toml"
+task_config = "D:/agent-task-knowledge-mcp/agent-task-knowledge-mcp.toml"
+
+[canon]
+guiders_style_root = "D:/Experiments/PersonalCursorFolder/Financial/software/open/guiders-style"
+
+[memory.world]
+enabled = true
+# "." = knowledge-root hub files only (SHOWCASE.md, index-*.md) — no subdirectory
+roots = ["worlds", "META", "."]
+
+[memory.project]
+enabled = true
+# work/projects = task-bound; personal = free-theme Kolb (personal/kolb)
+roots = ["work/projects", "personal"]
+
+[memory.task]
+enabled = true
+
+[memory.session]
+enabled = true
+
+[memory.skill]
+enabled = true
+roots = ["domains", "templates"]
+
+[memory.self.finding]
+enabled = true
+
+[memory.self.failure]
+enabled = true
+
+[dev.debug]
+enabled = true
+
+[dev.build]
+enabled = true
+
+[dev.roslyn]
+enabled = true
+
+[dev.git]
+enabled = true
+
+[dev.codebase_index]
+enabled = true
+
+[dev.anui]
+enabled = true
+
+# Language axis — not a closed enum. Omit section → built-in defaults (csharp/typescript/python/delphi/powershell).
+[languages]
+ids = ["csharp", "typescript", "python", "delphi", "powershell"]
+
+[languages.aliases]
+cs = "csharp"
+"c#" = "csharp"
+ts = "typescript"
+tsx = "typescript"
+py = "python"
+pas = "delphi"
+objectpascal = "delphi"
+ps1 = "powershell"
+pwsh = "powershell"
+ps = "powershell"
+
+[[languages.detect]]
+id = "csharp"
+kind = "sln"
+extension = ".sln"
+priority = 10
+
+[[languages.detect]]
+id = "csharp"
+kind = "sln"
+extension = ".slnx"
+priority = 11
+
+[[languages.detect]]
+id = "csharp"
+kind = "csproj"
+extension = ".csproj"
+priority = 20
+
+[[languages.detect]]
+id = "typescript"
+kind = "tsconfig"
+file_name = "tsconfig.json"
+priority = 30
+
+[[languages.detect]]
+id = "python"
+kind = "pyproject"
+file_name = "pyproject.toml"
+priority = 40
+
+[[languages.detect]]
+id = "powershell"
+kind = "ps1"
+extension = ".ps1"
+priority = 50
+
+[[languages.detect]]
+id = "powershell"
+kind = "psm1"
+extension = ".psm1"
+priority = 51
+
+# Intent workspace (scenes/stages) — WitDatabase persist
+[intent_workspace]
+# database_path = "C:/Users/YOU/AppData/Local/cdp-mcp/intent-workspace.witdb"
+
+# Quality gates — host defaults (project overlay: {ProjectRoot}/.cdp/quality-gates.toml wins).
+# mode = warn|fail — fail still surfaces as FAIL severity unless mode=warn softens to WARN.
+[quality]
+enabled = true
+mode = "warn"
+
+[quality.gates]
+file_lines_warn = 400
+file_lines_fail = 800
+method_lines_warn = 80
+method_lines_fail = 150
+suggest_sniper_file_lines = 200
+
+# Durable sidecar (ADR-0198). CdpService.exe --service; Cursor uses CdpMcpBridge.exe.
+[service]
+enabled = true
+bind = "127.0.0.1"
+port = 8771
+# token_path = ""  # default: %LocalAppData%/cdp-mcp/service-token
+# install_dir = "D:/cdp-service"  # bridge auto-starts sidecar on connection refused
+# auto_start = true               # default true when install_dir is set
+
+# Citizen Completions host (Cloud.ru FM / Anthropic). Off = no prefer_citizen / Glass bridge / live turn tokens.
+[citizen]
+enabled = false
+
+# Operator cabin = WPF Glass (ADR-0021). Avalonia CascadeIDE.exe is agent IDE, not operator glass.
+[cockpit_host]
+exe = "D:/Experiments/Personal Cursor Folder/Financial/software/open/cascade-ide/CDP.GlassCockpit.Windows/bin/Release/net10.0-windows/CDP.GlassCockpit.Windows.exe"

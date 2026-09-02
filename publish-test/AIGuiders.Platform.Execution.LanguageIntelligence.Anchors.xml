@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Execution.LanguageIntelligence.Anchors</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Execution.LanguageIntelligence.Anchors.BracketAnchorWire">
+            <summary>Parse/format/classify via <see cref="T:AIGuiders.Platform.Notations.Bracket.BracketReader"/>.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.LanguageIntelligence.Anchors.BracketAnchorWire.ClassifyFamily(AIGuiders.Platform.IntermediateRepresentation.Language.BracketAnchorSpan,System.String@)">
+            <summary>
+            Explicit <c>Family:</c> wins; else infer code (M/S/L) vs xml (Element/Attribute).
+            Navigation = Family or Command/Go/nested.
+            </summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.LanguageIntelligence.Anchors.BracketAnchorWire.Format(AIGuiders.Platform.IntermediateRepresentation.Language.BracketAnchorSpan,System.Boolean)">
+            <summary>
+            Emit wire. Navigation → canonical names + Family.
+            Code/xml → short aliases (compat) unless <paramref name="preferCanonical"/>.
+            </summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.LanguageIntelligence.Anchors.BracketAnchorWire.SanitizeTextNeedle(System.String)">
+            <summary>Strip axis separators from content needle so wire stays parseable.</summary>
+        </member>
+    </members>
+</doc>

@@ -163,6 +163,8 @@ internal static partial class MetaDispatch
             session, callArgs, byDomain.GetValueOrDefault("build"), cancellationToken).ConfigureAwait(false);
     case "cdp_run":
         return await IdeSessionLifecycle.RunAsync(session, callArgs, cancellationToken).ConfigureAwait(false);
+    case "cdp_ide_session_scene":
+        return IdeSessionGraph(d, callArgs);
     default:
     {
         var pkg = await IdePackagesAsync(d, name, callArgs, cancellationToken).ConfigureAwait(false);

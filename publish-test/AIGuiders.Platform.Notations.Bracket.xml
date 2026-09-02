@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Notations.Bracket</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Notations.Bracket.BracketEnvelopeScan">
+            <summary>Depth-aware bracket envelope discovery in prose/markdown (GUIDERS-ADR-0027).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Notations.Bracket.BracketEnvelopeScan.LocateInText(System.String,System.Char,System.Char)">
+            <summary>Find top-level <c>[ … ]</c> regions; nested brackets stay inside <see cref="P:AIGuiders.Platform.Notations.Bracket.BracketEnvelopeScan.Envelope.Inner"/>.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Notations.Bracket.BracketReader">
+            <summary>Reference bracket wire parser (GUIDERS-ADR-0026 Phase 1).</summary>
+        </member>
+    </members>
+</doc>

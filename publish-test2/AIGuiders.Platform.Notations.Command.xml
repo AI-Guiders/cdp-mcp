@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Notations.Command</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Notations.Command.SlashWireBody">
+            <summary>Pre-catalog slash/console wire: tokenized path + tail before longest-prefix resolve.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Notations.Command.SlashWireBody.#ctor(System.Collections.Generic.IReadOnlyList{System.String},System.Boolean)">
+            <summary>Pre-catalog slash/console wire: tokenized path + tail before longest-prefix resolve.</summary>
+        </member>
+    </members>
+</doc>

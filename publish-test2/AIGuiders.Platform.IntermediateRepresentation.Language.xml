@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.IntermediateRepresentation.Language</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.IntermediateRepresentation.Language.BracketAxisFamily">
+            <summary>CDP/CIDE anchor span — families code / xml / navigation (CIDE 0128 / 0186).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.IntermediateRepresentation.Language.ResolveTier">
+            <summary>How confidently an <see cref="T:AIGuiders.Platform.IntermediateRepresentation.Language.Locus"/> is bound (GUIDERS-ADR-0025).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.IntermediateRepresentation.Language.Locus">
+            <summary>Resolved location in a document buffer (range + optional symbol id).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.IntermediateRepresentation.Language.Locus.#ctor(System.Int32,System.Int32,AIGuiders.Platform.IntermediateRepresentation.Language.ResolveTier,System.String,System.String)">
+            <summary>Resolved location in a document buffer (range + optional symbol id).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.IntermediateRepresentation.Language.AnchorWire">
+            <summary>Resolve input for anchor (raw wire). Prefer NormalizedBracketWire from IR.Bracket (ADR-0026).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.IntermediateRepresentation.Language.AnchorWire.#ctor(System.String)">
+            <summary>Resolve input for anchor (raw wire). Prefer NormalizedBracketWire from IR.Bracket (ADR-0026).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.IntermediateRepresentation.Language.TextEdit">
+            <summary>LSP-shaped single edit (language-neutral).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.IntermediateRepresentation.Language.TextEdit.#ctor(System.Int32,System.Int32,System.String)">
+            <summary>LSP-shaped single edit (language-neutral).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.IntermediateRepresentation.Language.BufferEditOutcome">
+            <summary>Buffer command result payload (replaces <c>EditorBufferOutcome</c> in Phase 1).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.IntermediateRepresentation.Language.SniperScope">
+            <summary>EditSniper-style scope (CDP: from/till/wire/pad).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.IntermediateRepresentation.Language.SniperScope.#ctor(System.Nullable{System.Int32},System.Nullable{System.Int32},System.String,System.String)">
+            <summary>EditSniper-style scope (CDP: from/till/wire/pad).</summary>
+        </member>
+    </members>
+</doc>

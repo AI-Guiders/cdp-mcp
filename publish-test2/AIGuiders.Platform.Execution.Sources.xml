@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Execution.Sources</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Execution.Sources.IFormatReader`1">
+            <summary>Parses a text document into a typed model (JSON, TOML, XML, …).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Execution.Sources.ISource`1">
+            <summary>Loads a document from a product-owned backend (code, file, DB, HTTP).</summary>
+        </member>
+        <member name="P:AIGuiders.Platform.Execution.Sources.ISource`1.SourceId">
+            <summary>Stable id for diagnostics and merge tracing (e.g. <c>file:workspace.toml</c>).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Execution.Sources.SourceCatalog">
+            <summary>Factories for <see cref="T:AIGuiders.Platform.Execution.Sources.ISource`1"/> (GUIDERS-ADR-0029). Layer merge: <see cref="!:Combinations.Sources.SourceCombination"/>.</summary>
+        </member>
+    </members>
+</doc>

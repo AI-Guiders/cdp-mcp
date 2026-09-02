@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Combinations.Workspace</name>
+    </assembly>
+    <members>
+        <member name="M:AIGuiders.Platform.Combinations.Workspace.WorkspaceDocumentOverlays.MergeOver(AIGuiders.Platform.Execution.Configurations.Workspace.WorkspaceDocument,AIGuiders.Platform.Execution.Configurations.Workspace.WorkspaceDocument)">
+            <summary>Overlay merge via <see cref="P:AIGuiders.Platform.Combinations.Workspace.WorkspaceOverlay.FieldOverlay"/> policy (ADR-0031).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Combinations.Workspace.WorkspaceOverlay">
+            <summary>Readable overlay recipes for <see cref="T:AIGuiders.Platform.Execution.Configurations.Workspace.WorkspaceDocument"/> (GUIDERS-ADR-0031).</summary>
+        </member>
+    </members>
+</doc>

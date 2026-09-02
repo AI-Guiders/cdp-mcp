@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Execution.Language.CSharp.Anchors</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve">
+            <summary>Resolve S(+K) to line/column range via local C# parse (no MSBuild).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TryResolve(System.String,System.String,AIGuiders.Platform.IntermediateRepresentation.Language.BracketAnchorSpan,AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TextRange@,System.String@)">
+            <param name="sourceText">
+            Optional buffer text (cdp_buffer). When null, reads <paramref name="absoluteFilePath"/> from disk.
+            </param>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TryFindAttachTarget(System.String,AIGuiders.Platform.IntermediateRepresentation.Language.BracketAnchorSpan,AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.AttachTarget@,System.String@)">
+            <summary>Resolve F+(M|L|S[+K]) to a syntax node for annotate/mutate attach.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TryFindAttachTarget(System.String,System.String,AIGuiders.Platform.IntermediateRepresentation.Language.BracketAnchorSpan,AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.AttachTarget@,System.String@)">
+            <param name="sourceText">When set, parse this instead of disk (dirty buffer / in-memory).</param>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TryApplyLineRole(Microsoft.CodeAnalysis.SyntaxNode,System.String,Microsoft.CodeAnalysis.SyntaxNode@,System.String@)">
+            <summary>
+            Roles on L: (no S:) — Initializer / Type / Name / Parameter of local or nearby decl.
+            </summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TryNarrowRangeToTextNeedle(Microsoft.CodeAnalysis.SyntaxTree,Microsoft.CodeAnalysis.SyntaxNode,System.String,AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TextRange@,System.String@)">
+            <summary>
+            Narrow a resolved syntax node range to the first <c>T:</c> needle match inside it.
+            Needle is <see cref="M:AIGuiders.Platform.Execution.LanguageIntelligence.Anchors.BracketAnchorWire.SanitizeTextNeedle(System.String)"/> (same as wire parse).
+            </summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TryGetBlockInteriorInsertPoint(Microsoft.CodeAnalysis.SyntaxNode,System.Boolean,AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TextRange@,System.String@)">
+            <summary>
+            Insert edges for block-interior places (type/ns before|after, or method into|end):
+            inside the braces, not outside the declaration.
+            Method <c>M:</c>+before|after stays sibling-outside at the DocumentEditPlane layer.
+            Returns a zero-width <see cref="T:AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TextRange"/> at the insert point.
+            </summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TryFindNeedleOffset(System.String,System.String,System.Int32@,System.Int32@)">
+            <summary>
+            Ordinal match first; if sanitize collapsed whitespace, match collapsed haystack and map back.
+            </summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.Language.CSharp.Anchors.CSharpBracketAnchorResolve.TryApplyMemberRole(Microsoft.CodeAnalysis.SyntaxNode,System.String,Microsoft.CodeAnalysis.SyntaxNode@,System.String@)">
+            <summary>Roles on member / local / parameter nodes (K:Name, Parameter:x, ReturnType, Body, Type).</summary>
+        </member>
+    </members>
+</doc>

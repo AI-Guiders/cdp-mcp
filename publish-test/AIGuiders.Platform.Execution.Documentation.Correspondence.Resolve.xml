@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Execution.Documentation.Correspondence.Resolve</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Execution.Documentation.Correspondence.CorrespondenceResolver">
+            <summary>
+            Standalone L1 correspondence from <c>.cascade/workspace.toml</c> (ADR 0061 / 0155 / 0156).
+            Forward: path → feature + ADR docs. Reverse: explicit <c>code_anchors</c> + doc body scan.
+            </summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Execution.Documentation.Correspondence.CorrespondenceResolver.BuildContext(AIGuiders.Platform.Execution.Documentation.Correspondence.CorrespondenceResult)">
+            <summary>Unified correspondence context (ADR 0156 get_correspondence_context shape).</summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Execution.Configurations.Workspace.Sources</name>
+    </assembly>
+    <members>
+        <member name="M:AIGuiders.Platform.Execution.Configurations.Workspace.WorkspaceSources.MergeOverlay(AIGuiders.Platform.Execution.Sources.ISource{AIGuiders.Platform.Execution.Configurations.Workspace.WorkspaceDocument},AIGuiders.Platform.Execution.Sources.ISource{AIGuiders.Platform.Execution.Configurations.Workspace.WorkspaceDocument},System.String)">
+            <summary>Overlay merge: baseline (e.g. embedded defaults) + overlay (e.g. disk).</summary>
+        </member>
+    </members>
+</doc>

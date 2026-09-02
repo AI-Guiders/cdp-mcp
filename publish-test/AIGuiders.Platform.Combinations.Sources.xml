@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Combinations.Sources</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Combinations.Sources.SourceCombination">
+            <summary>Merge <see cref="T:AIGuiders.Platform.Execution.Sources.ISource`1"/> layers; combinator runs after each <see cref="M:AIGuiders.Platform.Execution.Sources.ISource`1.Load"/>.</summary>
+        </member>
+    </members>
+</doc>

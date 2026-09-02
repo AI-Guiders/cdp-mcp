@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Notations</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Notations.NormalizedCommandLine">
+            <summary>Legacy alias for <see cref="T:AIGuiders.Platform.IntermediateRepresentation.Invocation.NormalizedCommandLine"/> (GUIDERS-ADR-0021 Wave 4b).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Notations.NormalizedCommandLine.#ctor(System.String,System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>Legacy alias for <see cref="T:AIGuiders.Platform.IntermediateRepresentation.Invocation.NormalizedCommandLine"/> (GUIDERS-ADR-0021 Wave 4b).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Notations.SlashWireBody">
+            <summary>Legacy alias for <see cref="T:AIGuiders.Platform.Notations.Command.SlashWireBody"/> (GUIDERS-ADR-0021 Wave 4b).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Notations.SlashWireBody.#ctor(System.Collections.Generic.IReadOnlyList{System.String},System.Boolean)">
+            <summary>Legacy alias for <see cref="T:AIGuiders.Platform.Notations.Command.SlashWireBody"/> (GUIDERS-ADR-0021 Wave 4b).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Notations.InvocationNotation">
+            <summary>Legacy alias for <see cref="T:AIGuiders.Platform.Notations.Command.InvocationNotation"/> (GUIDERS-ADR-0021 Wave 4b).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Notations.NotationKvPair">
+            <summary>
+            Universal KV wire atom: <c>Key</c> + <c>Sign</c> + <c>Value</c> (GUIDERS-ADR-0021/0026).
+            </summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Notations.NotationKvPair.#ctor(System.String,System.Char,System.String)">
+            <summary>
+            Universal KV wire atom: <c>Key</c> + <c>Sign</c> + <c>Value</c> (GUIDERS-ADR-0021/0026).
+            </summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Notations.NotationKvPair.TrySplitFirst(System.String,System.Char,AIGuiders.Platform.Notations.NotationKvPair@,System.String@)">
+            <summary>Split on first <paramref name="sign"/> only (value may contain more signs).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Notations.NotationListSplit">
+            <summary>Split list segments respecting nested bracket depth (CDP BracketLocate parity).</summary>
+        </member>
+    </members>
+</doc>

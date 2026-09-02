@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Execution.Language.Xml.Anchors</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Execution.Language.Xml.Anchors.XmlBracketAnchorResolve">
+            <summary>
+            Resolve <c>X:</c>/<c>A:</c> to a 1-based text range (MSBuild-ish XML, no namespaces).
+            Segments: <c>Name</c>, <c>Name@Attr=value</c>, <c>Name:2</c> (1-based among matching siblings).
+            <c>K:Element</c> — if leaf missing, insert under parent (zero-width range + insert name).
+            </summary>
+        </member>
+    </members>
+</doc>

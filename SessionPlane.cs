@@ -227,7 +227,8 @@ internal static partial class SessionPlane
             Debug = debugStop,
             Pack = packPlane,
             Continuity = DefaultContinuity,
-            ExplainTool = explain
+            ExplainTool = explain,
+            Federation = FederationSessionBridge.TryPulse(session)
         };
     }
 

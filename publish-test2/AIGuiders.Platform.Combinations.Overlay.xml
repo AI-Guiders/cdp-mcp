@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Combinations.Overlay</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Combinations.Overlay.OverlayPolicy`1">
+            <summary>Named overlay policy: readable recipe bound to a <see cref="T:AIGuiders.Platform.Combinations.Combinator`1"/>.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Combinations.Overlay.OverlayPolicy`1.#ctor(System.String,AIGuiders.Platform.Combinations.CombinationSemantics,AIGuiders.Platform.Combinations.Combinator{`0})">
+            <summary>Named overlay policy: readable recipe bound to a <see cref="T:AIGuiders.Platform.Combinations.Combinator`1"/>.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Combinations.Overlay.OverlayProfileBuilder`1">
+            <summary>Fluent overlay recipe (FV-style DX): rules read top-to-bottom.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Combinations.Overlay.OverlayProfileBuilder`1.When(System.Func{`0,System.Boolean},System.Action{AIGuiders.Platform.Combinations.Overlay.OverlayProfileBuilder{`0}})">
+            <summary>Skip all following rules in this builder when overlay does not match.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Combinations.Overlay.OverlayProfileBuilder`1.MergeSection``1(System.Func{`0,``0},System.Func{`0,``0,`0},System.Action{AIGuiders.Platform.Combinations.Overlay.SectionOverlayBuilder{``0}})">
+            <summary>Merge a nested section when overlay supplies it.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Combinations.Overlay.OverlayProfileBuilder`1.Rule(System.Func{`0,`0,`0})">
+            <summary>Escape hatch: imperative merge rule.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Combinations.Overlay.SectionOverlayBuilder`1.FieldOverlay``1(System.Func{`0,``0},System.Func{`0,``0,`0},System.Action{AIGuiders.Platform.Combinations.Overlay.FieldOverlayBuilder{``0}})">
+            <summary>Field-level overlay: overlay non-null values win per declared field.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Combinations.Overlay.SectionOverlayBuilder`1.ReplaceWhenPresent``1(System.Func{`0,``0},System.Func{`0,``0,`0})">
+            <summary>Replace whole nested value when overlay provides non-null.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Combinations.Overlay.FieldOverlayBuilder`1">
+            <summary>Declarative nullable-field overlay (spirit of RuleFor(...)).</summary>
+        </member>
+    </members>
+</doc>

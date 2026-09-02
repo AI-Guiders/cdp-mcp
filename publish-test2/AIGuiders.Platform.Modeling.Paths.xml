@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>AIGuiders.Platform.Modeling.Paths</name></assembly>
+<members>
+<member name="T:AIGuiders.Platform.Modeling.Paths.LogicalPath">
+ <summary>Repo/workspace-relative path with forward-slash canonical form (GUIDERS-ADR-0050).</summary>
+</member>
+<member name="T:AIGuiders.Platform.Modeling.Paths.PathBoundary">
+ <summary>Maps between OS absolute paths and LogicalPath at workspace/repo boundaries.</summary>
+</member>
+</members>
+</doc>

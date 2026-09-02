@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Execution.Configurations.Workspace</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Execution.Configurations.Workspace.WorkspaceExploreCorrPolicy">
+            <summary>Per-path Explore correspondence gate tier from workspace.toml <c>[workspace.explore_corr]</c>.</summary>
+        </member>
+    </members>
+</doc>

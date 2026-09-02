@@ -181,6 +181,10 @@ internal sealed record SessionPlaneResult
     [JsonPropertyName("explain_tool")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ExplainToolResult? ExplainTool { get; init; }
+
+    [JsonPropertyName("federation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public FederationGraphPulseDto? Federation { get; init; }
 }
 
 internal sealed record SessionContextWire

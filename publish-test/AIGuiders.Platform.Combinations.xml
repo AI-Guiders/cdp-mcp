@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Combinations</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Combinations.CombinationSemantics">
+            <summary>Documented merge semantics for platform combinators (GUIDERS-ADR-0030).</summary>
+        </member>
+        <member name="F:AIGuiders.Platform.Combinations.CombinationSemantics.FieldOverlay">
+            <summary>Field-level overlay: non-null overlay fields win; baseline fills gaps.</summary>
+        </member>
+        <member name="F:AIGuiders.Platform.Combinations.CombinationSemantics.SectionReplace">
+            <summary>Whole-section replace when overlay section is present.</summary>
+        </member>
+        <member name="F:AIGuiders.Platform.Combinations.CombinationSemantics.ShipFirst">
+            <summary>Baseline wins on key collision (ship catalog + user additions).</summary>
+        </member>
+        <member name="F:AIGuiders.Platform.Combinations.CombinationSemantics.OverlayWins">
+            <summary>Overlay wins on key collision (user hotkey overrides).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Combinations.Combinator`1">
+            <summary>Combines baseline with one overlay layer. Policy lives in the delegate implementation.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Combinations.OrderedCombination">
+            <summary>Ordered fold over materialized layers (GUIDERS-ADR-0030).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Combinations.OrderedCombination.FoldLayers``2(System.Collections.Generic.IEnumerable{``0},``1,System.Func{``0,``1},AIGuiders.Platform.Combinations.Combinator{``1})">
+            <summary>Projects each layer to an accumulator and folds with <paramref name="combiner"/>.</summary>
+        </member>
+    </members>
+</doc>

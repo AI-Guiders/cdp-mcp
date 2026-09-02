@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.Navigation.Policy</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.Navigation.Policy.NavigationKindFilter">
+            <summary>
+            Kind filter: non-empty <c>includeKinds</c> is a whitelist; <c>excludeKinds</c> subtracts.
+            Unknown tokens in either list are ignored.
+            </summary>
+        </member>
+        <member name="P:AIGuiders.Platform.Navigation.Policy.NavigationKindFilter.EffectiveIncludeKinds">
+            <summary><c>null</c> when no whitelist (all kinds except excluded).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Navigation.Policy.NavigationPresetMerge">
+            <summary>Merges a named preset from <see cref="T:AIGuiders.Platform.Navigation.Policy.NavigationPresets"/> with MCP/host request overrides.</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Navigation.Policy.NavigationPresetMerge.Merge(System.String,System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>
+            Non-null <paramref name="requestInclude"/> / <paramref name="requestExclude"/> override the preset side;
+            when both preset and request specify exclude, lists are unioned (deduped by canonical kind).
+            </summary>
+        </member>
+        <member name="P:AIGuiders.Platform.Navigation.Policy.NavigationProfile.IncludeKinds">
+            <summary>Effective include kinds after preset merge (optional).</summary>
+        </member>
+        <member name="P:AIGuiders.Platform.Navigation.Policy.NavigationProfile.ExcludeKinds">
+            <summary>Effective exclude kinds after preset merge (optional).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Navigation.Policy.NavigationProfile.FromExplore(System.String,System.Nullable{System.Int32},System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>Build profile from MCP/CSX explore args (preset + request overrides).</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.Navigation.Policy.NavigationRelatedKinds">
+            <summary>Canonical related-kind tokens for navigation scenes (GUIDERS-ADR-0033).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.Navigation.Policy.NavigationRelatedKinds.TryCanonicalKind(System.String)">
+            <summary>Canonical kind name or <c>null</c> when the token is unknown.</summary>
+        </member>
+    </members>
+</doc>

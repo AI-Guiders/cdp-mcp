@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AIGuiders.Platform.IntermediateRepresentation.Invocation</name>
+    </assembly>
+    <members>
+        <member name="T:AIGuiders.Platform.IntermediateRepresentation.Invocation.ArgMechanic">
+            <summary>
+            Arg-tail interaction during <see cref="F:AIGuiders.Platform.IntermediateRepresentation.Invocation.InvocationLinePhase.Arg"/> (GUIDERS-ADR-0043).
+            Notation-agnostic — distinct from <see cref="T:AIGuiders.Platform.IntermediateRepresentation.Invocation.InvocationEngageKind"/>.
+            Implemented by CommandPlane guilds (Constructors, PrefixArmed, ArgSuggestions, …).
+            </summary>
+        </member>
+        <member name="T:AIGuiders.Platform.IntermediateRepresentation.Invocation.InvocationEngageKind">
+            <summary>
+            How invocation started after engage consume (GUIDERS-ADR-0015) — notation-bound.
+            Distinct from <see cref="T:AIGuiders.Platform.IntermediateRepresentation.Invocation.ArgMechanic"/> (arg-tail interaction, notation-agnostic).
+            </summary>
+        </member>
+        <member name="T:AIGuiders.Platform.IntermediateRepresentation.Invocation.InvocationLinePhase">
+            <summary>
+            Where the user is on the invocation line after engage (GUIDERS-ADR-0043).
+            Orthogonal to engage (Slash / Melody / Binding per ADR-0015).
+            </summary>
+        </member>
+        <member name="F:AIGuiders.Platform.IntermediateRepresentation.Invocation.InvocationLinePhase.Path">
+            <summary>Completing command path or melody slug steps.</summary>
+        </member>
+        <member name="F:AIGuiders.Platform.IntermediateRepresentation.Invocation.InvocationLinePhase.Arg">
+            <summary>Collecting arg tail — <see cref="T:AIGuiders.Platform.IntermediateRepresentation.Invocation.ArgMechanic"/> applies here.</summary>
+        </member>
+        <member name="F:AIGuiders.Platform.IntermediateRepresentation.Invocation.InvocationLinePhase.Ready">
+            <summary>Line is runnable — Enter executes.</summary>
+        </member>
+        <member name="T:AIGuiders.Platform.IntermediateRepresentation.Invocation.NormalizedCommandLine">
+            <summary>Post-resolve command path (catalog longest-prefix or explicit console path).</summary>
+        </member>
+        <member name="M:AIGuiders.Platform.IntermediateRepresentation.Invocation.NormalizedCommandLine.#ctor(System.String,System.Collections.Generic.IReadOnlyList{System.String})">
+            <summary>Post-resolve command path (catalog longest-prefix or explicit console path).</summary>
+        </member>
+    </members>
+</doc>
