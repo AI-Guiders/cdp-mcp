@@ -81,7 +81,7 @@ internal static partial class IdeLanguageTools
             _ => throw new ArgumentException($"Unsupported LRC verb: {name}"),
         };
 
-        return JsonSerializer.Serialize(result, LrcJsonOptions);
+        return SerializeLrcResult(result);
     }
 
     static AIGuiders.Platform.Execution.Language.LanguageRequest BuildLanguageRequest(

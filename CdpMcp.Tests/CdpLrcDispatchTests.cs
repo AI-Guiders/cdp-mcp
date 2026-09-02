@@ -85,6 +85,43 @@ public sealed class CdpLrcDispatchTests
     }
 
     [Fact]
+    public async Task Get_diagnostics_returns_syntax_errors_for_broken_fs_source()
+    {
+        IdeLanguageTools.Configure(LanguageRegistry.Default);
+        IdeLanguageTools.BindDocumentStore(null);
+
+        var root = Path.Combine(Path.GetTempPath(), "cdp-lrc-syntax-" + Path.GetRandomFileName());
+        Directory.CreateDirectory(root);
+        var path = Path.Combine(root, "Broken.fs");
+
+        try
+        {
+            var session = new SessionContext { ProjectRoot = root, Language = CdpLanguages.Csharp };
+            var raw = await IdeLanguageTools.DispatchBareAsync(
+                "get_diagnostics",
+                session,
+                new Dictionary<string, ICdpBackendModule>(),
+                new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["file_path"] = JsonSerializer.SerializeToElement(path),
+                    ["source_text"] = JsonSerializer.SerializeToElement("module Broken\nlet x =\n"),
+                },
+                CancellationToken.None);
+
+            using var doc = JsonDocument.Parse(raw);
+            var diags = doc.RootElement.GetProperty("diagnostics");
+            Assert.Equal(JsonValueKind.Array, diags.ValueKind);
+            Assert.True(diags.GetArrayLength() > 0);
+            Assert.Equal("error", diags[0].GetProperty("severity").GetString());
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            IdeLanguageTools.Configure(LanguageRegistry.Default);
+        }
+    }
+
+    [Fact]
     public async Task Refuses_csharp_engine_for_fs_file()
     {
         IdeLanguageTools.Configure(LanguageRegistry.Default);
