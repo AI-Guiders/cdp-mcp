@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using AIGuiders.Platform.Execution.Language;
 using Cdp.Core;
 using Cdp.Lsp;
 using Cdp.ScriptableIde;
@@ -29,20 +30,15 @@ internal static partial class IdeLanguageTools
         // Verify-then-ship — inverse of put.
         if (name is "take" or "get_take")
             return await DispatchTakeAsync(session, byDomain, args, cancellationToken).ConfigureAwait(false);
-        var lang = ResolveLanguage(session, args);
-        if (args.TryGetValue("file_path", out var pathLangEl) && pathLangEl.GetString() is { Length: > 0 } pathForLang)
-            RefuseWrongEnginePairing(lang, pathForLang);
+
+        var filePath = args.TryGetValue("file_path", out var fpEl) ? fpEl.GetString() : null;
+        if (TryGetExplicitLanguage(args, out var explicitLang) && !string.IsNullOrWhiteSpace(filePath))
+            RefuseWrongEnginePairing(explicitLang, filePath);
+
+        var lang = ResolveEffectiveLanguage(session, args, filePath);
 
         if (IsLrcLanguage(lang) && LrcBareVerbs.Contains(name))
             return await DispatchLrcAsync(name, session, args, cancellationToken).ConfigureAwait(false);
-
-        if (TryResolvePathLanguage(
-                args.TryGetValue("file_path", out var fpEl) ? fpEl.GetString() : null,
-                out _)
-            && LrcBareVerbs.Contains(name))
-        {
-            return await DispatchLrcAsync(name, session, args, cancellationToken).ConfigureAwait(false);
-        }
 
         if (name == "get_workspace_navigation_context")
         {
@@ -81,10 +77,16 @@ internal static partial class IdeLanguageTools
         throw new ArgumentException($"No IDE engine for language '{lang}'. Call cdp_open(path) first, or configure [[languages.lsp]] / language=csharp|typescript|powershell|python.");
     }
 
-    private static string ResolveLanguage(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
+    private static string ResolveEffectiveLanguage(SessionContext session, IReadOnlyDictionary<string, JsonElement> args, string? filePath)
     {
-        if (args.TryGetValue("language", out var el) && _langs.TryNormalize(el.GetString(), out var overrideLang) && !CdpLanguages.IsAny(overrideLang))
-            return overrideLang;
+        if (TryGetExplicitLanguage(args, out var explicitLang))
+            return explicitLang;
+
+        if (!string.IsNullOrWhiteSpace(filePath)
+            && LanguagePathRules.ResolveLanguageId(filePath) is { } pathLang
+            && _langs.TryNormalize(pathLang, out var normalized))
+            return normalized;
+
         if (!CdpLanguages.IsAny(session.Language))
             return session.Language!;
         return CdpLanguages.Any;

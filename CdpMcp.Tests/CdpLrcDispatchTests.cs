@@ -45,6 +45,46 @@ public sealed class CdpLrcDispatchTests
     }
 
     [Fact]
+    public async Task Get_diagnostics_routes_fs_by_extension_when_session_is_csharp()
+    {
+        IdeLanguageTools.Configure(LanguageRegistry.Default);
+        IdeLanguageTools.BindDocumentStore(null);
+
+        var root = Path.Combine(Path.GetTempPath(), "cdp-lrc-mixed-" + Path.GetRandomFileName());
+        Directory.CreateDirectory(root);
+        var path = Path.Combine(root, "Module.fs");
+        await File.WriteAllTextAsync(path, "module Sample\nlet answer = 42\n");
+
+        try
+        {
+            var session = new SessionContext
+            {
+                ProjectRoot = root,
+                Language = CdpLanguages.Csharp,
+                SolutionOrProjectPath = Path.Combine(root, "Mixed.slnx"),
+            };
+            var raw = await IdeLanguageTools.DispatchBareAsync(
+                "get_diagnostics",
+                session,
+                new Dictionary<string, ICdpBackendModule>(),
+                new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["file_path"] = JsonSerializer.SerializeToElement(path),
+                },
+                CancellationToken.None);
+
+            using var doc = JsonDocument.Parse(raw);
+            Assert.True(doc.RootElement.TryGetProperty("diagnostics", out var diags));
+            Assert.Equal(JsonValueKind.Array, diags.ValueKind);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            IdeLanguageTools.Configure(LanguageRegistry.Default);
+        }
+    }
+
+    [Fact]
     public async Task Refuses_csharp_engine_for_fs_file()
     {
         IdeLanguageTools.Configure(LanguageRegistry.Default);

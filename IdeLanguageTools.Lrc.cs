@@ -25,14 +25,15 @@ internal static partial class IdeLanguageTools
         && (languageId.Equals(CdpLanguages.Fsharp, StringComparison.OrdinalIgnoreCase)
             || languageId.Equals(CdpLanguages.Gdl, StringComparison.OrdinalIgnoreCase));
 
-    static bool TryResolvePathLanguage(string? filePath, out string? languageId)
+    static bool TryGetExplicitLanguage(IReadOnlyDictionary<string, JsonElement> args, out string language)
     {
-        languageId = null;
-        if (string.IsNullOrWhiteSpace(filePath))
+        language = "";
+        if (!args.TryGetValue("language", out var el))
             return false;
-
-        languageId = LanguagePathRules.ResolveLanguageId(filePath);
-        return languageId is LanguageIds.Fsharp or LanguageIds.Gdl;
+        if (!_langs.TryNormalize(el.GetString(), out var normalized) || CdpLanguages.IsAny(normalized))
+            return false;
+        language = normalized;
+        return true;
     }
 
     static void RefuseWrongEnginePairing(string lang, string? filePath)
@@ -69,8 +70,6 @@ internal static partial class IdeLanguageTools
             throw new ArgumentException($"{name} is not supported via LRC v1 (fsharp/gdl).");
 
         var filePath = RequireString(args, "file_path");
-        RefuseWrongEnginePairing(ResolveLanguage(session, args), filePath);
-
         var req = BuildLanguageRequest(session, filePath, args);
         var center = CdpLanguageResolverHost.Center;
 
