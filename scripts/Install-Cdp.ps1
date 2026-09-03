@@ -4,7 +4,7 @@
 
 .DESCRIPTION
   Downloads CdpMcp-*-{rid}.zip from AI-Guiders/cdp-mcp (win-x64 | linux-x64 | osx-x64 | osx-arm64),
-  seeds kb-public + empty personal canon, merge host MCP json.
+  seeds kb-public + personal canon (L0 from kb-public + newcomer tail), merge host MCP json.
   Requires PowerShell 7+ on Mac/Linux (Windows PowerShell 5.1 OK on Windows).
   -CdpSource is an escape for a local published folder (maintainers).
   -Runtime overrides auto RID detection.
@@ -27,6 +27,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "Install-Cdp.PersonalCanon.ps1")
 $utf8 = New-Object System.Text.UTF8Encoding $false
 
 # Windows PowerShell 5.1 has no $IsWindows / $IsMacOS / $IsLinux.
@@ -293,7 +294,7 @@ if (-not $SkipKbClone) {
 
 $personalMarker = Join-Path $notesDst "agent-notes.md"
 if (-not (Test-Path -LiteralPath $personalMarker)) {
-    Write-Host "Seed personal canon from kb-public templates/newcomer"
+    Write-Host "Seed personal canon: kb-public L0 + templates/newcomer tail"
     $newcomer = Join-Path (Join-Path (Join-Path $kbDst "knowledge") "templates") "newcomer"
     $metaSrc = Join-Path (Join-Path $kbDst "knowledge") "META"
     $localDir = Join-Path (Join-Path (Join-Path $notesDst "knowledge") "work") "local"
@@ -310,17 +311,13 @@ if (-not (Test-Path -LiteralPath $personalMarker)) {
             Copy-Item $metaSrc (Join-Path (Join-Path $notesDst "knowledge") "META") -Recurse -Force
         }
     }
-    $hot = @()
-    foreach ($n in @("template-clean-setup-hot-knowledge-roots-routing-v1.md", "template-clean-setup-hot-clean-setup-routing-v1.md")) {
-        $p = Join-Path $newcomer $n
-        if (Test-Path -LiteralPath $p) { $hot += (Get-Content $p -Raw -Encoding UTF8) }
+    if ($WhatIf) {
+        Write-Host "WhatIf: write $personalMarker (L0 head from kb-public + newcomer tail)"
     }
-    $body = (@(
-            "# Agent notes", "",
-            "Personal canon. Public slice is a separate read-only root (kb-public).", "",
-            "<!-- public-cut -->", "", $hot
-        ) -join "`n")
-    Write-Utf8File $personalMarker $body
+    else {
+        $body = New-PersonalAgentNotesSeedBody -KbPublicRoot $kbDst -NewcomerDir $newcomer
+        Write-Utf8File $personalMarker $body
+    }
 }
 
 $tkMapDir = Join-Path (Join-Path $taskDst "work") "local"

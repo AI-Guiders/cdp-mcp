@@ -42,7 +42,7 @@ Invoke-WebRequest https://github.com/AI-Guiders/cdp-mcp/releases/latest/download
 pwsh -File ./Install-Cdp.ps1 -HostAdapter cursor   # claude | vscode | windsurf | antigravity | opencode | none
 ```
 
-The script auto-detects RID, downloads `CdpMcp-*-{rid}.zip`, clones [kb-public](https://github.com/AI-Guiders/kb-public) (read-only), seeds an empty personal canon. Default install root: `%LOCALAPPDATA%\AIGuiders` (Windows), `~/Library/Application Support/AIGuiders` (macOS), `~/.local/share/AIGuiders` (Linux). Override: `-Root`, `-Runtime`, maintainer escape `-CdpSource`.
+The script auto-detects RID, downloads `CdpMcp-*-{rid}.zip`, clones [kb-public](https://github.com/AI-Guiders/kb-public) (read-only), seeds personal canon (kb-public L0 + newcomer tail below `public-cut`). Default install root: `%LOCALAPPDATA%\AIGuiders` (Windows), `~/Library/Application Support/AIGuiders` (macOS), `~/.local/share/AIGuiders` (Linux). Override: `-Root`, `-Runtime`, maintainer escape `-CdpSource`.
 
 GitHub Actions (`.github/workflows/release.yml`) builds a matrix of RID runners. All build siblings are public under [AI-Guiders licensing](https://github.com/AI-Guiders/licensing) (MIT + ethical declaration). Optional org secret `GH_PAT` only if clone rate-limits bite. Tag `v*` or Run workflow.
 
