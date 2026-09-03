@@ -56,7 +56,10 @@ public static class CdpServiceControl
         if (!File.Exists(exe))
             exe = Path.Combine(layout.ServiceInstall, "CdpMcp.exe");
 
-        var config = Path.Combine(layout.ServiceInstall, "cdp-mcp.toml");
+        var config = CdpDeploySeatConfig.ResolveSeatConfigPath(layout.ServiceInstall)
+                     ?? throw new FileNotFoundException(
+                         $"Operator config missing at {CdpDeploySeatConfig.SeatConfigPath(layout.ServiceInstall)}.",
+                         CdpDeploySeatConfig.SeatConfigPath(layout.ServiceInstall));
         if (TryHealth(DefaultHealthUrl))
             return;
 

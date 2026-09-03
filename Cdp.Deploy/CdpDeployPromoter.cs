@@ -53,6 +53,7 @@ public static class CdpDeployPromoter
         }
 
         RestorePreserveFiles(liveRoot, backups);
+        CdpDeploySeatConfig.NormalizeInstallSeat(liveRoot);
     }
 
     static Dictionary<string, string> BackupPreserveFiles(string liveRoot)

@@ -28,6 +28,8 @@ public static class CdpDeployOrchestrator
         if (debugRoot is not null && !CdpDeployPaths.SamePath(plan.BridgePublishRoot, debugRoot))
             PublishBridgeSeat(plan, debugRoot);
 
+        FinalizeSeatConfigs(plan);
+
         var serviceExe = Path.Combine(plan.ServicePublishRoot, "CdpService.exe");
         string? version = null;
         try
@@ -55,6 +57,8 @@ public static class CdpDeployOrchestrator
         var debugRoot = plan.BridgeDebugPublishRoot;
         if (debugRoot is not null && !CdpDeployPaths.SamePath(plan.BridgePublishRoot, debugRoot))
             PublishBridgeSeat(plan, debugRoot);
+
+        FinalizeSeatConfigs(plan);
 
         CdpDeployPending.Clear(plan.Layout);
         CdpServiceControl.StartService(plan.Layout);
@@ -153,7 +157,6 @@ public static class CdpDeployOrchestrator
             File.Copy(srcExe, dstExe, true);
 
         CopyTsWorker(plan.Source.RepoRoot, plan.ServicePublishRoot);
-        EnsureConfig(plan);
     }
 
     static string Tail(string text, int max)
@@ -176,25 +179,26 @@ public static class CdpDeployOrchestrator
 
         if (result.ExitCode != 0)
             throw new InvalidOperationException($"CdpMcpBridge publish failed exit={result.ExitCode}: {result.Stderr}");
-
-        EnsureConfigAt(bridgeRoot, Path.Combine(plan.Layout.ServiceInstall, "cdp-mcp.toml"));
     }
 
-    static void EnsureConfig(CdpDeployPlan plan)
+    static void FinalizeSeatConfigs(CdpDeployPlan plan)
     {
-        var serviceConfig = Path.Combine(plan.ServicePublishRoot, "cdp-mcp.toml");
-        EnsureConfigAt(plan.ServicePublishRoot, serviceConfig);
-        EnsureConfigAt(plan.BridgePublishRoot, serviceConfig);
-    }
+        CdpDeploySeatConfig.SeedFromLiveSeat(plan.Layout.ServiceInstall, plan.ServicePublishRoot);
+        CdpDeploySeatConfig.StripDevTemplate(plan.ServicePublishRoot);
 
-    static void EnsureConfigAt(string deployRoot, string fallbackConfig)
-    {
-        var dst = Path.Combine(deployRoot, "cdp-mcp.toml");
-        if (File.Exists(dst))
-            return;
+        var liveBridge = CdpDeployPaths.ResolveLiveFromStaged(plan.BridgePublishRoot, plan.BridgePublishRoot);
+        CdpDeploySeatConfig.SeedFromLiveSeat(liveBridge, plan.BridgePublishRoot);
+        CdpDeploySeatConfig.StripDevTemplate(plan.BridgePublishRoot);
 
-        if (File.Exists(fallbackConfig))
-            File.Copy(fallbackConfig, dst, true);
+        if (plan.BridgeDebugPublishRoot is not null
+            && !CdpDeployPaths.SamePath(plan.BridgePublishRoot, plan.BridgeDebugPublishRoot))
+        {
+            var liveDebug = CdpDeployPaths.ResolveLiveFromStaged(
+                plan.BridgeDebugPublishRoot,
+                plan.Layout.BridgeDebugInstall);
+            CdpDeploySeatConfig.SeedFromLiveSeat(liveDebug, plan.BridgeDebugPublishRoot);
+            CdpDeploySeatConfig.StripDevTemplate(plan.BridgeDebugPublishRoot);
+        }
     }
 
     static void CopyTsWorker(string repoRoot, string deployRoot)

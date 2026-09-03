@@ -121,6 +121,10 @@ internal sealed class CdpBridgeServiceEnsurer
             var inSeat = Path.Combine(installDir, "cdp-mcp.toml");
             if (File.Exists(inSeat))
                 return inSeat;
+
+            var nested = Path.Combine(installDir, "config", "cdp-mcp.toml");
+            if (File.Exists(nested))
+                return nested;
         }
 
         if (!string.IsNullOrWhiteSpace(settings.ServiceConfigPath)
