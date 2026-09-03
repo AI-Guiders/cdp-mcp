@@ -21,6 +21,7 @@ internal static class CdpLanguageResolverGate
     {
         var ensure = EnsureCompilerServices(session, request.FilePath);
         RefuseOutOfProcess(ensure);
+        IdeWorkspaceWarm.WarmFsharpFileOnLrc(request.FilePath, session.SolutionOrProjectPath);
 
         var center = CdpLanguageResolverHost.Center;
         return bareVerb switch

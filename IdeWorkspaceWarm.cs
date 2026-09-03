@@ -53,4 +53,26 @@ internal static class IdeWorkspaceWarm
             }
         });
     }
+
+    /// <summary>Sync F# project-options warm before LRC dispatch (async WarmOnOpen may still be in flight).</summary>
+    public static void WarmFsharpFileOnLrc(string filePath, string? anchorPath)
+    {
+        if (string.IsNullOrWhiteSpace(anchorPath)
+            || !filePath.EndsWith(".fs", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        try
+        {
+            var entry = global::DotNetWorkspace.Core.DotNetWorkspace.TryResolveOwningProject(
+                filePath,
+                anchorPath,
+                DotNetProjectKind.FSharp);
+            if (entry?.AbsolutePath is { Length: > 0 } fsproj)
+                FcsProjectOptions.warm(fsproj);
+        }
+        catch
+        {
+            // best-effort
+        }
+    }
 }
