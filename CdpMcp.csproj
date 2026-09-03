@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CdpMcp</RootNamespace>
     <AssemblyName>CdpMcp</AssemblyName>
-    <Version>0.5.755</Version>
+    <Version>0.5.757</Version>
     <!-- aid-publish -UseNuGet → /p:AidUseNuGet=true (see Directory.Build.props) -->
     <AidUseNuGet Condition="'$(AidUseNuGet)' == ''">false</AidUseNuGet>
     <GuidersPlatformVersion Condition="'$(GuidersPlatformVersion)' == ''">0.4.1</GuidersPlatformVersion>
@@ -18,6 +18,9 @@
     <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == ''">false</UseLocalGuidersCore>
     <AgentNotesCoreFromSibling Condition="Exists('$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj')">true</AgentNotesCoreFromSibling>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="Cdp.Deploy\Cdp.Deploy.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>CdpMcp.Tests</_Parameter1>
@@ -37,6 +40,9 @@
     <Compile Remove="CdpMcpBridge/**" />
     <None Remove="CdpMcpBridge/**" />
     <EmbeddedResource Remove="CdpMcpBridge/**" />
+    <Compile Remove="Cdp.Deploy/**" />
+    <None Remove="Cdp.Deploy/**" />
+    <EmbeddedResource Remove="Cdp.Deploy/**" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

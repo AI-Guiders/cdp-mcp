@@ -61,12 +61,21 @@ internal sealed class CdpBridgeInvokeRouter
     {
         var started = Stopwatch.StartNew();
         var forwardArgs = CdpBridgeDeployPolicy.PrepareForwardDeployArgs(args);
-        var enqueue = await ForwardAsync(
-                "cdp_deploy",
-                forwardArgs,
-                CdpBridgeInvokeContext.Default,
-                cancellationToken)
-            .ConfigureAwait(false);
+        CallToolResult enqueue;
+        try
+        {
+            enqueue = await ForwardAsync(
+                    "cdp_deploy",
+                    forwardArgs,
+                    CdpBridgeInvokeContext.Default,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex) when (CdpBridgeServiceEnsurer.IsConnectionFailure(ex))
+        {
+            return await DeployViaLocalWorkerAsync(forwardArgs, started, cancellationToken)
+                .ConfigureAwait(false);
+        }
 
         if (enqueue.IsError == true)
             return enqueue;
@@ -133,6 +142,46 @@ internal sealed class CdpBridgeInvokeRouter
         {
             Content = [new TextContentBlock { Text = merged }],
             IsError = failed
+        };
+    }
+
+    async Task<CallToolResult> DeployViaLocalWorkerAsync(
+        IReadOnlyDictionary<string, JsonElement> args,
+        Stopwatch started,
+        CancellationToken cancellationToken)
+    {
+        var deployJson = await CdpBridgeDeployRunner.RunViaWorkerAsync(args, cancellationToken)
+            .ConfigureAwait(false);
+        var deployOk = CdpBridgeDurableAccess.TryParseJobOk(deployJson, out var ok) && ok;
+        var waitedForService = false;
+        string? healthBody = null;
+        if (deployOk)
+        {
+            waitedForService = await WaitForServiceHealthyAsync(cancellationToken).ConfigureAwait(false);
+            if (waitedForService)
+            {
+                try
+                {
+                    var health = await ForwardAsync(
+                            "cdp_health",
+                            new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase),
+                            CdpBridgeInvokeContext.Default,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                    healthBody = Text(health);
+                }
+                catch
+                {
+                    /* best-effort */
+                }
+            }
+        }
+
+        var merged = MergeDeployWait(deployJson, started.ElapsedMilliseconds, polls: 0, waitedForService, healthBody, jobId: null);
+        return new CallToolResult
+        {
+            Content = [new TextContentBlock { Text = merged }],
+            IsError = !deployOk
         };
     }
 

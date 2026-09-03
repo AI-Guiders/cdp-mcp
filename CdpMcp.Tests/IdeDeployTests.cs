@@ -153,7 +153,7 @@ public sealed class IdeDeployTests
         using var doc = JsonDocument.Parse(json);
         Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
         Assert.Equal(expected, doc.RootElement.GetProperty("mode").GetString());
-        Assert.Contains("-Mode apply", doc.RootElement.GetProperty("argv").GetString()!, StringComparison.Ordinal);
+        Assert.Equal("cdp.deploy/csharp", doc.RootElement.GetProperty("engine").GetString());
     }
 
     [Fact]

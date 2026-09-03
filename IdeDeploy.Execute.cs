@@ -1,35 +1,33 @@
 #nullable enable
 using System.Text.Json;
+using Cdp.Deploy;
 
 namespace CdpMcp;
 
 internal static partial class IdeDeploy
 {
-    static string Execute(
+    static string ExecuteSuccess(
         string mode,
         string? selfRoot,
         string seat,
         TargetDecision resolved,
-        string script,
-        string psiArgs,
-        IReadOnlyDictionary<string, JsonElement> args)
+        IReadOnlyDictionary<string, JsonElement> args,
+        CdpDeployStepResult step,
+        DateTime started)
     {
-        var started = DateTime.UtcNow;
-        var (exit, stdout, stderr) = RunPowerShell(psiArgs);
         var elapsedMs = (int)(DateTime.UtcNow - started).TotalMilliseconds;
         var includeRaw = IsTruthy(args, "include_raw") || IsTruthy(args, "include_raw_output");
-        var okLine = ExtractOkLine(stdout);
 
         object? igniteWake = null;
         object? remountWake = null;
-        if (exit == 0 && mode is "hard" or "apply")
+        if (step.Ok && mode is "hard" or "apply")
         {
             try { IdeRemountWake.MarkPending(resolved.Target!, mode == "hard" ? "hard_deploy" : "apply_pending"); }
-            catch { /* best-effort — ps1 also writes pending */ }
+            catch { /* best-effort */ }
             if (mode == "hard")
             {
                 try { igniteWake = IdeIgniteArmHost.WakeAfterHardDeploy(); }
-                catch { /* best-effort — deploy already succeeded */ }
+                catch { /* best-effort */ }
             }
 
             var targetSeat = mode == "apply" ? "cdp" : ClassifySeat(resolved.Target);
@@ -46,24 +44,21 @@ internal static partial class IdeDeploy
         return JsonSerializer.Serialize(new
         {
             schema = Schema,
-            ok = exit == 0,
+            ok = step.Ok,
             op = "deploy",
-            pulse = exit == 0
-                ? $"deploy {mode} ok → {resolved.Target}" + (okLine is null ? "" : $" · {okLine}")
-                : $"deploy {mode} fail exit={exit}",
+            pulse = step.Pulse,
             mode,
             self = selfRoot,
             seat,
             target = resolved.Target,
             sibling = resolved.Sibling,
-            script,
-            exit_code = exit,
+            engine = "cdp.deploy/csharp",
+            exit_code = step.ExitCode,
             elapsed_ms = elapsedMs,
             ignite_wake = igniteWake,
             remount_wake = remountWake,
-            stdout_tail = includeRaw ? Tail(stdout, 4000) : null,
-            stderr_tail = includeRaw || exit != 0 ? Tail(stderr, includeRaw ? 2000 : 800) : null,
-            next = exit == 0
+            stderr_tail = includeRaw || !step.Ok ? step.Stderr : null,
+            next = step.Ok
                 ? new object[]
                 {
                     new { go = "health", label = "cdp_health", why = "confirm version after remount" },
@@ -71,18 +66,40 @@ internal static partial class IdeDeploy
                     new { go = "cockpit", label = "Desk", why = "reorient after deploy" }
                 }
                 : null,
-            hint = exit == 0
+            hint = step.Ok
                 ? mode switch
                 {
-                    "hard" => includeRaw
-                        ? "Hard deploy done. Remount-wake pending armed for target; survivor reclaimed overdue Autoi arms."
-                        : "Hard deploy done. Target remount Autoi will say initialized; survivor reclaims overdue arms.",
+                    "hard" => "Hard deploy done (C# orchestrator). cdp_health should show live version.",
                     "apply" => "Pending staged update applied (.next → live). cdp_health pending_update should be null.",
-                    _ => "Soft staged (.next + pending_update). Apply with mode=apply (no republish) or mode=hard to rebuild."
+                    _ => "Soft staged (.next + pending_update). Apply with mode=apply."
                 }
-                : "Deploy failed — see stderr_tail / exit_code. include_raw=true for full tails."
+                : "Deploy failed — see stderr_tail."
         }, Pretty);
     }
+
+    static string ExecuteFailure(
+        string mode,
+        string? selfRoot,
+        string seat,
+        TargetDecision resolved,
+        string error,
+        DateTime started) =>
+        JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = false,
+            op = "deploy",
+            pulse = $"deploy {mode} fail",
+            mode,
+            self = selfRoot,
+            seat,
+            target = resolved.Target,
+            engine = "cdp.deploy/csharp",
+            exit_code = 1,
+            elapsed_ms = (int)(DateTime.UtcNow - started).TotalMilliseconds,
+            stderr_tail = error,
+            hint = "Deploy failed in C# orchestrator."
+        }, Pretty);
 
     static string Fail(string mode, string? selfRoot, string seat, string? target, string error, string? hint) =>
         JsonSerializer.Serialize(new
@@ -103,12 +120,11 @@ internal static partial class IdeDeploy
         string? selfRoot,
         string seat,
         TargetDecision resolved,
-        string script,
-        string psiArgs) =>
+        CdpDeployPlanResult planResult) =>
         JsonSerializer.Serialize(new
         {
             schema = Schema,
-            ok = true,
+            ok = planResult.Ok,
             op = "deploy",
             dry_run = true,
             mode,
@@ -116,8 +132,18 @@ internal static partial class IdeDeploy
             seat,
             target = resolved.Target,
             sibling = resolved.Sibling,
-            script,
-            argv = psiArgs,
-            hint = "dry_run — no process started. Drop dry_run= to execute."
+            engine = "cdp.deploy/csharp",
+            plan = planResult.Ok
+                ? new
+                {
+                    service_publish = planResult.Plan!.ServicePublishRoot,
+                    bridge_publish = planResult.Plan.BridgePublishRoot,
+                    bridge_debug_publish = planResult.Plan.BridgeDebugPublishRoot
+                }
+                : null,
+            error = planResult.Error,
+            hint = planResult.Ok
+                ? "dry_run — no process started. Drop dry_run= to execute."
+                : planResult.Hint
         }, Pretty);
 }

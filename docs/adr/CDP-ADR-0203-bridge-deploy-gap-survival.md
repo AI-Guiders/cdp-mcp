@@ -22,7 +22,14 @@ After ADR-0198 the **bridge survives** deploy, but it was still a dumb forwarder
 
 ## Decision
 
-Bridge owns **transport-level deploy gap survival** (not deploy orchestration — supervisor still runs `publish-and-deploy.ps1`).
+Bridge owns **transport-level deploy gap survival** (orchestration SSOT: `Cdp.Deploy` / `IdeDeploy` in C# — not `publish-and-deploy.ps1`).
+
+### 0. C# deploy SSOT (2026-09)
+
+- **`Cdp.Deploy`** — planner + orchestrator (soft/hard/apply), distinct service/bridge roots, post-promote `CdpService.exe` + `/healthz` gate.
+- **`IdeDeploy`** — MCP/durable worker entry; `engine: "cdp.deploy/csharp"`.
+- **`publish-and-deploy.ps1`** — thin escape hatch → `CdpMcp.exe --deploy-cli <payload.json>`.
+- **Deprecated:** `-Target` remapping service≈bridge (use explicit `ServiceTarget` + `BridgeTarget` in planner).
 
 ### 1. Deploy waiter (default for service-killing modes)
 
@@ -49,7 +56,17 @@ When HTTP to CdpService fails:
 
 Cold boot (no deploy job) behavior unchanged.
 
-### 4. Timings (env overrides)
+### 5. Bridge-local worker fallback
+
+When CdpService HTTP is unavailable at deploy enqueue (connection refused / socket error):
+
+1. Bridge spawns `CdpService.exe` or `CdpMcp.exe` with `--deploy-cli <payload.json>` (same C# SSOT).
+2. Holds `CallTool` until worker stdout JSON + optional `/healthz` poll (same as §1 waiter).
+3. Annotates `bridge_local: true` — no shell escape to PS1.
+
+`CdpBridgeDeployRunner` + `CdpBridgeInvokeRouter.DeployViaLocalWorkerAsync`.
+
+### 5. Timings (env overrides)
 
 | Env | Default |
 |-----|---------|
@@ -61,6 +78,7 @@ Cold boot (no deploy job) behavior unchanged.
 
 - ~~Poll lifecycle after Not connected on apply~~
 - ~~Shell escape to `publish-and-deploy.ps1` when MCP drops~~
+- ~~`-Target` for dual-instance deploy (collides service/bridge publish roots)~~
 
 Still valid:
 

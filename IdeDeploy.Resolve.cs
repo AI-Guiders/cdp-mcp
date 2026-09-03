@@ -1,47 +1,14 @@
 #nullable enable
-using Cdp.Core;
 
 namespace CdpMcp;
 
 internal static partial class IdeDeploy
 {
-    internal static string? ResolveSelfInstallRoot()
-    {
-        var exe = Environment.ProcessPath;
-        if (string.IsNullOrWhiteSpace(exe))
-            return AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        return Path.GetDirectoryName(Path.GetFullPath(exe));
-    }
-
-    internal static string ClassifySeat(string? selfRoot)
-    {
-        if (string.IsNullOrWhiteSpace(selfRoot))
-            return "other";
-
-        var full = Path.GetFullPath(selfRoot);
-        if (SamePath(full, ReleaseTarget))
-            return "cdp";
-        if (SamePath(full, DebugTarget))
-            return "cdp-debug";
-
-        var leaf = Path.GetFileName(full.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-        // target=self mis-resolve → ...\cdp-mcp\self — walk parent once.
-        if (leaf.Equals("self", StringComparison.OrdinalIgnoreCase)
-            && Path.GetDirectoryName(full) is { Length: > 0 } parent)
-            return ClassifySeat(parent);
-
-        if (leaf.Equals("cdp-mcp-debug", StringComparison.OrdinalIgnoreCase))
-            return "cdp-debug";
-        if (leaf.Equals("cdp-mcp", StringComparison.OrdinalIgnoreCase))
-            return "cdp";
-
-        return "other";
-    }
-
     internal readonly record struct TargetDecision(
         bool Ok,
         string? Target,
         string? Sibling,
+        string? TargetRaw,
         string? Error,
         string? Hint);
 
@@ -52,64 +19,47 @@ internal static partial class IdeDeploy
         string mode,
         bool force)
     {
-        var sibling = seat switch
-        {
-            "cdp" => DebugTarget,
-            "cdp-debug" => ReleaseTarget,
-            _ => ReleaseTarget
-        };
-
-        string target;
-        var raw = (targetRaw ?? "").Trim();
-        if (raw.Length == 0 || raw.Equals("sibling", StringComparison.OrdinalIgnoreCase)
-            || raw.Equals("other", StringComparison.OrdinalIgnoreCase))
-        {
-            target = sibling;
-        }
-        else if (raw.Equals("self", StringComparison.OrdinalIgnoreCase)
-                 || raw.Equals("here", StringComparison.OrdinalIgnoreCase))
-        {
-            target = selfRoot ?? ReleaseTarget;
-        }
-        else if (raw.Equals("release", StringComparison.OrdinalIgnoreCase)
-                 || raw.Equals("cdp", StringComparison.OrdinalIgnoreCase))
-        {
-            target = ReleaseTarget;
-        }
-        else if (raw.Equals("debug", StringComparison.OrdinalIgnoreCase)
-                 || raw.Equals("cdp-debug", StringComparison.OrdinalIgnoreCase))
-        {
-            target = DebugTarget;
-        }
-        else
-        {
-            target = Path.GetFullPath(raw);
-        }
+        var layout = Cdp.Deploy.CdpDeployLayout.Default;
+        var sibling = layout.SiblingBridgeForSeat(seat);
 
         if (mode == "apply")
         {
+            var raw = (targetRaw ?? "").Trim();
             var service = raw.Length == 0
                           || raw.Equals("sibling", StringComparison.OrdinalIgnoreCase)
                           || raw.Equals("service", StringComparison.OrdinalIgnoreCase)
                 ? ServiceTarget
                 : raw.Equals("self", StringComparison.OrdinalIgnoreCase)
                   || raw.Equals("here", StringComparison.OrdinalIgnoreCase)
-                    ? (selfRoot ?? ServiceTarget)
-                    : target;
-            return new TargetDecision(true, service, sibling, null, null);
+                    ? selfRoot ?? ServiceTarget
+                    : Path.GetFullPath(raw);
+            return new TargetDecision(true, service, sibling, targetRaw, null, null);
         }
 
-        if (mode == "hard" && SamePath(target, selfRoot) && !force)
+        var planProbe = Cdp.Deploy.CdpDeployPlanner.PlanInstallTarget(
+            Cdp.Deploy.CdpDeployInstallRequest.ForResolve(
+                Cdp.Deploy.CdpDeployModeParser.Parse(mode),
+                selfRoot,
+                targetRaw,
+                force));
+
+        if (!planProbe.Ok)
         {
             return new TargetDecision(
                 false,
-                target,
+                planProbe.Plan?.BridgePublishTarget,
                 sibling,
-                "refuse_hard_self",
-                "Hard KillRunning cannot reliably kill this process from inside. " +
-                "Default: target=sibling (or switch seats). force=true to override.");
+                targetRaw,
+                planProbe.Error,
+                planProbe.Hint);
         }
 
-        return new TargetDecision(true, target, sibling, null, null);
+        return new TargetDecision(
+            true,
+            planProbe.Plan!.BridgePublishTarget,
+            sibling,
+            targetRaw,
+            null,
+            null);
     }
 }

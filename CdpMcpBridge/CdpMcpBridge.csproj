@@ -16,6 +16,7 @@
     <InternalsVisibleTo Include="CdpMcp.Tests" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Cdp.Deploy\Cdp.Deploy.csproj" />
     <ProjectReference Include="$(GuidersCoreRoot)\src\TerminalMcp.Core\TerminalMcp.Core.csproj" Condition="'$(UseLocalGuidersCore)' == 'true'" />
     <PackageReference Include="AIGuiders.TerminalMcp.Core" Version="$(TerminalMcpCoreVersion)" Condition="'$(UseLocalGuidersCore)' != 'true'" />
     <PackageReference Include="ModelContextProtocol" Version="2.2.0" />

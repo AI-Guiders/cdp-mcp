@@ -23,6 +23,10 @@ if (durableJobIdx >= 0 && durableJobIdx + 1 < args.Length)
     Environment.Exit(await IdeDurableJobRunner.RunAsync(args[durableJobIdx + 1]));
 }
 
+var deployCliIdx = Array.IndexOf(args, "--deploy-cli");
+if (deployCliIdx >= 0 && deployCliIdx + 1 < args.Length)
+    Environment.Exit(IdeDeployCli.Run(args[deployCliIdx + 1]));
+
 var configPath = args.SkipWhile(a => a != "--config").Skip(1).FirstOrDefault()
     ?? Environment.GetEnvironmentVariable("CDP_MCP_CONFIG")
     ?? Path.Combine(AppContext.BaseDirectory, "config", "cdp-mcp.toml");

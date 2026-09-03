@@ -1,17 +1,11 @@
 #nullable enable
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using Cdp.Core;
+using Cdp.Deploy;
 
 namespace CdpMcp;
 
-/// <summary>
-/// Dual-instance Deploy — thin wrapper over <c>publish-and-deploy.ps1</c>.
-/// Hard defaults to the sibling install path so KillRunning does not target self.
-/// Partials: Resolve (target/script/seat), Execute (payloads).
-/// </summary>
+/// <summary>Dual-instance deploy — C# SSOT (<see cref="CdpDeployOrchestrator"/>), ADR-0198.</summary>
 internal static partial class IdeDeploy
 {
     public const string Schema = "deploy/v0";
@@ -42,26 +36,33 @@ internal static partial class IdeDeploy
         if (!resolved.Ok)
             return Fail(mode, selfRoot, seat, resolved.Target, resolved.Error!, resolved.Hint);
 
-        var script = ResolveScript(session, Opt(args, "script"));
-        if (script is null)
-        {
-            return Fail(mode, selfRoot, seat, resolved.Target, "script_not_found",
-                $"Open cdp-mcp (or pass script= path to {ScriptName}). Sticky warm restores last desk — then retry go=deploy.");
-        }
-
-        var psiArgs = BuildPsArgs(script, mode, resolved.Target!, useNuGet, noNudge, serviceTarget: resolved.Target);
         if (dryRun)
-            return DryRunPayload(mode, selfRoot, seat, resolved, script, psiArgs);
+            return DryRunPayload(mode, selfRoot, seat, resolved, BuildPlan(session, mode, selfRoot, resolved, useNuGet, noNudge, force));
 
         if (!Monitor.TryEnter(PublishGate))
         {
             return Fail(mode, selfRoot, seat, resolved.Target, "deploy_in_flight",
-                "Another cdp_deploy is still publishing — wait for it, then retry (soft/hard sequential).");
+                "Another cdp_deploy is still publishing — wait, then retry (soft/hard sequential).");
         }
 
         try
         {
-            return Execute(mode, selfRoot, seat, resolved, script, psiArgs, args);
+            var planResult = BuildPlan(session, mode, selfRoot, resolved, useNuGet, noNudge, force);
+            if (!planResult.Ok)
+                return Fail(mode, selfRoot, seat, resolved.Target, planResult.Error!, planResult.Hint);
+
+            var started = DateTime.UtcNow;
+            CdpDeployStepResult step;
+            try
+            {
+                step = CdpDeployOrchestrator.Run(planResult.Plan!);
+            }
+            catch (Exception ex)
+            {
+                return ExecuteFailure(mode, selfRoot, seat, resolved, ex.Message, started);
+            }
+
+            return ExecuteSuccess(mode, selfRoot, seat, resolved, args, step, started);
         }
         finally
         {
@@ -69,97 +70,31 @@ internal static partial class IdeDeploy
         }
     }
 
-    static string? ExtractOkLine(string stdout)
-    {
-        if (string.IsNullOrEmpty(stdout)) return null;
-        foreach (var line in stdout.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).Reverse())
-        {
-            var t = line.Trim();
-            if (t.StartsWith("OK:", StringComparison.OrdinalIgnoreCase)
-                || t.StartsWith("HARD deployed:", StringComparison.OrdinalIgnoreCase)
-                || t.StartsWith("SOFT staged:", StringComparison.OrdinalIgnoreCase)
-                || t.StartsWith("APPLY ok", StringComparison.OrdinalIgnoreCase))
-                return Tail(t, 160);
-        }
-
-        return null;
-    }
-
-    static string BuildPsArgs(
-        string script,
+    static CdpDeployPlanResult BuildPlan(
+        SessionContext session,
         string mode,
-        string target,
+        string? selfRoot,
+        TargetDecision resolved,
         bool useNuGet,
         bool noNudge,
-        string? serviceTarget = null)
+        bool force)
     {
-        var sb = new StringBuilder();
-        sb.Append("-NoProfile -ExecutionPolicy Bypass -File ");
-        sb.Append(Quote(script));
-        sb.Append(" -Mode ").Append(mode);
-        if (mode == "apply")
-        {
-            sb.Append(" -ServiceTarget ").Append(Quote(serviceTarget ?? ServiceTarget));
-            sb.Append(" -BridgeTarget ").Append(Quote(ReleaseTarget));
-            sb.Append(" -BridgeDebugTarget ").Append(Quote(DebugTarget));
-        }
-        else
-        {
-            sb.Append(" -Target ").Append(Quote(target));
-        }
+        var searchRoot = session.ProjectRoot;
+        if (string.IsNullOrWhiteSpace(searchRoot) && session.SolutionOrProjectPath is { Length: > 0 } sp)
+            searchRoot = Path.GetDirectoryName(sp);
 
-        if (useNuGet)
-            sb.Append(" -UseNuGet");
-        if (noNudge)
-            sb.Append(" -NoNudgeMcp");
-        return sb.ToString();
+        return CdpDeployPlanner.Plan(new CdpDeployPlanRequest(
+            CdpDeployModeParser.Parse(mode),
+            selfRoot,
+            searchRoot,
+            resolved.TargetRaw,
+            force,
+            useNuGet,
+            noNudge,
+            Layout: CdpDeployLayout.Default,
+            Source: CdpDeploySource.TryResolve(searchRoot)));
     }
 
-    static (int Exit, string Stdout, string Stderr) RunPowerShell(string arguments)
-    {
-        var psi = new ProcessStartInfo
-        {
-            FileName = "powershell.exe",
-            Arguments = arguments,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true
-        };
-        using var proc = Process.Start(psi)
-                         ?? throw new InvalidOperationException("Failed to start powershell.exe");
-        var stdout = proc.StandardOutput.ReadToEnd();
-        var stderr = proc.StandardError.ReadToEnd();
-        proc.WaitForExit();
-        return (proc.ExitCode, stdout, stderr);
-    }
-
-    static string Quote(string path) => "\"" + path.Replace("\"", "\\\"", StringComparison.Ordinal) + "\"";
-
-    static string Tail(string text, int max)
-    {
-        if (string.IsNullOrEmpty(text) || text.Length <= max)
-            return text;
-        return "…" + text[^max..];
-    }
-
-    static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)
-        => args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String
-            ? el.GetString()
-            : null;
-
-    static bool IsTruthy(IReadOnlyDictionary<string, JsonElement> args, string key)
-    {
-        if (!args.TryGetValue(key, out var el))
-            return false;
-        return el.ValueKind switch
-        {
-            JsonValueKind.True => true,
-            JsonValueKind.False => false,
-            JsonValueKind.Number => el.TryGetInt32(out var n) && n != 0,
-            JsonValueKind.String => bool.TryParse(el.GetString(), out var b) && b
-                                   || string.Equals(el.GetString(), "1", StringComparison.Ordinal),
-            _ => false
-        };
-    }
+    public static string ClassifySeat(string? installRoot) =>
+        CdpDeployPlanner.ClassifySeat(installRoot);
 }
