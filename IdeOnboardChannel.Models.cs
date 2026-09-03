@@ -18,6 +18,7 @@ internal static partial class IdeOnboardChannel
         public List<VerticalHit> Verticals { get; set; } = [];
         public List<string> Solutions { get; set; } = [];
         public int CsprojCount { get; set; }
+        public int FsprojCount { get; set; }
         public int FilesScanned { get; set; }
         public bool Truncated { get; set; }
     }

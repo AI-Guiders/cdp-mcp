@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using Cdp.ScriptableIde;
 
 namespace CdpMcp;
@@ -42,7 +42,11 @@ internal static partial class IdeOnboardChannel
             foreach (var f in files)
             {
                 var ext = Path.GetExtension(f);
-                if (ext.Equals(".cs", StringComparison.OrdinalIgnoreCase) || ext.Equals(".csproj", StringComparison.OrdinalIgnoreCase))
+                if (ext.Equals(".cs", StringComparison.OrdinalIgnoreCase)
+                    || ext.Equals(".fs", StringComparison.OrdinalIgnoreCase)
+                    || ext.Equals(".fsi", StringComparison.OrdinalIgnoreCase)
+                    || ext.Equals(".csproj", StringComparison.OrdinalIgnoreCase)
+                    || ext.Equals(".fsproj", StringComparison.OrdinalIgnoreCase))
                     yield return f;
             }
         }
@@ -116,20 +120,20 @@ internal static partial class IdeOnboardChannel
 
     static bool LooksLikeEntrypoint(string fileName)
     {
-        if (fileName.Equals("Program.cs", StringComparison.OrdinalIgnoreCase))
+        if (fileName.Equals("Program.cs", StringComparison.OrdinalIgnoreCase) || fileName.Equals("Program.fs", StringComparison.OrdinalIgnoreCase))
             return true;
         if (fileName.Equals("App.axaml.cs", StringComparison.OrdinalIgnoreCase) || fileName.Equals("App.xaml.cs", StringComparison.OrdinalIgnoreCase))
             return true;
         if (fileName.Contains("Hosting", StringComparison.OrdinalIgnoreCase))
             return false;
-        if (fileName.Contains("Tests", StringComparison.OrdinalIgnoreCase) || fileName.EndsWith("Test.cs", StringComparison.OrdinalIgnoreCase))
+        if (fileName.Contains("Tests", StringComparison.OrdinalIgnoreCase) || fileName.EndsWith("Test.cs", StringComparison.OrdinalIgnoreCase) || fileName.EndsWith("Test.fs", StringComparison.OrdinalIgnoreCase))
             return false;
         return EntrypointName.IsMatch(fileName);
     }
 
     static int ScoreEntrypoint(string fileName)
     {
-        if (fileName.Equals("Program.cs", StringComparison.OrdinalIgnoreCase))
+        if (fileName.Equals("Program.cs", StringComparison.OrdinalIgnoreCase) || fileName.Equals("Program.fs", StringComparison.OrdinalIgnoreCase))
             return 100;
         if (fileName.StartsWith("App.", StringComparison.OrdinalIgnoreCase))
             return 90;

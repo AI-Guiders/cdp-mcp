@@ -22,6 +22,8 @@ internal static partial class IdeOnboardChannel
 
         foreach (var sln in Directory.EnumerateFiles(root, "*.sln", SearchOption.TopDirectoryOnly))
             doc.Solutions.Add(Rel(root, sln));
+        foreach (var slnx in Directory.EnumerateFiles(root, "*.slnx", SearchOption.TopDirectoryOnly))
+            doc.Solutions.Add(Rel(root, slnx));
 
         var folderCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var verticalCounts = new Dictionary<string, (int Count, string? Sample)>(StringComparer.OrdinalIgnoreCase);
@@ -47,7 +49,13 @@ internal static partial class IdeOnboardChannel
                 continue;
             }
 
-            if (!ext.Equals(".cs", StringComparison.OrdinalIgnoreCase))
+            if (ext.Equals(".fsproj", StringComparison.OrdinalIgnoreCase))
+            {
+                doc.FsprojCount++;
+                continue;
+            }
+
+            if (!ext.Equals(".cs", StringComparison.OrdinalIgnoreCase) && !ext.Equals(".fs", StringComparison.OrdinalIgnoreCase))
                 continue;
 
             var top = TopSegment(rel);

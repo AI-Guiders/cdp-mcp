@@ -35,6 +35,7 @@ internal static partial class IdeOnboardChannel
             verticals = doc.Verticals.Select(v => new { name = v.Name, file_count = v.FileCount, sample_path = v.SamplePath, sample_anchor = v.SampleAnchor }),
             solutions = doc.Solutions,
             csproj_count = doc.CsprojCount,
+            fsproj_count = doc.FsprojCount,
             files_scanned = doc.FilesScanned,
             truncated = doc.Truncated,
             updated_utc = doc.UpdatedUtc,
