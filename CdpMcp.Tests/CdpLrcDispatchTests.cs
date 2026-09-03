@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using AIGuiders.Platform.Execution.Language;
 using Cdp.Core;
 using Xunit;
 
 namespace CdpMcp.Tests;
 
+/// <summary>
+/// CDP host smoke only: bare-verb routing, session pairing, JSON envelopes.
+/// F# semantic/materialize oracle lives in guiders-fsharp Language.Tests.
+/// </summary>
 public sealed class CdpLrcDispatchTests
 {
     [Fact]
@@ -158,86 +161,6 @@ public sealed class CdpLrcDispatchTests
     }
 
     [Fact]
-    public async Task Get_diagnostics_reports_semantic_fs_error_with_fsproj_context()
-    {
-        IdeLanguageTools.Configure(LanguageRegistry.Default);
-        IdeLanguageTools.BindDocumentStore(null);
-
-        var root = Path.Combine(Path.GetTempPath(), "cdp-lrc-sem-" + Path.GetRandomFileName());
-        Directory.CreateDirectory(root);
-        var fsproj = Path.Combine(root, "SemProj.fsproj");
-        var path = Path.Combine(root, "Sem.fs");
-        await File.WriteAllTextAsync(
-            fsproj,
-            """
-            <Project Sdk="Microsoft.NET.Sdk">
-              <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
-              <ItemGroup><Compile Include="Sem.fs" /></ItemGroup>
-            </Project>
-            """);
-        await File.WriteAllTextAsync(path, "module Sem\nlet x = totallyUnknownIdentifier\n");
-
-        try
-        {
-            var session = new SessionContext
-            {
-                ProjectRoot = root,
-                Language = CdpLanguages.Csharp,
-                SolutionOrProjectPath = fsproj,
-            };
-            var raw = await IdeLanguageTools.DispatchBareAsync(
-                "get_diagnostics",
-                session,
-                new Dictionary<string, ICdpBackendModule>(),
-                new Dictionary<string, JsonElement>(StringComparer.Ordinal)
-                {
-                    ["file_path"] = JsonSerializer.SerializeToElement(path),
-                },
-                CancellationToken.None);
-
-            using var doc = JsonDocument.Parse(raw);
-            var diags = doc.RootElement.GetProperty("diagnostics");
-            Assert.True(diags.GetArrayLength() > 0, raw);
-            Assert.Equal("error", diags[0].GetProperty("severity").GetString());
-        }
-        finally
-        {
-            Directory.Delete(root, recursive: true);
-            IdeLanguageTools.Configure(LanguageRegistry.Default);
-        }
-    }
-
-    [Fact]
-    public async Task Resolver_center_reports_semantic_fs_error_with_fsproj_context()
-    {
-        var root = Path.Combine(Path.GetTempPath(), "cdp-lrc-center-" + Path.GetRandomFileName());
-        Directory.CreateDirectory(root);
-        var fsproj = Path.Combine(root, "SemProj.fsproj");
-        var path = Path.Combine(root, "Sem.fs");
-        await File.WriteAllTextAsync(
-            fsproj,
-            """
-            <Project Sdk="Microsoft.NET.Sdk">
-              <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
-              <ItemGroup><Compile Include="Sem.fs" /></ItemGroup>
-            </Project>
-            """);
-        await File.WriteAllTextAsync(path, "module Sem\nlet x = totallyUnknownIdentifier\n");
-
-        try
-        {
-            var req = new LanguageRequest(path, 1, 1, null, fsproj);
-            var result = await CdpLanguageResolverHost.Center.DispatchDiagnosticsAsync(req, CancellationToken.None);
-
-            Assert.NotEmpty(result.Diagnostics);
-        }
-        finally
-        {
-            Directory.Delete(root, recursive: true);
-        }
-    }
-
-    [Fact]
     public void Detect_fs_file_as_fsharp()
     {
         var registry = LanguageRegistry.Default;
@@ -258,84 +181,42 @@ public sealed class CdpLrcDispatchTests
     }
 
     [Fact]
-    public async Task All_seven_lrc_verbs_green_on_guiders_fsharp_slnx()
+    public async Task Bare_lrc_verbs_return_json_envelopes_without_federation_anchor()
     {
         IdeLanguageTools.Configure(LanguageRegistry.Default);
         IdeLanguageTools.BindDocumentStore(null);
 
-        var guidersRoot = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory,
-            "..", "..", "..", "..", "..", "guiders-fsharp"));
-        var slnx = Path.Combine(guidersRoot, "AIGuiders.Platform.Modeling.slnx");
-        var kernelFs = Path.Combine(guidersRoot, "src", "AIGuiders.Platform.Modeling.Language", "Kernel.fs");
-        var fcsBackendFs = Path.Combine(
-            guidersRoot,
-            "src",
-            "AIGuiders.Platform.Modeling.Language.Adapters.Fcs",
-            "FcsLanguageBackend.fs");
-
-        Assert.True(File.Exists(slnx), slnx);
-        Assert.True(File.Exists(kernelFs), kernelFs);
-        Assert.True(File.Exists(fcsBackendFs), fcsBackendFs);
-
-        var session = new SessionContext
-        {
-            ProjectRoot = guidersRoot,
-            Language = CdpLanguages.Fsharp,
-            SolutionOrProjectPath = slnx,
-        };
-
-        var backends = new Dictionary<string, ICdpBackendModule>();
-        var baseArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
-        {
-            ["file_path"] = JsonSerializer.SerializeToElement(kernelFs),
-            ["line"] = JsonSerializer.SerializeToElement(87),
-            ["column"] = JsonSerializer.SerializeToElement(10),
-            ["solution_or_project_path"] = JsonSerializer.SerializeToElement(slnx),
-        };
+        var root = Path.Combine(Path.GetTempPath(), "cdp-lrc-env-" + Path.GetRandomFileName());
+        Directory.CreateDirectory(root);
+        var path = Path.Combine(root, "Sample.fs");
+        await File.WriteAllTextAsync(path, "module Sample\n\nlet answer = 42\n\nlet useIt () = answer\n");
 
         try
         {
-            var diags = await DispatchAndParseAsync("get_diagnostics", session, backends, baseArgs);
-            Assert.True(diags.RootElement.TryGetProperty("diagnostics", out _));
-
-            var symbols = await DispatchAndParseAsync("get_document_symbols", session, backends, baseArgs);
-            Assert.True(symbols.RootElement.TryGetProperty("root", out var root));
-            Assert.Equal("Kernel.fs", root.GetProperty("name").GetString());
-
-            var definition = await DispatchAndParseAsync("go_to_definition", session, backends, baseArgs);
-            Assert.True(definition.RootElement.TryGetProperty("definition", out _));
-
-            var usages = await DispatchAndParseAsync("find_usages", session, backends, baseArgs);
-            Assert.True(usages.RootElement.TryGetProperty("references", out var refs));
-            Assert.True(refs.GetArrayLength() > 0, usages.RootElement.GetRawText());
-
-            var symbol = await DispatchAndParseAsync("get_symbol_at_position", session, backends, baseArgs);
-            Assert.Equal("LanguageRequest", symbol.RootElement.GetProperty("name").GetString());
-
-            var completionArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            var session = new SessionContext { ProjectRoot = root, Language = CdpLanguages.Fsharp };
+            var backends = new Dictionary<string, ICdpBackendModule>();
+            var baseArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
             {
-                ["file_path"] = JsonSerializer.SerializeToElement(fcsBackendFs),
-                ["line"] = JsonSerializer.SerializeToElement(38),
-                ["column"] = JsonSerializer.SerializeToElement(50),
-                ["solution_or_project_path"] = JsonSerializer.SerializeToElement(slnx),
+                ["file_path"] = JsonSerializer.SerializeToElement(path),
+                ["line"] = JsonSerializer.SerializeToElement(5),
+                ["column"] = JsonSerializer.SerializeToElement(16),
             };
-            var completions = await DispatchAndParseAsync("get_completions", session, backends, completionArgs);
-            Assert.True(completions.RootElement.TryGetProperty("items", out var items));
-            Assert.True(items.GetArrayLength() > 0, completions.RootElement.GetRawText());
 
-            var renameArgs = new Dictionary<string, JsonElement>(baseArgs, StringComparer.Ordinal)
+            using (var diags = await DispatchAndParseAsync("get_diagnostics", session, backends, baseArgs))
+                Assert.True(diags.RootElement.TryGetProperty("diagnostics", out _));
+
+            using (var symbols = await DispatchAndParseAsync("get_document_symbols", session, backends, baseArgs))
             {
-                ["new_name"] = JsonSerializer.SerializeToElement("LanguageRequestPreview"),
-                ["apply"] = JsonSerializer.SerializeToElement(false),
-            };
-            var rename = await DispatchAndParseAsync("rename_symbol", session, backends, renameArgs);
-            Assert.Equal("LanguageRequest", rename.RootElement.GetProperty("oldName").GetString());
-            Assert.False(rename.RootElement.GetProperty("applied").GetBoolean());
-            Assert.True(rename.RootElement.GetProperty("changes").GetArrayLength() > 0);
+                Assert.True(symbols.RootElement.TryGetProperty("root", out var rootEl));
+                Assert.Equal("Sample.fs", rootEl.GetProperty("name").GetString());
+            }
+
+            using (var completions = await DispatchAndParseAsync("get_completions", session, backends, baseArgs))
+                Assert.True(completions.RootElement.TryGetProperty("items", out _));
         }
         finally
         {
+            Directory.Delete(root, recursive: true);
             IdeLanguageTools.Configure(LanguageRegistry.Default);
         }
     }

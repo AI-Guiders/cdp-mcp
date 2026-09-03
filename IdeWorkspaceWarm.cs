@@ -1,4 +1,5 @@
 using AIGuiders.Platform.Execution.Ide.Session;
+using AIGuiders.Platform.Modeling.Language.Adapters.Fcs;
 using Cdp.Core;
 using DotNetWorkspace.Core;
 #if CDP_FEDERATION_IDE_SESSION
@@ -44,12 +45,13 @@ internal static class IdeWorkspaceWarm
         try
         {
             MsBuildLocatorOnce.EnsureRegistered();
-            AIGuiders.Platform.Modeling.Language.Adapters.Fcs.FcsProjectOptions.invalidate();
-            AIGuiders.Platform.Modeling.Language.Adapters.Fcs.FcsCompilerServicesHost.materialize(view);
+            FcsCompilerServicesHost.materialize(view);
         }
-        catch
+        catch (Exception ex)
         {
-            // ProjInfo warm is best-effort; SdkAssets fallback remains in adapter chain.
+            throw new InvalidOperationException(
+                "F# compiler services materialize failed; federation LRC requires frozen MSBuild project options.",
+                ex);
         }
 #endif
     }
