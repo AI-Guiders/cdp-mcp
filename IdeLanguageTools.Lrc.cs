@@ -3,6 +3,10 @@ using AIGuiders.Platform.Execution.Language;
 using AIGuiders.Platform.Modeling.Language;
 using Cdp.Core;
 
+#if CDP_FEDERATION_IDE_SESSION
+using AIGuiders.Platform.Execution.Ide.Session;
+#endif
+
 namespace CdpMcp;
 
 internal static partial class IdeLanguageTools
@@ -71,6 +75,7 @@ internal static partial class IdeLanguageTools
             throw new ArgumentException($"{name} is not supported via LRC v1 (fsharp/gdl).");
 
         var filePath = RequireString(args, "file_path");
+        TryEnsureCompilerServices(session, filePath);
         var req = BuildLanguageRequest(session, filePath, args);
         var center = CdpLanguageResolverHost.Center;
 
@@ -137,4 +142,16 @@ internal static partial class IdeLanguageTools
             && applyEl.ValueKind == JsonValueKind.True;
         return new RenameSymbolRequest(req, newName, apply);
     }
+
+#if CDP_FEDERATION_IDE_SESSION
+    static void TryEnsureCompilerServices(SessionContext session, string filePath)
+    {
+        if (session.SolutionOrProjectPath is not { Length: > 0 } anchor)
+            return;
+
+        _ = FederationSessionRuntime.TryEnsureCompilerServices(anchor, filePath);
+    }
+#else
+    static void TryEnsureCompilerServices(SessionContext _, string __) { }
+#endif
 }
