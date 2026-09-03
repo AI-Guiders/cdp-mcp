@@ -1,17 +1,17 @@
-using AIGuiders.Platform.Modeling.Language.Adapters.Fcs;
-using Cdp.Core;
-using DotNetWorkspace.Core;
-#if CDP_FEDERATION_IDE_SESSION
 using AIGuiders.Platform.Execution.Ide.Session;
+using Cdp.Core;
+#if CDP_FEDERATION_IDE_SESSION
+using AIGuiders.Platform.Modeling.Ide.Session;
 #endif
 
 namespace CdpMcp;
 
-/// <summary>Phased workspace warm on session open (graph → restore → build → compile context).</summary>
+/// <summary>ADR-0062 — federation session warm on open (graph SSOT only; no bootstrap assets loader).</summary>
 internal static class IdeWorkspaceWarm
 {
     public static void WarmOnOpen(SessionContext session)
     {
+#if CDP_FEDERATION_IDE_SESSION
         if (session.SolutionOrProjectPath is not { Length: > 0 } anchor)
             return;
 
@@ -20,59 +20,34 @@ internal static class IdeWorkspaceWarm
         {
             try
             {
-                WorkspaceProjectWarm.WarmSolution(
-                    pathCopy,
-                    DotNetProjectKind.FSharp,
-                    WorkspaceProjectWarm.FSharpWarmOptions);
-            }
-            catch
-            {
-                // best-effort
-            }
-
-#if CDP_FEDERATION_IDE_SESSION
-            try
-            {
                 _ = FederationSessionRuntime.Open(pathCopy);
             }
             catch
             {
                 // best-effort federation graph warm
             }
-#endif
-
-            try
-            {
-                var graph = global::DotNetWorkspace.Core.DotNetWorkspace.Load(pathCopy);
-                foreach (var project in graph.Projects.Where(p => p.Kind == DotNetProjectKind.FSharp))
-                    FcsProjectOptions.warm(project.AbsolutePath);
-            }
-            catch
-            {
-                // best-effort
-            }
         });
+#endif
     }
 
-    /// <summary>Sync F# project-options warm before LRC dispatch (async WarmOnOpen may still be in flight).</summary>
-    public static void WarmFsharpFileOnLrc(string filePath, string? anchorPath)
+    /// <summary>Materialize CompilerServices from FTC workspace view before LRC dispatch.</summary>
+    public static void MaterializeCompilerServices(FederationCompilerServicesEnsure? ensure)
     {
-        if (string.IsNullOrWhiteSpace(anchorPath)
-            || !filePath.EndsWith(".fs", StringComparison.OrdinalIgnoreCase))
+#if CDP_FEDERATION_IDE_SESSION
+        if (ensure is not { Ok: true, WorkspaceView: { } view })
+            return;
+
+        if (!string.Equals(ensure.LanguageId, "fsharp", StringComparison.OrdinalIgnoreCase))
             return;
 
         try
         {
-            var entry = global::DotNetWorkspace.Core.DotNetWorkspace.TryResolveOwningProject(
-                filePath,
-                anchorPath,
-                DotNetProjectKind.FSharp);
-            if (entry?.AbsolutePath is { Length: > 0 } fsproj)
-                FcsProjectOptions.warm(fsproj);
+            AIGuiders.Platform.Modeling.Language.Adapters.Fcs.FcsCompilerServicesHost.materialize(view);
         }
         catch
         {
-            // best-effort
+            // ProjInfo warm is best-effort; SdkAssets fallback remains in adapter chain.
         }
+#endif
     }
 }
