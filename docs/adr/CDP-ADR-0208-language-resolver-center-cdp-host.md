@@ -1,7 +1,7 @@
 # CDP-ADR-0208: Language Resolver Center — CDP first host
 
 - **Status:** Accepted · In progress (P2 F# parity slice landed)
-- **Implementation:** LRC dispatch in CDP — **7 bare verbs green** on `guiders-fsharp` slnx via `Adapters.Fcs` (`CdpLrcDispatchTests`); rename active-pattern blocker; workspace symbol identity via `FSharpSymbol.IsEffectivelySameAs`; ide-session federation pulse partial
+- **Implementation:** LRC dispatch in CDP — **7 bare verbs green** on `guiders-fsharp` slnx via `Adapters.Fcs` (`CdpLrcDispatchTests`); rename `apply` via `SessionOrchestrator.applyPatch`; ω project resolve via `FileOwnership`; active-pattern blocker; workspace symbol identity via `FSharpSymbol.IsEffectivelySameAs`; ide-session federation pulse partial
 - **Date:** 2026-09-02
 - **Tags:** #cdp #lrc #fsharp #fcs #roslyn #gdl #ide #mcp
 - **Normative:** [GUIDERS-ADR-0061](https://github.com/AI-Guiders/guiders-dotnet-platform/blob/main/docs/adr/GUIDERS-ADR-0061-language-resolver-center.md) — federation LRC SSOT
