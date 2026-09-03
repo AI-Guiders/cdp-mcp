@@ -75,7 +75,9 @@ internal static partial class DocumentEditPlane
         if (buf.Dirty)
             return (null, "Buffer is dirty and flush=false — diagnostics would be stale; flush first.");
 
-        var lang = buf.Language;
+        var lang = BufferLanguageRules.Resolve(buf.Path, buf.Language);
+        if (!string.Equals(buf.Language, lang, StringComparison.OrdinalIgnoreCase))
+            buf.Language = lang;
         if (string.Equals(lang, CdpLanguages.PowerShell, StringComparison.OrdinalIgnoreCase)
             || Ps1BufferDiagnostics.IsPs1Path(buf.Path))
         {
@@ -115,8 +117,8 @@ internal static partial class DocumentEditPlane
             }
         }
 
-        if (lang is not "csharp" and not "typescript")
-            return (null, $"No online diagnostics for language '{lang}' (csharp|typescript|powershell).");
+        if (!BufferLanguageRules.SupportsOnlineBufferDiagnostics(lang))
+            return (null, $"No online diagnostics for language '{lang}' (csharp|typescript|powershell|fsharp|gdl).");
 
         // .csx: ScriptHost allowlist — not ParseText/MSBuild (closes green-buffer / red-check).
         if (CsxBufferDiagnostics.IsCsxPath(buf.Path))

@@ -24,10 +24,7 @@ internal static partial class IdeLanguageTools
         "rename_symbol",
     };
 
-    static bool IsLrcLanguage(string? languageId) =>
-        !string.IsNullOrWhiteSpace(languageId)
-        && (languageId.Equals(CdpLanguages.Fsharp, StringComparison.OrdinalIgnoreCase)
-            || languageId.Equals(CdpLanguages.Gdl, StringComparison.OrdinalIgnoreCase));
+    static bool IsLrcLanguage(string? languageId) => BufferLanguageRules.IsLrcLanguage(languageId);
 
     static bool TryGetExplicitLanguage(IReadOnlyDictionary<string, JsonElement> args, out string language)
     {

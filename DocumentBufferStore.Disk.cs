@@ -60,22 +60,7 @@ internal sealed partial class DocumentBufferStore
             .ToArray();
     }
 
-    public static string GuessLanguage(string path)
-    {
-        var ext = Path.GetExtension(path).ToLowerInvariant();
-        return ext switch
-        {
-            ".cs" or ".csx" => "csharp",
-            ".ts" or ".tsx" or ".js" or ".jsx" or ".mjs" or ".cjs" => "typescript",
-            ".ps1" or ".psm1" or ".psd1" => "powershell",
-            ".py" => "python",
-            ".toml" => "toml",
-            ".json" or ".jsonc" => "json",
-            ".csproj" or ".props" or ".targets" or ".xml" or ".config" or ".xaml" => "xml",
-            ".md" or ".markdown" => "markdown",
-            _ => "text"
-        };
-    }
+    public static string GuessLanguage(string path) => BufferLanguageRules.GuessLanguage(path);
 
     static int OffsetOf(string text, int line, int column)
     {
