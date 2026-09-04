@@ -112,6 +112,30 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
     internal SessionContext Session => _session;
     internal ProgramHostDeps HostDeps => _hostDeps;
     internal string McpVersion => _mcpVersion;
+
+    internal static readonly object BuildFingerprint = ComputeBuildFingerprint();
+
+    static object ComputeBuildFingerprint()
+    {
+        var meta = typeof(CdpHostRuntime).Assembly
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyMetadataAttribute), false).OfType<System.Reflection.AssemblyMetadataAttribute>()
+            .ToArray();
+        var sha = meta.FirstOrDefault(m => m.Key == "BuildSha")?.Value ?? "nogit";
+        var time = meta.FirstOrDefault(m => m.Key == "BuildTimeUtc")?.Value ?? "local";
+        return new { sha, time };
+    }
+
+    static string ComposeMcpVersion()
+    {
+        var baseVersion = typeof(CdpHostRuntime).Assembly.GetName().Version?.ToString(3) ?? "0.4.0";
+        var sha = typeof(CdpHostRuntime).Assembly
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyMetadataAttribute), false).OfType<System.Reflection.AssemblyMetadataAttribute>()
+            .FirstOrDefault(m => m.Key == "BuildSha")?.Value;
+        var time = typeof(CdpHostRuntime).Assembly
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyMetadataAttribute), false).OfType<System.Reflection.AssemblyMetadataAttribute>()
+            .FirstOrDefault(m => m.Key == "BuildTimeUtc")?.Value;
+        return string.IsNullOrWhiteSpace(sha) || sha == "nogit" ? baseVersion : $"{baseVersion}+{sha}@{time}";
+    }
     internal IReadOnlyDictionary<string, ICdpBackendModule> Backends => _byDomain;
     internal long CapabilitiesRevision => _capabilitiesRevision.Current;
 
@@ -275,7 +299,7 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
             && CdpEnumParse.TryParseObject(uo, out var udo))
             session.Object = udo;
 
-        var mcpVersion = typeof(CdpHostRuntime).Assembly.GetName().Version?.ToString(3) ?? "0.4.0";
+        var mcpVersion = ComposeMcpVersion();
         var pretty = new JsonSerializerOptions { WriteIndented = true };
 
         List<Tool> BuildVisibleTools() =>
@@ -532,3 +556,5 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
 }
 
 internal readonly record struct CdpInvokeResult(string Body, bool IsError);
+
+

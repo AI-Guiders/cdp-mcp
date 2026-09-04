@@ -96,6 +96,7 @@ internal static class CdpServiceHost
             ok = true,
             service = "CdpService",
             version = rt.McpVersion,
+            build = CdpHostRuntime.BuildFingerprint,
             backends = rt.Backends.Keys.ToArray(),
             capabilitiesRev = rt.CapabilitiesRevision,
             tenants = rt.TenantCount,
@@ -192,3 +193,4 @@ internal sealed class CdpInvokeResponse
     [JsonPropertyName("body")]
     public string Body { get; set; } = "";
 }
+

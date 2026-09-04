@@ -534,4 +534,26 @@
       <DependentUpon>CitizenPersona.Wire.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-<ItemGroup><Compile Update="CitizenIntentRouter.SoftInstrumentMeta9.Tables.cs"><DependentUpon>CitizenIntentRouter.SoftInstrumentMeta9.cs</DependentUpon></Compile></ItemGroup></Project>
+<ItemGroup><Compile Update="CitizenIntentRouter.SoftInstrumentMeta9.Tables.cs"><DependentUpon>CitizenIntentRouter.SoftInstrumentMeta9.cs</DependentUpon></Compile></ItemGroup>
+  <PropertyGroup>
+    <GitSha Condition="'$(GitSha)' == ''">nogit</GitSha>
+  </PropertyGroup>
+  <Target Name="StampBuildMeta" BeforeTargets="CoreGenerateAssemblyInfo">
+    <Exec Command="git rev-parse --short HEAD" IgnoreExitCode="true" ConsoleToMsBuild="true" StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitShaDetected" />
+    </Exec>
+    <PropertyGroup>
+      <GitSha Condition="'$(GitShaDetected)' != ''">$(GitShaDetected)</GitSha>
+    </PropertyGroup>
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadata">
+        <_Parameter1>BuildSha</_Parameter1>
+        <_Parameter2>$(GitSha)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadata">
+        <_Parameter1>BuildTimeUtc</_Parameter1>
+        <_Parameter2>$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+</Project>
