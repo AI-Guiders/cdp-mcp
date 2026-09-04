@@ -120,6 +120,17 @@ internal static partial class EditSniper
             return true;
         }
 
+        if (family == BracketLocate.AxisFamily.Json)
+        {
+            if (!JsonAnchorResolve.TryResolve(path, ReadText(store, path), span, out range, out detail))
+            {
+                error = $"anchor_resolve:{detail}";
+                return false;
+            }
+
+            return true;
+        }
+
         if (family != BracketLocate.AxisFamily.Csharp)
         {
             error = "csharp_axes_required";

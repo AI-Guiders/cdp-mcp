@@ -59,6 +59,11 @@ internal static partial class EditorPlane
                             if (!FSharpAnchorResolve.TryResolve(fullPath, text, span, out _, out var fdetail))
                                 errors.Add($"anchor_resolve:{fdetail}");
                         }
+                        else if (family == BracketLocate.AxisFamily.Json)
+                        {
+                            if (!JsonAnchorResolve.TryResolve(fullPath, text, span, out _, out var jdetail))
+                                errors.Add($"anchor_resolve:{jdetail}");
+                        }
                         else if (family == BracketLocate.AxisFamily.Xml)
                         {
                             if (!BracketXmlResolve.TryResolve(fullPath, text, span, out _, out var detail))

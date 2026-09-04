@@ -65,6 +65,15 @@ internal static class DocumentAnchorEdit
             return new { family = "fsharp", wire = BracketLocate.Format(span), resolve = fd, place, range = new { start_line = fr.LineStart, start_column = fr.ColumnStart, end_line = fr.LineEnd, end_column = fr.ColumnEnd } };
         }
 
+        if (family == BracketLocate.AxisFamily.Json)
+        {
+            if (!JsonAnchorResolve.TryResolve(buf.Path, buf.Text, span, out var jr, out var jd))
+                throw new ArgumentException($"Anchor resolve failed ({jd}): {wire}");
+
+            ApplyPlacedRange(store, buf, place, jr.LineStart, jr.ColumnStart, jr.LineEnd, jr.ColumnEnd, replacement);
+            return new { family = "json", wire = BracketLocate.Format(span), resolve = jd, place, range = new { start_line = jr.LineStart, start_column = jr.ColumnStart, end_line = jr.LineEnd, end_column = jr.ColumnEnd } };
+        }
+
         if (family == BracketLocate.AxisFamily.Csharp)
         {
             if (!string.Equals(buf.Language, "csharp", StringComparison.OrdinalIgnoreCase))
