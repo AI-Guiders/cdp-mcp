@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Cdp.Core;
 using Cdp.ScriptableIde;
 using CdpMcp.Cockpit.Surface;
@@ -54,10 +54,15 @@ internal static partial class EditorPlane
                             if (!BracketSyntaxResolve.TryResolve(fullPath, text, span, out _, out var detail))
                                 errors.Add($"anchor_resolve:{detail}");
                         }
+                        else if (family == BracketLocate.AxisFamily.Fsharp)
+                        {
+                            if (!FSharpAnchorResolve.TryResolve(fullPath, text, span, out _, out var fdetail))
+                                errors.Add($"anchor_resolve:{fdetail}");
+                        }
                         else if (family == BracketLocate.AxisFamily.Xml)
                         {
                             if (!BracketXmlResolve.TryResolve(fullPath, text, span, out _, out var detail))
-                                errors.Add($"anchor_resolve:{detail}");
+                                errors.Add($"anchor_resolve:{detail}");;
                         }
                         else
                             errors.Add("anchor_family_none");

@@ -45,6 +45,26 @@ internal static class DocumentAnchorEdit
             throw new ArgumentException(
                 "Family:navigation is land-only — use cdp_land (not edit_op=anchor).");
 
+        if (family == BracketLocate.AxisFamily.Fsharp
+            || (family == BracketLocate.AxisFamily.Csharp
+                && string.Equals(buf.Language, "fsharp", StringComparison.OrdinalIgnoreCase)))
+        {
+            if (IsLineOnlyCorridor(span))
+            {
+                var fls = span.LineStart!.Value;
+                var fle = span.LineEnd ?? fls;
+                var flr = ExpandToFullLines(buf.Text, new BracketSyntaxResolve.TextRange(fls, 1, fle, 1));
+                ApplyPlacedRange(store, buf, place, flr.LineStart, flr.ColumnStart, flr.LineEnd, flr.ColumnEnd, replacement);
+                return new { family = "fsharp", wire = BracketLocate.Format(span), resolve = "line_literal", place, range = new { start_line = flr.LineStart, start_column = flr.ColumnStart, end_line = flr.LineEnd, end_column = flr.ColumnEnd } };
+            }
+
+            if (!FSharpAnchorResolve.TryResolve(buf.Path, buf.Text, span, out var fr, out var fd))
+                throw new ArgumentException($"Anchor resolve failed ({fd}): {wire}");
+
+            ApplyPlacedRange(store, buf, place, fr.LineStart, fr.ColumnStart, fr.LineEnd, fr.ColumnEnd, replacement);
+            return new { family = "fsharp", wire = BracketLocate.Format(span), resolve = fd, place, range = new { start_line = fr.LineStart, start_column = fr.ColumnStart, end_line = fr.LineEnd, end_column = fr.ColumnEnd } };
+        }
+
         if (family == BracketLocate.AxisFamily.Csharp)
         {
             if (!string.Equals(buf.Language, "csharp", StringComparison.OrdinalIgnoreCase))

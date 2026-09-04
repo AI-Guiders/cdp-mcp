@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 using Cdp.Core;
 using Cdp.ScriptableIde;
@@ -103,6 +103,21 @@ internal static partial class EditSniper
         {
             error = familyError;
             return false;
+        }
+
+        var isFsharp = family == BracketLocate.AxisFamily.Fsharp
+            || (family == BracketLocate.AxisFamily.Csharp
+                && (path.EndsWith(".fs", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(".fsx", StringComparison.OrdinalIgnoreCase)));
+        if (isFsharp)
+        {
+            if (!FSharpAnchorResolve.TryResolve(path, ReadText(store, path), span, out range, out detail))
+            {
+                error = $"anchor_resolve:{detail}";
+                return false;
+            }
+
+            return true;
         }
 
         if (family != BracketLocate.AxisFamily.Csharp)
