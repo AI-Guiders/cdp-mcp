@@ -95,7 +95,8 @@ internal static partial class MetaToolCatalog
         type = "object",
         properties = new
         {
-            feature = new { type = "string", description = "omit|scene → map; correspondence|semantic_map|clones" },
+            feature = new { type = "string", description = "omit|scene → map; correspondence|no_adr|semantic_map|clones" },
+            why = new { type = "string", description = "no_adr: short reason stamped into the explore-corr latch (required with feature=no_adr)" },
             op = new { type = "string", description = "Alias of feature" },
             scope = new { type = "string", description = "clones: file|method|selection|project|solution" },
             path = new { type = "string", description = "file under analysis" },

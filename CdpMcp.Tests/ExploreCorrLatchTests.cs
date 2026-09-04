@@ -57,6 +57,42 @@ public sealed class ExploreCorrLatchTests
     }
 
     [Fact]
+    public void Root_level_arm_covers_root_siblings_and_accumulates_stamps()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "explore-corr-root-" + Guid.NewGuid().ToString("n"));
+        Directory.CreateDirectory(dir);
+        var latchPath = Path.Combine(dir, "latch.json");
+        var prevPath = ExploreCorrLatch.PathOverrideForTests;
+        var prevEn = ExploreCorrLatch.EnabledOverrideForTests;
+        ExploreCorrLatch.PathOverrideForTests = latchPath;
+        ExploreCorrLatch.EnabledOverrideForTests = true;
+        try
+        {
+            // v0-era pain: arming one root-level file erased the previous arm.
+            ExploreCorrLatch.StampCorr(dir, "DocumentAnchorEdit.cs", adrCount: 1);
+            ExploreCorrLatch.StampCorr(dir, "EditorPlane.Apply.Validate.cs", adrCount: 1);
+
+            // Root-level siblings all covered by any root-level arm.
+            Assert.True(ExploreCorrLatch.HasSatisfied(dir, "DocumentAnchorEdit.cs"));
+            Assert.True(ExploreCorrLatch.HasSatisfied(dir, "EditorPlane.Apply.Validate.cs"));
+            Assert.True(ExploreCorrLatch.HasSatisfied(dir, "EditSniper.PeekResolve.Wire.cs"));
+
+            // Both stamps coexist (list, not overwrite).
+            Assert.True(ExploreCorrLatch.TryReadStamps(dir, out var stamps));
+            Assert.Equal(2, stamps!.Count);
+
+            // Subdir files are NOT covered by a root-level file arm.
+            Assert.False(ExploreCorrLatch.HasSatisfied(dir, "docs/x.cs"));
+        }
+        finally
+        {
+            ExploreCorrLatch.PathOverrideForTests = prevPath;
+            ExploreCorrLatch.EnabledOverrideForTests = prevEn;
+            try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
+        }
+    }
+
+    [Fact]
     public void Gate_skips_when_no_mapped_adrs()
     {
         var dir = Path.Combine(Path.GetTempPath(), "explore-corr-gate-" + Guid.NewGuid().ToString("n"));

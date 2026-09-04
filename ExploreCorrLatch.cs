@@ -30,6 +30,8 @@ internal static class ExploreCorrLatch
         int AdrCount,
         DateTimeOffset StampedUtc);
 
+    const int MaxStamps = 50;
+
     static string DirRoot =>
         Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -87,28 +89,70 @@ internal static class ExploreCorrLatch
     public static bool TryRead(string workspaceRoot, out Stamp? stamp)
     {
         stamp = null;
+        if (!TryReadStamps(workspaceRoot, out var stamps) || stamps.Count == 0)
+            return false;
+        stamp = stamps.OrderByDescending(s => s.StampedUtc).First();
+        return true;
+    }
+
+    /// <summary>All live stamps for a workspace root. v0 single-stamp docs migrate transparently.</summary>
+    public static bool TryReadStamps(string workspaceRoot, out List<Stamp> stamps)
+    {
+        stamps = new List<Stamp>();
         try
         {
             var path = FileForRoot(workspaceRoot);
             if (!File.Exists(path))
                 return false;
-            var doc = JsonSerializer.Deserialize<LatchDoc>(File.ReadAllText(path));
+            var doc = TryReadRaw(path);
             if (doc is null || string.IsNullOrWhiteSpace(doc.WorkspaceRoot))
                 return false;
-            if (!DateTimeOffset.TryParse(doc.StampedUtc, out var utc))
+
+            if (doc.Stamps is { Count: > 0 })
+            {
+                foreach (var s in doc.Stamps)
+                {
+                    if (!DateTimeOffset.TryParse(s.StampedUtc, out var utc))
+                        continue;
+                    stamps.Add(new Stamp(
+                        doc.WorkspaceRoot,
+                        s.FileRel ?? "",
+                        s.Kind ?? KindCorr,
+                        s.Why,
+                        s.AdrCount,
+                        utc));
+                }
+
+                return stamps.Count > 0;
+            }
+
+            // v0 migration: single-stamp doc.
+            if (!DateTimeOffset.TryParse(doc.StampedUtc, out var utc0))
                 return false;
-            stamp = new Stamp(
+            stamps.Add(new Stamp(
                 doc.WorkspaceRoot,
                 doc.FileRel ?? "",
                 doc.Kind ?? KindCorr,
                 doc.Why,
                 doc.AdrCount,
-                utc);
+                utc0));
             return true;
         }
         catch
         {
             return false;
+        }
+    }
+
+    static LatchDoc? TryReadRaw(string path)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<LatchDoc>(File.ReadAllText(path));
+        }
+        catch
+        {
+            return null;
         }
     }
 
@@ -139,26 +183,28 @@ internal static class ExploreCorrLatch
         if (target.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        // Same directory as stamped file.
+        // Same directory as stamped file. Root-level files (no '/') are siblings
+        // of every other root-level file — the root dir IS their directory.
         var stampedDir = stamped.Contains('/') ? stamped[..(stamped.LastIndexOf('/') + 1)] : "";
-        if (stampedDir.Length > 0 && target.StartsWith(stampedDir, StringComparison.OrdinalIgnoreCase))
+        if (stampedDir.Length > 0)
+            return target.StartsWith(stampedDir, StringComparison.OrdinalIgnoreCase);
+        if (!target.Contains('/') && stamped.Contains('/') == false)
             return true;
 
         return false;
     }
 
     public static bool HasSatisfied(string workspaceRoot, string mutateRel, TimeSpan? maxAge = null)
-        => TryRead(workspaceRoot, out var stamp)
-           && stamp is not null
-           && IsFresh(stamp, maxAge)
-           && MatchesLocus(stamp, mutateRel)
-           && (stamp.Kind is KindCorr or KindNoAdr)
-           && (stamp.Kind != KindNoAdr || !string.IsNullOrWhiteSpace(stamp.Why));
+        => TryReadStamps(workspaceRoot, out var stamps)
+           && stamps.Any(s =>
+               IsFresh(s, maxAge)
+               && MatchesLocus(s, mutateRel)
+               && (s.Kind is KindCorr or KindNoAdr)
+               && (s.Kind != KindNoAdr || !string.IsNullOrWhiteSpace(s.Why)));
 
     public static bool HasAnyFresh(string workspaceRoot, TimeSpan? maxAge = null)
-        => TryRead(workspaceRoot, out var stamp)
-           && stamp is not null
-           && IsFresh(stamp, maxAge);
+        => TryReadStamps(workspaceRoot, out var stamps)
+           && stamps.Any(s => IsFresh(s, maxAge));
 
     /// <summary>True when locus has forward ADR/docs in workspace.toml — gate should arm.</summary>
     public static bool HasMappedAdrs(string absPath, string? rootHint)
@@ -219,16 +265,29 @@ internal static class ExploreCorrLatch
             var dir = Path.GetDirectoryName(path);
             if (dir is { Length: > 0 })
                 Directory.CreateDirectory(dir);
-            var doc = new LatchDoc
+
+            // v1: stamps list per workspace root (append/update per file; oldest evicted at cap).
+            // v0 docs (single FileRel) are migrated on read by TryRead.
+            var doc = TryReadRaw(path) ?? new LatchDoc
             {
                 Schema = Schema,
-                WorkspaceRoot = stamp.WorkspaceRoot,
+                WorkspaceRoot = stamp.WorkspaceRoot
+            };
+            doc.WorkspaceRoot = stamp.WorkspaceRoot;
+            doc.Stamps ??= new List<LatchStamp>();
+            doc.Stamps.RemoveAll(s =>
+                string.Equals(NormalizeRel(s.FileRel ?? ""), NormalizeRel(stamp.FileRel), StringComparison.OrdinalIgnoreCase));
+            doc.Stamps.Add(new LatchStamp
+            {
                 FileRel = stamp.FileRel,
                 Kind = stamp.Kind,
                 Why = stamp.Why,
                 AdrCount = stamp.AdrCount,
                 StampedUtc = stamp.StampedUtc.ToString("o")
-            };
+            });
+            while (doc.Stamps.Count > MaxStamps)
+                doc.Stamps.RemoveAt(0);
+
             File.WriteAllText(path, JsonSerializer.Serialize(doc, JsonOpts));
         }
         catch
@@ -247,6 +306,20 @@ internal static class ExploreCorrLatch
     {
         public string? Schema { get; set; }
         public string? WorkspaceRoot { get; set; }
+
+        // v0 single-stamp fields (legacy, read for migration).
+        public string? FileRel { get; set; }
+        public string? Kind { get; set; }
+        public string? Why { get; set; }
+        public int AdrCount { get; set; }
+        public string? StampedUtc { get; set; }
+
+        // v1: per-file stamps.
+        public List<LatchStamp>? Stamps { get; set; }
+    }
+
+    sealed class LatchStamp
+    {
         public string? FileRel { get; set; }
         public string? Kind { get; set; }
         public string? Why { get; set; }
