@@ -18,31 +18,108 @@ namespace CdpMcp;
 /// </summary>
 internal static partial class IdeIgniteChannel
 {
-    public static bool IsOpencodeConfigured()
-        => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CDP_OPENCODE_URL"));
+    static string? _ensuredOpencodeUrl;
+    static bool _binaryChecked;
+
+    public static bool IsOpencodeConfigured() => OpencodeBinaryAvailable();
+
+    static string OpencodeBinary() => "opencode";
+
+    static bool OpencodeBinaryAvailable()
+    {
+        if (_binaryChecked) return true;
+        try
+        {
+            using var p = Process.Start(new ProcessStartInfo
+            {
+                FileName = OpencodeBinary(),
+                Arguments = "--version",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                CreateNoWindow = true
+            });
+            p!.WaitForExit(4000);
+            _binaryChecked = p.ExitCode == 0;
+        }
+        catch
+        {
+            _binaryChecked = false;
+        }
+
+        return _binaryChecked;
+    }
+
+    static async Task<bool> ProbeAsync(string baseUrl, CancellationToken ct)
+    {
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+            using var req = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl.TrimEnd('/')}/project");
+            ApplyOpencodeHttpAuth(req);
+            using var resp = await http.SendAsync(req, ct).ConfigureAwait(false);
+            return (int)resp.StatusCode < 500;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>Resolve the opencode server URL: env wins; else probe default port; else self-host `opencode serve`.</summary>
+    static async Task<string> EnsureServerUrlAsync(CancellationToken ct)
+    {
+        if (_ensuredOpencodeUrl is { Length: > 0 } cached) return cached;
+
+        const int port = 4096;
+        var url = $"http://127.0.0.1:{port}";
+
+        if (await ProbeAsync(url, ct).ConfigureAwait(false))
+        {
+            _ensuredOpencodeUrl = url;
+            return url;
+        }
+
+        var psi = new ProcessStartInfo
+        {
+            // cmd resolves PATH+PATHEXT for the npm shim (Process.Start won't from a service cwd).
+            FileName = "cmd.exe",
+            Arguments = $"/c opencode serve --port {port} --hostname 127.0.0.1",
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden
+        };
+        using var proc = Process.Start(psi) ?? throw new InvalidOperationException("opencode serve failed to start");
+
+        for (var i = 0; i < 40; i++)
+        {
+            await Task.Delay(500, ct).ConfigureAwait(false);
+            if (await ProbeAsync(url, ct).ConfigureAwait(false))
+            {
+                _ensuredOpencodeUrl = url;
+                return url;
+            }
+
+            if (proc.HasExited) break;
+        }
+
+        throw new InvalidOperationException($"opencode serve did not become healthy on {url}");
+    }
 
     public static async Task<object> FireToOpencodeAsync(
         string message,
         CancellationToken ct,
         string? session = null)
     {
-        var url = Environment.GetEnvironmentVariable("CDP_OPENCODE_URL")?.Trim();
-
-        // Per-arm wake target wins; env is the global default (backward compat).
-        if (string.IsNullOrWhiteSpace(session))
-            session = Environment.GetEnvironmentVariable("CDP_OPENCODE_SESSION")?.Trim();
-
+        // Per-arm wake target wins — the arm is the SSOT for the target session.
         if (string.IsNullOrWhiteSpace(session))
         {
             return ErrOpencode("opencode", "no_session",
-                "No OpenCode session — arm session=... or set CDP_OPENCODE_SESSION env.", 0);
+                "No OpenCode session — arm session=... required.", 0);
         }
 
-        // Prefer the server API (session.prompt_async) over the CLI — no config-parse dependency.
-        if (!string.IsNullOrWhiteSpace(url))
-            return await FireToOpencodeHttpAsync(url, session, message, ct).ConfigureAwait(false);
-
-        return await FireToOpencodeCliAsync(session, message, ct).ConfigureAwait(false);
+        // Server API first — self-hosted `opencode serve` when no server is up (zero-setup wake).
+        var url = await EnsureServerUrlAsync(ct).ConfigureAwait(false);
+        return await FireToOpencodeHttpAsync(url, session, message, ct).ConfigureAwait(false);
     }
 
     static string? OpencodeEnv(string primary, string fallback) =>
