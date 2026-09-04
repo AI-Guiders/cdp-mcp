@@ -33,21 +33,47 @@ internal static partial class IdeFilesChannel
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         args = FlattenGoArgs(args);
         var op = (Opt(args, "op") ?? Opt(args, "cmd") ?? "scene").Trim().ToLowerInvariant();
-        return op switch
-        {
-            "list" or "ls" or "dir" => List(session, args),
-            "cd" or "chdir" => Cd(session, args),
-            "up" or ".." or "cdup" => Up(session),
-            "stat" or "info" => Stat(session, args),
-            "tree" => Tree(session, args),
-            "open" => OpenFile(store, session, args),
-            "text" or "dump" or "read" => TextProject(session, args),
-            "search" or "find" => SearchFacet(session, args),
-            "roots" => Roots(session),
-            "clear" => ClearCwd(),
-            _ => Scene(session, args)
-        };
+        return Ops.TryGetValue(op, out var handler)
+            ? handler(store, session, args)
+            : Scene(session, args);
     }
+
+    /// <summary>Operation registry — LRC-style dispatch: new verbs register here, no branch editing (ADR-0062 parity).</summary>
+    static readonly IReadOnlyDictionary<string, Func<DocumentBufferStore, SessionContext, IReadOnlyDictionary<string, JsonElement>, object>> Ops =
+        new Dictionary<string, Func<DocumentBufferStore, SessionContext, IReadOnlyDictionary<string, JsonElement>, object>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["list"] = (s, c, a) => List(c, a),
+            ["ls"] = (s, c, a) => List(c, a),
+            ["dir"] = (s, c, a) => List(c, a),
+            ["cd"] = (s, c, a) => Cd(c, a),
+            ["chdir"] = (s, c, a) => Cd(c, a),
+            ["up"] = (s, c, a) => Up(c),
+            [".."] = (s, c, a) => Up(c),
+            ["cdup"] = (s, c, a) => Up(c),
+            ["stat"] = (s, c, a) => Stat(c, a),
+            ["info"] = (s, c, a) => Stat(c, a),
+            ["tree"] = (s, c, a) => Tree(c, a),
+            ["open"] = OpenFile,
+            ["text"] = (s, c, a) => TextProject(c, a),
+            ["dump"] = (s, c, a) => TextProject(c, a),
+            ["read"] = (s, c, a) => TextProject(c, a),
+            ["search"] = (s, c, a) => SearchFacet(c, a),
+            ["find"] = (s, c, a) => SearchFacet(c, a),
+            ["roots"] = (s, c, a) => Roots(c),
+            ["new"] = (s, c, a) => New(c, a),
+            ["mkdir"] = (s, c, a) => Mkdir(c, a),
+            ["delete"] = (s, c, a) => Delete(c, a),
+            ["rm"] = (s, c, a) => Delete(c, a),
+            ["rename"] = (s, c, a) => Rename(c, a),
+            ["move"] = (s, c, a) => Move(c, a),
+            ["copy"] = (s, c, a) => Copy(c, a),
+            ["clip_copy"] = (s, c, a) => ClipSet(c, a, cut: false),
+            ["clip_cut"] = (s, c, a) => ClipSet(c, a, cut: true),
+            ["clip_clear"] = (s, c, a) => ClipClear(),
+            ["clip_show"] = (s, c, a) => ClipShow(),
+            ["paste"] = (s, c, a) => ClipPaste(c, a),
+            ["clear"] = (s, c, a) => ClearCwd(),
+        };
 
     static object Scene(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
