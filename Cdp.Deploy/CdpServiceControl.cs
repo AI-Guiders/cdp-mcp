@@ -7,10 +7,12 @@ public static class CdpServiceControl
 {
     const string DefaultHealthUrl = "http://127.0.0.1:8771/healthz";
 
-    public static void StopLockHoldersUnder(string root)
+        public static void StopLockHoldersUnder(string root, bool serviceOnly = false)
     {
         if (string.IsNullOrWhiteSpace(root))
             return;
+
+        var selfPid = Environment.ProcessId;
 
         foreach (var name in new[] { "CdpService", "CdpMcp", "CdpMcpBridge" })
         {
@@ -19,9 +21,21 @@ public static class CdpServiceControl
                 try
                 {
                     var path = proc.MainModule?.FileName;
-                    if (path is not null
-                        && path.StartsWith(root, StringComparison.OrdinalIgnoreCase))
-                        proc.Kill(entireProcessTree: true);
+                    if (path is null
+                        || !path.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    // Never kill the calling process tree — the orchestrator delegates
+                    // its own restart to the supervisor (ADR-0203).
+                    if (proc.Id == selfPid)
+                        continue;
+
+                    // stdio bridges (no --service flag) are thin transports — they
+                    // survive service deploys and pick up new bits on natural remount.
+                    if (serviceOnly && !LooksLikeServiceProcess(proc.Id))
+                        continue;
+
+                    proc.Kill(entireProcessTree: true);
                 }
                 catch
                 {
@@ -35,6 +49,31 @@ public static class CdpServiceControl
         }
 
         Thread.Sleep(800);
+    }
+
+    static bool LooksLikeServiceProcess(int pid)
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "powershell",
+                Arguments = $"-NoProfile -c (Get-CimInstance Win32_Process -Filter 'ProcessId={pid}').CommandLine",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using var p = System.Diagnostics.Process.Start(psi);
+            if (p is null)
+                return false;
+            var line = p.StandardOutput.ReadToEnd().Trim();
+            p.WaitForExit(3000);
+            return line.Contains("--service", StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public static void EnsureServiceExecutable(CdpDeployLayout layout)

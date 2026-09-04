@@ -74,16 +74,21 @@ public static class CdpDeployOrchestrator
             null);
     }
 
-    static CdpDeployStepResult Apply(CdpDeployPlan plan)
+        static CdpDeployStepResult Apply(CdpDeployPlan plan)
     {
         var pending = CdpDeployPending.ReadRequired(plan.Layout);
         var serviceNext = string.IsNullOrWhiteSpace(pending.ServiceRoot)
             ? plan.Layout.StagedService
             : pending.ServiceRoot;
 
-        CdpServiceControl.StopLockHoldersUnder(plan.Layout.ServiceInstall);
-        CdpServiceControl.StopLockHoldersUnder(plan.Layout.BridgeReleaseInstall);
-        CdpServiceControl.StopLockHoldersUnder(plan.Layout.BridgeDebugInstall);
+        CdpServiceControl.StopLockHoldersUnder(plan.Layout.ServiceInstall, serviceOnly: true);
+
+        // Bridges are stopped only when their bits are actually staged —
+        // stdio transports survive service-only deploys (hot-standby, ADR-0203+).
+        if (BridgeStaged(pending.BridgeRoot) || BridgeStaged(plan.Layout.StagedBridgeRelease))
+            CdpServiceControl.StopLockHoldersUnder(plan.Layout.BridgeReleaseInstall);
+        if (BridgeStaged(plan.Layout.StagedBridgeDebug))
+            CdpServiceControl.StopLockHoldersUnder(plan.Layout.BridgeDebugInstall);
 
         CdpDeployPromoter.PromoteTree(serviceNext, plan.Layout.ServiceInstall);
         CdpServiceControl.EnsureServiceExecutable(plan.Layout);
@@ -109,6 +114,9 @@ public static class CdpDeployOrchestrator
             0,
             null);
     }
+
+    static bool BridgeStaged(string? path) =>
+        !string.IsNullOrWhiteSpace(path) && Directory.Exists(path);
 
     static void PromoteBridgeIfStaged(string? staged, string live)
     {
