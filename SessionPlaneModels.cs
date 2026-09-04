@@ -223,6 +223,10 @@ internal sealed record SessionContextWire
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ScmRoot { get; init; }
 
+    [JsonPropertyName("extra_roots")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? ExtraRoots { get; init; }
+
     public static SessionContextWire From(SessionContext session) => new()
     {
         Phase = CdpEnumParse.ToWire(session.Phase),
@@ -233,7 +237,8 @@ internal sealed record SessionContextWire
         ProjectKind = session.ProjectKind,
         SolutionOrProjectPath = session.SolutionOrProjectPath,
         TsConfigPath = session.TsConfigPath,
-        ScmRoot = session.ScmRoot
+        ScmRoot = session.ScmRoot,
+        ExtraRoots = session.ExtraRoots is { Count: > 0 } er ? er : null
     };
 }
 

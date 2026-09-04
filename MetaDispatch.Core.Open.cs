@@ -35,9 +35,51 @@ internal static partial class MetaDispatch
             openPath = hit.Path;
         }
 
+        var addRoot = callArgs.TryGetValue("add_root", out var addRootEl)
+                      && addRootEl.ValueKind == JsonValueKind.True;
+
         var open = settings.Languages.Detect(openPath);
+
+        // Multi-root session: add extra root without replacing primary (CDP multi-root course).
+        if (addRoot && session.SolutionOrProjectPath is { Length: > 0 })
+        {
+            var anchor = open.SolutionOrProjectPath ?? open.Anchors.FirstOrDefault() ?? open.Root;
+            var duplicate = string.Equals(anchor, session.SolutionOrProjectPath, StringComparison.OrdinalIgnoreCase)
+                            || session.ExtraRoots.Contains(anchor, StringComparer.OrdinalIgnoreCase);
+            if (!duplicate && !string.IsNullOrWhiteSpace(anchor))
+                session.ExtraRoots.Add(anchor);
+
+            if (string.Equals(open.Language, "csharp", StringComparison.OrdinalIgnoreCase)
+                && anchor is { Length: > 0 } warmExtra)
+            {
+                var warmPathExtra = warmExtra;
+                _ = Task.Run(async () =>
+                {
+                    try { await RoslynMcp.ServiceLayer.MsBuildWorkspaceHost.WarmAsync(warmPathExtra).ConfigureAwait(false); }
+                    catch { /* best-effort; tools open on demand */ }
+                });
+            }
+
+            DeskBookmark.Save(session, docStore);
+            NotifyListChanged();
+
+            return JsonSerializer.Serialize(new
+            {
+                add_root = true,
+                root = open.Root,
+                kind = open.Kind,
+                language = open.Language,
+                anchor,
+                duplicate,
+                primary = session.SolutionOrProjectPath,
+                extra_roots = session.ExtraRoots.ToArray(),
+                note = "multi-root session — extra root added; primary unchanged"
+            }, new JsonSerializerOptions { WriteIndented = true });
+        }
+
         var park = docStore.ParkOutsideProject(open.Root);
         var payload = IdeLanguageTools.ApplyOpen(session, open, park);
+        session.ExtraRoots.Clear();
         payload = IdeCanonChannel.AttachCanonToOpenJson(payload, session, settings, docStore);
         shellHabitat.SyncSessionCwd(session.ProjectRoot);
         DeskBookmark.Save(session, docStore);
