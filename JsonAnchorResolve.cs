@@ -126,11 +126,13 @@ internal static class JsonAnchorResolve
 
                 case JsonTokenType.StartObject or JsonTokenType.StartArray:
                 {
+                    // Record path length BEFORE the container's own segment — close must truncate it away.
+                    var beforeLen = path.Count;
                     AppendOwnSegment(path, pendingProp, frames);
                     pendingProp = null;
                     frames.Push(new Frame
                     {
-                        PathLen = path.Count,
+                        PathLen = beforeLen,
                         Start = (int)reader.TokenStartIndex,
                         IsArray = reader.TokenType == JsonTokenType.StartArray,
                         Counter = 0,
