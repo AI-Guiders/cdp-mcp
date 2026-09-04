@@ -199,6 +199,8 @@ internal static partial class IdeSessionLifecycle
         var pathExplicit = args.ContainsKey("path") || args.ContainsKey("solution_path");
         if (!pathExplicit)
             target = PreferSiblingTestProject(target);
+        if (Directory.Exists(target) && string.IsNullOrEmpty(Path.GetExtension(target)))
+            target = ResolveDotnetTestTarget(target) ?? target;
 
         var lang = ResolveLanguage(session);
         string result;
@@ -238,6 +240,8 @@ internal static partial class IdeSessionLifecycle
             throw new ArgumentException(err);
 
         var lang = ResolveLanguage(session);
+        if (Directory.Exists(target) && string.IsNullOrEmpty(Path.GetExtension(target)))
+            target = ResolveDotnetTestTarget(target) ?? target;
         if (!LooksCsharp(target, lang))
             return Fail("cdp.test_scene", "csharp only in v0 (dotnet test --list-tests).", target);
 
@@ -256,6 +260,8 @@ internal static partial class IdeSessionLifecycle
             throw new ArgumentException(err);
 
         var lang = ResolveLanguage(session);
+        if (Directory.Exists(target) && string.IsNullOrEmpty(Path.GetExtension(target)))
+            target = ResolveDotnetTestTarget(target) ?? target;
         if (!LooksCsharp(target, lang))
             return Fail("cdp.test_plan", "csharp only in v0.", target);
 

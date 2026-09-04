@@ -15,10 +15,25 @@ internal static partial class IdeSessionLifecycle
 
     private static bool LooksCsharp(string target, string lang) =>
         lang.Equals(CdpLanguages.Csharp, StringComparison.OrdinalIgnoreCase)
+        || lang.Equals(CdpLanguages.Fsharp, StringComparison.OrdinalIgnoreCase)
         || target.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
         || target.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)
         || target.EndsWith(".slnx", StringComparison.OrdinalIgnoreCase)
         || target.EndsWith(".fsproj", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Directory target → test project inside (F# first, then C#) — dotnet test eats both.</summary>
+    internal static string? ResolveDotnetTestTarget(string dir)
+    {
+        foreach (var pattern in new[] { "*.Tests.fsproj", "*.Tests.csproj", "*.Test.fsproj", "*.Test.csproj" })
+        {
+            var hit = Directory.EnumerateFiles(dir, pattern, SearchOption.TopDirectoryOnly).FirstOrDefault();
+            if (hit is not null)
+                return Path.GetFullPath(hit);
+        }
+
+        var any = Directory.EnumerateFiles(dir, "*.*proj", SearchOption.TopDirectoryOnly).FirstOrDefault();
+        return any is null ? null : Path.GetFullPath(any);
+    }
 
     private static async Task<string> TypescriptBuildAsync(
         string tsconfigOrRoot,
