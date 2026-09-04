@@ -29,6 +29,16 @@ internal sealed class CdpBridgeInvokeRouter
         _ensurer = ensurer;
         _jsonOptions = jsonOptions;
         _timing = timing ?? CdpBridgeTiming.Resolve();
+        CdpBridgeEndpoint.Init(settings.BaseUrl, settings.ServiceConfigPath);
+    }
+
+    /// <summary>Hot-standby: re-point the http client at the active slot when the
+    /// bridge config toml flips (A/B deploy — no restarts, no gaps).</summary>
+    void EnsureActiveBaseAddress()
+    {
+        var current = CdpBridgeEndpoint.Current();
+        if (_http.BaseAddress is null || !_http.BaseAddress.Equals(current))
+            _http.BaseAddress = current;
     }
 
     internal async Task<CallToolResult> InvokeAsync(
@@ -248,6 +258,7 @@ internal sealed class CdpBridgeInvokeRouter
                     CdpBridgeInvokeContext.ServiceReady(_timing),
                     async ct =>
                     {
+                        EnsureActiveBaseAddress();
                         using var response = await _http.GetAsync("/healthz", ct).ConfigureAwait(false);
                         response.EnsureSuccessStatusCode();
                         return true;
@@ -288,6 +299,7 @@ internal sealed class CdpBridgeInvokeRouter
                 ? null
                 : args.ToDictionary(static p => p.Key, static p => p.Value)
         };
+        EnsureActiveBaseAddress();
         using var response = await _http.PostAsJsonAsync("/api/v1/cdp/invoke", payload, _jsonOptions, cancellationToken)
             .ConfigureAwait(false);
         var body = await response.Content.ReadFromJsonAsync<CdpInvokeResponse>(_jsonOptions, cancellationToken)
