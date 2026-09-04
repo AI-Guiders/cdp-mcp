@@ -117,7 +117,12 @@ internal static partial class IdeIgniteChannel
                 "No OpenCode session — arm session=... required.", 0);
         }
 
-        // Server API first — self-hosted `opencode serve` when no server is up (zero-setup wake).
+        // CLI first — `opencode run -s <session>` inherits the local identity (desktop auth-free).
+        // HTTP (desktop sidecar / explicit server) — fallback when the CLI is unavailable.
+        var cli = await FireToOpencodeCliAsync(session, message, ct).ConfigureAwait(false);
+        var cliOk = cli.GetType().GetProperty("ok")?.GetValue(cli) is true;
+        if (cliOk) return cli;
+
         var url = await EnsureServerUrlAsync(ct).ConfigureAwait(false);
         return await FireToOpencodeHttpAsync(url, session, message, ct).ConfigureAwait(false);
     }
@@ -207,43 +212,9 @@ internal static partial class IdeIgniteChannel
             {
                 FileName = bin,
                 UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8
+                CreateNoWindow = true
             };
-
-            var attach = Environment.GetEnvironmentVariable("CDP_OPENCODE_URL")?.Trim();
-            if (!string.IsNullOrWhiteSpace(attach))
-            {
-                psi.ArgumentList.Add("run");
-                psi.ArgumentList.Add("--attach");
-                psi.ArgumentList.Add(attach);
-                var directory = Environment.GetEnvironmentVariable("CDP_OPENCODE_DIRECTORY")?.Trim();
-                if (!string.IsNullOrWhiteSpace(directory))
-                {
-                    psi.ArgumentList.Add("--dir");
-                    psi.ArgumentList.Add(directory);
-                }
-
-                var password = OpencodeEnv("CDP_OPENCODE_PASSWORD", "OPENCODE_SERVER_PASSWORD");
-                if (!string.IsNullOrWhiteSpace(password))
-                {
-                    psi.ArgumentList.Add("--password");
-                    psi.ArgumentList.Add(password);
-                    var username = OpencodeEnv("CDP_OPENCODE_USERNAME", "OPENCODE_SERVER_USERNAME");
-                    if (!string.IsNullOrWhiteSpace(username))
-                    {
-                        psi.ArgumentList.Add("--username");
-                        psi.ArgumentList.Add(username);
-                    }
-                }
-            }
-            else
-            {
-                psi.ArgumentList.Add("run");
-            }
-
+            psi.ArgumentList.Add("run");
             psi.ArgumentList.Add("-s");
             psi.ArgumentList.Add(session);
             psi.ArgumentList.Add(message);
@@ -252,27 +223,20 @@ internal static partial class IdeIgniteChannel
             if (proc is null)
                 return ErrOpencode("opencode", "spawn_failed", $"Could not start {bin}", 0);
 
-            var stdoutTask = proc.StandardOutput.ReadToEndAsync(ct);
-            var stderrTask = proc.StandardError.ReadToEndAsync(ct);
-            await proc.WaitForExitAsync(ct).ConfigureAwait(false);
-            var stdout = await stdoutTask.ConfigureAwait(false);
-            var stderr = await stderrTask.ConfigureAwait(false);
-
-            var detail = (stderr ?? "").Trim();
-            if (proc.ExitCode != 0)
-            {
-                return ErrOpencode("opencode", "nonzero_exit",
-                    string.IsNullOrEmpty(detail) ? $"exit={proc.ExitCode}" : detail, proc.ExitCode);
-            }
+            // Detached delivery: wake is a prompt — the model's reply is not ours to wait for.
+            // Fail fast only when the process dies immediately (bad session / binary).
+            await Task.Delay(2000, ct).ConfigureAwait(false);
+            if (proc.HasExited && proc.ExitCode != 0)
+                return ErrOpencode("opencode", "nonzero_exit", $"exit={proc.ExitCode}", proc.ExitCode);
 
             return new
             {
                 ok = true,
                 submit_kind = "opencode",
                 channel = "opencode",
-                mode = "cli",
+                mode = "cli_detached",
                 session,
-                detail = (stdout ?? "").Trim()
+                detail = "prompt delivered (detached)"
             };
         }
         catch (OperationCanceledException)
