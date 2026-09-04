@@ -32,9 +32,9 @@ internal static class IdeDurableJobRunner
         {
             result = record.Kind switch
             {
-                "build" => await IdeSessionLifecycle.BuildAsync(session, args, buildMod: null, CancellationToken.None)
+                "build" => await IdeSessionLifecycle.BuildAsync(session, args, BuildModule(), CancellationToken.None)
                     .ConfigureAwait(false),
-                "test" => await IdeSessionLifecycle.TestAsync(session, args, buildMod: null, CancellationToken.None)
+                "test" => await IdeSessionLifecycle.TestAsync(session, args, BuildModule(), CancellationToken.None)
                     .ConfigureAwait(false),
                 "deploy" => IdeDeploy.Run(session, args),
                 _ => JsonSerializer.Serialize(new { ok = false, error = "unknown_kind", kind = record.Kind })
@@ -78,6 +78,26 @@ internal static class IdeDurableJobRunner
             await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
     }
 
+    static ICdpBackendModule? BuildModule()
+    {
+        try
+        {
+            var baseDir = AppContext.BaseDirectory;
+            var candidates = new[]
+            {
+                Environment.GetEnvironmentVariable("CDP_MCP_CONFIG"),
+                Path.Combine(baseDir, "cdp-mcp.toml"),
+                Path.Combine(baseDir, "config", "cdp-mcp.toml")
+            };
+            var configPath = candidates.FirstOrDefault(File.Exists) ?? Path.Combine(baseDir, "cdp-mcp.toml");
+            var settings = CdpSettings.Load(configPath);
+            return settings.Dev.Build.Enabled ? new CdpMcp.Backends.BuildTestBackend(settings) : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
     static SessionContext RestoreSession(DurableLifecyclePayload life) => new()
     {
         ProjectRoot = life.ProjectRoot,
@@ -120,3 +140,6 @@ internal static class IdeDurableJobRunner
         }
     }
 }
+
+
+

@@ -34,3 +34,4 @@ Directory.Build.user.props
 .cdp/share/
 .cascade-ide/
 publish-debug/
+.deploy-worker/
