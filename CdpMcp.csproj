@@ -138,6 +138,8 @@
     <ProjectReference Include="..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" Condition="!Exists('$(GuidersCoreRoot)\src\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj') AND Exists('..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj')" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="18.9.6" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.9.6" ExcludeAssets="runtime" />
     <ProjectReference Include="..\ai-native-ui\src\Anui.Agent\Anui.Agent.csproj" />
     <ProjectReference Include="..\ai-native-ui\src\Anui.Ingest\Anui.Ingest.csproj" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.9.1" />

@@ -49,8 +49,10 @@ internal static class IdeWorkspaceWarm
         }
         catch (Exception ex)
         {
+            var root = ex.GetBaseException();
             throw new InvalidOperationException(
-                "F# compiler services materialize failed; federation LRC requires frozen MSBuild project options.",
+                "F# compiler services materialize failed; federation LRC requires frozen MSBuild project options. "
+                + $"cause: {root.Message}",
                 ex);
         }
 #endif
