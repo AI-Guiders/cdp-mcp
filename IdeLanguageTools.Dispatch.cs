@@ -178,20 +178,21 @@ internal static partial class IdeLanguageTools
             dict[kv.Key] = kv.Value;
         }
 
+                var routed = ResolveRoslynAnchor(session, dict);
+
         if (name is "go_to_definition" or "find_usages" or "get_workspace_navigation_context" or "get_completions" or "get_signature_help"
             or "rename_symbol" or "code_actions" or "apply_code_action")
-
         {
             if (!dict.ContainsKey("solution_or_project_path") || dict["solution_or_project_path"].ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(dict["solution_or_project_path"].GetString()))
             {
-                var anchor = session.SolutionOrProjectPath ?? throw new ArgumentException("solution_or_project_path required (or cdp_open a .sln/.csproj first).");
+                var anchor = routed ?? throw new ArgumentException("solution_or_project_path required (or cdp_open a .sln/.csproj first).");
                 dict["solution_or_project_path"] = JsonSerializer.SerializeToElement(anchor);
             }
         }
-        else if (session.SolutionOrProjectPath is { Length: > 0 } sol && !dict.ContainsKey("solution_or_project_path"))
+        else if (routed is { Length: > 0 } sol && !dict.ContainsKey("solution_or_project_path"))
         {
             dict["solution_or_project_path"] = JsonSerializer.SerializeToElement(sol);
-        }
+                }
 
         if ((name is "get_completions" or "get_signature_help" or "get_diagnostics") && !dict.ContainsKey("source_text") && dict.TryGetValue("file_path", out var fpEl) && fpEl.GetString()is { Length: > 0 } fp && _docStore is not null)
         {
@@ -209,6 +210,58 @@ internal static partial class IdeLanguageTools
         }
 
         return dict;
+    }
+
+    /// <summary>
+    /// Multi-root session routing: file under an extra root resolves to that root's anchor;
+    /// otherwise the session primary. No extra roots — primary (legacy behavior).
+    /// </summary>
+    private static string? ResolveRoslynAnchor(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var primary = session.SolutionOrProjectPath;
+        if (session.ExtraRoots.Count == 0)
+            return primary;
+
+        string? filePath = null;
+        if (args.TryGetValue("file_path", out var fpEl) && fpEl.ValueKind == JsonValueKind.String)
+            filePath = fpEl.GetString();
+        if (string.IsNullOrWhiteSpace(filePath) && args.TryGetValue("path", out var pEl) && pEl.ValueKind == JsonValueKind.String)
+            filePath = pEl.GetString();
+        if (string.IsNullOrWhiteSpace(filePath))
+            return primary;
+
+        string full;
+        try { full = Path.GetFullPath(filePath!.Trim()); }
+        catch { return primary; }
+
+        static string? RootDirOf(string anchor)
+        {
+            if (string.IsNullOrWhiteSpace(anchor)) return null;
+            try { return Path.TrimEndingDirectorySeparator(Path.GetDirectoryName(Path.GetFullPath(anchor)) ?? string.Empty); }
+            catch { return null; }
+        }
+
+        string? best = null;
+        var bestLen = -1;
+        foreach (var extra in session.ExtraRoots)
+        {
+            var dir = RootDirOf(extra);
+            if (dir is null || dir.Length == 0)
+                continue;
+            var under = full.StartsWith(dir, StringComparison.OrdinalIgnoreCase)
+                        && (full.Length == dir.Length
+                            || dir.Length == 3 // drive root, e.g. C:\
+                            || full[dir.Length] is '\\' or '/');
+            if (!under)
+                continue;
+            if (dir.Length > bestLen)
+            {
+                best = extra;
+                bestLen = dir.Length;
+            }
+        }
+
+        return best ?? primary;
     }
 
     private static async Task<string> DispatchTypescriptAsync(string name, SessionContext session, IReadOnlyDictionary<string, JsonElement> args, CancellationToken cancellationToken)
