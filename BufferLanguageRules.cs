@@ -16,8 +16,10 @@ internal static class BufferLanguageRules
         var ext = Path.GetExtension(path).ToLowerInvariant();
         if (ext is ".slnx" or ".csproj" or ".fsproj" or ".vbproj" or ".props" or ".targets")
             return "xml";
-        if (ext is ".sln" or ".slnf")
+        if (ext is ".sln")
             return "text";
+        if (ext is ".slnf")
+            return "json"; // solution filter is JSON
 
         if (LanguagePathRules.ResolveLanguageId(path) is { } federationId)
             return federationId;

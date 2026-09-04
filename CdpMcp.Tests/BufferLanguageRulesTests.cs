@@ -22,6 +22,7 @@ public sealed class BufferLanguageRulesTests
     [InlineData("Kernel.fsproj", "xml")]
     [InlineData("Directory.Build.props", "xml")]
     [InlineData("AIGuiders.sln", "text")]
+    [InlineData("AIGuiders.slnf", "json")]
     public void GuessLanguage_never_feeds_solution_or_project_files_to_language_lsps(string fileName, string expected)
     {
         Assert.Equal(expected, BufferLanguageRules.GuessLanguage(fileName));
