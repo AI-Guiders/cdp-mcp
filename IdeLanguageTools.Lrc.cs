@@ -76,10 +76,19 @@ internal static partial class IdeLanguageTools
             ? BuildRenameRequest(session, filePath, args)
             : null;
 
-        var result = await CdpLanguageResolverGate.DispatchAsync(
-            name, session, req, renameReq, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var result = await CdpLanguageResolverGate.DispatchAsync(
+                name, session, req, renameReq, cancellationToken).ConfigureAwait(false);
 
-        return SerializeLrcResult(result);
+            return SerializeLrcResult(result);
+        }
+        catch (Cdp.Core.DiagnosticException diag)
+        {
+            return System.Text.Json.JsonSerializer.Serialize(
+                new { diagnostic = diag.Envelope, ok = false },
+                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+        }
     }
 
     static AIGuiders.Platform.Execution.Language.LanguageRequest BuildLanguageRequest(
