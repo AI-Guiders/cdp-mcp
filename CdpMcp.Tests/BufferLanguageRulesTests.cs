@@ -16,6 +16,17 @@ public sealed class BufferLanguageRulesTests
         Assert.Equal(expected, BufferLanguageRules.GuessLanguage(fileName));
     }
 
+    [Theory]
+    [InlineData("AIGuiders.slnx", "xml")]
+    [InlineData("CdpMcp.csproj", "xml")]
+    [InlineData("Kernel.fsproj", "xml")]
+    [InlineData("Directory.Build.props", "xml")]
+    [InlineData("AIGuiders.sln", "text")]
+    public void GuessLanguage_never_feeds_solution_or_project_files_to_language_lsps(string fileName, string expected)
+    {
+        Assert.Equal(expected, BufferLanguageRules.GuessLanguage(fileName));
+    }
+
     [Fact]
     public void Resolve_prefers_path_over_stale_text_buffer_language()
     {

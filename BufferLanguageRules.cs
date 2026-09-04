@@ -11,14 +11,21 @@ internal static class BufferLanguageRules
 {
     public static string GuessLanguage(string path)
     {
+        // Solution/project files are XML/plain — never feed them to language LSPs
+        // (the C# LSP chewed .slnx as C# source).
+        var ext = Path.GetExtension(path).ToLowerInvariant();
+        if (ext is ".slnx" or ".csproj" or ".fsproj" or ".vbproj" or ".props" or ".targets")
+            return "xml";
+        if (ext is ".sln" or ".slnf")
+            return "text";
+
         if (LanguagePathRules.ResolveLanguageId(path) is { } federationId)
             return federationId;
 
-        var ext = Path.GetExtension(path).ToLowerInvariant();
         return ext switch
         {
             ".csx" => CdpLanguages.Csharp,
-            ".csproj" or ".props" or ".targets" or ".xml" or ".config" or ".xaml" => "xml",
+            ".xml" or ".config" or ".xaml" => "xml",
             ".md" or ".markdown" => "markdown",
             ".toml" => "toml",
             ".json" or ".jsonc" => "json",
