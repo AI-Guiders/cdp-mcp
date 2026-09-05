@@ -7,7 +7,7 @@ public static class CdpDeployPromoter
 {
     static readonly string[] PreserveNames = ["cdp-mcp.toml"];
 
-    public static void PromoteTree(string stagedRoot, string liveRoot)
+        public static void PromoteTree(string stagedRoot, string liveRoot)
     {
         if (!Directory.Exists(stagedRoot))
             throw new FileNotFoundException("Staged deploy tree missing.", stagedRoot);
@@ -21,7 +21,9 @@ public static class CdpDeployPromoter
             var psi = new ProcessStartInfo
             {
                 FileName = robocopy,
-                Arguments = $"\"{stagedRoot}\" \"{liveRoot}\" /MIR /NFL /NDL /NJH /NJS /NC /NS /NP",
+                // /R:1 /W:2 — fail fast on locked files instead of the default
+                // 1M retries x 30s, which turns any lock into a minutes-long hang.
+                Arguments = $@"""{stagedRoot}"" ""{liveRoot}"" /MIR /R:1 /W:2 /NFL /NDL /NJH /NJS /NC /NS /NP",
                 UseShellExecute = false,
                 CreateNoWindow = true
             };

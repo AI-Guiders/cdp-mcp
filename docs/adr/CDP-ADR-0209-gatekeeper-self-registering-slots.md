@@ -1,6 +1,6 @@
 # CDP-ADR-0209: Gatekeeper tower + self-registering service slots
 
-**Status:** draft (обсуждение с оператором)  
+**Status:** accepted — implemented stages 1–4 (2026-09-05); slot pool (Buran 3+1) — follow-up  
 **Date:** 2026-09-05  
 **Extends:** ADR-0198 (sidecar/bridge), ADR-0203 (deploy gap survival), ADR-0032 (durable jobs)
 
@@ -96,8 +96,19 @@ publish новых бит в staging dir
 - CdpMcp.csproj (`--gatekeeper` третий режим рядом с `--service`/stdio)
 - `Cdp.Deploy/CdpDeployPromoter.cs` (промоушен упраздняется → заменяется стартом слота)
 - `CdpMcpBridge/CdpBridgeEndpoint.cs` (снос)
-- Разбор полёта 2026-09-04/05 (эпопея: source_not_found → self-kill → config drift → bridge death)
+## Implementation status (2026-09-05)
 
+Реализовано и доказано вживую (zero-gap):
+
+- **Вышка**: `CdpGatekeeperHost` — 8771 навсегда, чтение реестра + healthz-probe (финальный арбитр), кэш таргета 2с, inv кэш при ошибке форварда. Отдельный exe `CdpGatekeeper.exe` — невидим для `IdeSeatProcessReclaim` (косит все процессы с тем же именем exe — роли убивали друг друга, найдено и починено: `--gatekeeper` не запускает реклейм).
+- **Слоты**: `CdpSlotRegistry` — witdb `%LocalAppData%/cdp-mcp/slots.witdb` (тот же паттерн, что intercom.witdb: `UseWitDb` + `WitDbFileGate` Mutex). Сервис: свободный порт 8772..8871 (`PickFreePort`), Upsert `{pid, port, sha, build_utc, last_seen}` до бинда, heartbeat 5с, deregister в finally.
+- **Деплой service-only**: bridge publish стал опциональным (`BridgePublishRoot = null` → `bridge=service-only (ADR-0209)`). Промоутер robocopy: `/R:1 /W:2` (дефолтные ретраи превращали любой lock в минутный hang). `AssertHealthy` теперь пробивает через вышку — новый слот находится сам.
+- **Мост**: тупая труба на configured base — dual-probe drift-слой снесён (`CdpBridgeEndpoint` 119 → 27 строк).
+- **Корень вышки**: `D:\cdp-gatekeeper\` — сервис-деплои физически не касаются её файлов. Доказано: `apply` заменил сервис, `tower_pid` не изменился, healthz через вышку → новый слот.
+
+Живые циклы: `564a8fa` (реестр), `5cff0cf` (reclaim immunity + TE-фильтр — Kestrel отдаёт `Transfer-Encoding: chunked`, копия заголовка ломала фрейминг), `ee73147` (service-only + gatekeeper exe).
+
+Follow-up: слоты-пул (Buran 3+1), профили слотов (release/debug) в witdb, автоспавн вышки (Феникс-свидетель), снос `CdpMcpBridge.exe`-ренейма в деплой-флоу.
 
 
 
