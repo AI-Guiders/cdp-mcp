@@ -27,6 +27,7 @@ internal static partial class IdeCideIntercomChannel
             "wipe_journal" or "clear_journal" or "journal_wipe" or "wipe_feed" => WipeJournal(args),
             "presence" or "status" or "pulse_presence" => Presence(args),
             "identity" or "who" or "nick" => Identity(args),
+            "poller" => PollerControl(args),
             _ => Fail("unknown_op", "op=scene|send|ack|history|wipe_journal|presence|identity  to=pm|pf body= | seat= name=|state=")
         };
     }
@@ -149,7 +150,12 @@ internal static partial class IdeCideIntercomChannel
             {
                 var agent = CideIntercomAgents.Resolve(mentioned);
                 if (agent is null)
+                    continue;                // Self-echo (Света 2026-09-06): линия не будит сама себя —
+                // упоминание собственного ника в своём письме не создаёт wake-ноту.
+                if (published.Name is not null
+                    && mentioned.Equals(published.Name, StringComparison.OrdinalIgnoreCase))
                     continue;
+
                 var armDir = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "cdp-mcp",
@@ -233,6 +239,36 @@ internal static partial class IdeCideIntercomChannel
             journal_path = CideIntercomVoiceLatch.JournalPath,
             latch_path = CideIntercomVoiceLatch.LatchPath,
             hint = "Face Virtual History wiped (intercom.witdb). Glass may need rail flick / restart if paint still shows old bubbles."
+        });
+    }
+
+    // Emergency Stop пуллера (Света 2026-09-06): стопнуть → починить → запустить.
+    // Состояние — файл-флаг arms/poller.stop (деталь реализации); кнопка — этот op.
+    static string PollerControl(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var action = (Arg(args, "action") ?? Arg(args, "cmd") ?? "").Trim().ToLowerInvariant();
+        if (action is "stop")
+        {
+            LineWakePoller.StopSwitch();
+        }
+        else if (action is "start" or "resume")
+        {
+            LineWakePoller.StartSwitch();
+        }
+        else if (action is not "status" and not "")
+        {
+            return Fail("unknown_action", "op=poller action=stop|start|status");
+        }
+
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "poller",
+            action = action.Length == 0 ? "status" : action,
+            stopped = LineWakePoller.IsStopped,
+            flag = LineWakePoller.StopFlagPath,
+            hint = "Emergency Stop пуллера: action=stop — почтальон молчит (ноты копятся не consumed), action=start — врубить. Руками флаг не трогать."
         });
     }
 
