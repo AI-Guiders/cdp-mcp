@@ -90,4 +90,34 @@ internal sealed partial class DocumentBufferStore
             throw new ArgumentException($"Column {column} is past end of line {line}.");
         return i;
     }
+    /// <summary>
+    /// End-position resolver for spans: clamps instead of throwing (LSP-style).
+    /// line beyond buffer → EOF; column beyond line end → end of line (before its newline).
+    /// Start positions stay strict via OffsetOf — silent start-clamping would eat unintended text.
+    /// </summary>
+    static int OffsetOfEnd(string text, int line, int column)
+    {
+        var lineIdx = 1;
+        var i = 0;
+        while (i < text.Length && lineIdx < line)
+        {
+            if (text[i] == '\n')
+                lineIdx++;
+            i++;
+        }
+
+        if (lineIdx < line)
+            return text.Length;
+
+        var col = 1;
+        while (i < text.Length && col < column)
+        {
+            if (text[i] == '\n')
+                break;
+            i++;
+            col++;
+        }
+
+        return i;
+    }
 }

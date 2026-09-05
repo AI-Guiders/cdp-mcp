@@ -46,14 +46,13 @@ internal static partial class MetaDispatch
         "cdp_buffer — file buffer SSOT. op=scene|open|read|take|edit|diagnostics|close (+ undo/history/find…). " +
         "Edit ops: set_text (whole file; force=true to overwrite existing disk content, allow_shrink when shorter), " +
         "replace (old_string→new_string; multi-line old_string NOT resolved — single-line only), " +
-        "replace_range (line/col span; end_column EXCLUSIVE = length+1), " +
+        "replace_range (line/col span; end exclusive; end position clamps to line end / EOF), " +
         "anchor ([F:;M:;K:] / [F:;X:;A:] + place=before|after|into|end|replace). " +
         "Address canon: semantic anchors are THE address — C# M:/K:, xml X:/A:. " +
         "L: (line_literal) is a FALLBACK facet — for non-semantic files (md/json/toml/yaml) and peek chains (lines[].anchor). " +
         "Line-number edits on code = model degradation (Cursor-coordinates regress) — prefer member anchors (2026-07-23 decision). " +
         "F#: T: needles FORBIDDEN on .fs (silently resolve to file-scope — whole-file wipe risk); prefer M: replace or set_text. " +
-        "Corner cases (2026-09-05): replace_range end_line validated as ≤ total_lines (EOF span needs end_line=total + end_column=len+1); " +
-        "line_count may differ by 1 between create-path and peek-path on trailing newline.";
-}
+        "Fixed 2026-09-05: replace_range end CLAMPS (LSP-style) — end_line beyond buffer = EOF, end_column beyond line = whole line (no tail garbage); start stays strict. " +
+        "line_count = physical lines everywhere (trailing newline adds none; buffer meta == peek total_lines).";}
 
 

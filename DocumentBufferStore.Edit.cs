@@ -121,7 +121,7 @@ internal sealed partial class DocumentBufferStore
         return NormalizeNewlines(text, eol);
     }
 
-    /// <summary>1-based line/column; end exclusive on end position (like LSP range).</summary>
+    /// <summary>1-based line/column; start strict; end clamps to line end / EOF (LSP-style).</summary>
     public void ApplyReplaceRange(
         DocBuffer buf,
         int startLine,
@@ -133,7 +133,7 @@ internal sealed partial class DocumentBufferStore
         if (startLine < 1 || startColumn < 1 || endLine < 1 || endColumn < 1)
             throw new ArgumentException("line/column are 1-based and must be >= 1.");
         var start = OffsetOf(buf.Text, startLine, startColumn);
-        var end = OffsetOf(buf.Text, endLine, endColumn);
+        var end = OffsetOfEnd(buf.Text, endLine, endColumn);
         if (end < start)
             throw new ArgumentException("end position is before start.");
         buf.Text = string.Concat(buf.Text.AsSpan(0, start), text ?? "", buf.Text.AsSpan(end));

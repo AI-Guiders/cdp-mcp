@@ -158,4 +158,101 @@ public sealed class DocumentEditPlaneReplaceRangeTests
                 StringComparer.Ordinal);
         }
     }
+    [Fact]
+    public async Task End_column_beyond_line_clamps_to_line_end()
+    {
+        await using var fx = await RangeFixture.CreateAsync(FixtureBody);
+        await fx.EditReplaceRangeAsync(
+            startLine: 2,
+            startColumn: 1,
+            endLine: 2,
+            endColumn: 999,
+            text: "REPLACED",
+            newString: null);
+
+        Assert.Equal(
+            "line-one\nREPLACED\nline-three",
+            fx.Text.Replace("\r\n", "\n", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task End_line_beyond_buffer_clamps_to_eof()
+    {
+        await using var fx = await RangeFixture.CreateAsync(FixtureBody);
+        await fx.EditReplaceRangeAsync(
+            startLine: 1,
+            startColumn: 1,
+            endLine: 999,
+            endColumn: 1,
+            text: "ALL",
+            newString: null);
+
+        Assert.Equal("ALL", fx.Text);
+    }
+
+    [Fact]
+    public async Task End_clamp_keeps_trailing_newline_on_whole_line_replace()
+    {
+        await using var fx = await RangeFixture.CreateAsync("one\ntwo\n");
+        await fx.EditReplaceRangeAsync(
+            startLine: 2,
+            startColumn: 1,
+            endLine: 2,
+            endColumn: 999,
+            text: "TWO",
+            newString: null);
+
+        Assert.Equal(
+            "one\nTWO\n",
+            fx.Text.Replace("\r\n", "\n", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Start_beyond_buffer_still_refuses()
+    {
+        await using var fx = await RangeFixture.CreateAsync(FixtureBody);
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            fx.EditReplaceRangeAsync(
+                startLine: 99,
+                startColumn: 1,
+                endLine: 100,
+                endColumn: 1,
+                text: "X",
+                newString: null));
+
+        Assert.Contains("past end", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CountLines_physical_lines_trailing_newline_adds_none()
+    {
+        Assert.Equal(2, BufferTextMath.CountLines("a\nb\n"));
+        Assert.Equal(2, BufferTextMath.CountLines("a\nb"));
+        Assert.Equal(3, BufferTextMath.CountLines("a\nb\nc"));
+        Assert.Equal(1, BufferTextMath.CountLines("x"));
+        Assert.Equal(1, BufferTextMath.CountLines(""));
+    }
+
+    [Fact]
+    public void CountLines_parity_with_peek_readlines()
+    {
+        var dir = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            "cdp-mcp-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        var path = System.IO.Path.Combine(dir, "parity.txt");
+        File.WriteAllText(path, "one\ntwo\nthree\n");
+        try
+        {
+            Assert.Equal(
+                File.ReadLines(path).Count(),
+                BufferTextMath.CountLines(File.ReadAllText(path)));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
 }
+

@@ -97,19 +97,7 @@ internal static partial class EditorComfort
         return Path.GetFullPath(Path.Combine(root, p));
     }
 
-    static int CountLines(string text)
-    {
-        if (text.Length == 0)
-            return 1;
-        var n = 1;
-        foreach (var ch in text)
-        {
-            if (ch == '\n')
-                n++;
-        }
-
-        return n;
-    }
+    static int CountLines(string text) => BufferTextMath.CountLines(text);
 
     static int LastLineLength(string text)
     {

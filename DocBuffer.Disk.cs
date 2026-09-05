@@ -179,19 +179,7 @@ internal sealed partial class DocBuffer
         return s.Length <= 160 ? s : s[..157] + "...";
     }
 
-    static int CountLines(string text)
-    {
-        if (text.Length == 0)
-            return 1;
-        var n = 1;
-        foreach (var ch in text)
-        {
-            if (ch == '\n')
-                n++;
-        }
-
-        return n;
-    }
+    static int CountLines(string text) => BufferTextMath.CountLines(text);
 
     static List<string> SplitLines(string text)
     {
