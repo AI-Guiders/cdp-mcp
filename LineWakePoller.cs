@@ -72,8 +72,10 @@ internal sealed class LineWakePoller : IDisposable
                     var body = $"[intercom from {note.From}] {note.Body}";
                     var psi = new System.Diagnostics.ProcessStartInfo
                     {
-                        FileName = "opencode",
-                        Arguments = $"run --session={agent.Session} {Quote(body)}",
+                        // opencode is a node script (.cmd/.ps1) — Process.Start can't exec it
+                        // directly; cmd /c resolves the PATHEXT chain for us.
+                        FileName = "cmd.exe",
+                        Arguments = $"/c opencode run --session={agent.Session} {Quote(body)}",
                         UseShellExecute = false,
                         CreateNoWindow = true
                     };
