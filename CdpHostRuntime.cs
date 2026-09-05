@@ -124,6 +124,16 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         var time = meta.FirstOrDefault(m => m.Key == "BuildTimeUtc")?.Value ?? "local";
         return new { sha, time };
     }
+    internal static (string Sha, string Utc) BuildStamp()
+    {
+        var meta = typeof(CdpHostRuntime).Assembly
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyMetadataAttribute), false).OfType<System.Reflection.AssemblyMetadataAttribute>()
+            .ToArray();
+        return (
+            meta.FirstOrDefault(m => m.Key == "BuildSha")?.Value ?? "nogit",
+            meta.FirstOrDefault(m => m.Key == "BuildTimeUtc")?.Value ?? "local");
+    }
+
 
     static string ComposeMcpVersion()
     {

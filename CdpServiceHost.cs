@@ -19,7 +19,20 @@ internal static class CdpServiceHost
         await using var runtime = await CdpHostRuntime.CreateAsync(configPath, cancellationToken).ConfigureAwait(false);
         var settings = runtime.Settings.Service;
         var token = CdpServiceToken.Ensure(settings);
-        var baseUrl = settings.BaseUri.ToString().TrimEnd('/');
+        // ADR-0209: the gatekeeper owns 8771 forever; the service self-registers on a free slot port.
+        var slotPort = CdpSlotRegistry.PickFreePort();
+        var baseUrl = $"http://{settings.Bind}:{slotPort}";
+        var slot = new CdpSlotRecord
+        {
+            Pid = Environment.ProcessId,
+            Port = slotPort,
+            Sha = CdpHostRuntime.BuildStamp().Sha,
+            BuildUtc = CdpHostRuntime.BuildStamp().Utc,
+            LastSeenUtc = DateTimeOffset.UtcNow
+        };
+        CdpSlotRegistry.Upsert(CdpProfile.StateRoot, slot);
+        using var heartbeatCts = new CancellationTokenSource();
+        var heartbeatTask = HeartbeatSlotAsync(slot, heartbeatCts.Token);
 
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -174,9 +187,37 @@ internal static class CdpServiceHost
 
         Console.Error.WriteLine(
             $"CdpService {runtime.McpVersion} listening {baseUrl} token={settings.ResolveTokenPath()} backends=[{string.Join(",", runtime.Backends.Keys)}]");
-        await app.RunAsync().ConfigureAwait(false);
+                try
+        {
+            await app.RunAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            heartbeatCts.Cancel();
+            try { await heartbeatTask.ConfigureAwait(false); }
+            catch { /* shutdown race */ }
+            CdpSlotRegistry.Remove(CdpProfile.StateRoot, slot.Pid);
+        }
         return 0;
     }
+    static async Task HeartbeatSlotAsync(CdpSlotRecord slot, CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            slot.LastSeenUtc = DateTimeOffset.UtcNow;
+            CdpSlotRegistry.Upsert(CdpProfile.StateRoot, slot);
+        }
+    }
+
 }
 
 internal sealed class CdpInvokeRequest
