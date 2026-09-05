@@ -23,6 +23,10 @@ if (durableJobIdx >= 0 && durableJobIdx + 1 < args.Length)
     Environment.Exit(await IdeDurableJobRunner.RunAsync(args[durableJobIdx + 1]));
 }
 
+var gatekeeperIdx = Array.IndexOf(args, "--gatekeeper");
+if (gatekeeperIdx >= 0)
+    Environment.Exit(await CdpGatekeeperHost.RunAsync());
+
 var deployCliIdx = Array.IndexOf(args, "--deploy-cli");
 if (deployCliIdx >= 0 && deployCliIdx + 1 < args.Length)
     Environment.Exit(IdeDeployCli.Run(args[deployCliIdx + 1]));

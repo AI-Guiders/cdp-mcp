@@ -258,8 +258,8 @@ internal sealed class CdpBridgeInvokeRouter
                     CdpBridgeInvokeContext.ServiceReady(_timing),
                     async ct =>
                     {
-                        EnsureActiveBaseAddress();
-                        using var response = await _http.GetAsync("/healthz", ct).ConfigureAwait(false);
+                        
+                        using var response = await _http.GetAsync(new Uri(CdpBridgeEndpoint.Current(), "healthz"), ct).ConfigureAwait(false);
                         response.EnsureSuccessStatusCode();
                         return true;
                     },
@@ -299,8 +299,8 @@ internal sealed class CdpBridgeInvokeRouter
                 ? null
                 : args.ToDictionary(static p => p.Key, static p => p.Value)
         };
-        EnsureActiveBaseAddress();
-        using var response = await _http.PostAsJsonAsync("/api/v1/cdp/invoke", payload, _jsonOptions, cancellationToken)
+        
+        using var response = await _http.PostAsJsonAsync(new Uri(CdpBridgeEndpoint.Current(), "api/v1/cdp/invoke"), payload, _jsonOptions, cancellationToken)
             .ConfigureAwait(false);
         var body = await response.Content.ReadFromJsonAsync<CdpInvokeResponse>(_jsonOptions, cancellationToken)
             .ConfigureAwait(false)
@@ -400,3 +400,4 @@ internal sealed class CdpBridgeInvokeRouter
         }, new JsonSerializerOptions { WriteIndented = true });
     }
 }
+
