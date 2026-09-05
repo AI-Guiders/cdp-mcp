@@ -191,5 +191,6 @@ internal static class CdpGatekeeperHost
         || header.Equals("Keep-Alive", StringComparison.OrdinalIgnoreCase)
         || header.Equals("Host", StringComparison.OrdinalIgnoreCase)
         || header.Equals("Content-Length", StringComparison.OrdinalIgnoreCase)
+        || header.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)
         || header.StartsWith("Proxy-", StringComparison.OrdinalIgnoreCase);
 }

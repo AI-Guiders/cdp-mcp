@@ -3,7 +3,8 @@ using TerminalMcp.Core;
 
 var notifyIdx = Array.IndexOf(args, "--ignite-notify");
 var durableJobIdx = Array.IndexOf(args, "--durable-job");
-if (notifyIdx < 0 && durableJobIdx < 0)
+var gatekeeperIdx = Array.IndexOf(args, "--gatekeeper");
+if (gatekeeperIdx < 0 && notifyIdx < 0 && durableJobIdx < 0)
     IdeSeatProcessReclaim.Ensure();
 else
     Environment.SetEnvironmentVariable(IdeSeatProcessReclaim.SkipEnv, "1");
@@ -23,7 +24,6 @@ if (durableJobIdx >= 0 && durableJobIdx + 1 < args.Length)
     Environment.Exit(await IdeDurableJobRunner.RunAsync(args[durableJobIdx + 1]));
 }
 
-var gatekeeperIdx = Array.IndexOf(args, "--gatekeeper");
 if (gatekeeperIdx >= 0)
     Environment.Exit(await CdpGatekeeperHost.RunAsync());
 
