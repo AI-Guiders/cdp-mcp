@@ -82,36 +82,53 @@ public static class CdpDeployOrchestrator
 
         static CdpDeployStepResult Apply(CdpDeployPlan plan)
     {
+        // ADR-0211: a promote must never be executed by a process whose own bits
+        // live inside the target — the worker would hold its own exe (self-lock).
+        // Deploy jobs run from a disposable clone (IDE lifecycle enqueue).
+        if (AppContext.BaseDirectory.StartsWith(plan.Layout.ServiceInstall, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException(
+                "Deploy worker runs from ServiceInstall — promote would self-lock (ADR-0211). " +
+                "Deploy jobs run from their own clone or another seat.");
+
         var pending = CdpDeployPending.ReadRequired(plan.Layout);
         var serviceNext = string.IsNullOrWhiteSpace(pending.ServiceRoot)
             ? plan.Layout.StagedService
             : pending.ServiceRoot;
 
-        CdpServiceControl.StopLockHoldersUnder(plan.Layout.ServiceInstall, serviceOnly: true);
+        var lockJob = $"apply-{Guid.NewGuid():N}"[..12];
+        CdpDeployLock.Acquire(plan.Layout.ServiceInstall, lockJob);
+        try
+        {
+            CdpServiceControl.StopLockHoldersUnder(plan.Layout.ServiceInstall, serviceOnly: true);
 
-        // Bridges are stopped only when their bits are actually staged —
-        // stdio transports survive service-only deploys (hot-standby, ADR-0203+).
-        if (BridgeStaged(pending.BridgeRoot) || BridgeStaged(plan.Layout.StagedBridgeRelease))
-            CdpServiceControl.StopLockHoldersUnder(plan.Layout.BridgeReleaseInstall);
-        if (BridgeStaged(plan.Layout.StagedBridgeDebug))
-            CdpServiceControl.StopLockHoldersUnder(plan.Layout.BridgeDebugInstall);
+            // Bridges are stopped only when their bits are actually staged —
+            // stdio transports survive service-only deploys (hot-standby, ADR-0203+).
+            if (BridgeStaged(pending.BridgeRoot) || BridgeStaged(plan.Layout.StagedBridgeRelease))
+                CdpServiceControl.StopLockHoldersUnder(plan.Layout.BridgeReleaseInstall);
+            if (BridgeStaged(plan.Layout.StagedBridgeDebug))
+                CdpServiceControl.StopLockHoldersUnder(plan.Layout.BridgeDebugInstall);
 
-        CdpDeployPromoter.PromoteTree(serviceNext, plan.Layout.ServiceInstall);
-        CdpServiceControl.EnsureServiceExecutable(plan.Layout);
+            CdpDeployPromoter.PromoteTree(serviceNext, plan.Layout.ServiceInstall);
+            CdpServiceControl.EnsureServiceExecutable(plan.Layout);
 
-        PromoteBridgeIfStaged(pending.BridgeRoot, plan.Layout.BridgeReleaseInstall);
-        PromoteBridgeIfStaged(plan.Layout.StagedBridgeRelease, plan.Layout.BridgeReleaseInstall);
-        PromoteBridgeIfStaged(plan.Layout.StagedBridgeDebug, plan.Layout.BridgeDebugInstall);
+            PromoteBridgeIfStaged(pending.BridgeRoot, plan.Layout.BridgeReleaseInstall);
+            PromoteBridgeIfStaged(plan.Layout.StagedBridgeRelease, plan.Layout.BridgeReleaseInstall);
+            PromoteBridgeIfStaged(plan.Layout.StagedBridgeDebug, plan.Layout.BridgeDebugInstall);
 
-        CdpDeployPending.Clear(plan.Layout);
-        CleanupStaged(plan.Layout.StagedService);
-        CleanupStaged(plan.Layout.StagedBridgeRelease);
-        CleanupStaged(plan.Layout.StagedBridgeDebug);
+            CdpDeployPending.Clear(plan.Layout);
+            CleanupStaged(plan.Layout.StagedService);
+            CleanupStaged(plan.Layout.StagedBridgeRelease);
+            CleanupStaged(plan.Layout.StagedBridgeDebug);
 
-        CdpServiceControl.StartService(plan.Layout);
-        CdpServiceControl.AssertHealthy(plan.Layout);
-        if (!plan.NoNudge)
-            CdpReloadNudge.TryBumpSeats("cdp", "cdp-debug");
+            CdpServiceControl.StartService(plan.Layout);
+            CdpServiceControl.AssertHealthy(plan.Layout);
+            if (!plan.NoNudge)
+                CdpReloadNudge.TryBumpSeats("cdp", "cdp-debug");
+        }
+        finally
+        {
+            CdpDeployLock.Release(plan.Layout.ServiceInstall);
+        }
 
         return new CdpDeployStepResult(
             true,

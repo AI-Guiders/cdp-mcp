@@ -28,9 +28,21 @@ internal sealed class CdpBridgeServiceEnsurer
     internal bool CanAutoStart =>
         _settings.AutoStart && !string.IsNullOrWhiteSpace(_settings.InstallDir);
 
-    /// <summary>Supervisor owns CdpService restart during durable deploy — bridge must not race it.</summary>
+    /// <summary>Supervisor owns CdpService restart during durable deploy — bridge must not race it.
+    /// ADR-0211: the in-flight job check alone leaks when a stale lease expires mid-promote;
+    /// the time-fenced deploy.lock in the install dir is the honest fence.</summary>
     internal bool ShouldSuppressAutoStart() =>
-        DurableJobStore.TryGetInFlightKind("deploy") is not null;
+        DurableJobStore.TryGetInFlightKind("deploy") is not null || IsDeployLockFresh();
+
+    internal bool IsDeployLockFresh()
+    {
+        if (string.IsNullOrWhiteSpace(_settings.InstallDir))
+            return false;
+        var lockPath = Path.Combine(_settings.InstallDir, "deploy.lock");
+        if (!File.Exists(lockPath))
+            return false;
+        return DateTimeOffset.UtcNow - File.GetLastWriteTimeUtc(lockPath) < TimeSpan.FromMinutes(5);
+    }
 
     internal async Task<bool> TryEnsureRunningAsync(CancellationToken cancellationToken)
     {

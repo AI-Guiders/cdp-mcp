@@ -323,6 +323,8 @@ internal static class IdeLifecycleJobs
             IdeLifecycleIgnite.TryAutoArm(igniteEvent, kind, targetHint, enabled: true, out armId);
 
         var workerExe = ResolveWorkerExePath();
+        if (kind.Equals("deploy", StringComparison.OrdinalIgnoreCase) && workerExe is not null)
+            workerExe = CloneDeployWorker(workerExe);
         var igniteSeat = IdeIgniteArmHost.Seat;
         if (string.IsNullOrWhiteSpace(igniteSeat))
             igniteSeat = DurableHostPaths.DeriveIgniteSeat(workerExe) ?? igniteSeat;
@@ -419,6 +421,58 @@ internal static class IdeLifecycleJobs
 
         var bundled = Path.Combine(AppContext.BaseDirectory, "CdpMcp.exe");
         return File.Exists(bundled) ? bundled : null;
+    }
+    /// <summary>
+    /// ADR-0211: deploy workers run from a disposable clone under %LocalAppData%/cdp-mcp/workers —
+    /// a promote must never be executed by a process whose own bits live in the install dir it
+    /// replaces (worker exe would self-lock the target). Non-deploy jobs keep the original exe.
+    /// </summary>
+    internal static string CloneDeployWorker(string workerExe)
+    {
+        var sourceDir = Path.GetDirectoryName(Path.GetFullPath(workerExe))!;
+        var targetDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "cdp-mcp",
+            "workers",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(targetDir);
+        foreach (var file in Directory.EnumerateFiles(sourceDir, "*", SearchOption.TopDirectoryOnly))
+        {
+            try
+            {
+                File.Copy(file, Path.Combine(targetDir, Path.GetFileName(file)), true);
+            }
+            catch
+            {
+                /* pinned/optional files — runner does not need them all */
+            }
+        }
+
+        foreach (var dir in Directory.EnumerateDirectories(sourceDir))
+        {
+            try
+            {
+                CopyDirTree(dir, Path.Combine(targetDir, Path.GetFileName(dir)));
+            }
+            catch
+            {
+                /* best effort */
+            }
+        }
+
+        var cloned = Path.Combine(targetDir, Path.GetFileName(workerExe));
+        return File.Exists(cloned) ? cloned : workerExe;
+    }
+
+    static void CopyDirTree(string source, string dest)
+    {
+        Directory.CreateDirectory(dest);
+        foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var target = file.Replace(source, dest, StringComparison.OrdinalIgnoreCase);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target, true);
+        }
     }
 
     static void PinDeployLifecycle(string kind, DurableLifecyclePayload life)

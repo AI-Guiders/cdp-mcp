@@ -51,9 +51,31 @@ internal static class IdeDurableJobRunner
 
         DurableJobStore.Finish(jobId, ok, result, ok ? null : "failed");
         await NotifyAsync(record, ok, ok ? record.Kind : "fail").ConfigureAwait(false);
+        CleanupWorkerCloneIfDisposable();
         return ok ? 0 : 1;
     }
 
+    /// <summary>ADR-0211: disposable deploy-worker clone — best-effort cleanup after the job.
+    /// The worker's own exe is locked while running; leftovers are removed by the TTL of the
+    /// next clone cycle (workers/&lt;guid&gt; is one-shot per job).</summary>
+    static void CleanupWorkerCloneIfDisposable()
+    {
+        try
+        {
+            var baseDir = AppContext.BaseDirectory;
+            var workersRoot = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "cdp-mcp",
+                "workers");
+            if (!baseDir.StartsWith(workersRoot, StringComparison.OrdinalIgnoreCase))
+                return;
+            Directory.Delete(baseDir, recursive: true);
+        }
+        catch
+        {
+            /* best effort */
+        }
+    }
     internal static void ApplyIgniteSeat(DurableLifecyclePayload life)
     {
         var seat = life.IgniteSeat;
