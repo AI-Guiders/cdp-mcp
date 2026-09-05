@@ -30,9 +30,12 @@ public static class CdpServiceControl
                     if (proc.Id == selfPid)
                         continue;
 
-                    // stdio bridges (no --service flag) are thin transports — they
-                    // survive service deploys and pick up new bits on natural remount.
-                    if (serviceOnly && !LooksLikeServiceProcess(proc.Id))
+                    // ADR-0211: name+path is the arbiter — "CdpService"/"CdpMcp" under
+                    // ServiceInstall are holders to stop even when the cmdline probe is
+                    // slow (powershell CIM timed out mid-deploy and skipped the service).
+                    // Bridges keep their own install root; service-only deploys skip them.
+                    if (serviceOnly && name == "CdpMcpBridge")
+                        continue;
                         continue;
 
                     proc.Kill(entireProcessTree: true);
@@ -51,30 +54,7 @@ public static class CdpServiceControl
         Thread.Sleep(800);
     }
 
-    static bool LooksLikeServiceProcess(int pid)
-    {
-        try
-        {
-            var psi = new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = "powershell",
-                Arguments = $"-NoProfile -c (Get-CimInstance Win32_Process -Filter 'ProcessId={pid}').CommandLine",
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            using var p = System.Diagnostics.Process.Start(psi);
-            if (p is null)
-                return false;
-            var line = p.StandardOutput.ReadToEnd().Trim();
-            p.WaitForExit(3000);
-            return line.Contains("--service", StringComparison.OrdinalIgnoreCase);
-        }
-        catch
-        {
-            return false;
-        }
-    }
+
 
     public static void EnsureServiceExecutable(CdpDeployLayout layout)
     {
