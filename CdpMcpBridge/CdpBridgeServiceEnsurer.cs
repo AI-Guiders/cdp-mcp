@@ -170,6 +170,14 @@ internal sealed class CdpBridgeServiceEnsurer
             error = $"CdpService.exe not found under install_dir '{installDir}'.";
             return false;
         }
+        // ADR-0212: re-check the deploy fence at the last moment — between the outer
+        // suppression check and this Process.Start the promote may have Acquire'd the
+        // lock; starting now would re-lock the payload mid-promote.
+        if (IsDeployLockFresh())
+        {
+            error = "deploy.lock fresh — promote in flight, bridge must not race it.";
+            return false;
+        }
 
         string configPath;
         try

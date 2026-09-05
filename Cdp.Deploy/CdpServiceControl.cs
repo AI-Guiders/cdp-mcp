@@ -7,51 +7,74 @@ public static class CdpServiceControl
 {
     const string DefaultHealthUrl = "http://127.0.0.1:8771/healthz";
 
-        public static void StopLockHoldersUnder(string root, bool serviceOnly = false)
+    public static void StopLockHoldersUnder(string root, bool serviceOnly = false)
     {
         if (string.IsNullOrWhiteSpace(root))
             return;
 
         var selfPid = Environment.ProcessId;
 
-        foreach (var name in new[] { "CdpService", "CdpMcp", "CdpMcpBridge" })
+        // ADR-0212: kill → verify dead → retry. A single Kill+Sleep(800) let survivors
+        // re-lock the payload mid-promote (robocopy exit=11 twice). Passes with liveness
+        // checks close the window: the promote proceeds only over a verified-dead root.
+        for (var attempt = 1; attempt <= 3; attempt++)
         {
-            foreach (var proc in Process.GetProcessesByName(name))
+            var killedAny = false;
+
+            foreach (var name in new[] { "CdpService", "CdpMcp", "CdpMcpBridge" })
             {
-                try
+                foreach (var proc in Process.GetProcessesByName(name))
                 {
-                    var path = proc.MainModule?.FileName;
-                    if (path is null
-                        || !path.StartsWith(root, StringComparison.OrdinalIgnoreCase))
-                        continue;
+                    try
+                    {
+                        var path = proc.MainModule?.FileName;
+                        if (path is null
+                            || !path.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                            continue;
 
-                    // Never kill the calling process tree — the orchestrator delegates
-                    // its own restart to the supervisor (ADR-0203).
-                    if (proc.Id == selfPid)
-                        continue;
+                        // Never kill the calling process tree — the orchestrator delegates
+                        // its own restart to the supervisor (ADR-0203).
+                        if (proc.Id == selfPid)
+                            continue;
 
-                    // ADR-0211: name+path is the arbiter — "CdpService"/"CdpMcp" under
-                    // ServiceInstall are holders to stop even when the cmdline probe is
-                    // slow (powershell CIM timed out mid-deploy and skipped the service).
-                    // Bridges keep their own install root; service-only deploys skip them.
-                    if (serviceOnly && name == "CdpMcpBridge")
-                        continue;
-                        continue;
+                        // Bridges keep their own install root; service-only deploys skip them.
+                        if (serviceOnly && name == "CdpMcpBridge")
+                            continue;
 
-                    proc.Kill(entireProcessTree: true);
-                }
-                catch
-                {
-                    /* best effort */
-                }
-                finally
-                {
-                    proc.Dispose();
+                        proc.Kill(entireProcessTree: true);
+                        killedAny = true;
+                    }
+                    catch
+                    {
+                        /* best effort */
+                    }
+                    finally
+                    {
+                        proc.Dispose();
+                    }
                 }
             }
-        }
 
-        Thread.Sleep(800);
+            if (!killedAny)
+                break;
+
+            // Wait for handles to actually release — Kill is async at the OS level.
+            var deadline = DateTime.UtcNow.AddSeconds(2);
+            while (DateTime.UtcNow < deadline)
+            {
+                var alive = Process.GetProcessesByName("CdpService")
+                    .Concat(Process.GetProcessesByName("CdpMcp"))
+                    .Where(p => p.Id != selfPid)
+                    .Any(p =>
+                    {
+                        try { return p.MainModule?.FileName?.StartsWith(root, StringComparison.OrdinalIgnoreCase) == true; }
+                        catch { return false; }
+                    });
+                if (!alive)
+                    break;
+                Thread.Sleep(250);
+            }
+        }
     }
 
 
