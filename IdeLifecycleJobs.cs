@@ -436,6 +436,7 @@ internal static class IdeLifecycleJobs
             "workers",
             Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(targetDir);
+        File.WriteAllText(Path.Combine(targetDir, "deploy-worker-origin.txt"), sourceDir);
         foreach (var file in Directory.EnumerateFiles(sourceDir, "*", SearchOption.TopDirectoryOnly))
         {
             try

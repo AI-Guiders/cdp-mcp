@@ -5,11 +5,30 @@ namespace CdpMcp;
 
 internal static partial class IdeDeploy
 {
+    /// <summary>
+    /// ADR-0211: a disposable deploy-worker clone records its origin install dir in
+    /// deploy-worker-origin.txt — self-root resolves to the ORIGIN, not the clone,
+    /// so deploy targets the real install instead of the worker's own folder.
+    /// </summary>
     internal static string? ResolveSelfInstallRoot()
     {
+        var baseDir = Path.TrimEndingDirectorySeparator(AppContext.BaseDirectory);
+        var workersRoot = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "cdp-mcp",
+            "workers");
+        var originFile = Path.Combine(baseDir, "deploy-worker-origin.txt");
+        if (baseDir.StartsWith(workersRoot, StringComparison.OrdinalIgnoreCase)
+            && File.Exists(originFile))
+        {
+            var origin = File.ReadAllText(originFile).Trim();
+            if (!string.IsNullOrWhiteSpace(origin) && Directory.Exists(origin))
+                return Path.TrimEndingDirectorySeparator(Path.GetFullPath(origin));
+        }
+
         var exe = Environment.ProcessPath;
         if (string.IsNullOrWhiteSpace(exe))
-            return AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            return baseDir;
         return Path.GetDirectoryName(Path.GetFullPath(exe));
     }
 
