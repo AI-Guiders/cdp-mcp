@@ -6,7 +6,7 @@ public sealed record CdpDeployPlan(
     CdpDeploySource Source,
     string Seat,
     string? SelfInstallRoot,
-    string BridgePublishTarget,
+    string? BridgePublishTarget,
     bool KillRunning,
     bool NoNudge,
     bool UseNuGet)
@@ -18,17 +18,21 @@ public sealed record CdpDeployPlan(
             _ => Layout.ServiceInstall
         };
 
-    public string BridgePublishRoot =>
-        Mode switch
-        {
-            CdpDeployMode.Soft => BridgePublishTarget + ".next",
-            _ => BridgePublishTarget
-        };
+        public string? BridgePublishRoot =>
+        BridgePublishTarget is null
+            ? null
+            : Mode switch
+            {
+                CdpDeployMode.Soft => BridgePublishTarget + ".next",
+                _ => BridgePublishTarget
+            };
 
-    public string? BridgeDebugPublishRoot
+        public string? BridgeDebugPublishRoot
     {
         get
         {
+            if (BridgePublishTarget is null)
+                return null;
             if (CdpDeployPaths.SamePath(BridgePublishTarget, Layout.BridgeDebugInstall))
                 return null;
             return Mode switch
@@ -155,15 +159,14 @@ public static class CdpDeployPlanner
             request.NoNudge,
             request.UseNuGet));
 
-    static CdpDeployPlanResult PlanSoft(
+        static CdpDeployPlanResult PlanSoft(
         CdpDeployLayout layout,
         CdpDeploySource source,
         string seat,
         CdpDeployPlanRequest request)
     {
+        // ADR-0209: bridge publish is optional — null = service-only deploy.
         var bridgeTarget = ResolveBridgeTarget(layout, seat, request.TargetRaw, request.SelfInstallRoot);
-        if (bridgeTarget is null)
-            return CdpDeployPlanResult.Fail("target_unresolved", "Cannot resolve bridge publish target.");
 
         return CdpDeployPlanResult.Success(new CdpDeployPlan(
             CdpDeployMode.Soft,
@@ -177,17 +180,17 @@ public static class CdpDeployPlanner
             request.UseNuGet));
     }
 
-    static CdpDeployPlanResult PlanHard(
+        static CdpDeployPlanResult PlanHard(
         CdpDeployLayout layout,
         CdpDeploySource source,
         string seat,
         CdpDeployPlanRequest request)
     {
+        // ADR-0209: bridge publish is optional — null = service-only deploy.
         var bridgeTarget = ResolveBridgeTarget(layout, seat, request.TargetRaw, request.SelfInstallRoot);
-        if (bridgeTarget is null)
-            return CdpDeployPlanResult.Fail("target_unresolved", "Cannot resolve bridge publish target.");
 
-        if (!request.Force
+        if (bridgeTarget is not null
+            && !request.Force
             && CdpDeployPaths.SamePath(bridgeTarget, request.SelfInstallRoot))
         {
             return CdpDeployPlanResult.Fail(
@@ -221,7 +224,10 @@ public static class CdpDeployPlanner
 
         if (raw.Equals("self", StringComparison.OrdinalIgnoreCase)
             || raw.Equals("here", StringComparison.OrdinalIgnoreCase))
-            return selfInstallRoot ?? layout.BridgeReleaseInstall;
+                        return selfInstallRoot is not null
+                   && CdpDeployPaths.SamePath(selfInstallRoot, layout.ServiceInstall)
+                ? null // service-only deploy (ADR-0209) — the bridge is a separate seat
+                : selfInstallRoot ?? layout.BridgeReleaseInstall;
 
         if (raw.Equals("release", StringComparison.OrdinalIgnoreCase)
             || raw.Equals("cdp", StringComparison.OrdinalIgnoreCase))

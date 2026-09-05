@@ -17,8 +17,8 @@ public sealed class CdpDeployPlannerTests
         Assert.Contains("distinct", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
-    public void ResolveBridgeTarget_rejects_service_path_as_bridge_target()
+        [Fact]
+    public void ResolveBridgeTarget_service_path_yields_service_only_plan()
     {
         var result = CdpDeployPlanner.PlanInstallTarget(
             CdpDeployInstallRequest.ForResolve(
@@ -27,8 +27,22 @@ public sealed class CdpDeployPlannerTests
                 targetRaw: @"D:\cdp-service",
                 force: false));
 
-        Assert.False(result.Ok);
-        Assert.Equal("target_unresolved", result.Error);
+        Assert.True(result.Ok);
+        Assert.Null(result.Plan!.BridgePublishRoot);
+    }
+
+    [Fact]
+    public void Soft_self_on_service_seat_is_service_only()
+    {
+        var result = CdpDeployPlanner.PlanInstallTarget(
+            CdpDeployInstallRequest.ForResolve(
+                CdpDeployMode.Soft,
+                selfInstallRoot: @"D:\cdp-service",
+                targetRaw: "self",
+                force: false));
+
+        Assert.True(result.Ok);
+        Assert.Null(result.Plan!.BridgePublishRoot);
     }
 
     [Fact]

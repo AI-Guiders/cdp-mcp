@@ -20,13 +20,16 @@ public static class CdpDeployOrchestrator
         };
     }
 
-    static CdpDeployStepResult Soft(CdpDeployPlan plan)
+        static CdpDeployStepResult Soft(CdpDeployPlan plan)
     {
         PublishService(plan, killRunning: false);
-        PublishBridgeSeat(plan, plan.BridgePublishRoot);
-        var debugRoot = plan.BridgeDebugPublishRoot;
-        if (debugRoot is not null && !CdpDeployPaths.SamePath(plan.BridgePublishRoot, debugRoot))
-            PublishBridgeSeat(plan, debugRoot);
+        if (plan.BridgePublishRoot is { } bridgeRoot)
+        {
+            PublishBridgeSeat(plan, bridgeRoot);
+            var debugRoot = plan.BridgeDebugPublishRoot;
+            if (debugRoot is not null && !CdpDeployPaths.SamePath(bridgeRoot, debugRoot))
+                PublishBridgeSeat(plan, debugRoot);
+        }
 
         FinalizeSeatConfigs(plan);
 
@@ -41,22 +44,25 @@ public static class CdpDeployOrchestrator
             /* optional */
         }
 
-        CdpDeployPending.WriteSoft(plan.Layout, plan.ServicePublishRoot, plan.BridgePublishRoot, version);
+        CdpDeployPending.WriteSoft(plan.Layout, plan.ServicePublishRoot, plan.BridgePublishRoot ?? "", version);
         return new CdpDeployStepResult(
             true,
-            $"soft staged service={plan.ServicePublishRoot} bridge={plan.BridgePublishRoot}",
+            $"soft staged service={plan.ServicePublishRoot} bridge={plan.BridgePublishRoot ?? "service-only (ADR-0209)"}",
             $"SOFT staged {plan.ServicePublishRoot}",
             0,
             null);
     }
 
-    static CdpDeployStepResult Hard(CdpDeployPlan plan)
+        static CdpDeployStepResult Hard(CdpDeployPlan plan)
     {
         PublishService(plan, killRunning: true);
-        PublishBridgeSeat(plan, plan.BridgePublishRoot);
-        var debugRoot = plan.BridgeDebugPublishRoot;
-        if (debugRoot is not null && !CdpDeployPaths.SamePath(plan.BridgePublishRoot, debugRoot))
-            PublishBridgeSeat(plan, debugRoot);
+        if (plan.BridgePublishRoot is { } bridgeRoot)
+        {
+            PublishBridgeSeat(plan, bridgeRoot);
+            var debugRoot = plan.BridgeDebugPublishRoot;
+            if (debugRoot is not null && !CdpDeployPaths.SamePath(bridgeRoot, debugRoot))
+                PublishBridgeSeat(plan, debugRoot);
+        }
 
         FinalizeSeatConfigs(plan);
 
@@ -164,6 +170,12 @@ public static class CdpDeployOrchestrator
         if (File.Exists(srcExe))
             File.Copy(srcExe, dstExe, true);
 
+        // ADR-0209: the eternal tower ships beside the service — separate exe name,
+        // invisible to seat-process reclaim (the tower never kills, never gets killed).
+        var gateExe = Path.Combine(plan.ServicePublishRoot, "CdpGatekeeper.exe");
+        if (File.Exists(dstExe))
+            File.Copy(dstExe, gateExe, overwrite: true);
+
         CopyTsWorker(plan.Source.RepoRoot, plan.ServicePublishRoot);
     }
 
@@ -189,17 +201,20 @@ public static class CdpDeployOrchestrator
             throw new InvalidOperationException($"CdpMcpBridge publish failed exit={result.ExitCode}: {result.Stderr}");
     }
 
-    static void FinalizeSeatConfigs(CdpDeployPlan plan)
+        static void FinalizeSeatConfigs(CdpDeployPlan plan)
     {
         CdpDeploySeatConfig.SeedFromLiveSeat(plan.Layout.ServiceInstall, plan.ServicePublishRoot);
         CdpDeploySeatConfig.StripDevTemplate(plan.ServicePublishRoot);
 
-        var liveBridge = CdpDeployPaths.ResolveLiveFromStaged(plan.BridgePublishRoot, plan.BridgePublishRoot);
-        CdpDeploySeatConfig.SeedFromLiveSeat(liveBridge, plan.BridgePublishRoot);
-        CdpDeploySeatConfig.StripDevTemplate(plan.BridgePublishRoot);
+        if (plan.BridgePublishRoot is not { } bridgeRoot)
+            return;
+
+        var liveBridge = CdpDeployPaths.ResolveLiveFromStaged(bridgeRoot, bridgeRoot);
+        CdpDeploySeatConfig.SeedFromLiveSeat(liveBridge, bridgeRoot);
+        CdpDeploySeatConfig.StripDevTemplate(bridgeRoot);
 
         if (plan.BridgeDebugPublishRoot is not null
-            && !CdpDeployPaths.SamePath(plan.BridgePublishRoot, plan.BridgeDebugPublishRoot))
+            && !CdpDeployPaths.SamePath(bridgeRoot, plan.BridgeDebugPublishRoot))
         {
             var liveDebug = CdpDeployPaths.ResolveLiveFromStaged(
                 plan.BridgeDebugPublishRoot,
