@@ -17,6 +17,9 @@ internal static partial class CideIntercomVoiceLatch
     public const string OriginHuman = "human";
     public const string SeatPf = "pf";
     public const string SeatPm = "pm";
+    /// <summary>Third seat (ADR-0212): inter-agent line — a sibling session of the same
+    /// harness claims cit to talk to PF directly (Lighta's direct-wire idea).</summary>
+    public const string SeatCit = "cit";
 
     static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -265,6 +268,7 @@ internal static partial class CideIntercomVoiceLatch
         {
             "pf" or "pilot_flying" or "pilot-flying" or "agent" => SeatPf,
             "pm" or "pilot_monitoring" or "pilot-monitoring" or "operator" or "human" => SeatPm,
+            "cit" or "citizen" or "@CIT" => SeatCit,
             _ => null
         };
     }
