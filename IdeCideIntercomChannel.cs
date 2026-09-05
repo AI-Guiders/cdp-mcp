@@ -92,9 +92,18 @@ internal static partial class IdeCideIntercomChannel
             return Fail("body_required", "send to=pm|pf body=…");
 
         var toRaw = Arg(args, "to") ?? Arg(args, "with") ?? Arg(args, "seat") ?? "pm";
+        string? toNick = null;
         var to = CideIntercomVoiceLatch.NormalizeSeat(toRaw);
         if (to is null)
-            return Fail("to_invalid", "to=pm|pf (or @PM|@PF)");
+        {
+            // ADR-0212: unknown seat = nick lookup (chat room). Unknown nick → honest refuse.
+            var agent = CideIntercomAgents.Resolve(toRaw);
+            if (agent is null)
+                return Fail("nick_unknown",
+                    $"no seat '{toRaw}' and no registered nick — claim via intercom op=identity seat=cit name=<Nick> kind=<kind> harness=<cursor|opencode>");
+            to = CideIntercomVoiceLatch.SeatCit; // agent↔agent rides the CIT plane
+            toNick = agent.Nick;
+        }
 
         // v0: agent speaks as PF unless from= overrides. Origin follows seat:
         // PF→agent, PM→human (Who-as-Operator / Glass PM voice).
@@ -127,7 +136,10 @@ internal static partial class IdeCideIntercomChannel
             origin,
             name: name,
             kind: kind,
-            channel: channel);
+            channel: channel,
+            toNick: toNick);
+        if (published is null)
+            return Fail("publish_failed", "could not write intercom latch");
         if (published is null)
             return Fail("publish_failed", "could not write intercom latch");
 

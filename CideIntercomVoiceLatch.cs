@@ -53,7 +53,8 @@ internal static partial class CideIntercomVoiceLatch
         string? id = null,
         string? name = null,
         string? kind = null,
-        string? channel = null)
+        string? channel = null,
+        string? toNick = null)
     {
         var from = NormalizeSeat(fromSeat);
         var to = NormalizeSeat(toSeat);
@@ -79,6 +80,7 @@ internal static partial class CideIntercomVoiceLatch
             Name = resolvedName,
             Kind = resolvedKind,
             Channel = NormalizeIntercomChannel(channel),
+            ToNick = toNick,
             StampedUtc = DateTimeOffset.UtcNow,
             Acked = false
         };
@@ -287,6 +289,8 @@ internal static partial class CideIntercomVoiceLatch
         public string? Kind { get; set; }
         /// <summary>NorthStar feed tag: crew | radio | dm</summary>
         public string? Channel { get; set; }
+        /// <summary>ADR-0212 chat room: nick of the addressed line (agent↔agent via CIT plane)</summary>
+        public string? ToNick { get; set; }
         public DateTimeOffset StampedUtc { get; set; }
         public bool Acked { get; set; }
     }
