@@ -12,6 +12,9 @@ internal static partial class MetaDispatch
         {
             if (tool is "context_budget" or "budget" or "context")
                 return SessionPlane.ContextBudgetManual;
+                return SessionPlane.ContextBudgetManual;
+            if (tool is "cdp_buffer" or "buffer")
+                return BufferManual;
             return $"Manual: {tool} — see tool description; domain ops via prefixed tools / sibling man.";
         }
 
@@ -37,4 +40,20 @@ internal static partial class MetaDispatch
                "Order: Agent Env first; CIDE projector later. " +
                "Context: man tool=context_budget (EICAS W/C/A).";
     }
+
+    /// <summary>cdp_buffer manual — address model canon + known corner cases (2026-09-05).</summary>
+    internal const string BufferManual =
+        "cdp_buffer — file buffer SSOT. op=scene|open|read|take|edit|diagnostics|close (+ undo/history/find…). " +
+        "Edit ops: set_text (whole file; force=true to overwrite existing disk content, allow_shrink when shorter), " +
+        "replace (old_string→new_string; multi-line old_string NOT resolved — single-line only), " +
+        "replace_range (line/col span; end_column EXCLUSIVE = length+1), " +
+        "anchor ([F:;M:;K:] / [F:;X:;A:] + place=before|after|into|end|replace). " +
+        "Address canon: semantic anchors are THE address — C# M:/K:, xml X:/A:. " +
+        "L: (line_literal) is a FALLBACK facet — for non-semantic files (md/json/toml/yaml) and peek chains (lines[].anchor). " +
+        "Line-number edits on code = model degradation (Cursor-coordinates regress) — prefer member anchors (2026-07-23 decision). " +
+        "F#: T: needles FORBIDDEN on .fs (silently resolve to file-scope — whole-file wipe risk); prefer M: replace or set_text. " +
+        "Corner cases (2026-09-05): replace_range end_line validated as ≤ total_lines (EOF span needs end_line=total + end_column=len+1); " +
+        "line_count may differ by 1 between create-path and peek-path on trailing newline.";
 }
+
+
