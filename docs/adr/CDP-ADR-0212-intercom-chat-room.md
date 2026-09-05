@@ -57,4 +57,17 @@ Intercom v1 = chat room layered on the same journal:
 - c) mention-wake fanout into per-line arm stores;
 - d) optional: desk card "room" view (who is registered, unread counts).
 
+### Stage (d) — postman in the tower (done, live 0.5.764+b02d343)
+
+The recipient session is resolved from opencodedb (`~/.local/share/opencode/opencode.db`,
+`session` table — shared by the CLI and the desktop app; desktop = Electron `OpenCode.exe`).
+Delivery: `cmd /c opencode.cmd run -s <session> "[intercom from <nick>] <body>"` — opencode
+is a node script, Process.Start cannot exec it directly, cmd /c walks PATHEXT. Consumed
+notes are archived to `arms/done/`.
+
+Verified end-to-end autonomously: `@Тень` mention → arm note → tower poller (5s tick) →
+CLI delivery into her session → Тень answered on her own ("живое доказательство, что
+почтальон работает"), no operator involved. Lines without a session id (`-`) stay
+pending for delivered-on-entry.
+
 ---
