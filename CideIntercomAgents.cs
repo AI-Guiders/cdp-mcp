@@ -76,6 +76,27 @@ internal static class CideIntercomAgents
         return mine.Length == 0 ? null : mine[^1];
     }
 
+    /// <summary>ADR-0212 stage (c): parse @mentions from a body and resolve them through
+    /// the roster. Unknown nicks are dropped silently — a mention is a courtesy bell,
+    /// not a hard address. Used by Send to stamp doc.Mentions (per-line inbox key).</summary>
+    public static IReadOnlyList<string> MentionsOf(string? body)
+    {
+        var found = new List<string>();
+        if (string.IsNullOrWhiteSpace(body))
+            return found;
+        foreach (var m in System.Text.RegularExpressions.Regex.Matches(body, @"@[\wа-яё\-]+"))
+        {
+            var nick = m.ToString().TrimStart('@');
+            if (found.Any(f => f.Equals(nick, StringComparison.OrdinalIgnoreCase)))
+                continue;
+            if (Resolve(nick) is not null)
+                found.Add(nick);
+        }
+
+        return found;
+    }
+
+
     public static IReadOnlyList<AgentRow> Roster()
     {
         lock (Gate)

@@ -81,6 +81,7 @@ internal static partial class CideIntercomVoiceLatch
             Kind = resolvedKind,
             Channel = NormalizeIntercomChannel(channel),
             ToNick = toNick,
+            Mentions = CideIntercomAgents.MentionsOf(body!).ToArray() is { Length: > 0 } m ? m : null,
             StampedUtc = DateTimeOffset.UtcNow,
             Acked = false
         };
@@ -291,6 +292,8 @@ internal static partial class CideIntercomVoiceLatch
         public string? Channel { get; set; }
         /// <summary>ADR-0212 chat room: nick of the addressed line (agent↔agent via CIT plane)</summary>
         public string? ToNick { get; set; }
+        /// <summary>ADR-0212 stage (c): registered nicks mentioned in the body — per-line inbox key</summary>
+        public string[]? Mentions { get; set; }
         public DateTimeOffset StampedUtc { get; set; }
         public bool Acked { get; set; }
     }

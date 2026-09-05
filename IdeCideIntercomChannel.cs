@@ -140,6 +140,38 @@ internal static partial class IdeCideIntercomChannel
             toNick: toNick);
         if (published is null)
             return Fail("publish_failed", "could not write intercom latch");
+
+        // ADR-0212 stage (c): mention-wake — every registered nick mentioned in the
+        // body gets a per-line arm note (its session reads it on next poll / entry).
+        foreach (var mentioned in published.Mentions ?? Array.Empty<string>())
+        {
+            try
+            {
+                var agent = CideIntercomAgents.Resolve(mentioned);
+                if (agent is null)
+                    continue;
+                var armDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "cdp-mcp",
+                    "arms");
+                Directory.CreateDirectory(armDir);
+                var armPath = Path.Combine(armDir, $"line-{mentioned.ToLowerInvariant()}.json");
+                File.WriteAllText(armPath, JsonSerializer.Serialize(new
+                {
+                    schema = "intercom_line_wake/v1",
+                    nick = mentioned,
+                    from = published.Name ?? from,
+                    channel = published.Channel,
+                    body = published.Body,
+                    stamped_utc = published.StampedUtc
+                }));
+            }
+            catch
+            {
+                /* best effort — the journal itself already carries the message */
+            }
+        }
+
         if (published is null)
             return Fail("publish_failed", "could not write intercom latch");
 
