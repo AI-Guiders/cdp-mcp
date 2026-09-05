@@ -29,7 +29,7 @@ internal sealed class CdpBridgeInvokeRouter
         _ensurer = ensurer;
         _jsonOptions = jsonOptions;
         _timing = timing ?? CdpBridgeTiming.Resolve();
-        CdpBridgeEndpoint.Init(settings.BaseUrl, settings.ServiceConfigPath);
+        CdpBridgeEndpoint.Init(settings.BaseUrl, 8772);
     }
 
     /// <summary>Hot-standby: re-point the http client at the active slot when the
