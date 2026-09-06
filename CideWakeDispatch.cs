@@ -64,6 +64,16 @@ internal static class CideWakeDispatch
         public DateTimeOffset? DeliveredUtc { get; set; }
     }
 
+    /// <summary>NotificationCenter подписка: ник хочет события kind (опц. фильтр по task-префиксу).</summary>
+    public sealed class Subscription
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString("N")[..12];
+        public string Nick { get; set; } = "";
+        public string EventKind { get; set; } = KindBuildFinished;
+        public string? TaskFilter { get; set; }
+        public DateTimeOffset CreatedUtc { get; set; } = DateTimeOffset.UtcNow;
+    }
+
     public sealed class DispatchDoc
     {
                 public string Schema { get; set; } = CideWakeDispatch.Schema;
@@ -73,6 +83,7 @@ internal static class CideWakeDispatch
         public int MaxPending { get; set; } = 200;
         public int KeepCompleted { get; set; } = 100;
         public List<WakeEnvelope> Queue { get; set; } = new();
+        public List<Subscription> Subscriptions { get; set; } = new();
     }
 
     // --- стор ---
@@ -143,6 +154,113 @@ internal static class CideWakeDispatch
         }
     }
 
+    // --- NotificationCenter (Света 2026-09-06): ник → подписка на события kind ---
+
+    /// <summary>Подписать ник на события kind (опц. фильтр task-подстроки). Idempotent.</summary>
+    public static Subscription? Subscribe(string nick, string eventKind, string? taskFilter = null)
+    {
+        if (string.IsNullOrWhiteSpace(nick) || string.IsNullOrWhiteSpace(eventKind))
+            return null;
+
+        var sub = new Subscription
+        {
+            Nick = nick.Trim(),
+            EventKind = NormalizeEvent(eventKind),
+            TaskFilter = string.IsNullOrWhiteSpace(taskFilter) ? null : taskFilter.Trim()
+        };
+
+        try
+        {
+            Save(Apply(TryRead(), doc =>
+            {
+                // idempotent: same nick+kind+filter уже подписан
+                var dup = doc.Subscriptions.FirstOrDefault(s =>
+                    s.Nick.Equals(sub.Nick, StringComparison.OrdinalIgnoreCase)
+                    && s.EventKind.Equals(sub.EventKind, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(s.TaskFilter, sub.TaskFilter, StringComparison.OrdinalIgnoreCase));
+                if (dup is not null)
+                {
+                    sub.Id = dup.Id;
+                    return doc;
+                }
+                doc.Subscriptions.Add(sub);
+                return doc;
+            }));
+            return sub;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Отписать: по id, или ник+kind (или всё по нику, когда kind пуст).</summary>
+    public static int Unsubscribe(string? subId, string? nick, string? eventKind)
+    {
+        try
+        {
+            var removed = 0;
+            Save(Apply(TryRead(), doc =>
+            {
+                var doomed = doc.Subscriptions.Where(s =>
+                    (subId is not null && s.Id.Equals(subId.Trim(), StringComparison.OrdinalIgnoreCase))
+                    || (nick is not null
+                        && s.Nick.Equals(nick.Trim(), StringComparison.OrdinalIgnoreCase)
+                        && (string.IsNullOrWhiteSpace(eventKind)
+                            || s.EventKind.Equals(NormalizeEvent(eventKind), StringComparison.OrdinalIgnoreCase))))
+                    .ToList();
+                foreach (var d in doomed)
+                    doc.Subscriptions.Remove(d);
+                removed = doomed.Count;
+                return doc;
+            }));
+            return removed;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>Активные подписки (для op=subs / отладки).</summary>
+    public static IReadOnlyList<Subscription> Subscriptions() =>
+        TryRead().Subscriptions;
+
+    /// <summary>
+    /// NotificationCenter entry: event-продюсер (build/test/shell/peer_ship) зовёт это;
+    /// диспетчер матчит подписки и кладёт персональные envelope в очередь.
+    /// </summary>
+    public static void NotifyEvent(string eventKind, bool ok, string? pulse = null, string? detail = null)
+    {
+        try
+        {
+            var ev = NormalizeEvent(eventKind);
+            var doc = TryRead();
+            var subs = doc.Subscriptions
+                .Where(s => s.EventKind.Equals(ev, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            foreach (var sub in subs)
+            {
+                if (!string.IsNullOrWhiteSpace(sub.TaskFilter)
+                    && detail is not null
+                    && !detail.Contains(sub.TaskFilter, StringComparison.OrdinalIgnoreCase)
+                    && !ev.Contains(sub.TaskFilter, StringComparison.OrdinalIgnoreCase))
+                    continue; // фильтр по task-подстроке
+
+                Enqueue(
+                    ev,
+                    $"{ev}: {(ok ? "ok" : "FAIL")} — {pulse ?? ""}{(detail is null ? "" : " · " + detail)}",
+                    nick: sub.Nick,
+                    from: "NotificationCenter",
+                    task: sub.TaskFilter ?? sub.EventKind);
+            }
+        }
+        catch
+        {
+            /*NotificationCenter — best effort: событие не должно ломать продюсер*/
+        }
+    }
+
     // --- управление (SSOT, не файлы) ---
 
     public static bool Stopped => TryRead().Stopped;
@@ -152,6 +270,21 @@ internal static class CideWakeDispatch
 
     public static void SetCdtEnabled(bool enabled) =>
         Save(Apply(TryRead(), doc => { doc.HarnessCdt = enabled; return doc; }));
+
+    /// <summary>Normalize event kind: lowercase + aliases (build→build_finished и т.п.).</summary>
+    static string NormalizeEvent(string eventName)
+    {
+        var s = eventName.Trim().ToLowerInvariant();
+        return s switch
+        {
+            "build" => KindBuildFinished,
+            "test" => KindTestFinished,
+            "shell" => KindShellFinished,
+            "ship" => KindPeerShip,
+            "letter" => KindLetter,
+            _ => s
+        };
+    }
 
     // --- Dispatch (один тик) ---
 

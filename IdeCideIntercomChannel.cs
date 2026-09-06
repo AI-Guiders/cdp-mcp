@@ -27,10 +27,68 @@ internal static partial class IdeCideIntercomChannel
             "wipe_journal" or "clear_journal" or "journal_wipe" or "wipe_feed" => WipeJournal(args),
             "presence" or "status" or "pulse_presence" => Presence(args),
             "identity" or "who" or "nick" => Identity(args),
+                        "sub" or "subscribe" => Subscribe(args),
+            "unsub" or "unsubscribe" => Unsubscribe(args),
+            "subs" or "subscriptions" => Subs(),
             "poller" => PollerControl(args),
             _ => Fail("unknown_op", "op=scene|send|ack|history|wipe_journal|presence|identity  to=pm|pf body= | seat= name=|state=")
         };
     }
+
+    // --- NotificationCenter подписки (Света 2026-09-06): ник → «буди меня когда…» ---
+
+    static string Subscribe(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var nick = Arg(args, "nick");
+        var ev = (Arg(args, "event") ?? Arg(args, "event_kind") ?? "build_finished").Trim();
+        var taskFilter = Arg(args, "task");
+        var sub = CideWakeDispatch.Subscribe(nick!, ev, taskFilter);
+        return sub is null
+            ? Fail("sub_failed", "nick and event are required (nick resolved from identity when empty — use nick=).")
+            : JsonSerializer.Serialize(new
+            {
+                schema = Schema,
+                ok = true,
+                op = "sub",
+                sub_id = sub.Id,
+                nick = sub.Nick,
+                @event = sub.EventKind,
+                task_filter = sub.TaskFilter,
+                hint = "Ник будет получать уведомления события через wake-канал (op=unsub — отписка)."
+            });
+    }
+
+    static string Unsubscribe(IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var subId = Arg(args, "sub_id");
+        var nick = Arg(args, "nick");
+        var ev = Arg(args, "event");
+        var removed = CideWakeDispatch.Unsubscribe(subId, nick, ev);
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = removed > 0,
+            op = "unsub",
+            removed,
+            hint = removed > 0 ? "Подписки удалены." : "Подписок не найдено (см. op=subs)."
+        });
+    }
+
+    static string Subs() =>
+        JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            op = "subs",
+            subscriptions = CideWakeDispatch.Subscriptions().Select(s => new
+            {
+                sub_id = s.Id,
+                nick = s.Nick,
+                @event = s.EventKind,
+                task_filter = s.TaskFilter
+            }),
+            hint = "NotificationCenter: op=sub event=build_finished [task=…] — подписка."
+        });
 
     static string Scene()
     {

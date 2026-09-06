@@ -100,8 +100,11 @@ internal static partial class IdeIgniteArmHost
                 .ToList();
         }
 
-        foreach (var arm in hits)
+                foreach (var arm in hits)
             QueueFire(arm, ok, pulse, detail);
+
+        // NotificationCenter (ADR-0213 Stage 2): рассылка по подпискам ников.
+        CideWakeDispatch.NotifyEvent(ev, ok, pulse, detail);
     }
 
     /// <summary>Durable worker must await CDT delivery before process exit.</summary>
