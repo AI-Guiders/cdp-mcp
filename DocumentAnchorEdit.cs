@@ -76,6 +76,38 @@ internal static class DocumentAnchorEdit
 
         if (family == BracketLocate.AxisFamily.Csharp)
         {
+            // T:-only content sniper — language-agnostic: unique-line locate (xml/md/text, …).
+            // Full-line corridor + place=before|after|replace (EditSniper parity).
+            if (!string.Equals(buf.Language, "csharp", StringComparison.OrdinalIgnoreCase)
+                && span.TextNeedle is { Length: > 0 }
+                && span.MemberKey is null
+                && span.ScopeKind is null
+                && span.LineStart is null)
+            {
+                if (!BracketTextNeedleResolve.TryResolve(buf.Path, buf.Text, span, out var tn, out var tnd))
+                    throw new ArgumentException($"Anchor resolve failed ({tnd}): {wire}");
+
+                var tnRange = new BracketSyntaxResolve.TextRange(tn.LineStart, 1, tn.LineEnd, 1);
+                ApplyPlacedRange(
+                    store, buf, place,
+                    tnRange.LineStart, tnRange.ColumnStart, tnRange.LineEnd, tnRange.ColumnEnd,
+                    replacement);
+                return new
+                {
+                    family = "text_needle",
+                    wire = BracketLocate.Format(span),
+                    resolve = tn.Detail,
+                    place,
+                    range = new
+                    {
+                        start_line = tnRange.LineStart,
+                        start_column = tnRange.ColumnStart,
+                        end_line = tnRange.LineEnd,
+                        end_column = tnRange.ColumnEnd
+                    }
+                };
+            }
+
             if (!string.Equals(buf.Language, "csharp", StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException(
                     $"axes_mismatch: csharp axes on language={buf.Language}. path={buf.Path}");
