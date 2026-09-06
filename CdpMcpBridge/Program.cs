@@ -177,7 +177,12 @@ try
 finally
 {
     watchCts.Cancel();
-    try { await watchTask.ConfigureAwait(false); } catch (OperationCanceledException) { }
+    try { await watchTask.ConfigureAwait(false); }
+    catch (OperationCanceledException) { }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"CdpMcpBridge watcher fault: {ex.Message}");
+    }
 }
 
 return 0;

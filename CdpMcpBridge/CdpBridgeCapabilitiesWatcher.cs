@@ -25,7 +25,22 @@ internal sealed class CdpBridgeCapabilitiesWatcher
 
     internal async Task RunAsync(McpServer server, CancellationToken cancellationToken)
     {
-        _lastRev = await ReadHealthRevAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            _lastRev = await ReadHealthRevAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+        catch
+        {
+            // Service down at start — keep the watcher alive. The first successful
+            // poll/SSE read emits one list_changed (rev != 0) once the service
+            // recovers, healing a degraded catalog.
+            _lastRev = 0;
+        }
+
         var sseTask = WatchSseAsync(server, cancellationToken);
         var pollTask = PollHealthAsync(server, cancellationToken);
         await Task.WhenAll(sseTask, pollTask).ConfigureAwait(false);

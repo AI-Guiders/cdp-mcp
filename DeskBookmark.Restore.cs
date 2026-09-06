@@ -23,7 +23,7 @@ internal static partial class DeskBookmark
                   ?? throw new InvalidOperationException(
                       $"No desk bookmark at {FilePath}. Open a project first (autosave), then restore after reload.");
 
-        var openPayload = ApplyProject(session, doc, detectOpen, syncShellCwd, notifyListChanged, cdpSettings, buffers);
+        var openPayload = ApplyProject(session, doc, detectOpen, syncShellCwd, cdpSettings, buffers);
 
         // Re-apply phase/object/intent from bookmark after ApplyOpen (which sets explore/code).
         if (!string.IsNullOrWhiteSpace(doc.SessionJson))
@@ -32,6 +32,10 @@ internal static partial class DeskBookmark
         var cap = maxBuffers ?? ExplicitRestoreMaxBuffers;
         var (openedBuffers, skipped, focusPath) = OpenBuffers(doc, buffers, session, cap);
         Save(session, buffers);
+
+        // One list_changed per restore — after phase/object re-apply and buffers settle.
+        notifyListChanged?.Invoke();
+
         return FormatRestore(doc, session, openPayload, openedBuffers, skipped, focusPath);
     }
 
@@ -40,7 +44,6 @@ internal static partial class DeskBookmark
         DeskBookmarkDoc doc,
         Func<string, ProjectOpenResult> detectOpen,
         Action? syncShellCwd,
-        Action? notifyListChanged,
         CdpSettings? cdpSettings = null,
         DocumentBufferStore? docStore = null)
     {
@@ -51,15 +54,11 @@ internal static partial class DeskBookmark
             if (cdpSettings is not null && docStore is not null)
                 openPayload = IdeCanonChannel.AttachCanonToOpenJson(openPayload, session, cdpSettings, docStore);
             syncShellCwd?.Invoke();
-            notifyListChanged?.Invoke();
             return openPayload;
         }
 
         if (!string.IsNullOrWhiteSpace(doc.SessionJson))
-        {
             SessionSnapshot.Apply(session, doc.SessionJson);
-            notifyListChanged?.Invoke();
-        }
 
         return null;
     }
