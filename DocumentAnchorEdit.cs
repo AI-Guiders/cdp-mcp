@@ -87,7 +87,8 @@ internal static class DocumentAnchorEdit
                 if (!BracketTextNeedleResolve.TryResolve(buf.Path, buf.Text, span, out var tn, out var tnd))
                     throw new ArgumentException($"Anchor resolve failed ({tnd}): {wire}");
 
-                var tnRange = new BracketSyntaxResolve.TextRange(tn.LineStart, 1, tn.LineEnd, 1);
+                var tnRange = ExpandToFullLines(
+                    buf.Text, new BracketSyntaxResolve.TextRange(tn.LineStart, 1, tn.LineEnd, 1));
                 ApplyPlacedRange(
                     store, buf, place,
                     tnRange.LineStart, tnRange.ColumnStart, tnRange.LineEnd, tnRange.ColumnEnd,
