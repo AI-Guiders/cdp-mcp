@@ -88,13 +88,45 @@ internal static partial class GoToAll
 
     static IEnumerable<string> EnumerateSources(string root)
     {
-        foreach (var file in Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories))
+        // Manual stack walk that SKIPS reparse points (junction/symlink) — the root
+        // tree already covers their content; following them double-walks everything
+        // (the PersonalCursorFolder junction made every file appear twice).
+        var stack = new Stack<string>();
+        stack.Push(root);
+
+        while (stack.Count > 0)
         {
-            if (IsSkipped(file))
-                continue;
-            if (!IsSourceExt(file))
-                continue;
-            yield return file;
+            var dir = stack.Pop();
+
+            IEnumerable<string> files;
+            try { files = Directory.EnumerateFiles(dir); }
+            catch { continue; }
+
+            foreach (var f in files)
+            {
+                if (IsSkipped(f) || !IsSourceExt(f))
+                    continue;
+                yield return f;
+            }
+
+            IEnumerable<string> subDirs;
+            try { subDirs = Directory.EnumerateDirectories(dir); }
+            catch { continue; }
+
+            foreach (var sd in subDirs)
+            {
+                var name = System.IO.Path.GetFileName(sd);
+                if (SkipDirs.Contains(name))
+                    continue;
+                try
+                {
+                    if ((File.GetAttributes(sd) & FileAttributes.ReparsePoint) != 0)
+                        continue;
+                }
+                catch { continue; }
+
+                stack.Push(sd);
+            }
         }
     }
 
