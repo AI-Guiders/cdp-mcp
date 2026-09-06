@@ -46,22 +46,13 @@ internal static class DiagnosticAnchorWires
 
     static string Rel(string? root, string abs)
     {
+        // GUIDERS-ADR-0050: rel-under-workspace via PathBoundary; no hand-rolled TryRel.
         if (root is not { Length: > 0 })
-            return abs;
+            return AIGuiders.Platform.Modeling.Paths.LogicalPath.Normalize(abs);
 
-        try
-        {
-            var full = Path.GetFullPath(abs);
-            var rootFull = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root));
-            if (full.StartsWith(rootFull, StringComparison.OrdinalIgnoreCase) &&
-                full.Length > rootFull.Length &&
-                full[rootFull.Length] is '\\' or '/')
-                return full[(rootFull.Length + 1)..];
-            return full;
-        }
-        catch
-        {
-            return abs;
-        }
+        var logical = AIGuiders.Platform.Modeling.Paths.PathBoundary.ToLogical(root, abs);
+        return logical.HasValue
+            ? logical.Value.Value
+            : AIGuiders.Platform.Modeling.Paths.LogicalPath.Normalize(abs);
     }
 }
