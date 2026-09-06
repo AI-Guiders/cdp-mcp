@@ -94,9 +94,14 @@ internal static class CideWakeDispatch
         {
             if (!File.Exists(StorePath))
                 return new DispatchDoc();
-            var raw = File.ReadAllText(StorePath);
+                        var raw = File.ReadAllText(StorePath);
             var doc = JsonSerializer.Deserialize<DispatchDoc>(raw, ReadOpts);
-            return doc ?? new DispatchDoc();
+            if (doc is null)
+                return new DispatchDoc();
+            // старые сторы без новых полей → null-коллекции; нормализуем
+            doc.Queue ??= new List<WakeEnvelope>();
+            doc.Subscriptions ??= new List<Subscription>();
+            return doc;
         }
         catch
         {
