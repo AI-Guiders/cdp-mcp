@@ -122,13 +122,17 @@ internal sealed partial class DocumentBufferStore
     }
 
     /// <summary>1-based line/column; start strict; end clamps to line end / EOF (LSP-style).</summary>
+        /// <summary>1-based line/column; start strict; end clamps to line end / EOF (LSP-style).
+    /// expected (old_string) — when provided, the span MUST match exactly (Ordinal);
+    /// mismatch refuses: hand-computed column spans must never cut mid-line.</summary>
     public void ApplyReplaceRange(
         DocBuffer buf,
         int startLine,
         int startColumn,
         int endLine,
         int endColumn,
-        string text)
+        string text,
+        string? expected = null)
     {
         if (startLine < 1 || startColumn < 1 || endLine < 1 || endColumn < 1)
             throw new ArgumentException("line/column are 1-based and must be >= 1.");
@@ -136,6 +140,24 @@ internal sealed partial class DocumentBufferStore
         var end = OffsetOfEnd(buf.Text, endLine, endColumn);
         if (end < start)
             throw new ArgumentException("end position is before start.");
+        if (expected is not null)
+        {
+            var span = buf.Text.Substring(start, end - start);
+            if (!string.Equals(span, expected, StringComparison.Ordinal))
+            {
+                static string Preview(string s)
+                {
+                    var flat = s.Replace("\r", "\\r").Replace("\n", "\\n");
+                    return flat.Length <= 120 ? flat : flat[..120] + "…";
+                }
+
+                throw new InvalidOperationException(
+                    $"replace_range guard: old_string does not match the span (L{startLine}:c{startColumn} → L{endLine}:c{endColumn}). " +
+                    $"Span ({span.Length} chars): \"{Preview(span)}\". old_string ({expected.Length} chars): \"{Preview(expected)}\". " +
+                    "Fix coordinates, or use edit_op=anchor (semantic wire) / edit_op=replace (content match).");
+            }
+        }
+
         buf.Text = string.Concat(buf.Text.AsSpan(0, start), text ?? "", buf.Text.AsSpan(end));
         buf.Version++;
         buf.Dirty = true;

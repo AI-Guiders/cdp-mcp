@@ -76,7 +76,8 @@ internal static partial class DocumentEditPlane
                             RequireInt(args, "start_column"),
                             RequireInt(args, "end_line"),
                             RequireInt(args, "end_column"),
-                            body);
+                            body,
+                            OptString(args, "old_string"));
                         break;
                     }
                     case "anchor":
