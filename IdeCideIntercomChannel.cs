@@ -148,29 +148,19 @@ internal static partial class IdeCideIntercomChannel
         {
             try
             {
-                var agent = CideIntercomAgents.Resolve(mentioned);
-                if (agent is null)
-                    continue;                // Self-echo (Света 2026-09-06): линия не будит сама себя —
+                                // Self-echo (Света 2026-09-06): линия не будит сама себя —
                 // упоминание собственного ника в своём письме не создаёт wake-ноту.
                 if (published.Name is not null
                     && mentioned.Equals(published.Name, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                var armDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "cdp-mcp",
-                    "arms");
-                Directory.CreateDirectory(armDir);
-                var armPath = Path.Combine(armDir, $"line-{mentioned.ToLowerInvariant()}.json");
-                File.WriteAllText(armPath, JsonSerializer.Serialize(new
-                {
-                    schema = "intercom_line_wake/v1",
-                    nick = mentioned,
-                    from = published.Name ?? from,
-                    channel = published.Channel,
-                    body = published.Body,
-                    stamped_utc = published.StampedUtc
-                }));
+                // ADR-0213 MessageBroker: продюсер только кладёт в очередь (In → Dispatcher).
+                _ = CideWakeDispatch.Enqueue(
+                    CideWakeDispatch.KindLetter,
+                    published.Body,
+                    nick: mentioned,
+                    from: published.Name ?? from,
+                    task: "intercom_send");
             }
             catch
             {
