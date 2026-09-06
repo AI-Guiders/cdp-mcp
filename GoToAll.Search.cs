@@ -11,10 +11,12 @@ internal static partial class GoToAll
 {
     static void AddFiles(List<Hit> hits, SessionContext session, string root, string query, int max)
     {
-        var n = 0;
-        foreach (var path in EnumerateCs(root))
+        // File-name walk is cheap (no reads) — scan the whole tree, cap by hits only.
+        // The old MaxFilesScan cap made multi-root sessions (All.slnx) drop files
+        // beyond the first 400 — the "cold goto" illusion.
+        foreach (var path in EnumerateSources(root))
         {
-            if (n++ > MaxFilesScan || hits.Count >= max * 3)
+            if (hits.Count >= max * 3)
                 break;
             var name = Path.GetFileName(path);
             var score = Score(name, query);
@@ -43,8 +45,14 @@ internal static partial class GoToAll
         string kind,
         int max)
     {
+        // Read only files whose NAME already matches the query — symbol parse is the
+        // expensive half; a name prefilter keeps multi-root sessions bounded.
+        var candidates = EnumerateSources(root)
+            .Where(path => Score(Path.GetFileName(path), query) > 0)
+            .ToList();
+
         var n = 0;
-        foreach (var path in EnumerateCs(root))
+        foreach (var path in candidates)
         {
             if (n++ > MaxFilesScan || hits.Count >= max * 4)
                 break;

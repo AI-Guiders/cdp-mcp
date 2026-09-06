@@ -86,6 +86,25 @@ internal static partial class GoToAll
         return qi == query.Length && query.Length >= 2;
     }
 
+    static IEnumerable<string> EnumerateSources(string root)
+    {
+        foreach (var file in Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories))
+        {
+            if (IsSkipped(file))
+                continue;
+            if (!IsSourceExt(file))
+                continue;
+            yield return file;
+        }
+    }
+
+    static bool IsSourceExt(string path)
+    {
+        var ext = Path.GetExtension(path);
+        return ext is ".cs" or ".fs" or ".fsi" or ".fsx";
+    }
+
+    // Back-compat alias for callers expecting the C#-only walk.
     static IEnumerable<string> EnumerateCs(string root)
     {
         foreach (var file in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
