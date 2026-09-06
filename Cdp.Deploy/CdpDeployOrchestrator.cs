@@ -55,6 +55,25 @@ public static class CdpDeployOrchestrator
 
         static CdpDeployStepResult Hard(CdpDeployPlan plan)
     {
+        // ADR-0211 spirit: a live seat cannot be republished under itself.
+        // Hard is for seats with nothing running; live seats go soft + apply (tower applies pending).
+        var live = LiveProcessesUnder(plan.Layout.ServiceInstall);
+        if (live.Count > 0)
+        {
+            var names = new System.Text.StringBuilder();
+
+            foreach (var p in live)
+                names.Append(p.ProcessName).Append('(').Append(p.Id).Append(") ");
+
+            foreach (var p in live)
+                p.Dispose();
+
+            throw new InvalidOperationException(
+                $"Hard deploy refused: target install '{plan.Layout.ServiceInstall}' hosts live processes: {names}. " +
+                "A live seat cannot be republished under itself (self-lock, ADR-0211). " +
+                "Use mode=soft (stage) + mode=apply (tower applies pending), or mode=rollout (hot-standby rotation).");
+        }
+
         PublishService(plan, killRunning: true);
         if (plan.BridgePublishRoot is { } bridgeRoot)
         {
@@ -157,6 +176,33 @@ public static class CdpDeployOrchestrator
     {
         if (Directory.Exists(path))
             Directory.Delete(path, true);
+    }
+
+    /// <summary>Processes whose main executable lives under the install root (ADR-0211 self-lock probe).</summary>
+    static System.Collections.Generic.List<Process> LiveProcessesUnder(string installRoot)
+    {
+        var result = new System.Collections.Generic.List<Process>();
+        var root = Path.GetFullPath(installRoot);
+        if (!root.EndsWith(Path.DirectorySeparatorChar))
+            root += Path.DirectorySeparatorChar;
+
+        foreach (var proc in Process.GetProcesses())
+        {
+            try
+            {
+                var exe = proc.MainModule?.FileName;
+                if (exe is not null && exe.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                    result.Add(proc);
+                else
+                    proc.Dispose();
+            }
+            catch
+            {
+                proc.Dispose();
+            }
+        }
+
+        return result;
     }
 
     static void PublishService(CdpDeployPlan plan, bool killRunning)
