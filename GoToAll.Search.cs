@@ -43,13 +43,16 @@ internal static partial class GoToAll
         string root,
         string query,
         string kind,
-        int max)
+        int max,
+        bool nameOnly)
     {
-        // Read only files whose NAME already matches the query — symbol parse is the
-        // expensive half; a name prefilter keeps multi-root sessions bounded.
-        var candidates = EnumerateSources(root)
-            .Where(path => Score(Path.GetFileName(path), query) > 0)
-            .ToList();
+        // Read candidates: name-prefiltered (cheap, precise for f-style names) or the
+        // whole tree bounded by MaxFilesScan (the old walk semantics — for members that
+        // live in files whose name does not match the query, e.g. TryHciSearch in
+        // GoToAll.Hci.cs).
+        IEnumerable<string> candidates = nameOnly
+            ? EnumerateSources(root).Where(path => Score(Path.GetFileName(path), query) > 0)
+            : EnumerateSources(root);
 
         var n = 0;
         foreach (var path in candidates)

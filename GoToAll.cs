@@ -102,7 +102,11 @@ internal static partial class GoToAll
             // HCI-first: FTS index covers the whole workspace incl. .fs/.md —
             // the walk can't (and its old 400-cap made multi-root sessions blind).
             if (!TryHciSearch(hits, session, query, max))
-                AddSymbols(hits, store, session, root!, query, kind, max);
+            {
+                AddSymbols(hits, store, session, root!, query, kind, max, nameOnly: true);
+                if (hits.Count == 0)
+                    AddSymbols(hits, store, session, root!, query, kind, max, nameOnly: false);
+            }
         }
 
         var ranked = hits
