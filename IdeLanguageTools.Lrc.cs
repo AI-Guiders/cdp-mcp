@@ -81,7 +81,10 @@ internal static partial class IdeLanguageTools
             var result = await CdpLanguageResolverGate.DispatchAsync(
                 name, session, req, renameReq, cancellationToken).ConfigureAwait(false);
 
-            return SerializeLrcResult(result);
+            var raw = SerializeLrcResult(result);
+            return name == "get_diagnostics"
+                ? DiagnosticAnchorWires.Enrich(raw, session.ProjectRoot, filePath)
+                : raw;
         }
         catch (Cdp.Core.DiagnosticException diag)
         {

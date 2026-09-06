@@ -235,4 +235,46 @@ public sealed class CdpLrcDispatchTests
             CancellationToken.None);
         return JsonDocument.Parse(raw);
     }
+    [Fact]
+    public async Task Get_diagnostics_items_carry_anchor_wire()
+    {
+        IdeLanguageTools.Configure(LanguageRegistry.Default);
+        IdeLanguageTools.BindDocumentStore(null);
+
+        var root = Path.Combine(Path.GetTempPath(), "cdp-lrc-anchor-" + Path.GetRandomFileName());
+        Directory.CreateDirectory(root);
+        var path = Path.Combine(root, "Broken.fs");
+
+        try
+        {
+            var session = new SessionContext { ProjectRoot = root, Language = CdpLanguages.Csharp };
+            var raw = await IdeLanguageTools.DispatchBareAsync(
+                "get_diagnostics",
+                session,
+                new Dictionary<string, ICdpBackendModule>(),
+                new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["file_path"] = JsonSerializer.SerializeToElement(path),
+                    ["source_text"] = JsonSerializer.SerializeToElement("module Broken\nlet x =\n"),
+                },
+                CancellationToken.None);
+
+            using var doc = JsonDocument.Parse(raw);
+            var diags = doc.RootElement.GetProperty("diagnostics");
+            Assert.True(diags.GetArrayLength() > 0);
+            var first = diags[0];
+            Assert.True(first.TryGetProperty("anchor", out var anchor));
+            var wire = anchor.GetString();
+            Assert.NotNull(wire);
+            Assert.StartsWith("[F:", wire);
+            Assert.EndsWith("]", wire);
+            Assert.Contains("Broken.fs", wire);
+            Assert.Contains(";L:", wire);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+            IdeLanguageTools.Configure(LanguageRegistry.Default);
+        }
+    }
 }

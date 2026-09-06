@@ -196,7 +196,7 @@ internal static partial class CdpPeekChannel
         var wire = Opt(args, "anchor") ?? Opt(args, "at");
         int startLine;
         int limit;
-        if (wire is { Length: > 0 } && TryAnchorWindow(wire, args, out var anchorLine, out var pad))
+        if (wire is { Length: > 0 } && TryAnchorWindow(wire, absPath, args, out var anchorLine, out var pad))
         {
             startLine = Math.Max(1, anchorLine - pad);
             limit = Math.Min(HardLimit, pad * 2 + 1);
@@ -319,6 +319,7 @@ internal static partial class CdpPeekChannel
 
     static bool TryAnchorWindow(
         string wire,
+        string absPath,
         IReadOnlyDictionary<string, JsonElement> args,
         out int line,
         out int pad)
@@ -334,6 +335,14 @@ internal static partial class CdpPeekChannel
                 line = ls;
                 return true;
             }
+
+            // Semantic member axis (F# comfort parity): resolve M: via the LRC FCS backend
+            // and land on the symbol's first line. T: without M: stays unsupported (file-scope hazard).
+            if (span.MemberKey is { Length: > 0 } && TryResolveMemberLine(absPath, span, out var memberLine))
+            {
+                line = memberLine;
+                return true;
+            }
         }
         catch
         {
@@ -343,6 +352,25 @@ internal static partial class CdpPeekChannel
         return false;
     }
 
+    static bool TryResolveMemberLine(string absPath, BracketLocate.Span span, out int line)
+    {
+        line = 0;
+        var ext = Path.GetExtension(absPath);
+        if (ext is not (".fs" or ".fsi" or ".fsx"))
+            return false;
+
+        try
+        {
+            if (!FSharpAnchorResolve.TryResolve(absPath, File.ReadAllText(absPath), span, out var range, out _))
+                return false;
+            line = range.LineStart;
+            return line > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
     static bool LooksBinary(string path)
     {
         try
