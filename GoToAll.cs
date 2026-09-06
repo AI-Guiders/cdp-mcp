@@ -98,7 +98,12 @@ internal static partial class GoToAll
             AddFiles(hits, session, root!, query, max);
 
         if (kind is "all" or "type" or "member" or "symbol")
-            AddSymbols(hits, store, session, root!, query, kind, max);
+        {
+            // HCI-first: FTS index covers the whole workspace incl. .fs/.md —
+            // the walk can't (and its old 400-cap made multi-root sessions blind).
+            if (!TryHciSearch(hits, session, query, max))
+                AddSymbols(hits, store, session, root!, query, kind, max);
+        }
 
         var ranked = hits
             .GroupBy(h => h.Anchor, StringComparer.Ordinal)
