@@ -110,34 +110,51 @@ public static class CdpDeployOrchestrator
                 "Deploy jobs run from their own clone or another seat.");
 
         var pending = CdpDeployPending.ReadRequired(plan.Layout);
-        var serviceNext = string.IsNullOrWhiteSpace(pending.ServiceRoot)
-            ? plan.Layout.StagedService
-            : pending.ServiceRoot;
+        // Service part: staged root from pending. Empty/missing root = service already
+        // landed (bridge-only apply after a deferred bridge wave).
+        var serviceNext = ResolveStagedServiceRoot(pending, plan.Layout);
+
+        // Bridges are client-owned (stdio children of the agent harness) — apply never
+        // kills them. Bits staged while bridges run defer to the next apply: pending
+        // keeps the bridge roots, and the bits land after a natural client restart.
+        var bridgeDeferred = (
+                BridgeStaged(pending.BridgeRoot)
+                || BridgeStaged(plan.Layout.StagedBridgeRelease)
+                || BridgeStaged(plan.Layout.StagedBridgeDebug))
+            && (BridgeInstallBusy(plan.Layout.BridgeReleaseInstall)
+                || BridgeInstallBusy(plan.Layout.BridgeDebugInstall));
 
         var lockJob = $"apply-{Guid.NewGuid():N}"[..12];
         CdpDeployLock.Acquire(plan.Layout.ServiceInstall, lockJob);
         try
         {
-            CdpServiceControl.StopLockHoldersUnder(plan.Layout.ServiceInstall, serviceOnly: true);
+            if (serviceNext is not null)
+                CdpServiceControl.StopLockHoldersUnder(plan.Layout.ServiceInstall, serviceOnly: true);
 
-            // Bridges are stopped only when their bits are actually staged —
-            // stdio transports survive service-only deploys (hot-standby, ADR-0203+).
-            if (BridgeStaged(pending.BridgeRoot) || BridgeStaged(plan.Layout.StagedBridgeRelease))
-                CdpServiceControl.StopLockHoldersUnder(plan.Layout.BridgeReleaseInstall);
-            if (BridgeStaged(plan.Layout.StagedBridgeDebug))
-                CdpServiceControl.StopLockHoldersUnder(plan.Layout.BridgeDebugInstall);
+            if (serviceNext is not null)
+            {
+                CdpDeployPromoter.PromoteTree(serviceNext, plan.Layout.ServiceInstall);
+                CdpServiceControl.EnsureServiceExecutable(plan.Layout);
+            }
 
-            CdpDeployPromoter.PromoteTree(serviceNext, plan.Layout.ServiceInstall);
-            CdpServiceControl.EnsureServiceExecutable(plan.Layout);
+            if (!bridgeDeferred)
+            {
+                PromoteBridgeIfStaged(pending.BridgeRoot, plan.Layout.BridgeReleaseInstall);
+                PromoteBridgeIfStaged(plan.Layout.StagedBridgeRelease, plan.Layout.BridgeReleaseInstall);
+                PromoteBridgeIfStaged(plan.Layout.StagedBridgeDebug, plan.Layout.BridgeDebugInstall);
+            }
 
-            PromoteBridgeIfStaged(pending.BridgeRoot, plan.Layout.BridgeReleaseInstall);
-            PromoteBridgeIfStaged(plan.Layout.StagedBridgeRelease, plan.Layout.BridgeReleaseInstall);
-            PromoteBridgeIfStaged(plan.Layout.StagedBridgeDebug, plan.Layout.BridgeDebugInstall);
+            if (bridgeDeferred)
+                CdpDeployPending.WriteDeferredBridge(plan.Layout, DeferredBridgeRoot(pending, plan));
+            else
+                CdpDeployPending.Clear(plan.Layout);
 
-            CdpDeployPending.Clear(plan.Layout);
             CleanupStaged(plan.Layout.StagedService);
-            CleanupStaged(plan.Layout.StagedBridgeRelease);
-            CleanupStaged(plan.Layout.StagedBridgeDebug);
+            if (!bridgeDeferred)
+            {
+                CleanupStaged(plan.Layout.StagedBridgeRelease);
+                CleanupStaged(plan.Layout.StagedBridgeDebug);
+            }
 
             CdpServiceControl.StartService(plan.Layout);
             CdpServiceControl.AssertHealthy(plan.Layout);
@@ -151,10 +168,38 @@ public static class CdpDeployOrchestrator
 
         return new CdpDeployStepResult(
             true,
-            $"apply ok service={plan.Layout.ServiceInstall}",
-            $"APPLY ok {plan.Layout.ServiceInstall}",
+            bridgeDeferred
+                ? $"apply ok service={plan.Layout.ServiceInstall} bridge=deferred (bridges running — lands on next apply)"
+                : $"apply ok service={plan.Layout.ServiceInstall}",
+            bridgeDeferred
+                ? $"APPLY ok (bridge deferred) {plan.Layout.ServiceInstall}"
+                : $"APPLY ok {plan.Layout.ServiceInstall}",
             0,
             null);
+    }
+
+    internal static string? ResolveStagedServiceRoot(CdpDeployPending.PendingUpdate pending, CdpDeployLayout layout)
+    {
+        if (!string.IsNullOrWhiteSpace(pending.ServiceRoot) && Directory.Exists(pending.ServiceRoot))
+            return pending.ServiceRoot;
+        return Directory.Exists(layout.StagedService) ? layout.StagedService : null;
+    }
+
+    static bool BridgeInstallBusy(string installRoot)
+    {
+        var live = LiveProcessesUnder(installRoot);
+        foreach (var proc in live)
+            proc.Dispose();
+        return live.Count > 0;
+    }
+
+    static string DeferredBridgeRoot(CdpDeployPending.PendingUpdate pending, CdpDeployPlan plan)
+    {
+        if (BridgeStaged(pending.BridgeRoot))
+            return pending.BridgeRoot;
+        if (BridgeStaged(plan.Layout.StagedBridgeRelease))
+            return plan.Layout.StagedBridgeRelease;
+        return plan.Layout.StagedBridgeDebug ?? "";
     }
 
     static bool BridgeStaged(string? path) =>

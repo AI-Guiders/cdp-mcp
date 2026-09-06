@@ -139,4 +139,22 @@ internal static class CdpDeployPending
         if (File.Exists(layout.PendingMarker))
             File.Delete(layout.PendingMarker);
     }
+
+    /// <summary>
+    /// Pending after a deferred bridge wave: service already landed (empty ServiceRoot),
+    /// bridge roots kept for the next apply once the client's bridges exit naturally.
+    /// </summary>
+    public static void WriteDeferredBridge(CdpDeployLayout layout, string bridgeStaged)
+    {
+        Directory.CreateDirectory(layout.ServiceInstall);
+        var pending = new PendingUpdate(
+            "cdp_pending_update/v0",
+            "soft",
+            DateTime.UtcNow.ToString("o"),
+            "",
+            bridgeStaged,
+            null,
+            "bridge deferred — bridges were running; promote lands on next apply");
+        File.WriteAllText(layout.PendingMarker, JsonSerializer.Serialize(pending, new JsonSerializerOptions { WriteIndented = true }));
+    }
 }
