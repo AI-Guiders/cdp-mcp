@@ -223,6 +223,18 @@ internal static class CideWakeChannels
                 ? "\"" + arg.Replace("\"", "\\\"", StringComparison.Ordinal) + "\""
                 : arg;
 
+        /// <summary>Canonical no-session failure (dispatcher-level guard result).</summary>
+        public static object ErrNoSession() =>
+            new
+            {
+                ok = false,
+                submit_kind = "opencode",
+                channel = "opencode",
+                error = "no_session",
+                detail = "No OpenCode session — target session required.",
+                exit_code = 0
+            };
+
         static object Err(string error, string detail, int exitCode) => new
         {
             ok = false,
