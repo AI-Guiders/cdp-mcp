@@ -39,8 +39,16 @@ internal static class CideWakeDispatch
     static int _busy;
     static DateTimeOffset _lastDeliveryUtc;
 
+    /// <summary>Per-nick delivery cooldown: второй стук по той же линии ждёт,
+    /// не рвёт сессию (гонка run'ов = пустые user-ходы в opencode, Света 2026-09-07).</summary>
+    static readonly Dictionary<string, DateTimeOffset> _lastDeliveryByNick = new();
+
     public static string StorePath =>
         Path.Combine(CideIntercomVoiceLatch.StateRoot, "wake-dispatch.json");
+
+    /// <summary>Минимум между доставками одной линии: ход Тени может идти минуты,
+    /// второй стук раньше — гонка run'ов и пустые user-ходы.</summary>
+    static readonly TimeSpan WakeNickCooldown = TimeSpan.FromSeconds(120);
 
     static string TmpPath =>
         StorePath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
@@ -326,9 +334,21 @@ internal static class CideWakeDispatch
             if (now - _lastDeliveryUtc < TimeSpan.FromSeconds(doc.DeliveryCooldownSeconds))
                 return; // cooldown — глобальный тормоз, ноты остаются pending
 
+            // Per-nick cooldown (Света 2026-09-07): второй стук по той же линии ждёт,
+            // пока сессия переварит предыдущий ход — иначе гонка run'ов = пустые user-ходы.
+            var nickKey = e.Nick?.Trim() ?? "";
+            if (nickKey.Length > 0
+                && _lastDeliveryByNick.TryGetValue(nickKey, out var lastNick)
+                && now - lastNick < WakeNickCooldown)
+                continue;
+
             var result = await DeliverAsync(e, doc, ct).ConfigureAwait(false);
             if (result.State == "delivered")
+            {
                 _lastDeliveryUtc = now;
+                if (nickKey.Length > 0)
+                    _lastDeliveryByNick[nickKey] = now;
+            }
 
             var state = result.State;
             Save(Apply(doc, d =>
