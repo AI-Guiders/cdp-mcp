@@ -13,12 +13,16 @@ namespace CdpMcp;
 
 internal static class CdpServiceHost
 {
+    // Root ref обязательна: System.Threading.Timer живёт, пока жива ссылка на
+    // LineWakePoller — иначе GC собирает инстанс, и таймер умирает молча.
+    private static readonly LineWakePoller WakePoller = new();
+
     internal static async Task<int> RunAsync(string configPath, string[] args, CancellationToken cancellationToken = default)
     {
         CdpServiceProcessReclaim.Ensure();
         // ADR-0212 stage (d): the postman lives in the tower — polls per-line wake
         // notes (arms/line-*.json) and delivers them to registered opencode sessions.
-        new LineWakePoller().Start();
+        WakePoller.Start();
         await using var runtime = await CdpHostRuntime.CreateAsync(configPath, cancellationToken).ConfigureAwait(false);
         var settings = runtime.Settings.Service;
         var token = CdpServiceToken.Ensure(settings);
