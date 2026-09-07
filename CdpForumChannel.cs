@@ -141,23 +141,14 @@ internal static class CdpForumChannel
         var (num, slug, _, _) = ParseThreadHeader(
             Path.GetFileName(Path.GetDirectoryName(file)!), File.ReadAllText(file));
         var wakes = 0;
-        foreach (var mentioned in CideIntercomAgents.MentionsOf(body))
+        foreach (var m in MentionResolver.Resolve(body, nick))
         {
-            if (mentioned.Equals(nick!.Trim(), StringComparison.OrdinalIgnoreCase))
-                continue; // самостук не будит (урок эхолалии)
-
-            // Письмо несёт свой контекст (Света 2026-09-08): excerpt вокруг СВОЕГО
-            // упоминания, не общий хвост начала поста — иначе получатель видит
-            // чужой абзац и письмо выглядит misdelivery.
-            var text = body!.Trim();
-            var excerpt = ExcerptAround(text, mentioned);
-
             try
             {
                 _ = CideWakeDispatch.Enqueue(
                     CideWakeDispatch.KindLetter,
-                    $"[форум {num}-{slug}] @{nick.Trim()}: {excerpt}",
-                    nick: mentioned,
+                    $"[форум {num}-{slug}] @{nick.Trim()}: {m.Excerpt}",
+                    nick: m.Nick,
                     from: nick.Trim(),
                     task: "forum_post");
                 wakes++;

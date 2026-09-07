@@ -43,8 +43,14 @@ internal static class CideWakeDispatch
     /// не рвёт сессию (гонка run'ов = пустые user-ходы в opencode, Света 2026-09-07).</summary>
     static readonly Dictionary<string, DateTimeOffset> _lastDeliveryByNick = new();
 
+    /// <summary>Изоляция тестов (Света 2026-09-08): тесты mention-wake клали РЕАЛЬНЫЕ
+    /// письма в прод-очередь — почтальон доставлял их в живую сессию Тени («echo при
+    /// прогоне тестов», класс empty user messages). Тесты ставят временный store.</summary>
+    public static Func<string>? StorePathOverrideForTests;
+
     public static string StorePath =>
-        Path.Combine(CideIntercomVoiceLatch.StateRoot, "wake-dispatch.json");
+        StorePathOverrideForTests?.Invoke()
+        ?? Path.Combine(CideIntercomVoiceLatch.StateRoot, "wake-dispatch.json");
 
     /// <summary>Минимум между доставками одной линии: ход Тени может идти минуты,
     /// второй стук раньше — гонка run'ов и пустые user-ходы.</summary>

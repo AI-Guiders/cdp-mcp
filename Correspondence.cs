@@ -176,12 +176,6 @@ internal static class Correspondence
     /// (own-repo relative or {siblingDir}/{rest}, GUIDERS-ADR-0050) or absolute physical.
     /// Honest rejections carry candidate anchors — never a silent miss.
     /// </summary>
-        /// <summary>
-    /// forum 003 AddRelated: the environment fills the ADR map (AddRelated → PickFiles → Added).
-    /// Key defaults to the full rel path (resolver-supported); doc is logical
-    /// (own-repo relative or {siblingDir}/{rest}, GUIDERS-ADR-0050) or absolute physical.
-    /// Honest rejections carry candidate anchors — never a silent miss.
-    /// </summary>
     public static string AddRelated(
         DocumentBufferStore store,
         SessionContext session,

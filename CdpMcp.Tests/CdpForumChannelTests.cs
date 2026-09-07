@@ -14,11 +14,16 @@ public class CdpForumChannelTests : IDisposable
         _root = Path.Combine(Path.GetTempPath(), "cdp-forum-tests-" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(Path.Combine(_root, "topics"));
         Environment.SetEnvironmentVariable("CDP_FORUM_ROOT", _root);
+        // Кейс Тени (Света 2026-09-08): mention-wake в тестах не должен класть
+        // реальные письма в прод-очередь — иначе Тень получает «echo» на каждый
+        // прогон тестов (класс empty user messages).
+        CideWakeDispatch.StorePathOverrideForTests = () => Path.Combine(_root, "wake-dispatch.json");
     }
 
     public void Dispose()
     {
         Environment.SetEnvironmentVariable("CDP_FORUM_ROOT", null);
+        CideWakeDispatch.StorePathOverrideForTests = null;
         try { Directory.Delete(_root, recursive: true); } catch { /* best effort */ }
     }
 
