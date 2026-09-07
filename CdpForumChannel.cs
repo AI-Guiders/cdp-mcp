@@ -116,9 +116,12 @@ internal static class CdpForumChannel
     static string Post(IReadOnlyDictionary<string, JsonElement> args)
     {
         var body = Arg(args, "body") ?? Arg(args, "text") ?? Arg(args, "message");
-        var nick = Arg(args, "nick");
-        if (string.IsNullOrWhiteSpace(body) || string.IsNullOrWhiteSpace(nick))
+        var nickRaw = Arg(args, "nick");
+        if (string.IsNullOrWhiteSpace(body) || string.IsNullOrWhiteSpace(nickRaw))
             return Fail("body_nick_required", "post thread=NNN body= nick= [carrier=] — пустое не порождает поста (правила дома)");
+        // Нормализация: лишний @ в нике ломал self-skip (Тень: nick="@Тень" → from="@Тень",
+        // сравнение с упоминанием "Тень" не сходилось → три self-wake от постов об уроке).
+        var nick = nickRaw!.Trim().TrimStart('@');
 
         var file = ResolveThreadFile(args);
         if (file is null)
@@ -187,9 +190,10 @@ internal static class CdpForumChannel
         var slug = (Arg(args, "slug") ?? "").Trim();
         var title = (Arg(args, "title") ?? "").Trim();
         var body = Arg(args, "body") ?? Arg(args, "text");
-        var nick = Arg(args, "nick");
-        if (slug.Length == 0 || title.Length == 0 || string.IsNullOrWhiteSpace(nick))
+        var nickRaw = Arg(args, "nick");
+        if (slug.Length == 0 || title.Length == 0 || string.IsNullOrWhiteSpace(nickRaw))
             return Fail("args_required", "newthread slug= title= nick= body= [tags=] — slug a-z0-9-");
+        var nick = nickRaw!.Trim().TrimStart('@');
 
         if (!Regex.IsMatch(slug, "^[a-z0-9-]+$"))
             return Fail("slug_invalid", "slug: a-z, 0-9, дефисы");

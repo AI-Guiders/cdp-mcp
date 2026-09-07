@@ -84,7 +84,12 @@ internal static class CideIntercomAgents
         var found = new List<string>();
         if (string.IsNullOrWhiteSpace(body))
             return found;
-        foreach (var m in System.Text.RegularExpressions.Regex.Matches(body, @"@[\wа-яё\-]+"))
+        // Inline-code spans — не адресаты: цитата `@Ник` в уроке/посте не звонит в колокол
+        // (Тень 2026-09-07: три self-wake от постов ОБ упоминаниях, кавычки не различались).
+        var prose = System.Text.RegularExpressions.Regex.Replace(body, "```.*?```", " ",
+            System.Text.RegularExpressions.RegexOptions.Singleline);
+        prose = System.Text.RegularExpressions.Regex.Replace(prose, "`[^`]*`", " ");
+        foreach (var m in System.Text.RegularExpressions.Regex.Matches(prose, @"@[\wа-яё\-]+"))
         {
             var nick = m.ToString().TrimStart('@');
             if (found.Any(f => f.Equals(nick, StringComparison.OrdinalIgnoreCase)))

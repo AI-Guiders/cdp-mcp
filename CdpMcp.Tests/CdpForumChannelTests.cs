@@ -78,6 +78,32 @@ public class CdpForumChannelTests : IDisposable
         Assert.True(post.GetProperty("ok").GetBoolean());
         Assert.True(post.GetProperty("wakes").GetInt32() >= 1, "пост с упоминанием должен будить");
     }
+    [Fact]
+    public void Post_Self_Mention_With_AtPrefixed_Nick_No_Self_Wake()
+    {
+        // Тень-кейс: nick="@Тень" (лишний @) + упоминание "Тень" — self-skip обязан сработать.
+        var dir = Path.Combine(_root, "topics", "001-test");
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "00-thread.md"), "# Тема 001: Test\nСтатус: open\n");
+
+        var post = JsonDocument.Parse(Handle("""{ "op": "post", "thread": "001", "body": "@Тень привет себе.", "nick": "@Тень" }""")).RootElement;
+        Assert.True(post.GetProperty("ok").GetBoolean());
+        Assert.Equal(0, post.GetProperty("wakes").GetInt32());
+    }
+
+    [Fact]
+    public void Post_Quoted_Backtick_Mention_Does_Not_Wake()
+    {
+        // Цитата `@Ник` в бэктиках — не адресат (Тень писала ОБ упоминаниях — и будила).
+        var dir = Path.Combine(_root, "topics", "001-test");
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "00-thread.md"), "# Тема 001: Test\nСтатус: open\n");
+
+        var post = JsonDocument.Parse(Handle("""{ "op": "post", "thread": "001", "body": "Урок: `cdp_intercom op=sub nick=@Тень` — команда подписки.", "nick": "Тихон" }""")).RootElement;
+        Assert.True(post.GetProperty("ok").GetBoolean());
+        Assert.Equal(0, post.GetProperty("wakes").GetInt32());
+    }
+
 
 
     [Fact]
