@@ -70,6 +70,8 @@ internal static class Correspondence
             {
                 anchor = $"[F:{d.Path}]",
                 path = d.Path,
+                abs = d.Abs,
+                kind = d.Kind,
                 title = d.Title,
                 role = "forward"
             })
@@ -93,7 +95,7 @@ internal static class Correspondence
         if (!slim && result.ForwardDocs.Length > 0)
         {
             var first = result.ForwardDocs[0];
-            var absDoc = Path.Combine(result.WorkspaceRoot, first.Path.Replace('/', Path.DirectorySeparatorChar));
+            var absDoc = first.Abs ?? Path.Combine(result.WorkspaceRoot, first.Path.Replace('/', Path.DirectorySeparatorChar));
             if (File.Exists(absDoc))
             {
                 try
