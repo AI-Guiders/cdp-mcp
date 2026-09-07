@@ -31,7 +31,65 @@ internal static class CideWakeChannels
                 : "opencode";
 
         /// <summary>CLI-доставка: detached spawn, fail fast только при мгновенной смерти процесса.</summary>
-        public static async Task<object> SendCliAsync(string session, string message, CancellationToken ct)
+    /// <summary>Log opencode — источник истины о занятости сессии (Света 2026-09-07:
+    /// письмо прервало генерацию Ток — «почта перебивает черновик»; вежливый почтальон
+    /// ждёт «exiting loop»).</summary>
+    internal static string? LogPathOverrideForTests { get; set; }
+
+    static string OpencodeLogPath =>
+        LogPathOverrideForTests
+        ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".local", "share", "opencode", "log", "opencode.log");
+
+    /// <summary>Хвост лога сессии: (timestamp, event) последней записи по session.id.</summary>
+    public static (string? Ts, string? Ev) LastSessionEvent(string logTail, string session)
+    {
+        string? ts = null, ev = null;
+        foreach (var line in logTail.Split('\n'))
+        {
+            if (!line.Contains(session, StringComparison.Ordinal))
+                continue;
+            var t = System.Text.RegularExpressions.Regex.Match(line, @"timestamp=([^\s]+)");
+            ts = t.Success ? t.Groups[1].Value : ts;
+            var e = System.Text.RegularExpressions.Regex.Match(line, @"message=(""?(?<ev>[^\r\n""]*)""?)");
+            ev = e.Success ? e.Groups["ev"].Value : ev;
+        }
+        return (ts, ev);
+    }
+
+    /// <summary>Вежливый почтальон: занята ли сессия генерацией?
+    /// Последняя запись сессии — stream/loop-step (без «exiting loop») → busy.
+    /// Застарелый busy (старше 5 минут) — не блокирует (защита от застрявшего хода/лога).</summary>
+    public static bool IsSessionBusy(string session)
+    {
+        try
+        {
+            var logPath = OpencodeLogPath;
+            if (!File.Exists(logPath))
+                return false;
+            using var fs = new FileStream(logPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            var tailLen = Math.Min(fs.Length, 400_000);
+            fs.Seek(-tailLen, SeekOrigin.End);
+            using var reader = new StreamReader(fs);
+            var (ts, ev) = LastSessionEvent(reader.ReadToEnd(), session);
+            if (ev is null)
+                return false;
+            if (ev.Contains("exiting loop", StringComparison.Ordinal))
+                return false;
+            if (ts is not null
+                && DateTimeOffset.TryParse(ts, out var stamp)
+                && DateTimeOffset.UtcNow - stamp.ToUniversalTime() > TimeSpan.FromMinutes(5))
+                return false; // застрявший busy — не блокируем вечно
+            return true;
+        }
+        catch
+        {
+            return false; // ошибка чтения лога — не блокируем доставку
+        }
+    }
+
+    public static async Task<object> SendCliAsync(string session, string message, CancellationToken ct)
         {
             try
             {

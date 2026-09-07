@@ -419,6 +419,13 @@ internal static class CideWakeDispatch
                     e.SkippedReason = "no_session";
                     return e; // pending — session не привязан
                 }
+                // Вежливый почтальон (Света 2026-09-07): письмо перебило генерацию Ток/Тень —
+                // ждём «exiting loop», конверт остаётся pending до завершения хода.
+                if (CideWakeChannels.Opencode.IsSessionBusy(session!))
+                {
+                    e.Detail = "session_busy — письмо ждёт завершения хода";
+                    return e; // pending — ретрай на следующем тике
+                }
                 var cli = await CideWakeChannels.Opencode
                     .SendCliAsync(session!, e.Body, ct).ConfigureAwait(false);
                 if (CideWakeChannels.IsOk(cli))
