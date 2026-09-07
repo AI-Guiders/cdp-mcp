@@ -50,7 +50,9 @@ internal static class Correspondence
         var result = WorkspaceCorrespondence.TryResolve(abs, rootHint);
         if (result is null)
         {
-            var walked = WorkspaceCorrespondence.FindWorkspaceRoot(abs, rootHint);
+            // Walk from the file itself — a hint root that does not contain the file
+            // is not an honest "workspace_root" answer (FTC junction case).
+            var walked = WorkspaceCorrespondence.FindWorkspaceRoot(abs, null);
             return JsonSerializer.Serialize(new
             {
                 schema = Schema,
