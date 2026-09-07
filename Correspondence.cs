@@ -166,6 +166,113 @@ internal static class Correspondence
                 "context= unified get_correspondence_context shape. Anchors not table rows."
         }, Pretty);
     }
+    /// <summary>
+    /// forum 003 AddRelated: the environment fills the ADR map (AddRelated → PickFiles → Added).
+    /// Key defaults to the full rel path (resolver-supported); doc is logical
+    /// (own-repo relative or {siblingDir}/{rest}, GUIDERS-ADR-0050) or absolute physical.
+    /// Honest rejections carry candidate anchors — never a silent miss.
+    /// </summary>
+    public static string AddRelated(
+        DocumentBufferStore store,
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args)
+    {
+        var rootHint = session.ProjectRoot ?? session.ScmRoot;
+        var pathArg = OptString(args, "path") ?? OptString(args, "file");
+        var docArg = OptString(args, "doc") ?? OptString(args, "adr");
+        var keyArg = OptString(args, "key");
+
+        string? abs = pathArg is { Length: > 0 }
+            ? ResolvePath(session, pathArg)
+            : store.All.FirstOrDefault() is { Path.Length: > 0 } d ? d.Path : null;
+
+        if (abs is null || string.IsNullOrWhiteSpace(docArg))
+        {
+            return JsonSerializer.Serialize(new
+            {
+                schema = Schema,
+                ok = false,
+                feature = "add_related",
+                error = "path_required",
+                hint = "path= code file under a .cascade repo + doc= logical (own docs/… or {siblingDir}/docs/…) + optional key="
+            }, Pretty);
+        }
+
+        var root = WorkspaceCorrespondence.FindWorkspaceRoot(abs, rootHint);
+        if (root is null)
+        {
+            return JsonSerializer.Serialize(new
+            {
+                schema = Schema,
+                ok = false,
+                feature = "add_related",
+                error = "no_workspace_toml",
+                path = abs,
+                hint = "No .cascade/workspace.toml above the file — AddRelated edits the ADR map of a marked repo."
+            }, Pretty);
+        }
+
+        var rel = Path.GetRelativePath(Path.GetFullPath(root), Path.GetFullPath(abs)).Replace('\\', '/');
+        if (rel.StartsWith("..", StringComparison.Ordinal))
+        {
+            return JsonSerializer.Serialize(new
+            {
+                schema = Schema,
+                ok = false,
+                feature = "add_related",
+                error = "outside_workspace",
+                path = abs,
+                workspace_root = root
+            }, Pretty);
+        }
+
+        var key = keyArg is { Length: > 0 } ? keyArg : rel;
+        var write = WorkspaceCorrespondence.AddRelated(root, key, docArg);
+        if (!write.Ok)
+        {
+            return JsonSerializer.Serialize(new
+            {
+                schema = Schema,
+                ok = false,
+                feature = "add_related",
+                error = write.Error,
+                file = rel,
+                workspace_root = root,
+                toml = write.TomlPath,
+                key = write.Key,
+                doc = write.Doc,
+                candidates = write.Candidates
+                    .Select(c => new { path = c, anchor = $"[F:{c}]" })
+                    .ToArray(),
+                hint = "doc= resolves own-repo relative, {siblingDir}/{rest} logical, or absolute physical; candidates show every probed path."
+            }, Pretty);
+        }
+
+        return JsonSerializer.Serialize(new
+        {
+            schema = Schema,
+            ok = true,
+            feature = "add_related",
+            file = rel,
+            workspace_root = root,
+            toml = write.TomlPath,
+            key = write.Key,
+            doc = new
+            {
+                logical = write.Doc,
+                abs = write.DocAbs,
+                kind = write.DocKind,
+                anchor = $"[F:{write.DocAbs ?? write.Doc}]"
+            },
+            changed = write.Changed,
+            next = new object[]
+            {
+                new { go = "correspondence", label = "Re-run correspondence", why = "verify forward_docs now resolve" }
+            },
+            hint = "Added (or deduped) into [workspace.adr.map]; comments preserved. Re-run feature=correspondence on the file to verify."
+        }, Pretty);
+    }
+
 
     static string ResolvePath(SessionContext session, string pathArg)
     {

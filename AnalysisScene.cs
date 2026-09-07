@@ -35,6 +35,8 @@ internal static class AnalysisScene
                 Task.FromResult(CodeClones.Run(store, session, args)),
             "correspondence" or "corr" or "docs" or "adr_map" or "context" =>
                 Task.FromResult(Correspondence.Run(store, session, args)),
+            "add_related" or "related_add" or "corr_add" =>
+                Task.FromResult(Correspondence.AddRelated(store, session, args)),
             "no_adr" or "noadr" or "skip_adr" =>
                 Task.FromResult(ExploreCorrNoAdr.Run(store, session, args)),
             "semantic_map" or "semantic" or "related" or "nav_map" =>
@@ -45,7 +47,7 @@ internal static class AnalysisScene
                 ok = false,
                 error = "unknown_feature",
                 feature,
-                hint = "feature omit → scene map; feature=correspondence|no_adr|semantic_map|clones"
+                hint = "feature omit → scene map; feature=correspondence|add_related|no_adr|semantic_map|clones"
             }, Pretty))
         };
     }
