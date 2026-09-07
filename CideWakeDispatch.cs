@@ -113,8 +113,9 @@ internal static class CideWakeDispatch
     {
         Directory.CreateDirectory(Path.GetDirectoryName(StorePath)!);
         var json = JsonSerializer.Serialize(doc, WriteOpts);
-        File.WriteAllText(TmpPath, json);
-        File.Move(TmpPath, StorePath, overwrite: true);
+        var tmp = TmpPath; // захватить ОДИН раз: TmpPath — свойство, каждый вызов = новый GUID
+        File.WriteAllText(tmp, json);
+        File.Move(tmp, StorePath, overwrite: true);
     }
 
     // --- In (продюсеры) ---
