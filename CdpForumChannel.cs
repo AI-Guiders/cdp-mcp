@@ -133,7 +133,33 @@ internal static class CdpForumChannel
             File.AppendAllText(file, post, new UTF8Encoding(false));
         }
 
-        var (num, slug, title, status) = ParseThreadHeader(
+        // Mention-wake (Света 2026-09-07): пост с @Ник будит линии — иначе форум
+        // молчит, а почтальон простаивает (паритет с intercom Send; самостук скинут).
+        var (num, slug, _, _) = ParseThreadHeader(
+            Path.GetFileName(Path.GetDirectoryName(file)!), File.ReadAllText(file));
+        var excerpt = body!.Trim();
+        if (excerpt.Length > 160)
+            excerpt = excerpt[..160] + "…";
+        foreach (var mentioned in ParseMentions(body))
+        {
+            if (mentioned.Equals(nick!.Trim(), StringComparison.OrdinalIgnoreCase))
+                continue; // самостук не будит (урок эхолалии)
+            try
+            {
+                _ = CideWakeDispatch.Enqueue(
+                    CideWakeDispatch.KindLetter,
+                    $"[форум {num}-{slug}] @{nick.Trim()}: {excerpt}",
+                    nick: mentioned,
+                    from: nick.Trim(),
+                    task: "forum_post");
+            }
+            catch
+            {
+                /* best effort — пост уже записан */
+            }
+        }
+
+        var (_, _, title, status) = ParseThreadHeader(
             Path.GetFileName(Path.GetDirectoryName(file)!), File.ReadAllText(file));
         return JsonSerializer.Serialize(new
         {
