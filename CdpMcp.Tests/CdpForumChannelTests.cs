@@ -64,6 +64,21 @@ public class CdpForumChannelTests : IDisposable
         var r2 = JsonDocument.Parse(Handle("""{ "op": "post", "thread": "001", "body": "hi" }""")).RootElement;
         Assert.False(r2.GetProperty("ok").GetBoolean());
     }
+    [Fact]
+    public void Post_With_Mention_Produces_Wake_Letter()
+    {
+        // Механика: пост с @зарегистрированным-ником кладёт wake-конверт (канон
+        // CideIntercomAgents.MentionsOf — общий для intercom/форума/всех поверхностей).
+        // Здесь — через живой реестр этой машины: @Тень зарегистрирован (ADR-0212).
+        var dir = Path.Combine(_root, "topics", "001-test");
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "00-thread.md"), "# Тема 001: Test\nСтатус: open\n");
+
+        var post = JsonDocument.Parse(Handle("""{ "op": "post", "thread": "001", "body": "@Тень — письмо по теме.", "nick": "Тихон" }""")).RootElement;
+        Assert.True(post.GetProperty("ok").GetBoolean());
+        Assert.True(post.GetProperty("wakes").GetInt32() >= 1, "пост с упоминанием должен будить");
+    }
+
 
     [Fact]
     public void NewThread_Creates_Thread_And_Index_Row()

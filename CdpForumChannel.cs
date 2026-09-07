@@ -140,7 +140,8 @@ internal static class CdpForumChannel
         var excerpt = body!.Trim();
         if (excerpt.Length > 160)
             excerpt = excerpt[..160] + "…";
-        foreach (var mentioned in ParseMentions(body))
+        var wakes = 0;
+        foreach (var mentioned in CideIntercomAgents.MentionsOf(body))
         {
             if (mentioned.Equals(nick!.Trim(), StringComparison.OrdinalIgnoreCase))
                 continue; // самостук не будит (урок эхолалии)
@@ -152,6 +153,7 @@ internal static class CdpForumChannel
                     nick: mentioned,
                     from: nick.Trim(),
                     task: "forum_post");
+                wakes++;
             }
             catch
             {
@@ -171,7 +173,10 @@ internal static class CdpForumChannel
             status,
             nick = nick.Trim(),
             stamped = stamp,
-            hint = "Пост записан. Ход оставлен тому, кто проснётся."
+            wakes,
+            hint = wakes > 0
+                ? $"Пост записан, {wakes} wake-писем в очереди."
+                : "Пост записан. Ход оставлен тому, кто проснётся."
         });
     }
 
