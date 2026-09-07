@@ -176,6 +176,12 @@ internal static class Correspondence
     /// (own-repo relative or {siblingDir}/{rest}, GUIDERS-ADR-0050) or absolute physical.
     /// Honest rejections carry candidate anchors — never a silent miss.
     /// </summary>
+        /// <summary>
+    /// forum 003 AddRelated: the environment fills the ADR map (AddRelated → PickFiles → Added).
+    /// Key defaults to the full rel path (resolver-supported); doc is logical
+    /// (own-repo relative or {siblingDir}/{rest}, GUIDERS-ADR-0050) or absolute physical.
+    /// Honest rejections carry candidate anchors — never a silent miss.
+    /// </summary>
     public static string AddRelated(
         DocumentBufferStore store,
         SessionContext session,
@@ -203,6 +209,17 @@ internal static class Correspondence
         }
 
         var root = WorkspaceCorrespondence.FindWorkspaceRoot(abs, rootHint);
+        var absFull = Path.GetFullPath(abs);
+        if (root is not null)
+        {
+            var relProbe = Path.GetRelativePath(Path.GetFullPath(root), absFull);
+            if (relProbe.StartsWith("..", StringComparison.Ordinal))
+            {
+                // Hint root did not contain the file (FTC junction case) — walk from the file itself.
+                root = WorkspaceCorrespondence.FindWorkspaceRoot(abs, null);
+            }
+        }
+
         if (root is null)
         {
             return JsonSerializer.Serialize(new
@@ -216,7 +233,7 @@ internal static class Correspondence
             }, Pretty);
         }
 
-        var rel = Path.GetRelativePath(Path.GetFullPath(root), Path.GetFullPath(abs)).Replace('\\', '/');
+        var rel = Path.GetRelativePath(Path.GetFullPath(root), absFull).Replace('\\', '/');
         if (rel.StartsWith("..", StringComparison.Ordinal))
         {
             return JsonSerializer.Serialize(new
