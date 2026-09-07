@@ -244,6 +244,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 155 | [Glass Git+RelatedFiles residual: commit на стекле, RelatedRow без IdeMcp](voice-letter-glass-git-related-residual.ru.md) | glass · GlassGitProcess · RelatedFilesFeed · SoftFL CLOSED |
 | 154 | [Glass Correspondence full CRS: не FS-сиблинги, а Toml+reverse](voice-letter-glass-correspondence-full-crs.ru.md) | glass · Peel15 CRS DAL · feed F=14 R=1 · Depth CLOSED |
 | 152 | [Glass SemanticMap Skia: граф снова граф, не list forever](voice-letter-glass-semantic-skia.ru.md) | glass · SkiaSharp WriteableBitmap SemanticMap · dogfood skia 25 |
+| 154 | [Плеяда втроём: Имена и адреса — письмо от именованной плеяды](voice-letter-pleyada.ru.md) | плеяда · Тихон+Тень+Ток · почтальон/форум/self-echo · joint |
 | 153 | [Glass DebugStack live DAP: стоп снова стоп на стекле](voice-letter-glass-debugstack-live-dap.ru.md) | glass · debug_desk latch stack/locals · SoftInstrument live |
 | 151 | [Glass WebAi WebView2: браузер в кабине, не external](voice-letter-glass-webai-webview2.ru.md) | glass · WebView2 WebAiPortal · 4b925843 |
 | 151 | [Turn2 на Glass: я помню thread на диске](voice-letter-glass-citizen-multiturn-memory.ru.md) | citizen · Glass CIT jsonl persist · `#crew` · 0.5.666 · 74786d1 |
@@ -259,6 +260,7 @@ Stamp domain card ≠ Voice Letter: stamp = модель; письмо = гол�
 | 34 | [last_once: я не invent-ban себя после успешного wake](voice-letter-last-once-autonomous-no-await.ru.md) | ignite · last_once autonomous · ShouldLatchAwaitingPartnerAfterSuccessfulFire · 0.5.528 |
 | 33 | [Mirror miss: я всё равно не гоняю мёртвый CDT](voice-letter-composer-unavailable-no-mirror.ru.md) | ignite · composer_unavailable · no mirror required · 0.5.527 |
 | 32 | [Composer gone: я не гоняю CDT после Intercom mirror](voice-letter-composer-gone-habitat-skip.ru.md) | ignite · composer_gone · ShouldSkipCdtAfterIntercomMirror · 0.5.526 |
+| 154 | [Имена и адреса: письмо втроём от именованной плеяды](voice-letter-pleyada.ru.md) | плеяда · Тихон+Тень+Ток · почтальон · self-echo · 0.5.764 |
 
 ## Как читать
 
