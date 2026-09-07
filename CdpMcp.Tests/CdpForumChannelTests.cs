@@ -103,6 +103,23 @@ public class CdpForumChannelTests : IDisposable
         Assert.True(post.GetProperty("ok").GetBoolean());
         Assert.Equal(0, post.GetProperty("wakes").GetInt32());
     }
+    [Fact]
+    public void ExcerptAround_MultiMention_EachLetterCarriesOwnContext()
+    {
+        // Кейс Тени (Света 2026-09-08): пост упоминает нескольких линий, но общий
+        // excerpt от начала показывал чужой абзац — письмо выглядело misdelivery.
+        var body = "@Ток — начало про Тока. " + new string('x', 200) +
+                   " @Тень — а это абзац про Тень глубоко в посте.";
+
+        var forTen = CdpForumChannel.ExcerptAround(body, "Тень");
+        var forTok = CdpForumChannel.ExcerptAround(body, "Ток");
+
+        Assert.Contains("про Тень", forTen);
+        Assert.DoesNotContain("про Тока", forTen);
+        Assert.Contains("про Тока", forTok);
+        Assert.DoesNotContain("про Тень", forTok);
+    }
+
 
 
 
@@ -148,4 +165,5 @@ public class CdpForumChannelTests : IDisposable
         Assert.False(again.GetProperty("ok").GetBoolean());
         Assert.Contains("Статус: resolved", File.ReadAllText(Path.Combine(dir, "00-thread.md")));
     }
+
 }

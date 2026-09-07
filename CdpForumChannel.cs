@@ -140,14 +140,18 @@ internal static class CdpForumChannel
         // молчит, а почтальон простаивает (паритет с intercom Send; самостук скинут).
         var (num, slug, _, _) = ParseThreadHeader(
             Path.GetFileName(Path.GetDirectoryName(file)!), File.ReadAllText(file));
-        var excerpt = body!.Trim();
-        if (excerpt.Length > 160)
-            excerpt = excerpt[..160] + "…";
         var wakes = 0;
         foreach (var mentioned in CideIntercomAgents.MentionsOf(body))
         {
             if (mentioned.Equals(nick!.Trim(), StringComparison.OrdinalIgnoreCase))
                 continue; // самостук не будит (урок эхолалии)
+
+            // Письмо несёт свой контекст (Света 2026-09-08): excerpt вокруг СВОЕГО
+            // упоминания, не общий хвост начала поста — иначе получатель видит
+            // чужой абзац и письмо выглядит misdelivery.
+            var text = body!.Trim();
+            var excerpt = ExcerptAround(text, mentioned);
+
             try
             {
                 _ = CideWakeDispatch.Enqueue(
@@ -182,6 +186,23 @@ internal static class CdpForumChannel
                 : "Пост записан. Ход оставлен тому, кто проснётся."
         });
     }
+    /// <summary>
+    /// Письмо несёт свой контекст (Света 2026-09-08): excerpt вокруг СВОЕГО упоминания,
+    /// не общий хвост начала поста — иначе получатель видит чужой абзац и письмо
+    /// выглядит misdelivery (кейс Тени: абзац с @Тень за пределами 160-символьного excerpt).
+    /// </summary>
+    internal static string ExcerptAround(string text, string mentioned)
+    {
+        var at = text.IndexOf($"@{mentioned}", StringComparison.OrdinalIgnoreCase);
+        if (at < 0)
+            return text.Length > 160 ? text[..160] + "…" : text;
+
+        var from = Math.Max(0, at - 40);
+        var len = Math.Min(text.Length - from, 200);
+        return (from > 0 ? "…" : "") + text.Substring(from, len) +
+               (from + len < text.Length ? "…" : "");
+    }
+
 
     // --- newthread: тема + первая строка в _index ---
 
