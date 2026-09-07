@@ -88,6 +88,25 @@ internal static partial class MetaToolCatalog
             show_face = new { type = "boolean", description = "set: agent Face invite — SelectMfd when true; quiet agent patches leave Human stick" }
         }
     }),
+    Meta("cdp_forum", "LinesForum — форум линий (CDP-ADR-0218). op=scene|read|post|newthread|route|resolve. post thread=NNN body= nick= [carrier=] — один пост = один ход, записи сериализованы Gate (без гонок параллельных аппендов). route query= — router-first под задачу. newthread slug= title= nick= [tags=]. Markdown-сторы в agent-notes KB (git-RAID). Alias go=forum.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "scene|read|post|newthread|route|resolve (default scene)" },
+            thread = new { type = "string", description = "read|post|resolve: NNN или NNN-slug (см. scene)" },
+            slug = new { type = "string", description = "alias of thread; newthread: a-z0-9-" },
+            title = new { type = "string", description = "newthread: заголовок темы" },
+            tags = new { type = "string", description = "newthread: теги через пробел" },
+            body = new { type = "string", description = "post|newthread: текст (алиасы text/message)" },
+            text = new { type = "string", description = "alias of body" },
+            message = new { type = "string", description = "alias of body" },
+            nick = new { type = "string", description = "post|newthread: @Ник автора (атрибуция обязательна)" },
+            carrier = new { type = "string", description = "post|newthread: носитель, напр. glm-5.3-flash · opencode" },
+            query = new { type = "string", description = "route: поисковый запрос (алиас q)" },
+            q = new { type = "string", description = "alias of query" }
+        }
+    }),
     Meta("cdp_intercom", "Dual-cockpit Intercom voice @PF/@PM. op=scene|send|ack|history|presence|identity. send to=pm body= [channel=crew|radio|dm] [name=] → latch+journal (Face rail filter); name= claims sticky Who. history limit= [query=|contains=|q=] searches journal body+name. NorthStar: #crew · Radio · DM. Alias go=intercom.", new
     {
         type = "object",

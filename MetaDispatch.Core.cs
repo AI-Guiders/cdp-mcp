@@ -51,6 +51,8 @@ internal static partial class MetaDispatch
                 return IdeCidePresentationChannel.HandleJson(callArgs);
             case "cdp_intercom":
                 return IdeCideIntercomChannel.HandleJson(callArgs);
+            case "cdp_forum":
+                return CdpForumChannel.HandleJson(callArgs);
             case "cdp_citizen":
                 return IdeCitizenChannel.HandleJson(callArgs);
             case "cdp_mcp":
