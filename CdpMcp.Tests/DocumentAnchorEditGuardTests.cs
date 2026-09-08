@@ -130,4 +130,25 @@ public class DocumentAnchorEditGuardTests : IDisposable
 
         Assert.Equal("line_literal", (string?)result.GetType().GetProperty("family")?.GetValue(result));
     }
+
+    [Fact]
+    public void Relative_path_under_solution_root_refuses()
+    {
+        // Class-B (2026-09-08): op=create с relative-путём на якоре-мире (All.slnx)
+        // молча падал в корень мира — файл вне репо. Резолвер отказывает честно.
+        var dir = Path.Combine(Path.GetTempPath(), "anchor-guard-sln-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "World.slnx"), "");
+        try
+        {
+            var session = new SessionContext { ProjectRoot = dir };
+            var ex = Assert.Throws<ArgumentException>(() =>
+                DocumentAnchorEdit.ResolveUserPath(session, "CdpWakeDispatcher.cs"));
+            Assert.Contains("SOLUTION root", ex.Message);
+        }
+        finally
+        {
+            try { Directory.Delete(dir, recursive: true); } catch { /* best effort */ }
+        }
+    }
 }

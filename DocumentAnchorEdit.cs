@@ -467,7 +467,23 @@ internal static class DocumentAnchorEdit
         var root = session.ProjectRoot is { Length: > 0 } pr
             ? pr
             : Directory.GetCurrentDirectory();
-        return Path.GetFullPath(Path.Combine(root, p));
+        var full = Path.GetFullPath(Path.Combine(root, p));
+
+        // Class-B fix (2026-09-08): relative path resolved against a SOLUTION root
+        // (world anchor All.slnx) silently detaches the file from its repo —
+        // cdp_buffer op=create landed CdpWakeDispatcher.cs next to the slnx instead
+        // of inside cdp-mcp. Refuse honestly: a relative path is only allowed where
+        // it unambiguously falls inside a project.
+        if (Path.GetDirectoryName(full)!.Equals(Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase)
+            && Directory.EnumerateFiles(root, "*.sln*").Any())
+        {
+            throw new ArgumentException(
+                $"Relative path '{p}' resolves to '{full}' — directly under a SOLUTION root " +
+                $"('{root}'), which would detach the file from its repo. Use a repo-relative " +
+                "path (e.g. 'Financial/software/open/cdp-mcp/{file}') or an absolute path.");
+        }
+
+        return full;
     }
 
     static string ResolveAnchorFilePath(
