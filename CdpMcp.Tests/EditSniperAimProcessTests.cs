@@ -67,7 +67,7 @@ public sealed class EditSniperAimProcessTests : IDisposable
     }
 
     [Fact]
-    public void Scope_T_needle_survives_wrong_L_hint()
+    public void Scope_Needle_survives_wrong_L_hint()
     {
         var dir = Path.Combine(Path.GetTempPath(), "cdp-sniper-t-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dir);
@@ -89,10 +89,11 @@ public sealed class EditSniperAimProcessTests : IDisposable
             var store = new DocumentBufferStore();
             var session = new SessionContext { ProjectRoot = dir };
             var fileName = Path.GetFileName(path);
-            // L:2 is blank / wrong after inserts; T: finds Arm() on real line.
+            // L:2 is blank / wrong after inserts; Needle: (Text:) finds Arm() on real line.
+            // T: = Type axis (canon 2026-09-08) — locate needle is Needle:/Text:/Content:.
             var json = EditSniper.Dispatch(store, session, Dict(
                 ("op", "scope"),
-                ("from", $"[F:{fileName};L:2;T:public static void Arm()]")));
+                ("from", $"[F:{fileName};L:2;Needle:public static void Arm()]")));
 
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;

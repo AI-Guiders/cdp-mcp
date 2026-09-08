@@ -40,7 +40,7 @@ internal static class DocumentAnchorEdit
         if (familyError is not null)
             throw new ArgumentException(familyError);
         if (family == BracketLocate.AxisFamily.None)
-            throw new ArgumentException("Anchor needs csharp axes (M/L/S/K) or xml axes (X/A).");
+            throw new ArgumentException("Anchor needs csharp axes (M/T/L/S/K) or xml axes (X/A).");
         if (family == BracketLocate.AxisFamily.Navigation)
             throw new ArgumentException(
                 "Family:navigation is land-only — use cdp_land (not edit_op=anchor).");
@@ -113,19 +113,21 @@ internal static class DocumentAnchorEdit
                 throw new ArgumentException(
                     $"axes_mismatch: csharp axes on language={buf.Language}. path={buf.Path}");
 
-            // Class-B guard (2026-09-08, «фикси баг, а не вводи дисциплину»): T:-only wire is
-            // NOT a csharp edit-anchor axis (contract: M/L/S/K). Semantic resolver silently
-            // degrades to file scope when the type is outside the loaded workspace (Tests
-            // project) and narrows to the needle TEXT range — place semantics change
-            // (ate '{' on CdpStateStoreTests L11). Refuse honestly instead.
+            // T: = Type axis (canon 2026-09-08): TypeKey-only wire resolves the type declaration
+            // span and flows to TryFindAttachTarget below (type span, parse-only — no workspace).
+            // Needle-only (Text:/Needle:/Content:) on csharp still refuses — the old T:-as-needle
+            // resolver degraded to file scope and place semantics changed (ate '{' on
+            // CdpStateStoreTests L11, 2026-09-08). Refuse honestly instead.
             if (span.TextNeedle is { Length: > 0 }
+                && string.IsNullOrWhiteSpace(span.TypeKey)
                 && span.MemberKey is null
                 && span.ScopeKind is null
                 && span.LineStart is null)
                 throw new ArgumentException(
-                    "T:-only wire is not a csharp edit-anchor axis — resolver would degrade to file scope " +
-                    "and place semantics change. Use [F:;L:<line>;T:<needle>] line corridor, " +
-                    "[F:;M:;K:] semantic axes, or replace with old_string/new_string. wire: "
+                    "Needle-only wire is not a csharp edit-anchor axis (contract: M/T/L/S/K) — " +
+                    "resolver would degrade to file scope and place semantics change. " +
+                    "Use [F:;T:<Type>] type locus, [F:;L:<line>] corridor, [F:;M:;K:] member axes, " +
+                    "or replace with old_string/new_string. wire: "
                     + BracketLocate.Format(span));
 
             // L-only: line_literal full-line corridor (EditSniper parity) — not Roslyn node partial span.
@@ -193,12 +195,12 @@ internal static class DocumentAnchorEdit
             else if (WantsBlockInteriorPlace(place, target.Node)
                      && BracketSyntaxResolve.TryGetBlockInteriorInsertPoint(
                          target.Node,
-                         before: place is "before" or "into",
+                         before: place is "into",
                          out range,
                          out var bodyDetail))
             {
-                // Type/namespace / explicit into|end — inside braces.
-                // Method M:+before|after is sibling (outside) — MergeGoArgs footgun 2026-08-04.
+                // into|end(append) — inside braces; before|after stay literal outside
+                // (uniform place canon 2026-09-08; MergeGoArgs footgun 2026-08-04 stands).
                 detail = $"{target.Detail}+{bodyDetail}";
             }
             else
@@ -310,8 +312,8 @@ internal static class DocumentAnchorEdit
     /// <summary>
     /// <c>place=</c> for <c>edit_op=anchor</c>:
     /// <list type="bullet">
-    /// <item><c>before|after</c> — insert at locus edges (method = sibling outside; type/ns = inside braces).</item>
-    /// <item><c>into|end</c> — always insert inside method/type braces (body start / before close).</item>
+    /// <item><c>before|after</c> — literal locus edges (sibling outside, uniform for member/type/ns).</item>
+    /// <item><c>into|end|append</c> — inside braces (body start / before close).</item>
     /// <item><c>replace</c> (default) — overwrite locus.</item>
     /// </list>
     /// Silent ignore was ultra-critical — agents passed place=before and wiped the member.
@@ -326,7 +328,7 @@ internal static class DocumentAnchorEdit
             "before" or "pre" or "b" => "before",
             "after" or "post" or "a" => "after",
             "into" or "body" or "start" or "in" => "into",
-            "end" or "into_end" or "body_end" => "end",
+            "end" or "append" or "into_end" or "body_end" => "end",
             "replace" or "over" or "r" or "into_replace" => "replace",
             "sniper" or "hold" or "target" => throw new ArgumentException(
                 "place=sniper is paste/put only — for anchor use place=before|after|into|end|replace."),
@@ -388,19 +390,14 @@ internal static class DocumentAnchorEdit
 
 
     /// <summary>
-    /// Body-interior places, or type/namespace where before|after mean "first/last member inside".
-    /// Method/ctor/… + before|after stay sibling-outside (agent "new helper before this method").
+    /// Uniform place canon (2026-09-08): before|after = literal locus edges (sibling outside,
+    /// uniform for member/type/ns); into|end(append) = inside braces. No per-node conversion —
+    /// the old "type/ns before|after → inside" rule ate brace intent (T:=Type, operator canon).
     /// </summary>
     static bool WantsBlockInteriorPlace(string place, Microsoft.CodeAnalysis.SyntaxNode node)
     {
-        if (place is "into" or "end")
-            return true;
-        if (place is not ("before" or "after"))
-            return false;
-
-        return node is Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax
-            or Microsoft.CodeAnalysis.CSharp.Syntax.NamespaceDeclarationSyntax
-            or Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax;
+        _ = node;
+        return place is "into" or "end";
     }
 
     static void ApplyPlacedRange(
@@ -437,6 +434,7 @@ internal static class DocumentAnchorEdit
         && string.IsNullOrWhiteSpace(span.MemberKey)
         && string.IsNullOrWhiteSpace(span.ScopeKind)
         && string.IsNullOrWhiteSpace(span.TextNeedle)
+        && string.IsNullOrWhiteSpace(span.TypeKey)
         && string.IsNullOrWhiteSpace(span.Role)
         && string.IsNullOrWhiteSpace(span.XmlPath)
         && string.IsNullOrWhiteSpace(span.Attr);

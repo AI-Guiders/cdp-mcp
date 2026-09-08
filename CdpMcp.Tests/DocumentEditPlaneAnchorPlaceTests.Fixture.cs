@@ -6,7 +6,7 @@ namespace CdpMcp.Tests;
 public sealed partial class DocumentEditPlaneAnchorPlaceTests
 {
     [Fact]
-    public async Task Place_after_with_T_inserts_after_needle_not_member_end()
+    public async Task Place_after_with_Needle_inserts_after_needle_not_member_end()
     {
         const string body = """
             namespace Fixture;
@@ -22,7 +22,8 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
             }
             """;
         await using var fx = await AnchorFixture.CreateAsync(body, fileName: "RouteMap.cs");
-        var json = await fx.EditAnchorAsync(place: "after", text: "\n                    // after-early", anchor: "[F:RouteMap.cs;M:RouteOne;T:return \"early\";]");
+        // Needle: axis (Text:) narrows inside M:; T: is now the Type axis (canon 2026-09-08).
+        var json = await fx.EditAnchorAsync(place: "after", text: "\n                    // after-early", anchor: "[F:RouteMap.cs;M:RouteOne;Needle:return \"early\";]");
         Assert.Contains("\"place\": \"after\"", json, StringComparison.Ordinal);
         Assert.Contains("return \"early\";", fx.Text, StringComparison.Ordinal);
         var early = fx.Text.IndexOf("return \"early\";", StringComparison.Ordinal);
@@ -33,11 +34,11 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
     }
 
     [Fact]
-    public async Task Anchor_T_missing_inside_member_fails_without_mutate()
+    public async Task Anchor_Needle_missing_inside_member_fails_without_mutate()
     {
         await using var fx = await AnchorFixture.CreateAsync(FixtureBody);
         var before = fx.Text;
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => fx.EditAnchorAsync(place: "after", text: "\n    // nope", anchor: "[F:SceneMap.cs;M:KeepMe;T:this_needle_is_absent]"));
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => fx.EditAnchorAsync(place: "after", text: "\n    // nope", anchor: "[F:SceneMap.cs;M:KeepMe;Needle:this_needle_is_absent]"));
         Assert.Contains("text_needle_not_found", ex.Message, StringComparison.Ordinal);
         Assert.Equal(before, fx.Text);
     }
