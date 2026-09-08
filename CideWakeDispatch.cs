@@ -433,40 +433,20 @@ internal static class CideWakeDispatch
                     return e; // pending — ретрай на следующем тике
                 }
                 // Класс-B устранение гонки run'ов (Света 2026-09-08): пустые user-ходы рождаются,
-                // когда run врезается в стартовавший ход (TOCTOU между IsSessionBusy и отправкой).
-                // Механизм: (1) per-session gate — один in-flight wake на линию, check+send атомарны;
-                // (2) HTTP prompt_async первым — очередь принадлежит opencode-серверу, run-гонка
-                // исключена по построению; CLI — фолбэк (без сервера / отказ HTTP).
+                // когда run врезается в стартовавший ход (TOCTOU) и когда два тика диспетча
+                // соревнуются за одну линию. Механизм: per-session gate — один in-flight wake
+                // на линию, busy-проверка и отправка атомарны. HTTP prompt_async убран
+                // (Света/Тихон 2026-09-08): слепая серверная очередь ломает контракт вежливости
+                // (стучит позже), два канала = риск двойной доставки. Один канал — один контракт.
                 var wakeGate = CideWakeChannels.Opencode.SessionGate(session!);
                 await wakeGate.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
-                    var url = await CideWakeChannels.Opencode.TryEnsureServerUrlAsync(ct).ConfigureAwait(false);
-                    if (url is not null)
+                    if (CideWakeChannels.Opencode.IsSessionBusy(session!))
                     {
-                        var http = await CideWakeChannels.Opencode
-                            .SendHttpAsync(url, session!, e.Body, ct).ConfigureAwait(false);
-                        if (CideWakeChannels.IsOk(http))
-                        {
-                            e.State = "delivered";
-                            e.DeliveredUtc = DateTimeOffset.UtcNow;
-                            e.Detail = "http";
-                            return e;
-                        }
-                        var cliFallback = await CideWakeChannels.Opencode
-                            .SendCliAsync(session!, e.Body, ct).ConfigureAwait(false);
-                        if (CideWakeChannels.IsOk(cliFallback))
-                        {
-                            e.State = "delivered";
-                            e.DeliveredUtc = DateTimeOffset.UtcNow;
-                            e.Detail = "cli (http refused)";
-                            return e;
-                        }
-                        e.State = "failed";
-                        e.Detail = $"http: {DetailOf(http)}; cli: {DetailOf(cliFallback)}";
-                        return e;
+                        e.Detail = "session_busy (re-check inside gate) — письмо ждёт завершения хода";
+                        return e; // pending — ретрай на следующем тике
                     }
-
                     var cli = await CideWakeChannels.Opencode
                         .SendCliAsync(session!, e.Body, ct).ConfigureAwait(false);
                     if (CideWakeChannels.IsOk(cli))
