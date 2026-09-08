@@ -113,6 +113,21 @@ internal static class DocumentAnchorEdit
                 throw new ArgumentException(
                     $"axes_mismatch: csharp axes on language={buf.Language}. path={buf.Path}");
 
+            // Class-B guard (2026-09-08, «фикси баг, а не вводи дисциплину»): T:-only wire is
+            // NOT a csharp edit-anchor axis (contract: M/L/S/K). Semantic resolver silently
+            // degrades to file scope when the type is outside the loaded workspace (Tests
+            // project) and narrows to the needle TEXT range — place semantics change
+            // (ate '{' on CdpStateStoreTests L11). Refuse honestly instead.
+            if (span.TextNeedle is { Length: > 0 }
+                && span.MemberKey is null
+                && span.ScopeKind is null
+                && span.LineStart is null)
+                throw new ArgumentException(
+                    "T:-only wire is not a csharp edit-anchor axis — resolver would degrade to file scope " +
+                    "and place semantics change. Use [F:;L:<line>;T:<needle>] line corridor, " +
+                    "[F:;M:;K:] semantic axes, or replace with old_string/new_string. wire: "
+                    + BracketLocate.Format(span));
+
             // L-only: line_literal full-line corridor (EditSniper parity) — not Roslyn node partial span.
             if (IsLineOnlyCorridor(span))
             {

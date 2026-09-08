@@ -1,0 +1,8 @@
+<Solution>
+    <Project Path="D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\Cdp.Deploy\Cdp.Deploy.csproj" />
+    <Project Path="D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpDeskTui\CdpDeskTui.csproj" />
+    <Project Path="D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.ArchitectureAnalyzers\CdpMcp.ArchitectureAnalyzers.csproj" />
+    <Project Path="D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj" />
+    <Project Path="D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.Tests\CdpMcp.Tests.csproj" />
+    <Project Path="D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcpBridge\CdpMcpBridge.csproj" />
+</Solution>
