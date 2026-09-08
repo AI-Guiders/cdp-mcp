@@ -97,15 +97,40 @@ internal static partial class IdeIgniteArmHost
         var session = Opt(args, "session") ?? Opt(args, "opencode_session");
         var harnessRaw = (Opt(args, "harness") ?? Opt(args, "host") ?? "").Trim().ToLowerInvariant();
         // Explicit seat: harness=cursor|opencode|citizen. Compat: session= alone ⇒ opencode.
-        var harness = string.IsNullOrWhiteSpace(harnessRaw)
-            ? (!string.IsNullOrWhiteSpace(session) ? "opencode" : "cursor")
-            : harnessRaw switch
+        // Умный дефолт (Света 2026-09-08): нет harness и нет session → резолв самой свежей
+        // живой opencode-линии из реестра линий (witdb); нет живой — честный отказ no_live_line
+        // вместо молчаливого мёртвого cursor-seat (курс «дефолт на опенкод»).
+        string? harness;
+        if (string.IsNullOrWhiteSpace(harnessRaw))
+        {
+            if (!string.IsNullOrWhiteSpace(session))
+            {
+                harness = "opencode"; // compat: session= alone ⇒ opencode
+            }
+            else
+            {
+                var seat = CideIntercomAgents.ResolveDefaultSeat();
+                if (seat is null)
+                {
+                    err = Err("arm", "no_live_line",
+                        "no explicit harness and no live opencode line in the roster (witdb) — arm refused; stamp harness= explicitly or claim a line (cdp_intercom identity)");
+                    return false;
+                }
+
+                harness = seat.Harness;
+                session = seat.Session;
+            }
+        }
+        else
+        {
+            harness = harnessRaw switch
             {
                 "oc" or "opencode" or "open-code" => "opencode",
                 "citizen" or "sierra" or "completions" => "citizen",
                 "cursor" or "composer" or "cdt" or "guest" => "cursor",
                 _ => harnessRaw
             };
+        }
         if (harness is not ("cursor" or "opencode" or "citizen"))
         {
             err = Err("arm", "bad_harness", $"harness must be cursor|opencode|citizen (got '{harness}')");
