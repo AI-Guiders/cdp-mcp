@@ -427,7 +427,7 @@ internal static class CideWakeDispatch
                 }
                 // Вежливый почтальон (Света 2026-09-07): письмо перебило генерацию Ток/Тень —
                 // ждём «exiting loop», конверт остаётся pending до завершения хода.
-                if (CideWakeChannels.Opencode.IsSessionBusy(session!))
+                if (CideWakeChannels.Opencode.Transport.IsSessionBusy(session!))
                 {
                     e.Detail = "session_busy — письмо ждёт завершения хода";
                     return e; // pending — ретрай на следующем тике
@@ -442,12 +442,12 @@ internal static class CideWakeDispatch
                 await wakeGate.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
-                    if (CideWakeChannels.Opencode.IsSessionBusy(session!))
+                    if (CideWakeChannels.Opencode.Transport.IsSessionBusy(session!))
                     {
                         e.Detail = "session_busy (re-check inside gate) — письмо ждёт завершения хода";
                         return e; // pending — ретрай на следующем тике
                     }
-                    var cli = await CideWakeChannels.Opencode
+                    var cli = await CideWakeChannels.Opencode.Transport
                         .SendCliAsync(session!, e.Body, ct).ConfigureAwait(false);
                     if (CideWakeChannels.IsOk(cli))
                     {

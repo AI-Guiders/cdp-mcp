@@ -135,6 +135,9 @@ internal static class CideWakeChannels
 
         public static SemaphoreSlim SessionGate(string session) =>
             SessionGates.GetOrAdd(session, _ => new SemaphoreSlim(1, 1));
+        /// <summary>Seam для тестов (NSubstitute): SendCli подменяется, IsSessionBusy остаётся реальным (чтение лога).</summary>
+        public static IOpencodeWakeTransport Transport { get; set; } = RealOpencodeWakeTransport.Instance;
+
 
 
         /// <summary>HTTP-доставка на opencode-сервер (prompt_async). URL решает вызывающий.</summary>

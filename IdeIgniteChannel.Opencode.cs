@@ -22,7 +22,7 @@ internal static partial class IdeIgniteChannel
 
         // CLI first — `opencode run -s <session>` inherits the local identity (auth-free).
         // HTTP (desktop sidecar / explicit server) — fallback when the CLI path fails.
-        var cli = await CideWakeChannels.Opencode
+        var cli = await CideWakeChannels.Opencode.Transport
             .SendCliAsync(session, message, ct).ConfigureAwait(false);
         if (CideWakeChannels.IsOk(cli))
             return cli;
