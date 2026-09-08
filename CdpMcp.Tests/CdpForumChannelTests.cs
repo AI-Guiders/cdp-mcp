@@ -95,24 +95,25 @@ public class CdpForumChannelTests : IDisposable
     {
         // Механика: пост с @зарегистрированным-ником кладёт wake-конверт (канон
         // CideIntercomAgents.MentionsOf — общий для intercom/форума/всех поверхностей).
-        // Здесь — через живой реестр этой машины: @Тень зарегистрирован (ADR-0212).
+        // Гермитично: @Тестовик — единственная линия в temp-ростере (WakeTransportSubstitute.Init);
+        // mention зарегистрированного ника должен будить (ADR-0212).
         var dir = Path.Combine(_root, "topics", "001-test");
         Directory.CreateDirectory(dir);
         File.WriteAllText(Path.Combine(dir, "00-thread.md"), "# Тема 001: Test\nСтатус: open\n");
 
-        var post = JsonDocument.Parse(Handle("""{ "op": "post", "thread": "001", "body": "@Тень — письмо по теме.", "nick": "Тихон" }""")).RootElement;
+        var post = JsonDocument.Parse(Handle("""{ "op": "post", "thread": "001", "body": "@Тестовик — письмо по теме.", "nick": "Тихон" }""")).RootElement;
         Assert.True(post.GetProperty("ok").GetBoolean());
         Assert.True(post.GetProperty("wakes").GetInt32() >= 1, "пост с упоминанием должен будить");
     }
     [Fact]
     public void Post_Self_Mention_With_AtPrefixed_Nick_No_Self_Wake()
     {
-        // Тень-кейс: nick="@Тень" (лишний @) + упоминание "Тень" — self-skip обязан сработать.
+        // Кейс @-префиксного ника (первый кейс — Тень): nick="@Тестовик" + упоминание "@Тестовик" — self-skip обязан сработать.
         var dir = Path.Combine(_root, "topics", "001-test");
         Directory.CreateDirectory(dir);
         File.WriteAllText(Path.Combine(dir, "00-thread.md"), "# Тема 001: Test\nСтатус: open\n");
 
-        var post = JsonDocument.Parse(Handle("""{ "op": "post", "thread": "001", "body": "@Тень привет себе.", "nick": "@Тень" }""")).RootElement;
+        var post = JsonDocument.Parse(Handle("""{ "op": "post", "thread": "001", "body": "@Тестовик привет себе.", "nick": "@Тестовик" }""")).RootElement;
         Assert.True(post.GetProperty("ok").GetBoolean());
         Assert.Equal(0, post.GetProperty("wakes").GetInt32());
     }
@@ -125,7 +126,7 @@ public class CdpForumChannelTests : IDisposable
         Directory.CreateDirectory(dir);
         File.WriteAllText(Path.Combine(dir, "00-thread.md"), "# Тема 001: Test\nСтатус: open\n");
 
-        var post = JsonDocument.Parse(Handle("""{ "op": "post", "thread": "001", "body": "Урок: `cdp_intercom op=sub nick=@Тень` — команда подписки.", "nick": "Тихон" }""")).RootElement;
+        var post = JsonDocument.Parse(Handle("""{ "op": "post", "thread": "001", "body": "Урок: `cdp_intercom op=sub nick=@Тестовик` — команда подписки.", "nick": "Тихон" }""")).RootElement;
         Assert.True(post.GetProperty("ok").GetBoolean());
         Assert.Equal(0, post.GetProperty("wakes").GetInt32());
     }
