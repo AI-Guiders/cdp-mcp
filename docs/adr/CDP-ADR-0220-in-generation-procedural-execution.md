@@ -82,6 +82,19 @@ Generation_start
    полный цикл: classify → steps → gates → report.
 4. **Ledger**: классификация, шаги, исходы gate, freeform-выходы — в turn ledger (witdb).
 
+## Harness surface (dig 2026-09-08 — OpenCode docs/plugins)
+
+Реализация — **плагин OpenCode** (без форка):
+- `message.part.updated` — classifier (два фрагмента демо — ровно это событие)
+- SDK client в плагине → step delivery (шаг = сообщение в сессию; polite-wait как у wake)
+- `tool.execute.before` — gate enforcement на уровне тулов
+- `session.idle` — конец хода: gate-проверка, advance, ledger
+- **In-gen (истинная инъекция в живую генерацию)** — experimental: класс механизма доказан
+  хуком `experimental.session.compacting` (output.context.push в LLM-вызов); сужение канала
+  с compaction на обычную генерацию — upstream-запрос/доработка форка, не MVP.
+- MVP честно: **between-step loop** (шаг = ход, gate между ходами) на plugin surface;
+  in-gen — эволюция той же петли.
+
 ## Non-goals / Risks
 
 - Не censorship-механизм (см. Ethics) — runner не изменяет вывод агента, только подаёт шаги.
