@@ -13,6 +13,9 @@ public sealed class CdpWakeEnvelopeEntity
     public string State { get; set; } = "pending";
     public string? SkippedReason { get; set; }
     public string? Detail { get; set; }
+    public string? From { get; set; }
+    public string? Harness { get; set; }
+    public string? TaskKey { get; set; }
     public string? Seat { get; set; }
     public string? Session { get; set; }
     public DateTimeOffset StampedUtc { get; set; }
@@ -45,6 +48,7 @@ public sealed class CdpQueueStateEntity
     public string Id { get; set; } = "";
     public bool Stopped { get; set; }
     public int CooldownSeconds { get; set; }
+    public bool HarnessCdt { get; set; }
     public DateTimeOffset StampedUtc { get; set; }
 }
 
@@ -83,6 +87,9 @@ public sealed class CdpStateDbContext : DbContext
         wake.Property(x => x.State).HasMaxLength(16).IsRequired();
         wake.Property(x => x.SkippedReason).HasMaxLength(64);
         wake.Property(x => x.Detail).HasMaxLength(512);
+        wake.Property(x => x.From).HasMaxLength(64);
+        wake.Property(x => x.Harness).HasMaxLength(32);
+        wake.Property(x => x.TaskKey).HasMaxLength(256);
         wake.Property(x => x.Seat).HasMaxLength(32);
         wake.Property(x => x.Session).HasMaxLength(64);
         wake.HasIndex(x => x.State);

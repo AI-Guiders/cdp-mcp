@@ -183,10 +183,38 @@ public static class CdpStateStore
             {
                 qs.Stopped = row.Stopped;
                 qs.CooldownSeconds = row.CooldownSeconds;
+                qs.HarnessCdt = row.HarnessCdt;
                 qs.StampedUtc = DateTimeOffset.UtcNow;
             }
             db.SaveChanges();
             return true;
+        });
+    }
+
+    /// <summary>Обрезать хвост завершённых конвертов данного state до keep (ADR-0213 KeepCompleted).</summary>
+    public static int PurgeWake(string stateRoot, string state, int keep)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot) || string.IsNullOrWhiteSpace(state) || keep < 0)
+            return 0;
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            var doomed = db.Wake.AsNoTracking()
+                .Where(x => x.State == state)
+                .OrderByDescending(x => x.StampedUtc)
+                .Skip(keep)
+                .Select(x => x.Id)
+                .ToList();
+            if (doomed.Count == 0)
+                return 0;
+            foreach (var id in doomed)
+            {
+                var row = db.Wake.Find(id);
+                if (row is not null)
+                    db.Wake.Remove(row);
+            }
+            db.SaveChanges();
+            return doomed.Count;
         });
     }
 

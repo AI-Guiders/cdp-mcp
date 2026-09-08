@@ -49,6 +49,9 @@ internal sealed class WitDbCdpStateStore : ICdpStateStore
     public bool SetWakeState(string id, string state, string? detail = null, string? skippedReason = null) =>
         CdpStateStore.SetWakeState(_stateRoot, id, state, detail, skippedReason);
 
+    public int PurgeWake(string state, int keep) =>
+        CdpStateStore.PurgeWake(_stateRoot, state, keep);
+
     public CdpQueueStateEntity? LoadQueueState(string id) =>
         CdpStateStore.LoadQueueState(_stateRoot, id);
 

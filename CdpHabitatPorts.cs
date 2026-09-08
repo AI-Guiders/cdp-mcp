@@ -43,6 +43,9 @@ internal interface ICdpStateStore
 
     bool SetWakeState(string id, string state, string? detail = null, string? skippedReason = null);
 
+    /// <summary>Обрезать хвост завершённых конвертов state до keep (ADR-0213 KeepCompleted).</summary>
+    int PurgeWake(string state, int keep);
+
     // --- queue state (stopped / cooldown) ---
 
     CdpQueueStateEntity? LoadQueueState(string id);

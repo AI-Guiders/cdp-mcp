@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Cdp.CdpState;
+using NSubstitute;
 using Xunit;
 
 namespace CdpMcp.Tests;
@@ -16,15 +18,34 @@ public class CdpForumChannelTests : IDisposable
         Environment.SetEnvironmentVariable("CDP_FORUM_ROOT", _root);
         // Кейс Тени (Света 2026-09-08): mention-wake в тестах не должен класть
         // реальные письма в прод-очередь — иначе Тень получает «echo» на каждый
-        // прогон тестов (класс empty user messages).
-        CideWakeDispatch.StorePathOverrideForTests = () => Path.Combine(_root, "wake-dispatch.json");
+        // прогон тестов (класс empty user messages). ADR-0219 L2a/2: свой граф —
+        // temp-root store + substitute transport; StorePathOverrideForTests снесён.
+        CideWakeDispatch.InstanceOverrideForTests = () => new CdpWakeDispatcher(
+            new IntercomAgentsRoster(),
+            OkTransport(),
+            new WitDbCdpStateStore(new FixedStateRoot(_root)),
+            stateRoot: new FixedStateRoot(_root));
     }
 
     public void Dispose()
     {
         Environment.SetEnvironmentVariable("CDP_FORUM_ROOT", null);
-        CideWakeDispatch.StorePathOverrideForTests = null;
+        CideWakeDispatch.InstanceOverrideForTests = null;
         try { Directory.Delete(_root, recursive: true); } catch { /* best effort */ }
+    }
+
+    static IOpencodeWakeTransport OkTransport()
+    {
+        var t = Substitute.For<IOpencodeWakeTransport>();
+        t.IsSessionBusy(Arg.Any<string>()).Returns(false);
+        t.SendCliAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<object>(new { ok = true, detail = "cli-test" }));
+        return t;
+    }
+
+    sealed class FixedStateRoot(string root) : IStateRootProvider
+    {
+        public string ResolveStateRoot() => root;
     }
 
     static string Handle(string json)
