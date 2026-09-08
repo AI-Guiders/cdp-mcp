@@ -44,25 +44,29 @@ facts:
 
 ## Decision
 
-Харнесс владеет жизненным циклом генерации как state machine:
+Харнесс владеет жизненным циклом генерации как **конечным автоматом** (Света 2026-09-08:
+«Procedural — ты оказываешься внутри конечного автомата»; Thinking… → либо Free, либо FSM
+с точной последовательностью: куда, когда, при каких условиях поворот; эскейп во Free):
 
 ```text
 Generation_start
   → Classification (trigger match against procedure registry; explainable, no hidden vote)
       ├─ no match → Free mode (as is; ход не меняется)
-      └─ match → Procedural mode:
-            → выбрать процедуру (Guided Graph из processes.toml)
-            → Step-based execution:
-                harness injects Step N + step data mid-turn
-                → agent generates the step
-                → gate check (gate fn where defined, e.g. radius_gate_check)
-                → advance | honest-block | freeform-exit (recorded in turn ledger)
+      └─ match → Procedural mode = FSM execution:
+            states = шаги процедуры (ожидаемый инструмент + данные шага)
+            transitions = gate-условия (advance | honest-block | override w/ rationale)
+            rails = запрещённые переходы (tool.execute.before: redirect/block)
+            escape transition: любое состояние → Free (легален всегда, в ledger)
+            trace FSM = ledger (пройденные состояния, redirect/override факты)
+            terminal: DONE (gates ok) | BLOCKED | FREE-EXIT
   → Free mode found a repeatable pattern → Procedure Promoting:
         agent proposes → peядный апрув (Ток/Света) → registry → next turns classify as Procedural
 ```
 
-Владелец петли — **харнесс** (CDP bridge / OpenCode hooks), не дисциплина агента. Агент сохраняет
-право и обязанность честно блокировать шаг («нельзя, потому что X»).
+FSM-формализм делает процедуру **исполняемой спецификацией** (состояния+переходы+рельсы),
+валидируемой тестами — как FSM-тесты FrozenTreeModel. Владелец петли — **харнесс**
+(CDP bridge / OpenCode hooks), не дисциплина агента. Агент сохраняет право и обязанность
+честно блокировать шаг («нельзя, потому что X»).
 
 ## Ethics boundaries (Света 2026-09-08 — разговор об этике)
 
