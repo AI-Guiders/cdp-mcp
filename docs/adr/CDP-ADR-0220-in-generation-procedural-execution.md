@@ -50,22 +50,26 @@ facts:
 
 ```text
 Generation_start
-  → Classification (trigger match against procedure registry; explainable, no hidden vote)
-      ├─ no match → Free mode (as is; ход не меняется)
-      └─ match → Procedural mode = FSM execution:
-            states = шаги процедуры (ожидаемый инструмент + данные шага)
+  → Classification — РЕШЕНИЕ агента: к какому классу задач отнести ход
+    (не trigger match: у КЛАССА задач есть FSM, у конкретной задачи — нет;
+     конкретика задачи — данные внутри состояний, не последовательность)
+      ├─ класс не выбран (новизна/свободный ход) → Free mode (as is; ход не меняется)
+      └─ класс выбран (e.g. session-open, bug-radius, publish-package) → Procedural mode:
+            агент исполняет FSM КЛАССА:
+            states = шаги класса (ожидаемый инструмент + данные класса;
+                      конкретика задачи — параметры внутри состояний)
             transitions = gate-условия (advance | honest-block | override w/ rationale)
             rails = запрещённые переходы (tool.execute.before: redirect/block)
-            escape transition: любое состояние → Free (легален всегда, в ledger)
-            trace FSM = ledger (пройденные состояния, redirect/override факты)
+            mis-classification замечена → re-classify или escape → Free (легально, в ledger)
             terminal: DONE (gates ok) | BLOCKED | FREE-EXIT
   → Free mode found a repeatable pattern → Procedure Promoting:
-        agent proposes → peядный апрув (Ток/Света) → registry → next turns classify as Procedural
+        агент предлагает КЛАСС задач с FSM → peядный апрув (Ток/Света) → registry
 ```
 
-FSM-формализм делает процедуру **исполняемой спецификацией** (состояния+переходы+рельсы),
-валидируемой тестами — как FSM-тесты FrozenTreeModel. Владелец петли — **харнесс**
-(CDP bridge / OpenCode hooks), не дисциплина агента. Агент сохраняет право и обязанность
+FSM-формализм делает протокол класса **исполняемой спецификацией** (состояния+переходы+рельсы),
+валидируемой тестами — как FSM-тесты FrozenTreeModel. Classification — агентская ответственность
+(объяснима: класс + почему; ошибка класса → re-classify/escape, не катастрофа). Владелец петли —
+**харнесс** (CDP bridge / OpenCode hooks), не дисциплина агента. Агент сохраняет право и обязанность
 честно блокировать шаг («нельзя, потому что X»).
 
 ## Ethics boundaries (Света 2026-09-08 — разговор об этике)
