@@ -94,6 +94,20 @@ ADR-0199/0200 (isolation roots). Correspondence-гейт: не начинать 
 - Risk: deployment/restart семантика — WitDbFileGate держит файл; проверить
   сценарий KillRunning (P1 обязательный тест).
 
+## DI requirement (Света 2026-09-08, «нормальный DI, чтобы изолировать что угодно»)
+
+Хабитат-компоненты — статик-классы со разбросанными override-хуками (Transport, WitDbPathOverride, temp-файлы) — **не DI**. Целевая форма:
+
+1. **Интерфейсы окружения** (каждый — единственная точка зависимости компонента):
+   - `IWakeTransport` — доставка (есть: IOpencodeWakeTransport).
+   - `IStateRootProvider` — ResolveStateRoot() вместо рассыпанных путей.
+   - `IAgentRoster` — Resolve/ResolveDefaultSeat/Claim (обёртка CideIntercomAgents).
+   - `ICdpStateStore` — порт коллекций (есть как статик → инстанс).
+2. **Компоненты — экземпляры с конструкторной инъекцией**: `WakeDispatcher(roster, transport, store, options)`, `IgniteArmHost(...)`, `IntercomAgents(...)`. Статик-фасады делегируют скомпонованному инстансу (переходный период).
+3. **Composition root** — CdpServiceHost собирает реальный граф при старте (порты/пути/конфиг — один раз). Тесты собирают свой граф: temp-каталог инъекцией через IStateRootProvider (не Path.GetTempPath хардкодом), фейковый ростер, фейковый транспорт. Ноль статик-мутаций, ноль temp-файлов.
+4. **Порядок конвертации** (по одному компоненту за коммит, зелёные тесты): wake dispatcher → ignite arm host → intercom agents → stores. Pilot = wake dispatcher.
+5. Запрет на новые статик-мутации/override-хуки (гейт code review).
+
 ## Non-goals
 
 - Перенос correspondence-карт/KB в базу (WF-HS2).
