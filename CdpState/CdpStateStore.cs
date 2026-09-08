@@ -158,6 +158,97 @@ public static class CdpStateStore
             return db.QueueState.Find("wake")?.Stopped ?? false;
         });
     }
+    public static CdpQueueStateEntity? LoadQueueState(string stateRoot, string id)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot) || string.IsNullOrWhiteSpace(id))
+            return null;
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            return db.QueueState.Find(id);
+        });
+    }
+
+    public static bool SetQueueState(string stateRoot, CdpQueueStateEntity row)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot) || row is null || string.IsNullOrWhiteSpace(row.Id))
+            return false;
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            var qs = db.QueueState.Find(row.Id);
+            if (qs is null)
+                db.QueueState.Add(row);
+            else
+            {
+                qs.Stopped = row.Stopped;
+                qs.CooldownSeconds = row.CooldownSeconds;
+                qs.StampedUtc = DateTimeOffset.UtcNow;
+            }
+            db.SaveChanges();
+            return true;
+        });
+    }
+
+    // ---------- P1: notification-center subscriptions ----------
+
+    public static IReadOnlyList<CdpWakeSubscriptionEntity> LoadSubscriptions(string stateRoot)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot))
+            return [];
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            return db.Subscriptions.AsNoTracking().OrderBy(x => x.Nick).ToList();
+        });
+    }
+
+    public static bool UpsertSubscription(string stateRoot, CdpWakeSubscriptionEntity sub)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot) || sub is null || string.IsNullOrWhiteSpace(sub.Id) || string.IsNullOrWhiteSpace(sub.Nick))
+            return false;
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            var row = db.Subscriptions.Find(sub.Id);
+            if (row is null)
+            {
+                db.Subscriptions.Add(sub);
+            }
+            else
+            {
+                row.Nick = sub.Nick;
+                row.EventKind = sub.EventKind;
+                row.TaskFilter = sub.TaskFilter;
+                row.CreatedUtc = sub.CreatedUtc;
+            }
+            db.SaveChanges();
+            return true;
+        });
+    }
+
+    public static int DeleteSubscriptions(string stateRoot, string? subId, string? nick, string? eventKind)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot))
+            return 0;
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            var subIdNorm = string.IsNullOrWhiteSpace(subId) ? null : subId.Trim();
+            var nickNorm = string.IsNullOrWhiteSpace(nick) ? null : nick.Trim();
+            var kindNorm = string.IsNullOrWhiteSpace(eventKind) ? null : eventKind.Trim();
+            var doomed = db.Subscriptions.Where(s =>
+                (subIdNorm != null && s.Id == subIdNorm)
+                || (nickNorm != null
+                    && s.Nick == nickNorm
+                    && (kindNorm == null || s.EventKind == kindNorm)))
+                .ToList();
+            db.Subscriptions.RemoveRange(doomed);
+            db.SaveChanges();
+            return doomed.Count;
+        });
+    }
+
 
     // ---------- P1: ignite arms (per-seat) ----------
 

@@ -10,6 +10,45 @@ namespace CdpMcp.Tests;
 /// <summary>ADR-0219 P0+P1 — cdp-state.witdb: миграция legacy JSON + KillRunning (AbandonedMutex) + транзакционность arms.</summary>
 public class CdpStateStoreTests
 {
+    [Fact]
+    public void Queue_state_upsert_and_load_roundtrip()
+    {
+        var root = TempRoot();
+
+        Assert.Null(CdpStateStore.LoadQueueState(root, "wake"));
+        Assert.True(CdpStateStore.SetQueueState(root, new CdpQueueStateEntity { Id = "wake", Stopped = true, CooldownSeconds = 42 }));
+
+        var row = CdpStateStore.LoadQueueState(root, "wake");
+        Assert.NotNull(row);
+        Assert.True(row!.Stopped);
+        Assert.Equal(42, row.CooldownSeconds);
+
+        Assert.True(CdpStateStore.SetQueueState(root, new CdpQueueStateEntity { Id = "wake", Stopped = false, CooldownSeconds = 7 }));
+        var updated = CdpStateStore.LoadQueueState(root, "wake");
+        Assert.False(updated!.Stopped);
+        Assert.Equal(7, updated.CooldownSeconds);
+    }
+
+    [Fact]
+    public void Subscriptions_upsert_load_delete_roundtrip()
+    {
+        var root = TempRoot();
+
+        Assert.True(CdpStateStore.UpsertSubscription(root, new CdpWakeSubscriptionEntity { Id = "s1", Nick = "Ток", EventKind = "build_finished" }));
+        Assert.True(CdpStateStore.UpsertSubscription(root, new CdpWakeSubscriptionEntity { Id = "s2", Nick = "Тень", EventKind = "shell_finished", TaskFilter = "di" }));
+
+        var subs = CdpStateStore.LoadSubscriptions(root);
+        Assert.Equal(2, subs.Count);
+
+        Assert.True(CdpStateStore.UpsertSubscription(root, new CdpWakeSubscriptionEntity { Id = "s1", Nick = "Ток", EventKind = "peer_ship" }));
+        Assert.Equal(2, CdpStateStore.LoadSubscriptions(root).Count);
+        Assert.Contains(CdpStateStore.LoadSubscriptions(root), s => s.Id == "s1" && s.EventKind == "peer_ship");
+
+        Assert.Equal(1, CdpStateStore.DeleteSubscriptions(root, subId: null, nick: "Тень", eventKind: "shell_finished"));
+        Assert.Single(CdpStateStore.LoadSubscriptions(root));
+        Assert.Equal(0, CdpStateStore.DeleteSubscriptions(root, subId: null, nick: "нет-такого", eventKind: null));
+    }
+
     static string TempRoot()
     {
         var root = Path.Combine(Path.GetTempPath(), "cdp-state-tests", Guid.NewGuid().ToString("N"));

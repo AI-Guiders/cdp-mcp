@@ -69,6 +69,7 @@ public sealed class CdpStateDbContext : DbContext
     public DbSet<CdpIgniteArmEntity> Arms => Set<CdpIgniteArmEntity>();
     public DbSet<CdpStoreRegistryEntity> Registry => Set<CdpStoreRegistryEntity>();
     public DbSet<CdpQueueStateEntity> QueueState => Set<CdpQueueStateEntity>();
+    public DbSet<CdpWakeSubscriptionEntity> Subscriptions => Set<CdpWakeSubscriptionEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -106,5 +107,14 @@ public sealed class CdpStateDbContext : DbContext
         qs.ToTable("queue_state");
         qs.HasKey(x => x.Id);
         qs.Property(x => x.Id).HasMaxLength(64);
-    }
+    
+        var sub = modelBuilder.Entity<CdpWakeSubscriptionEntity>();
+        sub.ToTable("wake_subscriptions");
+        sub.HasKey(x => x.Id);
+        sub.Property(x => x.Id).HasMaxLength(64);
+        sub.Property(x => x.Nick).HasMaxLength(64).IsRequired();
+        sub.Property(x => x.EventKind).HasMaxLength(32).IsRequired();
+        sub.Property(x => x.TaskFilter).HasMaxLength(256);
+        sub.HasIndex(x => x.Nick);
+}
 }
