@@ -13,11 +13,9 @@ namespace CdpMcp;
 /// </summary>
 internal static partial class IdeIgniteArmHost
 {
-    // ── Composition root (transition seam — L3 removes) ──
-    public static Func<CdpIgniteArmHost>? InstanceOverrideForTests { get; set; }
-
+    // ── Composition root ──
     static readonly Lazy<CdpIgniteArmHost> _default = new(
-        () => InstanceOverrideForTests?.Invoke() ?? new CdpIgniteArmHost(),
+        () => new CdpIgniteArmHost(),
         LazyThreadSafetyMode.ExecutionAndPublication);
 
     internal static CdpIgniteArmHost Default => _default.Value;
