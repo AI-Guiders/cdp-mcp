@@ -78,18 +78,22 @@ internal static class CideIntercomAgents
 
     /// <summary>
     /// Умный дефолт seat для армов без явного harness (Света 2026-09-08, «дефолт на опенкод»):
-    /// самая свежая живая opencode-линия из реестра (witdb, last-claim-wins per nick).
-    /// Нет живой линии — null: арм честно отказывается (no_live_line), а не молча идёт в мёртвый cursor-seat.
+    /// ЕДИНСТВЕННАЯ живая opencode-линия из реестра (witdb, last-claim-wins per nick).
+    /// Нет живой линии или их 2+ — null: арм честно отказывается (no_live_line / ambiguous_live_line),
+    /// а не молча стучит в чужую линию (Тихон 2026-09-08: в двух-линейном мире «свежайшая» ≠ вызыватель,
+    /// timer-армы уходили Ток).
     /// </summary>
-    public static AgentRow? ResolveDefaultSeat()
+    public static AgentRow? ResolveDefaultSeat(out IReadOnlyList<AgentRow> liveCandidates)
     {
-        return Roster()
+        var seats = Roster()
             .Where(a => a.Harness.Equals("opencode", StringComparison.OrdinalIgnoreCase)
                         && !string.IsNullOrWhiteSpace(a.Session))
             .GroupBy(a => a.Nick, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.Last())
             .OrderByDescending(a => a.StampedUtc)
-            .FirstOrDefault();
+            .ToArray();
+        liveCandidates = seats;
+        return seats.Length == 1 ? seats[0] : null;
     }
 
     /// <summary>ADR-0212 stage (c): parse @mentions from a body and resolve them through

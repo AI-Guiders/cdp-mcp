@@ -97,9 +97,10 @@ internal static partial class IdeIgniteArmHost
         var session = Opt(args, "session") ?? Opt(args, "opencode_session");
         var harnessRaw = (Opt(args, "harness") ?? Opt(args, "host") ?? "").Trim().ToLowerInvariant();
         // Explicit seat: harness=cursor|opencode|citizen. Compat: session= alone ⇒ opencode.
-        // Умный дефолт (Света 2026-09-08): нет harness и нет session → резолв самой свежей
-        // живой opencode-линии из реестра линий (witdb); нет живой — честный отказ no_live_line
-        // вместо молчаливого мёртвого cursor-seat (курс «дефолт на опенкод»).
+        // Умный дефолт (Света 2026-09-08): нет harness и нет session → резолв ЕДИНСТВЕННОЙ
+        // живой opencode-линии из реестра (witdb); 2+ — честный отказ ambiguous_live_line
+        // («свежайшая» ≠ вызыватель, Тихон 2026-09-08: timer-армы уходили Ток);
+        // 0 — no_live_line вместо молчаливого мёртвого cursor-seat.
         string? harness;
         if (string.IsNullOrWhiteSpace(harnessRaw))
         {
@@ -109,11 +110,14 @@ internal static partial class IdeIgniteArmHost
             }
             else
             {
-                var seat = CideIntercomAgents.ResolveDefaultSeat();
+                var seat = CideIntercomAgents.ResolveDefaultSeat(out var liveLines);
                 if (seat is null)
                 {
-                    err = Err("arm", "no_live_line",
-                        "no explicit harness and no live opencode line in the roster (witdb) — arm refused; stamp harness= explicitly or claim a line (cdp_intercom identity)");
+                    err = liveLines.Count == 0
+                        ? Err("arm", "no_live_line",
+                            "no explicit harness and no live opencode line in the roster (witdb) — arm refused; stamp harness= explicitly or claim a line (cdp_intercom identity)")
+                        : Err("arm", "ambiguous_live_line",
+                            $"multiple live opencode lines in the roster ({string.Join(", ", liveLines.Select(l => $"{l.Nick}={l.Session ?? "?"}"))}) — default seat refused: «freshest» is not necessarily the caller (2026-09-08: timer-arms were waking Tok); pass session= explicitly");
                     return false;
                 }
 
