@@ -141,7 +141,7 @@ public partial class IdeIgniteArmHostTests
         {
             ["op"] = JsonSerializer.SerializeToElement("list")
         }));
-        Assert.Contains(IdeIgniteChannel.CanonicalComposerCharge, listJson, StringComparison.Ordinal);
+        Assert.Contains(IdeIgniteChannel.CanonicalComposerCharge[..IdeIgniteArmHost.SlimMessageKeepChars], JsonSerializer.Serialize(result), StringComparison.Ordinal);
         Assert.Contains("Full-ready digest stage", listJson, StringComparison.Ordinal);
 
         IdeIgniteChannel.Handle(new Dictionary<string, JsonElement>

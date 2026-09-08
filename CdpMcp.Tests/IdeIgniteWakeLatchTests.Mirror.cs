@@ -153,6 +153,8 @@ public partial class IdeIgniteWakeLatchTests
         };
         Assert.True(IdeIgniteArmHost.IsToolWakeArmId(arm.Id));
         Assert.Null(IdeIgniteArmHost.TryDeliverHabitatWake(arm, "tool still running"));
+        // family:tool claim is global dual-seat state (20 s window) — clear for test isolation.
+        System.IO.File.Delete(IdeIgniteArmHost.SharedWakeMirrorClaimPath());
         Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "tool still running busy PF"));
         var voice = CideIntercomVoiceLatch.TryRead();
         Assert.NotNull(voice);
@@ -172,6 +174,8 @@ public partial class IdeIgniteWakeLatchTests
             Port = 9222,
             WaitSeconds = 30
         };
+        // family:tool claim is global dual-seat state (20 s window) — clear for test isolation.
+        System.IO.File.Delete(IdeIgniteArmHost.SharedWakeMirrorClaimPath());
         Assert.True(IdeIgniteArmHost.MirrorTimerWakeToIntercom(arm, "tool still running"));
         var voice = CideIntercomVoiceLatch.TryRead();
         Assert.NotNull(voice);

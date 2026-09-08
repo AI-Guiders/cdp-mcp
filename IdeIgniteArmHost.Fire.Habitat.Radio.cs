@@ -29,6 +29,13 @@ internal sealed partial class CdpIgniteArmHost
     }
 
     /// <summary>Cross-seat: same arm_id mirrored once within window (dual Autoi claim).</summary>
+    /// <summary>Global dual-seat claim file (20 s family window). Named for test isolation.</summary>
+    internal static string SharedWakeMirrorClaimPath() =>
+        Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "cdp-mcp",
+            "intercom-autoi-mirror-claim.json");
+
     internal bool TryClaimSharedWakeMirror(string armId)
     {
         if (string.IsNullOrWhiteSpace(armId))
@@ -36,10 +43,7 @@ internal sealed partial class CdpIgniteArmHost
 
         try
         {
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "cdp-mcp",
-                "intercom-autoi-mirror-claim.json");
+            var path = SharedWakeMirrorClaimPath();
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             var now = _time.GetUtcNow();
 

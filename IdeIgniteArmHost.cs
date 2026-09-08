@@ -145,6 +145,8 @@ internal static partial class IdeIgniteArmHost
     internal static bool LooksLikePeerShipSignal(string? body, string? kind, string? name) => Default.LooksLikePeerShipSignal(body, kind, name);
     internal static bool IsPrimaryAutoiSeat() => Default.IsPrimaryAutoiSeat();
     internal static bool TryClaimSharedWakeMirror(string armId) => Default.TryClaimSharedWakeMirror(armId);
+    internal static string SharedWakeMirrorClaimPath() => CdpIgniteArmHost.SharedWakeMirrorClaimPath();
+    public const int SlimMessageKeepChars = 160;
     internal static bool LooksLikeHabitatRadioPointer(string? body) => Default.LooksLikeHabitatRadioPointer(body);
     internal static string? ResolveChatFromTenantLatch(string? tenantWire, string? conversationId, string? armChat) => Default.ResolveChatFromTenantLatch(tenantWire, conversationId, armChat);
     internal static bool IsEventTriggeredArm(string? eventName) => Default.IsEventTriggeredArm(eventName);

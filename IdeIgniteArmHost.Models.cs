@@ -14,7 +14,7 @@ internal sealed partial class CdpIgniteArmHost
         task = a.Task,
         reason = a.Reason,
         charge_mode = a.ChargeMode,
-        message = a.Message.Length > 160 ? a.Message[..160] + "…" : a.Message,
+        message = a.Message.Length > SlimMessageKeepChars ? a.Message[..SlimMessageKeepChars] + "…" : a.Message,
         chat = a.Chat,
         conversation_id = a.ConversationId,
         harness = a.Harness,
