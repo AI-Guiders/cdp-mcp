@@ -117,6 +117,24 @@ FSM-формализм делает протокол класса **исполн
 - Classifier false positives: ход ошибочно ведётся по процедуре → freeform-выход дёшев и легален.
 - Free mode regression: агент не обязан предлагать promoting; шум процедур режется апрувом.
 
+## Prior art (dig 2026-09-08 — не изобретение, сборка зрелых паттернов)
+
+- **Класс A, токен-рельсы (истинный in-gen)**: Guidance/Outlines/SGLang — FSM/грамматика
+  маскирует сэмплинг; OpenAI Structured Outputs — constrained decoding в проде.
+  Ограничение: нужен доступ к сэмплеру — недостижимо на закрытых API (наш случай);
+  эволюция при своём инференсе.
+- **Класс B, харнесс-рельсы на границах вызовов — наш класс**: Claude Code hooks
+  (PreToolUse block/redirect — аналог tool.execute.before; UserPromptSubmit — инъекция
+  при старте хода); **system-reminders** — harness-led инъекция в ход, работающая в
+  проде Anthropic ежедневно; NeMo Guardrails — rails-философия индустриально;
+  LangGraph — FSM-оркестрация между LLM-вызовами (nodes/edges/conditional routing).
+- **Класс C, подсказки без enforcement** (.cursorrules, procedures-in-system-prompt) —
+  доказанно ненадёжен (наш стартовый пункт; напоминание после хода не действует в
+  момент решения).
+
+Позиция: ADR-0220 = класс B (rails-first FSM) поверх стокового OpenCode plugin surface;
+класс A — эволюция при своём инференсе/форке.
+
 ## Consequences
 
 Плюсы: результат проверяем и контролируем по шагам; контекст дозирован (шаг = нужные данные);
