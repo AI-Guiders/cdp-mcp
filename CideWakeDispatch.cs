@@ -432,35 +432,57 @@ internal static class CideWakeDispatch
                     e.Detail = "session_busy — письмо ждёт завершения хода";
                     return e; // pending — ретрай на следующем тике
                 }
-                var cli = await CideWakeChannels.Opencode
-                    .SendCliAsync(session!, e.Body, ct).ConfigureAwait(false);
-                if (CideWakeChannels.IsOk(cli))
+                // Класс-B устранение гонки run'ов (Света 2026-09-08): пустые user-ходы рождаются,
+                // когда run врезается в стартовавший ход (TOCTOU между IsSessionBusy и отправкой).
+                // Механизм: (1) per-session gate — один in-flight wake на линию, check+send атомарны;
+                // (2) HTTP prompt_async первым — очередь принадлежит opencode-серверу, run-гонка
+                // исключена по построению; CLI — фолбэк (без сервера / отказ HTTP).
+                var wakeGate = CideWakeChannels.Opencode.SessionGate(session!);
+                await wakeGate.WaitAsync(ct).ConfigureAwait(false);
+                try
                 {
-                    e.State = "delivered";
-                    e.DeliveredUtc = DateTimeOffset.UtcNow;
-                    e.Detail = "cli";
-                    return e;
-                }
-                var url = await CideWakeChannels.Opencode.TryEnsureServerUrlAsync(ct).ConfigureAwait(false);
-                if (url is null)
-                {
+                    var url = await CideWakeChannels.Opencode.TryEnsureServerUrlAsync(ct).ConfigureAwait(false);
+                    if (url is not null)
+                    {
+                        var http = await CideWakeChannels.Opencode
+                            .SendHttpAsync(url, session!, e.Body, ct).ConfigureAwait(false);
+                        if (CideWakeChannels.IsOk(http))
+                        {
+                            e.State = "delivered";
+                            e.DeliveredUtc = DateTimeOffset.UtcNow;
+                            e.Detail = "http";
+                            return e;
+                        }
+                        var cliFallback = await CideWakeChannels.Opencode
+                            .SendCliAsync(session!, e.Body, ct).ConfigureAwait(false);
+                        if (CideWakeChannels.IsOk(cliFallback))
+                        {
+                            e.State = "delivered";
+                            e.DeliveredUtc = DateTimeOffset.UtcNow;
+                            e.Detail = "cli (http refused)";
+                            return e;
+                        }
+                        e.State = "failed";
+                        e.Detail = $"http: {DetailOf(http)}; cli: {DetailOf(cliFallback)}";
+                        return e;
+                    }
+
+                    var cli = await CideWakeChannels.Opencode
+                        .SendCliAsync(session!, e.Body, ct).ConfigureAwait(false);
+                    if (CideWakeChannels.IsOk(cli))
+                    {
+                        e.State = "delivered";
+                        e.DeliveredUtc = DateTimeOffset.UtcNow;
+                        e.Detail = "cli";
+                        return e;
+                    }
                     e.Detail = $"cli_failed: {DetailOf(cli)}";
                     return e; // pending — ретрай на следующем тике
                 }
-                var http = await CideWakeChannels.Opencode
-                    .SendHttpAsync(url, session!, e.Body, ct).ConfigureAwait(false);
-                if (CideWakeChannels.IsOk(http))
+                finally
                 {
-                    e.State = "delivered";
-                    e.DeliveredUtc = DateTimeOffset.UtcNow;
-                    e.Detail = "http";
+                    wakeGate.Release();
                 }
-                else
-                {
-                    e.State = "failed";
-                    e.Detail = DetailOf(http);
-                }
-                return e;
 
             case "citizen":
                 // Stage-2: citizen-turn канал; пока честный skip, не тишина

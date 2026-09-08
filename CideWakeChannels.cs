@@ -127,6 +127,15 @@ internal static class CideWakeChannels
                 return Err("exception", ex.Message, 0);
             }
         }
+        // Класс-B устранение гонки run'ов (Света 2026-09-08): пустые user-ходы рождаются, когда
+        // два run'а конкурируют за одну сессию. Один in-flight wake на сессию — check+send
+        // атомарны внутри процесса, тики диспетча не соревнуются за одну линию.
+        static readonly System.Collections.Concurrent.ConcurrentDictionary<string, SemaphoreSlim> SessionGates =
+            new(StringComparer.Ordinal);
+
+        public static SemaphoreSlim SessionGate(string session) =>
+            SessionGates.GetOrAdd(session, _ => new SemaphoreSlim(1, 1));
+
 
         /// <summary>HTTP-доставка на opencode-сервер (prompt_async). URL решает вызывающий.</summary>
         public static async Task<object> SendHttpAsync(
