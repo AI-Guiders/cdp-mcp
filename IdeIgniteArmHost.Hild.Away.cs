@@ -1,4 +1,5 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
@@ -6,9 +7,9 @@ namespace CdpMcp;
 /// <summary>
 /// HILD away edge → escalate → seed wake (partial of <see cref="IdeIgniteArmHost"/>).
 /// </summary>
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
-    static void OnPartnerHere()
+    void OnPartnerHere()
     {
         lock (HildGate)
         {
@@ -21,13 +22,13 @@ internal static partial class IdeIgniteArmHost
         Console.Error.WriteLine("[ide_ignite] hild partner here — away latch cleared");
     }
 
-    static void OnHumanAwayEdge()
+    void OnHumanAwayEdge()
     {
         lock (HildGate)
         {
-            HildLastEdgeUtc = DateTimeOffset.UtcNow;
+            HildLastEdgeUtc = _time.GetUtcNow();
             HildEdgeCount++;
-            AwayEscalateDueUtc = DateTimeOffset.UtcNow + AwayEscalateAfter;
+            AwayEscalateDueUtc = _time.GetUtcNow() + AwayEscalateAfter;
             AwayEscalateDone = false;
         }
 
@@ -75,14 +76,14 @@ internal static partial class IdeIgniteArmHost
     /// Still away after <see cref="AwayEscalateAfter"/> → autonomy + escalate wake (reason=escalate).
     /// Autonomy latch alone is not enough — agent must receive a Composer charge if the first away turn ended.
     /// </summary>
-    static void TryEscalateAwayToAutonomy()
+    void TryEscalateAwayToAutonomy()
     {
         // Claim under one lock — TOCTOU here scheduled a storm of escalate arms (dogfood 0.5.341).
         lock (HildGate)
         {
             if (AwayEscalateDone || AwayEscalateDueUtc is null || !HildDetector.AwayLatched)
                 return;
-            if (DateTimeOffset.UtcNow < AwayEscalateDueUtc.Value)
+            if (_time.GetUtcNow() < AwayEscalateDueUtc.Value)
                 return;
             AwayEscalateDone = true;
         }
@@ -107,17 +108,17 @@ internal static partial class IdeIgniteArmHost
 
     /// <summary>Pull armed last_once work timers with DueUtc &gt; 3s forward — HILD away ≠ license for 45m park.
     /// Skip invent-only Hold arms (≤15m insurance; DIG REJECT mill ≠ park).</summary>
-    static void PullForwardLongWorkTimersOnHildAway() =>
+    void PullForwardLongWorkTimersOnHildAway() =>
         PullForwardLongWorkTimers(
             compute: TryComputeHildAwayPullForwardDue,
             lastError: "hild_away_pull_forward",
             tape: "hild_pull_forward",
             log: "hild",
-            skip: static a => IsInventOnlyHoldTask(a.Task));
+            skip: a => IsInventOnlyHoldTask(a.Task));
 
     /// <summary>Pull long last_once while TM ContinuityFlight.Fly under autonomous — agent-park police.
     /// Skip invent-only Hold arms (≤15m insurance; DIG REJECT mill ≠ park).</summary>
-    static void PullForwardLongWorkTimersOnLeafFly(string? tenantWire = null) =>
+    void PullForwardLongWorkTimersOnLeafFly(string? tenantWire = null) =>
         PullForwardLongWorkTimers(
             compute: TryComputeLeafFlyPullForwardDue,
             lastError: "leaf_fly_pull_forward",
@@ -125,7 +126,7 @@ internal static partial class IdeIgniteArmHost
             log: "leaf Fly",
             skip: a => IsInventOnlyHoldTask(a.Task) || !ArmTenantWireEquals(a, tenantWire));
 
-    static void TryPullForwardLongWorkTimersOnLeafFlyPerTenant()
+    void TryPullForwardLongWorkTimersOnLeafFlyPerTenant()
     {
         foreach (var wire in DistinctTenantWiresFromArmedWorkTimers())
         {
@@ -146,7 +147,7 @@ internal static partial class IdeIgniteArmHost
         out DateTimeOffset newDue,
         out string? note);
 
-    static void PullForwardLongWorkTimers(
+    void PullForwardLongWorkTimers(
         HabitPullForwardCompute compute,
         string lastError,
         string tape,
@@ -154,7 +155,7 @@ internal static partial class IdeIgniteArmHost
         Func<IgniteArm, bool>? skip = null)
     {
         EnsureLoaded();
-        var now = DateTimeOffset.UtcNow;
+        var now = _time.GetUtcNow();
         var pulled = 0;
         lock (Gate)
         {
@@ -194,7 +195,7 @@ internal static partial class IdeIgniteArmHost
 
     /// <summary>One-shot timer charge_mode=escalate (system wake — not superseded).
     /// Skip when invent-only Hold insurance already armed (DIG REJECT thrash; autonomy still latched above).</summary>
-    internal static object? TryScheduleHildEscalateWake()
+    internal object? TryScheduleHildEscalateWake()
     {
         EnsureLoaded();
         EnsureStarted();
@@ -207,7 +208,7 @@ internal static partial class IdeIgniteArmHost
         }
 
         var dueSec = 2;
-        var now = DateTimeOffset.UtcNow;
+        var now = _time.GetUtcNow();
 
         IgniteArm arm;
         lock (Gate)
@@ -248,7 +249,7 @@ internal static partial class IdeIgniteArmHost
         return Slim(arm);
     }
 
-    static bool HasArmedOomWake()
+    bool HasArmedOomWake()
     {
         EnsureLoaded();
         lock (Gate)
@@ -257,7 +258,7 @@ internal static partial class IdeIgniteArmHost
                 && a.Status is "armed" or "firing");
     }
 
-    internal static bool HasArmedRemountWake()
+    internal bool HasArmedRemountWake()
     {
         EnsureLoaded();
         lock (Gate)
@@ -267,7 +268,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Invent-only Hold continuity timer armed/firing — HILD away/escalate Composer wake is DIG REJECT thrash.</summary>
-    internal static bool HasArmedInventOnlyHoldInsurance()
+    internal bool HasArmedInventOnlyHoldInsurance()
     {
         EnsureLoaded();
         lock (Gate)
@@ -278,7 +279,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Any last_once timer insurance armed/firing — remount Composer wake after Recover mid SoftFL = DIG REJECT thrash.</summary>
-    internal static bool HasArmedLastOnceInsurance()
+    internal bool HasArmedLastOnceInsurance()
     {
         EnsureLoaded();
         lock (Gate)
@@ -288,14 +289,14 @@ internal static partial class IdeIgniteArmHost
                 && string.Equals(a.Event, "timer", StringComparison.OrdinalIgnoreCase));
     }
 
-    static bool HasAwaitingOperatorLatch()
+    bool HasAwaitingOperatorLatch()
     {
         EnsureLoaded();
         lock (Gate)
             return Arms.Any(a => a.Status == "awaiting");
     }
 
-    static void SeedHildWake(out string armId)
+    void SeedHildWake(out string armId)
     {
         armId = HildAwayArmId;
         try

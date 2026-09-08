@@ -1,11 +1,12 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
-    static object Slim(IgniteArm a) => new
+    object Slim(IgniteArm a) => new
     {
         id = a.Id,
         @event = a.Event,
@@ -36,7 +37,7 @@ internal static partial class IdeIgniteArmHost
         delivery_verdict = Verdict(a)
     };
 
-    static IgniteArm Clone(IgniteArm a) => new()
+    IgniteArm Clone(IgniteArm a) => new()
     {
         Id = a.Id,
         Event = a.Event,
@@ -68,7 +69,7 @@ internal static partial class IdeIgniteArmHost
         TranscriptPath = a.TranscriptPath
     };
 
-    static object Err(string op, string error, string detail) => new
+    object Err(string op, string error, string detail) => new
     {
         schema = IdeIgniteChannel.Schema,
         ok = false,
@@ -79,7 +80,7 @@ internal static partial class IdeIgniteArmHost
         tool = IdeIgniteChannel.ToolName
     };
 
-    static bool TryGetOk(object result)
+    bool TryGetOk(object result)
     {
         try
         {
@@ -89,7 +90,7 @@ internal static partial class IdeIgniteArmHost
         catch { return false; }
     }
 
-    static string? TryGetError(object? result)
+    string? TryGetError(object? result)
     {
         if (result is null) return null;
         try
@@ -100,7 +101,7 @@ internal static partial class IdeIgniteArmHost
         catch { return null; }
     }
 
-    static string? TryGetDetail(object? result)
+    string? TryGetDetail(object? result)
     {
         if (result is null) return null;
         try
@@ -116,7 +117,7 @@ internal static partial class IdeIgniteArmHost
         return null;
     }
 
-    static string? TryGetStringProp(object? result, string name)
+    string? TryGetStringProp(object? result, string name)
     {
         if (result is null || string.IsNullOrWhiteSpace(name)) return null;
         try
@@ -127,7 +128,7 @@ internal static partial class IdeIgniteArmHost
         catch { return null; }
     }
 
-    internal static string? TryArmId(object? slim)
+    internal string? TryArmId(object? slim)
     {
         if (slim is null) return null;
         try
@@ -141,10 +142,10 @@ internal static partial class IdeIgniteArmHost
         return null;
     }
 
-    static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key) =>
+    string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key) =>
         args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String ? el.GetString() : null;
 
-    static int? OptInt(IReadOnlyDictionary<string, JsonElement> args, string key)
+    int? OptInt(IReadOnlyDictionary<string, JsonElement> args, string key)
     {
         if (!args.TryGetValue(key, out var el)) return null;
         if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var n)) return n;
@@ -152,7 +153,7 @@ internal static partial class IdeIgniteArmHost
         return null;
     }
 
-    static bool? OptBool(IReadOnlyDictionary<string, JsonElement> args, string key)
+    bool? OptBool(IReadOnlyDictionary<string, JsonElement> args, string key)
     {
         if (!args.TryGetValue(key, out var el)) return null;
         if (el.ValueKind is JsonValueKind.True or JsonValueKind.False) return el.GetBoolean();
@@ -161,47 +162,6 @@ internal static partial class IdeIgniteArmHost
         return null;
     }
 
-    internal sealed class IgniteArm
-    {
-        public string Id { get; set; } = "";
-        public string Event { get; set; } = "timer";
-        public string Message { get; set; } = "";
-        /// <summary>minimal (default): fire canonical wake charge; custom/expand/legacy: stored message templates (discouraged).</summary>
-        public string ChargeMode { get; set; } = "minimal";
-        public string? Task { get; set; }
-        /// <summary>Wake provenance for agent (e.g. oom) — not TM body.</summary>
-        public string? Reason { get; set; }
-        public string? Chat { get; set; }
-        /// <summary>ADR-0200: MCP conversation id stamped at arm — fire-time latch lookup.</summary>
-        public string? ConversationId { get; set; }
-        public int Port { get; set; } = IdeIgniteChannel.DefaultPort;
-        public bool Once { get; set; } = true;
-        /// <summary>Await-operator latch: after successful fire → status=awaiting; block repeat last_once arms.</summary>
-        public bool LastOnce { get; set; }
-        public bool OkOnly { get; set; } = true;
-        public int SettleSeconds { get; set; } = 8;
-        public int WaitSeconds { get; set; } = 90;
-        public DateTimeOffset? DueUtc { get; set; }
-        public string? InRaw { get; set; }
-        /// <summary>ADR-0200: tenant wire stamped at arm time — fire enters slice for TM/wake/flight.</summary>
-        public string? TenantWire { get; set; }
-        /// <summary>
-        /// Wake seat: cursor (CDT Composer, default) | opencode (sidecar HTTP) | citizen (Completions).
-        /// Agent stamps harness= at arm — no env/heuristic routing. session= required when harness=opencode.
-        /// </summary>
-        public string Harness { get; set; } = "cursor";
-        /// <summary>OpenCode session id when Harness=opencode (ADR-0205).</summary>
-        public string? OpencodeSession { get; set; }
-        public string Status { get; set; } = "armed";
-        public string? LastError { get; set; }
-        public DateTimeOffset CreatedUtc { get; set; }
-        public DateTimeOffset? FiredUtc { get; set; }
-        public DateTimeOffset? SendInvokedUtc { get; set; }
-        public bool? SendOk { get; set; }
-        public string? SendError { get; set; }
-        public DateTimeOffset? TranscriptObservedUtc { get; set; }
-        public string? TranscriptPath { get; set; }
-    }
 
     sealed class ArmStoreDoc
     {

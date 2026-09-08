@@ -1,10 +1,11 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Globalization;
 
 namespace CdpMcp;
 
 /// <summary>Charge-mode predicates + template expand (≤ADX soft-warn peel).</summary>
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     static bool IsCustomChargeMode(string? mode)
     {
@@ -34,7 +35,7 @@ internal static partial class IdeIgniteArmHost
             HildEscalateChargeMode,
             StringComparison.OrdinalIgnoreCase);
 
-    static string Expand(string template, IgniteArm arm, bool ok, string? pulse, string? detail)
+    static string Expand(string template, IgniteArm arm, bool ok, string? pulse, string? detail, DateTimeOffset now)
     {
         var t = template
             .Replace("{event}", IdeIgniteChannel.EventTokenForCharge(arm.Event), StringComparison.OrdinalIgnoreCase)
@@ -43,7 +44,7 @@ internal static partial class IdeIgniteArmHost
             .Replace("{pulse}", pulse ?? "", StringComparison.OrdinalIgnoreCase)
             .Replace("{detail}", detail ?? "", StringComparison.OrdinalIgnoreCase)
             .Replace("{id}", arm.Id, StringComparison.OrdinalIgnoreCase)
-            .Replace("{when}", DateTimeOffset.UtcNow.ToString("u", CultureInfo.InvariantCulture),
+            .Replace("{when}", now.ToString("u", CultureInfo.InvariantCulture),
                 StringComparison.OrdinalIgnoreCase);
         return t;
     }

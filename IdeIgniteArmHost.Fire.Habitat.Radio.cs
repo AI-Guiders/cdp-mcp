@@ -1,4 +1,5 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
@@ -7,20 +8,20 @@ namespace CdpMcp;
 /// Autoi → Glass Intercom = Radio face (I6), not Composer charge wall.
 /// Dual-seat claim: live+debug both fire → one Intercom/FDR spine.
 /// </summary>
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     const int HabitatIntercomRadioKeepChars = 240;
 
-    static bool? PrimaryAutoiSeatOverride;
+    bool? PrimaryAutoiSeatOverride;
 
     /// <summary>Tests: force primary/non-primary without install root. null = derive from <see cref="Seat"/>.</summary>
-    internal static void BindPrimaryAutoiSeat(bool? primary) => PrimaryAutoiSeatOverride = primary;
+    internal void BindPrimaryAutoiSeat(bool? primary) => PrimaryAutoiSeatOverride = primary;
 
     /// <summary>
     /// Live <c>cdp</c> owns Glass Intercom Autoi voice + prefer_autonomous FDR.
     /// <c>cdp-debug</c> twin doubles wake_habitat* tape (lived ~174/h).
     /// </summary>
-    internal static bool IsPrimaryAutoiSeat()
+    internal bool IsPrimaryAutoiSeat()
     {
         if (PrimaryAutoiSeatOverride is { } o)
             return o;
@@ -28,7 +29,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Cross-seat: same arm_id mirrored once within window (dual Autoi claim).</summary>
-    internal static bool TryClaimSharedWakeMirror(string armId)
+    internal bool TryClaimSharedWakeMirror(string armId)
     {
         if (string.IsNullOrWhiteSpace(armId))
             return true;
@@ -40,7 +41,7 @@ internal static partial class IdeIgniteArmHost
                 "cdp-mcp",
                 "intercom-autoi-mirror-claim.json");
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            var now = DateTimeOffset.UtcNow;
+            var now = _time.GetUtcNow();
 
             if (File.Exists(path))
             {
@@ -70,7 +71,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Normalize dual-seat system wakes onto one claim key (remount-* ids differ per seat).</summary>
-    internal static string MirrorClaimKey(IgniteArm arm)
+    internal string MirrorClaimKey(IgniteArm arm)
     {
         if (IsRemountWakeArm(arm))
             return "family:remount";
@@ -92,7 +93,7 @@ internal static partial class IdeIgniteArmHost
     /// <summary>
     /// Composer charge → Radio pointer for Glass. Short test charges pass through unchanged.
     /// </summary>
-    internal static string FormatHabitatIntercomRadio(IgniteArm? arm, string charge)
+    internal string FormatHabitatIntercomRadio(IgniteArm? arm, string charge)
     {
         var t = (charge ?? "").Trim();
         if (t.Length == 0)
@@ -111,14 +112,14 @@ internal static partial class IdeIgniteArmHost
         return $"Autoi · {tag}\n→ PFD.NEXT\ndelta → Plan · {leaf}";
     }
 
-    static bool LooksLikeComposerChargeWall(string t) =>
+    bool LooksLikeComposerChargeWall(string t) =>
         t.Contains("operator_priority", StringComparison.OrdinalIgnoreCase)
         || t.Contains("Habitat=CDP", StringComparison.Ordinal)
         || t.Contains("thread amnesia", StringComparison.OrdinalIgnoreCase)
         || t.Contains("Human-face axe", StringComparison.OrdinalIgnoreCase)
         || t.Contains('\n') && t.Length > 120;
 
-    static string ClassifyWakeRadioTag(IgniteArm? arm)
+    string ClassifyWakeRadioTag(IgniteArm? arm)
     {
         if (arm is null)
             return "wake";
@@ -139,7 +140,7 @@ internal static partial class IdeIgniteArmHost
         return "wake";
     }
 
-    static string FirstNonEmptyLine(string t)
+    string FirstNonEmptyLine(string t)
     {
         foreach (var raw in t.Replace("\r\n", "\n").Split('\n'))
         {
@@ -151,7 +152,7 @@ internal static partial class IdeIgniteArmHost
         return "";
     }
 
-    static string OneLineRadio(string s, int max)
+    string OneLineRadio(string s, int max)
     {
         var t = s.Replace('\r', ' ').Replace('\n', ' ').Trim();
         while (t.Contains("  ", StringComparison.Ordinal))

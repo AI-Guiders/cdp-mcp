@@ -1,4 +1,5 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
@@ -8,7 +9,7 @@ namespace CdpMcp;
 
 /// First away = partner status; still away after <see cref="AwayEscalateAfter"/> → autonomy.
 /// </summary>
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     public const string HildArmIdPrefix = "hild-away-";
     /// <summary>Stable first-away wake id — replaces prior GUID storm under zombie remounts.</summary>
@@ -22,26 +23,26 @@ internal static partial class IdeIgniteArmHost
     public const string HildEscalateArmTask = "hild-away-escalate";
     public const string HildStoreSchema = "hild/v0";
 
-    static readonly TimeSpan HildPollInterval = TimeSpan.FromSeconds(1);
+    readonly TimeSpan HildPollInterval = TimeSpan.FromSeconds(1);
     /// <summary>First away = status; still away after this → autonomy (partner likely gone long).</summary>
-    internal static TimeSpan AwayEscalateAfter { get; set; } = TimeSpan.FromSeconds(60);
+    internal TimeSpan AwayEscalateAfter { get; set; } = TimeSpan.FromSeconds(60);
 
-    static readonly IdeHildDetector HildDetector = new();
-    static readonly object HildGate = new();
+    readonly IdeHildDetector HildDetector = new();
+    readonly object HildGate = new();
 
-    static CancellationTokenSource? HildCts;
-    static int HildPort = IdeIgniteChannel.DefaultPort;
-    static bool HildArmed = true;
-    static bool? HildOverride;
-    static bool HildLoaded;
-    static IdeHildDetector.Status HildLastStatus = IdeHildDetector.Status.Idle;
-    static DateTimeOffset? HildLastEdgeUtc;
-    static string? HildLastSampleKind;
-    static int HildEdgeCount;
-    static DateTimeOffset? AwayEscalateDueUtc;
-    static bool AwayEscalateDone;
+    CancellationTokenSource? HildCts;
+    int HildPort = IdeIgniteChannel.DefaultPort;
+    bool HildArmed = true;
+    bool? HildOverride;
+    bool HildLoaded;
+    IdeHildDetector.Status HildLastStatus = IdeHildDetector.Status.Idle;
+    DateTimeOffset? HildLastEdgeUtc;
+    string? HildLastSampleKind;
+    int HildEdgeCount;
+    DateTimeOffset? AwayEscalateDueUtc;
+    bool AwayEscalateDone;
 
-    public static string HildStorePath { get; } = Path.Combine(
+    public string HildStorePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "cdp-mcp",
         Seat switch
@@ -52,12 +53,12 @@ internal static partial class IdeIgniteArmHost
         });
 
     /// <summary>Tests: force armed without disk.</summary>
-    internal static void BindHild(bool? armed) => HildOverride = armed;
+    internal void BindHild(bool? armed) => HildOverride = armed;
 
     /// <summary>Test hook — detector instance.</summary>
-    internal static IdeHildDetector HildDetectorForTests => HildDetector;
+    internal IdeHildDetector HildDetectorForTests => HildDetector;
 
-    public static bool IsHildArmed()
+    public bool IsHildArmed()
     {
         if (HildOverride is { } o)
             return o;
@@ -66,9 +67,9 @@ internal static partial class IdeIgniteArmHost
             return HildArmed;
     }
 
-    static int HildLoopStarted;
+    int HildLoopStarted;
 
-    static void EnsureHildStarted()
+    void EnsureHildStarted()
     {
         EnsureHildLoaded();
         if (Interlocked.Exchange(ref HildLoopStarted, 1) != 0)
@@ -80,12 +81,12 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Called from <see cref="EnsureStarted"/>.</summary>
-    internal static void StartHildWatch()
+    internal void StartHildWatch()
     {
         EnsureHildStarted();
     }
 
-    public static object Hild(IReadOnlyDictionary<string, JsonElement>? args = null)
+    public object Hild(IReadOnlyDictionary<string, JsonElement>? args = null)
     {
         args ??= new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
         var opHint = (Opt(args, "mode") ?? Opt(args, "state") ?? "").Trim().ToLowerInvariant();
@@ -100,7 +101,7 @@ internal static partial class IdeIgniteArmHost
         return HildStatusPayload();
     }
 
-    public static object SetHild(bool armed, string? why = null)
+    public object SetHild(bool armed, string? why = null)
     {
         EnsureHildLoaded();
         lock (HildGate)
@@ -118,7 +119,7 @@ internal static partial class IdeIgniteArmHost
         return HildStatusPayload(why);
     }
 
-    public static object HildStatusPayload(string? why = null)
+    public object HildStatusPayload(string? why = null)
     {
         EnsureHildLoaded();
         lock (HildGate)
@@ -147,7 +148,7 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static void EnsureHildLoaded()
+    void EnsureHildLoaded()
     {
         if (HildLoaded)
             return;
@@ -175,7 +176,7 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static void PersistHildUnlocked()
+    void PersistHildUnlocked()
     {
         try
         {
@@ -184,7 +185,7 @@ internal static partial class IdeIgniteArmHost
             {
                 schema = HildStoreSchema,
                 armed = HildArmed,
-                updated_utc = DateTimeOffset.UtcNow
+                updated_utc = _time.GetUtcNow()
             }, JsonOpts);
             File.WriteAllText(HildStorePath, json);
         }
@@ -194,7 +195,7 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static async Task HildLoopAsync(CancellationToken ct)
+    async Task HildLoopAsync(CancellationToken ct)
     {
         using var timer = new PeriodicTimer(HildPollInterval);
         while (await timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
@@ -217,7 +218,7 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static async Task HildTickOnceAsync(CancellationToken ct)
+    async Task HildTickOnceAsync(CancellationToken ct)
     {
         var sample = await IdeIgniteChannel.TrySampleComposerAsync(HildPort, ct).ConfigureAwait(false);
         if (!sample.Ok)
@@ -235,7 +236,7 @@ internal static partial class IdeIgniteArmHost
             tick = HildDetector.Tick(new IdeHildDetector.Sample(
                 sample.Kind,
                 sample.Text,
-                DateTimeOffset.UtcNow));
+                _time.GetUtcNow()));
             HildLastStatus = tick.Status;
             latchedAfter = HildDetector.AwayLatched;
         }

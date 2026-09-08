@@ -1,4 +1,5 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
@@ -7,11 +8,11 @@ namespace CdpMcp;
 /// Honest Cursor-bridge delivery evidence (temporary adapter, not harness SSOT).
 /// States: armed → firing → send_ok|send_fail → transcript_observed|not_observed.
 /// </summary>
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     public const string DeliveryNeedle = IdeIgniteChannel.CanonicalComposerCharge;
 
-    public static object Delivery(IReadOnlyDictionary<string, JsonElement> args)
+    public object Delivery(IReadOnlyDictionary<string, JsonElement> args)
     {
         EnsureLoaded();
         var arm = ResolveDeliveryArm(args);
@@ -50,7 +51,7 @@ internal static partial class IdeIgniteArmHost
         };
     }
 
-    public static object Watchdog(IReadOnlyDictionary<string, JsonElement> args)
+    public object Watchdog(IReadOnlyDictionary<string, JsonElement> args)
     {
         EnsureLoaded();
         var arm = ResolveDeliveryArm(args);
@@ -95,7 +96,7 @@ internal static partial class IdeIgniteArmHost
         };
     }
 
-    internal static string Verdict(IgniteArm a)
+    internal string Verdict(IgniteArm a)
     {
         if (a.TranscriptObservedUtc is not null)
             return "transcript_observed";
@@ -112,7 +113,7 @@ internal static partial class IdeIgniteArmHost
         return a.Status;
     }
 
-    static object DeliveryDto(IgniteArm a) => new
+    object DeliveryDto(IgniteArm a) => new
     {
         armed_utc = a.CreatedUtc,
         firing_utc = a.Status == "firing" ? a.FiredUtc : null,
@@ -125,7 +126,7 @@ internal static partial class IdeIgniteArmHost
         verdict = Verdict(a)
     };
 
-    static string HintFor(string verdict) => verdict switch
+    string HintFor(string verdict) => verdict switch
     {
         "transcript_observed" => "Bridge delivery confirmed in transcript — still temporary Cursor adapter.",
         "not_observed" => "CDT send reported ok (or awaiting) but transcript needle not seen — run op=watchdog.",
@@ -135,7 +136,7 @@ internal static partial class IdeIgniteArmHost
         _ => "op=delivery|watchdog — honest bridge diagnostics."
     };
 
-    static IgniteArm? ResolveDeliveryArm(IReadOnlyDictionary<string, JsonElement> args)
+    IgniteArm? ResolveDeliveryArm(IReadOnlyDictionary<string, JsonElement> args)
     {
         lock (Gate)
         {
@@ -154,7 +155,7 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static (bool Observed, string? Path, int Scanned) TryObserveTranscript(
+    (bool Observed, string? Path, int Scanned) TryObserveTranscript(
         IgniteArm armLiveOrClone,
         IReadOnlyDictionary<string, JsonElement> args)
     {
@@ -181,7 +182,7 @@ internal static partial class IdeIgniteArmHost
                 x.Id.Equals(live.Id, StringComparison.OrdinalIgnoreCase));
             if (a is not null)
             {
-                a.TranscriptObservedUtc = DateTimeOffset.UtcNow;
+                a.TranscriptObservedUtc = _time.GetUtcNow();
                 a.TranscriptPath = hit.Path;
                 PersistUnlocked();
                 live.TranscriptObservedUtc = a.TranscriptObservedUtc;
@@ -193,7 +194,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Scan Cursor agent-transcripts for canonical wake charge after <paramref name="afterUtc"/>.</summary>
-    internal static (bool Observed, string? Path, int Scanned) ScanTranscriptsForNeedle(
+    internal (bool Observed, string? Path, int Scanned) ScanTranscriptsForNeedle(
         string needle,
         DateTimeOffset afterUtc,
         string? rootOverride,
@@ -238,13 +239,13 @@ internal static partial class IdeIgniteArmHost
         return (false, null, scanned);
     }
 
-    static void RecordSendEvidence(string id, bool ok, string? error)
+    void RecordSendEvidence(string id, bool ok, string? error)
     {
         lock (Gate)
         {
             var a = Arms.FirstOrDefault(x => x.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
             if (a is null) return;
-            a.SendInvokedUtc ??= DateTimeOffset.UtcNow;
+            a.SendInvokedUtc ??= _time.GetUtcNow();
             a.SendOk = ok;
             a.SendError = ok ? null : error;
             PersistUnlocked();

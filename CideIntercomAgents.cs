@@ -13,8 +13,12 @@ internal static class CideIntercomAgents
 
     static readonly object Gate = new();
 
+    /// <summary>Seam для тестов (ADR-0219): подмена пути ростера делает тесты герметичными.</summary>
+    public static Func<string>? WitDbPathOverride { get; set; }
+
     public static string WitDbPath =>
-        Path.Combine(CideIntercomVoiceLatch.StateRoot, "intercom-agents.witdb");
+        WitDbPathOverride?.Invoke()
+        ?? Path.Combine(CideIntercomVoiceLatch.StateRoot, "intercom-agents.witdb");
 
     public sealed record AgentRow(
         string Nick,

@@ -1,17 +1,18 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
-    public static IReadOnlyList<IgniteArm> Snapshot()
+    public IReadOnlyList<IgniteArm> Snapshot()
     {
         EnsureLoaded();
         lock (Gate) return Arms.Select(Clone).ToList();
     }
 
-    public static object SceneSlice()
+    public object SceneSlice()
     {
         var list = Snapshot().Where(a => a.Status is "armed" or "firing" or "error" or "awaiting" or ProviderBlockedStatus).ToList();
         return new
@@ -22,7 +23,7 @@ internal static partial class IdeIgniteArmHost
         };
     }
 
-    public static object Arm(IReadOnlyDictionary<string, JsonElement> args)
+    public object Arm(IReadOnlyDictionary<string, JsonElement> args)
     {
         EnsureStarted();
         if (!TryCreateArm(args, out var arm, out var err))
@@ -58,11 +59,11 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Legacy alias — prefer <see cref="AwaitPartner"/>.</summary>
-    public static object AwaitOperator(IReadOnlyDictionary<string, JsonElement>? args = null) =>
+    public object AwaitOperator(IReadOnlyDictionary<string, JsonElement>? args = null) =>
         AwaitPartner(args, halt: false);
 
     /// <summary>Explicit epic close: latch awaiting partner without CDT fire. Soft invent-ban (keeps system wakes).</summary>
-    public static object AwaitPartner(IReadOnlyDictionary<string, JsonElement>? args = null, bool halt = false)
+    public object AwaitPartner(IReadOnlyDictionary<string, JsonElement>? args = null, bool halt = false)
     {
         EnsureStarted();
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
@@ -89,7 +90,7 @@ internal static partial class IdeIgniteArmHost
             WaitSeconds = 90,
             DueUtc = null,
             Status = "awaiting",
-            CreatedUtc = DateTimeOffset.UtcNow
+            CreatedUtc = _time.GetUtcNow()
         };
 
         return LatchPartnerAwait(arm, ProbeFlight(), halt);
@@ -99,7 +100,7 @@ internal static partial class IdeIgniteArmHost
     /// Conscious stop-world until partner: autonomous off + HILD off + clear all arms (no reseed) + await-partner latch.
     /// Distinct from <c>disarm all</c> (keeps autonomy means) and soft <c>await_partner</c> (epic invent-ban).
     /// </summary>
-    public static object Halt(IReadOnlyDictionary<string, JsonElement>? args = null)
+    public object Halt(IReadOnlyDictionary<string, JsonElement>? args = null)
     {
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var why = Opt(args, "why") ?? "op=halt";
@@ -122,7 +123,7 @@ internal static partial class IdeIgniteArmHost
         return AwaitPartner(args, halt: true);
     }
 
-    static object LatchPartnerAwait(IgniteArm arm, ContinuityFlight flight, bool halt)
+    object LatchPartnerAwait(IgniteArm arm, ContinuityFlight flight, bool halt)
     {
         var reason = EpicClosedReason(flight);
         if (reason == "fly")
@@ -198,7 +199,7 @@ internal static partial class IdeIgniteArmHost
         };
     }
 
-    static object SceneSliceUnlocked()
+    object SceneSliceUnlocked()
     {
         var list = Arms.Where(a => a.Status is "armed" or "firing" or "error" or "awaiting" or ProviderBlockedStatus).Select(Clone).ToList();
         return new

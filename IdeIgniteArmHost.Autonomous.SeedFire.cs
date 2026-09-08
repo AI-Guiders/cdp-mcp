@@ -1,4 +1,5 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 
 namespace CdpMcp;
 
@@ -7,19 +8,19 @@ namespace CdpMcp;
 /// Fire-time recheck: if an incomplete TM leaf already landed mid-window,
 /// do not Guest-Autoi CDT inject "seed next leaf" — redirect to <c>leaf-wake</c>.
 /// </summary>
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
-    static Func<string?>? IncompleteLeafTitleProbe;
+    Func<string?>? IncompleteLeafTitleProbe;
 
     /// <summary>Tests: force incomplete-leaf title without WitDB. null = live peek.</summary>
-    internal static void BindIncompleteLeafTitleProbe(Func<string?>? probe) =>
+    internal void BindIncompleteLeafTitleProbe(Func<string?>? probe) =>
         IncompleteLeafTitleProbe = probe;
 
     /// <summary>
     /// Before habitat/CDT delivery of autonomous seed: suppress when board already has work.
     /// Returns true when fire must stop (seed removed; leaf-wake may have been armed).
     /// </summary>
-    internal static bool TrySuppressAutonomousSeedBeforeDelivery(IgniteArm arm)
+    internal bool TrySuppressAutonomousSeedBeforeDelivery(IgniteArm arm)
     {
         if (!arm.Id.Equals(AutonomousSeedArmId, StringComparison.OrdinalIgnoreCase))
             return false;
@@ -38,7 +39,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Test/helper: suppress live seed arm if present.</summary>
-    internal static bool TrySuppressLiveAutonomousSeedBeforeDelivery()
+    internal bool TrySuppressLiveAutonomousSeedBeforeDelivery()
     {
         IgniteArm? seed;
         lock (Gate)
@@ -50,7 +51,7 @@ internal static partial class IdeIgniteArmHost
         return seed is not null && TrySuppressAutonomousSeedBeforeDelivery(seed);
     }
 
-    static bool IsLeafWakeLive()
+    bool IsLeafWakeLive()
     {
         lock (Gate)
         {
@@ -60,7 +61,7 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static bool TryResolveIncompleteLeafTitle(out string title)
+    bool TryResolveIncompleteLeafTitle(out string title)
     {
         title = "";
         try
@@ -100,7 +101,7 @@ internal static partial class IdeIgniteArmHost
     /// Leaf id for autonomous seed→leaf-wake redirect: ActiveStageId incomplete leaf first,
     /// else <see cref="IntentWorkspaceStore.FindFirstIncompleteLeaf"/>.
     /// </summary>
-    internal static Guid? ResolveWakeLeafId(
+    internal Guid? ResolveWakeLeafId(
         IntentWorkspace.IntentWorkspaceStore store,
         IntentWorkspace.IntentWorkspaceState state)
     {

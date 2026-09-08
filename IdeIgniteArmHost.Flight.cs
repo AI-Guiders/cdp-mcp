@@ -1,4 +1,5 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 
 namespace CdpMcp;
 
@@ -15,20 +16,20 @@ internal enum ContinuityFlight
     EpicClosedNoAct
 }
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
-    static Func<ContinuityFlight>? FlightProbe;
+    Func<ContinuityFlight>? FlightProbe;
 
     /// <summary>Bind TM-aware flight probe (handoff / no-act plateau).</summary>
-    public static void BindFlightProbe(Func<ContinuityFlight> probe) => FlightProbe = probe;
+    public void BindFlightProbe(Func<ContinuityFlight> probe) => FlightProbe = probe;
 
-    static Action? CitizenFocusLaneBind;
+    Action? CitizenFocusLaneBind;
 
     /// <summary>prefer_citizen wake → switch TM FocusLane to Face Who (tip≠Face).</summary>
-    public static void BindCitizenFocusLane(Action bind) => CitizenFocusLaneBind = bind;
+    public void BindCitizenFocusLane(Action bind) => CitizenFocusLaneBind = bind;
 
     /// <summary>Best-effort: Face lane on citizen Autoi consume. Never throws into fire path.</summary>
-    internal static void TryApplyCitizenFocusLane()
+    internal void TryApplyCitizenFocusLane()
     {
         try
         {
@@ -42,17 +43,17 @@ internal static partial class IdeIgniteArmHost
 
 
     /// <summary>Test/compat: true = fly, false = no active task.</summary>
-    public static void BindTaskFocus(Func<bool> probe) =>
+    public void BindTaskFocus(Func<bool> probe) =>
         FlightProbe = () => probe() ? ContinuityFlight.Fly : ContinuityFlight.NoActiveTask;
 
-    internal static ContinuityFlight ProbeFlight() => FlightProbe?.Invoke() ?? ContinuityFlight.Fly;
+    internal ContinuityFlight ProbeFlight() => FlightProbe?.Invoke() ?? ContinuityFlight.Fly;
 
-    internal static bool HasActiveTaskFocus() => ProbeFlight() != ContinuityFlight.NoActiveTask;
+    internal bool HasActiveTaskFocus() => ProbeFlight() != ContinuityFlight.NoActiveTask;
 
-    internal static bool IsEpicClosed(ContinuityFlight flight) =>
+    internal bool IsEpicClosed(ContinuityFlight flight) =>
         flight is ContinuityFlight.EpicClosedHandoff or ContinuityFlight.EpicClosedNoAct;
 
-    internal static string EpicClosedReason(ContinuityFlight flight) => flight switch
+    internal string EpicClosedReason(ContinuityFlight flight) => flight switch
     {
         ContinuityFlight.EpicClosedHandoff => "focus_handoff",
         ContinuityFlight.EpicClosedNoAct => "no_act_tasks",

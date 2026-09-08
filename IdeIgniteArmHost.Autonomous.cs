@@ -1,4 +1,5 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
@@ -8,17 +9,17 @@ namespace CdpMcp;
 /// Default armed=true (contract: ~99% without operator). Explicit await_operator still works.
 /// Persist: %LocalAppData%/cdp-mcp/autonomous-continuity-{seat}.json
 /// </summary>
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     public const string AutonomousSeedArmId = "autonomous-seed-wake";
     public const string AutonomousStoreSchema = "autonomous_continuity/v1";
 
-    static readonly object AutonomousGate = new();
-    static bool AutonomousLoaded;
-    static bool AutonomousArmed = true;
-    static bool? AutonomousOverride;
+    readonly object AutonomousGate = new();
+    bool AutonomousLoaded;
+    bool AutonomousArmed = true;
+    bool? AutonomousOverride;
 
-    public static string AutonomousStorePath { get; } = Path.Combine(
+    public string AutonomousStorePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "cdp-mcp",
         Seat switch
@@ -29,9 +30,9 @@ internal static partial class IdeIgniteArmHost
         });
 
     /// <summary>Tests: force armed state without touching disk. null = use store.</summary>
-    internal static void BindAutonomous(bool? armed) => AutonomousOverride = armed;
+    internal void BindAutonomous(bool? armed) => AutonomousOverride = armed;
 
-    public static bool IsAutonomousArmed()
+    public bool IsAutonomousArmed()
     {
         if (AutonomousOverride is { } o)
             return o;
@@ -40,7 +41,7 @@ internal static partial class IdeIgniteArmHost
             return AutonomousArmed;
     }
 
-    public static object Autonomous(IReadOnlyDictionary<string, JsonElement>? args = null)
+    public object Autonomous(IReadOnlyDictionary<string, JsonElement>? args = null)
     {
         args ??= new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
         var opHint = (Opt(args, "mode") ?? Opt(args, "state") ?? "").Trim().ToLowerInvariant();
@@ -55,7 +56,7 @@ internal static partial class IdeIgniteArmHost
         return AutonomousStatusPayload();
     }
 
-    public static object SetAutonomous(bool armed, string? why = null)
+    public object SetAutonomous(bool armed, string? why = null)
     {
         EnsureAutonomousLoaded();
         lock (AutonomousGate)
@@ -71,7 +72,7 @@ internal static partial class IdeIgniteArmHost
     /// <summary>
     /// Last leaf done under autonomous: do not latch await_operator — re-arm seed wake.
     /// </summary>
-    public static object AutonomousContinue(string reason)
+    public object AutonomousContinue(string reason)
     {
         EnsureStarted();
         // Drop awaiting latch if any — auto-plateau must not stick while autonomous.
@@ -113,7 +114,7 @@ internal static partial class IdeIgniteArmHost
         };
     }
 
-    static object AutonomousStatusPayload(string? why = null)
+    object AutonomousStatusPayload(string? why = null)
     {
         var armed = IsAutonomousArmed();
         return new
@@ -139,7 +140,7 @@ internal static partial class IdeIgniteArmHost
         };
     }
 
-    static void EnsureAutonomousLoaded()
+    void EnsureAutonomousLoaded()
     {
         lock (AutonomousGate)
         {
@@ -165,14 +166,14 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static void PersistAutonomousUnlocked()
+    void PersistAutonomousUnlocked()
     {
         Directory.CreateDirectory(Path.GetDirectoryName(AutonomousStorePath)!);
         var doc = new AutonomousStoreDoc
         {
             Schema = AutonomousStoreSchema,
             Armed = AutonomousArmed,
-            SavedUtc = DateTimeOffset.UtcNow
+            SavedUtc = _time.GetUtcNow()
         };
         var tmp = AutonomousStorePath + ".tmp";
         File.WriteAllText(tmp, JsonSerializer.Serialize(doc, JsonOpts));

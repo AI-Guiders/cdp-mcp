@@ -1,8 +1,9 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     const int HabitatIntercomChargeCap = 2000;
 
@@ -12,17 +13,17 @@ internal static partial class IdeIgniteArmHost
     /// Intercom voice cannon (intercom-pf-*) must stay Composer/CDT: external guest @Kir/@guest
     /// must not silent-steal to habitat when Sierra·PF is duplex busy (lived 2026-08-07).
     /// </summary>
-    internal static bool MayPreferHabitatOverComposer(IgniteArm arm) =>
+    internal bool MayPreferHabitatOverComposer(IgniteArm arm) =>
         string.Equals(arm.Event, "timer", StringComparison.OrdinalIgnoreCase)
         && !IsSystemWakeArmId(arm.Id)
         && !IsIntercomVoiceCannonArmId(arm.Id)
         && !IsEventTriggeredArm(arm.Event);
 
     /// <summary>Human→PF Intercom cannon arms — Guest Autoi CDT only (not habitat prefer).</summary>
-    internal static bool IsIntercomVoiceCannonArmId(string? id) =>
+    internal bool IsIntercomVoiceCannonArmId(string? id) =>
         !string.IsNullOrWhiteSpace(id)
         && id.StartsWith(IntercomVoiceCannonState.ArmIdPrefix, StringComparison.OrdinalIgnoreCase);
-    static string? VoiceCannonMsgIdFromArmId(string? armId)
+    string? VoiceCannonMsgIdFromArmId(string? armId)
     {
         if (string.IsNullOrWhiteSpace(armId))
             return null;
@@ -32,7 +33,7 @@ internal static partial class IdeIgniteArmHost
         return id.Length == 0 ? null : id;
     }
 
-    static void ClearVoiceCannonFiredClaim(string armId)
+    void ClearVoiceCannonFiredClaim(string armId)
     {
         var msgId = VoiceCannonMsgIdFromArmId(armId);
         if (msgId is null)
@@ -41,7 +42,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Glass Face Radio — Composer Stop/busy must not look like @Kir swallowed.</summary>
-    static void PublishVoiceCannonDeliveryFailFace(IgniteArm arm, string err)
+    void PublishVoiceCannonDeliveryFailFace(IgniteArm arm, string err)
     {
         if (!IsPrimaryAutoiSeat())
             return;
@@ -68,7 +69,7 @@ internal static partial class IdeIgniteArmHost
     /// Duplex partner (PF) actively in habitat — busy|composing after effective stale.
     /// Idle/stale/missing → not duplex-live (see ShouldPreferHabitatDelivery for autonomous spine).
     /// </summary>
-    internal static bool IsHabitatPartnerLive(DateTimeOffset? nowUtc = null)
+    internal bool IsHabitatPartnerLive(DateTimeOffset? nowUtc = null)
     {
         var doc = CideIntercomPresenceLatch.TryReadEffective(nowUtc);
         var pf = doc?.Pf;
@@ -78,7 +79,7 @@ internal static partial class IdeIgniteArmHost
             or CideIntercomPresenceLatch.StateComposing;
     }
 
-    internal static bool IsHabitatSubmitKind(string? submit) =>
+    internal bool IsHabitatSubmitKind(string? submit) =>
         string.Equals(submit, "habitat", StringComparison.OrdinalIgnoreCase)
         || string.Equals(submit, "citizen", StringComparison.OrdinalIgnoreCase);
 
@@ -86,7 +87,7 @@ internal static partial class IdeIgniteArmHost
     /// Prefer habitat when PF duplex live, or autonomous overnight (plain timers).
     /// Partner-mode (autonomous off) + idle PF → Composer fallthrough + Intercom mirror.
     /// </summary>
-    internal static bool ShouldPreferHabitatDelivery(DateTimeOffset? nowUtc = null) =>
+    internal bool ShouldPreferHabitatDelivery(DateTimeOffset? nowUtc = null) =>
         IsHabitatPartnerLive(nowUtc) || IsAutonomousArmed();
 
     /// <summary>
@@ -97,7 +98,7 @@ internal static partial class IdeIgniteArmHost
     /// operator «пушка не выстрелила»). Citizen eats only when Composer unavailable
     /// (TryDeliverHabitatWhenComposerUnavailableAsync).
     /// </summary>
-    internal static object? TryDeliverHabitatWake(IgniteArm arm, string charge)
+    internal object? TryDeliverHabitatWake(IgniteArm arm, string charge)
     {
         if (!MayPreferHabitatOverComposer(arm))
             return null;
@@ -135,7 +136,7 @@ internal static partial class IdeIgniteArmHost
     }
 
 
-    static object HabitatWakeResult(string armId, string detail, string submitKind) =>
+    object HabitatWakeResult(string armId, string detail, string submitKind) =>
         new
         {
             schema = "ignite/v0",
@@ -148,7 +149,7 @@ internal static partial class IdeIgniteArmHost
             detail
         };
 
-    static void PublishCitizenWakeIntercom(IgniteArm arm, string body)
+    void PublishCitizenWakeIntercom(IgniteArm arm, string body)
     {
         // Face busy — mute Autoi/prefer_citizen Radio tip (parity remount mute 0.5.693).
         if (IsHabitatPartnerLive())
@@ -180,7 +181,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Collapsed Autoi Radio face (I6) — must stay guest, never Citizen Who.</summary>
-    internal static bool LooksLikeHabitatRadioPointer(string? body)
+    internal bool LooksLikeHabitatRadioPointer(string? body)
     {
         if (string.IsNullOrWhiteSpace(body))
             return false;
@@ -194,7 +195,7 @@ internal static partial class IdeIgniteArmHost
     /// <summary>
     /// prefer_citizen Intercom: short prose OK; charge/SA-instrument walls → Radio (I6).
     /// </summary>
-    internal static string FormatCitizenWakeIntercom(IgniteArm arm, string body)
+    internal string FormatCitizenWakeIntercom(IgniteArm arm, string body)
     {
         var t = (body ?? "").Trim();
         if (t.Length == 0)
@@ -213,7 +214,7 @@ internal static partial class IdeIgniteArmHost
     }
 
 
-    internal static bool MirrorTimerWakeToIntercom(IgniteArm arm, string charge)
+    internal bool MirrorTimerWakeToIntercom(IgniteArm arm, string charge)
     {
         string detail;
         if (IsRemountWakeArm(arm))

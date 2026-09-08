@@ -1,14 +1,15 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     /// <summary>
     /// SoftFL densify (HIH): wake waiters when another Who ships a leaf.
     /// Timer ≠ peer ship — arm with when=peer_ship|leaf_done|ship.
     /// </summary>
-    public static void NotifyPeerShip(string? pulse = null, string? detail = null) =>
+    public void NotifyPeerShip(string? pulse = null, string? detail = null) =>
         Notify("peer_ship", ok: true, pulse: pulse ?? "shipped", detail: detail);
 
     /// <summary>
@@ -16,7 +17,7 @@ internal static partial class IdeIgniteArmHost
     /// Strict: citizen|guest + explicit ship cue — CoT dumps alone do not fire.
     /// SoftFL systemic 2026-08-09: drop fuzzy "peer ship" (matched «peer shipped GlassIntercomMention.cs» take/observe).
     /// </summary>
-    internal static bool LooksLikePeerShipSignal(string? body, string? kind, string? name)
+    internal bool LooksLikePeerShipSignal(string? body, string? kind, string? name)
     {
         if (string.IsNullOrWhiteSpace(body))
             return false;

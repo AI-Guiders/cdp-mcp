@@ -1,11 +1,12 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
-    public static object List()
+    public object List()
     {
         EnsureLoaded();
         var list = Snapshot();
@@ -28,7 +29,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Clear operational noise (error / once mid-fire zombies). Keeps armed continuity.</summary>
-    public static object Hygiene()
+    public object Hygiene()
     {
         EnsureLoaded();
         var removed = SweepNoiseUnlocked(persist: true);
@@ -50,7 +51,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Plateau gesture: same as hygiene — keep continuity, drop stale noise.</summary>
-    public static object Plateau()
+    public object Plateau()
     {
         EnsureLoaded();
         var removed = SweepNoiseUnlocked(persist: true);
@@ -71,7 +72,7 @@ internal static partial class IdeIgniteArmHost
         };
     }
 
-    public static object Continuity()
+    public object Continuity()
     {
         EnsureLoaded();
         var list = Snapshot();
@@ -90,7 +91,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Clear awaiting latch so flight can continue (or disarm awaiting arms).</summary>
-    public static object Resume(IReadOnlyDictionary<string, JsonElement> args)
+    public object Resume(IReadOnlyDictionary<string, JsonElement> args)
     {
         EnsureLoaded();
         int removed;

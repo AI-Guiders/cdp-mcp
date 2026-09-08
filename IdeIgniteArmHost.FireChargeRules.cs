@@ -1,9 +1,10 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using CdpMcp.Habitat;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     internal readonly record struct FireChargeComposeContext(
         IgniteArm Arm,
@@ -11,16 +12,18 @@ internal static partial class IdeIgniteArmHost
         string? Pulse,
         string? Detail,
         string? ProjectRoot,
-        string? FocusHint);
+        string? FocusHint,
+        DateTimeOffset Now);
 
-    static string ComposeFireCharge(IgniteArm arm, bool ok, string? pulse, string? detail) =>
+    string ComposeFireCharge(IgniteArm arm, bool ok, string? pulse, string? detail) =>
         FireChargeComposeRuleChain.Select(new FireChargeComposeContext(
             arm,
             ok,
             pulse,
             detail,
             IdePressureChannel.TryPeekProjectRoot(),
-            IdeDomainPulse.FocusHintFromPlanLatch()));
+            IdeDomainPulse.FocusHintFromPlanLatch(),
+            _time.GetUtcNow()));
 
     static class FireChargeComposeRuleChain
     {
@@ -44,7 +47,7 @@ internal static partial class IdeIgniteArmHost
 
         public string Select(FireChargeComposeContext context) =>
             IdeIgniteChannel.SanitizeComposerCharge(
-                Expand(context.Arm.Message, context.Arm, context.Ok, context.Pulse, context.Detail));
+                Expand(context.Arm.Message, context.Arm, context.Ok, context.Pulse, context.Detail, context.Now));
     }
 
     sealed class RemountFireChargeRule : IRule<FireChargeComposeContext, string>

@@ -1,11 +1,12 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
-    static void EnsureLoaded()
+    void EnsureLoaded()
     {
         lock (Gate)
         {
@@ -30,7 +31,7 @@ internal static partial class IdeIgniteArmHost
     /// One-shot: legacy shared ignite-arms.json → seat file for live cdp only.
     /// Debug starts empty so sibling cannot ghost-fire live arms.
     /// </summary>
-    static void TryMigrateLegacyUnlocked()
+    void TryMigrateLegacyUnlocked()
     {
         if (File.Exists(StorePath)) return;
         if (!string.Equals(Seat, "cdp", StringComparison.OrdinalIgnoreCase)) return;
@@ -45,13 +46,13 @@ internal static partial class IdeIgniteArmHost
         catch { /* first load without migration */ }
     }
 
-    static void PersistUnlocked()
+    void PersistUnlocked()
     {
         Directory.CreateDirectory(Path.GetDirectoryName(StorePath)!);
         var doc = new ArmStoreDoc
         {
             Schema = StoreSchema,
-            SavedUtc = DateTimeOffset.UtcNow,
+            SavedUtc = _time.GetUtcNow(),
             Arms = Arms.Select(Clone).ToList()
         };
         var tmp = StorePath + ".tmp";

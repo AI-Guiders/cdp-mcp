@@ -1,10 +1,11 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
-    internal static object ContinuitySlice(IReadOnlyList<IgniteArm>? list = null)
+    internal object ContinuitySlice(IReadOnlyList<IgniteArm>? list = null)
     {
         list ??= Snapshot();
         var armed = list.Where(a => a.Status is "armed" or "firing").ToList();
@@ -30,7 +31,7 @@ internal static partial class IdeIgniteArmHost
         };
     }
 
-    internal static string ContinuityPulseLine(IReadOnlyList<IgniteArm>? list = null)
+    internal string ContinuityPulseLine(IReadOnlyList<IgniteArm>? list = null)
     {
         list ??= Snapshot();
         var blocked = list.Where(a => a.Status == ProviderBlockedStatus).ToList();
@@ -49,7 +50,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Mirror AutoIgnition continuity to flat CIDE chrome latch (not EICAS).</summary>
-    public static void PublishGlass()
+    public void PublishGlass()
     {
         var list = Snapshot();
         var armedCount = list.Count(a => a.Status is "armed" or "firing");
@@ -78,7 +79,7 @@ internal static partial class IdeIgniteArmHost
             mode: mode);
     }
 
-    static IdeExplainability.ExplainCard ContinuityExplain(IReadOnlyList<IgniteArm> list)
+    IdeExplainability.ExplainCard ContinuityExplain(IReadOnlyList<IgniteArm> list)
     {
         var blocked = list.Where(a => a.Status == ProviderBlockedStatus).ToList();
         if (blocked.Count > 0)
@@ -100,12 +101,12 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Scene continuity tip — under autonomous do not teach wait-for-event park.</summary>
-    internal static string ContinuityArmedNextStep(bool autonomous) =>
+    internal string ContinuityArmedNextStep(bool autonomous) =>
         autonomous
             ? "keep flying started TM leaf; timer is insurance — do not park"
             : "wait for event";
 
-    static object? ExplainCardObject(IdeExplainability.ExplainCard? explain) => explain is null ? null : new
+    object? ExplainCardObject(IdeExplainability.ExplainCard? explain) => explain is null ? null : new
     {
         source = explain.Source,
         reason = explain.Reason,
@@ -114,12 +115,12 @@ internal static partial class IdeIgniteArmHost
         why = explain.WhyLine
     };
     /// <summary>Drop non-requeueable error arms + once stuck-firing with SendOk=true. Requeueable errors (busy_timeout/click_failed/…) revive → armed. Returns removed ids.</summary>
-    static List<string> SweepNoiseUnlocked(bool persist)
+    List<string> SweepNoiseUnlocked(bool persist)
     {
         List<string> removed;
         lock (Gate)
         {
-            var now = DateTimeOffset.UtcNow;
+            var now = _time.GetUtcNow();
             var requeued = 0;
             foreach (var a in Arms.Where(x => x.Status == "error").ToList())
             {

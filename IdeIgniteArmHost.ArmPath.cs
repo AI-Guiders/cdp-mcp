@@ -1,11 +1,12 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     /// <summary>Skip re-arm when provider-blocked or last_once latch holds (unless force).</summary>
-    static object? TrySkipReArmWhenLatched(IgniteArm arm, bool force)
+    object? TrySkipReArmWhenLatched(IgniteArm arm, bool force)
     {
         if (force)
             return null;
@@ -76,7 +77,7 @@ internal static partial class IdeIgniteArmHost
     /// Keep: remount/tool wakes, mid-CDT (firing), and event wakes (build/test/shell).
     /// Caller must hold <see cref="Gate"/>.
     /// </summary>
-    static void SupersedePriorContinuityTimersUnlocked(IgniteArm arm, List<string> cancelIds)
+    void SupersedePriorContinuityTimersUnlocked(IgniteArm arm, List<string> cancelIds)
     {
         if (arm.Event != "timer" || IsSystemWakeArmId(arm.Id) || IsEventTriggeredArm(arm.Event))
             return;
@@ -91,7 +92,7 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static object ArmSuccessPayload(IgniteArm arm) => new
+    object ArmSuccessPayload(IgniteArm arm) => new
     {
         schema = IdeIgniteChannel.Schema,
         ok = true,
@@ -129,13 +130,13 @@ internal static partial class IdeIgniteArmHost
     };
 
     /// <summary>Explain next_step after last_once arm — autonomous must not teach park-on-timer.</summary>
-    internal static string LastOnceArmNextStep(bool autonomous) =>
+    internal string LastOnceArmNextStep(bool autonomous) =>
         autonomous
             ? "keep flying started TM leaf; last_once is insurance only — do not park on the timer"
             : "end turn";
 
     /// <summary>Arm hint after last_once — ACC: insurance ≠ idle license while leaf started.</summary>
-    internal static string LastOnceArmHint(bool autonomous) =>
+    internal string LastOnceArmHint(bool autonomous) =>
         autonomous
             ? "last_once under autonomous: insurance if thread dies — NOT permission to idle while a TM leaf is started. Keep act; re-ARM after work."
             : "last_once: fires once → awaiting latch; harness blocks repeat idle re-arms until force/disarm/work arm.";

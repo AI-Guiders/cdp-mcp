@@ -1,14 +1,15 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     /// <summary>Parse arm args into a new IgniteArm (does not persist).</summary>
-    static bool TryCreateArm(IReadOnlyDictionary<string, JsonElement> args, out IgniteArm arm, out object? err)
+    bool TryCreateArm(IReadOnlyDictionary<string, JsonElement> args, out IgniteArm arm, out object? err)
     {
         arm = null!;
         err = null;
@@ -85,7 +86,7 @@ internal static partial class IdeIgniteArmHost
                 d, lastOnce, IsAutonomousArmed(), force, out clampNote,
                 HildDetector.AwayLatched, ProbeFlight() == ContinuityFlight.Fly,
                 IsInventOnlyHoldTask(task));
-            due = DateTimeOffset.UtcNow + d;
+            due = _time.GetUtcNow() + d;
             if (clampNote is not null)
                 inRaw = $"{inRaw}→{clampNote}";
         }
@@ -166,13 +167,13 @@ internal static partial class IdeIgniteArmHost
             DueUtc = due,
             InRaw = inRaw,
             Status = "armed",
-            CreatedUtc = DateTimeOffset.UtcNow
+            CreatedUtc = _time.GetUtcNow()
         };
         StampTenantWire(arm);
         return true;
     }
 
-    static bool ResolveLastOnce(IReadOnlyDictionary<string, JsonElement> args)
+    bool ResolveLastOnce(IReadOnlyDictionary<string, JsonElement> args)
     {
         if (OptBool(args, "last_once") == true) return true;
         if (OptBool(args, "await_partner") == true || OptBool(args, "await_operator") == true) return true;
@@ -181,7 +182,7 @@ internal static partial class IdeIgniteArmHost
         return false;
     }
 
-        public static string NormalizeEvent(string? raw)
+        public string NormalizeEvent(string? raw)
     {
         var e = (raw ?? "").Trim().ToLowerInvariant().Replace('-', '_').Replace(' ', '_');
         return e switch
@@ -199,7 +200,7 @@ internal static partial class IdeIgniteArmHost
     }
 
 
-    public static bool TryParseDuration(string raw, out TimeSpan span)
+    public bool TryParseDuration(string raw, out TimeSpan span)
     {
         span = default;
         var s = raw.Trim().ToLowerInvariant();
@@ -220,24 +221,24 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Under autonomous, last_once insurance must be short — 45m park looks like "working".</summary>
-    internal static readonly TimeSpan AutonomousLastOnceInsuranceMax = TimeSpan.FromMinutes(3);
+    internal readonly TimeSpan AutonomousLastOnceInsuranceMax = TimeSpan.FromMinutes(3);
 
     /// <summary>Invent-only Hold insurance — longer than work last_once ≤3m. Lived: ≤3m → Recover/DIG REJECT mill every wake under overnight Hold (zombie MCP + Hold invent). SoftFL REJECT.</summary>
-    internal static readonly TimeSpan InventOnlyHoldInsuranceMax = TimeSpan.FromMinutes(15);
+    internal readonly TimeSpan InventOnlyHoldInsuranceMax = TimeSpan.FromMinutes(15);
 
     /// <summary>While HILD away_latched / on human_away edge — last_once work timers ≤3s (habit), not ≤3m.</summary>
-    internal static readonly TimeSpan HildAwayContinuityMax = TimeSpan.FromSeconds(3);
+    internal readonly TimeSpan HildAwayContinuityMax = TimeSpan.FromSeconds(3);
 
     /// <summary>Hold invent-only leaf — DIG REJECT mill must not be forced by ≤3s leaf_pull / hild_pull (VL#47 park police stays for active work leaves).
     /// Match both "invent only" and hyphenated "invent-only" (lived Hold title 2026-08-05).</summary>
-    internal static bool IsInventOnlyHoldTask(string? task) =>
+    internal bool IsInventOnlyHoldTask(string? task) =>
         !string.IsNullOrWhiteSpace(task)
         && (task.Contains("invent only", StringComparison.OrdinalIgnoreCase)
             || task.Contains("invent-only", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Clamp long last_once timers under autonomous unless force=true.
     /// Partner-away or TM leaf Fly tightens to 3s (habit); invent-only Hold keeps ≤15m; else ≤3m.</summary>
-    internal static TimeSpan ClampAutonomousLastOnceInsurance(
+    internal TimeSpan ClampAutonomousLastOnceInsurance(
         TimeSpan requested,
         bool lastOnce,
         bool autonomous,
@@ -280,7 +281,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Pure: pull long armed last_once work timer forward to habit ≤3s (not means arms).</summary>
-    internal static bool TryComputeHabitPullForwardDue(
+    internal bool TryComputeHabitPullForwardDue(
         DateTimeOffset? dueUtc,
         bool lastOnce,
         bool isAutonomyMeans,
@@ -308,7 +309,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Pure: HILD away pull — note 3s(hild_pull).</summary>
-    internal static bool TryComputeHildAwayPullForwardDue(
+    internal bool TryComputeHildAwayPullForwardDue(
         DateTimeOffset? dueUtc,
         bool lastOnce,
         bool isAutonomyMeans,
@@ -322,7 +323,7 @@ internal static partial class IdeIgniteArmHost
             "3s(hild_pull)", out newDue, out note);
 
     /// <summary>Pure: TM leaf Fly pull — note 3s(leaf_pull).</summary>
-    internal static bool TryComputeLeafFlyPullForwardDue(
+    internal bool TryComputeLeafFlyPullForwardDue(
         DateTimeOffset? dueUtc,
         bool lastOnce,
         bool isAutonomyMeans,
@@ -335,7 +336,7 @@ internal static partial class IdeIgniteArmHost
             dueUtc, lastOnce, isAutonomyMeans, status, eventKind, now,
             "3s(leaf_pull)", out newDue, out note);
 
-    internal static bool TryClampAutonomousLastOnceDue(
+    internal bool TryClampAutonomousLastOnceDue(
         DateTimeOffset dueUtc,
         bool lastOnce,
         bool autonomous,
@@ -348,18 +349,18 @@ internal static partial class IdeIgniteArmHost
     {
         clampNote = null;
         clampedDue = dueUtc;
-        var remaining = dueUtc - DateTimeOffset.UtcNow;
+        var remaining = dueUtc - _time.GetUtcNow();
         if (remaining <= TimeSpan.Zero)
             return false;
         var clamped = ClampAutonomousLastOnceInsurance(
             remaining, lastOnce, autonomous, force, out clampNote, partnerAway, leafFlying, inventOnlyHold);
         if (clampNote is null)
             return false;
-        clampedDue = DateTimeOffset.UtcNow + clamped;
+        clampedDue = _time.GetUtcNow() + clamped;
         return true;
     }
 
-    static bool TryParseDue(string? inRaw, string? atRaw, out DateTimeOffset? due, out string error)
+    bool TryParseDue(string? inRaw, string? atRaw, out DateTimeOffset? due, out string error)
     {
         due = null;
         error = "";
@@ -383,7 +384,7 @@ internal static partial class IdeIgniteArmHost
             return false;
         }
 
-        due = DateTimeOffset.UtcNow + d;
+        due = _time.GetUtcNow() + d;
         return true;
     }
 

@@ -1,16 +1,17 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 
 namespace CdpMcp;
 
 /// <summary>ADR-0200: stamp tenant wire on arm; enter slice on background fire (TimerLoop / lifecycle).</summary>
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
-    static Func<CdpTenantKey, CdpTenantSlice>? TenantResolve;
+    Func<CdpTenantKey, CdpTenantSlice>? TenantResolve;
 
-    internal static void BindTenantResolver(Func<CdpTenantKey, CdpTenantSlice> resolve) =>
+    internal void BindTenantResolver(Func<CdpTenantKey, CdpTenantSlice> resolve) =>
         TenantResolve = resolve;
 
-    internal static void StampTenantWire(IgniteArm arm)
+    internal void StampTenantWire(IgniteArm arm)
     {
         arm.TenantWire = CdpTenantExecutionContext.CurrentSlice?.Key.Wire;
         arm.ConversationId = CdpTenantRoutingContext.CurrentConversationId;
@@ -19,7 +20,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>CDT chat= — arm field, then per-conversation latch, then bridge-wide latch.</summary>
-    internal static string? ResolveChatFromTenantLatch(
+    internal string? ResolveChatFromTenantLatch(
         string? tenantWire,
         string? conversationId,
         string? armChat)
@@ -46,20 +47,20 @@ internal static partial class IdeIgniteArmHost
         return CdpTenantComposerLatch.ResolveDefaultChat(bridge, null);
     }
 
-    internal static IDisposable? EnterTenantWireScope(string? tenantWire)
+    internal IDisposable? EnterTenantWireScope(string? tenantWire)
     {
         if (string.IsNullOrWhiteSpace(tenantWire))
             return null;
         return EnterArmTenantScope(new IgniteArm { TenantWire = tenantWire });
     }
 
-    internal static bool ArmTenantWireEquals(IgniteArm arm, string? scopeWire) =>
+    internal bool ArmTenantWireEquals(IgniteArm arm, string? scopeWire) =>
         string.IsNullOrWhiteSpace(scopeWire)
             ? string.IsNullOrWhiteSpace(arm.TenantWire)
             : string.Equals(arm.TenantWire, scopeWire, StringComparison.Ordinal);
 
     /// <summary>Distinct tenant wires on armed last_once timer arms (legacy = null).</summary>
-    internal static IReadOnlyList<string?> DistinctTenantWiresFromArmedWorkTimers()
+    internal IReadOnlyList<string?> DistinctTenantWiresFromArmedWorkTimers()
     {
         EnsureLoaded();
         lock (Gate)
@@ -82,14 +83,14 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    internal static IDisposable? EnterArmTenantScope(IgniteArm arm)
+    internal IDisposable? EnterArmTenantScope(IgniteArm arm)
     {
         if (!TryResolveArmTenant(arm, out var slice))
             return null;
         return new ArmTenantScope(slice);
     }
 
-    internal static bool TryResolveArmTenant(IgniteArm arm, out CdpTenantSlice slice)
+    internal bool TryResolveArmTenant(IgniteArm arm, out CdpTenantSlice slice)
     {
         slice = null!;
         if (TenantResolve is null || string.IsNullOrWhiteSpace(arm.TenantWire))
@@ -100,7 +101,7 @@ internal static partial class IdeIgniteArmHost
         return true;
     }
 
-    static bool TryParseTenantWire(string wire, out CdpTenantKey key)
+    bool TryParseTenantWire(string wire, out CdpTenantKey key)
     {
         key = default;
         var parts = wire.Split(':', 3);

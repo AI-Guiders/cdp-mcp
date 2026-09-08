@@ -1,28 +1,29 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     /// <summary>Arm status after post-fire provider refusal (not awaiting_operator success latch).</summary>
     internal const string ProviderBlockedStatus = "provider_blocked";
 
     internal const string NewThreadRequiredError = "new_thread_required";
 
-    static Action<IgniteArm>? ProviderBlockedHook;
+    Action<IgniteArm>? ProviderBlockedHook;
 
-    internal static void RegisterProviderBlockedHook(Action<IgniteArm>? hook) => ProviderBlockedHook = hook;
+    internal void RegisterProviderBlockedHook(Action<IgniteArm>? hook) => ProviderBlockedHook = hook;
 
-    internal static bool IsProviderBlockedStatus(string? status) =>
+    internal bool IsProviderBlockedStatus(string? status) =>
         string.Equals(status, ProviderBlockedStatus, StringComparison.Ordinal);
 
-    internal static bool ShouldEnterProviderBlockedContinuity(string? fireError) =>
+    internal bool ShouldEnterProviderBlockedContinuity(string? fireError) =>
         IdeIgniteChannel.IsProviderBlockedError(fireError);
 
-    static void EnterProviderBlockedContinuity(IgniteArm arm, string? detail)
+    void EnterProviderBlockedContinuity(IgniteArm arm, string? detail)
     {
-        SetStatus(arm.Id, ProviderBlockedStatus, IdeIgniteChannel.ProviderBlockedError, fired: DateTimeOffset.UtcNow);
+        SetStatus(arm.Id, ProviderBlockedStatus, IdeIgniteChannel.ProviderBlockedError, fired: _time.GetUtcNow());
         TryStashNewPfHandoff(arm, detail);
         try
         {
@@ -34,7 +35,7 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static void TryStashNewPfHandoff(IgniteArm arm, string? detail)
+    void TryStashNewPfHandoff(IgniteArm arm, string? detail)
     {
         var body = BuildProviderBlockedHandoffBody(arm, detail);
         var plan = string.IsNullOrWhiteSpace(arm.Task) ? "Task Manager SSOT — cdp_cockpit go=plan" : arm.Task;
@@ -43,7 +44,7 @@ internal static partial class IdeIgniteArmHost
         IdePressureChannel.StashAutoIgnitionHandoff(body, ignite, plan);
     }
 
-    static string BuildProviderBlockedHandoffBody(IgniteArm arm, string? detail)
+    string BuildProviderBlockedHandoffBody(IgniteArm arm, string? detail)
     {
         var sb = new StringBuilder();
         sb.AppendLine("# AutoIgnition provider_blocked");

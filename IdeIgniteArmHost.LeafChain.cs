@@ -1,9 +1,10 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     public const string LeafWakeArmId = "leaf-wake";
 
@@ -13,7 +14,7 @@ internal static partial class IdeIgniteArmHost
     /// Invent-only Hold uses 15m + last_once — DIG REJECT mill ≠ 2s/3m Recover thrash;
     /// last_once matches agent re-ARM ritual (lived: post-fire leaf-wake last_once=false → manual supersede).
     /// </summary>
-    public static object ArmForLeaf(string taskTitle, string reason)
+    public object ArmForLeaf(string taskTitle, string reason)
     {
         if (!IsAutonomousArmed())
             return Err("leaf_arm", "autonomous_off", "ArmForLeaf skipped — autonomous continuity is off (op=autonomous_off / halt)");
@@ -54,7 +55,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>ArmForLeaf tip — under autonomous do not teach End-turn park; invent-only Hold ≠ 2s DIG REJECT mill.</summary>
-    internal static string ArmForLeafHint(bool autonomous, bool inventOnlyHold = false)
+    internal string ArmForLeafHint(bool autonomous, bool inventOnlyHold = false)
     {
         if (inventOnlyHold)
         {

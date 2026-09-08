@@ -1,14 +1,15 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     /// <summary>
     /// Survivor after hard-deploy KillRunning: ensure TimerLoop + reclaim overdue/stuck firing
     /// (JSON survives remount; host does not).
     /// </summary>
-    public static object WakeAfterHardDeploy()
+    public object WakeAfterHardDeploy()
     {
         EnsureStarted();
         // Host may already be running on survivor — still reclaim.
@@ -33,7 +34,7 @@ internal static partial class IdeIgniteArmHost
     /// Recover mid-turn remount CDT = DIG REJECT thrash (lived 2026-08-07 invent-only; 2026-08-08 SoftFL ship:
     /// ListTools ready + CallTool timeout until restart without remount pending).
     /// </summary>
-    internal static object? TryScheduleRemountInitializedWake(string? seatOverride = null)
+    internal object? TryScheduleRemountInitializedWake(string? seatOverride = null)
     {
         var seat = IdeRemountWake.NormalizeSeat(seatOverride ?? Seat);
         if (!IdeRemountWake.TryConsumePending(seat, out var pending))
@@ -58,7 +59,7 @@ internal static partial class IdeIgniteArmHost
         }
 
         var dueSec = Math.Clamp(IdeRemountWake.DefaultDueSeconds, 1, 60);
-        var now = DateTimeOffset.UtcNow;
+        var now = _time.GetUtcNow();
         var id = IdeRemountWake.ArmIdPrefix
                  + now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture)
                  + "-" + Guid.NewGuid().ToString("N")[..6];
@@ -111,12 +112,12 @@ internal static partial class IdeIgniteArmHost
     /// Reclaim timer arms that are overdue or stuck in firing (killed mid-CDT).
     /// Same id — does not create a new arm. Returns reclaimed ids.
     /// </summary>
-    internal static IReadOnlyList<string> ReclaimOverdue(TimeSpan? settle = null)
+    internal IReadOnlyList<string> ReclaimOverdue(TimeSpan? settle = null)
     {
         EnsureLoaded();
         var backoff = settle ?? TimeSpan.FromSeconds(3);
         if (backoff < TimeSpan.Zero) backoff = TimeSpan.Zero;
-        var now = DateTimeOffset.UtcNow;
+        var now = _time.GetUtcNow();
         var ids = new List<string>();
         var drop = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         lock (Gate)
@@ -186,7 +187,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Caller holds Gate. Revive status=error when ShouldRequeueBusy would have kept the arm alive.</summary>
-    static bool TryReviveRequeueableErrorUnlocked(IgniteArm a, DateTimeOffset now, TimeSpan backoff, string lastErrorPrefix)
+    bool TryReviveRequeueableErrorUnlocked(IgniteArm a, DateTimeOffset now, TimeSpan backoff, string lastErrorPrefix)
     {
         if (a.Status != "error")
             return false;
@@ -205,7 +206,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Test hook: mutate in-memory arm under Gate.</summary>
-    internal static bool TryMutateForTests(string id, Action<IgniteArm> mutate)
+    internal bool TryMutateForTests(string id, Action<IgniteArm> mutate)
     {
         EnsureLoaded();
         lock (Gate)

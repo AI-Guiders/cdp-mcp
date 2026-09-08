@@ -1,20 +1,21 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     /// <summary>Fail-closed latch: provider refusal after fire → explicit continuity state.</summary>
-    internal static bool ShouldLatchAwaitingOnFireError(string? error) =>
+    internal bool ShouldLatchAwaitingOnFireError(string? error) =>
         ShouldEnterProviderBlockedContinuity(error);
 
     /// <summary>tool-wake-* once arms — never requeue after busy; call usually already finished.</summary>
-    internal static bool IsToolWakeArmId(string? id) =>
+    internal bool IsToolWakeArmId(string? id) =>
         !string.IsNullOrWhiteSpace(id)
         && id.StartsWith("tool-wake-", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Remount / OOM / escalate / tool wake — must not be wiped by a later continuity timer re-arm.</summary>
-    internal static bool IsSystemWakeArmId(string? id) =>
+    internal bool IsSystemWakeArmId(string? id) =>
         IsToolWakeArmId(id)
         || (!string.IsNullOrWhiteSpace(id)
             && (id.StartsWith(IdeRemountWake.ArmIdPrefix, StringComparison.OrdinalIgnoreCase)
@@ -24,7 +25,7 @@ internal static partial class IdeIgniteArmHost
                 || id.StartsWith(HildEscalateArmIdPrefix, StringComparison.OrdinalIgnoreCase)));
 
     /// <summary>Harness event wakes (build/test/shell/hild) — never superseded by a continuity timer.</summary>
-    internal static bool IsEventTriggeredArm(string? eventName)
+    internal bool IsEventTriggeredArm(string? eventName)
     {
         var e = NormalizeEvent(eventName);
         return e is "build_finished" or "test_finished" or "shell_finished" or "human_away" or "peer_ship";
@@ -32,14 +33,14 @@ internal static partial class IdeIgniteArmHost
 
 
     /// <summary>Only plain armed continuity timers may be replaced by a later timer re-arm.</summary>
-    internal static bool IsSupersedableContinuityWorkTimer(IgniteArm a) =>
+    internal bool IsSupersedableContinuityWorkTimer(IgniteArm a) =>
         string.Equals(a.Event, "timer", StringComparison.OrdinalIgnoreCase)
         && string.Equals(a.Status, "armed", StringComparison.OrdinalIgnoreCase)
         && !IsSystemWakeArmId(a.Id)
         && !IsEventTriggeredArm(a.Event);
 
     /// <summary>Cancel CDT inject in flight (Disarm / call-complete ClearWakeArm).</summary>
-    internal static void CancelInFlightFire(string id)
+    internal void CancelInFlightFire(string id)
     {
         if (string.IsNullOrWhiteSpace(id)) return;
         if (FireTokens.TryRemove(id, out var cts))
@@ -51,14 +52,14 @@ internal static partial class IdeIgniteArmHost
         Firing.TryRemove(id, out _);
     }
 
-    static void CancelAllInFlightFires()
+    void CancelAllInFlightFires()
     {
         foreach (var id in FireTokens.Keys.ToArray())
             CancelInFlightFire(id);
     }
 
     /// <summary>Test hook — attach a fire CTS as QueueFire would.</summary>
-    internal static CancellationTokenSource AttachFireTokenForTests(string id)
+    internal CancellationTokenSource AttachFireTokenForTests(string id)
     {
         var cts = new CancellationTokenSource();
         FireTokens[id] = cts;
@@ -66,13 +67,13 @@ internal static partial class IdeIgniteArmHost
         return cts;
     }
 
-    static bool IsArmLive(string id)
+    bool IsArmLive(string id)
     {
         lock (Gate)
             return Arms.Any(a => a.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
     }
 
-    static void QueueFire(IgniteArm arm, bool ok, string? pulse, string? detail)
+    void QueueFire(IgniteArm arm, bool ok, string? pulse, string? detail)
     {
         if (!Firing.TryAdd(arm.Id, 0)) return;
         var cts = new CancellationTokenSource();
@@ -90,7 +91,7 @@ internal static partial class IdeIgniteArmHost
         });
     }
 
-    static async Task RunFireAsync(
+    async Task RunFireAsync(
         IgniteArm arm, bool ok, string? pulse, string? detail, CancellationToken ct)
     {
         using var tenantScope = EnterArmTenantScope(arm);
@@ -205,14 +206,14 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static void MarkSendInvoked(string armId)
+    void MarkSendInvoked(string armId)
     {
         lock (Gate)
         {
             var live = Arms.FirstOrDefault(x => x.Id.Equals(armId, StringComparison.OrdinalIgnoreCase));
             if (live is null)
                 return;
-            live.SendInvokedUtc = DateTimeOffset.UtcNow;
+            live.SendInvokedUtc = _time.GetUtcNow();
             live.SendOk = null;
             live.SendError = null;
             PersistUnlocked();
@@ -228,10 +229,10 @@ internal static partial class IdeIgniteArmHost
     /// Insert landed and Composer already Stop — peer/zombie click or auto-send.
     /// Treat as delivery so once-arms do not thrash (dogfood escalate became_stop storm).
     /// </summary>
-    internal static bool IsSoftDeliveredError(string? error) =>
+    internal bool IsSoftDeliveredError(string? error) =>
         string.Equals(error, "became_stop", StringComparison.Ordinal);
 
-    static void ApplyFireOutcome(IgniteArm arm, object? result)
+    void ApplyFireOutcome(IgniteArm arm, object? result)
     {
         var rawErr = result is { } && TryGetOk(result) ? null : (TryGetError(result) ?? "fire_failed");
         var softStop = IsSoftDeliveredError(rawErr);
@@ -256,7 +257,7 @@ internal static partial class IdeIgniteArmHost
                 // ACC: under autonomous, last_once insurance delivered ≠ invent-ban awaiting_partner
                 // (habitat skip or CDT). Agent continues; re-ARM is end-of-turn. Seed if path empty.
                 if (ShouldLatchAwaitingPartnerAfterSuccessfulFire(arm.LastOnce, IsAutonomousArmed()))
-                    SetStatus(arm.Id, "awaiting", null, fired: DateTimeOffset.UtcNow);
+                    SetStatus(arm.Id, "awaiting", null, fired: _time.GetUtcNow());
                 else
                 {
                     Remove(arm.Id);
@@ -267,7 +268,7 @@ internal static partial class IdeIgniteArmHost
             else if (arm.Once)
                 Remove(arm.Id);
             else
-                SetStatus(arm.Id, "armed", null, fired: DateTimeOffset.UtcNow);
+                SetStatus(arm.Id, "armed", null, fired: _time.GetUtcNow());
             return;
         }
 
@@ -298,7 +299,7 @@ internal static partial class IdeIgniteArmHost
         }
     }
 
-    static void CleanupFireToken(string armId)
+    void CleanupFireToken(string armId)
     {
         Firing.TryRemove(armId, out _);
         if (!FireTokens.TryRemove(armId, out var token))
@@ -306,7 +307,7 @@ internal static partial class IdeIgniteArmHost
         try { token.Dispose(); } catch { /* ignore */ }
     }
 
-    static string? ToolFromWakeArm(IgniteArm arm)
+    string? ToolFromWakeArm(IgniteArm arm)
     {
         var task = arm.Task ?? "";
         const string prefix = "tool-watch:";

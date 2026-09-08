@@ -1,4 +1,5 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 
 namespace CdpMcp;
 
@@ -6,10 +7,10 @@ namespace CdpMcp;
 /// OOM wake arm scheduling — stays on ArmHost because it mutates Arms/Gate.
 /// Probe loop lives in <see cref="IdeIgniteOomWatch"/>.
 /// </summary>
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
     /// <summary>Arm one-shot timer charge_mode=oom (system wake — not superseded).</summary>
-    internal static object? TryScheduleOomWake(string lastError = "cdt_recovered_after_down")
+    internal object? TryScheduleOomWake(string lastError = "cdt_recovered_after_down")
     {
         // Dual-seat: only one process schedules within WakeCooldown.
         if (!IdeOomCrossProcessClaim.TryClaimSchedule(IdeOomWake.WakeCooldown))
@@ -17,7 +18,7 @@ internal static partial class IdeIgniteArmHost
 
         EnsureLoaded();
         var dueSec = Math.Clamp(IdeOomWake.DefaultDueSeconds, 1, 60);
-        var now = DateTimeOffset.UtcNow;
+        var now = _time.GetUtcNow();
         var id = IdeOomWake.ArmIdPrefix
                  + now.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture)
                  + "-" + Guid.NewGuid().ToString("N")[..6];

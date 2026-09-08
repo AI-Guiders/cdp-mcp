@@ -1,11 +1,12 @@
 #nullable enable
+using static CdpMcp.IdeIgniteArmHost;
 using System.Text.Json;
 
 namespace CdpMcp;
 
-internal static partial class IdeIgniteArmHost
+internal sealed partial class CdpIgniteArmHost
 {
-    public static object Disarm(IReadOnlyDictionary<string, JsonElement> args)
+    public object Disarm(IReadOnlyDictionary<string, JsonElement> args)
     {
         EnsureLoaded();
         var id = Opt(args, "id") ?? Opt(args, "arm");
@@ -99,7 +100,7 @@ internal static partial class IdeIgniteArmHost
     }
 
     /// <summary>Infrastructure arms that keep the agent able to wake under autonomous latch.</summary>
-    internal static bool IsAutonomyMeansArm(IgniteArm a)
+    internal bool IsAutonomyMeansArm(IgniteArm a)
     {
         if (a.Id.Equals(AutonomousSeedArmId, StringComparison.OrdinalIgnoreCase))
             return true;
@@ -120,7 +121,7 @@ internal static partial class IdeIgniteArmHost
         return false;
     }
 
-    static bool HasLiveWakePathUnlocked()
+    bool HasLiveWakePathUnlocked()
     {
         lock (Gate)
         {
