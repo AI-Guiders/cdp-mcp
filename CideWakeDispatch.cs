@@ -8,8 +8,8 @@ namespace CdpMcp;
 /// <see cref="CdpWakeDispatcher"/> (ADR-0219 L2a/2): стор — ICdpStateStore (witdb),
 /// рантайм-состояние (single-flight, cooldown, gates) — в инстансе.
 /// Композиция реального графа — Lazy ниже (composition root: CdpServiceHost.WarmDefault).
-/// Запрет на новые статик-мутации и override-хуки (ADR-0219 §DI.5) — единственный
-/// переходный шов: <see cref="InstanceOverrideForTests"/> (изоляция тестов, L3 снесёт).
+/// Запрет на новые статик-мутации и override-хуки (ADR-0219 §DI.5); каналы получают
+/// диспетчер параметром (DI-путь, тестовый шов удалён 2026-09-09).
 /// </summary>
 internal static class CideWakeDispatch
 {
@@ -23,12 +23,7 @@ internal static class CideWakeDispatch
 
     static readonly Lazy<CdpWakeDispatcher> _default = new(BuildDefault);
 
-    /// <summary>Переходный шов изоляции тестов (Света 2026-09-08): тесты собирают свой граф
-    /// (temp-root store + substitute transport); L3 заменит на ctor-инъекцию каналов.</summary>
-    public static Func<CdpWakeDispatcher>? InstanceOverrideForTests;
-
-    public static CdpWakeDispatcher Default =>
-        InstanceOverrideForTests?.Invoke() ?? _default.Value;
+    public static CdpWakeDispatcher Default => _default.Value;
 
     /// <summary>Явная сборка дефолтного графа (composition root зовёт на старте).</summary>
     public static void WarmDefault() => _ = _default.Value;

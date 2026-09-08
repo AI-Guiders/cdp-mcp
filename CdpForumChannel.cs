@@ -28,14 +28,15 @@ internal static class CdpForumChannel
             ? r
             : Path.Combine("D:\\Experiments", "agent-notes", "knowledge", "personal", "LinesForum");
 
-    public static string HandleJson(IReadOnlyDictionary<string, JsonElement> args)
+    /// <summary>wake — честный DI (ADR-0219 L3): тесты подают свой dispatcher; прод — CideWakeDispatch.Default.</summary>
+    public static string HandleJson(IReadOnlyDictionary<string, JsonElement> args, CdpWakeDispatcher? wake = null)
     {
         var op = (Arg(args, "op") ?? "scene").Trim().ToLowerInvariant();
         return op switch
         {
             "scene" or "map" or "threads" => Scene(),
             "read" or "thread" => Read(args),
-            "post" or "reply" or "say" => Post(args),
+            "post" or "reply" or "say" => Post(args, wake),
             "newthread" or "new" or "create" => NewThread(args),
             "route" or "search" or "find" => Route(args),
             "resolve" or "close" or "lock" => Resolve(args),
@@ -113,7 +114,7 @@ internal static class CdpForumChannel
 
     // --- post: один пост = один ход ---
 
-    static string Post(IReadOnlyDictionary<string, JsonElement> args)
+    static string Post(IReadOnlyDictionary<string, JsonElement> args, CdpWakeDispatcher? wake = null)
     {
         var body = Arg(args, "body") ?? Arg(args, "text") ?? Arg(args, "message");
         var nickRaw = Arg(args, "nick");
@@ -145,7 +146,7 @@ internal static class CdpForumChannel
         {
             try
             {
-                _ = CideWakeDispatch.Enqueue(
+                _ = (wake ?? CideWakeDispatch.Default).Enqueue(
                     CideWakeDispatch.KindLetter,
                     $"[форум {num}-{slug}] @{nick.Trim()}: {m.Excerpt}",
                     nick: m.Nick,

@@ -10,6 +10,7 @@ namespace CdpMcp.Tests;
 public class CdpForumChannelTests : IDisposable
 {
     readonly string _root;
+    CdpWakeDispatcher? _wake;
 
     public CdpForumChannelTests()
     {
@@ -20,7 +21,7 @@ public class CdpForumChannelTests : IDisposable
         // реальные письма в прод-очередь — иначе Тень получает «echo» на каждый
         // прогон тестов (класс empty user messages). ADR-0219 L2a/2: свой граф —
         // temp-root store + substitute transport; StorePathOverrideForTests снесён.
-        CideWakeDispatch.InstanceOverrideForTests = () => new CdpWakeDispatcher(
+        _wake = new CdpWakeDispatcher(
             new IntercomAgentsRoster(),
             OkTransport(),
             new WitDbCdpStateStore(new FixedStateRoot(_root)),
@@ -30,7 +31,7 @@ public class CdpForumChannelTests : IDisposable
     public void Dispose()
     {
         Environment.SetEnvironmentVariable("CDP_FORUM_ROOT", null);
-        CideWakeDispatch.InstanceOverrideForTests = null;
+        _wake = null;
         try { Directory.Delete(_root, recursive: true); } catch { /* best effort */ }
     }
 
@@ -48,12 +49,12 @@ public class CdpForumChannelTests : IDisposable
         public string ResolveStateRoot() => root;
     }
 
-    static string Handle(string json)
+    string Handle(string json)
     {
         using var doc = JsonDocument.Parse(json);
         var args = doc.RootElement.EnumerateObject()
             .ToDictionary(p => p.Name, p => p.Value.Clone());
-        return CdpForumChannel.HandleJson(args);
+        return CdpForumChannel.HandleJson(args, _wake);
     }
 
     [Fact]
