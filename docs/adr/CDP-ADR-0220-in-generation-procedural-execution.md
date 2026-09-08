@@ -85,15 +85,22 @@ Generation_start
 ## Harness surface (dig 2026-09-08 — OpenCode docs/plugins)
 
 Реализация — **плагин OpenCode** (без форка):
+- `tool.execute.before` — **главная рельса (rails-first, Света 2026-09-08)**:
+  перехват КАЖДОГО вызова инструмента в procedural mode; mismatch с процедурным
+  шагом → **redirect** (подмена аргументов на процедурный вызов — плагин умеет
+  менять output.args; агент получает результат правильного вызова с пометкой
+  `redirected: rail(...)`) или **block** (throw с рельсой — агент видит её как
+  результат инструмента в том же ходу, мгновенно). Съезд — явный override с
+  rationale, фиксируется в ledger. Напоминание ПОСЛЕ хода не работает: решение
+  об инструменте принимается в момент вызова — рельса стоит в точке вызова.
 - `message.part.updated` — classifier (два фрагмента демо — ровно это событие)
-- SDK client в плагине → step delivery (шаг = сообщение в сессию; polite-wait как у wake)
-- `tool.execute.before` — gate enforcement на уровне тулов
+- SDK client в плагине → подача данных шага между ходами (вспомогательный канал)
 - `session.idle` — конец хода: gate-проверка, advance, ledger
 - **In-gen (истинная инъекция в живую генерацию)** — experimental: класс механизма доказан
   хуком `experimental.session.compacting` (output.context.push в LLM-вызов); сужение канала
   с compaction на обычную генерацию — upstream-запрос/доработка форка, не MVP.
-- MVP честно: **between-step loop** (шаг = ход, gate между ходами) на plugin surface;
-  in-gen — эволюция той же петли.
+- MVP: **rails-first на tool.execute.before** (redirect/block по процедурному шагу) +
+  between-step data delivery через SDK. In-gen — эволюция той же петли.
 
 ## Non-goals / Risks
 
