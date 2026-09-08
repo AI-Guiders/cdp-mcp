@@ -48,6 +48,16 @@ public sealed class CdpQueueStateEntity
     public DateTimeOffset StampedUtc { get; set; }
 }
 
+/// <summary>NotificationCenter-подписка ника на событие (ADR-0213 NC → коллекция ADR-0219).</summary>
+public sealed class CdpWakeSubscriptionEntity
+{
+    public string Id { get; set; } = "";
+    public string Nick { get; set; } = "";
+    public string EventKind { get; set; } = "";
+    public string? TaskFilter { get; set; }
+    public DateTimeOffset CreatedUtc { get; set; }
+}
+
 public sealed class CdpStateDbContext : DbContext
 {
     public CdpStateDbContext(DbContextOptions<CdpStateDbContext> options)
