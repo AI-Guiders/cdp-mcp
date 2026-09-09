@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Cdp.Core;
+using Cdp.CdpState;
 
 namespace CdpMcp;
 
@@ -138,6 +139,9 @@ internal static partial class IdePressureChannel
             TryMigrateLegacyPressureFiles();
             Directory.CreateDirectory(Path.GetDirectoryName(MemoPath)!);
             var line = JsonSerializer.Serialize(entry, MemoJsonOpts);
+            //witdb row = SSOT (ADR-0219 P3); jsonl остаётся interop-экспортом.
+            _ = new CdpStateStore(CdpProfile.StateRoot).AppendPressureMemo(
+                IdeIgniteArmHost.Seat, entry.Id, line, now);
             File.AppendAllText(MemoPath, line + Environment.NewLine, Encoding.UTF8);
 
             try
@@ -157,16 +161,64 @@ internal static partial class IdePressureChannel
     {
         lock (Gate)
         {
-            if (!File.Exists(MemoPath))
-                return 0;
-            var n = 0;
-            foreach (var _ in File.ReadLines(MemoPath))
-            {
-                if (_.Length > 0)
-                    n++;
-            }
+            var store = new CdpStateStore(CdpProfile.StateRoot);
+            var count = store.CountPressureMemos(IdeIgniteArmHost.Seat);
+            if (count == 0 && File.Exists(MemoPath))
+                count = TryImportLegacyMemoIntoStore(store);
+            return count;
+        }
+    }
 
-            return n;
+    /// <summary>Миграция легаси jsonl в witdb при первом чтении — одна настройка, окаменелости переходят в .bak.</summary>
+    static int TryImportLegacyMemoIntoStore(CdpStateStore store)
+    {
+        try
+        {
+            Directory.CreateDirectory(SeatStateDir);
+            TryMigrateLegacyPressureFiles();
+            var count = 0;
+            CollectLegacyMemoLines(MemoPath, store, ref count);
+            if (count > 0)
+            {
+                RetireImportedFile(MemoPath);
+                RetireImportedFile(LegacyMemoPath);
+                RetireImportedFile(MemoLatestMdPath);
+                RetireImportedFile(LegacyMemoLatestMdPath);
+            }
+            return count;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    static void CollectLegacyMemoLines(string path, CdpStateStore store, ref int count)
+    {
+        if (!File.Exists(path))
+            return;
+        foreach (var line in File.ReadLines(path))
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+            try
+            {
+                var e = JsonSerializer.Deserialize<MemoEntry>(line, MemoJsonOpts);
+                if (e is null || string.IsNullOrWhiteSpace(e.Id) || string.IsNullOrWhiteSpace(e.Body))
+                    continue;
+                var at = DateTimeOffset.TryParse(
+                    e.AtUtc, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                    out var t)
+                    ? t
+                    : DateTimeOffset.UtcNow;
+                if (store.AppendPressureMemo(IdeIgniteArmHost.Seat, e.Id, JsonSerializer.Serialize(e, MemoJsonOpts), at))
+                    count++;
+            }
+            catch
+            {
+                /* skip corrupt */
+            }
         }
     }
 
@@ -178,30 +230,43 @@ internal static partial class IdePressureChannel
 
     static List<MemoEntry> LoadMemoTailUnlocked(int limit)
     {
-        if (!File.Exists(MemoPath) || limit < 1)
+        if (limit < 1)
             return [];
-
-        // Read all then take last N — memo line stays small by design (konspekt).
-        var all = new List<MemoEntry>();
-        foreach (var line in File.ReadLines(MemoPath))
+        try
         {
-            if (string.IsNullOrWhiteSpace(line))
-                continue;
-            try
+            TryMigrateLegacyPressureFiles();
+            var store = new CdpStateStore(CdpProfile.StateRoot);
+            if (store.CountPressureMemos(IdeIgniteArmHost.Seat) == 0)
             {
-                var e = JsonSerializer.Deserialize<MemoEntry>(line, MemoJsonOpts);
-                if (e is not null)
-                    all.Add(e);
+                // Магазин пуст — импортируем легаси jsonl/Squence (SSOT переезжает в witdb, файлы — interop).
+                if (TryImportLegacyMemoIntoStore(store) == 0)
+                    return [];
             }
-            catch
-            {
-                /* skip corrupt */
-            }
-        }
 
-        if (all.Count <= limit)
+            // Read all then take last N — memo line stays small by design (konspekt).
+            var all = store.ListPressureMemos(IdeIgniteArmHost.Seat, limit)
+                .Select(x => TryDeserializeEntry(x.Json))
+                .Where(e => e is not null)
+                .Select(e => e!)
+                .ToList();
             return all;
-        return all.GetRange(all.Count - limit, limit);
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    static MemoEntry? TryDeserializeEntry(string json)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<MemoEntry>(json, MemoJsonOpts);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     static string RenderMemoMd(MemoEntry e)

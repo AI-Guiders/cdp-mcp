@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using Cdp.Core;
+using Cdp.CdpState;
 
 namespace CdpMcp;
 
@@ -38,6 +39,9 @@ internal static partial class IdePressureChannel
         return sb.ToString();
     }
 
+    /// <summary>FFFF-ключ стеша в latch_docs — по сиденью (witdb SSOT, файл interop-экспорт).</summary>
+    internal static string StashDocId => $"pressure-stash:{IdeIgniteArmHost.Seat}";
+
     static PressureDoc? Load()
     {
         lock (Gate)
@@ -45,14 +49,37 @@ internal static partial class IdePressureChannel
             try
             {
                 TryMigrateLegacyPressureFiles();
-                if (!File.Exists(FilePath))
-                    return null;
-                return JsonSerializer.Deserialize<PressureDoc>(File.ReadAllText(FilePath), JsonOpts);
+                var store = new CdpStateStore(CdpProfile.StateRoot);
+                var stored = store.GetLatchDoc(StashDocId);
+                if (stored is null)
+                {
+                    //witdb пуст — импортируем seat-файл (SSOT переезжает в witdb, файл остаётся interop).
+                    if (!File.Exists(FilePath))
+                        return null;
+                    stored = File.ReadAllText(FilePath);
+                    _ = store.SetLatchDoc(StashDocId, stored);
+                    RetireImportedFile(FilePath);
+                }
+                return JsonSerializer.Deserialize<PressureDoc>(stored, JsonOpts);
             }
             catch
             {
                 return null;
             }
+        }
+    }
+
+    /// <summary>Импортированный из witdb файл переименовывать в .migrated-*.bak (interop-археология).</summary>
+    static void RetireImportedFile(string path)
+    {
+        try
+        {
+            var bak = $"{path}.migrated-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.bak";
+            File.Move(path, bak, overwrite: false);
+        }
+        catch
+        {
+            /* best-effort */
         }
     }
 
@@ -93,13 +120,17 @@ internal static partial class IdePressureChannel
 
     static void Save(PressureDoc doc)
     {
+        string json;
         lock (Gate)
         {
             TryMigrateLegacyPressureFiles();
+            json = JsonSerializer.Serialize(doc, JsonOpts);
+            //witdb row = SSOT; файл — interop-экспорт (RecallFallback-мир читает по файлам).
+            _ = new CdpStateStore(CdpProfile.StateRoot).SetLatchDoc(StashDocId, json);
             var dir = Path.GetDirectoryName(FilePath)!;
             Directory.CreateDirectory(dir);
             var tmp = FilePath + ".tmp";
-            File.WriteAllText(tmp, JsonSerializer.Serialize(doc, JsonOpts), Encoding.UTF8);
+            File.WriteAllText(tmp, json, Encoding.UTF8);
             File.Move(tmp, FilePath, overwrite: true);
         }
 

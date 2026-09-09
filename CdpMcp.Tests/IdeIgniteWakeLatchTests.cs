@@ -2,6 +2,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection(nameof(IntercomLatchSerial))]
 public partial class IdeIgniteWakeLatchTests : IDisposable
 {
     readonly string _root;

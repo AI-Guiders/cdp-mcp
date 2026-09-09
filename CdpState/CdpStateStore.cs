@@ -395,6 +395,62 @@ public static class CdpStateStoreDb
         });
     }
 
+    // ---------- P3: pressure (stash latch-doc + append-only memo журнал) ----------
+
+    /// <summary>Append-only memo строка (pressure_memos); повторный Id — дедуп на уровне журнала.</summary>
+    public static bool AppendPressureMemo(
+        string stateRoot, string seat, string id, string json, DateTimeOffset stampedUtc)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot) || string.IsNullOrWhiteSpace(seat) ||
+            string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(json))
+            return false;
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            if (db.PressureMemos.Any(x => x.Id == id))
+                return false;
+            db.PressureMemos.Add(new CdpPressureMemoEntity
+            {
+                Id = id,
+                Seat = seat,
+                Json = json,
+                StampedUtc = stampedUtc
+            });
+            db.SaveChanges();
+            return true;
+        });
+    }
+
+    /// <summary>Хвост журнала по сиденью — последние limit записей в хронологическом порядке.</summary>
+    public static IReadOnlyList<CdpPressureMemoEntity> ListPressureMemos(string stateRoot, string seat, int limit)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot) || string.IsNullOrWhiteSpace(seat) || limit < 1)
+            return Array.Empty<CdpPressureMemoEntity>();
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            var rows = db.PressureMemos.AsNoTracking()
+                .Where(x => x.Seat == seat)
+                .OrderByDescending(x => x.StampedUtc)
+                .Take(limit)
+                .ToList();
+            rows.Reverse();
+            return rows;
+        });
+    }
+
+    /// <summary>Сколько memo строк в журнале по сиденью.</summary>
+    public static int CountPressureMemos(string stateRoot, string seat)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot) || string.IsNullOrWhiteSpace(seat))
+            return 0;
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            return db.PressureMemos.AsNoTracking().Count(x => x.Seat == seat);
+        });
+    }
+
     // ---------- инфраструктура (паттерн IntercomJournalStore, ADR-0219) ----------
 
     static T WithDb<T>(string stateRoot, Func<CdpStateDbContext, T> action)
@@ -548,12 +604,33 @@ public static class CdpStateStoreDb
     {
         if (db.Registry.AsNoTracking().Any())
             return;
+        var now = DateTimeOffset.UtcNow;
+        CdpStoreRegistryEntity Row(string name, string owner, string format, string? note = null) =>
+            new() { Name = name, Owner = owner, Format = format, Note = note, StampedUtc = now };
         db.Registry.AddRange(
-            new CdpStoreRegistryEntity { Name = "wake", Owner = "CideWakeDispatch (ADR-0213)", Format = "witdb", StampedUtc = DateTimeOffset.UtcNow },
-            new CdpStoreRegistryEntity { Name = "arms", Owner = "IdeIgniteArmHost", Format = "witdb", StampedUtc = DateTimeOffset.UtcNow },
-            new CdpStoreRegistryEntity { Name = "store-registry", Owner = "CdpStateStore (ADR-0219 P0)", Format = "witdb", StampedUtc = DateTimeOffset.UtcNow });
+            Row("wake", "CideWakeDispatch (ADR-0213)", "witdb"),
+            Row("arms", "IdeIgniteArmHost (ADR-0219 W1)", "witdb"),
+            Row("store-registry", "CdpStateStore (ADR-0219 P0)", "witdb"),
+            Row("queue-state", "CdpStateStore queue seats", "witdb"),
+            Row("wake-subscriptions", "NotificationCenter (ADR-0213)", "witdb"),
+            Row("latch_docs", "latch latches + pressure-stash:{seat} (P2-P3)", "witdb"),
+            Row("pressure-memos", "IdePressureChannel (ADR-0219 P3)", "witdb"),
+            GS1("cide-latches", "IDE interop latch zoo (~25 Cide*Latch LATEST files; identity/presence mirrored to witdb)"),
+            GS1("teeth-tape", "CIDE teeth tape jsonl — wake/delivery audit, interop"),
+            GS1("remount-wake", "remount-*.pending.json — service restart wake notes, interop"),
+            GS1("cdb-channel", "IDE status/telemetry channel to CdpService host, interop"));
         db.SaveChanges();
     }
+
+    static CdpStoreRegistryEntity GS1(string name, string note) =>
+        new()
+        {
+            Name = name,
+            Owner = "GS-HS1 interop channels",
+            Format = "file",
+            Note = note,
+            StampedUtc = DateTimeOffset.UtcNow
+        };
 
     static void RenameLegacyAside(string legacy)
     {
@@ -719,4 +796,15 @@ public sealed class CdpStateStore
 
     public bool SyncArms(string seat, IEnumerable<CdpIgniteArmEntity> rows, IReadOnlyCollection<string> dropIds)
         => CdpStateStoreDb.SyncArms(_stateRoot, seat, rows, dropIds);
+
+    // ---------- P3: pressure ----------
+
+    public bool AppendPressureMemo(string seat, string id, string json, DateTimeOffset stampedUtc)
+        => CdpStateStoreDb.AppendPressureMemo(_stateRoot, seat, id, json, stampedUtc);
+
+    public IReadOnlyList<CdpPressureMemoEntity> ListPressureMemos(string seat, int limit)
+        => CdpStateStoreDb.ListPressureMemos(_stateRoot, seat, limit);
+
+    public int CountPressureMemos(string seat)
+        => CdpStateStoreDb.CountPressureMemos(_stateRoot, seat);
 }

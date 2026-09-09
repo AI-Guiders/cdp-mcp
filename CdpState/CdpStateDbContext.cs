@@ -72,6 +72,18 @@ public sealed class CdpLatchDocEntity
     public DateTimeOffset StampedUtc { get; set; }
 }
 
+/// <summary>
+/// Append-only pressure-мемо журнал (ADR-0219 P3): строка witdb = SSOT,
+/// jsonl/md файлы остаются interop-экспортом. Id — dedup-ключ канала.
+/// </summary>
+public sealed class CdpPressureMemoEntity
+{
+    public string Id { get; set; } = "";
+    public string Seat { get; set; } = "";
+    public string Json { get; set; } = "";
+    public DateTimeOffset StampedUtc { get; set; }
+}
+
 public sealed class CdpStateDbContext : DbContext
 {
     public CdpStateDbContext(DbContextOptions<CdpStateDbContext> options)
@@ -85,6 +97,7 @@ public sealed class CdpStateDbContext : DbContext
     public DbSet<CdpQueueStateEntity> QueueState => Set<CdpQueueStateEntity>();
     public DbSet<CdpWakeSubscriptionEntity> Subscriptions => Set<CdpWakeSubscriptionEntity>();
     public DbSet<CdpLatchDocEntity> LatchDocs => Set<CdpLatchDocEntity>();
+    public DbSet<CdpPressureMemoEntity> PressureMemos => Set<CdpPressureMemoEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -135,6 +148,14 @@ public sealed class CdpStateDbContext : DbContext
         latch.HasKey(x => x.Id);
         latch.Property(x => x.Id).HasMaxLength(64).IsRequired();
         latch.Property(x => x.Json).IsRequired();
+
+        var pmemo = modelBuilder.Entity<CdpPressureMemoEntity>();
+        pmemo.ToTable("pressure_memos");
+        pmemo.HasKey(x => x.Id);
+        pmemo.Property(x => x.Id).HasMaxLength(64).IsRequired();
+        pmemo.Property(x => x.Seat).HasMaxLength(32).IsRequired();
+        pmemo.Property(x => x.Json).IsRequired();
+        pmemo.HasIndex(x => x.Seat);
         sub.Property(x => x.Id).HasMaxLength(64);
         sub.Property(x => x.Nick).HasMaxLength(64).IsRequired();
         sub.Property(x => x.EventKind).HasMaxLength(32).IsRequired();

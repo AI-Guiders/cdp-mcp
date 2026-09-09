@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Cdp.CdpState;
 using Xunit;
 
 namespace CdpMcp.Tests;
