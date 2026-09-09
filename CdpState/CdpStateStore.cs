@@ -14,7 +14,7 @@ namespace Cdp.CdpState;
 /// при первом старте (migration-on-first-run) и переименовываются в interop-only .bak.
 /// Класс «молчаливой порчи записи» закрывается транзакцией EF + WitDbFileGate.
 /// </summary>
-public static class CdpStateStore
+public static class CdpStateStoreDb
 {
     public const string FileName = "cdp-state.witdb";
     public const string LegacyWakeQueueFileName = "wake-dispatch.json";
@@ -357,8 +357,6 @@ public static class CdpStateStore
             return true;
         });
     }
-
-
     // ---------- инфраструктура (паттерн IntercomJournalStore, ADR-0219) ----------
 
     static T WithDb<T>(string stateRoot, Func<CdpStateDbContext, T> action)
@@ -610,4 +608,71 @@ public static class CdpStateStore
         public string? OpencodeSession { get; set; }
         public DateTimeOffset? CreatedUtc { get; set; }
     }
+}
+
+/// <summary>
+/// ADR-0219 §DI.4 (stores) — instance over the static module: one instance = one state root.
+/// WitDbCdpStateStore (ICdpStateStore) and tests compose this; <see cref="CdpStateStoreDb"/>
+/// stays the stateless module underneath (transitional — no new static mutations, ADR §DI.5).
+/// </summary>
+public sealed class CdpStateStore
+{
+    readonly string _stateRoot;
+
+    public CdpStateStore(string stateRoot)
+        => _stateRoot = stateRoot;
+
+    public string StateRoot => _stateRoot;
+    public string DbPath => CdpStateStoreDb.DbPath(_stateRoot);
+
+    /// <summary>Const-переэкспорт модуля — живые вызыватели (CideWakeDispatch) читают через тип инстанса.</summary>
+    public const string FileName = CdpStateStoreDb.FileName;
+
+    public bool RegisterStore(string name, string owner, string format, string? note = null)
+        => CdpStateStoreDb.RegisterStore(_stateRoot, name, owner, format, note);
+
+    public IReadOnlyList<CdpStoreRegistryEntity> ListStores()
+        => CdpStateStoreDb.ListStores(_stateRoot);
+
+    public bool EnqueueWake(CdpWakeEnvelopeEntity row)
+        => CdpStateStoreDb.EnqueueWake(_stateRoot, row);
+
+    public IReadOnlyList<CdpWakeEnvelopeEntity> LoadWake(string? state = null, int limit = 200)
+        => CdpStateStoreDb.LoadWake(_stateRoot, state, limit);
+
+    public bool SetWakeState(string id, string state, string? detail = null, string? skippedReason = null)
+        => CdpStateStoreDb.SetWakeState(_stateRoot, id, state, detail, skippedReason);
+
+    public bool SetWakeStopped(bool stopped)
+        => CdpStateStoreDb.SetWakeStopped(_stateRoot, stopped);
+
+    public bool IsWakeStopped()
+        => CdpStateStoreDb.IsWakeStopped(_stateRoot);
+
+    public CdpQueueStateEntity? LoadQueueState(string id)
+        => CdpStateStoreDb.LoadQueueState(_stateRoot, id);
+
+    public bool SetQueueState(CdpQueueStateEntity row)
+        => CdpStateStoreDb.SetQueueState(_stateRoot, row);
+
+    public int PurgeWake(string state, int keep)
+        => CdpStateStoreDb.PurgeWake(_stateRoot, state, keep);
+
+    public IReadOnlyList<CdpWakeSubscriptionEntity> LoadSubscriptions()
+        => CdpStateStoreDb.LoadSubscriptions(_stateRoot);
+
+    public bool UpsertSubscription(CdpWakeSubscriptionEntity sub)
+        => CdpStateStoreDb.UpsertSubscription(_stateRoot, sub);
+
+    public int DeleteSubscriptions(string? subId, string? nick, string? eventKind)
+        => CdpStateStoreDb.DeleteSubscriptions(_stateRoot, subId, nick, eventKind);
+
+    public IReadOnlyList<CdpIgniteArmEntity> LoadArms(string seat)
+        => CdpStateStoreDb.LoadArms(_stateRoot, seat);
+
+    public bool ReplaceArms(string seat, IEnumerable<CdpIgniteArmEntity> rows)
+        => CdpStateStoreDb.ReplaceArms(_stateRoot, seat, rows);
+
+    public bool SyncArms(string seat, IEnumerable<CdpIgniteArmEntity> rows, IReadOnlyCollection<string> dropIds)
+        => CdpStateStoreDb.SyncArms(_stateRoot, seat, rows, dropIds);
 }

@@ -4,8 +4,8 @@ using Cdp.CdpState;
 namespace CdpMcp;
 
 /// <summary>
-/// ADR-0219 L2a — адаптеры портов окружения wake-плоскости (L1) к текущим статик-фасадам.
-/// Переходный период: компоненты-экземпляры зависят только от портов, фасады делегируют.
+/// ADR-0219 L2a — port adapters wiring the L1 environment interfaces to the composed
+/// instances. Transitional period: components depend on ports only; facades delegate.
 /// </summary>
 
 /// <summary>Порт state root над профилем хабитата (ADR-0199).</summary>
@@ -14,7 +14,7 @@ internal sealed class ProfileStateRootProvider : IStateRootProvider
     public string ResolveStateRoot() => CdpProfile.StateRoot;
 }
 
-/// <summary>Порт ростера над статик-реестром witdb (ADR-0212).</summary>
+/// <summary>Порт ростера над скомпонованным инстансом реестра (ADR-0212).</summary>
 internal sealed class IntercomAgentsRoster : IAgentRoster
 {
     public CideIntercomAgents.AgentRow? Resolve(string nick) =>
@@ -32,47 +32,41 @@ internal sealed class IntercomAgentsRoster : IAgentRoster
         CideIntercomAgents.Claim(nick, kind, lineId, harness, session);
 }
 
-/// <summary>Порт коллекций cdp-state.witdb, привязанный к state root на композиции.</summary>
+/// <summary>Порт коллекций cdp-state.witdb, привязанный к state root на композиции
+/// (ADR-0219 §DI.4: инстанс стора собирается один раз от провайдера root).</summary>
 internal sealed class WitDbCdpStateStore : ICdpStateStore
 {
-    private readonly string _stateRoot;
+    private readonly CdpStateStore _db;
 
     public WitDbCdpStateStore(IStateRootProvider stateRoot)
-        => _stateRoot = stateRoot.ResolveStateRoot();
+        => _db = new CdpStateStore(stateRoot.ResolveStateRoot());
 
-    public bool EnqueueWake(CdpWakeEnvelopeEntity row) =>
-        CdpStateStore.EnqueueWake(_stateRoot, row);
+    public bool EnqueueWake(CdpWakeEnvelopeEntity row) => _db.EnqueueWake(row);
 
     public IReadOnlyList<CdpWakeEnvelopeEntity> LoadWake(string? state = null, int limit = 200) =>
-        CdpStateStore.LoadWake(_stateRoot, state, limit);
+        _db.LoadWake(state, limit);
 
     public bool SetWakeState(string id, string state, string? detail = null, string? skippedReason = null) =>
-        CdpStateStore.SetWakeState(_stateRoot, id, state, detail, skippedReason);
+        _db.SetWakeState(id, state, detail, skippedReason);
 
-    public int PurgeWake(string state, int keep) =>
-        CdpStateStore.PurgeWake(_stateRoot, state, keep);
+    public int PurgeWake(string state, int keep) => _db.PurgeWake(state, keep);
 
-    public CdpQueueStateEntity? LoadQueueState(string id) =>
-        CdpStateStore.LoadQueueState(_stateRoot, id);
+    public CdpQueueStateEntity? LoadQueueState(string id) => _db.LoadQueueState(id);
 
-    public bool SetQueueState(CdpQueueStateEntity row) =>
-        CdpStateStore.SetQueueState(_stateRoot, row);
+    public bool SetQueueState(CdpQueueStateEntity row) => _db.SetQueueState(row);
 
-    public IReadOnlyList<CdpWakeSubscriptionEntity> LoadSubscriptions() =>
-        CdpStateStore.LoadSubscriptions(_stateRoot);
+    public IReadOnlyList<CdpWakeSubscriptionEntity> LoadSubscriptions() => _db.LoadSubscriptions();
 
-    public bool UpsertSubscription(CdpWakeSubscriptionEntity sub) =>
-        CdpStateStore.UpsertSubscription(_stateRoot, sub);
+    public bool UpsertSubscription(CdpWakeSubscriptionEntity sub) => _db.UpsertSubscription(sub);
 
     public int DeleteSubscriptions(string? subId, string? nick, string? eventKind) =>
-        CdpStateStore.DeleteSubscriptions(_stateRoot, subId, nick, eventKind);
+        _db.DeleteSubscriptions(subId, nick, eventKind);
 
-    public IReadOnlyList<CdpIgniteArmEntity> LoadArms(string seat) =>
-        CdpStateStore.LoadArms(_stateRoot, seat);
+    public IReadOnlyList<CdpIgniteArmEntity> LoadArms(string seat) => _db.LoadArms(seat);
 
     public bool ReplaceArms(string seat, IEnumerable<CdpIgniteArmEntity> rows) =>
-        CdpStateStore.ReplaceArms(_stateRoot, seat, rows);
-    public bool SyncArms(string seat, IEnumerable<CdpIgniteArmEntity> rows, IReadOnlyCollection<string> dropIds) =>
-        CdpStateStore.SyncArms(_stateRoot, seat, rows, dropIds);
+        _db.ReplaceArms(seat, rows);
 
+    public bool SyncArms(string seat, IEnumerable<CdpIgniteArmEntity> rows, IReadOnlyCollection<string> dropIds) =>
+        _db.SyncArms(seat, rows, dropIds);
 }
