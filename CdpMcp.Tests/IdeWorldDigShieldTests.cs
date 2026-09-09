@@ -8,8 +8,16 @@ using Xunit;
 namespace CdpMcp.Tests;
 
 [Collection("IdeWaveStore")]
-public sealed class IdeWorldDigShieldTests
+public sealed class IdeWorldDigShieldTests : IDisposable
 {
+    public IdeWorldDigShieldTests()
+    {
+        // Full-tier template pin: bind a course WITHOUT Glass/Citizen DEFERRED.
+        IdePressureChannel.SealedCourseOverrideForTests =
+            "## operator_priority (SEALED — test)\n1. Platform SSOT conveyor\n2. Fly TM focused leaf";
+    }
+
+    public void Dispose() => IdePressureChannel.SealedCourseOverrideForTests = null;
     [Fact]
     public void Invent_mill_done_refuses_without_dig()
     {
