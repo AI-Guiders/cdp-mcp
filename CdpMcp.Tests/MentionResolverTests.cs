@@ -4,8 +4,28 @@ namespace CdpMcp.Tests;
 
 /// <summary>Owning layer of mention semantics (Света 2026-09-08, DDD) — все поверхности
 /// берут решение отсюда: parse → roster → self-skip → excerpt вокруг своего упоминания.</summary>
-public sealed class MentionResolverTests
+[Collection(nameof(IntercomLatchSerial))]
+public sealed class MentionResolverTests : IDisposable
 {
+    readonly string _root;
+
+    public MentionResolverTests()
+    {
+        // Ростер — witdb-файл у StateRoot; тест герметично строит свой корень + садит ники.
+        _root = Path.Combine(Path.GetTempPath(), "cdp-icm-mention-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_root);
+        CideIntercomVoiceLatch.RootOverrideForTests = _root;
+        foreach (var nick in new[] { "Тень", "Ток" })
+            Assert.NotNull(CideIntercomAgents.Claim(nick, kind: "agent", lineId: null,
+                harness: "pytest", session: null));
+    }
+
+    public void Dispose()
+    {
+        CideIntercomVoiceLatch.RootOverrideForTests = null;
+        try { Directory.Delete(_root, recursive: true); } catch { /* ignore */ }
+    }
+
     [Fact]
     public void Author_Never_Wakes_Himself()
     {

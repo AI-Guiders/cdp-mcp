@@ -166,7 +166,9 @@ internal static class IdeHumanFacePlan
             return null;
         if (line.StartsWith("Empty TM", StringComparison.OrdinalIgnoreCase)
             || line.StartsWith("Being", StringComparison.OrdinalIgnoreCase)
-            || line.StartsWith("Ontology", StringComparison.OrdinalIgnoreCase))
+            || line.StartsWith("Ontology", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("Course is ours", StringComparison.OrdinalIgnoreCase)
+            || line.StartsWith("Yours is yours", StringComparison.OrdinalIgnoreCase))
             return null;
 
         if (line.Length > 2 && char.IsDigit(line[0]))
