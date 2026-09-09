@@ -99,6 +99,10 @@ internal sealed partial class CdpIgniteArmHost
         List<IgniteArm> hits;
         lock (Gate)
         {
+            // File SSOT across processes (ADR-0219 §DI.5): sibling processes (session bridge, durable
+            // supervisor) arm through the shared store — adopt them before filtering, else event arms
+            // armed by one process are invisible to the other (silent wake loss 2026-09-09).
+            ReloadFromFileUnlocked();
             hits = Arms.Where(a =>
                     a.Status == "armed"
                     && a.Event.Equals(ev, StringComparison.OrdinalIgnoreCase)

@@ -18,6 +18,55 @@ public partial class IdeIgniteArmHostTests
         Assert.NotEqual("awaiting", IdeIgniteArmHost.ProviderBlockedStatus);
 
     [Fact]
+    public void Persist_merges_sibling_host_arms_instead_of_clobbering()
+    {
+        // Two-process analog (ADR-0219 §DI.5): session bridge and durable supervisor share the
+        // arms store with separate in-memory hosts. A long-lived host whose Load ran before a
+        // sibling's Arm must not clobber the sibling arm on persist (silent wake loss 2026-09-09).
+        var b = new CdpIgniteArmHost();
+        _ = b.Snapshot(); // force EnsureLoaded — b's memory empty at this point
+
+        var a = new CdpIgniteArmHost();
+        var idA = "xpo-merge-a-0001";
+        a.Arm(new Dictionary<string, JsonElement>
+        {
+            ["when"] = JsonSerializer.SerializeToElement("timer"),
+            ["in"] = JsonSerializer.SerializeToElement("2h"),
+            ["id"] = JsonSerializer.SerializeToElement(idA),
+            ["task"] = JsonSerializer.SerializeToElement("sibling-a"),
+            ["settle_seconds"] = JsonSerializer.SerializeToElement(0)
+        });
+
+        var idB = "xpo-merge-b-0002";
+        b.Arm(new Dictionary<string, JsonElement>
+        {
+            ["when"] = JsonSerializer.SerializeToElement("build_finished"),
+            ["id"] = JsonSerializer.SerializeToElement(idB),
+            ["task"] = JsonSerializer.SerializeToElement("sibling-b"),
+            ["settle_seconds"] = JsonSerializer.SerializeToElement(0)
+        });
+
+        try
+        {
+            var c = new CdpIgniteArmHost(); // fresh instance = fresh process analog
+            var ids = c.Snapshot().Select(x => x.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            Assert.Contains(idA, ids);
+            Assert.Contains(idB, ids);
+        }
+        finally
+        {
+            a.Disarm(new Dictionary<string, JsonElement>
+            {
+                ["id"] = JsonSerializer.SerializeToElement(idA)
+            });
+            a.Disarm(new Dictionary<string, JsonElement>
+            {
+                ["id"] = JsonSerializer.SerializeToElement(idB)
+            });
+        }
+    }
+
+    [Fact]
     public void NormalizeEvent_maps_aliases()
     {
         Assert.Equal("build_finished", IdeIgniteArmHost.NormalizeEvent("build"));
