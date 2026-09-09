@@ -72,8 +72,8 @@ public sealed class IdeIgniteFireChargeComposeRulesTests
     }
 
     static string InvokeCompose(IdeIgniteArmHost.IgniteArm arm) =>
-        (string)typeof(IdeIgniteArmHost).GetMethod(
+        (string)typeof(CdpIgniteArmHost).GetMethod(
                 "ComposeFireCharge",
-                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!
-            .Invoke(null, [arm, true, "pulse", "detail"])!;
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .Invoke(IdeIgniteArmHost.Default, [arm, true, "pulse", "detail"])!;
 }
