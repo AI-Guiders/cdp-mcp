@@ -25,12 +25,16 @@ internal static class IdeShellIgnite
             IdeStageCycle.TryAppend("shell.fail", "shell", info.Command, info.Tab);
     }
 
-  /// <summary>Arm <c>when=shell_finished</c> for a background tab job (replaces prior arm on same tab).</summary>
+  /// <summary>Arm <c>when=shell_finished</c> for a background tab job (replaces prior arm on same tab).
+    /// wakeHarness/wakeSession — honest delivery target (ADR-0219 §DI.5): when omitted, the arm host
+    /// smart-default resolves the seat; ambiguous roster = refused (silent-loss fix 2026-09-09).</summary>
     public static bool TryAutoArmBackground(
         string? tab,
         string? command,
         bool enabled,
-        out string? armId)
+        out string? armId,
+        string? wakeHarness = null,
+        string? wakeSession = null)
     {
         armId = null;
         if (!enabled || IdeToolCallWatch.SuppressArmForTests)
@@ -52,6 +56,10 @@ internal static class IdeShellIgnite
             ["force"] = JsonSerializer.SerializeToElement(true),
             ["settle_seconds"] = JsonSerializer.SerializeToElement(0),
         };
+        if (!string.IsNullOrWhiteSpace(wakeHarness))
+            args["harness"] = JsonSerializer.SerializeToElement(wakeHarness);
+        if (!string.IsNullOrWhiteSpace(wakeSession))
+            args["session"] = JsonSerializer.SerializeToElement(wakeSession);
 
         try
         {
@@ -62,6 +70,28 @@ internal static class IdeShellIgnite
         {
             armId = null;
             return false;
+        }
+    }
+
+    /// <summary>Honest failure surface: background run payload must not claim armed when the arm host refused.</summary>
+    public static string AnnotateBackgroundRunFailed(JsonSerializerOptions pretty, string json, string reason)
+    {
+        try
+        {
+            var node = JsonNode.Parse(json)?.AsObject();
+            if (node is null)
+                return json;
+            node["ignite"] = new JsonObject
+            {
+                ["armed"] = false,
+                ["when"] = "shell_finished",
+                ["error"] = reason
+            };
+            return node.ToJsonString(pretty);
+        }
+        catch
+        {
+            return json;
         }
     }
 

@@ -71,11 +71,22 @@ internal static partial class MetaDispatch
         int? codepage = callArgs.TryGetValue("codepage", out var cpEl) && cpEl.TryGetInt32(out var cp)
             ? cp
             : IdeSettingsHabitat.EffectiveShellCodepage();
+        string? wakeHarness = callArgs.TryGetValue("wake_harness", out var whEl) ? whEl.GetString() : null;
+        string? wakeSession = callArgs.TryGetValue("wake_session", out var wsEl) ? wsEl.GetString() : null;
         var json = shellHabitat.Run(ShellDefaults(session), cmd, tab, cwd, shell, timeout, background, codepage, argv);
         if (background && IdeShellIgnite.ResolveIgniteArmEnabled(callArgs, background: true))
         {
-            IdeShellIgnite.TryAutoArmBackground(tab, cmd ?? (argv is { Length: > 0 } ? string.Join(' ', argv) : null), enabled: true, out var armId);
+            var armedOk = IdeShellIgnite.TryAutoArmBackground(
+                tab,
+                cmd ?? (argv is { Length: > 0 } ? string.Join(' ', argv) : null),
+                enabled: true,
+                out var armId,
+                wakeHarness,
+                wakeSession);
             json = IdeShellIgnite.AnnotateBackgroundRun(Pretty, json, armId);
+            if (!armedOk)
+                json = IdeShellIgnite.AnnotateBackgroundRunFailed(Pretty, json,
+                    "wake NOT armed — arm host refused (harness/session resolution; pass wake_harness/wake_session explicitly)");
         }
 
         return AttachShellEvidence(Pretty, json, session);
@@ -96,6 +107,8 @@ internal static partial class MetaDispatch
             ? to
             : IdeSettingsHabitat.EffectiveShellTimeout();
         var background = callArgs.TryGetValue("background", out var bgEl) && bgEl.ValueKind == JsonValueKind.True;
+        string? wakeHarness = callArgs.TryGetValue("wake_harness", out var rwhEl) ? rwhEl.GetString() : null;
+        string? wakeSession = callArgs.TryGetValue("wake_session", out var rwsEl) ? rwsEl.GetString() : null;
         var json = shellHabitat.Rerun(ShellDefaults(session), tab, index, timeout, background);
         if (background && IdeShellIgnite.ResolveIgniteArmEnabled(callArgs, background: true))
         {
@@ -111,8 +124,17 @@ internal static partial class MetaDispatch
                 /* best-effort */
             }
 
-            IdeShellIgnite.TryAutoArmBackground(tab, command, enabled: true, out var armId);
+            var rerunArmed = IdeShellIgnite.TryAutoArmBackground(
+                tab,
+                command,
+                enabled: true,
+                out var armId,
+                wakeHarness,
+                wakeSession);
             json = IdeShellIgnite.AnnotateBackgroundRun(Pretty, json, armId);
+            if (!rerunArmed)
+                json = IdeShellIgnite.AnnotateBackgroundRunFailed(Pretty, json,
+                    "wake NOT armed — arm host refused (pass wake_harness/wake_session explicitly)");
         }
 
         return AttachShellEvidence(Pretty, json, session);
