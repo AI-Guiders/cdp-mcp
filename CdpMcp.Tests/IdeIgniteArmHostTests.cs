@@ -17,16 +17,21 @@ public partial class IdeIgniteArmHostTests
     public void ProviderBlockedStatus_is_distinct_from_awaiting() =>
         Assert.NotEqual("awaiting", IdeIgniteArmHost.ProviderBlockedStatus);
 
-    [Fact]
+        [Fact]
     public void Persist_merges_sibling_host_arms_instead_of_clobbering()
     {
         // Two-process analog (ADR-0219 §DI.5): session bridge and durable supervisor share the
         // arms store with separate in-memory hosts. A long-lived host whose Load ran before a
         // sibling's Arm must not clobber the sibling arm on persist (silent wake loss 2026-09-09).
-        var b = new CdpIgniteArmHost();
+        // Hermetic: temp state root + own cdp-state.witdb per ADR-0219 P1 (no live machine store).
+        var root = Path.Combine(Path.GetTempPath(), "cdp-arm-merge-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var store = new WitDbCdpStateStore(new FixedStateRoot(root));
+
+        var b = new CdpIgniteArmHost(store: store);
         _ = b.Snapshot(); // force EnsureLoaded — b's memory empty at this point
 
-        var a = new CdpIgniteArmHost();
+        var a = new CdpIgniteArmHost(store: store);
         var idA = "xpo-merge-a-0001";
         a.Arm(new Dictionary<string, JsonElement>
         {
@@ -48,13 +53,15 @@ public partial class IdeIgniteArmHostTests
 
         try
         {
-            var c = new CdpIgniteArmHost(); // fresh instance = fresh process analog
+            var c = new CdpIgniteArmHost(store: store); // fresh instance = fresh process analog
             var ids = c.Snapshot().Select(x => x.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
             Assert.Contains(idA, ids);
             Assert.Contains(idB, ids);
         }
         finally
         {
+            // SyncArms drops only ids the host removed from its own loaded view —
+            // the sibling's arm survives (the pre-witdb merge resurrected instead).
             a.Disarm(new Dictionary<string, JsonElement>
             {
                 ["id"] = JsonSerializer.SerializeToElement(idA)
@@ -65,6 +72,12 @@ public partial class IdeIgniteArmHostTests
             });
         }
     }
+
+    sealed class FixedStateRoot(string root) : CdpMcp.IStateRootProvider
+    {
+        public string ResolveStateRoot() => root;
+    }
+
 
     [Fact]
     public void NormalizeEvent_maps_aliases()

@@ -309,6 +309,55 @@ public static class CdpStateStore
             return true;
         });
     }
+    /// <summary>
+    /// Транзакционная синхронизация армов линии (ADR-0219 P1): upsert строк хоста и drop
+    /// идентификаторов, которые хост удалил со своей последней загрузки. Строки стора,
+    /// которых хост не знал (армы сиблинг-процессов), сохраняются — merge двух писателей
+    /// переживает переход на witdb (A2-фикс a88771b становится транзакцией).
+    /// </summary>
+    public static bool SyncArms(string stateRoot, string seat, IEnumerable<CdpIgniteArmEntity> rows, IReadOnlyCollection<string> dropIds)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot) || string.IsNullOrWhiteSpace(seat) || rows is null)
+            return false;
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            foreach (var id in dropIds ?? Array.Empty<string>())
+            {
+                if (string.IsNullOrWhiteSpace(id))
+                    continue;
+                var doomed = db.Arms.Find(seat, id);
+                if (doomed is not null)
+                    db.Arms.Remove(doomed);
+            }
+            foreach (var row in rows)
+            {
+                if (row is null || string.IsNullOrWhiteSpace(row.Id))
+                    continue;
+                var existing = db.Arms.Find(seat, row.Id);
+                if (existing is null)
+                {
+                    db.Arms.Add(new CdpIgniteArmEntity
+                    {
+                        Seat = seat,
+                        Id = row.Id,
+                        Status = row.Status,
+                        Json = row.Json,
+                        StampedUtc = row.StampedUtc
+                    });
+                }
+                else
+                {
+                    existing.Status = row.Status;
+                    existing.Json = row.Json;
+                    existing.StampedUtc = row.StampedUtc;
+                }
+            }
+            db.SaveChanges();
+            return true;
+        });
+    }
+
 
     // ---------- инфраструктура (паттерн IntercomJournalStore, ADR-0219) ----------
 

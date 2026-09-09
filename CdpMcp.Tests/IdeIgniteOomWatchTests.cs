@@ -57,6 +57,8 @@ public sealed class IdeIgniteOomWatchTests : IDisposable
     {
         Environment.SetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE", "1");
         Assert.False(IdeRemountWake.HasPending("cdp"));
-        Assert.True(IdeIgniteOomWatch.ShouldScheduleCdtEdgeOomWake());
+        // Hermetic (ADR-0219): the shared machine arms store may hold residue from sibling
+        // runs — the pure predicate takes the remount-armed flag explicitly.
+        Assert.True(IdeIgniteOomWatch.ShouldScheduleCdtEdgeOomWake(remountArmed: false));
     }
 }

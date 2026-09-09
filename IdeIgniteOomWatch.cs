@@ -193,11 +193,16 @@ internal static class IdeIgniteOomWatch
         return elapsed < cooldown;
     }
 
-    /// <summary>Test/diagnostic hook — CDT-edge OOM schedule allowed?</summary>
+    /// <summary>Test/diagnostic hook — CDT-edge OOM schedule allowed? (live wiring: facade host)</summary>
     internal static bool ShouldScheduleCdtEdgeOomWake() =>
+        ShouldScheduleCdtEdgeOomWake(IdeIgniteArmHost.HasArmedRemountWake());
+
+    /// <summary>Pure predicate — tests pass the remount-armed flag explicitly (ADR-0219: hermetic graphs,
+    /// no dependency on the shared machine store state).</summary>
+    internal static bool ShouldScheduleCdtEdgeOomWake(bool remountArmed) =>
         IdeOomWake.CdtEdgeEnabled
         && !IdeRemountWake.HasAnyPending()
-        && !IdeIgniteArmHost.HasArmedRemountWake();
+        && !remountArmed;
 
     static string CdtEdgeSuppressDetail() =>
         !IdeOomWake.CdtEdgeEnabled

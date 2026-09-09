@@ -14,6 +14,14 @@ namespace CdpMcp;
 /// </summary>
 internal sealed partial class CdpIgniteArmHost
 {
+    /// <summary>Порт коллекций cdp-state.witdb (ADR-0219). Default — профильный state root;
+    /// тесты инжектируют временный root своим стором.</summary>
+    readonly ICdpStateStore Store;
+
+    /// <summary>Id армов, известные хосту с последней загрузки/reload — diff против текущих Arms
+    /// даёт drop-список для SyncArms (строки сиблингов не трогаются).</summary>
+    HashSet<string> LoadedIds = new(StringComparer.OrdinalIgnoreCase);
+
     public const string StoreSchema = "ignite_arms/v1";
 
     readonly JsonSerializerOptions JsonOpts = new()
@@ -33,9 +41,10 @@ internal sealed partial class CdpIgniteArmHost
     CancellationTokenSource? HostCts;
     private readonly TimeProvider _time;
 
-    internal CdpIgniteArmHost(TimeProvider? time = null)
+    internal CdpIgniteArmHost(TimeProvider? time = null, ICdpStateStore? store = null)
     {
         _time = time ?? TimeProvider.System;
+        Store = store ?? new WitDbCdpStateStore(new ProfileStateRootProvider());
     }
 
     string ResolveSeat()
@@ -99,10 +108,10 @@ internal sealed partial class CdpIgniteArmHost
         List<IgniteArm> hits;
         lock (Gate)
         {
-            // File SSOT across processes (ADR-0219 §DI.5): sibling processes (session bridge, durable
+            // Store SSOT across processes (ADR-0219 §DI.5): sibling processes (session bridge, durable
             // supervisor) arm through the shared store — adopt them before filtering, else event arms
             // armed by one process are invisible to the other (silent wake loss 2026-09-09).
-            ReloadFromFileUnlocked();
+            ReloadFromStoreUnlocked();
             hits = Arms.Where(a =>
                     a.Status == "armed"
                     && a.Event.Equals(ev, StringComparison.OrdinalIgnoreCase)

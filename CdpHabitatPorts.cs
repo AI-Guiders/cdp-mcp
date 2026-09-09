@@ -65,6 +65,10 @@ internal interface ICdpStateStore
     IReadOnlyList<CdpIgniteArmEntity> LoadArms(string seat);
 
     bool ReplaceArms(string seat, IEnumerable<CdpIgniteArmEntity> rows);
+    /// <summary>Транзакционная синхронизация армов линии (ADR-0219 P1): upsert rows, drop dropIds;
+    /// строки стора, которых хост не знал, сохраняются (двухписательский merge).</summary>
+    bool SyncArms(string seat, IEnumerable<CdpIgniteArmEntity> rows, IReadOnlyCollection<string> dropIds);
+
 }
 
 /// <summary>

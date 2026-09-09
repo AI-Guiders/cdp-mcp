@@ -72,4 +72,7 @@ internal sealed class WitDbCdpStateStore : ICdpStateStore
 
     public bool ReplaceArms(string seat, IEnumerable<CdpIgniteArmEntity> rows) =>
         CdpStateStore.ReplaceArms(_stateRoot, seat, rows);
+    public bool SyncArms(string seat, IEnumerable<CdpIgniteArmEntity> rows, IReadOnlyCollection<string> dropIds) =>
+        CdpStateStore.SyncArms(_stateRoot, seat, rows, dropIds);
+
 }
