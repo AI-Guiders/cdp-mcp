@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Cdp.CdpState;
 
 namespace CdpMcp;
 
@@ -12,6 +13,9 @@ namespace CdpMcp;
 internal static class CideIntercomPresenceLatch
 {
     public const string Schema = "cide_intercom_presence_latch/v0";
+
+    /// <summary>witdb latch_docs ключ (ADR-0219 P2).</summary>
+    public const string LatchDocId = "intercom-presence";
     public const string StateIdle = "idle";
     public const string StateComposing = "composing";
     public const string StateBusy = "busy";
@@ -127,13 +131,36 @@ internal static class CideIntercomPresenceLatch
     {
         try
         {
-            if (!File.Exists(LatchPath))
+            // ADR-0219 P2: witdb row = SSOT; legacy LATEST file migrates on first read.
+            var raw = new CdpStateStore(StateRoot).GetLatchDoc(LatchDocId)
+                      ?? TryImportLegacyLatch();
+            if (raw is null)
                 return null;
-            var raw = File.ReadAllText(LatchPath);
             var doc = JsonSerializer.Deserialize<PresenceDoc>(raw, ReadOpts);
             if (doc is null || !string.Equals(doc.Schema, Schema, StringComparison.OrdinalIgnoreCase))
                 return null;
             return doc;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    static string? TryImportLegacyLatch()
+    {
+        try
+        {
+            if (!File.Exists(LatchPath))
+                return null;
+            var raw = File.ReadAllText(LatchPath);
+            _ = new CdpStateStore(StateRoot).SetLatchDoc(LatchDocId, raw);
+            try
+            {
+                File.Move(LatchPath, LatchPath + $".migrated-{DateTime.UtcNow:yyyyMMddHHmmss}.bak", overwrite: false);
+            }
+            catch { /* best-effort */ }
+            return raw;
         }
         catch
         {
@@ -235,11 +262,18 @@ internal static class CideIntercomPresenceLatch
     {
         try
         {
-            Directory.CreateDirectory(StateRoot);
             var json = JsonSerializer.Serialize(doc, JsonOpts);
-            var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
-            File.WriteAllText(tmp, json);
-            File.Move(tmp, LatchPath, overwrite: true);
+            if (!new CdpStateStore(StateRoot).SetLatchDoc(LatchDocId, json))
+                return false;
+            // Interop export (best-effort) — GUI/agents may still read the LATEST file.
+            try
+            {
+                Directory.CreateDirectory(StateRoot);
+                var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
+                File.WriteAllText(tmp, json);
+                File.Move(tmp, LatchPath, overwrite: true);
+            }
+            catch { /* interop export best-effort */ }
             return true;
         }
         catch

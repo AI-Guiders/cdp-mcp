@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Cdp.CdpState;
 
 namespace CdpMcp;
 
@@ -13,6 +14,9 @@ namespace CdpMcp;
 internal static class CideIntercomIdentityLatch
 {
     public const string Schema = "cide_intercom_identity_latch/v0";
+
+    /// <summary>witdb latch_docs ключ (ADR-0219 P2).</summary>
+    public const string LatchDocId = "intercom-identity";
 
     static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -282,9 +286,12 @@ internal static class CideIntercomIdentityLatch
     {
         try
         {
-            if (!File.Exists(LatchPath))
+            // ADR-0219 P2: witdb row = SSOT; legacy LATEST file migrates on first read
+            // (interop-only .bak afterwards).
+            var raw = new CdpStateStore(StateRoot).GetLatchDoc(LatchDocId)
+                      ?? TryImportLegacyLatchUnlocked();
+            if (raw is null)
                 return null;
-            var raw = File.ReadAllText(LatchPath);
             var doc = JsonSerializer.Deserialize<IdentityDoc>(raw, ReadOpts);
             if (doc is null || !string.Equals(doc.Schema, Schema, StringComparison.OrdinalIgnoreCase))
                 return null;
@@ -296,15 +303,45 @@ internal static class CideIntercomIdentityLatch
         }
     }
 
+    /// <summary>Migration-on-first-read: import the legacy LATEST json into latch_docs,
+    /// rename the file aside (.migrated-*.bak, interop-only).</summary>
+    static string? TryImportLegacyLatchUnlocked()
+    {
+        try
+        {
+            if (!File.Exists(LatchPath))
+                return null;
+            var raw = File.ReadAllText(LatchPath);
+            _ = new CdpStateStore(StateRoot).SetLatchDoc(LatchDocId, raw);
+            try
+            {
+                File.Move(LatchPath, LatchPath + $".migrated-{DateTime.UtcNow:yyyyMMddHHmmss}.bak", overwrite: false);
+            }
+            catch { /* best-effort */ }
+            return raw;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     static bool WriteUnlocked(IdentityDoc doc)
     {
         try
         {
-            Directory.CreateDirectory(StateRoot);
             var json = JsonSerializer.Serialize(doc, JsonOpts);
-            var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
-            File.WriteAllText(tmp, json);
-            File.Move(tmp, LatchPath, overwrite: true);
+            if (!new CdpStateStore(StateRoot).SetLatchDoc(LatchDocId, json))
+                return false;
+            // Interop export (best-effort) — GUI/agents may still read the LATEST file.
+            try
+            {
+                Directory.CreateDirectory(StateRoot);
+                var tmp = LatchPath + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
+                File.WriteAllText(tmp, json);
+                File.Move(tmp, LatchPath, overwrite: true);
+            }
+            catch { /* interop export best-effort */ }
             return true;
         }
         catch

@@ -357,6 +357,44 @@ public static class CdpStateStoreDb
             return true;
         });
     }
+    // ---------- P2: latch-документы (identity/presence и будущие) ----------
+
+    /// <summary>Прочитать latch-документ; null = нет строки. EnsureMigrated идёт первым —
+    /// legacy LATEST-файл импортируется при первом обращении (см. latch-класс).</summary>
+    public static string? GetLatchDoc(string stateRoot, string id)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot) || string.IsNullOrWhiteSpace(id))
+            return null;
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            return db.LatchDocs.AsNoTracking().FirstOrDefault(x => x.Id == id)?.Json;
+        });
+    }
+
+    /// <summary>Записать/обновить latch-документ транзакционно (последняя запись с меткой).</summary>
+    public static bool SetLatchDoc(string stateRoot, string id, string json)
+    {
+        if (string.IsNullOrWhiteSpace(stateRoot) || string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(json))
+            return false;
+        return WithDb(stateRoot, db =>
+        {
+            EnsureMigratedUnlocked(db, stateRoot);
+            var row = db.LatchDocs.Find(id);
+            if (row is null)
+            {
+                db.LatchDocs.Add(new CdpLatchDocEntity { Id = id, Json = json, StampedUtc = DateTimeOffset.UtcNow });
+            }
+            else
+            {
+                row.Json = json;
+                row.StampedUtc = DateTimeOffset.UtcNow;
+            }
+            db.SaveChanges();
+            return true;
+        });
+    }
+
     // ---------- инфраструктура (паттерн IntercomJournalStore, ADR-0219) ----------
 
     static T WithDb<T>(string stateRoot, Func<CdpStateDbContext, T> action)
@@ -627,6 +665,12 @@ public sealed class CdpStateStore
 
     /// <summary>Const-переэкспорт модуля — живые вызыватели (CideWakeDispatch) читают через тип инстанса.</summary>
     public const string FileName = CdpStateStoreDb.FileName;
+
+    // ---------- P2: latch-документы ----------
+
+    public string? GetLatchDoc(string id) => CdpStateStoreDb.GetLatchDoc(_stateRoot, id);
+
+    public bool SetLatchDoc(string id, string json) => CdpStateStoreDb.SetLatchDoc(_stateRoot, id, json);
 
     public bool RegisterStore(string name, string owner, string format, string? note = null)
         => CdpStateStoreDb.RegisterStore(_stateRoot, name, owner, format, note);

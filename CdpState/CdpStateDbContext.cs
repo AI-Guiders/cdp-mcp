@@ -62,6 +62,16 @@ public sealed class CdpWakeSubscriptionEntity
     public DateTimeOffset CreatedUtc { get; set; }
 }
 
+/// <summary>Latch-документы (ADR-0219 P2): одиночный JSON-документ на ключ (identity/presence
+/// и будущие latch-коллекции). witdb-строка = SSOT; legacy LATEST-файлы мигрируют при первом
+/// чтении и остаются interop-экспортом.</summary>
+public sealed class CdpLatchDocEntity
+{
+    public string Id { get; set; } = "";
+    public string Json { get; set; } = "";
+    public DateTimeOffset StampedUtc { get; set; }
+}
+
 public sealed class CdpStateDbContext : DbContext
 {
     public CdpStateDbContext(DbContextOptions<CdpStateDbContext> options)
@@ -74,6 +84,7 @@ public sealed class CdpStateDbContext : DbContext
     public DbSet<CdpStoreRegistryEntity> Registry => Set<CdpStoreRegistryEntity>();
     public DbSet<CdpQueueStateEntity> QueueState => Set<CdpQueueStateEntity>();
     public DbSet<CdpWakeSubscriptionEntity> Subscriptions => Set<CdpWakeSubscriptionEntity>();
+    public DbSet<CdpLatchDocEntity> LatchDocs => Set<CdpLatchDocEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -118,6 +129,12 @@ public sealed class CdpStateDbContext : DbContext
         var sub = modelBuilder.Entity<CdpWakeSubscriptionEntity>();
         sub.ToTable("wake_subscriptions");
         sub.HasKey(x => x.Id);
+
+        var latch = modelBuilder.Entity<CdpLatchDocEntity>();
+        latch.ToTable("latch_docs");
+        latch.HasKey(x => x.Id);
+        latch.Property(x => x.Id).HasMaxLength(64).IsRequired();
+        latch.Property(x => x.Json).IsRequired();
         sub.Property(x => x.Id).HasMaxLength(64);
         sub.Property(x => x.Nick).HasMaxLength(64).IsRequired();
         sub.Property(x => x.EventKind).HasMaxLength(32).IsRequired();

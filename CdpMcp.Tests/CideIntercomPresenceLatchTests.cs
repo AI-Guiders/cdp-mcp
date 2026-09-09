@@ -68,10 +68,9 @@ public class CideIntercomPresenceLatchTests : IDisposable
         var pub = CideIntercomPresenceLatch.PublishSeat("pf", "composing", ttlSeconds: 1);
         Assert.NotNull(pub);
         pub!.Pf!.StampedUtc = DateTimeOffset.UtcNow.AddSeconds(-5);
-        // rewrite aged stamp
-        Directory.CreateDirectory(CideIntercomPresenceLatch.StateRoot);
-        File.WriteAllText(
-            CideIntercomPresenceLatch.LatchPath,
+        // rewrite aged stamp — witdb row is SSOT (ADR-0219 P2); the LATEST file is interop export
+        _ = new CdpStateStore(CideIntercomPresenceLatch.StateRoot).SetLatchDoc(
+            CideIntercomPresenceLatch.LatchDocId,
             JsonSerializer.Serialize(pub, new JsonSerializerOptions
             {
                 WriteIndented = true,
