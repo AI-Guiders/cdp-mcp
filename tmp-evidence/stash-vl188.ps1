@@ -32,7 +32,7 @@ $j | ConvertTo-Json -Depth 6 | Set-Content $stash -Encoding utf8
 - armed: True
 - stash_utc: $($j.stash_utc)
 - why: L1 pressure notify / VL188 ship insurance
-- project_root: D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp
+- project_root: D:\Experiments\Personal Cursor Folder\open\cdp-mcp
 - phase: Explore/Code
 - ignite: re-ARM last_once when MCP reconnects; timer≠idle
 - plan: Dig densest FullReady peer residual nested[axb] SoftFL invent REJECT

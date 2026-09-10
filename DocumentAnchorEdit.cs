@@ -480,7 +480,7 @@ internal static class DocumentAnchorEdit
             throw new ArgumentException(
                 $"Relative path '{p}' resolves to '{full}' — directly under a SOLUTION root " +
                 $"('{root}'), which would detach the file from its repo. Use a repo-relative " +
-                "path (e.g. 'Financial/software/open/cdp-mcp/{file}') or an absolute path.");
+                "path (e.g. 'open/cdp-mcp/{file}') or an absolute path.");
         }
 
         return full;

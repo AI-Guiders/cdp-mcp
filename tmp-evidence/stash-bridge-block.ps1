@@ -32,7 +32,7 @@ $j | ConvertTo-Json -Depth 6 | Set-Content $stash -Encoding utf8
 - armed: True
 - stash_utc: $($j.stash_utc)
 - why: L1 / VL188 tail blocked on CallMcpTool
-- project_root: D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp
+- project_root: D:\Experiments\Personal Cursor Folder\open\cdp-mcp
 - phase: Explore/Code
 - ignite: SoftFirst before kill; re-ARM via cdp_ignite when CallTool up
 - plan: Dig densest FullReady peer residual nested[axb] SoftFL invent REJECT

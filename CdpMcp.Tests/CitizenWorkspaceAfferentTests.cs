@@ -9,9 +9,9 @@ public sealed class CitizenWorkspaceAfferentTests
     public void FormatSession_includes_leaf_lang_proj()
     {
         var line = CitizenWorkspaceAfferent.FormatSession(
-            @"D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp",
+            @"D:\Experiments\Personal Cursor Folder\open\cdp-mcp",
             "csharp",
-            @"D:\Experiments\Personal Cursor Folder\Financial\software\open\cdp-mcp\CdpMcp.csproj");
+            @"D:\Experiments\Personal Cursor Folder\open\cdp-mcp\CdpMcp.csproj");
         Assert.Contains("root=cdp-mcp", line, StringComparison.Ordinal);
         Assert.Contains("csharp", line, StringComparison.Ordinal);
         Assert.Contains("proj=CdpMcp.csproj", line, StringComparison.Ordinal);

@@ -12,7 +12,7 @@ from pathlib import Path
 EXE = Path(r"D:\cdp-mcp\CdpMcp.exe")
 BASE_CFG = Path(r"D:\cdp-mcp\cdp-mcp.toml")
 PROJ = Path(
-    r"D:\Experiments\PersonalCursorFolder\Financial\software\open\cdp-mcp\tools\_doc_dogfood"
+    r"D:\Experiments\Personal Cursor Folder\open\cdp-mcp\tools\_doc_dogfood"
 )
 SRC = PROJ / "BrokenProbe.cs"
 
