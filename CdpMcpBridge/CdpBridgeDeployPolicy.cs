@@ -16,7 +16,7 @@ internal static class CdpBridgeDeployPolicy
             return false;
 
         var mode = NormalizeMode(Opt(args, "mode") ?? "hard");
-        return mode is "apply" or "hard" or "rollout";
+        return mode is "apply" or "hard" or "rollout" or "ship";
     }
 
     internal static Dictionary<string, JsonElement> PrepareForwardDeployArgs(
@@ -38,6 +38,7 @@ internal static class CdpBridgeDeployPolicy
             "apply" => "apply",
             "hard" => "hard",
             "rollout" => "rollout",
+            "ship" => "ship",
             _ => "hard"
         };
 

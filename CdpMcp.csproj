@@ -543,22 +543,27 @@
   <PropertyGroup>
     <GitSha Condition="'$(GitSha)' == ''">nogit</GitSha>
   </PropertyGroup>
-  <Target Name="StampBuildMeta" BeforeTargets="CoreGenerateAssemblyInfo">
+  <Target Name="StampBuildMeta" BeforeTargets="BeforeCompile">
+    <!-- Always re-stamp: hung on BeforeCompile (not CoreGenerateAssemblyInfo, which incremental
+         publish skips — a stale stamp made the tower blind to slot freshness, 2026-09-10).
+         sha gets -dirty on an unclean tree so health never claims a commit it isn't. -->
     <Exec Command="git rev-parse --short HEAD" IgnoreExitCode="true" ConsoleToMsBuild="true" StandardOutputImportance="low">
       <Output TaskParameter="ConsoleOutput" PropertyName="GitShaDetected" />
     </Exec>
+    <Exec Command="git status --porcelain -- ." IgnoreExitCode="true" ConsoleToMsBuild="true" StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitDirtyDetected" />
+    </Exec>
     <PropertyGroup>
       <GitSha Condition="'$(GitShaDetected)' != ''">$(GitShaDetected)</GitSha>
+      <GitSha Condition="'$(GitDirtyDetected)' != ''">$(GitSha)-dirty</GitSha>
+      <BuildStampUtc>$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))</BuildStampUtc>
     </PropertyGroup>
+    <WriteLinesToFile
+      File="$(IntermediateOutputPath)BuildStamp.g.cs"
+      Lines="[assembly: System.Reflection.AssemblyMetadata(&quot;BuildSha&quot;, &quot;$(GitSha)&quot;)]%0A[assembly: System.Reflection.AssemblyMetadata(&quot;BuildTimeUtc&quot;, &quot;$(BuildStampUtc)&quot;)]"
+      Overwrite="true" />
     <ItemGroup>
-      <AssemblyAttribute Include="System.Reflection.AssemblyMetadata">
-        <_Parameter1>BuildSha</_Parameter1>
-        <_Parameter2>$(GitSha)</_Parameter2>
-      </AssemblyAttribute>
-      <AssemblyAttribute Include="System.Reflection.AssemblyMetadata">
-        <_Parameter1>BuildTimeUtc</_Parameter1>
-        <_Parameter2>$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))</_Parameter2>
-      </AssemblyAttribute>
+      <Compile Include="$(IntermediateOutputPath)BuildStamp.g.cs" />
     </ItemGroup>
   </Target>
 </Project>

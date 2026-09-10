@@ -29,7 +29,7 @@ internal static class CdpServiceHost
         var settings = runtime.Settings.Service;
         var token = CdpServiceToken.Ensure(settings);
         // ADR-0209: the gatekeeper owns 8771 forever; the service self-registers on a free slot port.
-        var slotPort = CdpSlotRegistry.PickFreePort();
+        var slotPort = ResolveSlotPort();
         var baseUrl = $"http://{settings.Bind}:{slotPort}";
         var slot = new CdpSlotRecord
         {
@@ -209,6 +209,25 @@ internal static class CdpServiceHost
         }
         return 0;
     }
+
+    /// <summary>
+    /// ADR-0209 stage 3 (ship): the deploy orchestrator may pin the slot port via
+    /// <c>CDP_SLOT_PORT</c> so post-start verification has a known endpoint. A pinned port
+    /// that turned out busy falls back to a free pick — never a bind crash.
+    /// </summary>
+    internal static int ResolveSlotPort()
+    {
+        var raw = Environment.GetEnvironmentVariable("CDP_SLOT_PORT");
+        if (int.TryParse(raw, out var pinned)
+            && pinned is >= CdpSlotRegistry.FirstSlotPort and <= CdpSlotRegistry.LastSlotPort
+            && CdpSlotRegistry.IsPortFree(pinned))
+        {
+            return pinned;
+        }
+
+        return CdpSlotRegistry.PickFreePort();
+    }
+
     static async Task HeartbeatSlotAsync(CdpSlotRecord slot, CancellationToken token)
     {
         while (!token.IsCancellationRequested)

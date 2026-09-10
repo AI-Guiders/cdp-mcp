@@ -14,7 +14,9 @@ public sealed record CdpDeployPlan(
     public string ServicePublishRoot =>
         Mode switch
         {
-            CdpDeployMode.Soft => Layout.StagedService,
+            // Ship publishes into the shared stage first, then moves it into an immutable
+            // snapshot (ADR-0209 stage 3) — the publish pipeline stays identical to soft.
+            CdpDeployMode.Soft or CdpDeployMode.Ship => Layout.StagedService,
             _ => Layout.ServiceInstall
         };
 
@@ -138,6 +140,7 @@ public static class CdpDeployPlanner
             CdpDeployMode.Apply => PlanApply(layout, source, seat, request),
             CdpDeployMode.Hard => PlanHard(layout, source, seat, request),
             CdpDeployMode.Soft => PlanSoft(layout, source, seat, request),
+            CdpDeployMode.Ship => PlanShip(layout, source, seat, request),
             CdpDeployMode.Rollout => CdpDeployPlanResult.Fail("use_rollout_executor", "Rollout is orchestrated step-by-step."),
             _ => CdpDeployPlanResult.Fail("unknown_mode", $"Unsupported mode {request.Mode}.")
         };
@@ -209,6 +212,23 @@ public static class CdpDeployPlanner
             request.NoNudge,
             request.UseNuGet));
     }
+
+    /// <summary>ADR-0209 stage 3: ship is service-only — bridges remount on change, never slot targets.</summary>
+    static CdpDeployPlanResult PlanShip(
+        CdpDeployLayout layout,
+        CdpDeploySource source,
+        string seat,
+        CdpDeployPlanRequest request) =>
+        CdpDeployPlanResult.Success(new CdpDeployPlan(
+            CdpDeployMode.Ship,
+            layout,
+            source,
+            seat,
+            request.SelfInstallRoot,
+            BridgePublishTarget: null,
+            KillRunning: false,
+            request.NoNudge,
+            request.UseNuGet));
 
     static string? ResolveBridgeTarget(
         CdpDeployLayout layout,

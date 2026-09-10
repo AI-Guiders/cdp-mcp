@@ -1,6 +1,6 @@
 # CDP-ADR-0209: Gatekeeper tower + self-registering service slots
 
-**Status:** accepted — implemented stages 1–4 (2026-09-05); slot pool (Buran 3+1) — follow-up  
+**Status:** Accepted — implemented stages 1–2, 4 (2026-09-05); stage 3 (ship, slot-from-snapshot) — 2026-09-10 via CDP-ADR-0223; slot pool (Buran 3+1) — follow-up  
 **Date:** 2026-09-05  
 **Extends:** ADR-0198 (sidecar/bridge), ADR-0203 (deploy gap survival), ADR-0032 (durable jobs)
 
@@ -56,7 +56,7 @@ publish новых бит в staging dir
 
 1. **Gatekeeper** (~120 строк): HttpListener 8771 → slots-registry reader → forward. Режим `--gatekeeper`.
 2. **Slot registration** в CdpServiceHost: выбор свободного порта, запись/удаление slots\{pid}.json, fingerprint из AssemblyMetadata.
-3. **mode=ship**: префлайт (source, build, конфиги) → publish в staging → старт слота из staging → healthz-верификация → отчёт. Промоушен в активный каталог — упраздняется за ненадобностью.
+3. **mode=ship**: префлайт (source, build, конфиги) → publish в staging → старт слота из staging → healthz-верификация → отчёт. Промоушен в активный каталог — упраздняется за ненадобностью. **→ Реализовано 2026-09-10 (CDP-ADR-0223): `CdpDeployShip` + `ActivateSnapshot`; `apply` переведён на тот же путь.**
 4. **Снос**: CdpBridgeEndpoint, EnsureActiveBaseAddress, serviceOnly-килл дисциплина.
 5. **Слоты-пул** (Buran-обобщение): `slots` = массив в конфиге, N бортов.
 

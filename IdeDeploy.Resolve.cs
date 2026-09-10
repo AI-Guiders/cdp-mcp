@@ -22,7 +22,7 @@ internal static partial class IdeDeploy
         var layout = Cdp.Deploy.CdpDeployLayout.Default;
         var sibling = layout.SiblingBridgeForSeat(seat);
 
-        if (mode == "apply")
+        if (mode is "apply" or "ship")
         {
             var raw = (targetRaw ?? "").Trim();
             var service = raw.Length == 0

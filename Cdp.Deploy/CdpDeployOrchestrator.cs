@@ -16,6 +16,7 @@ public static class CdpDeployOrchestrator
             CdpDeployMode.Soft => Soft(plan),
             CdpDeployMode.Hard => Hard(plan),
             CdpDeployMode.Apply => Apply(plan),
+            CdpDeployMode.Ship => Ship(plan),
             _ => new CdpDeployStepResult(false, "unsupported mode", null, 1, plan.Mode.ToString())
         };
     }
@@ -104,7 +105,9 @@ public static class CdpDeployOrchestrator
         // ADR-0211: a promote must never be executed by a process whose own bits
         // live inside the target — the worker would hold its own exe (self-lock).
         // Deploy jobs run from a disposable clone (IDE lifecycle enqueue).
-        if (AppContext.BaseDirectory.StartsWith(plan.Layout.ServiceInstall, StringComparison.OrdinalIgnoreCase))
+        // Prefix is path-segment safe: ServiceInstall must not match ".staging" siblings.
+        var livePrefix = Path.GetFullPath(plan.Layout.ServiceInstall).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
+        if (AppContext.BaseDirectory.StartsWith(livePrefix, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException(
                 "Deploy worker runs from ServiceInstall — promote would self-lock (ADR-0211). " +
                 "Deploy jobs run from their own clone or another seat.");
@@ -126,15 +129,28 @@ public static class CdpDeployOrchestrator
 
         var lockJob = $"apply-{Guid.NewGuid():N}"[..12];
         CdpDeployLock.Acquire(plan.Layout.ServiceInstall, lockJob);
+        var shippedService = false;
         try
         {
             if (serviceNext is not null)
-                CdpServiceControl.StopLockHoldersUnder(plan.Layout.ServiceInstall, serviceOnly: true);
-
-            if (serviceNext is not null)
             {
-                CdpDeployPromoter.PromoteTree(serviceNext, plan.Layout.ServiceInstall);
-                CdpServiceControl.EnsureServiceExecutable(plan.Layout);
+                // ADR-0209 stage 3: no promote over the live root. The staged tree moves into an
+                // immutable snapshot; the new slot starts from it; old slots retire only after
+                // the new one answers healthy. Live syncs afterwards — over a verified-dead dir.
+                var snapshot = CdpDeployShip.AllocateSnapshotDir(plan.Layout.ServiceStagingRoot);
+                CdpDeployShip.MoveToSnapshot(serviceNext, snapshot);
+                try
+                {
+                    ActivateSnapshot(plan, snapshot);
+                }
+                catch
+                {
+                    // Keep the pending update retryable: re-point it at the moved snapshot.
+                    CdpDeployPending.WriteSoft(plan.Layout, snapshot, pending.BridgeRoot, pending.Version);
+                    throw;
+                }
+
+                shippedService = true;
             }
 
             if (!bridgeDeferred)
@@ -156,8 +172,14 @@ public static class CdpDeployOrchestrator
                 CleanupStaged(plan.Layout.StagedBridgeDebug);
             }
 
-            CdpServiceControl.StartService(plan.Layout);
-            CdpServiceControl.AssertHealthy(plan.Layout);
+            if (!shippedService)
+            {
+                // Bridge-only apply (or nothing staged): legacy start path. A shipped service
+                // is already started and health-verified by ActivateSnapshot.
+                CdpServiceControl.StartService(plan.Layout);
+                CdpServiceControl.AssertHealthy(plan.Layout);
+            }
+
             if (!plan.NoNudge)
                 CdpReloadNudge.TryBumpSeats("cdp", "cdp-debug");
         }
@@ -176,6 +198,84 @@ public static class CdpDeployOrchestrator
                 : $"APPLY ok {plan.Layout.ServiceInstall}",
             0,
             null);
+    }
+
+    /// <summary>
+    /// ADR-0209 stage 3: deploy = "start one more process". Publish staged exactly like soft,
+    /// move the stage into an immutable snapshot, then activate. No promote over a live root —
+    /// the robocopy-against-running-slot failure class (exit=11) dies by construction.
+    /// </summary>
+    static CdpDeployStepResult Ship(CdpDeployPlan plan)
+    {
+        var livePrefix = Path.GetFullPath(plan.Layout.ServiceInstall).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
+        if (AppContext.BaseDirectory.StartsWith(livePrefix, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException(
+                "Deploy worker runs from ServiceInstall — ship would self-lock on live sync (ADR-0211). " +
+                "Deploy jobs run from their own clone or another seat.");
+
+        // Publish can take minutes and touches nothing live — the deploy lock is taken only for
+        // the short critical section (start → verify → retire → sync), well inside its TTL.
+        if (Directory.Exists(plan.Layout.StagedService))
+            Directory.Delete(plan.Layout.StagedService, recursive: true);
+        PublishService(plan, killRunning: false);
+        FinalizeSeatConfigs(plan);
+
+        var snapshot = CdpDeployShip.AllocateSnapshotDir(plan.Layout.ServiceStagingRoot);
+        CdpDeployShip.MoveToSnapshot(plan.Layout.StagedService, snapshot);
+
+        int pid, port, retired;
+        bool synced;
+        var lockJob = $"ship-{Guid.NewGuid():N}"[..12];
+        CdpDeployLock.Acquire(plan.Layout.ServiceInstall, lockJob);
+        try
+        {
+            (pid, port, retired, synced) = ActivateSnapshot(plan, snapshot);
+            CdpDeployPending.Clear(plan.Layout);
+        }
+        finally
+        {
+            CdpDeployLock.Release(plan.Layout.ServiceInstall);
+        }
+
+        CdpDeployShip.PruneSnapshots(plan.Layout.ServiceStagingRoot);
+        if (!plan.NoNudge)
+            CdpReloadNudge.TryBumpSeats("cdp", "cdp-debug");
+
+        return new CdpDeployStepResult(
+            true,
+            $"ship ok slot_pid={pid} port={port} retired={retired} live_synced={synced} snapshot={snapshot}",
+            $"SHIP ok :{port} {Path.GetFileName(snapshot)}",
+            0,
+            null);
+    }
+
+    /// <summary>
+    /// Shared ship tail: start the slot from the snapshot, verify its pinned health endpoint,
+    /// retire old slots, then sync the live root over the now-dead directory. Callers hold the
+    /// deploy lock. A failed verify kills the fresh process and leaves old slots untouched.
+    /// </summary>
+    static (int Pid, int Port, int Retired, bool LiveSynced) ActivateSnapshot(CdpDeployPlan plan, string snapshotDir)
+    {
+        CdpServiceControl.EnsureServiceExecutableIn(snapshotDir);
+        CdpDeploySeatConfig.NormalizeInstallSeat(snapshotDir);
+
+        var port = CdpDeployShip.PickFreeSlotPort();
+        using var proc = CdpServiceControl.StartSlotFromDir(snapshotDir, port);
+        try
+        {
+            CdpDeployShip.WaitSlotHealthy(port, proc);
+        }
+        catch
+        {
+            try { proc.Kill(entireProcessTree: true); } catch { /* best effort */ }
+            throw;
+        }
+
+        var retired = CdpDeployShip.RetireOtherSlots(
+            [plan.Layout.ServiceInstall, plan.Layout.ServiceStagingRoot],
+            proc.Id);
+        var synced = CdpDeployShip.SyncLiveIfIdle(plan.Layout, snapshotDir);
+        return (proc.Id, port, retired, synced);
     }
 
     internal static string? ResolveStagedServiceRoot(CdpDeployPending.PendingUpdate pending, CdpDeployLayout layout)

@@ -13,6 +13,9 @@ public sealed record CdpDeployLayout(
 
     public string StagedService => ServiceInstall + ".next";
 
+    /// <summary>ADR-0209 stage 3: immutable slot snapshots — one subdirectory per ship, never rewritten in place.</summary>
+    public string ServiceStagingRoot => ServiceInstall + ".staging";
+
     public string StagedBridgeRelease => BridgeReleaseInstall + ".next";
 
     public string StagedBridgeDebug => BridgeDebugInstall + ".next";

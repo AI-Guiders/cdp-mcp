@@ -20,7 +20,7 @@ internal static partial class IdeDeploy
 
         object? igniteWake = null;
         object? remountWake = null;
-        if (step.Ok && mode is "hard" or "apply")
+        if (step.Ok && mode is "hard" or "apply" or "ship")
         {
             try { IdeRemountWake.MarkPending(resolved.Target!, mode == "hard" ? "hard_deploy" : "apply_pending"); }
             catch { /* best-effort */ }
@@ -30,14 +30,17 @@ internal static partial class IdeDeploy
                 catch { /* best-effort */ }
             }
 
-            var targetSeat = mode == "apply" ? "cdp" : ClassifySeat(resolved.Target);
+            var targetSeat = mode is "apply" or "ship" ? "cdp" : ClassifySeat(resolved.Target);
             remountWake = new
             {
                 pending_seat = targetSeat,
                 pending_path = IdeRemountWake.PendingPathForSeat(targetSeat),
-                hint = mode == "apply"
-                    ? "Service restarted from staged .next — bump bridge remount if tools stale (CDP_RELOAD_NUDGE)."
-                    : "Target MCP boot consumes pending → Autoi 'MCP remounted / initialized'"
+                hint = mode switch
+                {
+                    "ship" => "Ship ok — slot runs from an immutable snapshot; live synced as last-good. Bump bridge remount if tools stale (CDP_RELOAD_NUDGE).",
+                    "apply" => "Service restarted from staged .next — bump bridge remount if tools stale (CDP_RELOAD_NUDGE).",
+                    _ => "Target MCP boot consumes pending → Autoi 'MCP remounted / initialized'"
+                }
             };
         }
 
@@ -70,7 +73,8 @@ internal static partial class IdeDeploy
                 ? mode switch
                 {
                     "hard" => "Hard deploy done (C# orchestrator). cdp_health should show live version.",
-                    "apply" => "Pending staged update applied (.next → live). cdp_health pending_update should be null.",
+                    "apply" => "Pending staged update applied (.next → immutable snapshot slot). cdp_health pending_update should be null.",
+                    "ship" => "Ship done — new slot runs from an immutable snapshot; old slots retired; live synced as last-good.",
                     _ => "Soft staged (.next + pending_update). Apply with mode=apply."
                 }
                 : "Deploy failed — see stderr_tail."

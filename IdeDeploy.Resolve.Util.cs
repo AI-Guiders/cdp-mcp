@@ -41,6 +41,7 @@ internal static partial class IdeDeploy
             "hard" or "h" or "kill" => "hard",
             "rollout" or "r" or "dual" => "rollout",
             "apply" or "a" or "pending" or "apply_pending" => "apply",
+            "ship" or "sh" or "slot" => "ship",
             _ => "hard"
         };
     }

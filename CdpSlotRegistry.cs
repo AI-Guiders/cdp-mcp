@@ -29,26 +29,33 @@ public static class CdpSlotRegistry
 
     public static string DbPath(string stateRoot) => Path.Combine(stateRoot, FileName);
 
+    /// <summary>True when a loopback bind on the port succeeds right now.</summary>
+    public static bool IsPortFree(int port)
+    {
+        var listener = new TcpListener(IPAddress.Loopback, port);
+        try
+        {
+            listener.Start();
+            return true;
+        }
+        catch (SocketException)
+        {
+            return false;
+        }
+        finally
+        {
+            try { listener.Stop(); }
+            catch { /* best effort */ }
+        }
+    }
+
     /// <summary>First free TCP port in the slot range (8772..8871). The gatekeeper's 8771 is never a slot.</summary>
     public static int PickFreePort()
     {
         for (var port = FirstSlotPort; port <= LastSlotPort; port++)
         {
-            var listener = new TcpListener(IPAddress.Loopback, port);
-            try
-            {
-                listener.Start();
+            if (IsPortFree(port))
                 return port;
-            }
-            catch (SocketException)
-            {
-                /* occupied — next */
-            }
-            finally
-            {
-                try { listener.Stop(); }
-                catch { /* best effort */ }
-            }
         }
 
         throw new IOException($"No free slot port in {FirstSlotPort}..{LastSlotPort}.");

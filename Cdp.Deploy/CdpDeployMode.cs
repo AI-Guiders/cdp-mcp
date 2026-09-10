@@ -5,7 +5,9 @@ public enum CdpDeployMode
     Soft,
     Hard,
     Apply,
-    Rollout
+    Rollout,
+    /// <summary>ADR-0209 stage 3: publish → immutable snapshot → start slot from it → retire old. No promote over a live root.</summary>
+    Ship
 }
 
 public static class CdpDeployModeParser
@@ -17,6 +19,7 @@ public static class CdpDeployModeParser
             "hard" or "h" or "kill" => CdpDeployMode.Hard,
             "apply" or "a" or "pending" or "apply_pending" => CdpDeployMode.Apply,
             "rollout" or "r" or "dual" => CdpDeployMode.Rollout,
+            "ship" or "sh" or "slot" => CdpDeployMode.Ship,
             _ => CdpDeployMode.Hard
         };
 }

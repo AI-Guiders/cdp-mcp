@@ -12,6 +12,10 @@ public static class CdpServiceControl
         if (string.IsNullOrWhiteSpace(root))
             return;
 
+        // Path-prefix fix (ADR-0209 stage 3): "D:\cdp-service" must not match
+        // "D:\cdp-service.staging\..." — snapshot slots live beside the live root.
+        root = Path.GetFullPath(root).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
+
         var selfPid = Environment.ProcessId;
 
         // ADR-0212: kill → verify dead → retry. A single Kill+Sleep(800) let survivors
@@ -81,14 +85,50 @@ public static class CdpServiceControl
 
     public static void EnsureServiceExecutable(CdpDeployLayout layout)
     {
-        var exe = Path.Combine(layout.ServiceInstall, "CdpService.exe");
-        var fallback = Path.Combine(layout.ServiceInstall, "CdpMcp.exe");
+        EnsureServiceExecutableIn(layout.ServiceInstall);
+    }
+
+    /// <summary>Snapshot variant (ADR-0209 stage 3): validate a slot tree by directory.</summary>
+    public static void EnsureServiceExecutableIn(string dir)
+    {
+        var exe = Path.Combine(dir, "CdpService.exe");
+        var fallback = Path.Combine(dir, "CdpMcp.exe");
         if (!File.Exists(exe) && !File.Exists(fallback))
         {
             throw new FileNotFoundException(
-                "CdpService.exe missing after promote — staged tree was invalid.",
+                "CdpService.exe missing in slot tree — staged tree was invalid.",
                 exe);
         }
+    }
+
+    /// <summary>
+    /// ADR-0209 stage 3 (ship): start a service slot from an immutable snapshot directory on a
+    /// pinned port (CDP_SLOT_PORT) so the caller can verify health on a known endpoint.
+    /// Returns the started process — caller owns verification before retiring anything.
+    /// </summary>
+    public static Process StartSlotFromDir(string dir, int slotPort)
+    {
+        EnsureServiceExecutableIn(dir);
+        var exe = Path.Combine(dir, "CdpService.exe");
+        if (!File.Exists(exe))
+            exe = Path.Combine(dir, "CdpMcp.exe");
+
+        var config = CdpDeploySeatConfig.ResolveSeatConfigPath(dir)
+                     ?? throw new FileNotFoundException(
+                         $"Operator config missing at {CdpDeploySeatConfig.SeatConfigPath(dir)}.",
+                         CdpDeploySeatConfig.SeatConfigPath(dir));
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = exe,
+            Arguments = $"--service --config \"{config}\"",
+            WorkingDirectory = dir,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        psi.Environment["CDP_SLOT_PORT"] = slotPort.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        return Process.Start(psi) ?? throw new InvalidOperationException("Failed to start slot process.");
     }
 
     public static void StartService(CdpDeployLayout layout)

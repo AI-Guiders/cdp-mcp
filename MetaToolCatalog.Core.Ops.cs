@@ -25,12 +25,12 @@ internal static partial class MetaToolCatalog
             op = new { type = "string", description = "restore (default) | peek" }
         }
     }),
-    Meta("cdp_deploy", "Dual-instance Deploy — runs publish-and-deploy.ps1. Soft stages .next + pending_update. mode=apply promotes staged .next → live (no republish). Hard republishes + KillRunning (defaults sibling). mode=rollout: soft sibling→soft self→hard sibling. dry_run= preview. Alias go=deploy.", new
+    Meta("cdp_deploy", "Dual-instance Deploy — runs publish-and-deploy.ps1. Soft stages .next + pending_update. mode=apply ships the staged .next as a slot from an immutable snapshot (no promote over live; ADR-0209 stage 3). mode=ship: publish + same slot activation in one step. Hard republishes + KillRunning (defaults sibling). mode=rollout: soft sibling→soft self→hard sibling. dry_run= preview. Alias go=deploy.", new
     {
         type = "object",
         properties = new
         {
-            mode = new { type = "string", description = "soft|apply|hard|rollout (default hard; apply=promote pending .next)" },
+            mode = new { type = "string", description = "soft|apply|hard|rollout|ship (default hard; apply=ship pending .next; ship=publish+slot from immutable snapshot)" },
             target = new { type = "string", description = "sibling|self|release|debug|path (default sibling)" },
             force = new { type = "boolean", description = "allow hard deploy onto self install (escape)" },
             dry_run = new { type = "boolean", description = "resolve policy only — no powershell" },
