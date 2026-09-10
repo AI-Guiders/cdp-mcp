@@ -1,6 +1,6 @@
 # CDP-ADR-0018: Pressure desk — L1 pre-compact prep (`cdp_pressure` / `go=pressure_desk`)
 
-**Status:** accepted  
+**Status:** Accepted  
 **Date:** 2026-07-27  
 **project-id:** `cascade-ide` · consumer: CDP / Agent Env  
 **Tags:** #cdp #adr #pressure #compact #continuity #ignite #task-manager #harness

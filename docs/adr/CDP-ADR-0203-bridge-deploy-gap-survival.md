@@ -1,6 +1,6 @@
 # CDP-ADR-0203: Bridge deploy-gap survival
 
-**Status:** accepted  
+**Status:** Accepted  
 **Date:** 2026-08-22  
 **Extends:** ADR-0198 (bridge), ADR-0032 (durable jobs)
 

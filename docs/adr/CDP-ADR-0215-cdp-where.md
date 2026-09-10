@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Proposed |
+**Status:** Proposed
 | **Date** | 2026-09-06 |
 | **Tags** | #cdp #orientation #usage #tips #agent-native |
 | **Relates to** | [CDP-ADR-0213](./CDP-ADR-0213-wake-dispatcher.md) · [CDP-ADR-0214](./CDP-ADR-0214-wake-witdb-broker.md) · agent findings (memory_self_finding) |

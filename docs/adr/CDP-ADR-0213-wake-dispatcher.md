@@ -1,6 +1,6 @@
 # CDP-ADR-0213: WakeDispatcher — единый SSOT для wake-системы
 
-**Status**: accepted (2026-09-06)
+**Status:** Accepted (2026-09-06)
 **Заказчик**: Света (оператор) · **Автор**: Тихон (PF, guest)
 
 ## Context

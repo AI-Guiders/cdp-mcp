@@ -1,6 +1,6 @@
 # CDP-ADR-0028: Citizen agent wire (pulse frames)
 
-**Status:** accepted (wire contract + parser + host inject via `CitizenCompletions` / `cdp_citizen`)  
+**Status:** Accepted (wire contract + parser + host inject via `CitizenCompletions` / `cdp_citizen`)  
 **Date:** 2026-07-31  
 **Tags:** #cdp #adr #citizen #wire #dark-cockpit
 

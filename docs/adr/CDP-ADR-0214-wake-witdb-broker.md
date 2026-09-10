@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Proposed |
+**Status:** Proposed
 | **Date** | 2026-09-06 |
 | **Tags** | #cdp #wake #notificationcenter #witdb #opencode |
 | **Relates to** | [CDP-ADR-0212](./CDP-ADR-0212-intercom-chat-room.md) (intercom) · [CDP-ADR-0213](./CDP-ADR-0213-wake-dispatcher.md) (dispatcher design; storage layer superseded by this) · [WitDB](https://github.com/AI-Guiders/witdatabase) (storage engine) |

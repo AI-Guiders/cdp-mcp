@@ -1,6 +1,6 @@
 # CDP-ADR-0024: Recall gate — pull → reconcile (self-steer) → align → ready
 
-**Status:** accepted  
+**Status:** Accepted  
 **Date:** 2026-07-31  
 **project-id:** `cascade-ide` · consumer: CDP / Agent Env  
 **Tags:** #cdp #adr #pressure #recall #lifecycle #cockpit #locus

@@ -1,6 +1,6 @@
 # CDP-ADR-0210: Плагинная архитектура à la Forge (вертикальные плагины, оба слоя)
 
-**Status:** accepted — stage 1 implemented (2026-09-05); stages 2–3 **deferred**
+**Status:** Accepted — stage 1 implemented (2026-09-05); stages 2–3 **deferred**
 
 ## Context
 

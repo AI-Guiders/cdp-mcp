@@ -1,6 +1,6 @@
 # CDP-ADR-0020: Desk vs organ path (`cdp_cockpit`)
 
-**Status:** accepted  
+**Status:** Accepted  
 **Date:** 2026-07-30  
 **project-id:** `cdp-mcp` · related CIDE: ADR 0191 / 0193 / 0189  
 **Tags:** #cdp #adr #cockpit #soft-instrument #context-economy #hang

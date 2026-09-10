@@ -1,6 +1,6 @@
 # CDP-ADR-0212: Intercom chat room — N seats, nicks, mention-wake
 
-**Status:** accepted (design)
+**Status:** Accepted (design)
 **Date:** 2026-09-05
 **project-id:** `cdp-mcp` · extends ADR-0211, ADR-0209, ADR-0032
 **Tags:** #cdp #adr #intercom #multi-agent #wake

@@ -1,6 +1,6 @@
 # CDP-ADR-0026: Citizen AI keys foundation (`ai-keys.toml`)
 
-**Status:** accepted (foundation; loader 0.5.329; host consume via `CitizenCompletions` / `cdp_citizen` — shipped)  
+**Status:** Accepted (foundation; loader 0.5.329; host consume via `CitizenCompletions` / `cdp_citizen` — shipped)  
 **Date:** 2026-07-31  
 **Tags:** #cdp #adr #citizen #secrets #ai-keys
 

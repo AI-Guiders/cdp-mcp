@@ -1,6 +1,6 @@
 # CDP-ADR-0022: Pressure memo line — anti-compaction agent archive
 
-**Status:** accepted  
+**Status:** Accepted  
 **Date:** 2026-07-31  
 **project-id:** `cascade-ide` · consumer: CDP / Agent Env  
 **Tags:** #cdp #adr #pressure #compact #continuity #memo

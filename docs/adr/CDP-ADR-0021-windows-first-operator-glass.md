@@ -1,6 +1,6 @@
 # CDP-ADR-0021: Windows-first operator glass (Avalonia on hold)
 
-**Status:** accepted (operator steer 2026-07-30; Endgame topology same day)  
+**Status:** Accepted (operator steer 2026-07-30; Endgame topology same day)  
 **Tags:** #cdp #adr #cockpit #cide #windows-first #wpf #glass-cockpit  
 **Related:** [CDP-ADR-0019](./CDP-ADR-0019-icm-cdp-first-command-module.md) · [icm-anchor-start-stop-contract.md](../design/icm-anchor-start-stop-contract.md) · [citizen-agent-wire-v0.md](../design/citizen-agent-wire-v0.md) · CdpDeskTui spike
 

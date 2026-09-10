@@ -1,6 +1,6 @@
 # CDP-ADR-0025: Citizen vs guest isolation (guest must not thrash citizen)
 
-**Status:** accepted (foundation; dual-seat ignite/HILD + pressure seat dirs shipped 0.5.330; citizen host not shipped)  
+**Status:** Accepted (foundation; dual-seat ignite/HILD + pressure seat dirs shipped 0.5.330; citizen host not shipped)  
 **Date:** 2026-07-31  
 **Tags:** #cdp #adr #citizen #guest #isolation #continuity
 

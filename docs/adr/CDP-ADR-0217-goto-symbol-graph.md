@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Proposed |
+**Status:** Proposed
 | **Date** | 2026-09-06 |
 | **Tags** | #cdp #goto #semantic-map #federation #hci #agent-native |
 | **Relates to** | [CDP-ADR-0202](./CDP-ADR-0202-capabilities-revision.md) (capabilities rev) · [CDP-ADR-0214](./CDP-ADR-0214-wake-witdb-broker.md) · Modeling.Ide.Session (federation graph) · HybridCodebaseIndex (HCI FTS lane) |

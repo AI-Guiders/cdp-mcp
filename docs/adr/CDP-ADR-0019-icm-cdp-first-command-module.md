@@ -1,6 +1,6 @@
 # CDP-ADR-0019: ICM — CDP-first IdeCommandModule (dual HCI, one drive)
 
-**Status:** accepted (v0 seam + steer lock)  
+**Status:** Accepted (v0 seam + steer lock)  
 **Date:** 2026-07-28  
 **project-id:** `cascade-ide` · consumer: CDP / Agent Env  
 **Tags:** #cdp #adr #icm #command-module #cide #harness #parity #intent-melody

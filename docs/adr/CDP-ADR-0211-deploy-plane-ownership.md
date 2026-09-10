@@ -1,6 +1,6 @@
 # CDP-ADR-0211: Deploy-plane ownership — promote never runs from the target
 
-**Status:** accepted
+**Status:** Accepted
 **Date:** 2026-09-05
 **project-id:** `cdp-mcp` · supersedes nothing · extends ADR-0203 (deploy gap), ADR-0209 (gatekeeper slots), ADR-0032 (durable jobs)
 **Tags:** #cdp #adr #deploy #self-restart #lock

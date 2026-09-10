@@ -1,6 +1,6 @@
 # CDP-ADR-0031: Explore corr full-a before Act
 
-- **Status:** Accepted
+**Status:** Accepted
 - **Date:** 2026-08-14
 - **Related:** CDP-ADR-0029 (analysis organ) · cascade-ide ADR 0155/0156 (CRS) · seeming Done shields
 

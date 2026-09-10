@@ -1,6 +1,6 @@
 # Teeth analysis organ (guest-host afferent)
 
-- **Status:** Accepted
+**Status:** Accepted
 - **Date:** 2026-08-01
 - **Related:** CDP-ADR-0027 (OOM tooth + wake) · CDP-ADR-0023 (HILD) · FDR (tool-call black box — separate)
 
