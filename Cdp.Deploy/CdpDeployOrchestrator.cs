@@ -76,6 +76,13 @@ public static class CdpDeployOrchestrator
         }
 
         PublishService(plan, killRunning: true);
+
+        // Service publish with KillRunning leaves CdpService down until explicitly started.
+        // Bring it back before bridge publish so a bridge failure cannot orphan the tower.
+        CdpDeployPending.Clear(plan.Layout);
+        CdpServiceControl.StartService(plan.Layout);
+        CdpServiceControl.AssertHealthy(plan.Layout);
+
         if (plan.BridgePublishRoot is { } bridgeRoot)
         {
             PublishBridgeSeat(plan, bridgeRoot);
@@ -85,10 +92,6 @@ public static class CdpDeployOrchestrator
         }
 
         FinalizeSeatConfigs(plan);
-
-        CdpDeployPending.Clear(plan.Layout);
-        CdpServiceControl.StartService(plan.Layout);
-        CdpServiceControl.AssertHealthy(plan.Layout);
         if (!plan.NoNudge)
             CdpReloadNudge.TryBumpSeats("cdp", "cdp-debug");
 
@@ -400,7 +403,7 @@ public static class CdpDeployOrchestrator
         var result = CdpAidPublishRunner.Publish(new CdpAidPublishRequest(
             plan.Source.BridgeProject,
             bridgeRoot,
-            KillRunning: false,
+            KillRunning: plan.KillRunning,
             plan.UseNuGet,
             PreserveConfigToml: null,
             plan.Source.RepoRoot));

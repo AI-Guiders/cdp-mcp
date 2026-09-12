@@ -20,4 +20,25 @@ public sealed class IdeOpsPulseSeatsTests
         Assert.Equal(IdeDeploy.ReleaseTarget, IdeOpsPulse.SiblingRootForSeat("cdp-debug"));
         Assert.Equal(IdeDeploy.ReleaseTarget, IdeOpsPulse.SiblingRootForSeat("other"));
     }
+
+    [Fact]
+    public void TryInstallProductVersion_reads_bridge_exe_when_monolith_missing()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "cdp-ops-pulse-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var self = Environment.ProcessPath
+                       ?? throw new InvalidOperationException("ProcessPath unavailable.");
+            File.Copy(self, Path.Combine(root, "CdpMcpBridge.exe"));
+
+            var version = IdeOpsPulse.TryInstallProductVersion(root);
+            Assert.NotNull(version);
+            Assert.DoesNotContain('+', version);
+        }
+        finally
+        {
+            try { Directory.Delete(root, recursive: true); } catch { /* best effort */ }
+        }
+    }
 }

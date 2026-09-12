@@ -122,11 +122,18 @@ internal static class IdeOpsPulse
         {
             if (string.IsNullOrWhiteSpace(installRoot))
                 return null;
-            var exe = Path.Combine(installRoot, "CdpMcp.exe");
-            if (!File.Exists(exe))
-                return null;
-            var info = FileVersionInfo.GetVersionInfo(exe);
-            return ShortVersion(info.ProductVersion) ?? ShortVersion(info.FileVersion);
+
+            foreach (var name in new[] { "CdpMcp.exe", "CdpMcpBridge.exe", "CdpService.exe" })
+            {
+                var exe = Path.Combine(installRoot, name);
+                if (!File.Exists(exe))
+                    continue;
+
+                var info = FileVersionInfo.GetVersionInfo(exe);
+                return ShortVersion(info.ProductVersion) ?? ShortVersion(info.FileVersion);
+            }
+
+            return null;
         }
         catch
         {

@@ -126,6 +126,7 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 | 3 | ~~**`port=8771` в конфиге слота — мёртвый ключ**~~ → `MapSlot` Port=0 (PickFreePort); TOML `port` только tower legacy. | 2026-09-10 | **закрыто (0222 slice A 2026-09-12)** |
 | 4 | ~~**Три копии toml / вышка без секции**~~ → SSOT `D:\cdp-mcp\cdp-mcp.toml` + `[tower]`/`[slots]`/`[bridge]`; gatekeeper читает `[tower]`. | 2026-09-10 | **закрыто (0222 slice A 2026-09-12)** |
 | 5 | ~~**apply промоутил по живому корню** (`robocopy /MIR` в `D:\cdp-service` под работающим слотом) — инцидент exit=11 после 359-сек промоута; заборы (deploy.lock TTL 5мин без heartbeat + job lease) промоут переживал. Stage 3 ADR-0209 в коде отсутствовал (режима ship не было).~~ | 2026-09-10 | **закрыто (ADR-0223)**: apply/ship стартуют слот из immutable-снимка; live синкается по мёртвому; prefix-фикс `.staging` vs live |
+| 6 | ~~**Hard sibling bridge: `PublishBridgeSeat` игнорировал `plan.KillRunning`; partial hard оставлял CdpService down; `sibling_version` слеп (probe только `CdpMcp.exe`).~~ | 2026-09-12 | **закрыто (2026-09-12)**: bridge publish forwards `-KillRunning`; hard стартует service до bridge; ops pulse читает `CdpMcpBridge.exe`/`CdpService.exe` |
 
 ---
 

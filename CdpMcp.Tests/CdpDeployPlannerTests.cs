@@ -84,6 +84,43 @@ public sealed class CdpDeployPlannerTests
     }
 
     [Fact]
+    public void AidPublish_BuildCommand_includes_KillRunning_when_requested()
+    {
+        var repo = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var (_, args) = CdpAidPublishRunner.BuildCommand(new CdpAidPublishRequest(
+            Path.Combine(repo, "CdpMcpBridge", "CdpMcpBridge.csproj"),
+            @"D:\cdp-mcp",
+            KillRunning: true,
+            UseNuGet: false,
+            PreserveConfigToml: null,
+            WorkingDirectory: repo));
+
+        Assert.Contains("-KillRunning", args, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Hard_plan_sets_KillRunning_for_bridge_publish()
+    {
+        var source = CdpDeploySource.TryResolve(
+            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..")));
+        Assert.NotNull(source);
+
+        var result = CdpDeployPlanner.Plan(new CdpDeployPlanRequest(
+            CdpDeployMode.Hard,
+            SelfInstallRoot: CdpDeployLayout.Default.BridgeReleaseInstall,
+            RepoSearchRoot: source!.RepoRoot,
+            TargetRaw: "sibling",
+            Force: false,
+            UseNuGet: false,
+            NoNudge: true,
+            Source: source));
+
+        Assert.True(result.Ok, result.Hint);
+        Assert.True(result.Plan!.KillRunning);
+        Assert.Equal(@"D:\cdp-mcp-debug", result.Plan.BridgePublishRoot);
+    }
+
+    [Fact]
     public void AidPublish_BuildCommand_prefers_global_tool_exe()
     {
         var repo = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
