@@ -174,6 +174,7 @@ public sealed partial class CitizenRouteHostTests
             Assert.Equal(CitizenIntentRouter.Verb.Replace, routes[0].Verb);
             Assert.True(routes[0].Ok);
 
+            IdeLanguageTools.BindDocumentStore(store);
             var applied = CitizenRouteHost.Execute(routes);
             Assert.Single(applied);
             Assert.True(applied[0].Ok);

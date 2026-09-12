@@ -14,12 +14,15 @@ public class CideIntercomVoiceLatchTests : IDisposable
         Directory.CreateDirectory(_root);
         CideIntercomVoiceLatch.RootOverrideForTests = _root;
         CideIntercomIdentityLatch.RootOverrideForTests = _root;
+        CideIntercomIdentityLatch.ResetForTests();
+        CitizenIdentity.ModelOverrideForTests = CitizenAiKeys.DefaultOpenAiModel;
     }
 
     public void Dispose()
     {
         CideIntercomVoiceLatch.RootOverrideForTests = null;
         CideIntercomIdentityLatch.RootOverrideForTests = null;
+        CitizenIdentity.ModelOverrideForTests = null;
         try { Directory.Delete(_root, recursive: true); } catch { /* ignore */ }
     }
 
@@ -82,6 +85,9 @@ public class CideIntercomVoiceLatchTests : IDisposable
             "pf", "Кир", "guest", CideIntercomIdentityLatch.HarnessGuestSlot));
         Assert.NotNull(CideIntercomIdentityLatch.Claim(
             "pf", "Sierra", "citizen", "zai-org/GLM-5.1"));
+        // Initialize Face before publish — ResolveCitizenFace activates the citizen profile.
+        var (faceWho, _) = CitizenGlassDialogBridge.ResolveCitizenFace();
+        Assert.Equal("Sierra", faceWho);
         // tip stays harness Кир; Face profile Sierra — @Sierra mail ≠ Cursor cannon.
         CideIntercomVoiceLatch.Publish(
             "pm", "pf", "@Sierra kitchen dig", CideIntercomVoiceLatch.OriginHuman, name: "Света", kind: "operator");

@@ -115,6 +115,7 @@ public sealed class CitizenScriptHostTests
     public void Execute_script_without_store_fails_doc_store_unbound()
     {
         CitizenRouteHost.UnbindLifecycle();
+        IdeLanguageTools.BindDocumentStore(null);
         try
         {
             var applied = CitizenRouteHost.Execute([CitizenIntentRouter.RouteOne("script")]);
@@ -126,6 +127,7 @@ public sealed class CitizenScriptHostTests
         finally
         {
             CitizenRouteHost.UnbindLifecycle();
+            IdeLanguageTools.BindDocumentStore(null);
         }
     }
 }

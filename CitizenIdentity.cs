@@ -5,11 +5,16 @@ namespace CdpMcp;
 /// <summary>Slot model id for citizen Who/dialog binding (not Anthropic-only default).</summary>
 internal static class CitizenIdentity
 {
+    /// <summary>Test hook — force model without config file.</summary>
+    internal static string? ModelOverrideForTests { get; set; }
+
     /// <summary>Live citizen slot model from ai-keys / FM default.</summary>
     public static string ResolveCitizenModel(string? overrideModel = null)
     {
         if (!string.IsNullOrWhiteSpace(overrideModel))
             return overrideModel.Trim();
+        if (!string.IsNullOrWhiteSpace(ModelOverrideForTests))
+            return ModelOverrideForTests.Trim();
 
         var keys = CitizenAiKeys.Load();
         if (keys.HasOpenAi)

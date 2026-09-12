@@ -39,10 +39,10 @@ public sealed partial class IdeTaskManagerTitlePrecedenceTests
             {
                 DatabasePath = path
             };
-            store.IntentUpsert(state, "invent ADX soft-warn peel conveyor @explore #CDP", null);
+            store.IntentUpsert(state, "invent ADX buffer-edit pipeline @explore #CDP", null);
             var a = store.StageUpsert(state, "leaf-a", null, null, null).stage_id;
             store.FocusStage(state, a);
-            var result = IdeTaskManager.Handle(store, state, Args(new { tm_op = "done", title = "invent ADX soft-warn peel conveyor" }));
+            var result = IdeTaskManager.Handle(store, state, Args(new { tm_op = "done", title = "invent ADX buffer-edit pipeline" }));
             using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result));
             Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());
             Assert.Equal("feature_done", doc.RootElement.GetProperty("mutation").GetProperty("op").GetString());

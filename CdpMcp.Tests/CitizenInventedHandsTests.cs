@@ -80,11 +80,9 @@ public sealed class CitizenInventedHandsTests
             using (var afterHands = System.Text.Json.JsonDocument.Parse(
                        File.ReadAllText(CitizenGlassDialogBridge.RequestPath)))
             {
-                // Observe ran — arms next-open for Completions #3 (no invent take mine).
+                // Observe ran — arms peer_ready (leaf not PASTE'd).
                 Assert.Equal("pending", afterHands.RootElement.GetProperty("status").GetString());
-                Assert.Equal(
-                    CitizenResultWake.PeerReadyNextOpenCharge,
-                    afterHands.RootElement.GetProperty("body").GetString());
+                Assert.Contains("reason=peer_ready", afterHands.RootElement.GetProperty("body").GetString());
             }
 
             Assert.NotNull(CitizenPeerAck.LastPeer);

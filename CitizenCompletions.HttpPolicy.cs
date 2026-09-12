@@ -103,12 +103,14 @@ internal static partial class CitizenCompletions
     static TurnResult WithTransientRetry(Func<TurnResult> once)
     {
         var max = MaxAttempts;
+        if (max <= 1)
+            return AnnotateReconnect(once(), 1);
         var attempts = 0;
         var pipeline = new ResiliencePipelineBuilder<TurnResult>()
             .AddRetry(new RetryStrategyOptions<TurnResult>
             {
-                MaxRetryAttempts = max - 1,
-                DelayGenerator = args => ValueTask.FromResult<TimeSpan?>(RetryBackoff(args.AttemptNumber)),
+                MaxRetryAttempts = Math.Max(1, max - 1),
+                DelayGenerator = max > 1 ? args => ValueTask.FromResult<TimeSpan?>(RetryBackoff(args.AttemptNumber)) : null,
                 OnRetry = args =>
                 {
                     if (args.Outcome.Result is TurnResult r)

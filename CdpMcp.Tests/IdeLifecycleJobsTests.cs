@@ -51,6 +51,7 @@ public sealed class IdeLifecycleJobsTests
     [Fact]
     public void TryAutoArmLifecycle_arms_build_finished()
     {
+        IdeToolCallWatch.SuppressArmForTests = false;
         try
         {
             Assert.True(IdeLifecycleIgnite.TryAutoArm("build_finished", "build", "CdpMcp.csproj", enabled: true, out var armId));

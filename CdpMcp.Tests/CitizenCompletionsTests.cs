@@ -6,7 +6,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
-[Collection("CitizenCompletionsSerial")]
+[Collection("BatchSerial")]
 public partial class CitizenCompletionsTests : IDisposable
 {
     public CitizenCompletionsTests()
@@ -18,6 +18,20 @@ public partial class CitizenCompletionsTests : IDisposable
         CitizenCompletions.TestOpenAiBaseUrl = null;
         CitizenCompletions.ResetHttpForTests();
         CitizenCostLedger.ResetForTests();
+        CitizenStickyFacts.ResetForTests();
+        CitizenDialogHistory.ResetForTests();
+        CitizenVisionLatch.ResetForTests();
+        CideIntercomIdentityLatch.ResetForTests();
+        CideIntercomIdentityLatch.RootOverrideForTests = null;
+        CitizenIdentity.ModelOverrideForTests = null;
+        IdeToolCallWatch.SuppressArmForTests = false;
+        IdeIgniteArmHost.SetAutonomous(false, "test_setup");
+        IdeIgniteArmHost.SetHild(false, "test_setup");
+        GlassIgniteCmdBridge.Stop();
+        GlassIgniteCmdBridge.ResetProcessedForTests();
+        GlassIgniteCmdBridge.RootOverrideForTests = null;
+        CideIgniteLatch.RootOverrideForTests = null;
+        IdeLanguageTools.BindDocumentStore(null);
     }
 
     public void Dispose()
@@ -31,6 +45,20 @@ public partial class CitizenCompletionsTests : IDisposable
         CitizenDialogHistory.ResetForTests();
         CitizenVisionLatch.ResetForTests();
         CitizenCostLedger.ResetForTests();
+        CitizenStickyFacts.ResetForTests();
+        CideIntercomIdentityLatch.ResetForTests();
+        CideIntercomIdentityLatch.RootOverrideForTests = null;
+        CitizenIdentity.ModelOverrideForTests = null;
+        IdeToolCallWatch.SuppressArmForTests = false;
+        IdeIgniteArmHost.SetAutonomous(false, "test_dispose");
+        IdeIgniteArmHost.SetHild(false, "test_dispose");
+        GlassIgniteCmdBridge.Stop();
+        GlassIgniteCmdBridge.ResetProcessedForTests();
+        GlassIgniteCmdBridge.RootOverrideForTests = null;
+        CideIgniteLatch.RootOverrideForTests = null;
+        IdeLanguageTools.BindDocumentStore(null);
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.McpDispatchOverride = null;
     }
 
     [Fact]
@@ -332,15 +360,21 @@ sealed class StubHandler(HttpStatusCode code, string body, string mediaType = "a
 /// <summary>Never returns headers until cancel — exercises HeadersTimeout.</summary>
 sealed class HangHeadersHandler(TimeSpan delay) : HttpMessageHandler
 {
-    protected override async Task<HttpResponseMessage> SendAsync(
+    protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        await Task.Delay(delay, cancellationToken);
-        return new HttpResponseMessage(HttpStatusCode.OK)
+        var tcs = new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var registration = cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+        _ = Task.Delay(delay).ContinueWith(_ =>
         {
-            Content = new StringContent("{}", Encoding.UTF8, "application/json")
-        };
+            registration.Dispose();
+            tcs.TrySetResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{}", Encoding.UTF8, "application/json")
+            });
+        });
+        return tcs.Task;
     }
 }
 

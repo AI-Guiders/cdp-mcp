@@ -7,8 +7,15 @@ namespace CdpMcp;
 /// <summary>Per-tenant language harness isolation (ADR-0200 — no cross-tenant LSP/TS bleed).</summary>
 internal static partial class IdeLanguageTools
 {
-    static DocumentBufferStore? ActiveDocStore =>
-        CdpTenantExecutionContext.CurrentSlice?.DocStore ?? _docStore;
+    static DocumentBufferStore? ActiveDocStore
+    {
+        get
+        {
+            var tenant = CdpTenantExecutionContext.CurrentSlice?.DocStore;
+            if (tenant is not null) return tenant;
+            lock (_docStoreGate) return _docStore;
+        }
+    }
 
     static readonly ConcurrentDictionary<string, LspSessionPool> TenantLspPools = new(StringComparer.Ordinal);
 

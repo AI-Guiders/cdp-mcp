@@ -4,8 +4,72 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
-public sealed class IdeShellIgniteTests
+[Collection("BatchSerial")]
+public sealed class IdeShellIgniteTests : IDisposable
 {
+    public IdeShellIgniteTests()
+    {
+        CitizenWire.Inject = false;
+        CitizenCompletions.TestHandler = null;
+        CitizenCompletions.TestApiKey = null;
+        CitizenCompletions.TestOpenAiApiKey = null;
+        CitizenCompletions.TestOpenAiBaseUrl = null;
+        CitizenCompletions.ResetHttpForTests();
+        CitizenCostLedger.ResetForTests();
+        CitizenStickyFacts.ResetForTests();
+        CitizenDialogHistory.ResetForTests();
+        CitizenVisionLatch.ResetForTests();
+        CideIntercomIdentityLatch.ResetForTests();
+        CideIntercomIdentityLatch.RootOverrideForTests = null;
+        CitizenIdentity.ModelOverrideForTests = null;
+        IdeToolCallWatch.SuppressArmForTests = false;
+        IdeIgniteArmHost.SetAutonomous(false, "test_setup");
+        IdeIgniteArmHost.SetHild(false, "test_setup");
+        GlassIgniteCmdBridge.Stop();
+        GlassIgniteCmdBridge.ResetProcessedForTests();
+        GlassIgniteCmdBridge.RootOverrideForTests = null;
+        CideIgniteLatch.RootOverrideForTests = null;
+        IdeLanguageTools.BindDocumentStore(null);
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.McpDispatchOverride = null;
+        _ = IdeIgniteArmHost.Disarm(new Dictionary<string, JsonElement>
+        {
+            ["all"] = JsonSerializer.SerializeToElement(true),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+    }
+
+    public void Dispose()
+    {
+        CitizenWire.Inject = false;
+        CitizenCompletions.TestHandler = null;
+        CitizenCompletions.ResetHttpForTests();
+        CitizenCostLedger.ResetForTests();
+        CitizenStickyFacts.ResetForTests();
+        CitizenDialogHistory.ResetForTests();
+        CitizenVisionLatch.ResetForTests();
+        CideIntercomIdentityLatch.ResetForTests();
+        CideIntercomIdentityLatch.RootOverrideForTests = null;
+        CitizenIdentity.ModelOverrideForTests = null;
+        IdeToolCallWatch.SuppressArmForTests = false;
+        IdeIgniteArmHost.SetAutonomous(false, "test_dispose");
+        IdeIgniteArmHost.SetHild(false, "test_dispose");
+        GlassIgniteCmdBridge.Stop();
+        GlassIgniteCmdBridge.ResetProcessedForTests();
+        GlassIgniteCmdBridge.RootOverrideForTests = null;
+        CideIgniteLatch.RootOverrideForTests = null;
+        IdeLanguageTools.BindDocumentStore(null);
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.McpDispatchOverride = null;
+        IdeDeskSeats.Clear();
+        _ = IdeIgniteArmHost.Disarm(new Dictionary<string, JsonElement>
+        {
+            ["all"] = JsonSerializer.SerializeToElement(true),
+            ["force"] = JsonSerializer.SerializeToElement(true)
+        });
+    }
     [Fact]
     public void OnShellFinished_skips_foreground()
     {
@@ -17,6 +81,7 @@ public sealed class IdeShellIgniteTests
     [Fact]
     public void TryAutoArmBackground_arms_shell_finished_for_tab()
     {
+        IdeToolCallWatch.SuppressArmForTests = false;
         var armId = "shell-bg-test-" + Guid.NewGuid().ToString("N")[..6];
         try
         {

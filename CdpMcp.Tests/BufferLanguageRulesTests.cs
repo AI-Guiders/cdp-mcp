@@ -11,6 +11,8 @@ public sealed class BufferLanguageRulesTests
     [InlineData("App.cs", "csharp")]
     [InlineData("index.ts", "typescript")]
     [InlineData("script.ps1", "powershell")]
+    [InlineData("Index.razor", "csharp")]
+    [InlineData("_Layout.cshtml", "csharp")]
     public void GuessLanguage_uses_federation_path_rules(string fileName, string expected)
     {
         Assert.Equal(expected, BufferLanguageRules.GuessLanguage(fileName));

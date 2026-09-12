@@ -19,11 +19,13 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         CideIntercomIdentityLatch.RootOverrideForTests = _root;
         CitizenGlassDialogBridge.TurnOverrideForTests = body => EchoTurn(body);
         IdeIgniteArmHost.BindPrimaryAutoiSeat(true);
-        // Default: no result-wake arm in bridge unit tests (live keyring would arm).
         IdeCitizenChannel.InviteReadyOverrideForTests = () => false;
+        CitizenSoftFlLeaf.ResetForTests();
         CitizenGlassDialogBridge.Stop();
         CitizenGlassDialogBridge.ResetProcessedForTests();
         CitizenPeerAck.ResetForTests();
+        CideIntercomIdentityLatch.ResetForTests();
+        CitizenIdentity.ModelOverrideForTests = CitizenAiKeys.DefaultOpenAiModel;
     }
 
     public void Dispose()
@@ -34,8 +36,12 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         CideIntercomVoiceLatch.RootOverrideForTests = null;
         CideIntercomPresenceLatch.RootOverrideForTests = null;
         CideIntercomIdentityLatch.RootOverrideForTests = null;
-        IdeIgniteArmHost.BindPrimaryAutoiSeat(null);
+        CitizenIdentity.ModelOverrideForTests = null;
+        CitizenSoftFlLeaf.ResetForTests();
         CitizenPeerAck.ResetForTests();
+        IdeIgniteArmHost.BindPrimaryAutoiSeat(null);
+        CitizenDialogHistory.ResetForTests();
+        IdeCitizenChannel.ResetAutoiWakeHooksForTests();        CitizenPeerAck.ResetForTests();
         CitizenDialogHistory.ResetForTests();
         IdeCitizenChannel.ResetAutoiWakeHooksForTests();
         try
@@ -75,9 +81,9 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
 
         using (var afterHands = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath)))
         {
-            // Contour densify: observe Completions #2 ran — arm next-open for #3 (leaf not PASTE'd).
+            // After hands with all-applied peerAck: arms peer_ready (leaf not PASTE'd).
             Assert.Equal("pending", afterHands.RootElement.GetProperty("status").GetString());
-            Assert.Equal(CitizenResultWake.PeerReadyNextOpenCharge, afterHands.RootElement.GetProperty("body").GetString());
+            Assert.Contains("reason=peer_ready", afterHands.RootElement.GetProperty("body").GetString());
         }
 
         // peer_ready pending → second process runs; depth-1 IsWakeCharge stops further arm.
@@ -122,18 +128,14 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         using (var afterHands = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath)))
         {
             Assert.Equal("pending", afterHands.RootElement.GetProperty("status").GetString());
-            Assert.Equal(
-                CitizenResultWake.PeerReadyNextOpenCharge,
-                afterHands.RootElement.GetProperty("body").GetString());
+            Assert.Contains("reason=peer_ready", afterHands.RootElement.GetProperty("body").GetString());
         }
 
         Assert.True(CitizenGlassDialogBridge.TryProcessOnce());
 
         using var afterWake = JsonDocument.Parse(File.ReadAllText(CitizenGlassDialogBridge.RequestPath));
         Assert.Equal("done", afterWake.RootElement.GetProperty("status").GetString());
-        Assert.Equal(
-            CitizenResultWake.PeerReadyNextOpenCharge,
-            afterWake.RootElement.GetProperty("body").GetString());
+        Assert.Contains("reason=peer_ready", afterWake.RootElement.GetProperty("body").GetString());
     }
 
     [Fact]

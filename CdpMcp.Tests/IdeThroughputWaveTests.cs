@@ -231,36 +231,44 @@ public sealed class IdePressureWaveFieldTests
     [Fact]
     public void Stash_wave_arg_roundtrips_on_recall()
     {
-        // Use isolated pressure path via existing seat files is hard —
-        // exercise ResolveWave via stash when FilePath is live seat; prefer body ## wave parse unit via Handle.
-        var session = new SessionContext { ProjectRoot = Path.GetTempPath() };
-        var body = """
-            ## WAVE 0.5.645
-            open work
-
-            ## wave
-            - alpha
-            - beta
-
-            ## next
-            ship
-            """;
-        var stash = IdePressureChannel.Handle(session, new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+        var dir = Path.Combine(Path.GetTempPath(), "cdp-pressure-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
         {
-            ["op"] = JsonSerializer.SerializeToElement("stash"),
-            ["body"] = JsonSerializer.SerializeToElement(body),
-            ["wave"] = JsonSerializer.SerializeToElement("""["gamma","delta"]""")
-        });
-        var stashJson = JsonSerializer.Serialize(stash);
-        Assert.Contains("gamma", stashJson, StringComparison.Ordinal);
-        Assert.Contains("delta", stashJson, StringComparison.Ordinal);
+            using var tenant = CdpProfile.EnterTenantStateRoot(dir);
+            var session = new SessionContext { ProjectRoot = dir };
+            var body = """
+                ## WAVE 0.5.645
+                open work
 
-        var recall = IdePressureChannel.Handle(session, new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                ## wave
+                - alpha
+                - beta
+
+                ## next
+                ship
+                """;
+            var stash = IdePressureChannel.Handle(session, new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["op"] = JsonSerializer.SerializeToElement("stash"),
+                ["body"] = JsonSerializer.SerializeToElement(body),
+                ["wave"] = JsonSerializer.SerializeToElement("""["gamma","delta"]""")
+            });
+            var stashJson = JsonSerializer.Serialize(stash);
+            Assert.Contains("gamma", stashJson, StringComparison.Ordinal);
+            Assert.Contains("delta", stashJson, StringComparison.Ordinal);
+
+            var recall = IdePressureChannel.Handle(session, new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["op"] = JsonSerializer.SerializeToElement("recall")
+            });
+            var recallJson = JsonSerializer.Serialize(recall);
+            Assert.Contains("gamma", recallJson, StringComparison.Ordinal);
+        }
+        finally
         {
-            ["op"] = JsonSerializer.SerializeToElement("recall")
-        });
-        var recallJson = JsonSerializer.Serialize(recall);
-        Assert.Contains("gamma", recallJson, StringComparison.Ordinal);
+            try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
+        }
     }
 }
 

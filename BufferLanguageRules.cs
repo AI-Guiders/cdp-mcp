@@ -27,6 +27,7 @@ internal static class BufferLanguageRules
         return ext switch
         {
             ".csx" => CdpLanguages.Csharp,
+            ".razor" or ".cshtml" => CdpLanguages.Csharp,
             ".xml" or ".config" or ".xaml" => "xml",
             ".md" or ".markdown" => "markdown",
             ".toml" => "toml",

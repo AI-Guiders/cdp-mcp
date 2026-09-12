@@ -131,7 +131,7 @@ internal static class CitizenSoftFlLeaf
         lock (Gate)
         {
             Memory = null;
-            DiskHydrated = true;
+            DiskHydrated = false;
             ApplyArmedMemory = false;
             OverrideForTests = null;
             ApplyArmedOverrideForTests = null;

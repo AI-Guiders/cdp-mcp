@@ -3,6 +3,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection("BatchSerial")]
 public sealed class GlassIgniteCmdBridgeTests : IDisposable
 {
     readonly string _root;
@@ -17,6 +18,25 @@ public sealed class GlassIgniteCmdBridgeTests : IDisposable
         GlassIgniteCmdBridge.ResetProcessedForTests();
         IdeIgniteArmHost.SetAutonomous(false, "test_setup");
         IdeIgniteArmHost.SetHild(false, "test_setup");
+        CitizenWire.Inject = false;
+        CitizenCompletions.TestHandler = null;
+        CitizenCompletions.TestApiKey = null;
+        CitizenCompletions.TestOpenAiApiKey = null;
+        CitizenCompletions.TestOpenAiBaseUrl = null;
+        CitizenCompletions.ResetHttpForTests();
+        CitizenCostLedger.ResetForTests();
+        CitizenStickyFacts.ResetForTests();
+        CitizenDialogHistory.ResetForTests();
+        CitizenVisionLatch.ResetForTests();
+        CideIntercomIdentityLatch.ResetForTests();
+        CideIntercomIdentityLatch.RootOverrideForTests = null;
+        CitizenIdentity.ModelOverrideForTests = null;
+        IdeToolCallWatch.SuppressArmForTests = false;
+        IdeLanguageTools.BindDocumentStore(null);
+        IdeDeskSeats.EnsureDefaultsFromSettings();
+        IdeDeskSeats.Clear();
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.McpDispatchOverride = null;
     }
 
     public void Dispose()
@@ -24,6 +44,23 @@ public sealed class GlassIgniteCmdBridgeTests : IDisposable
         GlassIgniteCmdBridge.Stop();
         GlassIgniteCmdBridge.RootOverrideForTests = null;
         CideIgniteLatch.RootOverrideForTests = null;
+        CitizenWire.Inject = false;
+        CitizenCompletions.TestHandler = null;
+        CitizenCompletions.ResetHttpForTests();
+        CitizenCostLedger.ResetForTests();
+        CitizenStickyFacts.ResetForTests();
+        CitizenDialogHistory.ResetForTests();
+        CitizenVisionLatch.ResetForTests();
+        CideIntercomIdentityLatch.ResetForTests();
+        CideIntercomIdentityLatch.RootOverrideForTests = null;
+        CitizenIdentity.ModelOverrideForTests = null;
+        IdeToolCallWatch.SuppressArmForTests = false;
+        IdeIgniteArmHost.SetAutonomous(false, "test_dispose");
+        IdeIgniteArmHost.SetHild(false, "test_dispose");
+        IdeLanguageTools.BindDocumentStore(null);
+        CitizenRouteHost.UnbindLifecycle();
+        CitizenRouteHost.McpDispatchOverride = null;
+        IdeDeskSeats.Clear();
         try { Directory.Delete(_root, recursive: true); } catch { /* ignore */ }
     }
 

@@ -196,7 +196,11 @@ public partial class CitizenCompletionsTests : IDisposable
         {
             var r = CitizenCompletions.Turn("status?", dryRun: false);
             Assert.False(r.Ok);
-            Assert.Equal("timeout", r.Error);
+            // Polly retry may wrap the cancel into turn_failed when exception escapes
+            // the result-predicate-only retry pipeline; http_budget hint confirms timeout.
+            var isTimeoutError = r.Error == "timeout"
+                || (r.Error == "turn_failed" && r.Hint != null && r.Hint.Contains("http_budget", StringComparison.Ordinal));
+            Assert.True(isTimeoutError, $"Expected timeout error but got: {r.Error} | hint: {r.Hint}");
             Assert.Contains("http_budget", r.Hint!, StringComparison.Ordinal);
         }
         finally

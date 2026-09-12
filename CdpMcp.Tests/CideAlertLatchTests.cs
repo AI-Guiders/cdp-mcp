@@ -3,6 +3,11 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+/// <summary>Serial — CideAlertLatch.RootOverrideForTests is static.</summary>
+[CollectionDefinition(nameof(CideAlertLatchSerial), DisableParallelization = true)]
+public sealed class CideAlertLatchSerial;
+
+[Collection(nameof(CideAlertLatchSerial))]
 public class CideAlertLatchTests : IDisposable
 {
     readonly string _root;
@@ -43,10 +48,10 @@ public class CideAlertLatchTests : IDisposable
     public void Publish_warn_keeps_pulse_and_lines()
     {
         var snap = IdeAlertChannel.Build(
-            new QualityGates.QualitySnap(true, Warn: 2, Fail: 0, SuggestSniper: false, Pulse: "WARN×2"),
-            diskChanged: 0,
-            dapActive: false,
-            dapStopped: false);
+            new IdeAlertChannel.Inputs(
+                new QualityGates.QualitySnap(true, Warn: 2, Fail: 0, SuggestSniper: false, Pulse: "WARN×2"),
+                DiskChanged: 0, DapActive: false, DapStopped: false,
+                QuietBandQuality: false));
 
         CideAlertLatch.Publish(snap);
 
