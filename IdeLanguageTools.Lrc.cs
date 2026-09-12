@@ -1,6 +1,5 @@
 using System.Text.Json;
 using AIGuiders.Platform.Execution.Language;
-using AIGuiders.Platform.Modeling.Language;
 using Cdp.Core;
 
 namespace CdpMcp;
@@ -94,7 +93,7 @@ internal static partial class IdeLanguageTools
         }
     }
 
-    static AIGuiders.Platform.Execution.Language.LanguageRequest BuildLanguageRequest(
+    static LanguageRequest BuildLanguageRequest(
         SessionContext session,
         string filePath,
         IReadOnlyDictionary<string, JsonElement> args)
@@ -128,7 +127,7 @@ internal static partial class IdeLanguageTools
             solution = solEl.GetString();
         }
 
-        return new AIGuiders.Platform.Execution.Language.LanguageRequest(filePath, line, column, sourceText, solution);
+        return new LanguageRequest(filePath, line, column, sourceText ?? "", solution ?? "");
     }
 
     static RenameSymbolRequest BuildRenameRequest(

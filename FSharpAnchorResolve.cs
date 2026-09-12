@@ -1,6 +1,5 @@
 using System.Threading;
 using AIGuiders.Platform.Execution.Language;
-using AIGuiders.Platform.Modeling.Language;
 using Cdp.ScriptableIde;
 
 namespace CdpMcp;
@@ -39,7 +38,7 @@ internal static class FSharpAnchorResolve
             return false;
         }
 
-        var req = new AIGuiders.Platform.Execution.Language.LanguageRequest(path, 1, 1, text);
+        var req = new LanguageRequest(path, 1, 1, text, "");
         DocumentSymbolsResult symbols;
         try
         {

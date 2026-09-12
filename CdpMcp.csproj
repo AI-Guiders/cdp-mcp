@@ -19,6 +19,21 @@
     <AgentNotesCoreFromSibling Condition="Exists('$(GuidersCoreRoot)\src\AgentNotes.Core\AgentNotes.Core.csproj')">true</AgentNotesCoreFromSibling>
   </PropertyGroup>
   <ItemGroup>
+    <Using Include="AIGuiders.Platform.Modeling.Language.ILanguageBackend" Alias="ILanguageBackend" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.ProjectHint" Alias="ProjectHint" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.RenameSymbolRequest" Alias="RenameSymbolRequest" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.LanguageRequest" Alias="LanguageRequest" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.DiagnosticsResult" Alias="DiagnosticsResult" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.DocumentSymbolsResult" Alias="DocumentSymbolsResult" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.LanguageNavigation" Alias="LanguageNavigation" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.FindUsagesResult" Alias="FindUsagesResult" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.CompletionsResult" Alias="CompletionsResult" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.SymbolAtPositionResult" Alias="SymbolAtPositionResult" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.RenameSymbolResult" Alias="RenameSymbolResult" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.LanguageSymbol" Alias="LanguageSymbol" />
+    <Using Include="AIGuiders.Platform.Modeling.Language.SourceSpan" Alias="SourceSpan" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="Cdp.Deploy\Cdp.Deploy.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -89,6 +104,7 @@
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Cockpit.Cds\AIGuiders.Platform.Execution.Cockpit.Cds.csproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.CommandPlane\AIGuiders.Platform.Execution.CommandPlane.csproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Language\AIGuiders.Platform.Execution.Language.csproj" />
+    <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language\AIGuiders.Platform.Modeling.Language.fsproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Ide.Session\AIGuiders.Platform.Execution.Ide.Session.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(UseLocalGuidersPlatform)' == 'true'">
