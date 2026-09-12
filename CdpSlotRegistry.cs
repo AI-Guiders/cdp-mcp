@@ -85,8 +85,9 @@ public static class CdpSlotRegistry
                 return true;
             });
         }
-        catch
+        catch (Exception ex)
         {
+            Console.Error.WriteLine($"CdpSlotRegistry.Upsert failed pid={record.Pid} port={record.Port}: {ex.Message}");
             return false;
         }
     }

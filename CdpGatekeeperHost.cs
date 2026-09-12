@@ -1,6 +1,8 @@
-using System.Net;
-using System.Text;
+using System.Net.Http.Headers;
 using Cdp.Config;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace CdpMcp;
 
@@ -8,8 +10,7 @@ namespace CdpMcp;
 /// Gatekeeper tower (ADR-0209): the eternal owner of the client-facing port (8771).
 /// Stateless HTTP proxy — resolves the freshest healthy slot from the witdb registry
 /// (silence &gt; 15s = suspected dead; healthz probe = final arbiter) and forwards.
-/// Never deploys, never restarts, knows nothing about ports or toml. Death is
-/// indistinguishable from a blink — any witness may respawn it; re-bind + go.
+/// Kestrel direct bind (not Http.sys) — port dies with the process; no orphaned HTTP.sys queue.
 /// </summary>
 internal static class CdpGatekeeperHost
 {
@@ -25,94 +26,96 @@ internal static class CdpGatekeeperHost
     public static async Task<int> RunAsync(string? configPath = null)
     {
         var listenPort = CdpConfigLoader.MapTower(CdpConfigLoader.Load(configPath)).ListenPort;
-        var listener = new HttpListener();
-        listener.Prefixes.Add($"http://127.0.0.1:{listenPort}/");
-        try
-        {
-            listener.Start();
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Gatekeeper: cannot bind {listenPort}: {ex.Message}");
-            return 2;
-        }
+        var baseUrl = $"http://127.0.0.1:{listenPort}";
 
-        Console.Out.WriteLine($"Gatekeeper: http://127.0.0.1:{listenPort}/ -> slots {CdpSlotRegistry.DbPath(CdpProfile.StateRoot)}");
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            Args = Array.Empty<string>(),
+            ContentRootPath = AppContext.BaseDirectory
+        });
+        builder.WebHost.UseUrls(baseUrl);
+
         using var forwarder = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
         using var prober = new HttpClient { Timeout = ProbeTimeout };
 
-        while (listener.IsListening)
+        var app = builder.Build();
+
+        app.MapFallback(async (HttpContext context) =>
         {
-            HttpListenerContext ctx;
+            var target = await ResolveTargetAsync(prober).ConfigureAwait(false);
+            if (target is null)
+            {
+                context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                await context.Response
+                    .WriteAsync("Gatekeeper: no healthy slot in the registry.")
+                    .ConfigureAwait(false);
+                return;
+            }
+
             try
             {
-                ctx = await listener.GetContextAsync().ConfigureAwait(false);
+                await ForwardAsync(context, target, forwarder).ConfigureAwait(false);
             }
-            catch (Exception) when (!listener.IsListening)
+            catch (Exception ex)
             {
-                break;
-            }
-            catch (Exception)
-            {
-                continue;
-            }
+                lock (TargetGate)
+                {
+                    _target = null;
+                    _targetAt = DateTimeOffset.UtcNow;
+                }
 
-            _ = Task.Run(() => ForwardAsync(ctx, forwarder, prober));
-        }
+                context.Response.StatusCode = StatusCodes.Status502BadGateway;
+                await context.Response.WriteAsync($"Gatekeeper: {ex.Message}").ConfigureAwait(false);
+            }
+        });
 
+        Console.Out.WriteLine(
+            $"Gatekeeper: {baseUrl}/ (Kestrel) -> slots {CdpSlotRegistry.DbPath(CdpProfile.StateRoot)}");
+        await app.RunAsync().ConfigureAwait(false);
         return 0;
     }
 
-    static async Task ForwardAsync(HttpListenerContext ctx, HttpClient http, HttpClient prober)
+    static async Task ForwardAsync(HttpContext context, Uri target, HttpClient http)
     {
-        var target = await ResolveTargetAsync(prober).ConfigureAwait(false);
-        if (target is null)
+        var request = context.Request;
+        var relative = (request.Path + request.QueryString).ToString().TrimStart('/');
+        using var outRequest = new HttpRequestMessage(new HttpMethod(request.Method), new Uri(target, relative));
+
+        foreach (var header in request.Headers)
         {
-            Fail(ctx, 503, "Gatekeeper: no healthy slot in the registry.");
+            if (IsRestricted(header.Key))
+                continue;
+
+            if (!outRequest.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray()))
+                outRequest.Content?.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
+        }
+
+        if (request.ContentLength is > 0
+            || request.Headers.ContainsKey("Transfer-Encoding"))
+        {
+            outRequest.Content = new StreamContent(request.Body);
+            if (request.ContentType is { } contentType)
+                outRequest.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+        }
+
+        using var response = await http.SendAsync(outRequest, context.RequestAborted).ConfigureAwait(false);
+
+        context.Response.StatusCode = (int)response.StatusCode;
+        CopyHeaders(response.Headers, context.Response.Headers);
+        CopyHeaders(response.Content.Headers, context.Response.Headers);
+
+        var mediaType = response.Content.Headers.ContentType?.MediaType ?? "";
+        if (response.Headers.TransferEncodingChunked == true
+            || mediaType.Contains("text/event-stream", StringComparison.OrdinalIgnoreCase))
+        {
+            await response.Content.CopyToAsync(context.Response.Body, context.RequestAborted).ConfigureAwait(false);
             return;
         }
 
-        try
-        {
-            var request = ctx.Request;
-            var relative = request.Url!.PathAndQuery.TrimStart('/');
-            using var outRequest = new HttpRequestMessage(new HttpMethod(request.HttpMethod), new Uri(target, relative));
-
-            foreach (var headerKey in request.Headers.AllKeys)
-                if (!IsRestricted(headerKey))
-                    outRequest.Headers.TryAddWithoutValidation(headerKey, request.Headers[headerKey]);
-
-            if (request.HasEntityBody)
-            {
-                var body = await ReadBodyAsync(request).ConfigureAwait(false);
-                outRequest.Content = new ByteArrayContent(body);
-                if (request.Headers["Content-Type"] is { } contentType)
-                    outRequest.Content.Headers.TryAddWithoutValidation("Content-Type", contentType);
-            }
-
-            using var response = await http.SendAsync(outRequest).ConfigureAwait(false);
-
-            ctx.Response.StatusCode = (int)response.StatusCode;
-            CopyHeaders(response.Headers, ctx.Response.Headers);
-            CopyHeaders(response.Content.Headers, ctx.Response.Headers);
-
-            var bytes = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
-            ctx.Response.ContentLength64 = bytes.Length;
-            if (bytes.Length > 0)
-                await ctx.Response.OutputStream.WriteAsync(bytes).ConfigureAwait(false);
-            ctx.Response.Close();
-        }
-        catch (Exception ex)
-        {
-            // Target died between resolve and forward — drop the cache so the next request re-probes.
-            lock (TargetGate)
-            {
-                _target = null;
-                _targetAt = DateTimeOffset.UtcNow;
-            }
-
-            Fail(ctx, 502, $"Gatekeeper: {ex.Message}");
-        }
+        var bytes = await response.Content.ReadAsByteArrayAsync(context.RequestAborted).ConfigureAwait(false);
+        context.Response.ContentLength = bytes.Length;
+        if (bytes.Length > 0)
+            await context.Response.Body.WriteAsync(bytes, context.RequestAborted).ConfigureAwait(false);
     }
 
     /// <summary>Freshest healthy slot (LastSeenUtc desc, healthz probe). Cached briefly — deploys churn the registry.</summary>
@@ -157,35 +160,15 @@ internal static class CdpGatekeeperHost
         return null;
     }
 
-    static void Fail(HttpListenerContext ctx, int status, string message)
-    {
-        try
-        {
-            ctx.Response.StatusCode = status;
-            var bytes = Encoding.UTF8.GetBytes(message);
-            ctx.Response.ContentLength64 = bytes.Length;
-            ctx.Response.OutputStream.Write(bytes);
-            ctx.Response.Close();
-        }
-        catch
-        {
-            /* client gone — best effort */
-        }
-    }
-
-    static void CopyHeaders(System.Net.Http.Headers.HttpHeaders source, WebHeaderCollection target)
+    static void CopyHeaders(HttpHeaders source, IHeaderDictionary target)
     {
         foreach (var header in source)
-            if (!IsRestricted(header.Key))
-                target[header.Key] = string.Join(", ", header.Value);
-    }
+        {
+            if (IsRestricted(header.Key))
+                continue;
 
-    static async Task<byte[]> ReadBodyAsync(HttpListenerRequest request)
-    {
-        using var stream = request.InputStream;
-        using var memory = new MemoryStream();
-        await stream.CopyToAsync(memory).ConfigureAwait(false);
-        return memory.ToArray();
+            target[header.Key] = header.Value.ToArray();
+        }
     }
 
     static bool IsRestricted(string header) =>

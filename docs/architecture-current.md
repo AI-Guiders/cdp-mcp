@@ -26,7 +26,7 @@
 | Компонент | Бинарник | Роль | Транспорт | Порт | Конфиг | Состояние |
 |---|---|---|---|---|---|---|
 | **Мост** | `CdpMcpBridge.exe` | stdio↔HTTP для харнесса | stdio (MCP) + HTTP | — | `D:\cdp-mcp\cdp-mcp.toml` | 2 инстанса (PID 15816, 31476) |
-| **Вышка (gatekeeper)** | `CdpGatekeeper.exe` | маршрутизация 8771 → активный слот | **HttpListener (HTTP.sys)** | 8771 | нет (реестр слотов из witdb) | **слот на 8772 жив, 8771 orphaned 2026-09-10** |
+| **Вышка (gatekeeper)** | `CdpGatekeeper.exe` | маршрутизация 8771 → активный слот | **Kestrel (direct bind)** | 8771 | нет (реестр слотов из witdb) | **Kestrel с 2026-09-12; HttpListener→HTTP.sys снят** |
 | **Сервис (слот)** | `CdpService.exe` | весь CDP-функционал | Kestrel | 8772+ (PickFreePort) | `D:\cdp-service\cdp-mcp.toml` | жив (0.5.764, healthz OK) |
 | **Ensurer** | в мосте | воскрешение вышки/слота при провале | HTTP probe | — | `[service] install_dir` (закомментирован!) | отключён (не автозапускается) |
 
@@ -43,7 +43,7 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 
 | Порт | Владелец по-документу | Фактический | Примечание |
 |---|---|---|---|
-| 8771 | CdpGatekeeper (HttpListener, ADR-0209) | **HTTP.sys (PID 4 System)** | HttpListener живёт через HTTP.sys; hard-kill оставляет orphaned registration |
+| 8771 | CdpGatekeeper (Kestrel, ADR-0209) | **Kestrel (gatekeeper PID)** | Kestrel direct bind с 2026-09-12; порт умирает с процессом |
 | 8772..8871 | CdpService (Kestrel, PickFreePort) | 8772 — Kestrel | нормально, порт умирает вместе с процессом |
 | stdio | CdpMcpBridge | 2 процесса | нормально |
 
@@ -119,7 +119,8 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 
 | # | Разрыв | Когда обнаружен | Статус |
 |---|---|---|---|
-| 1 | **8771 в HTTP.sys (PID 4 System), healthz молчит.** Вышка на HttpListener (ADR-0209), но после hard-kill registration в HTTP.sys осталась orphaned — новый gatekeeper не подхватывает. Queue Active, ответа нет. | 2026-09-10 (прод) | чинится (перезапуск вышки; квен/супервайзер) |
+| 1 | ~~**8771 в HTTP.sys (PID 4 System), healthz молчит.**~~ Gatekeeper переведён на Kestrel direct bind (2026-09-12); orphaned HTTP.sys снят. | 2026-09-10 (прод) | **закрыто (Kestrel tower 2026-09-12)** |
+| 1b | **WitDB slots.witdb — один engine на процесс.** dbhub `witdb-bridge` держит файл открытым → CdpService Upsert и gatekeeper Fresh блокируются/падают. | 2026-09-12 | открыто (dbhub per-query open или sidecar cache) |
 | 2 | **`[service] install_dir` закомментирован** в `D:\cdp-mcp\cdp-mcp.toml` → ensurer не автозапускает вышку/слот при cold boot (ADR-0203). | 2026-09-10 | открыто (ADR-0222 адресует) |
 | 3 | **`port=8771` в конфиге слота — мёртвый ключ** (слот берёт `PickFreePort()`). ADR-0209 не упоминает этот ключ. | 2026-09-10 | открыто (ADR-0222) |
 | 4 | **Вышка не читает toml вовсе** — stateless, реестр из witdb. Это по-документу, но конфиг-карта из трёх toml не описывает вышку. | 2026-09-10 | открыто (ADR-0222) |
