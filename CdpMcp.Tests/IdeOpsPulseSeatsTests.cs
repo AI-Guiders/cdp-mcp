@@ -21,6 +21,66 @@ public sealed class IdeOpsPulseSeatsTests
         Assert.Equal(IdeDeploy.ReleaseTarget, IdeOpsPulse.SiblingRootForSeat("other"));
     }
 
+    [Theory]
+    [InlineData("0.5.409+d9ce1329b312", "d9ce1329b312")]
+    [InlineData("0.2.0+abc123", "abc123")]
+    [InlineData("0.5.373", null)]
+    [InlineData("", null)]
+    public void CommitSuffix_extracts_build_stamp(string? raw, string? expected)
+        => Assert.Equal(expected, IdeOpsPulse.CommitSuffix(raw));
+
+    [Theory]
+    [InlineData("CdpMcp.exe", "CdpService.exe", true)]
+    [InlineData("CdpService.exe", "CdpMcp.exe", true)]
+    [InlineData("CdpMcpBridge.exe", "CdpMcpBridge.exe", true)]
+    [InlineData("CdpMcpBridge.exe", "CdpService.exe", false)]
+    [InlineData("CdpMcp.exe", "CdpMcpBridge.exe", false)]
+    public void VersionFamily_groups_service_and_bridge_exes(string selfExe, string sibExe, bool sameFamily)
+        => Assert.Equal(sameFamily, string.Equals(
+            IdeOpsPulse.VersionFamily(selfExe),
+            IdeOpsPulse.VersionFamily(sibExe),
+            StringComparison.Ordinal));
+
+    [Fact]
+    public void SeatVersionsLag_false_when_service_and_bridge_share_commit()
+    {
+        var self = new IdeOpsPulse.InstallProbe("CdpService.exe", "0.5.764", "abc123def456");
+        var sib = new IdeOpsPulse.InstallProbe("CdpMcpBridge.exe", "0.2.0", "abc123def456");
+        Assert.False(IdeOpsPulse.SeatVersionsLag(self, sib));
+    }
+
+    [Fact]
+    public void SeatVersionsLag_true_when_commit_suffixes_differ()
+    {
+        var self = new IdeOpsPulse.InstallProbe("CdpService.exe", "0.5.764", "abc123");
+        var sib = new IdeOpsPulse.InstallProbe("CdpMcpBridge.exe", "0.2.0", "def456");
+        Assert.True(IdeOpsPulse.SeatVersionsLag(self, sib));
+    }
+
+    [Fact]
+    public void SeatVersionsLag_false_when_incompatible_schemes_without_commit()
+    {
+        var self = new IdeOpsPulse.InstallProbe("CdpService.exe", "0.5.764", null);
+        var sib = new IdeOpsPulse.InstallProbe("CdpMcpBridge.exe", "0.2.0", null);
+        Assert.False(IdeOpsPulse.SeatVersionsLag(self, sib));
+    }
+
+    [Fact]
+    public void SeatVersionsLag_true_within_same_family_without_commit()
+    {
+        var self = new IdeOpsPulse.InstallProbe("CdpMcp.exe", "0.5.763", null);
+        var sib = new IdeOpsPulse.InstallProbe("CdpService.exe", "0.5.764", null);
+        Assert.True(IdeOpsPulse.SeatVersionsLag(self, sib));
+    }
+
+    [Fact]
+    public void SeatVersionsLag_false_within_same_family_same_short_version()
+    {
+        var self = new IdeOpsPulse.InstallProbe("CdpMcpBridge.exe", "0.2.0", null);
+        var sib = new IdeOpsPulse.InstallProbe("CdpMcpBridge.exe", "0.2.0", null);
+        Assert.False(IdeOpsPulse.SeatVersionsLag(self, sib));
+    }
+
     [Fact]
     public void TryInstallProductVersion_reads_bridge_exe_when_monolith_missing()
     {

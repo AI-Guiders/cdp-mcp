@@ -7,6 +7,8 @@ namespace CdpMcp;
 /// <summary>
 /// One-liner ops comfort: seat · self/sib version · lag · staged · continuity.
 /// Cheap — no CDT; safe on every desk/health pulse (ADX: no shell archaeology).
+/// Lag compares build identity (+commit when present) or short ProductVersion within the same exe family
+/// (service: CdpMcp/CdpService; bridge: CdpMcpBridge) — not across incompatible version schemes.
 /// </summary>
 internal static class IdeOpsPulse
 {
@@ -72,12 +74,10 @@ internal static class IdeOpsPulse
         var selfRoot = IdeDeploy.ResolveSelfInstallRoot();
         var seat = IdeDeploy.ClassifySeat(selfRoot);
         var siblingRoot = SiblingRootForSeat(seat);
-        var selfV = TryInstallProductVersion(selfRoot);
-        var sibV = TryInstallProductVersion(siblingRoot);
-        var lag = selfV is { Length: > 0 }
-                  && sibV is { Length: > 0 }
-                  && !string.Equals(selfV, sibV, StringComparison.OrdinalIgnoreCase);
-        return new SeatsSnap(seat, selfRoot, siblingRoot, selfV, sibV, lag);
+        var selfProbe = TryInstallProbe(selfRoot);
+        var sibProbe = TryInstallProbe(siblingRoot);
+        var lag = SeatVersionsLag(selfProbe, sibProbe);
+        return new SeatsSnap(seat, selfRoot, siblingRoot, selfProbe.ShortVersion, sibProbe.ShortVersion, lag);
     }
 
     public static object SeatsWire()
@@ -117,11 +117,14 @@ internal static class IdeOpsPulse
     }
 
     internal static string? TryInstallProductVersion(string? installRoot)
+        => TryInstallProbe(installRoot).ShortVersion;
+
+    internal static InstallProbe TryInstallProbe(string? installRoot)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(installRoot))
-                return null;
+                return default;
 
             foreach (var name in new[] { "CdpMcp.exe", "CdpMcpBridge.exe", "CdpService.exe" })
             {
@@ -130,15 +133,54 @@ internal static class IdeOpsPulse
                     continue;
 
                 var info = FileVersionInfo.GetVersionInfo(exe);
-                return ShortVersion(info.ProductVersion) ?? ShortVersion(info.FileVersion);
+                var raw = info.ProductVersion ?? info.FileVersion;
+                return new InstallProbe(name, ShortVersion(raw), CommitSuffix(raw));
             }
 
-            return null;
+            return default;
         }
         catch
         {
-            return null;
+            return default;
         }
+    }
+
+    /// <summary>Build stamp after + in ProductVersion (git SourceRevisionId when stamped).</summary>
+    internal static string? CommitSuffix(string? productOrFileVersion)
+    {
+        if (string.IsNullOrWhiteSpace(productOrFileVersion))
+            return null;
+        var v = productOrFileVersion.Trim();
+        var plus = v.IndexOf('+');
+        if (plus < 0 || plus >= v.Length - 1)
+            return null;
+        var suffix = v[(plus + 1)..];
+        var space = suffix.IndexOf(' ');
+        if (space > 0)
+            suffix = suffix[..space];
+        return suffix.Length == 0 ? null : suffix;
+    }
+
+    internal static string VersionFamily(string? exeName) => exeName switch
+    {
+        "CdpMcp.exe" or "CdpService.exe" => "service",
+        "CdpMcpBridge.exe" => "bridge",
+        _ => "unknown"
+    };
+
+    internal static bool SeatVersionsLag(InstallProbe self, InstallProbe sibling)
+    {
+        if (self.ShortVersion is not { Length: > 0 } || sibling.ShortVersion is not { Length: > 0 })
+            return false;
+
+        if (self.CommitSuffix is { Length: > 0 } && sibling.CommitSuffix is { Length: > 0 })
+            return !string.Equals(self.CommitSuffix, sibling.CommitSuffix, StringComparison.OrdinalIgnoreCase);
+
+        var selfFamily = VersionFamily(self.ExeName);
+        if (selfFamily == "unknown" || !string.Equals(selfFamily, VersionFamily(sibling.ExeName), StringComparison.Ordinal))
+            return false;
+
+        return !string.Equals(self.ShortVersion, sibling.ShortVersion, StringComparison.OrdinalIgnoreCase);
     }
 
     static DateTimeOffset? TryLiveUtc()
@@ -184,4 +226,9 @@ internal static class IdeOpsPulse
         string? SelfVersion,
         string? SiblingVersion,
         bool Lag);
+
+    internal readonly record struct InstallProbe(
+        string? ExeName,
+        string? ShortVersion,
+        string? CommitSuffix);
 }

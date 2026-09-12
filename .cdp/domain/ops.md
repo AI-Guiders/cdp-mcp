@@ -7,7 +7,7 @@
 ## Invariants
 
 - Seat: `cdp` = `D:\cdp-mcp`, `cdp-debug` = `D:\cdp-mcp-debug`.
-- `ops_pulse` / `cdp_health.seats`: self_version · sibling_version · lag (ProductVersion short).
+- `ops_pulse` / `cdp_health.seats`: self_version · sibling_version · lag (compatible identity: +commit when both stamped, else short ProductVersion only within same exe family — service=CdpMcp/CdpService, bridge=CdpMcpBridge).
 - Hard deploy defaults to sibling — survivor seat stays old until remount/soft-self.
 - TM WitDB is seat-local (`StateRoot/{seat}/intent-workspace.witdb`) — sibling does not open primary's file.
 
