@@ -19,6 +19,7 @@ internal sealed partial class CdpSettings
     public CdpServiceSettings Service { get; init; } = new();
     public CitizenSettings Citizen { get; init; } = new();
     public CanonSettings Canon { get; init; } = new();
+    public KbAutoShipTomlSettings KbAutoShip { get; init; } = new();
     public VendorCatalogOptions Vendor { get; init; } = VendorCatalog.CreateBuiltInDefaults();
 
     /// <summary>worlds + META + "." knowledge-root hub (SHOWCASE.md, index-*.md).</summary>
@@ -46,6 +47,7 @@ internal sealed partial class CdpSettings
         var service = doc.Service ?? new CdpTomlService();
         var citizen = doc.Citizen ?? new CdpTomlCitizen();
         var canon = doc.Canon ?? new CdpTomlCanon();
+        var kbAutoShip = doc.KbAutoShip ?? new CdpTomlKbAutoShip();
 
         return new CdpSettings
         {
@@ -102,6 +104,13 @@ internal sealed partial class CdpSettings
                     ? null
                     : canon.GuidersStyleRoot.Trim()
             },
+            KbAutoShip = new KbAutoShipTomlSettings
+            {
+                Enabled = kbAutoShip.Enabled,
+                DebounceMs = kbAutoShip.DebounceMs,
+                Roots = kbAutoShip.Roots,
+                Branch = kbAutoShip.Branch
+            },
             Vendor = VendorCatalog.CreateBuiltInDefaults()
         };
     }
@@ -119,6 +128,15 @@ internal sealed partial class CdpSettings
         public CdpTomlService? Service { get; set; }
         public CdpTomlCitizen? Citizen { get; set; }
         public CdpTomlCanon? Canon { get; set; }
+        public CdpTomlKbAutoShip? KbAutoShip { get; set; }
+    }
+
+    private sealed class CdpTomlKbAutoShip
+    {
+        public bool? Enabled { get; set; }
+        public int? DebounceMs { get; set; }
+        public string[]? Roots { get; set; }
+        public string? Branch { get; set; }
     }
 
     private sealed class CdpTomlCanon

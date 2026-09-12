@@ -16,6 +16,7 @@ internal static class CdpServiceHost
     // Root ref обязательна: System.Threading.Timer живёт, пока жива ссылка на
     // LineWakePoller — иначе GC собирает инстанс, и таймер умирает молча.
     private static readonly LineWakePoller WakePoller = new();
+    private static KbAutoShipService? KbAutoShip;
 
     internal static async Task<int> RunAsync(string configPath, string[] args, CancellationToken cancellationToken = default)
     {
@@ -26,6 +27,8 @@ internal static class CdpServiceHost
         // ADR-0219 L2a/2 — composition root: реальный граф wake-диспетчера собирается здесь.
         CideWakeDispatch.WarmDefault();
         await using var runtime = await CdpHostRuntime.CreateAsync(configPath, cancellationToken).ConfigureAwait(false);
+        KbAutoShip = KbAutoShipService.TryCreate(runtime.Settings);
+        KbAutoShip?.Start();
         var settings = runtime.Settings.Service;
         var token = CdpServiceToken.Ensure(settings);
         // ADR-0209: the gatekeeper owns 8771 forever; the service self-registers on a free slot port.
@@ -205,6 +208,8 @@ internal static class CdpServiceHost
             heartbeatCts.Cancel();
             try { await heartbeatTask.ConfigureAwait(false); }
             catch { /* shutdown race */ }
+            KbAutoShip?.Dispose();
+            KbAutoShip = null;
             CdpSlotRegistry.Remove(CdpProfile.StateRoot, slot.Pid);
         }
         return 0;
