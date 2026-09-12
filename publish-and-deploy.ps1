@@ -14,12 +14,21 @@ param(
 $ErrorActionPreference = "Stop"
 $here = $PSScriptRoot
 
+function Clone-DeployWorker {
+    param([string] $WorkerExe)
+    $sourceDir = Split-Path -Parent $WorkerExe
+    $cloneRoot = Join-Path $env:TEMP ("cdp-deploy-worker-" + [Guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $cloneRoot -Force | Out-Null
+    Copy-Item -Path (Join-Path $sourceDir "*") -Destination $cloneRoot -Recurse -Force
+    Set-Content -Path (Join-Path $cloneRoot "deploy-worker-origin.txt") -Value $sourceDir -Encoding utf8
+    return Join-Path $cloneRoot (Split-Path -Leaf $WorkerExe)
+}
+
 function Find-WorkerExe {
     param([string] $DeployMode)
     $built = Join-Path $here "bin\Release\net10.0\win-x64\CdpMcp.exe"
-    # Publish modes must not run from ServiceInstall (self-lock + missing source). Apply may use live service worker.
     if ($DeployMode -ne 'apply' -and (Test-Path -LiteralPath $built)) {
-        return $built
+        return Clone-DeployWorker $built
     }
     foreach ($root in @($ServiceTarget, $BridgeTarget, $BridgeDebugTarget)) {
         foreach ($name in @("CdpService.exe", "CdpMcp.exe")) {
@@ -27,7 +36,7 @@ function Find-WorkerExe {
             if (Test-Path -LiteralPath $candidate) { return $candidate }
         }
     }
-    if (Test-Path -LiteralPath $built) { return $built }
+    if (Test-Path -LiteralPath $built) { return Clone-DeployWorker $built }
     throw "CdpMcp/CdpService worker not found. Build cdp-mcp or deploy service first."
 }
 
@@ -44,4 +53,8 @@ $payloadPath = Join-Path $env:TEMP ("cdp-deploy-" + [Guid]::NewGuid().ToString("
 $worker = Find-WorkerExe -DeployMode $Mode
 Write-Host "CDP deploy ($Mode) via C# worker: $worker"
 & $worker --deploy-cli $payloadPath
-exit $LASTEXITCODE
+$code = $LASTEXITCODE
+if ($worker -like "$env:TEMP\cdp-deploy-worker-*") {
+    try { Remove-Item (Split-Path $worker) -Recurse -Force -ErrorAction SilentlyContinue } catch {}
+}
+exit $code
