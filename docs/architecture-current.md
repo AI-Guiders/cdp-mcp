@@ -61,7 +61,7 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 | `%LocalAppData%\cdp-mcp\slots.witdb` | вышка + слот | реестр слотов (CdpSlotRegistry) |
 | `%LocalAppData%\cdp-mcp\cdp-state.witdb` | слот | runtime-state SSOT (ADR-0219) |
 
-**Канон:** EmbeddedTOML defaults в бинарнике + operator overlay (`cdp-mcp.toml` — только diffs). `CdpConfigLoader.ResolveMergedToml`. Env для seat-политики **запрещены** (0222 hard-fail). Единственный ops-env в `mcp.json`: `CDP_RELOAD_NUDGE` (remount stdio).
+**Канон:** EmbeddedTOML defaults в бинарнике + operator overlay (`cdp-mcp.toml` — только diffs). Env для seat-политики **запрещены** (0222). Ops remount = `--bridge-rev` в `mcp.json` args (0224), не env.
 
 ---
 
@@ -110,6 +110,7 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 | 0221 | CDP Virtualization — per-line instances | Draft | — |
 | 0222 | Configuration management — один TOML | Accepted | 2026-09-10 |
 | 0223 | Ship — слот из immutable-снимка (stage 3 0209) | Accepted | 2026-09-10 |
+| 0224 | Env-free ops — CLI + EmbeddedTOML, no operator env | Accepted | 2026-09-12 |
 
 > **Примечание:** статусы нормализованы 2026-09-10 к единому inline-формату `**Status:** Accepted|Proposed|Draft` (суффиксы реализации сохранены). Реестр фиксирует фактическое состояние.
 

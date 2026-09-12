@@ -101,7 +101,7 @@ public sealed class CdpConfigLoaderTests
     }
 
     [Fact]
-    public void ResolveServiceConfigPath_prefers_bridge_ssot_over_seat_copy()
+    public void ResolveServiceConfigPath_prefers_explicit_config_over_seat_copy()
     {
         var root = Path.Combine(Path.GetTempPath(), "cdp-config-paths-" + Guid.NewGuid().ToString("N"));
         var bridgeSeat = Path.Combine(root, "bridge");
@@ -114,16 +114,13 @@ public sealed class CdpConfigLoaderTests
         File.WriteAllText(bridgeToml, "[bridge]\nbase_url = \"http://127.0.0.1:8771\"\n");
         File.WriteAllText(serviceToml, "[bridge]\nbase_url = \"http://127.0.0.1:9000\"\n");
 
-        var prior = Environment.GetEnvironmentVariable("CDP_MCP_CONFIG");
-        Environment.SetEnvironmentVariable("CDP_MCP_CONFIG", bridgeToml);
         try
         {
-            var resolved = CdpConfigPaths.ResolveServiceConfigPath(null, serviceSeat);
+            var resolved = CdpConfigPaths.ResolveServiceConfigPath(bridgeToml, serviceSeat);
             Assert.Equal(Path.GetFullPath(bridgeToml), Path.GetFullPath(resolved));
         }
         finally
         {
-            Environment.SetEnvironmentVariable("CDP_MCP_CONFIG", prior);
             Directory.Delete(root, recursive: true);
         }
     }

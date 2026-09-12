@@ -9,7 +9,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 if (-not $BridgeConfig) {
-    $BridgeConfig = if ($env:CDP_MCP_CONFIG) { $env:CDP_MCP_CONFIG } else { "D:\cdp-mcp\cdp-mcp.toml" }
+    $BridgeConfig = "D:\cdp-mcp\cdp-mcp.toml"
 }
 
 if (-not (Test-Path -LiteralPath $BridgeConfig)) {

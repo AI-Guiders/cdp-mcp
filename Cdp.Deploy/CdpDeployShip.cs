@@ -14,7 +14,7 @@ namespace Cdp.Deploy;
 public static class CdpDeployShip
 {
     /// <summary>Env var the slot host reads to bind a caller-pinned port (deterministic verify).</summary>
-    public const string SlotPortEnvVar = "CDP_SLOT_PORT";
+    public const string SlotPortArg = "--slot-port";
 
     // Slot port range — protocol constant, mirrors CdpSlotRegistry (ADR-0209).
     const int FirstSlotPort = 8772;

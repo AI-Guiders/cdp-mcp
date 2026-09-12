@@ -19,7 +19,7 @@ internal static class IdeIgniteNotifyCli
         var armId = ReadValue(args, "--arm-id");
 
         if (!string.IsNullOrWhiteSpace(seat))
-            Environment.SetEnvironmentVariable("CDP_IGNITE_SEAT", seat);
+            IdeIgniteSeatContext.Set(seat);
 
         IdeIgniteArmHost.EnsureStarted();
         IdeIgniteArmHost.Notify(eventName, ok, pulse, detail);

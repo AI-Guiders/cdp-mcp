@@ -1,8 +1,6 @@
-# Shared MCP remount nudge — bump CDP_RELOAD_NUDGE only for named Cursor servers.
-# Global replace of every nudge key remounted BOTH seats on every hard sibling deploy (pre-0.5.661).
-# Dot-source from publish-and-deploy.ps1 / Recover-CdpSeatRemount.ps1.
-# Direct: pwsh -File CdpReloadNudge.ps1 -Server cdp|cdp-debug  (or -AllSeats escape).
-# Lived 2026-08-06: -File alone was a silent no-op (functions only) → Not connected until Invoke-.
+# Shared MCP remount nudge — bump --bridge-rev in args (ADR-0224). No env.
+# Legacy CDP_RELOAD_NUDGE in env is migrated away on bump.
+# Direct: pwsh -File CdpReloadNudge.ps1 -Server cdp|cdp-debug
 
 param(
     [Alias('Seat')]
@@ -11,25 +9,29 @@ param(
     [switch] $AllSeats
 )
 
-function Resolve-CdpMcpServerName {
+function Set-BridgeRevArgs {
     param(
-        [string] $Seat,
-        [string] $TargetRoot
+        [psobject] $Node,
+        [string] $Stamp
     )
-    if ($Seat -eq 'cdp-debug' -or $Seat -eq 'debug') { return 'cdp-debug' }
-    if ($Seat -eq 'cdp' -or $Seat -eq 'release') { return 'cdp' }
-    if ($TargetRoot) {
-        $full = [System.IO.Path]::GetFullPath($TargetRoot)
-        $leaf = [System.IO.Path]::GetFileName($full.TrimEnd('\', '/'))
-        if ($leaf -ieq 'cdp-mcp-debug') { return 'cdp-debug' }
-        if ($leaf -ieq 'cdp-mcp') { return 'cdp' }
+    $argsList = @()
+    if ($Node.args) { $argsList = @($Node.args) }
+    $idx = [array]::IndexOf($argsList, '--bridge-rev')
+    if ($idx -ge 0 -and ($idx + 1) -lt $argsList.Count) {
+        $argsList[$idx + 1] = $Stamp
     }
-    return $null
+    else {
+        $argsList += @('--bridge-rev', $Stamp)
+    }
+    $Node.args = $argsList
+    if ($Node.env -and ($Node.env.PSObject.Properties.Name -contains 'CDP_RELOAD_NUDGE')) {
+        $Node.env.PSObject.Properties.Remove('CDP_RELOAD_NUDGE')
+        if ($Node.env.PSObject.Properties.Count -eq 0) { $Node.PSObject.Properties.Remove('env') }
+    }
 }
 
 function Invoke-CdpReloadNudge {
     param(
-        # Cursor mcpServers keys to bump. Empty + -AllSeats = legacy global (escape).
         [string[]] $Server = @(),
         [switch] $AllSeats
     )
@@ -40,30 +42,10 @@ function Invoke-CdpReloadNudge {
     }
 
     $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $raw = Get-Content -LiteralPath $mcpJson -Raw -Encoding utf8
-    if ($raw -notmatch '"CDP_RELOAD_NUDGE"') {
-        return @{ Ok = $false; Error = 'no CDP_RELOAD_NUDGE keys in mcp.json' }
-    }
-
-    if ($AllSeats -or ($Server.Count -eq 0)) {
-        if (-not $AllSeats -and $Server.Count -eq 0) {
-            return @{ Ok = $false; Error = 'Server= required (or -AllSeats escape)' }
-        }
-        $count = ([regex]::Matches($raw, '"CDP_RELOAD_NUDGE"\s*:')).Count
-        $next = [regex]::Replace(
-            $raw,
-            '"CDP_RELOAD_NUDGE"\s*:\s*"[^"]*"',
-            "`"CDP_RELOAD_NUDGE`": `"$stamp`"")
-        if ($next -eq $raw) {
-            return @{ Ok = $false; Error = 'replace produced no change' }
-        }
-        Set-Content -LiteralPath $mcpJson -Value $next -Encoding utf8 -NoNewline
-        return @{ Ok = $true; Path = $mcpJson; Value = $stamp; Count = $count; Servers = @('*') }
-    }
-
     try {
-        $j = $raw | ConvertFrom-Json
-    } catch {
+        $j = Get-Content -LiteralPath $mcpJson -Raw -Encoding utf8 | ConvertFrom-Json
+    }
+    catch {
         return @{ Ok = $false; Error = "mcp.json parse failed: $($_.Exception.Message)" }
     }
 
@@ -71,32 +53,36 @@ function Invoke-CdpReloadNudge {
         return @{ Ok = $false; Error = 'mcp.json has no mcpServers' }
     }
 
+    $targets = @()
+    if ($AllSeats) {
+        $j.mcpServers.PSObject.Properties | ForEach-Object {
+            if ($_.Value.args -contains '--config' -or $_.Value.env.CDP_RELOAD_NUDGE) {
+                $targets += $_.Name
+            }
+        }
+    }
+    elseif ($Server.Count -gt 0) {
+        $targets = @($Server)
+    }
+    else {
+        return @{ Ok = $false; Error = 'Server= required (or -AllSeats escape)' }
+    }
+
     $bumped = @()
-    foreach ($name in $Server) {
-        $key = [string]$name
-        if (-not $key) { continue }
-        $node = $j.mcpServers.$key
+    foreach ($name in $targets) {
+        $node = $j.mcpServers.$name
         if (-not $node) {
-            return @{ Ok = $false; Error = "mcpServers.$key missing" }
+            return @{ Ok = $false; Error = "mcpServers.$name missing" }
         }
-        if (-not $node.env) {
-            $node | Add-Member -NotePropertyName env -NotePropertyValue ([pscustomobject]@{}) -Force
-        }
-        $envObj = $node.env
-        if ($envObj.PSObject.Properties.Name -contains 'CDP_RELOAD_NUDGE') {
-            $envObj.CDP_RELOAD_NUDGE = $stamp
-        } else {
-            $envObj | Add-Member -NotePropertyName CDP_RELOAD_NUDGE -NotePropertyValue $stamp -Force
-        }
-        $bumped += $key
+        Set-BridgeRevArgs -Node $node -Stamp $stamp
+        $bumped += $name
     }
 
     if ($bumped.Count -eq 0) {
         return @{ Ok = $false; Error = 'no servers bumped' }
     }
 
-    $json = $j | ConvertTo-Json -Depth 30
-    [System.IO.File]::WriteAllText($mcpJson, $json)
+    ($j | ConvertTo-Json -Depth 30) | Set-Content -LiteralPath $mcpJson -Encoding utf8 -NoNewline
     return @{ Ok = $true; Path = $mcpJson; Value = $stamp; Count = $bumped.Count; Servers = $bumped }
 }
 
@@ -106,9 +92,7 @@ function Resolve-CdpRemountSeatName {
     $leaf = [System.IO.Path]::GetFileName($full.TrimEnd('\', '/'))
     if ($leaf -ieq 'self') {
         $parent = [System.IO.Path]::GetDirectoryName($full)
-        if ($parent) {
-            return Resolve-CdpRemountSeatName -TargetRoot $parent
-        }
+        if ($parent) { return Resolve-CdpRemountSeatName -TargetRoot $parent }
     }
     if ($leaf -ieq 'cdp-mcp-debug') { return 'cdp-debug' }
     if ($leaf -ieq 'cdp-mcp') { return 'cdp' }
@@ -138,17 +122,13 @@ function Write-CdpRemountWakePending {
     return @{ Ok = $true; Path = $path; Seat = $seatName }
 }
 
-# Entry when executed as -File (not when Recover/publish dot-source this library).
-# Lived 2026-08-06b: Path-equality fired on Recover dotsource → Invoke empty Server + exit aborted Recover.
-# Gate = InvocationName -ne '.' (dotsource = library only).
 if ($MyInvocation.InvocationName -ne '.') {
     $r = Invoke-CdpReloadNudge -Server $Server -AllSeats:$AllSeats
     if (-not $r.Ok) {
-        # Windows PowerShell 5.1 (publish-and-deploy host) has no ?? — lived 2026-08-06 deploy hard fail.
         $err = if ($null -ne $r.Error -and $r.Error -ne '') { $r.Error } else { 'nudge failed' }
         Write-Error $err
         exit 1
     }
-    Write-Output ("nudge ok · servers={0} · CDP_RELOAD_NUDGE={1}" -f (($r.Servers -join ','), $r.Value))
+    Write-Output ("nudge ok · servers={0} · --bridge-rev={1}" -f (($r.Servers -join ','), $r.Value))
     exit 0
 }

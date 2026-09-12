@@ -49,9 +49,10 @@ internal sealed partial class CdpIgniteArmHost
 
     string ResolveSeat()
     {
-        var fromEnv = Environment.GetEnvironmentVariable("CDP_IGNITE_SEAT")?.Trim();
-        if (!string.IsNullOrEmpty(fromEnv))
-            return fromEnv;
+        var fromContext = IdeIgniteSeatContext.Current;
+        if (!string.IsNullOrEmpty(fromContext))
+            return fromContext;
+
         return IdeDeploy.ClassifySeat(IdeDeploy.ResolveSelfInstallRoot());
     }
 

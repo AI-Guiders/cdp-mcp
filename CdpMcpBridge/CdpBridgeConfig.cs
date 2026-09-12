@@ -54,10 +54,7 @@ internal static class CdpBridgeConfigLoader
             };
         }
 
-        var configPath = ResolveConfigPath(args);
-        if (configPath is null)
-            return new() { IsSuccess = false, Error = "Missing --config PATH." };
-
+        var configPath = ResolveConfigPath(args) ?? CdpConfigPaths.DefaultBridgeConfigPath;
         if (!File.Exists(configPath))
             return new() { IsSuccess = false, Error = $"Config not found: {configPath}" };
 
@@ -93,7 +90,7 @@ internal static class CdpBridgeConfigLoader
     }
 
     static string? ResolveConfigPath(string[] args) =>
-        ConfigPathResolver.TryResolve(args, "CDP_MCP_CONFIG");
+        ConfigPathResolver.TryResolve(args, environmentVariable: null);
 }
 
 internal static class CdpBridgeHttpClient

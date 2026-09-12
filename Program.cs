@@ -1,3 +1,4 @@
+using AIGuiders.Cli;
 using CdpMcp;
 using TerminalMcp.Core;
 
@@ -24,9 +25,8 @@ if (durableJobIdx >= 0 && durableJobIdx + 1 < args.Length)
     Environment.Exit(await IdeDurableJobRunner.RunAsync(args[durableJobIdx + 1]));
 }
 
-var configPath = args.SkipWhile(a => a != "--config").Skip(1).FirstOrDefault()
-    ?? Environment.GetEnvironmentVariable("CDP_MCP_CONFIG")
-    ?? Path.Combine(AppContext.BaseDirectory, "config", "cdp-mcp.toml");
+var configPath = ConfigPathResolver.TryResolve(args, environmentVariable: null)
+    ?? Path.Combine(AppContext.BaseDirectory, "cdp-mcp.toml");
 
 if (gatekeeperIdx >= 0)
     Environment.Exit(await CdpGatekeeperHost.RunAsync(configPath));

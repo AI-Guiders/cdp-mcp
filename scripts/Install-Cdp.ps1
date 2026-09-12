@@ -185,17 +185,13 @@ function Merge-McpServers([string]$TargetPath, [string]$Command, [string[]]$Args
     if ($mcp.mcpServers) {
         $mcp.mcpServers.PSObject.Properties | ForEach-Object { $servers[$_.Name] = $_.Value }
     }
-    $env = [ordered]@{}
-    if ($servers.Contains('cdp') -and $servers['cdp'].env) {
-        $servers['cdp'].env.PSObject.Properties | ForEach-Object { $env[$_.Name] = $_.Value }
+    $servers['cdp'] = [pscustomobject]@{
+        command = $Command
+        args    = @($Args) + @('--bridge-rev', 'bootstrap')
     }
-    if (-not $env.Contains('CDP_RELOAD_NUDGE')) {
-        $env['CDP_RELOAD_NUDGE'] = 'bootstrap'
-    }
-    $servers['cdp'] = [pscustomobject]@{ command = $Command; args = @($Args); env = [pscustomobject]$env }
     $mcp.mcpServers = [pscustomobject]$servers
     Write-Utf8File $TargetPath ($mcp | ConvertTo-Json -Depth 12)
-    Write-Host "Merged mcp key 'cdp' -> $TargetPath"
+    Write-Host "Merged mcp key 'cdp' -> $TargetPath (args --bridge-rev bootstrap; no env)"
 }
 
 function Get-CursorMcpPath {
@@ -396,7 +392,7 @@ $opencodeSnippet = (@{
 Write-Utf8File (Join-Path $snippetsDir "opencode.mcp.json") $opencodeSnippet
 
 switch ($HostAdapter) {
-    "cursor" { Merge-McpServers (Get-CursorMcpPath) $exe @("--config", $configArg); Write-Host "MCP entry updated — Cursor remounts on mcp.json change (del/add or CDP_RELOAD_NUDGE)." }
+    "cursor" { Merge-McpServers (Get-CursorMcpPath) $exe @("--config", $configArg); Write-Host "MCP entry updated — Cursor remounts on mcp.json change (del/add or --bridge-rev bump)." }
     "claude" { Merge-McpServers (Get-ClaudeConfigPath) $exe @("--config", $configArg); Write-Host "Restart Claude Desktop." }
     "vscode" { Write-Host "VS Code: copy host-snippets/vscode.mcp.json into user MCP settings." }
     "windsurf" {

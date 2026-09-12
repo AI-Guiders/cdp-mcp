@@ -11,12 +11,11 @@ public static class CdpConfigPaths
     public static string DefaultBridgeConfigPath =>
         Path.Combine(DefaultBridgeSeat, CdpDeploySeatConfig.FileName);
 
-    /// <summary>Bridge MCP seat config (env CDP_MCP_CONFIG or default seat path).</summary>
-    public static string ResolveBridgeConfigPath()
+    /// <summary>Bridge MCP seat config (--config arg or default seat path).</summary>
+    public static string ResolveBridgeConfigPath(string? explicitConfig = null)
     {
-        var env = Environment.GetEnvironmentVariable("CDP_MCP_CONFIG");
-        if (!string.IsNullOrWhiteSpace(env))
-            return Path.GetFullPath(env.Trim());
+        if (!string.IsNullOrWhiteSpace(explicitConfig))
+            return Path.GetFullPath(explicitConfig.Trim());
 
         return DefaultBridgeConfigPath;
     }
@@ -36,7 +35,7 @@ public static class CdpConfigPaths
             return seat;
 
         throw new FileNotFoundException(
-            "cdp-mcp.toml not found — set bridge --config, CDP_MCP_CONFIG, or seat cdp-mcp.toml.",
+            "cdp-mcp.toml not found — pass --config or seat cdp-mcp.toml.",
             CdpDeploySeatConfig.SeatConfigPath(serviceInstallRoot));
     }
 }

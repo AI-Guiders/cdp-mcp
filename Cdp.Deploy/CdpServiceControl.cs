@@ -104,7 +104,7 @@ public static class CdpServiceControl
 
     /// <summary>
     /// ADR-0209 stage 3 (ship): start a service slot from an immutable snapshot directory on a
-    /// pinned port (CDP_SLOT_PORT) so the caller can verify health on a known endpoint.
+    /// pinned port (<c>--slot-port</c>) so the caller can verify health on a known endpoint.
     /// Returns the started process — caller owns verification before retiring anything.
     /// </summary>
     public static Process StartSlotFromDir(string dir, int slotPort)
@@ -119,12 +119,11 @@ public static class CdpServiceControl
         var psi = new ProcessStartInfo
         {
             FileName = exe,
-            Arguments = $"--service --config \"{config}\"",
+            Arguments = $"--service --config \"{config}\" --slot-port {slotPort.ToString(System.Globalization.CultureInfo.InvariantCulture)}",
             WorkingDirectory = dir,
             UseShellExecute = false,
             CreateNoWindow = true
         };
-        psi.Environment["CDP_SLOT_PORT"] = slotPort.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
         return Process.Start(psi) ?? throw new InvalidOperationException("Failed to start slot process.");
     }

@@ -468,41 +468,6 @@ public static class CdpDeployOrchestrator
 
 internal static class CdpReloadNudge
 {
-    public static void TryBumpSeats(params string[] servers)
-    {
-        try
-        {
-            var mcpJson = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cursor", "mcp.json");
-            if (!File.Exists(mcpJson))
-                return;
-
-            var raw = File.ReadAllText(mcpJson);
-            if (!raw.Contains("CDP_RELOAD_NUDGE", StringComparison.Ordinal))
-                return;
-
-            var stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
-            using var doc = JsonDocument.Parse(raw);
-            if (!doc.RootElement.TryGetProperty("mcpServers", out _))
-                return;
-
-            foreach (var server in servers)
-            {
-                var pattern = $"\"{server}\"[\\s\\S]*?\"CDP_RELOAD_NUDGE\"\\s*:\\s*\"[^\"]*\"";
-                if (!Regex.IsMatch(raw, pattern, RegexOptions.CultureInvariant))
-                    continue;
-
-                raw = Regex.Replace(
-                    raw,
-                    $"({Regex.Escape(server)}[\\s\\S]*?\"CDP_RELOAD_NUDGE\"\\s*:\\s*)\"[^\"]*\"",
-                    $"$1\"{stamp}\"",
-                    RegexOptions.CultureInvariant);
-            }
-
-            File.WriteAllText(mcpJson, raw);
-        }
-        catch
-        {
-            /* best effort */
-        }
-    }
+    public static void TryBumpSeats(params string[] servers) =>
+        CdpBridgeRevNudge.TryBumpSeats(servers);
 }

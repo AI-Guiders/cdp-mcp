@@ -82,7 +82,7 @@ internal static class IdeDurableJobRunner
         if (string.IsNullOrWhiteSpace(seat) && !string.IsNullOrWhiteSpace(life.WorkerExePath))
             seat = IdeDeploy.ClassifySeat(Path.GetDirectoryName(Path.GetFullPath(life.WorkerExePath)));
         if (!string.IsNullOrWhiteSpace(seat))
-            Environment.SetEnvironmentVariable("CDP_IGNITE_SEAT", seat);
+            IdeIgniteSeatContext.Set(seat);
     }
 
     static async Task NotifyAsync(DurableJobRecord record, bool ok, string? detail)
@@ -107,11 +107,10 @@ internal static class IdeDurableJobRunner
             var baseDir = AppContext.BaseDirectory;
             var candidates = new[]
             {
-                Environment.GetEnvironmentVariable("CDP_MCP_CONFIG"),
                 Path.Combine(baseDir, "cdp-mcp.toml"),
                 Path.Combine(baseDir, "config", "cdp-mcp.toml")
             };
-            var configPath = candidates.FirstOrDefault(File.Exists) ?? Path.Combine(baseDir, "cdp-mcp.toml");
+            var configPath = candidates.FirstOrDefault(File.Exists) ?? candidates[0];
             var settings = CdpSettings.Load(configPath);
             return settings.Dev.Build.Enabled ? new CdpMcp.Backends.BuildTestBackend(settings) : null;
         }

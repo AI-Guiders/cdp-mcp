@@ -4,10 +4,6 @@ internal static class CdpBridgeIdentity
 {
     internal static string ResolveWorkspaceKey(string? configPath)
     {
-        var env = Environment.GetEnvironmentVariable("CDP_WORKSPACE_KEY");
-        if (!string.IsNullOrWhiteSpace(env))
-            return env.Trim();
-
         if (string.IsNullOrWhiteSpace(configPath))
             return "default";
 

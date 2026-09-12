@@ -15,11 +15,8 @@ if (-not (Test-Path -LiteralPath $exe)) {
 }
 
 if (-not $Config) {
-    $bridgeSsot = if ($env:CDP_MCP_CONFIG) { $env:CDP_MCP_CONFIG } else { "D:\cdp-mcp\cdp-mcp.toml" }
-    if (Test-Path -LiteralPath $bridgeSsot) {
-        $Config = $bridgeSsot
-    }
-    else {
+    $Config = "D:\cdp-mcp\cdp-mcp.toml"
+    if (-not (Test-Path -LiteralPath $Config)) {
         $Config = Join-Path $Target "cdp-mcp.toml"
     }
 }

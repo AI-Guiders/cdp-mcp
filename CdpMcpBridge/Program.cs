@@ -159,7 +159,7 @@ static void PrintUsage()
           base_url = "http://127.0.0.1:8771"
           auto_start_slot = true
 
-        Env: only CDP_MCP_CONFIG (path to file). Config overrides forbidden (ADR-0222).
+        Env: none required. Use --config PATH; optional --bridge-rev STAMP (Cursor remount only).
         """);
 }
 
