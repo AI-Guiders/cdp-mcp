@@ -223,9 +223,9 @@ internal static partial class DocumentEditPlane
             verb: "cdp_buffer create",
             pathExistedBefore: existed);
         var overwrite = BoolOr(args, "overwrite", defaultValue: false);
-        var text = OptString(args, "text");
+        var resolved = ResolveCreateBody(args);
         var diagnose = BoolOr(args, "diagnose", defaultValue: true);
-        var buf = store.Create(path, text, overwrite);
+        var buf = store.Create(path, resolved.Body, overwrite);
         AdxMutateTrace.Record(buf.Path, "create", isCreate: true, pathExistedBefore: existed);
         object? diagnostics = null;
         string? diagNote = null;
@@ -233,13 +233,18 @@ internal static partial class DocumentEditPlane
             (diagnostics, diagNote) = await TryDiagnoseAsync(buf, store, session, byDomain, flush: false, cancellationToken)
                 .ConfigureAwait(false);
 
+        var hint = MergeCreateHints(resolved.Hint, buf);
+        var quality = QualityGates.ForCreateResult(buf, session.ProjectRoot);
+
         return JsonSerializer.Serialize(new
         {
             schema = "doc_create/v0",
             ok = true,
             meta = buf.ToMeta(),
             diagnostics,
-            diagnostics_note = diagNote
+            diagnostics_note = diagNote,
+            hint,
+            quality
         }, Pretty);
     }
 

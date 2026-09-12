@@ -9,6 +9,7 @@
 - Soft-warn FileLinesWarn=400; Open/Create/Resolve/Park/Scene in `DocumentBufferStore.cs`; Apply/Flush in `.Edit`; Disk owns Reload/Keep/Peek/GuessLanguage; `DocBuffer` type is its own file.
 - Disk mutates go through PathMutateGate + AtomicTextFile — Cursor host Write bypasses the desk.
 - `set_text` on existing path soft-refuses (ADX-HX-001) unless `force=true` — prefer `anchor|replace|replace_range`; bootstrap via `op=create text=` (0.5.563).
+- `create` accepts `text=` (preferred), `content=` / `body=` aliases (ADX-HX-003) — empty code create → quality WARN + hint, not silent ok.
 - Flush soft-refuse: `ProbeMaterialDiskChanged` && !`force` → hint `reload|keep_disk|force` (mtime+content drift only; dirty alone does not refuse). Message names `host_write` + `go=quality scope=assert` (0.5.548).
 - Material drift stamps `AdxMutateTrace.host_write` (0.5.517); Scene habitat tip teaches detect, not only bypass (0.5.548).
 
@@ -24,6 +25,7 @@
 - `replace_range` with only `new_string=` and silent `text??""` — ate spans (bridge incident). Body = `text|new_string`; missing both must refuse (empty `text=""` = intentional delete).
 - `edit_op=replace` with only `text=` while code reads `new_string??""` — deleted PublishGlass (2026-08-04). Body = `new_string|text`; missing both must refuse (empty `new_string=""` = intentional delete).
 - Cold `set_text` on missing path ≠ create — OpenUnlocked FileNotFound; bootstrap via `op=create text=`.
+- `op=create` with only `content=`/`body=` and no `text=` silently landed empty (lived 2026-09-12). ADX-HX-003: aliases wired; empty code file → WARN + hint.
 - Bare `place=replace` on large `M:` without `old_string=` / `T:` / `force=true` — wiped UnbindLifecycle (lived 2026-08-07). SoftFL ADX-HX-002 refuses shrink; `old_string=` → in-locus patch (`place=in_locus`). Prefer `edit_op=replace` for string patches when not targeting a member rewrite.
 
 ## last_ship
