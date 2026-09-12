@@ -113,12 +113,12 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
-    public void Route_kb_world_query_is_search_session()
+    public void Route_kb_world_query_is_corpus_tags()
     {
         var r = CitizenIntentRouter.RouteOne("kb facet=world query=SoftFL invent REJECT");
         Assert.True(r.Ok);
-        Assert.Equal("search_agent_notes", r.Op);
-        Assert.Equal("memory_session", r.Server);
+        Assert.Equal("knowledge_tags", r.Op);
+        Assert.Equal("memory_world", r.Server);
     }
 
     [Fact]
@@ -218,23 +218,23 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
-    public void Route_kb_search_token_binds_session()
+    public void Route_kb_search_token_binds_corpus_tags()
     {
         var r = CitizenIntentRouter.RouteOne("kb search query=SoftFL");
         Assert.True(r.Ok);
-        Assert.Equal("search_agent_notes", r.Op);
-        Assert.Equal("memory_session", r.Server);
+        Assert.Equal("knowledge_tags", r.Op);
+        Assert.Equal("memory_world", r.Server);
     }
 
     [Fact]
-    public void Execute_kb_search_pulse_includes_match_hits()
+    public void Execute_kb_search_pulse_includes_tag_hits()
     {
         CitizenRouteHost.UnbindLifecycle();
         CitizenRouteHost.KbCallOverride = (_, tool, _) =>
         {
-            Assert.Equal("search_agent_notes", tool);
+            Assert.Equal("knowledge_tags", tool);
             return Task.FromResult(
-                "{\"query\":\"SoftFL\",\"total_matches\":2,\"returned_matches\":2,\"matches\":[{\"line\":10,\"text\":\"## SoftFL invent REJECT - dig before invent\"},{\"line\":40,\"text\":\"Face Done = operator Glass eyes only\"}]}");
+                "{\"mode\":\"search\",\"query\":\"SoftFL\",\"total\":2,\"hits\":[{\"path\":\"work/x.md\",\"preview\":\"SoftFL invent REJECT\"},{\"path\":\"work/y.md\",\"preview\":\"Face Done\"}]}");
         };
         try
         {
@@ -242,9 +242,8 @@ public sealed class CitizenKbHostTests
                 [CitizenIntentRouter.RouteOne("kb search query=SoftFL")]);
             Assert.Single(applied);
             Assert.True(applied[0].Ok, applied[0].Reason);
-            Assert.Contains("2 match(es)", applied[0].Pulse, StringComparison.Ordinal);
-            Assert.Contains("SoftFL invent REJECT", applied[0].Pulse, StringComparison.Ordinal);
-            Assert.Contains("q=SoftFL", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("2 hit(s)", applied[0].Pulse, StringComparison.Ordinal);
+            Assert.Contains("work/x.md", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
         {

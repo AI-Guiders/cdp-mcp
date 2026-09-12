@@ -82,4 +82,30 @@ public sealed class MemoryScopeGatewayTests
             });
         Assert.Equal(".", args["subdir"].GetString());
     }
+
+    [Fact]
+    public void Knowledge_tags_without_subdir_stays_federated()
+    {
+        var gw = new MemoryScopeGateway("memory_world", ["worlds", "META", "."]);
+        var args = gw.Apply(
+            "knowledge_tags",
+            new Dictionary<string, JsonElement>
+            {
+                ["query"] = JsonSerializer.SerializeToElement("ai-incidents")
+            });
+        Assert.False(args.ContainsKey("subdir"));
+    }
+
+    [Fact]
+    public void Knowledge_tags_explicit_subdir_validates()
+    {
+        var gw = new MemoryScopeGateway("memory_world", ["worlds", "META", "."]);
+        var args = gw.Apply(
+            "knowledge_tags",
+            new Dictionary<string, JsonElement>
+            {
+                ["subdir"] = JsonSerializer.SerializeToElement("worlds")
+            });
+        Assert.Equal("worlds", args["subdir"].GetString());
+    }
 }

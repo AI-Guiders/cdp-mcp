@@ -45,9 +45,9 @@ internal static partial class CitizenIntentRouter
         var filePathHint = ExtractKeyedValue(work, "file_path") ?? ExtractKeyedValue(work, "path");
         if (string.IsNullOrWhiteSpace(tool) && !string.IsNullOrWhiteSpace(freeQuery))
         {
-            // Free-text dig → agent-notes search (not silent list_pack / epistemic-scene dump).
-            tool = "search_agent_notes";
-            facet = Cdp.Core.CdpDomains.MemorySession;
+            // Free-text dig → federated corpus tags (CDP-ADR-0210), not hot agent-notes grep.
+            tool = "knowledge_tags";
+            facet ??= Cdp.Core.CdpDomains.MemoryWorld;
         }
         else if (string.IsNullOrWhiteSpace(tool) && LooksLikeKnowledgeFilePath(filePathHint))
         {
@@ -253,7 +253,8 @@ internal static partial class CitizenIntentRouter
             "files" or "ls" or "listknowledgefiles" or "list_knowledgefiles"
                 => "list_knowledge_files",
             "hot" or "read_hot" => "read_hot_context",
-            "search" or "search_notes" => "search_agent_notes",
+            "search" or "search_kb" or "search_corpus" => "knowledge_tags",
+            "search_notes" or "search_hot" => "search_agent_notes",
             "health" or "memory_health" => "memory_health",
             _ => tool
         };

@@ -65,28 +65,30 @@ internal sealed class MemoryScopeGateway
             ApplyPathArg(dict, "file_path", injectIfEmpty: false);
         }
 
-        // subdir/path: inject default root for list/tags; validate when caller supplies them.
-        var listLike = underlyingName is "list_knowledge_files" or "knowledge_tags";
+        // subdir/path: list injects facet root; knowledge_tags federated recall does not (CDP-ADR-0210).
+        var listLike = underlyingName is "list_knowledge_files";
         // Citizen wire uses path=; AN list/tags only read subdir — mirror before inject.
         if (listLike && HasNonEmpty(dict, "path") && !HasNonEmpty(dict, "subdir"))
             dict["subdir"] = dict["path"];
 
-        if (listLike || HasNonEmpty(dict, "subdir"))
+        if (underlyingName is "knowledge_tags")
         {
-            // path=. / subdir=. = hub-only for list_knowledge_files — never PreferInject worlds over it.
-            // knowledge_tags: hub marker is meaningless (TagIndex is recursive) — PreferInject worlds.
-            var hubList = underlyingName is "list_knowledge_files"
-                && (IsHubListMarker(dict, "subdir") || IsHubListMarker(dict, "path"));
-            if (underlyingName is "knowledge_tags"
-                && (IsHubListMarker(dict, "subdir") || IsHubListMarker(dict, "path")))
+            if (HasNonEmpty(dict, "path") && !HasNonEmpty(dict, "subdir"))
+                dict["subdir"] = dict["path"];
+            if (IsHubListMarker(dict, "subdir") || IsHubListMarker(dict, "path"))
             {
                 dict.Remove("subdir");
-                ApplyPathArg(dict, "subdir", injectIfEmpty: true);
+                dict.Remove("path");
             }
-            else
-            {
-                ApplyPathArg(dict, "subdir", injectIfEmpty: listLike && !hubList);
-            }
+            if (HasNonEmpty(dict, "subdir"))
+                ApplyPathArg(dict, "subdir", injectIfEmpty: false);
+        }
+        else if (listLike || HasNonEmpty(dict, "subdir"))
+        {
+            // path=. / subdir=. = hub-only for list_knowledge_files — never PreferInject worlds over it.
+            var hubList = listLike
+                && (IsHubListMarker(dict, "subdir") || IsHubListMarker(dict, "path"));
+            ApplyPathArg(dict, "subdir", injectIfEmpty: listLike && !hubList);
         }
 
         if (HasNonEmpty(dict, "path"))

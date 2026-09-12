@@ -284,6 +284,13 @@ internal static partial class CitizenRouteHost
         if (!args.ContainsKey("query") && args.TryGetValue("q", out var qEl))
             args["query"] = qEl;
 
+        if (tool is "knowledge_tags"
+            && !args.ContainsKey("mode")
+            && System.Text.RegularExpressions.Regex.IsMatch(raw, @"\bsearch\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+        {
+            args["mode"] = JsonSerializer.SerializeToElement("search");
+        }
+
         // Lived SoftFL: path= / knowledge/worlds/… → AN joins knowledge/knowledge/… → empty → missing.
         if (tool is "read_knowledge_file")
         {
@@ -317,7 +324,8 @@ internal static partial class CitizenRouteHost
     [
         "pack_id", "pack_path", "definition_id", "process_id", "procedure_id",
         "file_path", "subdir", "path", "claim", "delta_radius",
-        "radius_before", "radius_after", "workspace_path", "query", "q",
+        "radius_before", "radius_after", "workspace_path", "query", "q", "mode",
+        "active_scope", "primary_project_id", "scope_only",
         "task_id", "relative_path", "section_id", "content", "status",
         "limit", "title", "summary", "tool", "error_or_miss"
     ];
