@@ -20,7 +20,7 @@
 
 ## antipatterns
 
-- Binding gates to SoftFlLeaf / Mentions path and calling it systemic.
+- Binding gates to SoftFlApplyLatch / Mentions path and calling it systemic.
 - Persona "be careful" instead of RecordLived + future affordance gates.
 - Separate Citizen-only experience that Guest never sees.
 

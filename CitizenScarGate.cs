@@ -4,7 +4,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Blast-radius gate by HandKind under SoftFL apply arm.
-/// Dig free; Mutate/Verify/Deploy need seeded SoftFlLeaf; Mutate path must match leaf.
+/// Dig free; Mutate/Verify/Deploy need persisted apply scope; Mutate path must match scope.
 /// Scars from <see cref="CitizenScarLedger"/> — memo alone ≠ stop the hand.
 /// </summary>
 internal static class CitizenScarGate
@@ -21,7 +21,7 @@ internal static class CitizenScarGate
     {
         CitizenScarLedger.EnsureBuiltins();
 
-        if (!CitizenSoftFlLeaf.IsApplyArmed)
+        if (!CitizenSoftFlApplyLatch.IsApplyArmed)
             return null;
         if (HasForce(route))
             return null;
@@ -30,7 +30,7 @@ internal static class CitizenScarGate
         if (blast == BlastKind.Free)
             return null;
 
-        if (!CitizenSoftFlLeaf.HasSeededLeaf)
+        if (!CitizenSoftFlApplyLatch.HasPersistedScope)
         {
             if (blast == BlastKind.Mutate
                 && CitizenScarLedger.IsArmed(CitizenScarLedger.ScarMutateWithoutLeaf))
@@ -38,7 +38,7 @@ internal static class CitizenScarGate
                 return Refuse(
                     route,
                     RefuseMutateWithoutLeaf,
-                    "SoftFL apply armed — Mutate needs seeded SoftFlLeaf SSOT (force=true escape)");
+                    "SoftFL apply armed — Mutate needs persisted apply scope (force=true escape)");
             }
 
             if (blast is BlastKind.Verify or BlastKind.Deploy
@@ -47,7 +47,7 @@ internal static class CitizenScarGate
                 return Refuse(
                     route,
                     RefuseVerifyDeployWithoutLeaf,
-                    "SoftFL apply armed — Verify/Deploy need seeded SoftFlLeaf SSOT (force=true escape)");
+                    "SoftFL apply armed — Verify/Deploy need persisted apply scope (force=true escape)");
             }
 
             return null;
@@ -55,14 +55,14 @@ internal static class CitizenScarGate
 
         if (blast == BlastKind.Mutate
             && !string.IsNullOrWhiteSpace(route.Path)
-            && !CitizenSoftFlLeaf.MatchesPath(route.Path)
+            && !CitizenSoftFlApplyLatch.MatchesPath(route.Path)
             && CitizenScarLedger.IsArmed(CitizenScarLedger.ScarPathMutateOffLeaf))
         {
             return Refuse(
                 route,
                 RefusePathMutateOffLeaf,
-                "SoftFL apply armed — PathMutate off SoftFlLeaf path refused (leaf="
-                + Path.GetFileName(CitizenSoftFlLeaf.Current.Path)
+                "SoftFL apply armed — PathMutate off apply scope refused (path="
+                + Path.GetFileName(CitizenSoftFlApplyLatch.Current.Path)
                 + "; force=true escape)");
         }
 

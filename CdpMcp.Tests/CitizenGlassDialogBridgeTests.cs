@@ -20,7 +20,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         CitizenGlassDialogBridge.TurnOverrideForTests = body => EchoTurn(body);
         IdeIgniteArmHost.BindPrimaryAutoiSeat(true);
         IdeCitizenChannel.InviteReadyOverrideForTests = () => false;
-        CitizenSoftFlLeaf.ResetForTests();
+        CitizenSoftFlApplyLatch.ResetForTests();
         CitizenGlassDialogBridge.Stop();
         CitizenGlassDialogBridge.ResetProcessedForTests();
         CitizenPeerAck.ResetForTests();
@@ -37,7 +37,7 @@ public sealed class CitizenGlassDialogBridgeTests : IDisposable
         CideIntercomPresenceLatch.RootOverrideForTests = null;
         CideIntercomIdentityLatch.RootOverrideForTests = null;
         CitizenIdentity.ModelOverrideForTests = null;
-        CitizenSoftFlLeaf.ResetForTests();
+        CitizenSoftFlApplyLatch.ResetForTests();
         CitizenPeerAck.ResetForTests();
         IdeIgniteArmHost.BindPrimaryAutoiSeat(null);
         CitizenDialogHistory.ResetForTests();

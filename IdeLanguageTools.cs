@@ -40,6 +40,7 @@ internal static partial class IdeLanguageTools
     private static LanguageRegistry _langs = LanguageRegistry.Default;
     private static readonly LspSessionPool LspPool = new();
     private static DocumentBufferStore? _docStore;
+    private static readonly object _docStoreGate = new();
 
     public static void Configure(LanguageRegistry languages, IReadOnlyList<LspLaunchPreset>? lspPresets = null)
     {
@@ -58,7 +59,10 @@ internal static partial class IdeLanguageTools
 
     public static IReadOnlyList<LspLaunchPreset> CurrentLspPresets => LspPool.Presets;
 
-    public static void BindDocumentStore(DocumentBufferStore? store) => _docStore = store;
+    public static void BindDocumentStore(DocumentBufferStore? store)
+    {
+        lock (_docStoreGate) _docStore = store;
+    }
 
     /// <summary>Citizen find host-execute — IdeFindChannel needs live buffer store.</summary>
     public static DocumentBufferStore? TryGetDocumentStore() => ActiveDocStore;

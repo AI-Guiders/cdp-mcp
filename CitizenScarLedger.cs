@@ -152,21 +152,21 @@ internal static class CitizenScarLedger
         yield return new Scar(
             ScarPathMutateOffLeaf,
             CitizenScarGate.RefusePathMutateOffLeaf,
-            "SoftFL apply armed: PathMutate path must match SoftFlLeaf SSOT (force= escape)",
+            "SoftFL apply armed: PathMutate path must match SoftFlApplyLatch SSOT (force= escape)",
             "builtin",
             Armed: true,
             ArmedUtc: at);
         yield return new Scar(
             ScarMutateWithoutLeaf,
             CitizenScarGate.RefuseMutateWithoutLeaf,
-            "SoftFL apply armed: Mutate/Verify/Deploy need seeded SoftFlLeaf (force= escape)",
+            "SoftFL apply armed: Mutate/Verify/Deploy need seeded SoftFlApplyLatch (force= escape)",
             "builtin",
             Armed: true,
             ArmedUtc: at);
         yield return new Scar(
             ScarVerifyDeployWithoutLeaf,
             CitizenScarGate.RefuseVerifyDeployWithoutLeaf,
-            "SoftFL apply armed: Verify/Deploy without SoftFlLeaf refused (force= escape)",
+            "SoftFL apply armed: Verify/Deploy without SoftFlApplyLatch refused (force= escape)",
             "builtin",
             Armed: true,
             ArmedUtc: at);

@@ -11,17 +11,17 @@ public sealed class CitizenScarGateTests : IDisposable
     {
         _root = Path.Combine(Path.GetTempPath(), "cdp-scar-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_root);
-        CitizenSoftFlLeaf.RootOverrideForTests = _root;
+        CitizenSoftFlApplyLatch.RootOverrideForTests = _root;
         CitizenScarLedger.RootOverrideForTests = _root;
-        CitizenSoftFlLeaf.ResetForTests();
+        CitizenSoftFlApplyLatch.ResetForTests();
         CitizenScarLedger.ResetForTests();
     }
 
     public void Dispose()
     {
-        CitizenSoftFlLeaf.ResetForTests();
+        CitizenSoftFlApplyLatch.ResetForTests();
         CitizenScarLedger.ResetForTests();
-        CitizenSoftFlLeaf.RootOverrideForTests = null;
+        CitizenSoftFlApplyLatch.RootOverrideForTests = null;
         CitizenScarLedger.RootOverrideForTests = null;
         try
         {
@@ -37,8 +37,8 @@ public sealed class CitizenScarGateTests : IDisposable
     [Fact]
     public void Dig_is_free_even_when_apply_armed()
     {
-        CitizenSoftFlLeaf.EnsureMentionsDefault();
-        CitizenSoftFlLeaf.ArmApply();
+        CitizenSoftFlApplyLatch.EnsureDefaultScope();
+        CitizenSoftFlApplyLatch.ArmApply();
         var routes = new[] { CitizenIntentRouter.RouteOne("take path=\"other.cs\" start_line=1 end_line=2") };
         var applied = CitizenRouteHost.Execute(routes);
         Assert.DoesNotContain(applied, a => a.Reason?.Contains(CitizenScarGate.RefusePathMutateOffLeaf, StringComparison.Ordinal) == true);
@@ -47,8 +47,8 @@ public sealed class CitizenScarGateTests : IDisposable
     [Fact]
     public void Mutate_off_leaf_refused_when_apply_armed()
     {
-        CitizenSoftFlLeaf.EnsureMentionsDefault();
-        CitizenSoftFlLeaf.ArmApply();
+        CitizenSoftFlApplyLatch.EnsureDefaultScope();
+        CitizenSoftFlApplyLatch.ArmApply();
         CitizenScarLedger.EnsureBuiltins();
 
         var routes = new[] { CitizenIntentRouter.RouteOne("replace path=\"CascadeIDE.cs\" old=\"a\" new=\"b\"") };
@@ -61,9 +61,9 @@ public sealed class CitizenScarGateTests : IDisposable
     [Fact]
     public void Mutate_on_leaf_allowed_when_apply_armed()
     {
-        CitizenSoftFlLeaf.EnsureMentionsDefault();
-        CitizenSoftFlLeaf.ArmApply();
-        var leaf = CitizenSoftFlLeaf.Current.Path;
+        CitizenSoftFlApplyLatch.EnsureDefaultScope();
+        CitizenSoftFlApplyLatch.ArmApply();
+        var leaf = CitizenSoftFlApplyLatch.Current.Path;
 
         // Will fail later without doc store — but must not scar-refuse off-leaf.
         var routes = new[] { CitizenIntentRouter.RouteOne("replace path=\"" + leaf + "\" old=\"a\" new=\"b\"") };
@@ -76,8 +76,8 @@ public sealed class CitizenScarGateTests : IDisposable
     [Fact]
     public void Mutate_off_leaf_free_when_apply_disarmed()
     {
-        CitizenSoftFlLeaf.EnsureMentionsDefault();
-        CitizenSoftFlLeaf.DisarmApply();
+        CitizenSoftFlApplyLatch.EnsureDefaultScope();
+        CitizenSoftFlApplyLatch.DisarmApply();
         var routes = new[] { CitizenIntentRouter.RouteOne("replace path=\"CascadeIDE.cs\" old=\"a\" new=\"b\"") };
         var applied = CitizenRouteHost.Execute(routes);
         Assert.DoesNotContain(applied, a => a.Reason?.Contains(CitizenScarGate.RefusePathMutateOffLeaf, StringComparison.Ordinal) == true);
@@ -86,8 +86,8 @@ public sealed class CitizenScarGateTests : IDisposable
     [Fact]
     public void Force_escapes_off_leaf_refuse()
     {
-        CitizenSoftFlLeaf.EnsureMentionsDefault();
-        CitizenSoftFlLeaf.ArmApply();
+        CitizenSoftFlApplyLatch.EnsureDefaultScope();
+        CitizenSoftFlApplyLatch.ArmApply();
         var routes = new[] { CitizenIntentRouter.RouteOne("replace path=\"CascadeIDE.cs\" old=\"a\" new=\"b\" force=true") };
         var applied = CitizenRouteHost.Execute(routes);
         Assert.DoesNotContain(applied, a => a.Reason?.Contains(CitizenScarGate.RefusePathMutateOffLeaf, StringComparison.Ordinal) == true);
@@ -105,10 +105,10 @@ public sealed class CitizenScarGateTests : IDisposable
     [Fact]
     public void FormatApplyCharge_arms_blast_gate()
     {
-        CitizenSoftFlLeaf.EnsureMentionsDefault();
-        CitizenSoftFlLeaf.DisarmApply();
-        Assert.False(CitizenSoftFlLeaf.IsApplyArmed);
-        _ = CitizenSoftFlLeaf.FormatApplyCharge();
-        Assert.True(CitizenSoftFlLeaf.IsApplyArmed);
+        CitizenSoftFlApplyLatch.EnsureDefaultScope();
+        CitizenSoftFlApplyLatch.DisarmApply();
+        Assert.False(CitizenSoftFlApplyLatch.IsApplyArmed);
+        _ = CitizenSoftFlApplyLatch.FormatApplyCharge();
+        Assert.True(CitizenSoftFlApplyLatch.IsApplyArmed);
     }
 }

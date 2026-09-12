@@ -422,7 +422,7 @@ internal static class CitizenGlassDialogBridge
     /// </summary>
     internal static bool ShouldRunSameTurnObserve(CitizenPeerAck.Result peerAck) =>
         peerAck.HandKind is CitizenHandKind.Mutate or CitizenHandKind.Verify
-        || !CitizenSoftFlLeaf.IsApplyArmed;
+        || !CitizenSoftFlApplyLatch.IsApplyArmed;
 
     /// <summary>
     /// After host-execute: second Turn so Completions injects @event peer (LastEvent).

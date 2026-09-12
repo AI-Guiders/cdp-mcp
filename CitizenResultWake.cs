@@ -14,11 +14,11 @@ namespace CdpMcp;
 /// </summary>
 internal static class CitizenResultWake
 {
-    /// <summary>Absolute quoted path — SoftFL leaf SSOT (<see cref="CitizenSoftFlLeaf"/>).</summary>
-    public static string LeafTakePath => CitizenSoftFlLeaf.Current.Path;
+    /// <summary>Absolute quoted path — SoftFL leaf SSOT (<see cref="CitizenSoftFlApplyLatch"/>).</summary>
+    public static string LeafTakePath => CitizenSoftFlApplyLatch.Current.Path;
 
     /// <summary>Copy-paste dig line — from leaf SSOT dig span (not SoftFL apply).</summary>
-    public static string LeafTakeIntent => CitizenSoftFlLeaf.FormatDigTakeIntent();
+    public static string LeafTakeIntent => CitizenSoftFlApplyLatch.FormatDigTakeIntent();
 
     /// <summary>Host gate A1: quotes + slash + known junction mangles (not Persona prose).</summary>
     public static string NormalizeTakePath(string path)
@@ -98,15 +98,15 @@ internal static class CitizenResultWake
     }
 
     /// <summary>
-    /// SoftFL apply — default peer_ready after hands. Formats from <see cref="CitizenSoftFlLeaf"/> SSOT
+    /// SoftFL apply — default peer_ready after hands. Formats from <see cref="CitizenSoftFlApplyLatch"/> SSOT
     /// (not Mentions prose as sole identity). Dig take stays dig/retry only.
     /// </summary>
     public static string PeerReadyCharge
     {
         get
         {
-            CitizenSoftFlLeaf.EnsureMentionsDefault();
-            return CitizenSoftFlLeaf.FormatApplyCharge();
+            CitizenSoftFlApplyLatch.EnsureDefaultScope();
+            return CitizenSoftFlApplyLatch.FormatApplyCharge();
         }
     }
 
@@ -168,7 +168,7 @@ internal static class CitizenResultWake
 
     /// <summary>Default SoftFL apply charge from leaf SSOT (not dig/retry/kb/next_open).</summary>
     public static bool IsSoftFlApplyWakeCharge(string? body) =>
-        CitizenSoftFlLeaf.IsApplyWakeCharge(body);
+        CitizenSoftFlApplyLatch.IsApplyWakeCharge(body);
 
     /// <summary>Dig hand — SoftFL apply not done (prefer <see cref="CitizenPeerAck.Result.HandKind"/>).</summary>
     public static bool IsDigHand(CitizenPeerAck.Result peerAck) =>
@@ -307,9 +307,9 @@ internal static class CitizenResultWake
         if (peerAck.HandKind != CitizenHandKind.Mutate)
             return false;
         var tip = (peerAck.Peer ?? "") + "\n" + (peerAck.Event ?? "");
-        if (CitizenSoftFlLeaf.MatchesPath(tip))
+        if (CitizenSoftFlApplyLatch.MatchesPath(tip))
             return true;
-        var leafName = Path.GetFileName(CitizenSoftFlLeaf.Current.Path);
+        var leafName = Path.GetFileName(CitizenSoftFlApplyLatch.Current.Path);
         return tip.Contains(leafName, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -320,7 +320,7 @@ internal static class CitizenResultWake
         CitizenScarLedger.Promote(
             CitizenScarLedger.ScarPathMutateOffLeaf,
             CitizenScarGate.RefusePathMutateOffLeaf,
-            "SoftFL apply armed: PathMutate path must match SoftFlLeaf SSOT (force= escape)",
+            "SoftFL apply armed: PathMutate path must match SoftFlApplyLatch SSOT (force= escape)",
             source: "dogfood",
             leafId: leafId);
         CitizenScarLedger.Promote(
@@ -421,9 +421,9 @@ internal static class CitizenResultWake
                 {
                     IdeIgniteArmHost.NotifyPeerShip(
                         pulse: "softfl_mutate",
-                        detail: CitizenSoftFlLeaf.Current.Id);
-                    PromoteSoftFlDogfoodScar(CitizenSoftFlLeaf.Current.Id);
-                    CitizenSoftFlLeaf.DisarmApply();
+                        detail: CitizenSoftFlApplyLatch.Current.Id);
+                    PromoteSoftFlDogfoodScar(CitizenSoftFlApplyLatch.Current.Id);
+                    CitizenSoftFlApplyLatch.DisarmApply();
                     return false;
                 }
 
@@ -468,7 +468,7 @@ internal static class CitizenResultWake
 
             var charge = string.IsNullOrWhiteSpace(body) ? PeerReadyCharge : body;
             if (IsNextOpenWakeCharge(charge))
-                CitizenSoftFlLeaf.DisarmApply();
+                CitizenSoftFlApplyLatch.DisarmApply();
             var wakeReason = IsInventHaltWakeCharge(charge)
                 ? "reason=peer_ready_invent_halt"
                 : IsDigWakeCharge(charge)

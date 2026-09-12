@@ -13,21 +13,21 @@ public sealed class CitizenRouteHostLifecycleFixture : IDisposable
     public CitizenRouteHostLifecycleFixture()
     {
         Directory.CreateDirectory(_root);
-        CitizenSoftFlLeaf.RootOverrideForTests = _root;
+        CitizenSoftFlApplyLatch.RootOverrideForTests = _root;
         CitizenScarLedger.RootOverrideForTests = _root;
         ExploreCorrLatch.EnabledOverrideForTests = false;
-        CitizenSoftFlLeaf.ApplyArmedOverrideForTests = false;
-        CitizenSoftFlLeaf.ResetForTests();
+        CitizenSoftFlApplyLatch.ApplyArmedOverrideForTests = false;
+        CitizenSoftFlApplyLatch.ResetForTests();
         CitizenScarLedger.ResetForTests();
     }
 
     public void Dispose()
     {
-        CitizenSoftFlLeaf.ResetForTests();
+        CitizenSoftFlApplyLatch.ResetForTests();
         CitizenScarLedger.ResetForTests();
-        CitizenSoftFlLeaf.RootOverrideForTests = null;
+        CitizenSoftFlApplyLatch.RootOverrideForTests = null;
         CitizenScarLedger.RootOverrideForTests = null;
-        CitizenSoftFlLeaf.ApplyArmedOverrideForTests = null;
+        CitizenSoftFlApplyLatch.ApplyArmedOverrideForTests = null;
         ExploreCorrLatch.EnabledOverrideForTests = null;
         try { Directory.Delete(_root, recursive: true); } catch { /* temp */ }
     }

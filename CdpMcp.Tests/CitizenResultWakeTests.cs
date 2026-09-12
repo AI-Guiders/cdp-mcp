@@ -44,7 +44,7 @@ public sealed class CitizenResultWakeTests : IDisposable
         Assert.DoesNotContain("take|replace|find", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains(CitizenResultWake.LeafTakePath, CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("PASTE", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
-        Assert.Contains("leaf SSOT", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
+        Assert.Contains("apply latch SSOT", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("MentionsAll", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.Contains("ExpandWakes", CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
         Assert.DoesNotContain(CitizenResultWake.LeafTakeIntent, CitizenResultWake.PeerReadyCharge, StringComparison.Ordinal);
