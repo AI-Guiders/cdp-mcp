@@ -45,8 +45,8 @@ internal static partial class CitizenIntentRouter
         var filePathHint = ExtractKeyedValue(work, "file_path") ?? ExtractKeyedValue(work, "path");
         if (string.IsNullOrWhiteSpace(tool) && !string.IsNullOrWhiteSpace(freeQuery))
         {
-            // Free-text dig → federated corpus tags (CDP-ADR-0210), not hot agent-notes grep.
-            tool = "knowledge_tags";
+            // Free-text dig → unified recall facade (CDP-ADR-0218), not hot agent-notes grep.
+            tool = "recall_knowledge";
             facet ??= Cdp.Core.CdpDomains.MemoryWorld;
         }
         else if (string.IsNullOrWhiteSpace(tool) && LooksLikeKnowledgeFilePath(filePathHint))
@@ -253,7 +253,8 @@ internal static partial class CitizenIntentRouter
             "files" or "ls" or "listknowledgefiles" or "list_knowledgefiles"
                 => "list_knowledge_files",
             "hot" or "read_hot" => "read_hot_context",
-            "search" or "search_kb" or "search_corpus" => "knowledge_tags",
+            "recall" or "recall_knowledge" or "find_kb" => "recall_knowledge",
+            "search" or "search_kb" or "search_corpus" => "recall_knowledge",
             "search_notes" or "search_hot" => "search_agent_notes",
             "health" or "memory_health" => "memory_health",
             _ => tool
@@ -270,9 +271,9 @@ internal static partial class CitizenIntentRouter
     static bool IsKbToolForFacet(string tool, string facet) =>
         facet switch
         {
-            Cdp.Core.CdpDomains.MemoryWorld
-                or Cdp.Core.CdpDomains.MemorySkill
-                or Cdp.Core.CdpDomains.MemoryProject => IsNotesTool(tool),
+            Cdp.Core.CdpDomains.MemoryWorld => IsNotesTool(tool),
+            Cdp.Core.CdpDomains.MemorySkill
+                or Cdp.Core.CdpDomains.MemoryProject => IsNotesTool(tool) && tool is not "recall_knowledge",
             Cdp.Core.CdpDomains.MemorySession => IsSessionTool(tool),
             Cdp.Core.CdpDomains.MemorySelfFinding => IsFindingTool(tool),
             Cdp.Core.CdpDomains.MemorySelfFailure => IsFailureTool(tool),
@@ -283,7 +284,7 @@ internal static partial class CitizenIntentRouter
     static bool IsNotesTool(string tool) =>
         tool is "get_definition" or "list_pack" or "get_process" or "get_procedure"
             or "radius_gate_check"
-            or "read_knowledge_file" or "knowledge_tags" or "list_knowledge_files";
+            or "read_knowledge_file" or "knowledge_tags" or "recall_knowledge" or "list_knowledge_files";
 
     static bool IsSessionTool(string tool) =>
         tool is "route_context" or "read_hot_context" or "memory_health"

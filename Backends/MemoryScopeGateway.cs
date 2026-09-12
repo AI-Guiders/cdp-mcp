@@ -11,6 +11,7 @@ internal sealed class MemoryScopeGateway
     private static readonly HashSet<string> KnowledgeTools = new(StringComparer.Ordinal)
     {
         "knowledge_tags",
+        "recall_knowledge",
         "read_knowledge_file",
         "list_knowledge_files",
         "write_knowledge_file",
@@ -71,7 +72,7 @@ internal sealed class MemoryScopeGateway
         if (listLike && HasNonEmpty(dict, "path") && !HasNonEmpty(dict, "subdir"))
             dict["subdir"] = dict["path"];
 
-        if (underlyingName is "knowledge_tags")
+        if (underlyingName is "knowledge_tags" or "recall_knowledge")
         {
             if (HasNonEmpty(dict, "path") && !HasNonEmpty(dict, "subdir"))
                 dict["subdir"] = dict["path"];

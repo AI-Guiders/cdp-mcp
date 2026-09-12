@@ -113,12 +113,30 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
-    public void Route_kb_world_query_is_corpus_tags()
+    public void Route_kb_world_query_is_recall_knowledge()
     {
         var r = CitizenIntentRouter.RouteOne("kb facet=world query=SoftFL invent REJECT");
         Assert.True(r.Ok);
-        Assert.Equal("knowledge_tags", r.Op);
+        Assert.Equal("recall_knowledge", r.Op);
         Assert.Equal("memory_world", r.Server);
+    }
+
+    [Fact]
+    public void Route_kb_q_is_recall_knowledge_world()
+    {
+        var r = CitizenIntentRouter.RouteOne("kb q=ai-incidents");
+        Assert.True(r.Ok);
+        Assert.Equal("recall_knowledge", r.Op);
+        Assert.Equal("memory_world", r.Server);
+    }
+
+    [Fact]
+    public void Route_kb_search_hot_is_session_search()
+    {
+        var r = CitizenIntentRouter.RouteOne("kb search_hot q=foo");
+        Assert.True(r.Ok);
+        Assert.Equal("search_agent_notes", r.Op);
+        Assert.Equal("memory_session", r.Server);
     }
 
     [Fact]
@@ -218,11 +236,11 @@ public sealed class CitizenKbHostTests
     }
 
     [Fact]
-    public void Route_kb_search_token_binds_corpus_tags()
+    public void Route_kb_search_token_binds_recall_knowledge()
     {
         var r = CitizenIntentRouter.RouteOne("kb search query=SoftFL");
         Assert.True(r.Ok);
-        Assert.Equal("knowledge_tags", r.Op);
+        Assert.Equal("recall_knowledge", r.Op);
         Assert.Equal("memory_world", r.Server);
     }
 
@@ -232,9 +250,9 @@ public sealed class CitizenKbHostTests
         CitizenRouteHost.UnbindLifecycle();
         CitizenRouteHost.KbCallOverride = (_, tool, _) =>
         {
-            Assert.Equal("knowledge_tags", tool);
+            Assert.Equal("recall_knowledge", tool);
             return Task.FromResult(
-                "{\"mode\":\"search\",\"query\":\"SoftFL\",\"total\":2,\"hits\":[{\"path\":\"work/x.md\",\"preview\":\"SoftFL invent REJECT\"},{\"path\":\"work/y.md\",\"preview\":\"Face Done\"}]}");
+                "{\"tool\":\"recall_knowledge\",\"query\":\"SoftFL\",\"layer_requested\":\"auto\",\"layers_used\":[\"corpus\",\"search\"],\"total\":2,\"hits\":[{\"layer\":\"corpus\",\"kind\":\"search\",\"path\":\"work/x.md\",\"preview\":\"SoftFL invent REJECT\"},{\"layer\":\"corpus\",\"kind\":\"search\",\"path\":\"work/y.md\",\"preview\":\"Face Done\"}]}");
         };
         try
         {

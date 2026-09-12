@@ -291,6 +291,13 @@ internal static partial class CitizenRouteHost
             args["mode"] = JsonSerializer.SerializeToElement("search");
         }
 
+        if (tool is "recall_knowledge"
+            && !args.ContainsKey("layer")
+            && System.Text.RegularExpressions.Regex.IsMatch(raw, @"\b(search_kb|search_corpus|search)\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+        {
+            args["layer"] = JsonSerializer.SerializeToElement("corpus");
+        }
+
         // Lived SoftFL: path= / knowledge/worlds/… → AN joins knowledge/knowledge/… → empty → missing.
         if (tool is "read_knowledge_file")
         {
@@ -327,7 +334,7 @@ internal static partial class CitizenRouteHost
         "radius_before", "radius_after", "workspace_path", "query", "q", "mode",
         "active_scope", "primary_project_id", "scope_only",
         "task_id", "relative_path", "section_id", "content", "status",
-        "limit", "title", "summary", "tool", "error_or_miss"
+        "limit", "layer", "title", "summary", "tool", "error_or_miss"
     ];
 
     static string? TryReadKbPulse(string json, string facet, string tool)
@@ -359,6 +366,25 @@ internal static partial class CitizenRouteHost
             if (root.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String
                 && err.GetString() is { Length: > 0 } e)
                 bits.Add(TruncPulse(e) ?? e);
+            if (tool is "recall_knowledge")
+            {
+                if (root.TryGetProperty("layers_used", out var layers) && layers.ValueKind == JsonValueKind.Array)
+                {
+                    var names = layers.EnumerateArray()
+                        .Select(e => e.GetString())
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .Take(4);
+                    bits.Add("layers=" + string.Join('>', names));
+                }
+                if (root.TryGetProperty("total", out var totalEl) && totalEl.TryGetInt32(out var totalN))
+                    bits.Add(totalN + " hit(s)");
+                if (root.TryGetProperty("hits", out var recallHits) && recallHits.ValueKind == JsonValueKind.Array)
+                    AppendKbRecallHits(recallHits, bits);
+                if (root.TryGetProperty("hot", out var hot) && hot.ValueKind == JsonValueKind.Object)
+                    AppendKbSearchHits(hot, bits);
+                return TruncPulse(string.Join(' ', bits));
+            }
+
             AppendKbSearchHits(root, bits);
             AppendKbNextHits(root, bits);
             AppendKbTaskHits(root, bits);
@@ -391,6 +417,28 @@ internal static partial class CitizenRouteHost
             }
 
             return TruncPulse("kb " + facet + " " + tool);
+        }
+    }
+
+    static void AppendKbRecallHits(JsonElement hits, List<string> bits)
+    {
+        var hitN = 0;
+        foreach (var m in hits.EnumerateArray())
+        {
+            if (hitN >= 2)
+                break;
+            string? hit = null;
+            if (m.TryGetProperty("path", out var path) && path.ValueKind == JsonValueKind.String)
+                hit = path.GetString();
+            else if (m.TryGetProperty("text", out var text) && text.ValueKind == JsonValueKind.String)
+                hit = text.GetString();
+            if (hit is not { Length: > 0 })
+                continue;
+            var one = hit.Replace('\\', '/');
+            if (one.Length > 40)
+                one = "…" + one[^39..];
+            bits.Add("#" + (hitN + 1) + " " + one);
+            hitN++;
         }
     }
 

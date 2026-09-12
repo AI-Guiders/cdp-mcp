@@ -108,4 +108,17 @@ public sealed class MemoryScopeGatewayTests
             });
         Assert.Equal("worlds", args["subdir"].GetString());
     }
+
+    [Fact]
+    public void Recall_knowledge_without_subdir_stays_federated()
+    {
+        var gw = new MemoryScopeGateway("memory_world", ["worlds", "META", "."]);
+        var args = gw.Apply(
+            "recall_knowledge",
+            new Dictionary<string, JsonElement>
+            {
+                ["query"] = JsonSerializer.SerializeToElement("ai-incidents")
+            });
+        Assert.False(args.ContainsKey("subdir"));
+    }
 }
