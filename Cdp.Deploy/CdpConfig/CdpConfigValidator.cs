@@ -17,7 +17,7 @@ public static class CdpConfigValidator
 {
     static readonly HashSet<string> BootstrapSections = new(StringComparer.OrdinalIgnoreCase)
     {
-        "tower", "slots", "bridge", "service"
+        "tower", "slots", "bridge", "service", "tools"
     };
 
     static readonly Dictionary<string, HashSet<string>> KnownKeys = new(StringComparer.OrdinalIgnoreCase)
@@ -32,7 +32,12 @@ public static class CdpConfigValidator
         },
         ["bridge"] = new(StringComparer.OrdinalIgnoreCase)
         {
-            "base_url", "token_path", "auto_start_slot"
+            "base_url", "token_path", "auto_start_slot",
+            "capabilities_poll_ms", "deploy_wait_ms", "deploy_poll_ms", "deploy_gap_retry_ms", "service_ready_ms"
+        },
+        ["tools"] = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "rg", "lynx", "openvsx_base", "plugins_root", "forum_root"
         },
         ["service"] = new(StringComparer.OrdinalIgnoreCase)
         {

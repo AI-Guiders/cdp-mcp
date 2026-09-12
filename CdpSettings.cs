@@ -32,11 +32,7 @@ internal sealed partial class CdpSettings
 
     public static CdpSettings Load(string? path)
     {
-        path ??= Path.Combine(AppContext.BaseDirectory, "config", "cdp-mcp.toml");
-        if (!File.Exists(path))
-            return new CdpSettings();
-
-        var toml = File.ReadAllText(path);
+        var toml = CdpConfigLoader.ResolveMergedToml(path);
         var bootstrap = CdpConfigLoader.Parse(toml);
         var slot = CdpConfigLoader.MapSlot(bootstrap);
 

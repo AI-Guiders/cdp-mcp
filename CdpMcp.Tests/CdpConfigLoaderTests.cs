@@ -164,6 +164,47 @@ public sealed class CdpConfigLoaderTests
     }
 
     [Fact]
+    public void Load_without_file_uses_embedded_defaults()
+    {
+        var doc = CdpConfigLoader.Load(null);
+
+        Assert.NotNull(doc.Tower);
+        Assert.Equal(8771, doc.Tower!.ListenPort);
+        Assert.NotNull(doc.Bridge);
+        Assert.Equal("http://127.0.0.1:8771", doc.Bridge!.BaseUrl);
+    }
+
+    [Fact]
+    public void ResolveMergedToml_overlays_operator_file_on_embedded_defaults()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "cdp-embedded-merge-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        var overlay = Path.Combine(dir, "cdp-mcp.toml");
+        File.WriteAllText(overlay, """
+            [tower]
+            listen_port = 9001
+
+            [bridge]
+            base_url = "http://127.0.0.1:9001"
+            """);
+
+        try
+        {
+            var merged = CdpConfigLoader.ResolveMergedToml(overlay);
+            var doc = CdpConfigLoader.Parse(merged);
+
+            Assert.Equal(9001, doc.Tower!.ListenPort);
+            Assert.Equal("http://127.0.0.1:9001", doc.Bridge!.BaseUrl);
+            Assert.NotNull(doc.Slots);
+            Assert.True(doc.Slots!.Enabled);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void MapForRole_defaults_when_sections_missing()
     {
         var doc = new CdpConfigDocument();
@@ -174,16 +215,17 @@ public sealed class CdpConfigLoaderTests
     }
 
     [Fact]
-    public void CdpSettings_Load_reads_legacy_service_without_behavior_change()
+    public void CdpSettings_Load_merges_operator_overlay_on_embedded_defaults()
     {
         var dir = Path.Combine(Path.GetTempPath(), "cdp-config-loader-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dir);
         var path = Path.Combine(dir, "cdp-mcp.toml");
         File.WriteAllText(path, """
-            [service]
+            [slots]
             enabled = false
             bind = "10.0.0.2"
-            port = 9002
+
+            [bridge]
             token_path = "D:/seat-token"
             """);
 

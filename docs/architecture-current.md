@@ -61,7 +61,7 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 | `%LocalAppData%\cdp-mcp\slots.witdb` | вышка + слот | реестр слотов (CdpSlotRegistry) |
 | `%LocalAppData%\cdp-mcp\cdp-state.witdb` | слот | runtime-state SSOT (ADR-0219) |
 
-**Канон:** один TOML, `CdpConfigLoader` + `CdpConfigValidator` (warn; `CDP_CONFIG_STRICT=1` → fail). Путь к файлу: `CDP_MCP_CONFIG` / `--config`. Env-оверрайды конфигурации **запрещены** (hard-fail в bridge loader).
+**Канон:** EmbeddedTOML defaults в бинарнике + operator overlay (`cdp-mcp.toml` — только diffs). `CdpConfigLoader.ResolveMergedToml`. Env для seat-политики **запрещены** (0222 hard-fail). Единственный ops-env в `mcp.json`: `CDP_RELOAD_NUDGE` (remount stdio).
 
 ---
 

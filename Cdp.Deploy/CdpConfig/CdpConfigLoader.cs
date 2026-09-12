@@ -46,12 +46,19 @@ public static class CdpConfigLoader
 
     public static CdpConfigDocument Load(string? path)
     {
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-            return new CdpConfigDocument();
+        return Parse(ResolveMergedToml(path));
+    }
 
-        var text = File.ReadAllText(path);
-        EmitValidation(text, path);
-        return Parse(text);
+    /// <summary>Embedded defaults merged with optional operator overlay file.</summary>
+    public static string ResolveMergedToml(string? path)
+    {
+        var defaults = CdpEmbeddedConfig.LoadDefaultsToml();
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            return defaults;
+
+        var overlay = File.ReadAllText(path);
+        EmitValidation(overlay, path);
+        return CdpConfigTomlMerge.Merge(defaults, overlay);
     }
 
     public static void EmitValidation(string toml, string? path = null)
