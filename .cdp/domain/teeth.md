@@ -9,7 +9,7 @@
 - Pulse embeds on `cdp_health` (`teeth_pulse`) — must not lie with `cdt=?` when CDT is reachable.
 - Auto-sample CDT when `LastCdtUp` unknown or note older than ~15s (`ShouldRefreshCdtSample`); `cdt=true` forces live sample.
 - `submit_kind=stop|queue` during wake fire = wait-idle busy (normal), not CDT-down.
-- Remount Not-connected while exe alive → `Recover-CdpSeatRemount.ps1` via `terminal_*` (kill+nudge); human Reload last.
+- Remount Not-connected while exe alive → `Recover-CdpSeatRemount.ps1` via `terminal_*` (kill+nudge); затем del/add в `mcp.json` (агент), не «Reload MCP» оператору.
 - OOM tooth (dogfood 2026-08-02): dual-seat must not twin-schedule; `IdeOomCrossProcessClaim` gates `TryScheduleOomWake`; `no_agent_composer`/`wrong_surface` requeue for timer wakes (not silent once-drop).
 
 ## Entry
@@ -21,7 +21,7 @@
 
 - Digging "CDT broken" from `cdt=?` without `go=teeth cdt=true` / waiting for auto-refresh (pre-0.5.498 PulseLine never sampled).
 - Treating Composer Stop wait-idle as CDT failure.
-- Human Reload first when kill+nudge would remount the zombie seat.
+- Del/add mcp.json без kill+nudge когда seat zombie — сначала Recover, потом del/add.
 
 ## last_ship
 

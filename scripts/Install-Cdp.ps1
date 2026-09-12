@@ -396,7 +396,7 @@ $opencodeSnippet = (@{
 Write-Utf8File (Join-Path $snippetsDir "opencode.mcp.json") $opencodeSnippet
 
 switch ($HostAdapter) {
-    "cursor" { Merge-McpServers (Get-CursorMcpPath) $exe @("--config", $configArg); Write-Host "Reload MCP in Cursor." }
+    "cursor" { Merge-McpServers (Get-CursorMcpPath) $exe @("--config", $configArg); Write-Host "MCP entry updated — Cursor remounts on mcp.json change (del/add or CDP_RELOAD_NUDGE)." }
     "claude" { Merge-McpServers (Get-ClaudeConfigPath) $exe @("--config", $configArg); Write-Host "Restart Claude Desktop." }
     "vscode" { Write-Host "VS Code: copy host-snippets/vscode.mcp.json into user MCP settings." }
     "windsurf" {
