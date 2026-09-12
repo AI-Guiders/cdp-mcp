@@ -33,23 +33,14 @@ public class IdeCockpitHostChannelTests
     [Fact]
     public void Start_without_exe_fails_clearly()
     {
-        var prev = Environment.GetEnvironmentVariable(IdeCockpitHostChannel.EnvExe);
-        try
+        IdeCockpitHostChannel.Configure(new CockpitHostSettings());
+        var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
         {
-            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, null);
-            IdeCockpitHostChannel.Configure(new CockpitHostSettings());
-            var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
-            {
-                ["op"] = JsonSerializer.SerializeToElement("start")
-            };
-            using var doc = JsonDocument.Parse(IdeCockpitHostChannel.HandleJson(args));
-            Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
-            Assert.Contains("not configured", doc.RootElement.GetProperty("error").GetString(), StringComparison.OrdinalIgnoreCase);
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, prev);
-        }
+            ["op"] = JsonSerializer.SerializeToElement("start")
+        };
+        using var doc = JsonDocument.Parse(IdeCockpitHostChannel.HandleJson(args));
+        Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Contains("not configured", doc.RootElement.GetProperty("error").GetString(), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -58,11 +49,9 @@ public class IdeCockpitHostChannelTests
         if (!TryResolveStandIn(out var exe, out var standInArgs))
             return;
 
-        var prev = Environment.GetEnvironmentVariable(IdeCockpitHostChannel.EnvExe);
         var pid = 0;
         try
         {
-            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, null);
             IdeCockpitHostChannel.Configure(new CockpitHostSettings { Exe = exe });
 
             using (var started = JsonDocument.Parse(IdeCockpitHostChannel.HandleJson(
@@ -81,7 +70,6 @@ public class IdeCockpitHostChannelTests
         }
         finally
         {
-            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, prev);
             IdeCockpitHostChannel.Configure(new CockpitHostSettings());
             ForceKill(pid);
         }
@@ -148,11 +136,9 @@ public class IdeCockpitHostChannelTests
         var toml = Path.Combine(dir, "cdp-mcp.toml");
         File.WriteAllText(toml, "[cockpit_host]\nexe = \"C:\\\\Windows\\\\System32\\\\missing-cabin.exe\"\n");
 
-        var prev = Environment.GetEnvironmentVariable(IdeCockpitHostChannel.EnvExe);
         var pid = 0;
         try
         {
-            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, null);
             IdeCockpitHostChannel.Configure(
                 new CockpitHostSettings { Exe = @"C:\Windows\System32\missing-cabin.exe" },
                 toml);
@@ -179,7 +165,6 @@ public class IdeCockpitHostChannelTests
         }
         finally
         {
-            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, prev);
             IdeCockpitHostChannel.Configure(new CockpitHostSettings());
             ForceKill(pid);
             try { Directory.Delete(dir, recursive: true); } catch { /* temp */ }
@@ -192,11 +177,9 @@ public class IdeCockpitHostChannelTests
         if (!TryResolveStandIn(out var exe, out var standInArgs))
             return;
 
-        var prev = Environment.GetEnvironmentVariable(IdeCockpitHostChannel.EnvExe);
         var pid = 0;
         try
         {
-            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, null);
             IdeCockpitHostChannel.Configure(new CockpitHostSettings
             {
                 Exe = @"C:\Windows\System32\missing-cabin.exe"
@@ -234,7 +217,6 @@ public class IdeCockpitHostChannelTests
         }
         finally
         {
-            Environment.SetEnvironmentVariable(IdeCockpitHostChannel.EnvExe, prev);
             IdeCockpitHostChannel.Configure(new CockpitHostSettings());
             ForceKill(pid);
         }

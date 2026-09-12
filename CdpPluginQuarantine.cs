@@ -62,9 +62,9 @@ internal static partial class CdpPluginQuarantine
     {
         get
         {
-            var env = Environment.GetEnvironmentVariable("CDP_PLUGINS_ROOT");
-            if (env is { Length: > 0 })
-                return Path.GetFullPath(env);
+            var configured = Cdp.Config.CdpOpsConfig.Current.PluginsRoot;
+            if (configured is { Length: > 0 })
+                return Path.GetFullPath(configured);
             return Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "cdp-mcp",

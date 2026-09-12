@@ -17,7 +17,7 @@ public static class CdpConfigValidator
 {
     static readonly HashSet<string> BootstrapSections = new(StringComparer.OrdinalIgnoreCase)
     {
-        "tower", "slots", "bridge", "service", "tools"
+        "tower", "slots", "bridge", "service", "tools", "forum", "tenant", "deploy", "ops"
     };
 
     static readonly Dictionary<string, HashSet<string>> KnownKeys = new(StringComparer.OrdinalIgnoreCase)
@@ -32,12 +32,28 @@ public static class CdpConfigValidator
         },
         ["bridge"] = new(StringComparer.OrdinalIgnoreCase)
         {
-            "base_url", "token_path", "auto_start_slot",
+            "base_url", "token_path", "auto_start_slot", "composer",
             "capabilities_poll_ms", "deploy_wait_ms", "deploy_poll_ms", "deploy_gap_retry_ms", "service_ready_ms"
         },
         ["tools"] = new(StringComparer.OrdinalIgnoreCase)
         {
-            "rg", "lynx", "openvsx_base", "plugins_root", "forum_root"
+            "rg", "plugins_root", "openvsx_base", "opencode_bin", "opencode_directory"
+        },
+        ["forum"] = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "root"
+        },
+        ["tenant"] = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "idle_ttl_minutes"
+        },
+        ["deploy"] = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "script", "repo_root"
+        },
+        ["ops"] = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "explore_corr_enabled", "shell_ignite_arm", "lifecycle_ignite_arm", "tool_wake_arm", "oom_wake_cdt_edge"
         },
         ["service"] = new(StringComparer.OrdinalIgnoreCase)
         {

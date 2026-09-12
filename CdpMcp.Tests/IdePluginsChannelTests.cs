@@ -16,20 +16,14 @@ public sealed partial class IdePluginsChannelTests
     {
         var root = Path.Combine(Path.GetTempPath(), "cdp-plugins-empty-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        var prev = Environment.GetEnvironmentVariable("CDP_PLUGINS_ROOT");
-        try
+        using (CdpOpsConfigTestHelper.BindTools(pluginsRoot: root))
         {
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", root);
             var snap = IdePluginsChannel.Build();
             Assert.True(snap.Ok);
             Assert.Equal(0, snap.Count);
             Assert.Contains("empty", snap.Pulse, StringComparison.OrdinalIgnoreCase);
         }
-        finally
-        {
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", prev);
-            try { Directory.Delete(root, true); } catch { /* ignore */ }
-        }
+        try { Directory.Delete(root, true); } catch { /* ignore */ }
     }
 
     [Fact]
@@ -37,10 +31,8 @@ public sealed partial class IdePluginsChannelTests
     {
         var root = Path.Combine(Path.GetTempPath(), "cdp-plugins-inst-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        var prev = Environment.GetEnvironmentVariable("CDP_PLUGINS_ROOT");
-        try
+        using (CdpOpsConfigTestHelper.BindTools(pluginsRoot: root))
         {
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", root);
             var ext = MakeTinyPlantExtension();
             var result = CdpPluginQuarantine.InstallFromUnpacked(ext);
             Assert.True(result.Ok, result.Error + " " + result.Hint);
@@ -62,11 +54,7 @@ public sealed partial class IdePluginsChannelTests
             Assert.Equal("plugins", doc.RootElement.GetProperty("go").GetString());
             Assert.Equal(1, doc.RootElement.GetProperty("counts").GetProperty("attention").GetInt32());
         }
-        finally
-        {
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", prev);
-            try { Directory.Delete(root, true); } catch { /* ignore */ }
-        }
+        try { Directory.Delete(root, true); } catch { /* ignore */ }
     }
 
     [Fact]
@@ -74,10 +62,8 @@ public sealed partial class IdePluginsChannelTests
     {
         var root = Path.Combine(Path.GetTempPath(), "cdp-plugins-exe-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        var prev = Environment.GetEnvironmentVariable("CDP_PLUGINS_ROOT");
-        try
+        using (CdpOpsConfigTestHelper.BindTools(pluginsRoot: root))
         {
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", root);
             var ext = Path.Combine(Path.GetTempPath(), "cdp-ext-exe-" + Guid.NewGuid().ToString("N"), "extension");
             Directory.CreateDirectory(Path.Combine(ext, "bin"));
             File.WriteAllText(Path.Combine(ext, "package.json"),
@@ -99,11 +85,7 @@ public sealed partial class IdePluginsChannelTests
             Assert.Equal("A", again.Mode);
             Assert.Equal("exe", again.PayloadKind);
         }
-        finally
-        {
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", prev);
-            try { Directory.Delete(root, true); } catch { /* ignore */ }
-        }
+        try { Directory.Delete(root, true); } catch { /* ignore */ }
     }
 
     [Fact]
@@ -111,10 +93,8 @@ public sealed partial class IdePluginsChannelTests
     {
         var root = Path.Combine(Path.GetTempPath(), "cdp-plugins-nest-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        var prev = Environment.GetEnvironmentVariable("CDP_PLUGINS_ROOT");
-        try
+        using (CdpOpsConfigTestHelper.BindTools(pluginsRoot: root))
         {
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", root);
             var ext = Path.Combine(Path.GetTempPath(), "cdp-ext-nest-" + Guid.NewGuid().ToString("N"), "extension");
             var toolDir = Path.Combine(ext, "resources", "checkstyle-9.0");
             Directory.CreateDirectory(toolDir);
@@ -143,11 +123,7 @@ public sealed partial class IdePluginsChannelTests
             Assert.False(d.Plugin.Attention);
             Assert.Empty(CdpPluginQuarantine.List(attentionOnly: true).Where(p => p.Mode == "D"));
         }
-        finally
-        {
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", prev);
-            try { Directory.Delete(root, true); } catch { /* ignore */ }
-        }
+        try { Directory.Delete(root, true); } catch { /* ignore */ }
     }
 
 

@@ -5,9 +5,6 @@ param([switch]$Probe)
 $ErrorActionPreference = 'Stop'
 
 function Get-CdpPluginsRoot {
-    if ($env:CDP_PLUGINS_ROOT -and (Test-Path -LiteralPath $env:CDP_PLUGINS_ROOT)) {
-        return $env:CDP_PLUGINS_ROOT
-    }
     return Join-Path $env:LOCALAPPDATA 'cdp-mcp\plugins'
 }
 

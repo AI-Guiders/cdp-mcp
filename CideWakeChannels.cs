@@ -14,7 +14,7 @@ namespace CdpMcp;
 ///   CLI  — `cmd /c opencode.cmd run -s &lt;session&gt; "message"` (PATHEXT через cmd —
 ///          урок b02d343: npm-шим не стартует голым Process.Start из сервисного cwd);
 ///   HTTP — POST {server}/session/{id}/prompt_async (опциональная Basic-auth,
-///          env CDP_OPENCODE_PASSWORD/USERNAME, CDP_OPENCODE_URL/ DIRECTORY).
+///          env CDP_OPENCODE_PASSWORD/USERNAME only; bin/directory from [tools] in cdp-mcp.toml).
 /// </summary>
 internal static class CideWakeChannels
 {
@@ -26,7 +26,7 @@ internal static class CideWakeChannels
         public static bool IsConfigured() => BinaryAvailable();
 
         static string Bin =>
-            Environment.GetEnvironmentVariable("CDP_OPENCODE_BIN")?.Trim() is { Length: > 0 } b
+            Cdp.Config.CdpOpsConfig.Current.OpencodeBin is { Length: > 0 } b
                 ? b
                 : "opencode";
 
@@ -281,7 +281,7 @@ internal static class CideWakeChannels
 
         static void ApplyDirectory(HttpRequestMessage req)
         {
-            var directory = Environment.GetEnvironmentVariable("CDP_OPENCODE_DIRECTORY")?.Trim();
+            var directory = Cdp.Config.CdpOpsConfig.Current.OpencodeDirectory;
             if (string.IsNullOrWhiteSpace(directory)) return;
             req.Headers.TryAddWithoutValidation(
                 "x-opencode-directory",

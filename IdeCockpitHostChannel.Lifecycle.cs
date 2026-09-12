@@ -76,7 +76,7 @@ internal static partial class IdeCockpitHostChannel
         }
     }
 
-    /// <summary>path= → toml exe (mtime refresh) → env escape. Caller holds Gate.</summary>
+    /// <summary>path= → toml exe (mtime refresh). Caller holds Gate.</summary>
     static string? ResolveExe(string? overridePath)
     {
         if (!string.IsNullOrWhiteSpace(overridePath))
@@ -84,8 +84,7 @@ internal static partial class IdeCockpitHostChannel
         RefreshCfgFromTomlIfNeeded();
         if (!string.IsNullOrWhiteSpace(_cfg.Exe))
             return Path.GetFullPath(_cfg.Exe.Trim());
-        var env = Environment.GetEnvironmentVariable(EnvExe);
-        return string.IsNullOrWhiteSpace(env) ? null : Path.GetFullPath(env.Trim());
+        return null;
     }
 
     /// <summary>Pick up install-toml edits without MCP remount. Caller holds Gate.</summary>
@@ -117,14 +116,8 @@ internal static partial class IdeCockpitHostChannel
         }
     }
 
-    static string ConfigSourceLabel()
-    {
-        if (!string.IsNullOrWhiteSpace(_cfg.Exe))
-            return "toml";
-        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(EnvExe)))
-            return "env_escape";
-        return "none";
-    }
+    static string ConfigSourceLabel() =>
+        !string.IsNullOrWhiteSpace(_cfg.Exe) ? "toml" : "none";
 
     static HostState? Snapshot()
     {

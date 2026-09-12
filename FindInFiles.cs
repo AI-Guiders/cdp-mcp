@@ -82,7 +82,7 @@ internal static partial class FindInFiles
         var rg = ResolveRg();
         if (rg is null)
             return FailJson(all, scopeWire, "rg_not_found",
-                "Install ripgrep (winget BurntSushi.ripgrep.MSVC) or set CDP_RG; habitat also probes %LocalAppData%/cdp-mcp/bin/rg.exe");
+                "Install ripgrep (winget BurntSushi.ripgrep.MSVC) or set [tools].rg in cdp-mcp.toml; habitat also probes %LocalAppData%/cdp-mcp/bin/rg.exe");
 
         var regex = BoolOr(args, "regex", false);
         var ignoreCase = BoolOr(args, "ignore_case", true);
@@ -102,7 +102,7 @@ internal static partial class FindInFiles
         var timeout = external ? ExternalTimeoutMs : TimeoutMs;
         if (!TryRunRg(rg, argv, cwd, timeout, out var stdout, out var stderr, out var exit, out var runError))
             return FailDetailJson(all, scopeWire, "rg_failed", runError,
-                "Check CDP_RG / PATH and query (regex syntax).");
+                "Check [tools].rg / PATH and query (regex syntax).");
 
         if (exit >= 2)
             return FailExitJson(all, scopeWire, exit, Trim(stderr, 800),

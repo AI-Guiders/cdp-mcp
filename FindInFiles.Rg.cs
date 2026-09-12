@@ -66,13 +66,13 @@ internal static partial class FindInFiles
 
     /// <summary>
     /// Resolve rg for throw-Cursor / Citizen find — not Cursor PATH alone.
-    /// Order: CDP_RG → PATH → habitat bin → beside exe → WinGet BurntSushi → Cursor vscode ripgrep (dogfood last).
+    /// Order: [tools].rg → PATH → habitat bin → beside exe → WinGet BurntSushi → Cursor vscode ripgrep (dogfood last).
     /// </summary>
     internal static string? ResolveRg()
     {
-        var env = Environment.GetEnvironmentVariable("CDP_RG");
-        if (env is { Length: > 0 } && File.Exists(env))
-            return env;
+        var configured = Cdp.Config.CdpOpsConfig.Current.RgPath;
+        if (configured is { Length: > 0 } && File.Exists(configured))
+            return configured;
 
         foreach (var name in new[] { "rg.exe", "rg" })
         {

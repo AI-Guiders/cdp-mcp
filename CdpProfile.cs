@@ -6,26 +6,23 @@ namespace CdpMcp;
 
 /// <summary>
 /// Habitat state isolation (ADR 0199).
-/// Priority: <c>CDP_PROFILE</c> env override → MCP client roots → session scm/project → legacy flat default.
+/// Priority: MCP client roots → session scm/project → legacy flat default.
 /// </summary>
 internal static partial class CdpProfile
 {
     static readonly object Gate = new();
-    static readonly string EnvNameRaw = Normalize(Environment.GetEnvironmentVariable("CDP_PROFILE"));
-    static string _stateRoot = ResolveEnvOrDefault(EnvNameRaw);
-    static string _kind = EnvNameRaw.Equals("default", StringComparison.OrdinalIgnoreCase) ? "default" : "env_profile";
+    static string _stateRoot = ResolveDefaultRoot();
+    static string _kind = "default";
     static string? _workspaceLabel;
     static string[] _clientRoots = [];
     static string? _sessionRoot;
     static Action? _onStateRootChanged;
 
-    /// <summary>Env profile name (<c>default</c> when unset).</summary>
-    public static string Name => EnvNameRaw;
+    public static string Name => "default";
 
-    public static bool IsDefault =>
-        _kind.Equals("default", StringComparison.OrdinalIgnoreCase);
+    public static bool IsDefault => true;
 
-    /// <summary>default | env_profile | client_roots | session</summary>
+    /// <summary>default | client_roots | session</summary>
     public static string Kind
     {
         get { lock (Gate) return _kind; }
@@ -71,13 +68,6 @@ internal static partial class CdpProfile
         var paths = NormalizePaths(urisOrPaths);
         lock (Gate)
         {
-            if (!EnvNameRaw.Equals("default", StringComparison.OrdinalIgnoreCase))
-            {
-                // Explicit env wins — still record roots for diagnostics.
-                _clientRoots = paths;
-                return false;
-            }
-
             if (paths.Length == 0)
             {
                 _clientRoots = [];
@@ -103,8 +93,6 @@ internal static partial class CdpProfile
                 ? null
                 : Path.GetFullPath(projectOrScmRoot.Trim());
 
-            if (!EnvNameRaw.Equals("default", StringComparison.OrdinalIgnoreCase))
-                return false;
             if (_clientRoots.Length > 0)
                 return false;
 
@@ -114,9 +102,6 @@ internal static partial class CdpProfile
 
     static bool RebindUnlocked(bool sessionFallback)
     {
-        if (!EnvNameRaw.Equals("default", StringComparison.OrdinalIgnoreCase))
-            return SetRootUnlocked(ResolveEnvOrDefault(EnvNameRaw), "env_profile", EnvNameRaw);
-
         if (_clientRoots.Length > 0)
         {
             var key = HashKey(_clientRoots);
@@ -135,7 +120,7 @@ internal static partial class CdpProfile
             return SetRootUnlocked(next, "session", _sessionRoot);
         }
 
-        return SetRootUnlocked(ResolveEnvOrDefault("default"), "default", null);
+        return SetRootUnlocked(ResolveDefaultRoot(), "default", null);
     }
 
     static bool SetRootUnlocked(string next, string kind, string? label)
@@ -154,28 +139,10 @@ internal static partial class CdpProfile
         return changed;
     }
 
-    static string ResolveEnvOrDefault(string name)
+    static string ResolveDefaultRoot()
     {
         var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        if (name.Equals("default", StringComparison.OrdinalIgnoreCase))
-            return Path.Combine(local, "cdp-mcp");
-        return Path.Combine(local, "cdp-mcp", "profiles", name);
-    }
-
-    static string Normalize(string? raw)
-    {
-        if (string.IsNullOrWhiteSpace(raw))
-            return "default";
-        var s = raw.Trim().ToLowerInvariant();
-        Span<char> buf = stackalloc char[s.Length];
-        var n = 0;
-        foreach (var c in s)
-        {
-            if (char.IsAsciiLetterOrDigit(c) || c is '-' or '_')
-                buf[n++] = c;
-        }
-
-        return n == 0 ? "default" : new string(buf[..n]);
+        return Path.Combine(local, "cdp-mcp");
     }
 
     internal static string[] NormalizePaths(IEnumerable<string?>? urisOrPaths)
@@ -201,7 +168,6 @@ internal static partial class CdpProfile
         {
             if (Uri.TryCreate(s, UriKind.Absolute, out var uri) && uri.IsFile)
                 return uri.LocalPath;
-            // file:///D:/foo or file:/D:/foo
             var stripped = s["file:".Length..].TrimStart('/');
             if (stripped.Length >= 2 && stripped[1] == ':')
                 return stripped.Replace('/', Path.DirectorySeparatorChar);
@@ -216,6 +182,6 @@ internal static partial class CdpProfile
         var joined = string.Join('|', paths.Select(p => p.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
             .ToLowerInvariant()));
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(joined));
-        return Convert.ToHexString(hash.AsSpan(0, 6)).ToLowerInvariant(); // 12 hex chars
+        return Convert.ToHexString(hash.AsSpan(0, 6)).ToLowerInvariant();
     }
 }

@@ -6,7 +6,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Open VSX registry client — search + download VSIX.
-/// Base: https://open-vsx.org (override CDP_OPENVSX_BASE for tests).
+/// Base: https://open-vsx.org (override via [tools].openvsx_base in cdp-mcp.toml).
 /// Agent does not unpack; CDP quarantine installs the downloaded file.
 /// </summary>
 internal static partial class OpenVsxClient
@@ -91,9 +91,9 @@ internal static partial class OpenVsxClient
     {
         get
         {
-            var env = Environment.GetEnvironmentVariable("CDP_OPENVSX_BASE");
-            if (env is { Length: > 0 })
-                return env.TrimEnd('/');
+            var configured = Cdp.Config.CdpOpsConfig.Current.OpenvsxBase;
+            if (configured is { Length: > 0 })
+                return configured.TrimEnd('/');
             return "https://open-vsx.org";
         }
     }

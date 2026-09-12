@@ -26,7 +26,7 @@ var tenantState = new CdpBridgeTenantHeadersState
 {
     BridgeSessionId = Guid.NewGuid().ToString("N"),
     WorkspaceKey = CdpBridgeIdentity.ResolveWorkspaceKey(load.ConfigPath),
-    Composer = Environment.GetEnvironmentVariable("CDP_COMPOSER") ?? "main"
+    Composer = Cdp.Config.CdpOpsConfig.Current.BridgeComposer
 };
 using var http = CdpBridgeHttpClient.Create(settings, tenantState);
 var serviceEnsurer = new CdpBridgeServiceEnsurer(settings);

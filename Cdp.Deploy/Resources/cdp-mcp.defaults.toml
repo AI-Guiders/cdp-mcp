@@ -60,6 +60,27 @@ bind = "127.0.0.1"
 
 [bridge]
 base_url = "http://127.0.0.1:8771"
+composer = "main"
+capabilities_poll_ms = 2000
+deploy_wait_ms = 180000
+deploy_poll_ms = 500
+deploy_gap_retry_ms = 750
+service_ready_ms = 15000
+
+[tenant]
+idle_ttl_minutes = 45
+
+[ops]
+explore_corr_enabled = true
+shell_ignite_arm = true
+lifecycle_ignite_arm = true
+tool_wake_arm = true
+oom_wake_cdt_edge = false
 
 [tools]
-# rg = ""  # optional; default: probe CDP_RG env → PATH → habitat bin → winget → Cursor rg
+# rg = ""
+# plugins_root = ""
+# openvsx_base = "https://open-vsx.org"
+
+[forum]
+# root = "D:/agent-notes/knowledge/personal/LinesForum"

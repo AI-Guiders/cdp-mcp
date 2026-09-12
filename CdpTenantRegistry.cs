@@ -57,13 +57,8 @@ internal sealed class CdpTenantRegistry : IDisposable
         return slice;
     }
 
-    static TimeSpan ResolveIdleTtl()
-    {
-        var raw = Environment.GetEnvironmentVariable("CDP_TENANT_IDLE_TTL_MINUTES");
-        if (int.TryParse(raw, out var minutes) && minutes is >= 5 and <= 24 * 60)
-            return TimeSpan.FromMinutes(minutes);
-        return TimeSpan.FromMinutes(45);
-    }
+    static TimeSpan ResolveIdleTtl() =>
+        TimeSpan.FromMinutes(Cdp.Config.CdpOpsConfig.Current.TenantIdleTtlMinutes);
 
     void EvictIdle()
     {

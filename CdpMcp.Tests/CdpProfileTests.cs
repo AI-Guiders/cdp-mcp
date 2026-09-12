@@ -25,16 +25,8 @@ public class CdpProfileTests
     }
 
     [Fact]
-    public void ApplyClientRoots_switches_state_root_when_env_default()
+    public void ApplyClientRoots_switches_state_root()
     {
-        if (!string.Equals(
-                Environment.GetEnvironmentVariable("CDP_PROFILE") ?? "default",
-                "default",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            return; // env override active in this process
-        }
-
         var before = CdpProfile.StateRoot;
         var changed = CdpProfile.ApplyClientRoots(["D:\\tmp\\cdp-iso-test-a", "D:\\tmp\\cdp-iso-test-b"]);
         Assert.True(changed || CdpProfile.Kind == "client_roots");

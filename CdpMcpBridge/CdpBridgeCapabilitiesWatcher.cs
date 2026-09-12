@@ -151,11 +151,6 @@ internal sealed class CdpBridgeCapabilitiesWatcher
 
 internal static class CdpBridgeCapabilitiesPoll
 {
-    internal static TimeSpan ResolveInterval()
-    {
-        var raw = Environment.GetEnvironmentVariable("CDP_BRIDGE_CAPABILITIES_POLL_MS");
-        if (int.TryParse(raw, out var ms) && ms is >= 500 and <= 60_000)
-            return TimeSpan.FromMilliseconds(ms);
-        return TimeSpan.FromSeconds(2);
-    }
+    internal static TimeSpan ResolveInterval() =>
+        TimeSpan.FromMilliseconds(Cdp.Config.CdpOpsConfig.Current.BridgeCapabilitiesPollMs);
 }

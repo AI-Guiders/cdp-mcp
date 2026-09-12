@@ -13,9 +13,8 @@ internal static partial class IdeDeploy
             return File.Exists(p) ? p : null;
         }
 
-        var env = Environment.GetEnvironmentVariable("CDP_DEPLOY_SCRIPT");
-        if (env is { Length: > 0 } && File.Exists(env))
-            return Path.GetFullPath(env);
+        if (Cdp.Config.CdpOpsConfig.Current.DeployScript is { Length: > 0 } script && File.Exists(script))
+            return Path.GetFullPath(script);
 
         foreach (var root in CandidateRoots(session))
         {

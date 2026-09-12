@@ -17,6 +17,24 @@
 | `CDP_IGNITE_SEAT` | `IdeIgniteSeatContext` / durable-job `IgniteSeat` field / `--ignite-notify --seat` |
 | `CDP_WORKSPACE_KEY` | derive from `--config` seat dir (`cdp` / `cdp-debug`) |
 
+## Wave D — ops paths and tuning (2026-09-12)
+
+`CdpOpsConfig.Current` binds at parse from EmbeddedTOML + operator overlay. Remaining ops env → TOML:
+
+| Было (env) | Стало |
+|---|---|
+| `CDP_RG` | `[tools].rg` |
+| `CDP_PLUGINS_ROOT` | `[tools].plugins_root` |
+| `CDP_OPENVSX_BASE` | `[tools].openvsx_base` |
+| `CDP_OPENCODE_BIN` / `CDP_OPENCODE_DIRECTORY` | `[tools].opencode_*` (password stays env) |
+| `CDP_PROFILE` | removed — client roots / session derive state |
+| `CDP_BROWSER_UA` / `CDP_LYNX_UA` | `browser.user_agent` in witdb settings |
+| `CDP_COCKPIT_HOST_EXE` | `[cockpit_host].exe` only |
+| `CDP_OOM_WAKE_CDT_EDGE` | `[ops].oom_wake_cdt_edge` |
+| bridge poll/deploy ms, ignite arm flags, forum root, deploy script, tenant TTL | `[bridge]` / `[ops]` / `[forum]` / `[deploy]` / `[tenant]` |
+
+Допустимые env после wave D: `CDP_OPENCODE_PASSWORD`/`USERNAME`, `CDP_SKIP_SEAT_RECLAIM` (test), `CDP_CONFIG_STRICT` (CI), `CDP_WAKE_REFRESH` (test), `CDP_PSES_*` (PSES bundle escape).
+
 ## Cursor remount
 
 Cursor перезапускает stdio MCP при изменении `command`/`args`/`env` в `mcp.json`. **`--bridge-rev`** — opaque stamp в args; bridge его игнорирует. `CdpBridgeRevNudge` / `CdpReloadNudge.ps1` бампают rev per-seat.

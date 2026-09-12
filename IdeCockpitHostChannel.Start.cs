@@ -43,8 +43,7 @@ internal static partial class IdeCockpitHostChannel
                     op = "start",
                     error = "cockpit host exe not configured",
                     config_source = ConfigSourceLabel(),
-                    env_escape = EnvExe,
-                    hint = "Set [cockpit_host] exe in cdp-mcp.toml (hot-reload on mtime), or pass path=. Env CDP_COCKPIT_HOST_EXE is escape only. Does not launch Avalonia by guessing."
+                    hint = "Set [cockpit_host] exe in cdp-mcp.toml (hot-reload on mtime), or pass path=. Does not launch Avalonia by guessing."
                 };
             }
 

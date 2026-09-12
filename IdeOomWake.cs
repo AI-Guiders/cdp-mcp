@@ -26,9 +26,9 @@ internal static class IdeOomWake
 
     /// <summary>
     /// Legacy CDT down→up → oom-wake (false positives on remount/reconnect blips).
-    /// Default off — real OOM = native dialog only. Opt-in: <c>CDP_OOM_WAKE_CDT_EDGE=1</c>.
+    /// Default off — real OOM = native dialog only. Opt-in: <c>[ops].oom_wake_cdt_edge = true</c>.
     /// When on, still suppressed while remount owns continuity.
     /// </summary>
     public static bool CdtEdgeEnabled =>
-        string.Equals(Environment.GetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE"), "1", StringComparison.Ordinal);
+        Cdp.Config.CdpOpsConfig.Current.OomWakeCdtEdge;
 }

@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using Cdp.Config;
 using Cdp.Core;
 using Xunit;
 
@@ -27,13 +28,18 @@ public sealed partial class IdePluginsChannelTests
     {
         var pluginsRoot = Path.Combine(Path.GetTempPath(), "cdp-plugins-ovsx-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(pluginsRoot);
-        var prevPlugins = Environment.GetEnvironmentVariable("CDP_PLUGINS_ROOT");
-        var prevBase = Environment.GetEnvironmentVariable("CDP_OPENVSX_BASE");
+        var prevPlugins = CdpOpsConfig.Current;
         var vsix = MakeTinyVsixBytes();
         try
         {
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", pluginsRoot);
-            Environment.SetEnvironmentVariable("CDP_OPENVSX_BASE", "http://ovsx.test");
+            CdpOpsConfig.Bind(new CdpConfigDocument
+            {
+                Tools = new CdpConfigToolsSection
+                {
+                    PluginsRoot = pluginsRoot,
+                    OpenvsxBase = "http://ovsx.test"
+                }
+            });
             OpenVsxClient.TestHandler = new StubOpenVsxHandler(vsix);
             OpenVsxClient.ResetHttpForTests();
             var store = new DocumentBufferStore();
@@ -75,8 +81,7 @@ public sealed partial class IdePluginsChannelTests
         {
             OpenVsxClient.TestHandler = null;
             OpenVsxClient.ResetHttpForTests();
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", prevPlugins);
-            Environment.SetEnvironmentVariable("CDP_OPENVSX_BASE", prevBase);
+            CdpOpsConfig.RestoreForTests(prevPlugins);
             try
             {
                 Directory.Delete(pluginsRoot, true);
@@ -92,10 +97,8 @@ public sealed partial class IdePluginsChannelTests
     {
         var root = Path.Combine(Path.GetTempPath(), "cdp-plugins-grp-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        var prev = Environment.GetEnvironmentVariable("CDP_PLUGINS_ROOT");
-        try
+        using (CdpOpsConfigTestHelper.BindTools(pluginsRoot: root))
         {
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", root);
             var ext = MakeTinyPlantExtension();
             Assert.True(CdpPluginQuarantine.InstallFromUnpacked(ext).Ok);
             var off = CdpPluginQuarantine.SetGroupEnabled("diagrams", enabled: false);
@@ -114,17 +117,7 @@ public sealed partial class IdePluginsChannelTests
             Assert.Equal("disable", ccl!.Value.Args["go_args"].GetProperty("op").GetString());
             Assert.Equal("diagrams", ccl.Value.Args["go_args"].GetProperty("group").GetString());
         }
-        finally
-        {
-            Environment.SetEnvironmentVariable("CDP_PLUGINS_ROOT", prev);
-            try
-            {
-                Directory.Delete(root, true);
-            }
-            catch
-            { /* ignore */
-            }
-        }
+        try { Directory.Delete(root, true); } catch { /* ignore */ }
     }
 
     [Fact]

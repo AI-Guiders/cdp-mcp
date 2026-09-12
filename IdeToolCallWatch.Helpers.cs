@@ -118,7 +118,7 @@ internal static partial class IdeToolCallWatch
         CideToolWatchLatch.Publish(active: true, pulse: pulse, tool: hit.Tool, thresholdSeconds: hit.ThresholdSeconds, startedUtc: hit.StartedUtc);
         if (SuppressArmForTests)
             return;
-        if (string.Equals(Environment.GetEnvironmentVariable("CDP_TOOL_WAKE_ARM"), "0", StringComparison.Ordinal))
+        if (!Cdp.Config.CdpOpsConfig.Current.ToolWakeArm)
             return;
         try
         {

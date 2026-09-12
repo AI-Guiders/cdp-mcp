@@ -24,7 +24,7 @@ internal static class CdpForumChannel
         RegexOptions.Multiline | RegexOptions.Compiled);
 
     static string Root =>
-        Environment.GetEnvironmentVariable("CDP_FORUM_ROOT")?.Trim() is { Length: > 0 } r
+        Cdp.Config.CdpOpsConfig.Current.ForumRoot is { Length: > 0 } r
             ? r
             : Path.Combine("D:\\Experiments", "agent-notes", "knowledge", "personal", "LinesForum");
 

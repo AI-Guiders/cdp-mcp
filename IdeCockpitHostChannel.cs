@@ -12,7 +12,6 @@ namespace CdpMcp;
 /// Meta <c>cdp_cockpit_host</c> / <c>go=cockpit_start|cockpit_stop</c>.
 /// Config SSOT: <c>[cockpit_host] exe</c> in cdp-mcp.toml (process layer).
 /// Toml reloads on mtime when config path is bound; Start <c>path=</c> stamps live exe for rediscover.
-/// Env <c>CDP_COCKPIT_HOST_EXE</c> is escape only.
 /// Runtime latch: in-proc + OS rediscover by exe path (no sidecar JSON).
 /// Does not mutate Intent Melody / CascadeIdeSettings.
 /// </summary>
@@ -20,7 +19,6 @@ internal static partial class IdeCockpitHostChannel
 {
     public const string SchemaVersion = "cockpit_host/v1";
     public const string ToolName = "cdp_cockpit_host";
-    public const string EnvExe = "CDP_COCKPIT_HOST_EXE";
 
     static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -116,14 +114,13 @@ internal static partial class IdeCockpitHostChannel
                 : orphans.Select(o => new { pid = o.Pid, exe = o.Exe }).ToArray(),
             exe_configured = preferred is not null,
             config_source = ConfigSourceLabel(),
-            env_escape = EnvExe,
             hint = st is not null
                 ? orphans.Count > 0
                     ? "Preferred cabin up; kill path_orphans (Debug vs Release twin) — do not Start another."
                     : "op=stop to close GUI; MCP/ICM keep running."
                 : orphans.Count > 0
                     ? "Preferred exe down but GlassCockpit lives on another path — Start refuses twin; path= orphan exe or kill orphan then Start preferred."
-                    : "op=start path=… or [cockpit_host] exe in cdp-mcp.toml (env CDP_COCKPIT_HOST_EXE = escape). Melody/settings load with shell — do not strip them."
+                    : "op=start path=… or [cockpit_host] exe in cdp-mcp.toml. Melody/settings load with shell — do not strip them."
         };
     }
 

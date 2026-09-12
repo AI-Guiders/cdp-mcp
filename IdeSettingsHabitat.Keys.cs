@@ -80,18 +80,9 @@ internal sealed partial class IdeSettingsHabitat
         return (raw, null);
     }
 
-    public static string EffectiveUserAgent()
-    {
-        foreach (var key in new[] { "CDP_BROWSER_UA", "CDP_LYNX_UA", "LYNX_USER_AGENT" })
-        {
-            var env = Environment.GetEnvironmentVariable(key);
-            if (!string.IsNullOrWhiteSpace(env))
-                return env.Trim();
-        }
-
-        return IdeSettingsStore.GetOrNull("browser.user_agent")
-               ?? InternetBrowserHabitat.DefaultUserAgent;
-    }
+    public static string EffectiveUserAgent() =>
+        IdeSettingsStore.GetOrNull("browser.user_agent")
+        ?? InternetBrowserHabitat.DefaultUserAgent;
 
     public static string EffectiveSearchEngine() =>
         IdeSettingsStore.GetOrNull("browser.search_engine")

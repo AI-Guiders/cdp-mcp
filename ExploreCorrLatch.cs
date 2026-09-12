@@ -53,12 +53,7 @@ internal static class ExploreCorrLatch
     {
         if (EnabledOverrideForTests is { } ov)
             return ov;
-        var env = Environment.GetEnvironmentVariable("CDP_EXPLORE_CORR");
-        if (string.Equals(env, "off", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(env, "0", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(env, "false", StringComparison.OrdinalIgnoreCase))
-            return false;
-        return true;
+        return Cdp.Config.CdpOpsConfig.Current.ExploreCorrEnabled;
     }
 
     public static void StampCorr(string workspaceRoot, string fileRel, int adrCount)

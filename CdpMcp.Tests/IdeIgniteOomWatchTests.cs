@@ -1,3 +1,4 @@
+using Cdp.Config;
 using Xunit;
 
 namespace CdpMcp.Tests;
@@ -6,20 +7,20 @@ namespace CdpMcp.Tests;
 public sealed class IdeIgniteOomWatchTests : IDisposable
 {
     readonly string _root;
-    readonly string? _prevCdtEdgeEnv;
+    readonly CdpOpsConfig _prevOps;
 
     public IdeIgniteOomWatchTests()
     {
         _root = Path.Combine(Path.GetTempPath(), "cdp-oom-watch-tests-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_root);
         IdeRemountWake.RootOverrideForTests = _root;
-        _prevCdtEdgeEnv = Environment.GetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE");
+        _prevOps = CdpOpsConfig.Current;
     }
 
     public void Dispose()
     {
         IdeRemountWake.RootOverrideForTests = null;
-        Environment.SetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE", _prevCdtEdgeEnv);
+        CdpOpsConfig.RestoreForTests(_prevOps);
         try
         {
             if (Directory.Exists(_root))
@@ -31,7 +32,7 @@ public sealed class IdeIgniteOomWatchTests : IDisposable
     [Fact]
     public void ShouldScheduleCdtEdgeOomWake_false_when_remount_pending()
     {
-        Environment.SetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE", null);
+        CdpOpsConfig.Bind(new CdpConfigDocument { Ops = new CdpConfigOpsSection { OomWakeCdtEdge = true } });
         Directory.CreateDirectory(IdeRemountWake.StateRoot);
         File.WriteAllText(IdeRemountWake.PendingPathForSeat("cdp"), "{}");
         Assert.True(IdeRemountWake.HasAnyPending());
@@ -41,24 +42,22 @@ public sealed class IdeIgniteOomWatchTests : IDisposable
     [Fact]
     public void ShouldScheduleCdtEdgeOomWake_false_by_default()
     {
-        Environment.SetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE", null);
+        CdpOpsConfig.Bind(new CdpConfigDocument());
         Assert.False(IdeIgniteOomWatch.ShouldScheduleCdtEdgeOomWake());
     }
 
     [Fact]
-    public void ShouldScheduleCdtEdgeOomWake_false_when_cdt_edge_env_off()
+    public void ShouldScheduleCdtEdgeOomWake_false_when_cdt_edge_disabled()
     {
-        Environment.SetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE", "0");
+        CdpOpsConfig.Bind(new CdpConfigDocument { Ops = new CdpConfigOpsSection { OomWakeCdtEdge = false } });
         Assert.False(IdeIgniteOomWatch.ShouldScheduleCdtEdgeOomWake());
     }
 
     [Fact]
     public void ShouldScheduleCdtEdgeOomWake_true_when_edge_opt_in_and_no_remount()
     {
-        Environment.SetEnvironmentVariable("CDP_OOM_WAKE_CDT_EDGE", "1");
+        CdpOpsConfig.Bind(new CdpConfigDocument { Ops = new CdpConfigOpsSection { OomWakeCdtEdge = true } });
         Assert.False(IdeRemountWake.HasPending("cdp"));
-        // Hermetic (ADR-0219): the shared machine arms store may hold residue from sibling
-        // runs — the pure predicate takes the remount-armed flag explicitly.
         Assert.True(IdeIgniteOomWatch.ShouldScheduleCdtEdgeOomWake(remountArmed: false));
     }
 }

@@ -19,7 +19,7 @@ internal static class IdeLifecycleIgnite
         armId = null;
         if (!enabled || IdeToolCallWatch.SuppressArmForTests)
             return false;
-        if (string.Equals(Environment.GetEnvironmentVariable("CDP_LIFECYCLE_IGNITE_ARM"), "0", StringComparison.Ordinal))
+        if (!Cdp.Config.CdpOpsConfig.Current.LifecycleIgniteArm)
             return false;
 
         var safeKind = string.IsNullOrWhiteSpace(kind) ? "job" : kind.Trim();

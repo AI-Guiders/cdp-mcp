@@ -39,7 +39,7 @@ internal static class IdeShellIgnite
         armId = null;
         if (!enabled || IdeToolCallWatch.SuppressArmForTests)
             return false;
-        if (string.Equals(Environment.GetEnvironmentVariable("CDP_SHELL_IGNITE_ARM"), "0", StringComparison.Ordinal))
+        if (!Cdp.Config.CdpOpsConfig.Current.ShellIgniteArm)
             return false;
 
         var safeTab = string.IsNullOrWhiteSpace(tab) ? "main" : tab.Trim();

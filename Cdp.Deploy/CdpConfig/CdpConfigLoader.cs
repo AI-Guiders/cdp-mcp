@@ -44,9 +44,14 @@ public static class CdpConfigLoader
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
 
-    public static CdpConfigDocument Load(string? path)
+    public static CdpConfigDocument Load(string? path) =>
+        Parse(ResolveMergedToml(path));
+
+    public static CdpConfigDocument Parse(string toml)
     {
-        return Parse(ResolveMergedToml(path));
+        var doc = TomlSerializer.Deserialize<CdpConfigDocument>(toml, SerializerOptions) ?? new();
+        CdpOpsConfig.Bind(doc);
+        return doc;
     }
 
     /// <summary>Embedded defaults merged with optional operator overlay file.</summary>
@@ -70,9 +75,6 @@ public static class CdpConfigLoader
         if (!result.Ok)
             throw new InvalidOperationException(string.Join("; ", result.Errors));
     }
-
-    public static CdpConfigDocument Parse(string toml) =>
-        TomlSerializer.Deserialize<CdpConfigDocument>(toml, SerializerOptions) ?? new();
 
     public static T MapForRole<T>(CdpConfigDocument doc, CdpConfigRole role) =>
         role switch
