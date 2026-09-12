@@ -155,4 +155,17 @@ public sealed class CideIntercomIdentityLatchTests : IDisposable
         Assert.Equal("operator", tip?.Kind);
         Assert.Equal(CideIntercomIdentityLatch.HarnessOperatorSlot, tip?.Model);
     }
+
+    [Fact]
+    public void TryRead_reads_witdb_when_interop_file_removed()
+    {
+        Assert.NotNull(CideIntercomIdentityLatch.Claim("pf", "Sierra", "citizen", "zai-org/GLM-5.1"));
+        Assert.Equal("Sierra", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
+
+        if (File.Exists(CideIntercomIdentityLatch.LatchPath))
+            File.Delete(CideIntercomIdentityLatch.LatchPath);
+
+        Assert.Equal("Sierra", CideIntercomIdentityLatch.TryRead()?.Pf?.Name);
+        Assert.Equal("Sierra", CideIntercomIdentityLatch.TrySeat("pf")?.Name);
+    }
 }

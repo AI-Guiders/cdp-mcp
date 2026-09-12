@@ -48,20 +48,7 @@ internal static class CideIntercomIdentityLatch
     {
         lock (Gate)
         {
-            try
-            {
-                if (!File.Exists(LatchPath))
-                    return null;
-                var raw = File.ReadAllText(LatchPath);
-                var doc = JsonSerializer.Deserialize<IdentityDoc>(raw, ReadOpts);
-                if (doc is null || !string.Equals(doc.Schema, Schema, StringComparison.OrdinalIgnoreCase))
-                    return null;
-                return doc;
-            }
-            catch
-            {
-                return null;
-            }
+            return TryReadUnlocked();
         }
     }
 
@@ -397,5 +384,15 @@ internal static class CideIntercomIdentityLatch
         /// <summary>Model slot this Who is bound to (Cloud.ru / Anthropic id).</summary>
         public string? Model { get; set; }
         public DateTimeOffset StampedUtc { get; set; }
+    }
+
+    /// <summary>Tests: clear all identity state from witdb.</summary>
+    internal static void ResetForTests()
+    {
+        lock (Gate)
+        {
+            var doc = new IdentityDoc { Schema = Schema };
+            _ = WriteUnlocked(doc);
+        }
     }
 }
