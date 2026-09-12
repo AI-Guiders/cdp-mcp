@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Cdp.Config;
 using Cdp.Core;
 using Cdp.Lsp;
 using Cdp.ScriptableIde;
@@ -35,9 +36,13 @@ internal sealed partial class CdpSettings
         if (!File.Exists(path))
             return new CdpSettings();
 
+        var toml = File.ReadAllText(path);
+        var bootstrap = CdpConfigLoader.Parse(toml);
+        var slot = CdpConfigLoader.MapSlot(bootstrap);
+
         var doc = TomlSerializer.Deserialize<CdpTomlDocument>(
-            File.ReadAllText(path),
-            new TomlSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower })
+            toml,
+            CdpConfigLoader.SerializerOptions)
             ?? new CdpTomlDocument();
 
         var memory = doc.Memory ?? new CdpTomlMemory();
@@ -45,7 +50,6 @@ internal sealed partial class CdpSettings
         var dev = doc.Dev ?? new CdpTomlDev();
         var intentWs = doc.IntentWorkspace ?? new CdpTomlIntentWorkspace();
         var cockpitHost = doc.CockpitHost ?? new CdpTomlCockpitHost();
-        var service = doc.Service ?? new CdpTomlService();
         var citizen = doc.Citizen ?? new CdpTomlCitizen();
         var canon = doc.Canon ?? new CdpTomlCanon();
         var kbAutoShip = doc.KbAutoShip ?? new CdpTomlKbAutoShip();
@@ -91,10 +95,10 @@ internal sealed partial class CdpSettings
             },
             Service = new CdpServiceSettings
             {
-                Enabled = service.Enabled ?? true,
-                Bind = string.IsNullOrWhiteSpace(service.Bind) ? "127.0.0.1" : service.Bind.Trim(),
-                Port = service.Port is > 0 and < 65536 ? service.Port.Value : 8771,
-                TokenPath = string.IsNullOrWhiteSpace(service.TokenPath) ? null : service.TokenPath.Trim()
+                Enabled = slot.Enabled,
+                Bind = slot.Bind,
+                Port = slot.Port,
+                TokenPath = slot.TokenPath
             },
             Citizen = new CitizenSettings
             {
@@ -131,7 +135,6 @@ internal sealed partial class CdpSettings
         public CdpTomlLanguages? Languages { get; set; }
         public CdpTomlIntentWorkspace? IntentWorkspace { get; set; }
         public CdpTomlCockpitHost? CockpitHost { get; set; }
-        public CdpTomlService? Service { get; set; }
         public CdpTomlCitizen? Citizen { get; set; }
         public CdpTomlCanon? Canon { get; set; }
         public CdpTomlKbAutoShip? KbAutoShip { get; set; }
@@ -159,14 +162,6 @@ internal sealed partial class CdpSettings
     private sealed class CdpTomlCitizen
     {
         public bool? Enabled { get; set; }
-    }
-
-    private sealed class CdpTomlService
-    {
-        public bool? Enabled { get; set; }
-        public string? Bind { get; set; }
-        public int? Port { get; set; }
-        public string? TokenPath { get; set; }
     }
 
     private sealed class CdpTomlCockpitHost

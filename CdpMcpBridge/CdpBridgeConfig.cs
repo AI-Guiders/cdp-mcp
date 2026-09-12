@@ -1,8 +1,7 @@
 using AIGuiders.Cli;
+using Cdp.Config;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using Tomlyn;
-using Tomlyn.Serialization;
 
 namespace CdpMcpBridge;
 
@@ -42,34 +41,22 @@ internal static class CdpBridgeConfigLoader
         if (!File.Exists(configPath))
             return new() { IsSuccess = false, Error = $"Config not found: {configPath}" };
 
-        var doc = TomlSerializer.Deserialize<BridgeTomlDocument>(
-            File.ReadAllText(configPath),
-            new TomlSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower })
-            ?? new BridgeTomlDocument();
-        var service = doc.Service;
-
-        var bind = service?.Bind ?? "127.0.0.1";
-        var port = service?.Port is > 0 and < 65536 ? service.Port.Value : 8771;
-        var tokenPath = service?.TokenPath;
+        var doc = CdpConfigLoader.Load(configPath);
+        var bridge = CdpConfigLoader.MapBridge(doc);
+        var resolvedTokenPath = bridge.TokenPath ?? CdpConfigLoader.DefaultTokenPath();
 
         var baseUrl = Environment.GetEnvironmentVariable("CDP_SERVICE_URL");
         Uri uri;
         if (!string.IsNullOrWhiteSpace(baseUrl))
         {
+            WarnDeprecatedEnv("CDP_SERVICE_URL", "[bridge].base_url");
             if (!Uri.TryCreate(baseUrl.Trim(), UriKind.Absolute, out uri!))
                 return new() { IsSuccess = false, Error = $"Invalid CDP_SERVICE_URL: {baseUrl}" };
         }
         else
         {
-            uri = new Uri($"http://{bind}:{port}/");
+            uri = bridge.BaseUrl;
         }
-
-        var resolvedTokenPath = string.IsNullOrWhiteSpace(tokenPath)
-            ? Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "cdp-mcp",
-                "service-token")
-            : tokenPath.Trim();
 
         var token = Environment.GetEnvironmentVariable("CDP_SERVICE_TOKEN");
         if (string.IsNullOrWhiteSpace(token))
@@ -78,21 +65,28 @@ internal static class CdpBridgeConfigLoader
                 return new() { IsSuccess = false, Error = $"Service token missing: {resolvedTokenPath}. Start CdpService first." };
             token = File.ReadAllText(resolvedTokenPath).Trim();
         }
+        else
+        {
+            WarnDeprecatedEnv("CDP_SERVICE_TOKEN", "[bridge].token_path");
+        }
 
         if (string.IsNullOrWhiteSpace(token))
             return new() { IsSuccess = false, Error = "Empty service token." };
 
         var installDir = Environment.GetEnvironmentVariable("CDP_SERVICE_INSTALL_DIR");
         if (string.IsNullOrWhiteSpace(installDir))
-            installDir = service?.InstallDir;
+            installDir = bridge.InstallDir;
+        else
+            WarnDeprecatedEnv("CDP_SERVICE_INSTALL_DIR", "[slots].install_dir");
         installDir = string.IsNullOrWhiteSpace(installDir) ? null : Path.GetFullPath(installDir.Trim());
 
-        var autoStart = service?.AutoStart;
+        var autoStart = bridge.AutoStart;
         if (Environment.GetEnvironmentVariable("CDP_SERVICE_AUTO_START") is { Length: > 0 } autoRaw
             && bool.TryParse(autoRaw, out var autoEnv))
+        {
+            WarnDeprecatedEnv("CDP_SERVICE_AUTO_START", "[slots].auto_start / [bridge].auto_start_slot");
             autoStart = autoEnv;
-        else if (autoStart is null)
-            autoStart = !string.IsNullOrWhiteSpace(installDir);
+        }
 
         return new()
         {
@@ -104,28 +98,18 @@ internal static class CdpBridgeConfigLoader
                 TokenPath = resolvedTokenPath,
                 InstallDir = installDir,
                 ServiceConfigPath = configPath,
-                AutoStart = autoStart.Value
+                AutoStart = autoStart
             },
             ConfigPath = configPath
         };
     }
 
+    static void WarnDeprecatedEnv(string envName, string tomlHint) =>
+        Console.Error.WriteLine(
+            $"WARNING: {envName} is deprecated (ADR-0222); use {tomlHint} in cdp-mcp.toml.");
+
     static string? ResolveConfigPath(string[] args) =>
         ConfigPathResolver.TryResolve(args, "CDP_MCP_CONFIG");
-}
-
-internal sealed class BridgeTomlDocument
-{
-    public BridgeTomlService? Service { get; set; }
-}
-
-internal sealed class BridgeTomlService
-{
-    public string? Bind { get; set; }
-    public int? Port { get; set; }
-    public string? TokenPath { get; set; }
-    public string? InstallDir { get; set; }
-    public bool? AutoStart { get; set; }
 }
 
 internal static class CdpBridgeHttpClient

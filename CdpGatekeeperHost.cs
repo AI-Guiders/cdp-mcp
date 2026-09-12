@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using Cdp.Config;
 
 namespace CdpMcp;
 
@@ -12,7 +13,7 @@ namespace CdpMcp;
 /// </summary>
 internal static class CdpGatekeeperHost
 {
-    public const int ListenPort = 8771;
+    public const int DefaultListenPort = CdpTowerRoleConfig.DefaultListenPort;
 
     static readonly TimeSpan TargetCache = TimeSpan.FromSeconds(2);
     static readonly TimeSpan ProbeTimeout = TimeSpan.FromSeconds(3);
@@ -21,21 +22,22 @@ internal static class CdpGatekeeperHost
     static Uri? _target;
     static DateTimeOffset _targetAt;
 
-    public static async Task<int> RunAsync()
+    public static async Task<int> RunAsync(string? configPath = null)
     {
+        var listenPort = CdpConfigLoader.MapTower(CdpConfigLoader.Load(configPath)).ListenPort;
         var listener = new HttpListener();
-        listener.Prefixes.Add($"http://127.0.0.1:{ListenPort}/");
+        listener.Prefixes.Add($"http://127.0.0.1:{listenPort}/");
         try
         {
             listener.Start();
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Gatekeeper: cannot bind {ListenPort}: {ex.Message}");
+            Console.Error.WriteLine($"Gatekeeper: cannot bind {listenPort}: {ex.Message}");
             return 2;
         }
 
-        Console.Out.WriteLine($"Gatekeeper: http://127.0.0.1:{ListenPort}/ -> slots {CdpSlotRegistry.DbPath(CdpProfile.StateRoot)}");
+        Console.Out.WriteLine($"Gatekeeper: http://127.0.0.1:{listenPort}/ -> slots {CdpSlotRegistry.DbPath(CdpProfile.StateRoot)}");
         using var forwarder = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
         using var prober = new HttpClient { Timeout = ProbeTimeout };
 

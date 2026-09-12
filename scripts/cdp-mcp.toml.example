@@ -57,3 +57,20 @@ enabled = false
 
 [languages]
 ids = ["csharp", "typescript", "python", "delphi", "powershell"]
+
+# ADR-0222 bootstrap — role-specific sections (preferred over legacy [service]).
+[tower]
+listen_port = 8771
+
+[slots]
+# install_dir = "D:/cdp-service"
+# auto_start = true
+
+[bridge]
+base_url = "http://127.0.0.1:8771"
+
+# Legacy alias — maps to tower/slots/bridge when new sections omit keys.
+[service]
+enabled = true
+bind = "127.0.0.1"
+port = 8771
