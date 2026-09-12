@@ -37,7 +37,9 @@ internal static class EnvironmentReadinessCdpRows
                 LampShortLabel: "SVC");
         }
 
-        var bind = $"{service.Bind}:{service.Port}";
+        var bind = service.Port > 0
+            ? $"{service.Bind}:{service.Port}"
+            : $"{service.Bind}:{CdpSlotRegistry.FirstSlotPort}+ (PickFreePort)";
         return new AnnunciatorLampItem(
             EnvironmentReadinessCellIdsCdp.CdpService,
             "CdpService",

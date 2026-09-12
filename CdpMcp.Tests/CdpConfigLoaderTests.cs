@@ -80,7 +80,7 @@ public sealed class CdpConfigLoaderTests
 
         Assert.False(slot.Enabled);
         Assert.Equal("10.0.0.1", slot.Bind);
-        Assert.Equal(9000, slot.Port);
+        Assert.Equal(0, slot.Port);
         Assert.Equal("D:/token", slot.TokenPath);
     }
 
@@ -106,7 +106,7 @@ public sealed class CdpConfigLoaderTests
         var doc = new CdpConfigDocument();
 
         Assert.Equal(CdpTowerRoleConfig.DefaultListenPort, CdpConfigLoader.MapForRole<CdpTowerRoleConfig>(doc, CdpConfigRole.Tower).ListenPort);
-        Assert.Equal(CdpTowerRoleConfig.DefaultListenPort, CdpConfigLoader.MapForRole<CdpSlotRoleConfig>(doc, CdpConfigRole.Slot).Port);
+        Assert.Equal(0, CdpConfigLoader.MapForRole<CdpSlotRoleConfig>(doc, CdpConfigRole.Slot).Port);
         Assert.Equal(new Uri("http://127.0.0.1:8771/"), CdpConfigLoader.MapForRole<CdpBridgeRoleConfig>(doc, CdpConfigRole.Bridge).BaseUrl);
     }
 
@@ -130,7 +130,7 @@ public sealed class CdpConfigLoaderTests
 
             Assert.False(settings.Service.Enabled);
             Assert.Equal("10.0.0.2", settings.Service.Bind);
-            Assert.Equal(9002, settings.Service.Port);
+            Assert.Equal(0, settings.Service.Port);
             Assert.Equal("D:/seat-token", settings.Service.TokenPath);
         }
         finally

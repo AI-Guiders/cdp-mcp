@@ -127,6 +127,10 @@ internal sealed class CdpBridgeServiceEnsurer
 
     internal static string ResolveServiceConfig(CdpBridgeSettings settings)
     {
+        if (!string.IsNullOrWhiteSpace(settings.ServiceConfigPath)
+            && File.Exists(settings.ServiceConfigPath))
+            return settings.ServiceConfigPath;
+
         var installDir = settings.InstallDir;
         if (!string.IsNullOrWhiteSpace(installDir))
         {
@@ -139,12 +143,8 @@ internal sealed class CdpBridgeServiceEnsurer
                 return nested;
         }
 
-        if (!string.IsNullOrWhiteSpace(settings.ServiceConfigPath)
-            && File.Exists(settings.ServiceConfigPath))
-            return settings.ServiceConfigPath;
-
         throw new InvalidOperationException(
-            "Cannot resolve service config for auto-start — set install_dir with cdp-mcp.toml or pass bridge --config.");
+            "Cannot resolve service config for auto-start — pass bridge --config or set [slots].install_dir with cdp-mcp.toml.");
     }
 
     async Task<bool> ProbeHealthyAsync(CancellationToken cancellationToken)

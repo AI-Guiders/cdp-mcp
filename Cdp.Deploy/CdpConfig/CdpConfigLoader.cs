@@ -24,7 +24,8 @@ public sealed class CdpSlotRoleConfig
 {
     public bool Enabled { get; init; } = true;
     public string Bind { get; init; } = CdpTowerRoleConfig.DefaultBind;
-    public int Port { get; init; } = CdpTowerRoleConfig.DefaultListenPort;
+    /// <summary>0 = dynamic slot port (<see cref="CdpSlotRegistry.PickFreePort"/>); never read from TOML.</summary>
+    public int Port { get; init; }
     public string? TokenPath { get; init; }
 }
 
@@ -73,7 +74,7 @@ public static class CdpConfigLoader
         {
             Enabled = service?.Enabled ?? true,
             Bind = ResolveBind(doc),
-            Port = ResolveListenPort(doc),
+            Port = 0,
             TokenPath = NormalizeOptionalPath(service?.TokenPath)
         };
     }

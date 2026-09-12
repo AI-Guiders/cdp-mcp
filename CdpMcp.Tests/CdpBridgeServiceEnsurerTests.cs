@@ -46,7 +46,7 @@ public sealed class CdpBridgeServiceEnsurerTests
     }
 
     [Fact]
-    public void ResolveServiceConfig_prefers_install_dir_toml()
+    public void ResolveServiceConfig_prefers_bridge_config_over_install_dir_toml()
     {
         var install = Path.Combine(Path.GetTempPath(), "cdp-bridge-seat-" + Guid.NewGuid().ToString("N"));
         var bridgeCfg = Path.Combine(Path.GetTempPath(), "cdp-bridge-cfg-" + Guid.NewGuid().ToString("N") + ".toml");
@@ -65,7 +65,7 @@ public sealed class CdpBridgeServiceEnsurerTests
                 AutoStart = true
             };
 
-            Assert.Equal(seatToml, CdpBridgeServiceEnsurer.ResolveServiceConfig(settings));
+            Assert.Equal(bridgeCfg, CdpBridgeServiceEnsurer.ResolveServiceConfig(settings));
         }
         finally
         {

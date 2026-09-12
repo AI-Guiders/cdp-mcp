@@ -26,9 +26,9 @@
 | Компонент | Бинарник | Роль | Транспорт | Порт | Конфиг | Состояние |
 |---|---|---|---|---|---|---|
 | **Мост** | `CdpMcpBridge.exe` | stdio↔HTTP для харнесса | stdio (MCP) + HTTP | — | `D:\cdp-mcp\cdp-mcp.toml` | 2 инстанса (PID 15816, 31476) |
-| **Вышка (gatekeeper)** | `CdpGatekeeper.exe` | маршрутизация 8771 → активный слот | **Kestrel (direct bind)** | 8771 | нет (реестр слотов из witdb) | **Kestrel с 2026-09-12; HttpListener→HTTP.sys снят** |
-| **Сервис (слот)** | `CdpService.exe` | весь CDP-функционал | Kestrel | 8772+ (PickFreePort) | `D:\cdp-service\cdp-mcp.toml` | жив (0.5.764, healthz OK) |
-| **Ensurer** | в мосте | воскрешение вышки/слота при провале | HTTP probe | — | `[service] install_dir` (закомментирован!) | отключён (не автозапускается) |
+| **Вышка (gatekeeper)** | `CdpGatekeeper.exe` | маршрутизация 8771 → активный слот | **Kestrel (direct bind)** | 8771 | `[tower]` via `--config` (same SSOT as bridge) | **Kestrel с 2026-09-12** |
+| **Сервис (слот)** | `CdpService.exe` | весь CDP-функционал | Kestrel | 8772+ (PickFreePort) | `--config` (bridge SSOT `D:\cdp-mcp\cdp-mcp.toml`) | жив |
+| **Ensurer** | в мосте | воскрешение вышки/слота при провале | HTTP probe | — | `[slots].install_dir` + `[bridge].auto_start_slot` | **включён (0222 slice A)** |
 
 **Связи (ASCII):**
 ```
@@ -47,21 +47,23 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 | 8772..8871 | CdpService (Kestrel, PickFreePort) | 8772 — Kestrel | нормально, порт умирает вместе с процессом |
 | stdio | CdpMcpBridge | 2 процесса | нормально |
 
-**Два разных стека слушателей — спроектировано** (ADR-0209): вышка на `HttpListener`, слоты на `Kestrel`. Разные жизненные циклы: Kestrel-порт освобождается с процессом, HTTP.sys-registration — переживает hard-kill.
+**Два разных стека слушателей — спроектировано** (ADR-0209): вышка и слоты оба на **Kestrel** с 2026-09-12 (tower migration закрыла HTTP.sys gap #1). Разные жизненные циклы: слот-порт освобождается с процессом; вышка 8771 — вечная.
 
 ---
 
-## 4. Конфиг-файлы (накопленный долг → ADR-0222)
+## 4. Конфиг-файлы (ADR-0222 slice A — shipped 2026-09-12)
 
-| Файл | Читает | Проблема |
+| Файл | Читает | Роль / секции |
 |---|---|---|
-| `D:\cdp-mcp\cdp-mcp.toml` | мост | есть `[service] install_dir` — **закомментирован** (ensurer отключён) |
-| `D:\cdp-service\cdp-mcp.toml` | слот | `port=8771` — **мёртвый ключ**: слот берёт порт из `PickFreePort()`, не из конфига |
-| `D:\cdp-gatekeeper\` | вышка | **не читает toml вовсе** (stateless, реестр из witdb) |
-| `%LocalAppData%\cdp-mcp\slots.witdb` | вышка | реестр слотов (self-register, CdpSlotRegistry) |
+| **`D:\cdp-mcp\cdp-mcp.toml`** | **мост** (SSOT), **ensurer→слот** (bridge `--config` first), **вышка** `[tower]` | `[tower]` `[slots]` `[bridge]` + legacy `[service]` |
+| `D:\cdp-service\cdp-mcp.toml` | fallback если `--config` не передан | синхронизирован с SSOT |
+| `D:\cdp-gatekeeper\cdp-mcp.toml` | **не используется** | мёртвая копия |
+| `%LocalAppData%\cdp-mcp\slots.witdb` | вышка + слот | реестр слотов (CdpSlotRegistry) |
 | `%LocalAppData%\cdp-mcp\cdp-state.witdb` | слот | runtime-state SSOT (ADR-0219) |
 
-**Направление (ADR-0222, Draft):** один `cdp-mcp.toml`, секции по ролям (`[tower]/[slots]/[bridge]/[service]` legacy), одна схема парсинга, env-оверрайды запрещены (только `CDP_MCP_CONFIG`).
+**Канон:** один TOML, `CdpConfigLoader`, env-оверрайды конфигурации deprecated (warn). Путь к файлу: `CDP_MCP_CONFIG` / `--config`.
+
+**Остаток 0222:** strict validator, удаление legacy `[service]`, deploy scripts → SSOT only.
 
 ---
 
@@ -108,7 +110,7 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 | 0219 | Habitat state consolidation — one witdb per root | Draft | 2026-09-07 |
 | 0220 | In-Generation Procedural Execution | Draft | 2026-09-08 |
 | 0221 | CDP Virtualization — per-line instances | Draft | — |
-| 0222 | Configuration management — один TOML | Draft | 2026-09-10 |
+| 0222 | Configuration management — один TOML | Accepted (slice A 2026-09-12) | 2026-09-10 |
 | 0223 | Ship — слот из immutable-снимка (stage 3 0209) | Accepted | 2026-09-10 |
 
 > **Примечание:** статусы нормализованы 2026-09-10 к единому inline-формату `**Status:** Accepted|Proposed|Draft` (суффиксы реализации сохранены). Реестр фиксирует фактическое состояние.
@@ -120,16 +122,16 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 | # | Разрыв | Когда обнаружен | Статус |
 |---|---|---|---|
 | 1 | ~~**8771 в HTTP.sys (PID 4 System), healthz молчит.**~~ Gatekeeper переведён на Kestrel direct bind (2026-09-12); orphaned HTTP.sys снят. | 2026-09-10 (прод) | **закрыто (Kestrel tower 2026-09-12)** |
-| 1b | ~~**WitDB slots.witdb — один engine на процесс.**~~ dbhub lazy witdb держал файл после первого query → CDP Upsert блокировался. | 2026-09-12 | **закрыто (2026-09-12):** dbhub `releaseLazyWitdbSource` после tool call + `readonly` на cdpSlots tools |
-| 2 | **`[service] install_dir` закомментирован** в `D:\cdp-mcp\cdp-mcp.toml` → ensurer не автозапускает вышку/слот при cold boot (ADR-0203). | 2026-09-10 | открыто (ADR-0222 адресует) |
-| 3 | **`port=8771` в конфиге слота — мёртвый ключ** (слот берёт `PickFreePort()`). ADR-0209 не упоминает этот ключ. | 2026-09-10 | открыто (ADR-0222) |
-| 4 | **Вышка не читает toml вовсе** — stateless, реестр из witdb. Это по-документу, но конфиг-карта из трёх toml не описывает вышку. | 2026-09-10 | открыто (ADR-0222) |
+| 1b | ~~**WitDB slots.witdb — один engine на процесс.**~~ dbhub lazy witdb держал файл после первого query → CDP Upsert блокировался. | 2026-09-12 | **закрыто (2026-09-12):** dbhub `releaseLazyWitdbSource` после tool call + `readonly` на `execute_sql` cdpSlots (не на `search_objects` — dbhub TOML запрет) |
+| 2 | ~~**`install_dir` закомментирован**~~ → `[slots].install_dir` + `auto_start` в SSOT; ensurer передаёт bridge `--config`. | 2026-09-10 | **закрыто (0222 slice A 2026-09-12)** |
+| 3 | ~~**`port=8771` в конфиге слота — мёртвый ключ**~~ → `MapSlot` Port=0 (PickFreePort); TOML `port` только tower legacy. | 2026-09-10 | **закрыто (0222 slice A 2026-09-12)** |
+| 4 | ~~**Три копии toml / вышка без секции**~~ → SSOT `D:\cdp-mcp\cdp-mcp.toml` + `[tower]`/`[slots]`/`[bridge]`; gatekeeper читает `[tower]`. | 2026-09-10 | **закрыто (0222 slice A 2026-09-12)** |
 | 5 | ~~**apply промоутил по живому корню** (`robocopy /MIR` в `D:\cdp-service` под работающим слотом) — инцидент exit=11 после 359-сек промоута; заборы (deploy.lock TTL 5мин без heartbeat + job lease) промоут переживал. Stage 3 ADR-0209 в коде отсутствовал (режима ship не было).~~ | 2026-09-10 | **закрыто (ADR-0223)**: apply/ship стартуют слот из immutable-снимка; live синкается по мёртвому; prefix-фикс `.staging` vs live |
 
 ---
 
 ## 7. Куда движемся
 
-- **ADR-0222 (Draft):** единый TOML, секции по ролям, одна схема парсинга, без env-hell. Поглотит разрывы 2–4.
-- **Вышка на Kestrel (обсуждение 2026-09-10):** единый стек слушателей устранит orphaned HTTP.sys-registration как класс (разрыв 1). Вопрос открыт — zero-downtime сохраняется, слоты не трогаются.
-- **Реестр ADR → pre-commit hook** (секция 1): каждый новый ADR обязан иметь строку в реестре — проверка автоматизируется.
+- **ADR-0222 (остаток):** strict validator, удаление legacy `[service]`, deploy scripts → SSOT path only.
+- **ADR-0219 (Draft):** habitat state consolidation — one witdb per root.
+- **Реестр ADR → pre-commit hook** (секция 1): каждый новый ADR обязан иметь строку в реестре.

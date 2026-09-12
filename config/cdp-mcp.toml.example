@@ -137,8 +137,8 @@ listen_port = 8771
 # probe_timeout_ms = 3000
 
 [slots]
-# install_dir = "D:/cdp-service"
-# auto_start = true
+install_dir = "D:/cdp-service"
+auto_start = true
 # port_range = [8772, 8871]
 # heartbeat_seconds = 5
 # registry = "auto"
@@ -146,13 +146,13 @@ listen_port = 8771
 [bridge]
 base_url = "http://127.0.0.1:8771"
 # token_path = ""  # default: %LocalAppData%/cdp-mcp/service-token
-# auto_start_slot = true
+auto_start_slot = true
 
 # Legacy alias — still supported; maps to [tower]/[slots]/[bridge] when new sections omit keys.
 [service]
 enabled = true
 bind = "127.0.0.1"
-port = 8771
+# port = 8771  # tower only — see [tower].listen_port; slot bind is PickFreePort 8772..8871
 # token_path = ""
 # install_dir = "D:/cdp-service"
 # auto_start = true
