@@ -20,6 +20,7 @@ internal sealed partial class CdpSettings
     public CitizenSettings Citizen { get; init; } = new();
     public CanonSettings Canon { get; init; } = new();
     public KbAutoShipTomlSettings KbAutoShip { get; init; } = new();
+    public DeploySettings Deploy { get; init; } = new();
     public VendorCatalogOptions Vendor { get; init; } = VendorCatalog.CreateBuiltInDefaults();
 
     /// <summary>worlds + META + "." knowledge-root hub (SHOWCASE.md, index-*.md).</summary>
@@ -48,6 +49,7 @@ internal sealed partial class CdpSettings
         var citizen = doc.Citizen ?? new CdpTomlCitizen();
         var canon = doc.Canon ?? new CdpTomlCanon();
         var kbAutoShip = doc.KbAutoShip ?? new CdpTomlKbAutoShip();
+        var deploy = doc.Deploy ?? new CdpTomlDeploy();
 
         return new CdpSettings
         {
@@ -111,6 +113,10 @@ internal sealed partial class CdpSettings
                 Roots = kbAutoShip.Roots,
                 Branch = kbAutoShip.Branch
             },
+            Deploy = new DeploySettings
+            {
+                RepoRoot = string.IsNullOrWhiteSpace(deploy.RepoRoot) ? null : deploy.RepoRoot.Trim()
+            },
             Vendor = VendorCatalog.CreateBuiltInDefaults()
         };
     }
@@ -129,6 +135,12 @@ internal sealed partial class CdpSettings
         public CdpTomlCitizen? Citizen { get; set; }
         public CdpTomlCanon? Canon { get; set; }
         public CdpTomlKbAutoShip? KbAutoShip { get; set; }
+        public CdpTomlDeploy? Deploy { get; set; }
+    }
+
+    private sealed class CdpTomlDeploy
+    {
+        public string? RepoRoot { get; set; }
     }
 
     private sealed class CdpTomlKbAutoShip
@@ -295,4 +307,11 @@ internal sealed class CanonSettings
 {
     /// <summary>Absolute path to guiders-style repo; per-repo override: .cdp/project.toml org_style_root.</summary>
     public string? GuidersStyleRoot { get; init; }
+}
+
+/// <summary>Deploy plane defaults (CDP-ADR-0225) — source repo when session has no cdp_open.</summary>
+internal sealed class DeploySettings
+{
+    /// <summary>Absolute path to cdp-mcp git checkout for publish/rollout.</summary>
+    public string? RepoRoot { get; init; }
 }

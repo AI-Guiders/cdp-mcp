@@ -37,7 +37,7 @@ internal static partial class IdeDeploy
             return Fail(mode, selfRoot, seat, resolved.Target, resolved.Error!, resolved.Hint);
 
         if (dryRun)
-            return DryRunPayload(mode, selfRoot, seat, resolved, BuildPlan(session, mode, selfRoot, resolved, useNuGet, noNudge, force));
+            return DryRunPayload(mode, selfRoot, seat, resolved, BuildPlan(session, args, mode, selfRoot, resolved, useNuGet, noNudge, force));
 
         if (!Monitor.TryEnter(PublishGate))
         {
@@ -47,7 +47,7 @@ internal static partial class IdeDeploy
 
         try
         {
-            var planResult = BuildPlan(session, mode, selfRoot, resolved, useNuGet, noNudge, force);
+            var planResult = BuildPlan(session, args, mode, selfRoot, resolved, useNuGet, noNudge, force);
             if (!planResult.Ok)
                 return Fail(mode, selfRoot, seat, resolved.Target, planResult.Error!, planResult.Hint);
 
@@ -72,6 +72,7 @@ internal static partial class IdeDeploy
 
     static CdpDeployPlanResult BuildPlan(
         SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args,
         string mode,
         string? selfRoot,
         TargetDecision resolved,
@@ -79,9 +80,7 @@ internal static partial class IdeDeploy
         bool noNudge,
         bool force)
     {
-        var searchRoot = session.ProjectRoot;
-        if (string.IsNullOrWhiteSpace(searchRoot) && session.SolutionOrProjectPath is { Length: > 0 } sp)
-            searchRoot = Path.GetDirectoryName(sp);
+        var searchRoot = ResolveRepoSearchRoot(session, args);
 
         return CdpDeployPlanner.Plan(new CdpDeployPlanRequest(
             CdpDeployModeParser.Parse(mode),

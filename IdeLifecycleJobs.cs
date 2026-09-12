@@ -490,13 +490,26 @@ internal static class IdeLifecycleJobs
             TsConfigPath = life.TsConfigPath
         };
         var script = IdeDeploy.ResolveScript(session, null);
-        if (script is null)
+        if (script is not null)
+        {
+            var cdpRoot = Path.GetDirectoryName(script)!;
+            life.ProjectRoot = cdpRoot;
+            life.ScmRoot = cdpRoot;
+            life.SolutionOrProjectPath = Path.Combine(cdpRoot, "CdpMcp.csproj");
+            life.ProjectKind = "csproj";
+            return;
+        }
+
+        var repo = IdeDeploy.ResolveConfiguredRepoRoot(
+            string.IsNullOrWhiteSpace(life.WorkerExePath)
+                ? null
+                : Path.GetDirectoryName(Path.GetFullPath(life.WorkerExePath)));
+        if (repo is null)
             return;
 
-        var cdpRoot = Path.GetDirectoryName(script)!;
-        life.ProjectRoot = cdpRoot;
-        life.ScmRoot = cdpRoot;
-        life.SolutionOrProjectPath = Path.Combine(cdpRoot, "CdpMcp.csproj");
+        life.ProjectRoot = repo;
+        life.ScmRoot = repo;
+        life.SolutionOrProjectPath = Path.Combine(repo, "CdpMcp.csproj");
         life.ProjectKind = "csproj";
     }
 }

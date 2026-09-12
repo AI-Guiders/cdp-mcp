@@ -70,7 +70,7 @@ internal static partial class IdeDeploy
             {
                 var started = DateTime.UtcNow;
                 var resolved = ResolveTarget(selfRoot, seat, target, mode, force: false);
-                var planResult = BuildPlan(session, mode, selfRoot, resolved, useNuGet, noNudge, force: false);
+                var planResult = BuildPlan(session, args, mode, selfRoot, resolved, useNuGet, noNudge, force: false);
                 CdpDeployStepResult step;
                 var exit = 0;
                 string? stderr = null;

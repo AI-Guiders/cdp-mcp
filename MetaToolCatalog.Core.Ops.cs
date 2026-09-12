@@ -32,6 +32,8 @@ internal static partial class MetaToolCatalog
         {
             mode = new { type = "string", description = "soft|apply|hard|rollout|ship (default hard; apply=ship pending .next; ship=publish+slot from immutable snapshot)" },
             target = new { type = "string", description = "sibling|self|release|debug|path (default sibling)" },
+            repo_search_root = new { type = "string", description = "cdp-mcp git checkout for publish (fallback: session project_root, then seat [deploy].repo_root)" },
+            repo_root = new { type = "string", description = "alias of repo_search_root" },
             force = new { type = "boolean", description = "allow hard deploy onto self install (escape)" },
             dry_run = new { type = "boolean", description = "resolve policy only — no powershell" },
             script = new { type = "string", description = "optional path to publish-and-deploy.ps1" },

@@ -12,13 +12,17 @@ internal static class IdeDeployCli
         var json = File.ReadAllText(payloadPath);
         var args = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json)
                    ?? new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+
         var session = new SessionContext
         {
-            ProjectRoot = CdpDeploySource.TryResolve(AppContext.BaseDirectory)?.RepoRoot
+            ProjectRoot = IdeDeploy.ResolveRepoSearchRoot(new SessionContext(), args)
+                          ?? CdpDeploySource.TryResolve(AppContext.BaseDirectory)?.RepoRoot
                           ?? CdpDeploySource.TryResolve(IdeDeploy.ResolveSelfInstallRoot())?.RepoRoot
         };
+
         var result = IdeDeploy.Run(session, args);
-        Console.WriteLine(result);        try
+        Console.WriteLine(result);
+        try
         {
             using var doc = JsonDocument.Parse(result);
             if (doc.RootElement.TryGetProperty("ok", out var ok) && ok.ValueKind == JsonValueKind.True)
