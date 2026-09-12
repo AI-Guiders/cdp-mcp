@@ -5,9 +5,9 @@
 | | |
 |---|---|
 | **Status** | Living |
-| **Date** | 2026-09-10 |
+| **Date** | 2026-09-12 |
 | **Tags** | #cdp #ssot #architecture #current-state #registry |
-| **Normative** | ADR-0198 (sidecar big-bang) · ADR-0209 (gatekeeper tower) · ADR-0219 (state consolidation) · ADR-0222 (config management) |
+| **Normative** | ADR-0198 (sidecar big-bang) · ADR-0209 (gatekeeper tower) · ADR-0219 (state consolidation) · ADR-0222 (config management) · ADR-0223 (ship slot) · ADR-0226 (ship-first defaults) |
 | **Anti-pattern** | Верить одному ADR в отрыве от этого файла. ADR описывает решение, этот файл — его текущее состояние. |
 
 ---
@@ -65,7 +65,7 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 
 ---
 
-## 5. Реестр ADR (38)
+## 5. Реестр ADR (39)
 
 > **Единственное место, где статус ADR актуален.** Для pre-commit hook — источник правды: файл ADR ↔ строка здесь.
 
@@ -111,6 +111,7 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 | 0222 | Configuration management — один TOML | Accepted | 2026-09-10 |
 | 0223 | Ship — слот из immutable-снимка (stage 3 0209) | Accepted | 2026-09-10 |
 | 0224 | Env-free ops — CLI + EmbeddedTOML, no operator env | Accepted | 2026-09-12 |
+| 0226 | Deploy ship-first — defaults, rollout apply, deploy_los | Accepted | 2026-09-12 |
 
 > **Примечание:** статусы нормализованы 2026-09-10 к единому inline-формату `**Status:** Accepted|Proposed|Draft` (суффиксы реализации сохранены). Реестр фиксирует фактическое состояние.
 
@@ -128,6 +129,7 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 | 5 | ~~**apply промоутил по живому корню** (`robocopy /MIR` в `D:\cdp-service` под работающим слотом) — инцидент exit=11 после 359-сек промоута; заборы (deploy.lock TTL 5мин без heartbeat + job lease) промоут переживал. Stage 3 ADR-0209 в коде отсутствовал (режима ship не было).~~ | 2026-09-10 | **закрыто (ADR-0223)**: apply/ship стартуют слот из immutable-снимка; live синкается по мёртвому; prefix-фикс `.staging` vs live |
 | 6 | ~~**Hard sibling bridge: `PublishBridgeSeat` игнорировал `plan.KillRunning`; partial hard оставлял CdpService down; `sibling_version` слеп (probe только `CdpMcp.exe`).~~ | 2026-09-12 | **закрыто (2026-09-12)**: bridge publish forwards `-KillRunning`; hard стартует service до bridge; ops pulse читает `CdpMcpBridge.exe`/`CdpService.exe` |
 | 7 | ~~**ops_pulse `lag` ложный при service 0.5.x vs bridge 0.2.x** (string compare ProductVersion на разных exe family).~~ | 2026-09-12 | **закрыто (2026-09-12)**: `IdeOpsPulse.SeatVersionsLag` — +commit suffix при обоих stamped, иначе short version только внутри family (service/bridge) |
+| 8 | ~~**Deploy defaults still hard / rollout step3 hard_sibling** — ADR-0223 ship existed but routine path KillRunning + toml lock (deploy flake 2026-09-12).~~ | 2026-09-12 | **закрыто (ADR-0226)**: default `mode=ship`; rollout → apply_staged; `deploy_los` pulse; seat toml copy-with-retry |
 
 ---
 

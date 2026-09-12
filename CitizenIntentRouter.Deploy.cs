@@ -26,22 +26,23 @@ internal static partial class CitizenIntentRouter
                 var headSp = rest.IndexOf(' ');
                 var token = headSp < 0 ? rest : rest[..headSp];
                 if (token.Length > 0 && !token.Contains('=', StringComparison.Ordinal)
-                    && token is "hard" or "soft" or "rollout" or "apply")
+                    && token is "hard" or "soft" or "rollout" or "apply" or "ship")
                     mode = token;
             }
         }
 
-        mode = string.IsNullOrWhiteSpace(mode) ? "hard" : mode.Trim().ToLowerInvariant();
+        mode = string.IsNullOrWhiteSpace(mode) ? "ship" : mode.Trim().ToLowerInvariant();
         mode = mode switch
         {
             "h" or "hard" or "kill" => "hard",
             "s" or "soft" or "stage" => "soft",
             "r" or "rollout" or "dual" => "rollout",
             "a" or "apply" or "pending" or "apply_pending" => "apply",
+            "sh" or "ship" or "slot" => "ship",
             _ => mode
         };
 
-        if (mode is not "hard" and not "soft" and not "rollout" and not "apply")
+        if (mode is not "hard" and not "soft" and not "rollout" and not "apply" and not "ship")
             return new Route(Verb.Unknown, raw, Ok: false, Reason: "deploy_mode_unknown");
 
         var target = ExtractKeyedValue(raw, "target") ?? ExtractKeyedValue(raw, "to");

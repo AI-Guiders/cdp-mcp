@@ -210,7 +210,7 @@ internal static class IdeShipChannel
         {
             var deployArgs = new Dictionary<string, JsonElement>(args, StringComparer.Ordinal);
             if (!deployArgs.ContainsKey("mode"))
-                deployArgs["mode"] = JsonSerializer.SerializeToElement(Opt(args, "deploy_mode") ?? "hard");
+                deployArgs["mode"] = JsonSerializer.SerializeToElement(Opt(args, "deploy_mode") ?? "ship");
             deployResult = ParseJsonOrString(IdeDeploy.Run(session, deployArgs));
         }
 

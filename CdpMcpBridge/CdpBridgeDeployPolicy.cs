@@ -15,7 +15,7 @@ internal static class CdpBridgeDeployPolicy
         if (IsExplicitFalse(args, "background"))
             return false;
 
-        var mode = NormalizeMode(Opt(args, "mode") ?? "hard");
+        var mode = NormalizeMode(Opt(args, "mode") ?? "ship");
         return mode is "apply" or "hard" or "rollout" or "ship";
     }
 
@@ -39,7 +39,7 @@ internal static class CdpBridgeDeployPolicy
             "hard" => "hard",
             "rollout" => "rollout",
             "ship" => "ship",
-            _ => "hard"
+            _ => "ship"
         };
 
     static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key) =>

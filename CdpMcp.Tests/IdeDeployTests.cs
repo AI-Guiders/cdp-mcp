@@ -157,6 +157,28 @@ public sealed class IdeDeployTests
     }
 
     [Fact]
+    public void Deploy_dry_run_defaults_ship()
+    {
+        var root = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", ".."));
+        while (root is not null
+               && !File.Exists(Path.Combine(root, "CdpMcp.csproj"))
+               && Directory.GetParent(root) is { } parent)
+            root = parent.FullName;
+
+        var json = IdeDeploy.Run(
+            new SessionContext { ProjectRoot = root },
+            new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["dry_run"] = JsonSerializer.SerializeToElement(true)
+            });
+        using var doc = JsonDocument.Parse(json);
+        Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
+        Assert.Equal("ship", doc.RootElement.GetProperty("mode").GetString());
+    }
+
+    [Fact]
     public void Repl_deploy_dry_routes_go_deploy()
     {
         var empty = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
@@ -165,7 +187,7 @@ public sealed class IdeDeployTests
         Assert.True(applied.Value.Args.TryGetValue("go", out var go));
         Assert.Equal("deploy", go.GetString());
         Assert.True(applied.Value.Args.TryGetValue("go_args", out var ga));
-        Assert.Equal("hard", ga.GetProperty("mode").GetString());
+        Assert.Equal("ship", ga.GetProperty("mode").GetString());
         Assert.Equal("sibling", ga.GetProperty("target").GetString());
         Assert.True(ga.GetProperty("dry_run").GetBoolean());
     }

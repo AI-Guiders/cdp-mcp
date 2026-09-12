@@ -64,7 +64,7 @@ internal static partial class MetaToolCatalog
             slices = new { type = "array", description = "Explicit git_plan slices[{root,paths,message}]" },
             push = new { type = "boolean", description = "Push after apply (default true)" },
             deploy = new { type = "boolean", description = "Run cdp_deploy after successful apply (default false)" },
-            deploy_mode = new { type = "string", description = "hard|soft|rollout when deploy=true" },
+            deploy_mode = new { type = "string", description = "ship|soft|apply|rollout|hard when deploy=true (default ship)" },
             dry_run = new { type = "boolean", description = "Draft+validate only — no commit" },
             force = new { type = "boolean", description = "Ship despite secret-risk paths" },
             skip_secrets = new { type = "boolean", description = "Skip secret-risk gate" }

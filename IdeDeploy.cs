@@ -21,7 +21,7 @@ internal static partial class IdeDeploy
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement> args)
     {
-        var mode = NormalizeMode(Opt(args, "mode") ?? "hard");
+        var mode = NormalizeMode(Opt(args, "mode") ?? "ship");
         var dryRun = IsTruthy(args, "dry_run") || IsTruthy(args, "peek");
         var force = IsTruthy(args, "force");
         var useNuGet = IsTruthy(args, "use_nuget") || IsTruthy(args, "UseNuGet");

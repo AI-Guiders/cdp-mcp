@@ -8,12 +8,12 @@ namespace CdpMcp.Tests;
 public sealed class CitizenDeployHostTests
 {
     [Fact]
-    public void Route_deploy_defaults_hard()
+    public void Route_deploy_defaults_ship()
     {
         var r = CitizenIntentRouter.RouteOne("deploy");
         Assert.True(r.Ok);
         Assert.Equal(CitizenIntentRouter.Verb.Deploy, r.Verb);
-        Assert.Equal("hard", r.Op);
+        Assert.Equal("ship", r.Op);
         Assert.Equal("deploy", r.Go);
     }
 

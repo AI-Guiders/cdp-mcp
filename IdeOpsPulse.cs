@@ -1,6 +1,7 @@
 #nullable enable
 using System.Diagnostics;
 using System.Text.Json;
+using TerminalMcp.Core;
 
 namespace CdpMcp;
 
@@ -17,13 +18,14 @@ internal static class IdeOpsPulse
         var card = SeatsCard();
         var liveUtc = TryLiveUtc();
         var pending = ReadPending(card.SelfRoot) is not null;
+        var los = DeployLosLine(card);
         var cont = StripContPrefix(IdeIgniteArmHost.ContinuityPulseLine());
         var live = liveUtc is { } u ? u.ToString("HH:mm:ss") + "Z" : "?";
         var staged = pending ? "staged" : "clear";
         var selfV = card.SelfVersion ?? "?";
         var sibV = card.SiblingVersion ?? "?";
         var lag = card.Lag ? " · lag" : "";
-        return $"ops · seat={card.Seat} · self={selfV} · sib={sibV}{lag} · live={live} · {staged} · {cont}";
+        return $"ops · seat={card.Seat} · self={selfV} · sib={sibV}{lag} · live={live} · {staged} · {los} · {cont}";
     }
 
     public static object Snap()
@@ -31,6 +33,7 @@ internal static class IdeOpsPulse
         var card = SeatsCard();
         var liveUtc = TryLiveUtc();
         var pending = ReadPending(card.SelfRoot);
+        var deployLos = DeployLosCard(card);
         var contPulse = IdeIgniteArmHost.ContinuityPulseLine();
         return new
         {
@@ -44,6 +47,7 @@ internal static class IdeOpsPulse
             live_utc = liveUtc?.ToString("o"),
             live_short = liveUtc is { } u ? u.ToString("HH:mm:ss") + "Z" : "?",
             pending,
+            deploy_los = deployLos,
             continuity = IdeIgniteArmHost.ContinuitySlice(),
             continuity_pulse = contPulse,
             pulse = Line(),
@@ -216,6 +220,50 @@ internal static class IdeOpsPulse
         catch
         {
             return new { ok = false, error = "pending_unreadable" };
+        }
+    }
+
+    /// <summary>LOSA-style deploy observability (aviation transfer): in-flight job, pending, live slots.</summary>
+    public static object DeployLosCard(SeatsSnap? card = null)
+    {
+        card ??= SeatsCard();
+        var inFlight = TryDeployInFlightKind();
+        var pending = ReadPending(card.Value.SelfRoot) is not null;
+        var slots = CdpSlotRegistry.Fresh(CdpProfile.StateRoot).Count;
+        return new
+        {
+            deploy_in_flight = inFlight,
+            pending_staged = pending,
+            slot_count = slots,
+            pulse = DeployLosLine(card.Value),
+            hint = inFlight is not null
+                ? "Deploy job running — bridge_wait holds CallTool; poll cdp_lifecycle_last kind=deploy."
+                : pending
+                    ? "Staged .next pending — mode=apply or mode=rollout step apply_staged."
+                    : "Routine ship: cdp_deploy (default mode=ship)."
+        };
+    }
+
+    static string DeployLosLine(SeatsSnap card)
+    {
+        var inFlight = TryDeployInFlightKind();
+        if (inFlight is not null)
+            return $"deploy={inFlight}";
+        if (ReadPending(card.SelfRoot) is not null)
+            return "deploy=pending";
+        var slots = CdpSlotRegistry.Fresh(CdpProfile.StateRoot).Count;
+        return slots > 0 ? $"slots={slots}" : "deploy=idle";
+    }
+
+    static string? TryDeployInFlightKind()
+    {
+        try
+        {
+            return DurableJobStore.TryGetInFlightKind("deploy");
+        }
+        catch
+        {
+            return null;
         }
     }
 

@@ -71,5 +71,11 @@ public sealed class IdeDeployRepoRootTests
         using var doc = JsonDocument.Parse(json);
         Assert.True(doc.RootElement.GetProperty("ok").GetBoolean(), json);
         Assert.Equal("rollout", doc.RootElement.GetProperty("op").GetString());
+        var steps = doc.RootElement.GetProperty("steps");
+        Assert.Equal(3, steps.GetArrayLength());
+        var labels = steps.EnumerateArray().Select(s => s.GetProperty("label").GetString()).ToList();
+        Assert.Equal(["soft_sibling", "soft_self", "apply_staged"], labels);
+        Assert.DoesNotContain(steps.EnumerateArray(), s =>
+            string.Equals(s.GetProperty("mode").GetString(), "hard", StringComparison.Ordinal));
     }
 }

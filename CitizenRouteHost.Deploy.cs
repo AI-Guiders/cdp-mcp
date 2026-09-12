@@ -12,7 +12,7 @@ internal static partial class CitizenRouteHost
 
     static Applied RunDeploy(CitizenIntentRouter.Route route)
     {
-        var mode = string.IsNullOrWhiteSpace(route.Op) ? "hard" : route.Op!;
+        var mode = string.IsNullOrWhiteSpace(route.Op) ? "ship" : route.Op!;
         var session = SessionResolver?.Invoke();
         if (session is null && DeployCallOverride is null)
         {

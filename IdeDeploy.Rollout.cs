@@ -15,25 +15,20 @@ internal static partial class IdeDeploy
         var useNuGet = IsTruthy(args, "use_nuget") || IsTruthy(args, "UseNuGet");
         var noNudge = IsTruthy(args, "no_nudge") || IsTruthy(args, "NoNudgeMcp");
         var includeRaw = IsTruthy(args, "include_raw") || IsTruthy(args, "include_raw_output");
-        var peerHard = IsTruthy(args, "peer_hard") || IsTruthy(args, "finish_peer");
 
         var selfRoot = ResolveSelfInstallRoot();
         var seat = ClassifySeat(selfRoot);
         var sibling = CdpDeployLayout.Default.SiblingBridgeForSeat(seat);
         var selfTarget = selfRoot ?? ReleaseTarget;
-        var canPeerHard = seat is "cdp-debug" || peerHard;
-        var peerTarget = seat == "cdp-debug" ? ReleaseTarget : DebugTarget;
 
         if (dryRun)
         {
             var preview = new List<object>
             {
-                new { mode = "soft", target = sibling },
-                new { mode = "soft", target = selfTarget },
-                new { mode = "hard", target = sibling }
+                new { label = "soft_sibling", mode = "soft", target = sibling },
+                new { label = "soft_self", mode = "soft", target = selfTarget },
+                new { label = "apply_staged", mode = "apply", target = ServiceTarget }
             };
-            if (canPeerHard)
-                preview.Add(new { mode = "hard", target = peerTarget, label = "hard_peer" });
 
             return JsonSerializer.Serialize(new
             {
@@ -44,7 +39,8 @@ internal static partial class IdeDeploy
                 engine = "cdp.deploy/csharp",
                 seat,
                 self = selfRoot,
-                steps = preview
+                steps = preview,
+                hint = "Rollout = stage both seats, then apply (immutable slot + bridge). No hard_sibling KillRunning (ADR-0226)."
             }, Pretty);
         }
 
@@ -61,10 +57,8 @@ internal static partial class IdeDeploy
             {
                 ("soft", sibling, "soft_sibling"),
                 ("soft", selfTarget, "soft_self"),
-                ("hard", sibling, "hard_sibling")
+                ("apply", ServiceTarget, "apply_staged")
             };
-            if (canPeerHard)
-                plan.Add(("hard", peerTarget, "hard_peer"));
 
             foreach (var (mode, target, label) in plan)
             {
@@ -78,7 +72,7 @@ internal static partial class IdeDeploy
                 {
                     if (!planResult.Ok || planResult.Plan is null)
                         throw new InvalidOperationException(planResult.Hint ?? planResult.Error ?? "plan failed");
-                    step = CdpDeployOrchestrator.Run(planResult.Plan);
+                    step = CdpDeployOrchestrator.Run(planResult.Plan!);
                     if (!step.Ok)
                     {
                         exit = step.ExitCode == 0 ? 1 : step.ExitCode;
@@ -117,10 +111,23 @@ internal static partial class IdeDeploy
                         seat,
                         self = selfRoot,
                         steps,
-                        hint = "Rollout stopped on first failure. Fix, then retry mode=rollout."
+                        hint = "Rollout stopped on first failure. Fix, then retry mode=rollout. Routine single-seat ship: mode=ship."
                     }, Pretty);
                 }
             }
+
+            object? remountWake = null;
+            try
+            {
+                IdeRemountWake.MarkPending(ReleaseTarget, "apply_pending");
+                remountWake = new
+                {
+                    pending_seat = "cdp",
+                    pending_path = IdeRemountWake.PendingPathForSeat("cdp"),
+                    hint = "Rollout ok — service slot from snapshot; bump bridge remount if tools stale (CDP_RELOAD_NUDGE)."
+                };
+            }
+            catch { /* best-effort */ }
 
             return JsonSerializer.Serialize(new
             {
@@ -131,7 +138,9 @@ internal static partial class IdeDeploy
                 pulse = "rollout ok",
                 seat,
                 self = selfRoot,
-                steps
+                steps,
+                remount_wake = remountWake,
+                hint = "Dual-seat rollout complete (soft→soft→apply). cdp_health ops.deploy_los + version pulse."
             }, Pretty);
         }
         finally

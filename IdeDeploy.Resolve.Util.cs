@@ -1,5 +1,6 @@
 #nullable enable
 using System.Text.Json;
+using Cdp.Deploy;
 
 namespace CdpMcp;
 
@@ -32,19 +33,8 @@ internal static partial class IdeDeploy
         return Path.GetDirectoryName(Path.GetFullPath(exe));
     }
 
-    static string NormalizeMode(string mode)
-    {
-        var m = mode.Trim().ToLowerInvariant();
-        return m switch
-        {
-            "soft" or "s" or "stage" => "soft",
-            "hard" or "h" or "kill" => "hard",
-            "rollout" or "r" or "dual" => "rollout",
-            "apply" or "a" or "pending" or "apply_pending" => "apply",
-            "ship" or "sh" or "slot" => "ship",
-            _ => "hard"
-        };
-    }
+    internal static string NormalizeMode(string mode) =>
+        CdpDeployModeParser.Parse(mode).ToWire();
 
     static bool SamePath(string? a, string? b)
     {

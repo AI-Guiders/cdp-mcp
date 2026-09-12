@@ -8,27 +8,31 @@
 
 - Seat: `cdp` = `D:\cdp-mcp`, `cdp-debug` = `D:\cdp-mcp-debug`.
 - `ops_pulse` / `cdp_health.seats`: self_version · sibling_version · lag (compatible identity: +commit when both stamped, else short ProductVersion only within same exe family — service=CdpMcp/CdpService, bridge=CdpMcpBridge).
-- Hard deploy defaults to sibling — survivor seat stays old until remount/soft-self.
+- **`deploy_los`** (ADR-0226): `deploy_in_flight` · `pending_staged` · `slot_count` — routine state without shell archaeology.
+- **Default deploy = `mode=ship`** (immutable slot, ADR-0223/0226). Hard is escape only (explicit `mode=hard` / `hard_deploy`).
+- Hard deploy (when explicit) defaults to sibling — survivor seat stays old until remount/soft-self.
 - TM WitDB is seat-local (`StateRoot/{seat}/intent-workspace.witdb`) — sibling does not open primary's file.
 
 ## Entry
 
-- `cdp_health` — seats + ops_pulse
-- `go=deploy` — hard sibling; remount target for new bits
+- `cdp_health` — seats + ops_pulse + deploy_los
+- `go=deploy` / `cdp_deploy` — **default ship** (immutable slot); remount nudge if tools stale after slot swap
 - **Citizen peer path (0.5.569):** `@intent deploy …` host-executes `IdeDeploy.Run`. `go=deploy*` still place-only.
 
 ## Antipatterns
 
 - Shell FileVersionInfo on both installs as first dig.
+- **Bare `cdp_deploy` / `@intent deploy` expecting hard KillRunning** — default is ship since ADR-0226; use explicit `mode=hard` for escape.
 - Hard-deploy self from inside `cdp_shell_*`.
 - `-Target debug` (relative) → lands in repo `cdp-mcp\debug\`, not seat `D:\cdp-mcp-debug` — health still lag; use absolute `D:\cdp-mcp-debug` or `cdp_deploy target=sibling|debug`.
 - Manual `Stop-Process` of same-seat pile while live MCP is among them (prefer remount after `IdeSeatProcessReclaim`; skip via `CDP_SKIP_SEAT_RECLAIM=1` only for intentional multi).
 - Immediate KillRunning on every `Not connected` when process may still be healthy — prefer `Recover-CdpSeatRemount.ps1 -SoftFirst` (nudge only), escalate to kill if still dead.
-- **Green flash then `Not connected` after deploy** — often Cursor MCP stdio zombie while `CdpMcp.exe` still runs; `Recover-CdpSeatRemount.ps1 -Seat cdp` (per-seat nudge). Use **cdp-debug** survivor during primary hard deploy.
+- **Green flash then `Not connected` after deploy** — often Cursor MCP stdio zombie while service still healthy; `Recover-CdpSeatRemount.ps1 -Seat cdp` (per-seat nudge). Prefer **ship/apply** over hard for routine; use **cdp-debug** survivor only when explicit hard sibling is required.
 - Running `pwsh -File CdpReloadNudge.ps1 -Server cdp` expecting a bump — pre-entry the file was library-only (silent no-op). Use `-File` after entry ship, or `.` + `Invoke-CdpReloadNudge`.
 
 ## last_ship
 
+- **2026-09-12 ADR-0226 ship-first defaults** — default `cdp_deploy`/`@intent deploy`/`cdp_ship deploy=true` → `mode=ship`; rollout step3 `apply_staged` (no hard_sibling); `deploy_los` in ops_pulse; seat toml copy-with-retry.
 - **2026-08-21 cdp_deploy mode=apply** — promote staged `.next` → live without republish: stop CdpService, robocopy mirror, clear `cdp-pending-update.json`, restart + bridge nudge. `mode=soft` then `mode=apply` for tool-only ships. Commit 368c2ca.
 - **2026-08-22 bridge deploy-gap (ADR-0203)** — bridge holds `cdp_deploy apply|hard|rollout` until durable job + health; lifecycle poll from disk when service down; no agent shell escape on Not connected during apply.
 - **2026-08-21 Open-stack WitDB pin 14.0.1** — `OutWit.Database.EntityFramework` **12.8.0 → 14.0.1** (nuget.org latest); aligned CDP + Forge + Cascade. EF Relational 10.0.10 transitive unchanged. `dotnet build` CDP green. — `deploy-20260816041304-a9de7e` idle ok 7.2s · debug→sibling · `worker_exe_path`+`ignite_seat` · both **0.5.725** lag=false · `peer_ship` CDT invoked (teeth 04:13:13). Worker `WaitForArmDeliveryAsync` before exit.

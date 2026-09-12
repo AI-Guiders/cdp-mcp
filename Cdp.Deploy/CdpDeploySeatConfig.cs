@@ -38,7 +38,7 @@ public static class CdpDeploySeatConfig
             return;
 
         Directory.CreateDirectory(stagedRoot);
-        File.Copy(source, Path.Combine(stagedRoot, FileName), overwrite: true);
+        CopyWithTransientRetry(source, Path.Combine(stagedRoot, FileName));
     }
 
     /// <summary>Remove repo dev template shipped under <c>config/</c> — not operator SSOT.</summary>
@@ -62,13 +62,49 @@ public static class CdpDeploySeatConfig
         var nested = DevTemplatePath(installRoot);
 
         if (!File.Exists(root) && File.Exists(nested))
-            File.Copy(nested, root, overwrite: false);
+            CopyWithTransientRetry(nested, root, overwrite: false);
 
         if (File.Exists(root) && File.Exists(nested))
         {
             File.Delete(nested);
             TryDeleteEmptyConfigDir(installRoot);
         }
+    }
+
+    static void CopyWithTransientRetry(string source, string dest, bool overwrite = true, int attempts = 8)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
+        for (var i = 0; i < attempts; i++)
+        {
+            try
+            {
+                if (!overwrite && File.Exists(dest))
+                    return;
+                File.Copy(source, dest, overwrite);
+                return;
+            }
+            catch (IOException ex) when (i < attempts - 1 && IsTransientLock(ex))
+            {
+                Thread.Sleep(Math.Min(800, 60 * (i + 1)));
+            }
+            catch (UnauthorizedAccessException ex) when (i < attempts - 1 && IsTransientLock(ex))
+            {
+                Thread.Sleep(Math.Min(800, 60 * (i + 1)));
+            }
+        }
+    }
+
+    static bool IsTransientLock(Exception ex)
+    {
+        for (var e = ex; e is not null; e = e.InnerException)
+        {
+            var m = e.Message;
+            if (m.Contains("cannot access the file", StringComparison.OrdinalIgnoreCase)
+                || m.Contains("being used by another process", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     static void TryDeleteEmptyConfigDir(string deployRoot)

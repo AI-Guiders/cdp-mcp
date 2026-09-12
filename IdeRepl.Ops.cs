@@ -1,6 +1,7 @@
 #nullable enable
 using System.Text;
 using System.Text.Json;
+using Cdp.Deploy;
 
 namespace CdpMcp;
 
@@ -128,58 +129,14 @@ internal static partial class IdeRepl
             return (merged, null);
         }
 
-        if (head is "deploy" or "hard_deploy" or "soft_deploy")
+        if (CdpDeployReplParser.Default.TryParse(head, tokens, out var deploy))
         {
-            merged["go"] = JsonSerializer.SerializeToElement(
-                head is "soft_deploy" ? "soft_deploy" : head is "hard_deploy" ? "hard_deploy" : "deploy");
-            var mode = head is "soft_deploy" ? "soft" : "hard";
-            string? target = null;
-            var dry = false;
-            for (var i = 1; i < tokens.Count; i++)
-            {
-                var t = tokens[i];
-                if (t.StartsWith("target=", StringComparison.OrdinalIgnoreCase))
-                {
-                    target = t["target=".Length..];
-                    continue;
-                }
-
-                if (t.Equals("target", StringComparison.OrdinalIgnoreCase) && i + 1 < tokens.Count)
-                {
-                    target = tokens[++i];
-                    continue;
-                }
-
-                if (t is "soft")
-                {
-                    mode = "soft";
-                    continue;
-                }
-
-                if (t is "hard")
-                {
-                    mode = "hard";
-                    continue;
-                }
-
-                if (t is "dry" or "dry_run" or "peek")
-                {
-                    dry = true;
-                    continue;
-                }
-
-                if (t is "sibling" or "self" or "release" or "debug")
-                {
-                    target ??= t;
-                    continue;
-                }
-            }
-
+            merged["go"] = JsonSerializer.SerializeToElement(deploy.Go);
             merged["go_args"] = JsonSerializer.SerializeToElement(new
             {
-                mode,
-                target,
-                dry_run = dry ? true : (bool?)null
+                mode = deploy.Mode.ToWire(),
+                target = deploy.Target,
+                dry_run = deploy.DryRun ? true : (bool?)null
             });
             return (merged, null);
         }
