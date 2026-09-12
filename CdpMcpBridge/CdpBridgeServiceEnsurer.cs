@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Sockets;
+using Cdp.Config;
 using TerminalMcp.Core;
 
 namespace CdpMcpBridge;
@@ -127,24 +128,11 @@ internal sealed class CdpBridgeServiceEnsurer
 
     internal static string ResolveServiceConfig(CdpBridgeSettings settings)
     {
-        if (!string.IsNullOrWhiteSpace(settings.ServiceConfigPath)
-            && File.Exists(settings.ServiceConfigPath))
-            return settings.ServiceConfigPath;
+        var installDir = settings.InstallDir ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(settings.ServiceConfigPath))
+            return CdpConfigPaths.ResolveServiceConfigPath(settings.ServiceConfigPath, installDir);
 
-        var installDir = settings.InstallDir;
-        if (!string.IsNullOrWhiteSpace(installDir))
-        {
-            var inSeat = Path.Combine(installDir, "cdp-mcp.toml");
-            if (File.Exists(inSeat))
-                return inSeat;
-
-            var nested = Path.Combine(installDir, "config", "cdp-mcp.toml");
-            if (File.Exists(nested))
-                return nested;
-        }
-
-        throw new InvalidOperationException(
-            "Cannot resolve service config for auto-start — pass bridge --config or set [slots].install_dir with cdp-mcp.toml.");
+        return CdpConfigPaths.ResolveServiceConfigPath(null, installDir);
     }
 
     async Task<bool> ProbeHealthyAsync(CancellationToken cancellationToken)

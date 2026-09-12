@@ -25,6 +25,8 @@ public sealed class CdpConfigTowerSection
 
 public sealed class CdpConfigSlotsSection
 {
+    public bool? Enabled { get; set; }
+    public string? Bind { get; set; }
     public string? InstallDir { get; set; }
     public bool? AutoStart { get; set; }
     public int[]? PortRange { get; set; }

@@ -1,5 +1,5 @@
 # Ensure durable CdpService is running (ADR-0198 sidecar).
-# Usage: .\Start-CdpService.ps1 [-Target D:\cdp-service] [-Config D:\cdp-service\cdp-mcp.toml]
+# Usage: .\Start-CdpService.ps1 [-Target D:\cdp-service] [-Config D:\cdp-mcp\cdp-mcp.toml]
 [CmdletBinding()]
 param(
     [string] $Target = "D:\cdp-service",
@@ -15,7 +15,13 @@ if (-not (Test-Path -LiteralPath $exe)) {
 }
 
 if (-not $Config) {
-    $Config = Join-Path $Target "cdp-mcp.toml"
+    $bridgeSsot = if ($env:CDP_MCP_CONFIG) { $env:CDP_MCP_CONFIG } else { "D:\cdp-mcp\cdp-mcp.toml" }
+    if (Test-Path -LiteralPath $bridgeSsot) {
+        $Config = $bridgeSsot
+    }
+    else {
+        $Config = Join-Path $Target "cdp-mcp.toml"
+    }
 }
 
 $healthUrl = "http://127.0.0.1:8771/healthz"
@@ -27,7 +33,7 @@ try {
     }
 } catch { }
 
-Write-Host "Starting CdpService: $exe"
+Write-Host "Starting CdpService: $exe (config: $Config)"
 $args = @("--service", "--config", $Config)
 Start-Process -FilePath $exe -ArgumentList $args -WindowStyle Hidden -WorkingDirectory $Target | Out-Null
 

@@ -148,16 +148,18 @@ static void PrintUsage()
           CdpMcpBridge [--config|-c PATH]
 
         Config (TOML — same cdp-mcp.toml as service):
-          [service]
-          bind = "127.0.0.1"
-          port = 8771
-          token_path = ""   # optional; default %LocalAppData%/cdp-mcp/service-token
-          install_dir = "D:/cdp-service"  # bridge auto-starts sidecar when down
-          auto_start = true               # default true when install_dir set
+          [tower]
+          listen_port = 8771
 
-        Env overrides:
-          CDP_SERVICE_URL=http://127.0.0.1:8771
-          CDP_SERVICE_TOKEN=...
+          [slots]
+          install_dir = "D:/cdp-service"
+          auto_start = true
+
+          [bridge]
+          base_url = "http://127.0.0.1:8771"
+          auto_start_slot = true
+
+        Env: only CDP_MCP_CONFIG (path to file). Config overrides forbidden (ADR-0222).
         """);
 }
 

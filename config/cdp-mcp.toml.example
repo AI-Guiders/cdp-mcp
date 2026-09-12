@@ -129,7 +129,7 @@ priority = 51
 [intent_workspace]
 # database_path = "C:/Users/YOU/AppData/Local/cdp-mcp/intent-workspace.witdb"
 
-# ADR-0222 bootstrap — role-specific sections (preferred over legacy [service] below).
+# ADR-0222 bootstrap — role-specific sections (tower / slots / bridge).
 [tower]
 listen_port = 8771
 # registry = "auto"
@@ -137,6 +137,8 @@ listen_port = 8771
 # probe_timeout_ms = 3000
 
 [slots]
+enabled = true
+bind = "127.0.0.1"
 install_dir = "D:/cdp-service"
 auto_start = true
 # port_range = [8772, 8871]
@@ -147,15 +149,6 @@ auto_start = true
 base_url = "http://127.0.0.1:8771"
 # token_path = ""  # default: %LocalAppData%/cdp-mcp/service-token
 auto_start_slot = true
-
-# Legacy alias — still supported; maps to [tower]/[slots]/[bridge] when new sections omit keys.
-[service]
-enabled = true
-bind = "127.0.0.1"
-# port = 8771  # tower only — see [tower].listen_port; slot bind is PickFreePort 8772..8871
-# token_path = ""
-# install_dir = "D:/cdp-service"
-# auto_start = true
 
 # Operator GUI cockpit host (Start/Stop). Process layer — remount MCP after edit.
 # Windows-first SSOT = WPF Glass (ADR-0021). Avalonia CascadeIDE.exe is agent IDE, not operator glass.

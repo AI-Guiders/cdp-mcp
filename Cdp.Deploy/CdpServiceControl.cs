@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http;
+using Cdp.Config;
 
 namespace Cdp.Deploy;
 
@@ -113,10 +114,7 @@ public static class CdpServiceControl
         if (!File.Exists(exe))
             exe = Path.Combine(dir, "CdpMcp.exe");
 
-        var config = CdpDeploySeatConfig.ResolveSeatConfigPath(dir)
-                     ?? throw new FileNotFoundException(
-                         $"Operator config missing at {CdpDeploySeatConfig.SeatConfigPath(dir)}.",
-                         CdpDeploySeatConfig.SeatConfigPath(dir));
+        var config = CdpConfigPaths.ResolveServiceConfigPath(null, dir);
 
         var psi = new ProcessStartInfo
         {
@@ -138,10 +136,7 @@ public static class CdpServiceControl
         if (!File.Exists(exe))
             exe = Path.Combine(layout.ServiceInstall, "CdpMcp.exe");
 
-        var config = CdpDeploySeatConfig.ResolveSeatConfigPath(layout.ServiceInstall)
-                     ?? throw new FileNotFoundException(
-                         $"Operator config missing at {CdpDeploySeatConfig.SeatConfigPath(layout.ServiceInstall)}.",
-                         CdpDeploySeatConfig.SeatConfigPath(layout.ServiceInstall));
+        var config = CdpConfigPaths.ResolveServiceConfigPath(null, layout.ServiceInstall);
         if (TryHealth(DefaultHealthUrl))
             return;
 

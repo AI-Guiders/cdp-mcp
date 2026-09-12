@@ -66,6 +66,69 @@ public sealed class CdpConfigLoaderTests
     }
 
     [Fact]
+    public void MapSlot_reads_slots_section_before_legacy_service()
+    {
+        var doc = CdpConfigLoader.Parse("""
+            [slots]
+            enabled = false
+            bind = "10.0.0.5"
+
+            [service]
+            enabled = true
+            bind = "127.0.0.1"
+            """);
+
+        var slot = CdpConfigLoader.MapSlot(doc);
+
+        Assert.False(slot.Enabled);
+        Assert.Equal("10.0.0.5", slot.Bind);
+    }
+
+    [Fact]
+    public void Bridge_loader_forbids_service_url_env_override()
+    {
+        Environment.SetEnvironmentVariable("CDP_SERVICE_URL", "http://127.0.0.1:9999");
+        try
+        {
+            var load = CdpBridgeConfigLoader.Load(["--config", "D:/missing/cdp-mcp.toml"]);
+            Assert.False(load.IsSuccess);
+            Assert.Contains("CDP_SERVICE_URL is forbidden", load.Error);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("CDP_SERVICE_URL", null);
+        }
+    }
+
+    [Fact]
+    public void ResolveServiceConfigPath_prefers_bridge_ssot_over_seat_copy()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "cdp-config-paths-" + Guid.NewGuid().ToString("N"));
+        var bridgeSeat = Path.Combine(root, "bridge");
+        var serviceSeat = Path.Combine(root, "service");
+        Directory.CreateDirectory(bridgeSeat);
+        Directory.CreateDirectory(serviceSeat);
+
+        var bridgeToml = Path.Combine(bridgeSeat, "cdp-mcp.toml");
+        var serviceToml = Path.Combine(serviceSeat, "cdp-mcp.toml");
+        File.WriteAllText(bridgeToml, "[bridge]\nbase_url = \"http://127.0.0.1:8771\"\n");
+        File.WriteAllText(serviceToml, "[bridge]\nbase_url = \"http://127.0.0.1:9000\"\n");
+
+        var prior = Environment.GetEnvironmentVariable("CDP_MCP_CONFIG");
+        Environment.SetEnvironmentVariable("CDP_MCP_CONFIG", bridgeToml);
+        try
+        {
+            var resolved = CdpConfigPaths.ResolveServiceConfigPath(null, serviceSeat);
+            Assert.Equal(Path.GetFullPath(bridgeToml), Path.GetFullPath(resolved));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("CDP_MCP_CONFIG", prior);
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public void MapSlot_legacy_service_preserves_enabled_bind_port_token_path()
     {
         var doc = CdpConfigLoader.Parse("""

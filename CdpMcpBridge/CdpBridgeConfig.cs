@@ -29,10 +29,30 @@ internal sealed class CdpBridgeConfigLoadResult
 
 internal static class CdpBridgeConfigLoader
 {
+    static readonly (string Env, string TomlHint)[] ForbiddenEnvOverrides =
+    [
+        ("CDP_SERVICE_URL", "[bridge].base_url"),
+        ("CDP_SERVICE_TOKEN", "[bridge].token_path"),
+        ("CDP_SERVICE_INSTALL_DIR", "[slots].install_dir"),
+        ("CDP_SERVICE_AUTO_START", "[slots].auto_start / [bridge].auto_start_slot"),
+    ];
+
     internal static CdpBridgeConfigLoadResult Load(string[] args)
     {
         if (args.Contains("--help") || args.Contains("-h"))
             return new() { IsHelp = true };
+
+        foreach (var (env, hint) in ForbiddenEnvOverrides)
+        {
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(env)))
+                continue;
+
+            return new()
+            {
+                IsSuccess = false,
+                Error = $"{env} is forbidden (ADR-0222); use {hint} in cdp-mcp.toml."
+            };
+        }
 
         var configPath = ResolveConfigPath(args);
         if (configPath is null)
@@ -45,68 +65,32 @@ internal static class CdpBridgeConfigLoader
         var bridge = CdpConfigLoader.MapBridge(doc);
         var resolvedTokenPath = bridge.TokenPath ?? CdpConfigLoader.DefaultTokenPath();
 
-        var baseUrl = Environment.GetEnvironmentVariable("CDP_SERVICE_URL");
-        Uri uri;
-        if (!string.IsNullOrWhiteSpace(baseUrl))
-        {
-            WarnDeprecatedEnv("CDP_SERVICE_URL", "[bridge].base_url");
-            if (!Uri.TryCreate(baseUrl.Trim(), UriKind.Absolute, out uri!))
-                return new() { IsSuccess = false, Error = $"Invalid CDP_SERVICE_URL: {baseUrl}" };
-        }
-        else
-        {
-            uri = bridge.BaseUrl;
-        }
+        if (!File.Exists(resolvedTokenPath))
+            return new() { IsSuccess = false, Error = $"Service token missing: {resolvedTokenPath}. Start CdpService first." };
 
-        var token = Environment.GetEnvironmentVariable("CDP_SERVICE_TOKEN");
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            if (!File.Exists(resolvedTokenPath))
-                return new() { IsSuccess = false, Error = $"Service token missing: {resolvedTokenPath}. Start CdpService first." };
-            token = File.ReadAllText(resolvedTokenPath).Trim();
-        }
-        else
-        {
-            WarnDeprecatedEnv("CDP_SERVICE_TOKEN", "[bridge].token_path");
-        }
-
+        var token = File.ReadAllText(resolvedTokenPath).Trim();
         if (string.IsNullOrWhiteSpace(token))
             return new() { IsSuccess = false, Error = "Empty service token." };
 
-        var installDir = Environment.GetEnvironmentVariable("CDP_SERVICE_INSTALL_DIR");
-        if (string.IsNullOrWhiteSpace(installDir))
-            installDir = bridge.InstallDir;
-        else
-            WarnDeprecatedEnv("CDP_SERVICE_INSTALL_DIR", "[slots].install_dir");
-        installDir = string.IsNullOrWhiteSpace(installDir) ? null : Path.GetFullPath(installDir.Trim());
-
-        var autoStart = bridge.AutoStart;
-        if (Environment.GetEnvironmentVariable("CDP_SERVICE_AUTO_START") is { Length: > 0 } autoRaw
-            && bool.TryParse(autoRaw, out var autoEnv))
-        {
-            WarnDeprecatedEnv("CDP_SERVICE_AUTO_START", "[slots].auto_start / [bridge].auto_start_slot");
-            autoStart = autoEnv;
-        }
+        var installDir = string.IsNullOrWhiteSpace(bridge.InstallDir)
+            ? null
+            : Path.GetFullPath(bridge.InstallDir.Trim());
 
         return new()
         {
             IsSuccess = true,
             Settings = new CdpBridgeSettings
             {
-                BaseUrl = uri,
+                BaseUrl = bridge.BaseUrl,
                 Token = token,
                 TokenPath = resolvedTokenPath,
                 InstallDir = installDir,
                 ServiceConfigPath = configPath,
-                AutoStart = autoStart
+                AutoStart = bridge.AutoStart
             },
             ConfigPath = configPath
         };
     }
-
-    static void WarnDeprecatedEnv(string envName, string tomlHint) =>
-        Console.Error.WriteLine(
-            $"WARNING: {envName} is deprecated (ADR-0222); use {tomlHint} in cdp-mcp.toml.");
 
     static string? ResolveConfigPath(string[] args) =>
         ConfigPathResolver.TryResolve(args, "CDP_MCP_CONFIG");

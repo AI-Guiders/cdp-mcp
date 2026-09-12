@@ -49,7 +49,19 @@ public static class CdpConfigLoader
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             return new CdpConfigDocument();
 
-        return Parse(File.ReadAllText(path));
+        var text = File.ReadAllText(path);
+        EmitValidation(text, path);
+        return Parse(text);
+    }
+
+    public static void EmitValidation(string toml, string? path = null)
+    {
+        var result = CdpConfigValidator.Validate(toml, CdpConfigValidator.IsStrictMode);
+        var suffix = path is null ? "" : $" (config: {path})";
+        foreach (var w in result.Warnings)
+            Console.Error.WriteLine($"WARNING: {w}{suffix}");
+        if (!result.Ok)
+            throw new InvalidOperationException(string.Join("; ", result.Errors));
     }
 
     public static CdpConfigDocument Parse(string toml) =>
@@ -69,13 +81,15 @@ public static class CdpConfigLoader
 
     public static CdpSlotRoleConfig MapSlot(CdpConfigDocument doc)
     {
+        var slots = doc.Slots;
         var service = doc.Service;
         return new CdpSlotRoleConfig
         {
-            Enabled = service?.Enabled ?? true,
+            Enabled = slots?.Enabled ?? service?.Enabled ?? true,
             Bind = ResolveBind(doc),
             Port = 0,
-            TokenPath = NormalizeOptionalPath(service?.TokenPath)
+            TokenPath = NormalizeOptionalPath(doc.Bridge?.TokenPath)
+                ?? NormalizeOptionalPath(service?.TokenPath)
         };
     }
 
@@ -117,6 +131,9 @@ public static class CdpConfigLoader
 
     static string ResolveBind(CdpConfigDocument doc)
     {
+        if (!string.IsNullOrWhiteSpace(doc.Slots?.Bind))
+            return doc.Slots.Bind.Trim();
+
         if (!string.IsNullOrWhiteSpace(doc.Service?.Bind))
             return doc.Service.Bind.Trim();
 

@@ -51,19 +51,17 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 
 ---
 
-## 4. Конфиг-файлы (ADR-0222 slice A — shipped 2026-09-12)
+## 4. Конфиг-файлы (ADR-0222 — shipped 2026-09-12)
 
 | Файл | Читает | Роль / секции |
 |---|---|---|
-| **`D:\cdp-mcp\cdp-mcp.toml`** | **мост** (SSOT), **ensurer→слот** (bridge `--config` first), **вышка** `[tower]` | `[tower]` `[slots]` `[bridge]` + legacy `[service]` |
-| `D:\cdp-service\cdp-mcp.toml` | fallback если `--config` не передан | синхронизирован с SSOT |
-| `D:\cdp-gatekeeper\cdp-mcp.toml` | **не используется** | мёртвая копия |
+| **`D:\cdp-mcp\cdp-mcp.toml`** | **мост** (SSOT), **ensurer→слот**, **вышка** `[tower]`, **deploy/Start-CdpService** | `[tower]` `[slots]` `[bridge]` |
+| `D:\cdp-service\cdp-mcp.toml` | hardlink → SSOT (`Sync-CdpConfigSsot.ps1`) | не отдельная копия |
+| `D:\cdp-gatekeeper\cdp-mcp.toml` | hardlink → SSOT (опционально) | не отдельная копия |
 | `%LocalAppData%\cdp-mcp\slots.witdb` | вышка + слот | реестр слотов (CdpSlotRegistry) |
 | `%LocalAppData%\cdp-mcp\cdp-state.witdb` | слот | runtime-state SSOT (ADR-0219) |
 
-**Канон:** один TOML, `CdpConfigLoader`, env-оверрайды конфигурации deprecated (warn). Путь к файлу: `CDP_MCP_CONFIG` / `--config`.
-
-**Остаток 0222:** strict validator, удаление legacy `[service]`, deploy scripts → SSOT only.
+**Канон:** один TOML, `CdpConfigLoader` + `CdpConfigValidator` (warn; `CDP_CONFIG_STRICT=1` → fail). Путь к файлу: `CDP_MCP_CONFIG` / `--config`. Env-оверрайды конфигурации **запрещены** (hard-fail в bridge loader).
 
 ---
 
@@ -110,7 +108,7 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 | 0219 | Habitat state consolidation — one witdb per root | Draft | 2026-09-07 |
 | 0220 | In-Generation Procedural Execution | Draft | 2026-09-08 |
 | 0221 | CDP Virtualization — per-line instances | Draft | — |
-| 0222 | Configuration management — один TOML | Accepted (slice A 2026-09-12) | 2026-09-10 |
+| 0222 | Configuration management — один TOML | Accepted | 2026-09-10 |
 | 0223 | Ship — слот из immutable-снимка (stage 3 0209) | Accepted | 2026-09-10 |
 
 > **Примечание:** статусы нормализованы 2026-09-10 к единому inline-формату `**Status:** Accepted|Proposed|Draft` (суффиксы реализации сохранены). Реестр фиксирует фактическое состояние.
@@ -132,6 +130,5 @@ MCP-клиент (opencode) ──stdio──▶ CdpMcpBridge ──HTTP──�
 
 ## 7. Куда движемся
 
-- **ADR-0222 (остаток):** strict validator, удаление legacy `[service]`, deploy scripts → SSOT path only.
 - **ADR-0219 (Draft):** habitat state consolidation — one witdb per root.
 - **Реестр ADR → pre-commit hook** (секция 1): каждый новый ADR обязан иметь строку в реестре.
