@@ -185,7 +185,14 @@ function Merge-McpServers([string]$TargetPath, [string]$Command, [string[]]$Args
     if ($mcp.mcpServers) {
         $mcp.mcpServers.PSObject.Properties | ForEach-Object { $servers[$_.Name] = $_.Value }
     }
-    $servers["cdp"] = [pscustomobject]@{ command = $Command; args = @($Args) }
+    $env = [ordered]@{}
+    if ($servers.Contains('cdp') -and $servers['cdp'].env) {
+        $servers['cdp'].env.PSObject.Properties | ForEach-Object { $env[$_.Name] = $_.Value }
+    }
+    if (-not $env.Contains('CDP_RELOAD_NUDGE')) {
+        $env['CDP_RELOAD_NUDGE'] = 'bootstrap'
+    }
+    $servers['cdp'] = [pscustomobject]@{ command = $Command; args = @($Args); env = [pscustomobject]$env }
     $mcp.mcpServers = [pscustomobject]$servers
     Write-Utf8File $TargetPath ($mcp | ConvertTo-Json -Depth 12)
     Write-Host "Merged mcp key 'cdp' -> $TargetPath"

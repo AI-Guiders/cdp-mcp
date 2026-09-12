@@ -57,7 +57,7 @@ internal static partial class MetaDispatch
                 ? "Prefer go=deploy / cdp_deploy from the survivor seat (sibling Target). " +
                   "apply|hard|rollout: bridge holds CallTool until durable job + health (ADR-0203) — no shell escape on Not connected. " +
                   "Hard KillRunning + per-seat CDP_RELOAD_NUDGE (0.5.661; -NudgeAllSeats escape) unless -NoNudgeMcp. " +
-                  "Not connected + exe still up: terminal_* Recover-CdpSeatRemount.ps1 -Seat cdp|cdp-debug (Cursor stdio zombie). " +
+                  "Not connected + exe still up: terminal_* Recover-CdpSeatRemount.ps1 -Seat cdp|cdp-debug (kill CdpMcpBridge + apply pending + nudge). " +
                   "Fallback: human Reload. Soft stages <target>.next + cdp-pending-update.json; apply with cdp_deploy mode=apply. " +
                   "Cold tools auto-warm desk bookmark once/process. Prefer cdp_health + explain_tool before guessing."
                 : "pulse default — detail=full for LSP resolved_probe + long recovery_note",
