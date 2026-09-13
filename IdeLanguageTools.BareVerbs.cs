@@ -206,20 +206,11 @@ internal static partial class IdeLanguageTools
         {
             file_path = new { type = "string" },
             language = new { type = "string", description = "optional override from [languages] config" },
-            scope = new
-            {
-                type = "string",
-                description = "syntax|project|solution. Default after cdp_open: project when file is under open root (not .cdp/scratch); else syntax."
-            },
-            solution_or_project_path = new
-            {
-                type = "string",
-                description = "optional; default session anchor after cdp_open"
-            }
+            scope = new { type = "string", description = "syntax|project|solution. Default after cdp_open: project when file is under open root (not .cdp/scratch); else syntax." },
+            solution_or_project_path = new { type = "string", description = "optional; default session anchor after cdp_open" }
         },
         required = new[] { "file_path" }
     };
-
     private static object PositionalSchema() => new
     {
         type = "object",
