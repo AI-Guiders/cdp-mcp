@@ -40,6 +40,13 @@ public sealed class CdpDeployReplParserTests
     }
 
     [Fact]
+    public void Target_keyed_value_splits_on_first_equals_only()
+    {
+        Assert.True(Parser.TryParse("deploy", ["deploy", "target=path=with=equals"], out var cmd));
+        Assert.Equal("path=with=equals", cmd.Target);
+    }
+
+    [Fact]
     public void Unknown_head_is_not_handled()
     {
         Assert.False(Parser.TryParse("ship_git", ["ship_git"], out _));

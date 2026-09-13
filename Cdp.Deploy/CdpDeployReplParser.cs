@@ -1,3 +1,5 @@
+using AIGuiders.Platform.Notations;
+
 namespace Cdp.Deploy;
 
 /// <summary>REPL/CCL deploy steer — parsed command (go + deploy args).</summary>
@@ -108,10 +110,10 @@ public sealed class CdpDeployReplParser
         public bool TryApply(TokenScan scan)
         {
             var token = scan.Current;
-            var prefix = key + "=";
-            if (token.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            if (NotationKvPair.TrySplitFirst(token, '=', out var kv, out _)
+                && kv.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
             {
-                assign(scan, token[prefix.Length..]);
+                assign(scan, kv.Value);
                 return true;
             }
 

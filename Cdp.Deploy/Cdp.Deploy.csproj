@@ -7,6 +7,7 @@
     <RootNamespace>Cdp.Deploy</RootNamespace>
     <AssemblyName>Cdp.Deploy</AssemblyName>
     <Version>0.1.0</Version>
+    <GuidersPlatformVersion Condition="'$(GuidersPlatformVersion)' == ''">0.31.0</GuidersPlatformVersion>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -15,6 +16,12 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Tomlyn" Version="2.10.1" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalGuidersPlatform)' == 'true'">
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Notations.Argument.Kv\AIGuiders.Platform.Notations.Argument.Kv.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalGuidersPlatform)' != 'true'">
+    <PackageReference Include="AIGuiders.Platform.Notations.Argument.Kv" Version="$(GuidersPlatformVersion)" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\cdp-mcp.defaults.toml" />
