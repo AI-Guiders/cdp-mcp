@@ -32,6 +32,8 @@ Directory.Build.user.props
 .cdp/evidence/
 .cdp/plans/
 .cdp/share/
+# Local deploy smoke logs (go=deploy dry/live captures)
+.cdp/deploy-*.log
 .cascade-ide/
 publish-debug/
 .deploy-worker/
