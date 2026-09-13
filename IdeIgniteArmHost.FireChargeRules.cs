@@ -33,6 +33,7 @@ internal sealed partial class CdpIgniteArmHost
             new RemountFireChargeRule(),
             new OomFireChargeRule(),
             new EscalateFireChargeRule(),
+            new BuildFinishedFireChargeRule(),
             new MinimalFireChargeRule(),
         ];
 
@@ -75,6 +76,25 @@ internal sealed partial class CdpIgniteArmHost
 
         public string Select(FireChargeComposeContext context) =>
             IdeIgniteChannel.ComposeEscalateWakeCharge(context.ProjectRoot, context.FocusHint);
+    }
+
+    sealed class BuildFinishedFireChargeRule : IRule<FireChargeComposeContext, string>
+    {
+        public bool Applies(FireChargeComposeContext context) =>
+            string.Equals(context.Arm.Event, "build_finished", StringComparison.OrdinalIgnoreCase)
+            && context.Ok;
+
+        public string Select(FireChargeComposeContext context)
+        {
+            var preflight = IdeIgniteChannel.WakeChargePreflight.Probe();
+            var tier = IsMinimalChargeMode(context.Arm.ChargeMode)
+                ? IdeIgniteChannel.WakeChargeTier.Minimal
+                : preflight.Tier;
+            return IdeIgniteChannel.ComposeWakeBody(
+                preflight,
+                tier,
+                leadPrefix: "reason=build_finished ok — dirty tree → git_plan / cdp_ship (not shell git).");
+        }
     }
 
     sealed class MinimalFireChargeRule : IRule<FireChargeComposeContext, string>

@@ -176,6 +176,8 @@ internal static partial class IdeSessionLifecycle
 
         var ok = LooksLifecycleOk(result);
         IdeIgniteArmHost.Notify("build_finished", ok, pulse: ok ? "ok" : "fail", detail: target);
+        if (ok)
+            result = IdeBuildShipBridge.AnnotateBuildResult(result, session);
         return result;
     }
 

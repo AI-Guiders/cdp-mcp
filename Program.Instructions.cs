@@ -15,7 +15,7 @@ internal static partial class ProgramHost
         "Buffer plane: cdp_buffer op=open|edit|… — edit returns diagnostics in-result (almost-online while you keep the turn). " +
         "Debug plane: cdp_debug op=bp_add|launch|stop_context|… — session defaults after cdp_open; .csproj is BP key, launch resolves dll under bin/; JSON file is storage only. " +
         "IDE verbs (harness routes LSP): go_to_definition, find_usages, get_document_symbols, get_symbol_at_position, get_diagnostics, resolve_project_root, get_workspace_navigation_context. " +
-        "Prefer cdp_build/cdp_run/cdp_test/cdp_pkg_*/cdp_project_*/cdp_sln_* over shell for session project. " +
+        "Prefer cdp_build/cdp_run/cdp_test/cdp_pkg_*/cdp_project_*/cdp_sln_* over shell for session project. Green cdp_build/cdp_csx_run with dirty tree returns next[] → git_plan/cdp_ship (not shell git). " +
         "Agent shell habitat: cdp_shell_* = primary IDE terminal; sibling terminal-mcp (terminal_*) = escape only. " +
         "Multi-step IDE (default): batch intent in CSX — one cdp_csx_run → one ScriptReport (steps+result); avoid sprawl of separate roslyn_/git_/cdp_ calls when ≥2 related IDE actions. cdp_csx_help op=toc|of first if unsure. Sandbox: cdp_csx_run_plan → promote|discard. " +
         "CSX: cdp_script_scene (put→diags→check→run) | cdp_csx_help | cdp_csx_check | cdp_csx_run | cdp_csx_run_plan | promote | discard | cdp_evidence. " +

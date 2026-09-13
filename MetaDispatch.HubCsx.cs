@@ -148,7 +148,10 @@ internal static partial class MetaDispatch
         { IsDryRun = dry };
         var report = await ScriptHost.RunAsync(code, bus, plan, dry ? "dry_run" : "run", cancellationToken)
             .ConfigureAwait(false);
-        return JsonSerializer.Serialize(report, Pretty);
+        var reportJson = JsonSerializer.Serialize(report, Pretty);
+        if (report.Ok && !dry)
+            reportJson = IdeBuildShipBridge.AnnotateCsxRunReport(reportJson, session);
+        return reportJson;
     }
     case "cdp_csx_run_plan":
     {

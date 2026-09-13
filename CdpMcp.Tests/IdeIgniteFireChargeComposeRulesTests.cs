@@ -71,6 +71,17 @@ public sealed class IdeIgniteFireChargeComposeRulesTests
         Assert.Contains("reason=escalate", charge, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void ComposeFireCharge_build_finished_includes_ship_lead()
+    {
+        var arm = MinimalArm();
+        arm.Event = "build_finished";
+
+        var charge = InvokeCompose(arm);
+        Assert.Contains("reason=build_finished ok", charge, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("git_plan", charge, StringComparison.OrdinalIgnoreCase);
+    }
+
     static string InvokeCompose(IdeIgniteArmHost.IgniteArm arm) =>
         (string)typeof(CdpIgniteArmHost).GetMethod(
                 "ComposeFireCharge",

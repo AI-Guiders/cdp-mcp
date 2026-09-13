@@ -1,11 +1,29 @@
 #nullable enable
 
+using System.Text.Json;
+using Cdp.Core;
 using CdpMcp.Habitat;
 
 namespace CdpMcp;
 
 internal static partial class IdeBuildSaChannel
 {
+    static readonly IReadOnlyDictionary<string, JsonElement> ShipBridgeArgs =
+        new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+
+    /// <summary>After green build/test: ship next[] when scm is dirty (reuse Build-SA table).</summary>
+    internal static (object[]? Next, string? Verdict) TryShipNextAfterGreenBuild(SessionContext session)
+    {
+        var snap = Capture(session, ShipBridgeArgs);
+        if (snap.Dirty.Count == 0)
+            return (null, null);
+
+        var (verdict, _) = Decide(snap, "ship");
+        if (verdict is not ("ship" or "preflight" or "push"))
+            return (null, null);
+
+        return (BuildNext(snap, verdict), verdict);
+    }
     static string PulseLine(Snap snap, string verdict)
     {
         var dap = snap.ActiveDap ? (snap.Stopped ? "DAP STOPPED" : "DAP active") : "dap idle";
@@ -59,6 +77,7 @@ internal static partial class IdeBuildSaChannel
         ["ship"] =
         [
             new("git_draft", "git_plan", "logical commits"),
+            new("ship_git", "cdp_ship", "one-call git_plan apply+push"),
             new("ecl", "ECL ship", "checklist"),
             new("qrh", "QRH ship-dirty", "procedure"),
         ],
