@@ -129,7 +129,7 @@ internal static partial class IdeRepl
             return (merged, null);
         }
 
-        if (CdpDeployReplParser.Default.TryParse(head, tokens, out var deploy))
+        if (CdpDeployCatalogResolver.Default.TryParse(head, tokens, out var deploy))
         {
             merged["go"] = JsonSerializer.SerializeToElement(deploy.Go);
             merged["go_args"] = JsonSerializer.SerializeToElement(new

@@ -25,4 +25,4 @@ dotnet exec ..\authoring-toolchain\src\Gdlc.Cli\bin\Release\net10.0\gdlc.dll emi
 
 ## v1 scope
 
-Commands: `deploy`, `hard_deploy`, `soft_deploy` only. Mode/target/dry_run arg parsing stays in `CdpDeployReplParser` until `CdpDeployCatalogResolver` lands (CommandPlane + Notations).
+Commands: `deploy`, `hard_deploy`, `soft_deploy` only. Mode/target/dry_run arg parsing via `CdpDeployCatalogResolver` (ConsoleCommandNotation + catalog longest-prefix; GUIDERS-ADR-0065).

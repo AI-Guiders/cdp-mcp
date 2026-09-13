@@ -1,5 +1,6 @@
 #nullable enable
 
+using Cdp.Deploy;
 using CdpMcp.Habitat;
 
 namespace CdpMcp;
@@ -7,51 +8,26 @@ namespace CdpMcp;
 /// <summary>Citizen @intent deploy — dual-instance publish without Cursor MCP (go=deploy place-only).</summary>
 internal static partial class CitizenIntentRouter
 {
-    static readonly PrefixOpRule[] DeployModePrefixRules =
-    [
-        new("hard", "hard_deploy"),
-        new("soft", "soft_deploy"),
-    ];
-
     static Route RouteDeploy(string raw)
     {
-        var head = raw.Trim();
-        string? mode = ExtractKeyedValue(raw, "mode");
-        if (string.IsNullOrWhiteSpace(mode))
-        {
-            mode = PrefixOpTable.Match(head, DeployModePrefixRules);
-            if (string.IsNullOrWhiteSpace(mode) && raw.StartsWith("deploy ", StringComparison.OrdinalIgnoreCase))
-            {
-                var rest = raw["deploy ".Length..].Trim();
-                var headSp = rest.IndexOf(' ');
-                var token = headSp < 0 ? rest : rest[..headSp];
-                if (token.Length > 0 && !token.Contains('=', StringComparison.Ordinal)
-                    && token is "hard" or "soft" or "rollout" or "apply" or "ship")
-                    mode = token;
-            }
-        }
+        var trimmed = raw.Trim();
+        if (!CdpDeployCatalogResolver.Default.TryParseLine(trimmed, out var cmd))
+            return new Route(Verb.Unknown, raw, Ok: false, Reason: "deploy_head_unknown");
 
-        mode = string.IsNullOrWhiteSpace(mode) ? "ship" : mode.Trim().ToLowerInvariant();
-        mode = mode switch
-        {
-            "h" or "hard" or "kill" => "hard",
-            "s" or "soft" or "stage" => "soft",
-            "r" or "rollout" or "dual" => "rollout",
-            "a" or "apply" or "pending" or "apply_pending" => "apply",
-            "sh" or "ship" or "slot" => "ship",
-            _ => mode
-        };
+        var modeToken = ExtractKeyedValue(trimmed, "mode");
+        if (!string.IsNullOrWhiteSpace(modeToken) && !CdpDeployModeParser.TryParse(modeToken, out _))
+            return new Route(Verb.Unknown, raw, Ok: false, Reason: "deploy_mode_unknown");
 
+        var mode = cmd.Mode.ToWire();
         if (mode is not "hard" and not "soft" and not "rollout" and not "apply" and not "ship")
             return new Route(Verb.Unknown, raw, Ok: false, Reason: "deploy_mode_unknown");
 
-        var target = ExtractKeyedValue(raw, "target") ?? ExtractKeyedValue(raw, "to");
         return new Route(
             Verb.Deploy,
             raw,
             Ok: true,
             Op: mode,
-            Detail: string.IsNullOrWhiteSpace(target) ? null : target.Trim(),
+            Detail: cmd.Target,
             Go: "deploy");
     }
 }
