@@ -209,6 +209,14 @@ internal static partial class IdeLanguageTools
             }
         }
 
+        if (name == "get_diagnostics" && !dict.ContainsKey("scope"))
+        {
+            dict.TryGetValue("file_path", out var scopeFp);
+            var scopePath = scopeFp.ValueKind == JsonValueKind.String ? scopeFp.GetString() : null;
+            var scope = DiagnosticsScopePolicy.ResolveDefault(session, scopePath);
+            dict["scope"] = JsonSerializer.SerializeToElement(scope);
+        }
+
         return dict;
     }
 

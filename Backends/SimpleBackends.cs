@@ -138,7 +138,7 @@ internal sealed class RoslynBackend(CdpSettings settings) : ICdpBackendModule
                     || scope.Equals("file", StringComparison.OrdinalIgnoreCase)))
                 return false;
 
-            // Default in Core: file_path set → syntax — match that without registering MSBuild.
+            // Bare get_diagnostics injects scope before roslyn; direct calls without scope stay syntax-only.
             if (args.TryGetValue("file_path", out var fp)
                 && fp.ValueKind == JsonValueKind.String
                 && !string.IsNullOrWhiteSpace(fp.GetString())

@@ -60,36 +60,7 @@ internal static partial class TakeShip
     }
 
     static string DefaultVerifyScope(SessionContext session, DocBuffer buf)
-    {
-        var root = session.ProjectRoot;
-        if (root is not { Length: > 0 } || session.SolutionOrProjectPath is not { Length: > 0 })
-            return "syntax";
-
-        try
-        {
-            var full = Path.GetFullPath(buf.Path);
-            var rootFull = Path.GetFullPath(root);
-            if (!rootFull.EndsWith(Path.DirectorySeparatorChar)
-                && !rootFull.EndsWith(Path.AltDirectorySeparatorChar))
-                rootFull += Path.DirectorySeparatorChar;
-
-            if (!full.StartsWith(rootFull, StringComparison.OrdinalIgnoreCase))
-                return "syntax";
-
-            // Staging under .cdp/scratch = example on the knee — syntax only.
-            var rel = Path.GetRelativePath(root, full);
-            if (rel.StartsWith(".cdp" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
-                || rel.StartsWith(".cdp" + Path.AltDirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(rel, ".cdp", StringComparison.OrdinalIgnoreCase))
-                return "syntax";
-
-            return "project";
-        }
-        catch
-        {
-            return "syntax";
-        }
-    }
+        => DiagnosticsScopePolicy.ResolveDefault(session, buf.Path);
 
     static string? OptString(IReadOnlyDictionary<string, JsonElement> args, string key)
     {

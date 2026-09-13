@@ -61,7 +61,7 @@ internal static partial class MetaToolCatalog
             discard = new { type = "boolean", description = "close only: with flush=false, required to drop dirty buffer without writing." },
             refresh = new { type = "boolean", description = "open: reload from disk; diagnostics: soft prefer-cache when false" },
             force = new { type = "boolean", description = "diagnostics: recompute even if version unchanged; edit set_text on existing: escape ADX-HX-001 soft-refuse; edit flush: overwrite when material disk drift (else refuse → reload|keep_disk|force)" },
-            scope = new { type = "string", description = "diagnostics: syntax|project|solution; find: buffer|project|files|external (default buffer)" },
+            scope = new { type = "string", description = "diagnostics: syntax|project|solution (default project after cdp_open when path under open root, not .cdp/scratch); find: buffer|project|files|external (default buffer)" },
             overwrite = new { type = "boolean", description = "create: allow replace existing file" },
             allow_shrink = new { type = "boolean", description = "edit set_text: required when new body is shorter than on-disk file" },
             start_line = new { type = "integer" },

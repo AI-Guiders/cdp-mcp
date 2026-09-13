@@ -20,7 +20,7 @@ internal static partial class DocumentEditPlane
         // force=true → recompute even if version unchanged. refresh=false kept as soft "prefer cache".
         var force = BoolOr(args, "force", defaultValue: false);
         var refresh = BoolOr(args, "refresh", defaultValue: true);
-        var scope = OptString(args, "scope") ?? "syntax";
+        var scope = DiagnosticsScopePolicy.ResolveDefault(session, resolved ?? buf.Path, OptString(args, "scope"));
         if (CsxBufferDiagnostics.IsCsxPath(buf.Path)
             && (scope is "syntax" or "csx" or "script" or "parse" or "file"))
             scope = CsxBufferDiagnostics.Scope;

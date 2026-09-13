@@ -16,7 +16,7 @@ internal static partial class IdeLanguageTools
         yield return Tool("find_usages", "IDE: find references/usages. Harness routes by session language.", PositionalSchema());
         yield return Tool("get_document_symbols", "IDE: outline symbols in a file.", new { type = "object", properties = new { file_path = new { type = "string" }, language = new { type = "string", description = "optional override from [languages] config" } }, required = new[] { "file_path" } });
         yield return Tool("get_symbol_at_position", "IDE: symbol / hover at position.", PositionalSchema());
-        yield return Tool("get_diagnostics", "IDE: diagnostics for a file (prefer over host ReadLints when language is open).", new { type = "object", properties = new { file_path = new { type = "string" }, language = new { type = "string", description = "optional override" } }, required = new[] { "file_path" } });
+        yield return Tool("get_diagnostics", "IDE: diagnostics for a file (prefer over host ReadLints when language is open). After cdp_open: default scope=project for files under open root (not .cdp/scratch); pass scope=syntax for parse-only peek.", DiagnosticsSchema());
         yield return Tool("get_completions", "IDE: IntelliSense (Ctrl+Space). Completions at caret with rendered XML docs (summary/params). csharp first; injects open buffer text.", new { type = "object", properties = new { file_path = new { type = "string" }, line = new { type = "integer", description = "1-based caret" }, column = new { type = "integer", description = "1-based caret" }, prefix = new { type = "string", description = "optional filter" }, max = new { type = "integer", description = "cap (default 40)" }, language = new { type = "string" }, solution_or_project_path = new { type = "string" } }, required = new[] { "file_path", "line", "column" } });
         yield return Tool("get_signature_help", "IDE: signature help inside a call — overloads + parameter XML docs (VS tip, text). csharp first.", new { type = "object", properties = new { file_path = new { type = "string" }, line = new { type = "integer", description = "1-based inside call" }, column = new { type = "integer", description = "1-based inside call" }, language = new { type = "string" }, solution_or_project_path = new { type = "string" } }, required = new[] { "file_path", "line", "column" } });
         yield return Tool("find", "IDE: Find in buffer (VS Ctrl+F). Same shelf as get_completions — query= → hits with line/column/anchor. Alias: get_find. scope=project → find_in_files.", FindSchema());
@@ -199,6 +199,27 @@ internal static partial class IdeLanguageTools
             }
         }
     };
+    private static object DiagnosticsSchema() => new
+    {
+        type = "object",
+        properties = new
+        {
+            file_path = new { type = "string" },
+            language = new { type = "string", description = "optional override from [languages] config" },
+            scope = new
+            {
+                type = "string",
+                description = "syntax|project|solution. Default after cdp_open: project when file is under open root (not .cdp/scratch); else syntax."
+            },
+            solution_or_project_path = new
+            {
+                type = "string",
+                description = "optional; default session anchor after cdp_open"
+            }
+        },
+        required = new[] { "file_path" }
+    };
+
     private static object PositionalSchema() => new
     {
         type = "object",
