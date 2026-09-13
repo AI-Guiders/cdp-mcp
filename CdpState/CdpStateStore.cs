@@ -600,37 +600,34 @@ public static class CdpStateStoreDb
         }
     }
 
+    /// <summary>Migration-on-first-run (P0): upsert канонических записей из <see cref="CdpStoreRegistryCatalog"/>.
+    /// Идемпотентно — дополняет реестр после апгрейда (GS-HS1 partial).</summary>
     static void EnsureRegistrySeeded(CdpStateDbContext db)
     {
-        if (db.Registry.AsNoTracking().Any())
-            return;
         var now = DateTimeOffset.UtcNow;
-        CdpStoreRegistryEntity Row(string name, string owner, string format, string? note = null) =>
-            new() { Name = name, Owner = owner, Format = format, Note = note, StampedUtc = now };
-        db.Registry.AddRange(
-            Row("wake", "CideWakeDispatch (ADR-0213)", "witdb"),
-            Row("arms", "IdeIgniteArmHost (ADR-0219 W1)", "witdb"),
-            Row("store-registry", "CdpStateStore (ADR-0219 P0)", "witdb"),
-            Row("queue-state", "CdpStateStore queue seats", "witdb"),
-            Row("wake-subscriptions", "NotificationCenter (ADR-0213)", "witdb"),
-            Row("latch_docs", "latch latches + pressure-stash:{seat} (P2-P3)", "witdb"),
-            Row("pressure-memos", "IdePressureChannel (ADR-0219 P3)", "witdb"),
-            GS1("cide-latches", "IDE interop latch zoo (~25 Cide*Latch LATEST files; identity/presence mirrored to witdb)"),
-            GS1("teeth-tape", "CIDE teeth tape jsonl — wake/delivery audit, interop"),
-            GS1("remount-wake", "remount-*.pending.json — service restart wake notes, interop"),
-            GS1("cdb-channel", "IDE status/telemetry channel to CdpService host, interop"));
-        db.SaveChanges();
-    }
-
-    static CdpStoreRegistryEntity GS1(string name, string note) =>
-        new()
+        var changed = false;
+        foreach (var canonical in CdpStoreRegistryCatalog.ToEntities(now))
         {
-            Name = name,
-            Owner = "GS-HS1 interop channels",
-            Format = "file",
-            Note = note,
-            StampedUtc = DateTimeOffset.UtcNow
-        };
+            var row = db.Registry.Find(canonical.Name);
+            if (row is null)
+            {
+                db.Registry.Add(canonical);
+                changed = true;
+            }
+            else if (!string.Equals(row.Owner, canonical.Owner, StringComparison.Ordinal)
+                     || !string.Equals(row.Format, canonical.Format, StringComparison.Ordinal)
+                     || !string.Equals(row.Note, canonical.Note, StringComparison.Ordinal))
+            {
+                row.Owner = canonical.Owner;
+                row.Format = canonical.Format;
+                row.Note = canonical.Note;
+                row.StampedUtc = now;
+                changed = true;
+            }
+        }
+        if (changed)
+            db.SaveChanges();
+    }
 
     static void RenameLegacyAside(string legacy)
     {

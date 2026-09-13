@@ -179,4 +179,57 @@ public class CdpStateStoreTests
         Assert.True(store.SetWakeStopped(false));
         Assert.False(store.IsWakeStopped());
     }
+
+    [Fact]
+    public void Store_registry_complete_on_first_touch_gs_hs1()
+    {
+        var root = TempRoot();
+        var store = new CdpStateStore(root);
+
+        var registry = store.ListStores();
+
+        Assert.True(CdpStoreRegistryCatalog.IsComplete(registry),
+            "GS-HS1 partial: store-registry must enumerate all canonical collections");
+        Assert.Equal(CdpStoreRegistryCatalog.CanonicalEntries.Count, registry.Count);
+        foreach (var expected in CdpStoreRegistryCatalog.CanonicalEntries)
+        {
+            var row = registry.Single(r => r.Name == expected.Name);
+            Assert.Equal(expected.Owner, row.Owner);
+            Assert.Equal(expected.Format, row.Format);
+            Assert.Equal(expected.Note, row.Note);
+        }
+    }
+
+    [Fact]
+    public void Latch_docs_roundtrip_wires_collection_and_seeds_registry()
+    {
+        var root = TempRoot();
+        var store = new CdpStateStore(root);
+        const string docId = "intercom-identity";
+        const string json = """{"schema":"test/v0","nick":"Ток"}""";
+
+        Assert.Null(store.GetLatchDoc(docId));
+        Assert.True(store.SetLatchDoc(docId, json));
+        Assert.Equal(json, store.GetLatchDoc(docId));
+
+        var registry = store.ListStores();
+        Assert.Contains(registry, r => r.Name == "latch_docs" && r.Format == "witdb");
+        Assert.True(CdpStoreRegistryCatalog.IsComplete(registry));
+    }
+
+    [Fact]
+    public void Store_registry_upserts_missing_canonical_entries_on_upgrade()
+    {
+        var root = TempRoot();
+        var store = new CdpStateStore(root);
+
+        Assert.True(store.RegisterStore("wake", "legacy", "witdb"));
+        Assert.True(store.RegisterStore("arms", "legacy", "witdb"));
+
+        _ = store.GetLatchDoc("probe"); // EnsureRegistrySeeded upsert without prior ListStores
+
+        var registry = store.ListStores();
+        Assert.True(CdpStoreRegistryCatalog.IsComplete(registry));
+        Assert.Equal("CideWakeDispatch (ADR-0213)", registry.Single(r => r.Name == "wake").Owner);
+    }
 }
