@@ -51,7 +51,7 @@ public sealed class ProjectSceneHostHabitatTests
             Language = "csharp"
         };
 
-        var step = await ProjectOps.SceneAsync(bus, plan, root: null).ConfigureAwait(false);
+        var step = await ProjectOps.SceneAsync(bus, plan, root: null);
         Assert.True(step.Ok);
         Assert.NotNull(step.Data);
         Assert.True(step.Data!.Value.TryGetProperty("scan_note", out var note));

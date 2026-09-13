@@ -31,7 +31,7 @@ public sealed class GlassSurfaceIpcTests : IDisposable
     }
 
     [Fact]
-    public void Call_layout_matches_reply_id()
+    public async Task Call_layout_matches_reply_id()
     {
         var replyTask = Task.Run(() =>
         {
@@ -68,7 +68,7 @@ public sealed class GlassSurfaceIpcTests : IDisposable
         });
 
         var (ok, replyEl, error) = GlassSurfaceIpc.Call("layout", args: null, timeoutMs: 3000);
-        replyTask.Wait(TimeSpan.FromSeconds(4));
+        await replyTask.WaitAsync(TimeSpan.FromSeconds(4));
         Assert.True(ok, error);
         Assert.NotNull(replyEl);
         Assert.Equal("layout", replyEl!.Value.GetProperty("op").GetString());

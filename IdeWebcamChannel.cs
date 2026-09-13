@@ -1,6 +1,7 @@
 #nullable enable
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text.Json;
 using Cdp.Core;
 using NAudio.CoreAudioApi;
@@ -20,6 +21,7 @@ namespace CdpMcp;
 /// <c>AIGuiders.WebcamMcp.Shared</c> + OpenCv (not parked Cursor webcam-mcp guest).
 /// Capture + OCR aligned with webcam-*-mcp split; more analysis later.
 /// </summary>
+[SupportedOSPlatform("windows")]
 internal static partial class IdeWebcamChannel
 {
     public const string Schema = "webcam/v0";

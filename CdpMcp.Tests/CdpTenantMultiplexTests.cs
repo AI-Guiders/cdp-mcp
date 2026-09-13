@@ -320,14 +320,14 @@ public sealed class CdpTenantMultiplexTests
             async Task<string?> ProbeAsync(CdpTenantSlice slice)
             {
                 using var _ = CdpTenantExecutionContext.Enter(slice);
-                await Task.Delay(Random.Shared.Next(1, 15)).ConfigureAwait(false);
+                await Task.Delay(Random.Shared.Next(1, 15));
                 return CitizenRouteHost.SessionResolver?.Invoke()?.ProjectRoot;
             }
 
             var tasks = Enumerable.Range(0, 48)
                 .Select(i => ProbeAsync(i % 2 == 0 ? forge : cursor))
                 .ToArray();
-            var roots = await Task.WhenAll(tasks).ConfigureAwait(false);
+            var roots = await Task.WhenAll(tasks);
 
             Assert.All(roots, r => Assert.True(
                 string.Equals(r, @"D:\repo\agent-forge", StringComparison.Ordinal)
@@ -412,7 +412,7 @@ public sealed class CdpTenantMultiplexTests
             {
                 using var profile = slice.EnterScope();
                 using var exec = CdpTenantExecutionContext.Enter(slice);
-                await Task.Delay(Random.Shared.Next(1, 15)).ConfigureAwait(false);
+                await Task.Delay(Random.Shared.Next(1, 15));
                 if (!IdeStageCycle.TryWorkspace(out var store, out var state, out _))
                     return null;
                 var snap = store.TaskManagerSnapshot(state);
@@ -422,7 +422,7 @@ public sealed class CdpTenantMultiplexTests
             var titles = await Task.WhenAll(
                 Enumerable.Range(0, 48)
                     .Select(i => ProbeFeatureTitleAsync(i % 2 == 0 ? forge : cursor))
-                    .ToArray()).ConfigureAwait(false);
+                    .ToArray());
 
             foreach (var (title, i) in titles.Select((t, idx) => (t, idx)))
             {

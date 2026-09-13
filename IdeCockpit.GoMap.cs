@@ -1,5 +1,6 @@
 #nullable enable
 using CdpMcp.Cockpit.Cds;
+using DeskGoMapEntry = AIGuiders.Platform.Modeling.Cockpit.Cds.DeskGoMapEntry;
 
 namespace CdpMcp;
 

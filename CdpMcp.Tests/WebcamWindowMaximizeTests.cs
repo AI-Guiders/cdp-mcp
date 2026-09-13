@@ -1,10 +1,12 @@
 #nullable enable
+using System.Runtime.Versioning;
 using System.Text.Json;
 using Cdp.Core;
 using Xunit;
 
 namespace CdpMcp.Tests;
 
+[SupportedOSPlatform("windows")]
 public sealed class WebcamWindowMaximizeTests
 {
     static Dictionary<string, JsonElement> Args(params (string key, object value)[] pairs)

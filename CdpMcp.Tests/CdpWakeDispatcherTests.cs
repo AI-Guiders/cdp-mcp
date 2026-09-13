@@ -58,7 +58,7 @@ public class CdpWakeDispatcherTests : IDisposable
         Assert.Single(delivered);
         Assert.Equal("cli", delivered[0].Detail);
         Assert.NotNull(delivered[0].DeliveredUtc);
-        Assert.Equal(0, _store.LoadWake("pending").Count);
+        Assert.Empty(_store.LoadWake("pending"));
     }
 
     [Fact]
@@ -99,8 +99,8 @@ public class CdpWakeDispatcherTests : IDisposable
 
         await d.TickAsync(CancellationToken.None);
 
-        Assert.Equal(0, _store.LoadWake("delivered").Count);
-        Assert.Equal(1, _store.LoadWake("pending").Count);
+        Assert.Empty(_store.LoadWake("delivered"));
+        Assert.Single(_store.LoadWake("pending"));
         Assert.True(d.Stopped);
         d.SetStopped(false);
         Assert.False(d.Stopped);
@@ -115,7 +115,7 @@ public class CdpWakeDispatcherTests : IDisposable
         _ = d.Enqueue(CdpWakeDispatcher.KindLetter, "второе", nick: "Ток", session: "ses_y", harness: "opencode");
 
         await d.TickAsync(CancellationToken.None);
-        Assert.Equal(1, _store.LoadWake("delivered").Count); // глобальный cooldown 15с держит второй конверт в этом тике
+        Assert.Single(_store.LoadWake("delivered")); // глобальный cooldown 15с держит второй конверт в этом тике
 
         _time.Advance(TimeSpan.FromSeconds(16));
         await d.TickAsync(CancellationToken.None);

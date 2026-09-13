@@ -121,7 +121,7 @@ public sealed class CitizenVisionLatchTests : IDisposable
         {
             var body = request.Content is null
                 ? ""
-                : await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                : await request.Content.ReadAsStringAsync(cancellationToken);
             var sse = _sseBody(body);
             // OpenAI stream chunks as data lines
             var sb = new StringBuilder();

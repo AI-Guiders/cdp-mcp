@@ -197,7 +197,11 @@ internal static partial class CitizenRouteHost
         {
             object result;
             if (AlertHandleOverride is { } ov)
-                result = ov(default, args);
+                result = ov(new IdeAlertChannel.Inputs(
+                    new QualityGates.QualitySnap(true, 0, 0, false, "ok"),
+                    0,
+                    false,
+                    false), args);
             else
             {
                 var extras = ResolveSeatExtras(session!, store!);

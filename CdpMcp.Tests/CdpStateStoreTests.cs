@@ -97,7 +97,7 @@ public class CdpStateStoreTests
         var all = store.LoadWake();
         var arms = store.LoadArms("other");
 
-        Assert.Equal(1, pending.Count);
+        Assert.Single(pending);
         Assert.Equal("w1", pending[0].Id);
         Assert.Equal(2, all.Count);
         Assert.Single(arms);
@@ -115,7 +115,7 @@ public class CdpStateStoreTests
     }
 
     [Fact]
-    public void Recovers_from_abandoned_gate_mutex_killrunning()
+    public async Task Recovers_from_abandoned_gate_mutex_killrunning()
     {
         var root = TempRoot();
         var store = new CdpStateStore(root);
@@ -132,14 +132,15 @@ public class CdpStateStoreTests
             StampedUtc = DateTimeOffset.UtcNow
         }));
 
-        Thread.Sleep(1500); // воркер должен ждать гейт (12s wait), не падать
+        await Task.Delay(1500); // воркер должен ждать гейт (12s wait), не падать
         Assert.False(worker.IsCompleted, "воркер ждёт гейт — не отказывается сразу");
 
         abandoned.ReleaseMutex(); // «процесс умер» → AbandonedMutex у воркера
         abandoned.Dispose();
 
-        Assert.True(worker.Wait(TimeSpan.FromSeconds(15)), "после релиза воркер завершается");
-        Assert.True(worker.Result, "конверт записан после восстановления гейта");
+        var completed = await worker.WaitAsync(TimeSpan.FromSeconds(15));
+        Assert.True(completed, "после релиза воркер завершается");
+        Assert.True(await worker, "конверт записан после восстановления гейта");
         var loaded = store.LoadWake("pending");
         Assert.Contains(loaded, x => x.Id == "z1");
     }

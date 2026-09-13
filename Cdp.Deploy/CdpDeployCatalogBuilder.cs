@@ -8,7 +8,7 @@ namespace Cdp.Deploy;
 /// <summary>Builds federation <see cref="CommandCatalogIndex"/> from GDL emit + planet partial (GUIDERS-ADR-0065).</summary>
 public static class CdpDeployCatalogBuilder
 {
-    static readonly ArgumentNotationProfile DeployArgsProfile = new(ArgumentReaders.Kv, null);
+    static readonly ArgumentNotationProfile DeployArgsProfile = new(ArgumentReaders.Kv, []);
 
     public static CommandCatalogIndex Build() =>
         CommandCatalogIndex.FromDescriptors(Expand());

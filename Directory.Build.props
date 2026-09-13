@@ -15,5 +15,7 @@
     <UseLocalGuidersFSharp Condition="'$(UseLocalGuidersFSharp)' == '' and '$(AidUseNuGet)' != 'true' and Exists('$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language.Adapters.Fcs\AIGuiders.Platform.Modeling.Language.Adapters.Fcs.fsproj')">true</UseLocalGuidersFSharp>
     <!-- Transitive from OutWit.Database; CdpMcp has no aspects. Avoids OOM (Killed: 9) on macOS CI. -->
     <AspectInjector_Enabled>false</AspectInjector_Enabled>
+    <!-- NuGet.Frameworks version skew across guiders F# adapters — benign binding redirect noise. -->
+    <NoWarn>$(NoWarn);MSB3277</NoWarn>
   </PropertyGroup>
 </Project>
