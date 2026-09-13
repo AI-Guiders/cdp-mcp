@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Text.Json;
 using Cdp.Core;
+using Cdp.CdpState;
 
 namespace CdpMcp;
 
@@ -68,42 +69,62 @@ internal static partial class IdePressureChannel
             if (tenantsRoot is null)
                 return null;
 
-            var current = Path.GetFullPath(FilePath);
+            var currentRoot = Path.GetFullPath(CdpProfile.StateRoot);
             PressureRecallResolved? best = null;
             var bestUtc = DateTime.MinValue;
 
-            foreach (var stashFile in Directory.EnumerateFiles(tenantsRoot, "pressure-stash.json", SearchOption.AllDirectories))
+            foreach (var bridgeDir in Directory.EnumerateDirectories(tenantsRoot))
             {
-                if (string.Equals(Path.GetFullPath(stashFile), current, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                PressureDoc? peer;
-                try
+                foreach (var peerRoot in Directory.EnumerateDirectories(bridgeDir))
                 {
-                    peer = JsonSerializer.Deserialize<PressureDoc>(File.ReadAllText(stashFile), JsonOpts);
+                    var peerStateRoot = Path.GetFullPath(peerRoot);
+                    if (string.Equals(peerStateRoot, currentRoot, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    var peer = TryReadPeerStash(peerStateRoot);
+                    if (peer?.Body is not { Length: > 0 })
+                        continue;
+
+                    var utc = ParseStashUtc(peer.StashUtc);
+                    if (utc <= bestUtc)
+                        continue;
+
+                    bestUtc = utc;
+                    best = new PressureRecallResolved
+                    {
+                        Body = peer.Body,
+                        Source = "peer_tenant_stash",
+                        SourcePath = Path.Combine(peerStateRoot, CdpStateStore.FileName)
+                    };
                 }
-                catch
-                {
-                    continue;
-                }
-
-                if (peer?.Body is not { Length: > 0 })
-                    continue;
-
-                var utc = ParseStashUtc(peer.StashUtc);
-                if (utc <= bestUtc)
-                    continue;
-
-                bestUtc = utc;
-                best = new PressureRecallResolved
-                {
-                    Body = peer.Body,
-                    Source = "peer_tenant_stash",
-                    SourcePath = stashFile
-                };
             }
 
             return best;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>ADR-0219 P3: peer witdb latch_docs = SSOT; seat file = interop fallback only.</summary>
+    static PressureDoc? TryReadPeerStash(string peerStateRoot)
+    {
+        try
+        {
+            var stored = new CdpStateStore(peerStateRoot).GetLatchDoc(StashDocId);
+            if (stored is null)
+            {
+                var filePath = Path.Combine(peerStateRoot, IdeIgniteArmHost.Seat, "pressure-stash.json");
+                if (!File.Exists(filePath))
+                    return null;
+                stored = File.ReadAllText(filePath);
+            }
+
+            var doc = JsonSerializer.Deserialize<PressureDoc>(stored, JsonOpts);
+            if (doc is null || doc.Body is not { Length: > 0 })
+                return null;
+            return doc;
         }
         catch
         {

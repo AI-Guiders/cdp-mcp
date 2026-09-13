@@ -125,7 +125,7 @@ internal static partial class IdePressureChannel
         {
             TryMigrateLegacyPressureFiles();
             json = JsonSerializer.Serialize(doc, JsonOpts);
-            //witdb row = SSOT; файл — interop-экспорт (RecallFallback-мир читает по файлам).
+            //witdb row = SSOT; файл — interop-экспорт (peer recall читает witdb, файл — fallback).
             _ = new CdpStateStore(CdpProfile.StateRoot).SetLatchDoc(StashDocId, json);
             var dir = Path.GetDirectoryName(FilePath)!;
             Directory.CreateDirectory(dir);
