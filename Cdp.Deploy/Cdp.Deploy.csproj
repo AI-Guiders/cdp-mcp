@@ -8,6 +8,15 @@
     <AssemblyName>Cdp.Deploy</AssemblyName>
     <Version>0.1.0</Version>
     <GuidersPlatformVersion Condition="'$(GuidersPlatformVersion)' == ''">0.31.0</GuidersPlatformVersion>
+    <AuthoringToolchainRoot Condition="'$(AuthoringToolchainRoot)' == ''">$(MSBuildThisFileDirectory)..\..\authoring-toolchain\</AuthoringToolchainRoot>
+  </PropertyGroup>
+  <!-- GDL catalog emit (GUIDERS-ADR-0065): authoring/cdp-mcp.gdlproj → Generated/CdpDeployCatalog.g.cs -->
+  <Import Project="$(AuthoringToolchainRoot)\build\Platform.Gdl.Emit.props"
+          Condition="Exists('$(AuthoringToolchainRoot)\build\Platform.Gdl.Emit.props')" />
+  <PropertyGroup Condition="Exists('$(AuthoringToolchainRoot)\build\Platform.Gdl.Emit.props')">
+    <GdlEmitProject>$(MSBuildThisFileDirectory)..\authoring\cdp-mcp.gdlproj</GdlEmitProject>
+    <GdlEmitNamespace>Cdp.Deploy.Generated</GdlEmitNamespace>
+    <GdlEmitOutputDir>$(MSBuildThisFileDirectory)Generated</GdlEmitOutputDir>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

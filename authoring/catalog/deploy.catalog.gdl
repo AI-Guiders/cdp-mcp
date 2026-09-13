@@ -1,0 +1,51 @@
+# CDP deploy command catalog (SSOT) — v1 heads only (GUIDERS-ADR-0047 / 0053 / 0065)
+
+catalog cdp
+
+channels
+  ccl
+    filter = filter-ccl
+    grammar
+      command = command-console
+      argument = argument-kv
+    end grammar
+  console
+    filter = filter-console
+    grammar
+      command = command-console
+      argument = argument-kv
+    end grammar
+end channels
+
+defaults
+  command.scope = ops
+  command.surfaces = ccl.filter, console.filter
+  command.flavor = console
+end defaults
+
+variables
+  mode
+  target
+end variables
+
+helps table
+  | target                | field   | text                                      |
+  | command deploy        | summary | Dual-instance publish (default ship)      |
+  | command hard_deploy   | summary | Hard deploy — republish + KillRunning     |
+  | command soft_deploy   | summary | Soft deploy — stage .next + pending       |
+  | variable mode         | label   | soft | hard | ship | apply | rollout      |
+  | variable target       | label   | sibling | self | release | debug         |
+end helps
+
+profiles
+  deploy-args.mode.picker-for-slot = mode
+  deploy-args.target.picker-for-slot = target
+end profiles
+
+# path = console head (v1); go/default.mode live in CdpDeployCatalog.User.cs until emit gains metadata columns.
+commands table
+  | command      | profile     |
+  | deploy       | deploy-args |
+  | hard_deploy  | deploy-args |
+  | soft_deploy  | deploy-args |
+end commands

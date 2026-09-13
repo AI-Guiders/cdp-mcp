@@ -1,0 +1,4 @@
+# CDP planet declare entry — GUIDERS-ADR-0051 / 0059 / 0065
+project cdp-mcp
+
+document catalog/deploy.catalog.gdl
