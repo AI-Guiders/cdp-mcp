@@ -71,3 +71,7 @@ dotnet_diagnostic.CA1707.severity = none
 
 [*.md]
 max_line_length = off
+
+# Match .gitattributes — Windows-native scripts/solutions stay CRLF locally.
+[*.{sln,slnx,bat,cmd,ps1,psm1}]
+end_of_line = crlf
