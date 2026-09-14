@@ -116,6 +116,9 @@
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Ide.Session\AIGuiders.Platform.Modeling.Ide.Session.fsproj" />
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Ide.Session.Ports.DotNet\AIGuiders.Platform.Modeling.Ide.Session.Ports.DotNet.fsproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalGuidersFSharp)' == 'true' and Exists('$(DashSpecRoot)\src\DashSpec.Modeling.Language.Adapters.DashSpec\DashSpec.Modeling.Language.Adapters.DashSpec.fsproj')">
+    <ProjectReference Include="$(DashSpecRoot)\src\DashSpec.Modeling.Language.Adapters.DashSpec\DashSpec.Modeling.Language.Adapters.DashSpec.fsproj" />
+  </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersCore)' == 'true'">
     <ProjectReference Include="$(GuidersCoreRoot)\src\DotNetWorkspace.Core\DotNetWorkspace.Core.csproj" />
     <ProjectReference Include="$(GuidersCoreRoot)\src\Cdp.Core\Cdp.Core.csproj" />

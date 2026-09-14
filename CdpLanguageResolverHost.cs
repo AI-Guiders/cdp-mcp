@@ -1,6 +1,8 @@
 using AIGuiders.Platform.Execution.Language;
+using AIGuiders.Platform.Modeling.Language;
 using AIGuiders.Platform.Modeling.Language.Adapters.Fcs;
 using AIGuiders.Platform.Modeling.Language.Adapters.Gdl;
+using DashSpec.Modeling.Language.Adapters.DashSpec;
 
 namespace CdpMcp;
 
@@ -16,6 +18,7 @@ internal static class CdpLanguageResolverHost
         return new LanguageResolverBuilder()
             .Register(new FcsLanguageBackend(projectOptionsSource: null))
             .Register(new GdlLanguageBackend())
+            .Register(new DashSpecLanguageBackend())
             .Build();
     }
 }

@@ -58,6 +58,13 @@ internal static partial class IdeLanguageTools
             throw new ArgumentException(
                 "Refusing csharp engine for .gdl — open the file with cdp_open or set language=gdl.");
         }
+
+        if (pathLang.Equals("dashspec", StringComparison.OrdinalIgnoreCase)
+            && lang.Equals(CdpLanguages.Csharp, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException(
+                "Refusing csharp engine for .dashspec — open the file with cdp_open or set language=dashspec.");
+        }
     }
 
     static async Task<string> DispatchLrcAsync(

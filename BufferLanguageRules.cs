@@ -54,7 +54,8 @@ internal static class BufferLanguageRules
     public static bool IsLrcLanguage(string? languageId) =>
         !string.IsNullOrWhiteSpace(languageId)
         && (languageId.Equals(CdpLanguages.Fsharp, StringComparison.OrdinalIgnoreCase)
-            || languageId.Equals(CdpLanguages.Gdl, StringComparison.OrdinalIgnoreCase));
+            || languageId.Equals(CdpLanguages.Gdl, StringComparison.OrdinalIgnoreCase)
+            || languageId.Equals("dashspec", StringComparison.OrdinalIgnoreCase));
 
     public static bool SupportsOnlineBufferDiagnostics(string language) =>
         language.Equals(CdpLanguages.Csharp, StringComparison.OrdinalIgnoreCase)

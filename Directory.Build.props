@@ -7,6 +7,7 @@
     <GuidersCoreRoot Condition="'$(GuidersCoreRoot)' == ''">$(MSBuildThisFileDirectory)..\guiders-core</GuidersCoreRoot>
     <GuidersPlatformRoot Condition="'$(GuidersPlatformRoot)' == ''">$(MSBuildThisFileDirectory)..\guiders-platform</GuidersPlatformRoot>
     <GuidersFSharpRoot Condition="'$(GuidersFSharpRoot)' == ''">$(MSBuildThisFileDirectory)..\guiders-fsharp</GuidersFSharpRoot>
+    <DashSpecRoot Condition="'$(DashSpecRoot)' == ''">$(MSBuildThisFileDirectory)..\dash-spec</DashSpecRoot>
     <!-- aid-publish -UseNuGet → AidUseNuGet=true overrides sibling auto-detect -->
     <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == '' and '$(AidUseNuGet)' == 'true'">false</UseLocalGuidersCore>
     <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == '' and '$(AidUseNuGet)' == 'true'">false</UseLocalGuidersPlatform>
