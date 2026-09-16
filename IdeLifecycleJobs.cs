@@ -426,6 +426,10 @@ internal static class IdeLifecycleJobs
     /// ADR-0211: deploy workers run from a disposable clone under %LocalAppData%/cdp-mcp/workers —
     /// a promote must never be executed by a process whose own bits live in the install dir it
     /// replaces (worker exe would self-lock the target). Non-deploy jobs keep the original exe.
+    /// The clone must be COMPLETE and load-bearing: the apphost boots via the embedded assembly
+    /// name (CdpMcp.*), so deps.json/runtimeconfig.json and the runtime core are not optional.
+    /// A silent partial copy produces a worker that dies on arrival (2026-09-16: clone was missing
+    /// System.Diagnostics.Process.dll + CdpMcp.deps.json — worker exited in 1ms).
     /// </summary>
     internal static string CloneDeployWorker(string workerExe)
     {
@@ -437,44 +441,93 @@ internal static class IdeLifecycleJobs
             Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(targetDir);
         File.WriteAllText(Path.Combine(targetDir, "deploy-worker-origin.txt"), sourceDir);
+
+        var failures = new List<string>();
         foreach (var file in Directory.EnumerateFiles(sourceDir, "*", SearchOption.TopDirectoryOnly))
-        {
-            try
-            {
-                File.Copy(file, Path.Combine(targetDir, Path.GetFileName(file)), true);
-            }
-            catch
-            {
-                /* pinned/optional files — runner does not need them all */
-            }
-        }
+            CopyFileRobust(file, Path.Combine(targetDir, Path.GetFileName(file)), failures);
 
         foreach (var dir in Directory.EnumerateDirectories(sourceDir))
+            CopyDirTreeRobust(dir, Path.Combine(targetDir, Path.GetFileName(dir)), failures);
+
+        var cloned = Path.Combine(targetDir, Path.GetFileName(workerExe));
+        if (!File.Exists(cloned))
+            throw new FileNotFoundException(
+                $"Deploy worker clone failed: {Path.GetFileName(workerExe)} could not be copied from {sourceDir}. " +
+                $"Failures: {Summarize(failures)}", cloned);
+
+        foreach (var critical in CriticalWorkerFiles(sourceDir))
+        {
+            if (!File.Exists(Path.Combine(targetDir, critical)))
+                throw new IOException(
+                    $"Deploy worker clone incomplete: {critical} missing (source {sourceDir}). " +
+                    $"Failures: {Summarize(failures)}");
+        }
+
+        if (failures.Count > 0)
+            Console.Error.WriteLine(
+                $"[deploy] worker clone {Path.GetFileName(workerExe)}: {failures.Count} non-critical file(s) not copied: {Summarize(failures)}");
+
+        return cloned;
+    }
+
+    /// <summary>
+    /// Files the worker cannot boot or run deploy without. The apphost embeds the original
+    /// assembly name, so a renamed exe still resolves &lt;name&gt;.deps.json / &lt;name&gt;.runtimeconfig.json
+    /// — those, the CLR, and System.Diagnostics.Process (IdeSeatProcessReclaim) must survive the clone.
+    /// </summary>
+    static IEnumerable<string> CriticalWorkerFiles(string sourceDir)
+    {
+        foreach (var name in Directory.EnumerateFiles(sourceDir, "*.deps.json", SearchOption.TopDirectoryOnly))
+            yield return Path.GetFileName(name);
+        foreach (var name in Directory.EnumerateFiles(sourceDir, "*.runtimeconfig.json", SearchOption.TopDirectoryOnly))
+            yield return Path.GetFileName(name);
+        foreach (var name in new[]
+                 {
+                     "hostfxr.dll", "hostpolicy.dll", "coreclr.dll", "clrjit.dll",
+                     "System.Diagnostics.Process.dll", "System.Private.CoreLib.dll"
+                 })
+        {
+            if (File.Exists(Path.Combine(sourceDir, name)))
+                yield return name;
+        }
+    }
+
+    static void CopyFileRobust(string source, string dest, List<string> failures)
+    {
+        for (var attempt = 1; ; attempt++)
         {
             try
             {
-                CopyDirTree(dir, Path.Combine(targetDir, Path.GetFileName(dir)));
+                File.Copy(source, dest, overwrite: true);
+                return;
             }
-            catch
+            catch (Exception ex) when (attempt < 3)
             {
-                /* best effort */
+                Thread.Sleep(150 * attempt); // transient lock (AV scan / reader) — retry before giving up
+            }
+            catch (Exception ex)
+            {
+                failures.Add($"{Path.GetFileName(source)}: {ex.GetType().Name}");
+                return;
             }
         }
-
-        var cloned = Path.Combine(targetDir, Path.GetFileName(workerExe));
-        return File.Exists(cloned) ? cloned : workerExe;
     }
 
-    static void CopyDirTree(string source, string dest)
+    static void CopyDirTreeRobust(string source, string dest, List<string> failures)
     {
         Directory.CreateDirectory(dest);
         foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
         {
             var target = file.Replace(source, dest, StringComparison.OrdinalIgnoreCase);
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-            File.Copy(file, target, true);
+            CopyFileRobust(file, target, failures);
         }
     }
+
+    static string Summarize(List<string> failures) =>
+        failures.Count == 0
+            ? "none"
+            : string.Join("; ", failures.Take(8)) + (failures.Count > 8 ? $" (+{failures.Count - 8} more)" : "");
 
     static void PinDeployLifecycle(string kind, DurableLifecyclePayload life)
     {

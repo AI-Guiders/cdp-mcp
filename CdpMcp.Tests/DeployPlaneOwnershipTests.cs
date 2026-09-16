@@ -75,14 +75,29 @@ public sealed class DeployPlaneOwnershipTests : IDisposable
     }
 
     [Fact]
-    public void Clone_deploy_worker_falls_back_to_original_when_exe_cannot_copy()
+    public void Clone_deploy_worker_throws_when_exe_cannot_copy()
     {
         var workerExe = Path.Combine(_dir, "CdpService.exe");
         File.WriteAllText(workerExe, "stub");
         using var held = File.Open(workerExe, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
 
-        var cloned = IdeLifecycleJobs.CloneDeployWorker(workerExe);
+        // No silent fallback to the original: a worker that runs from the live install dir
+        // would self-lock the promote target (ADR-0211). Fail loudly instead.
+        var ex = Assert.ThrowsAny<Exception>(() => IdeLifecycleJobs.CloneDeployWorker(workerExe));
+        Assert.Contains("could not be copied", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
 
-        Assert.Equal(workerExe, cloned);
+    [Fact]
+    public void Clone_deploy_worker_throws_when_critical_file_locked()
+    {
+        var workerExe = Path.Combine(_dir, "CdpService.exe");
+        File.WriteAllText(workerExe, "stub");
+        var deps = Path.Combine(_dir, "CdpMcp.deps.json");
+        File.WriteAllText(deps, "{}");
+        using var held = File.Open(deps, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        var ex = Assert.ThrowsAny<Exception>(() => IdeLifecycleJobs.CloneDeployWorker(workerExe));
+        Assert.Contains("clone incomplete", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("CdpMcp.deps.json", ex.Message, StringComparison.Ordinal);
     }
 }
