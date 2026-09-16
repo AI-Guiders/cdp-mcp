@@ -26,7 +26,15 @@ internal sealed class CdpCapabilitiesRevision
     internal async IAsyncEnumerable<long> WatchAsync([System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         yield return Current;
-        await foreach (var rev in _watch.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
-            yield return rev;
+        // WaitToReadAsync/TryRead instead of ReadAllAsync: the ReadAllAsync
+        // iterator was the NRE source in the slot crash stream (AsyncStateMachineBox
+        // inside ChannelReader.ReadAllAsync). The explicit loop keeps every fault
+        // inside the consumer's own MoveNextAsync, which the SSE endpoint catches.
+        var reader = _watch.Reader;
+        while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            while (reader.TryRead(out var rev))
+                yield return rev;
+        }
     }
 }

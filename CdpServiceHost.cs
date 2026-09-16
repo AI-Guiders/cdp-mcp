@@ -167,23 +167,38 @@ internal static class CdpServiceHost
             // SSE heartbeat: consumer may time out a silent stream — keep alive.
             var heartbeat = TimeSpan.FromSeconds(15);
             await using var e = rt.WatchCapabilitiesRevisionAsync(ct).GetAsyncEnumerator();
-            while (!ct.IsCancellationRequested)
+            try
             {
-                var next = e.MoveNextAsync();
-                var ping = Task.Delay(heartbeat, ct);
-                var done = await Task.WhenAny(next.AsTask(), ping).ConfigureAwait(false);
-                if (done == ping)
+                while (!ct.IsCancellationRequested)
                 {
-                    await context.Response.WriteAsync(": ping\n\n", ct).ConfigureAwait(false);
-                    await context.Response.Body.FlushAsync(ct).ConfigureAwait(false);
-                    continue;
-                }
+                    var next = e.MoveNextAsync();
+                    var ping = Task.Delay(heartbeat, ct);
+                    var done = await Task.WhenAny(next.AsTask(), ping).ConfigureAwait(false);
+                    if (done == ping)
+                    {
+                        await context.Response.WriteAsync(": ping\n\n", ct).ConfigureAwait(false);
+                        await context.Response.Body.FlushAsync(ct).ConfigureAwait(false);
+                        continue;
+                    }
 
-                if (!await next.ConfigureAwait(false)) break;
-                await context.Response
-                    .WriteAsync($"event: rev\ndata: {{\"capabilitiesRev\":{e.Current}}}\n\n", ct)
-                    .ConfigureAwait(false);
-                await context.Response.Body.FlushAsync(ct).ConfigureAwait(false);
+                    if (!await next.ConfigureAwait(false)) break;
+                    await context.Response
+                        .WriteAsync($"event: rev\ndata: {{\"capabilitiesRev\":{e.Current}}}\n\n", ct)
+                        .ConfigureAwait(false);
+                    await context.Response.Body.FlushAsync(ct).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // Client went away or shutdown — normal SSE teardown, not a fault.
+            }
+            catch (Exception error)
+            {
+                // A stream fault must end THIS subscription, never the service:
+                // the bridge re-subscribes by itself (CdpBridgeCapabilitiesWatcher)
+                // and the next watch call heals the catalog. Unhandled here used
+                // to kill the whole slot process (NRE in channel ReadAllAsync).
+                Console.Error.WriteLine($"capabilities/watch stream failed: {error}");
             }
         });
 
