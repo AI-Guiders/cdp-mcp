@@ -12,8 +12,12 @@ internal sealed class CdpBridgeSettings
     public string? TokenPath { get; init; }
     /// <summary>Durable seat root (e.g. D:\cdp-service) for bridge auto-start.</summary>
     public string? InstallDir { get; init; }
-    /// <summary>Bridge --config path; passed to service on auto-start when present.</summary>
+    /// <summary>Eternal tower root (e.g. D:\cdp-gatekeeper) for bridge gatekeeper auto-start.</summary>
+    public string? GatekeeperInstallDir { get; init; }
+    /// <summary>Bridge --config path; passed to service/gatekeeper on auto-start when present.</summary>
     public string? ServiceConfigPath { get; init; }
+    /// <summary>When true and tower install_dir resolves, spawn gatekeeper on connection refused.</summary>
+    public bool AutoStartTower { get; init; }
     /// <summary>When true and <see cref="InstallDir"/> set, probe /healthz and spawn sidecar on connection refused.</summary>
     public bool AutoStart { get; init; }
 }
@@ -72,6 +76,9 @@ internal static class CdpBridgeConfigLoader
         var installDir = string.IsNullOrWhiteSpace(bridge.InstallDir)
             ? null
             : Path.GetFullPath(bridge.InstallDir.Trim());
+        var gatekeeperInstallDir = string.IsNullOrWhiteSpace(bridge.GatekeeperInstallDir)
+            ? null
+            : Path.GetFullPath(bridge.GatekeeperInstallDir.Trim());
 
         return new()
         {
@@ -82,7 +89,9 @@ internal static class CdpBridgeConfigLoader
                 Token = token,
                 TokenPath = resolvedTokenPath,
                 InstallDir = installDir,
+                GatekeeperInstallDir = gatekeeperInstallDir,
                 ServiceConfigPath = configPath,
+                AutoStartTower = bridge.AutoStartTower,
                 AutoStart = bridge.AutoStart
             },
             ConfigPath = configPath

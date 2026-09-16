@@ -18,12 +18,14 @@ internal sealed class CdpBridgeServiceEnsurer
     readonly CdpBridgeSettings _settings;
     readonly Uri _healthUrl;
     readonly HttpClient _probe;
+    readonly CdpBridgeGatekeeperEnsurer? _gatekeeper;
 
     internal CdpBridgeServiceEnsurer(CdpBridgeSettings settings)
     {
         _settings = settings;
         _healthUrl = new Uri(settings.BaseUrl, "healthz");
         _probe = new HttpClient { Timeout = ProbeTimeout };
+        _gatekeeper = CdpBridgeGatekeeperEnsurer.TryCreate(settings);
     }
 
     internal bool CanAutoStart =>
@@ -47,6 +49,9 @@ internal sealed class CdpBridgeServiceEnsurer
 
     internal async Task<bool> TryEnsureRunningAsync(CancellationToken cancellationToken)
     {
+        if (_gatekeeper is not null)
+            _ = await _gatekeeper.TryEnsureRunningAsync(cancellationToken).ConfigureAwait(false);
+
         if (await ProbeHealthyAsync(cancellationToken).ConfigureAwait(false))
             return true;
 

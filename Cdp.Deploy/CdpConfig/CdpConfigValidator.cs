@@ -24,7 +24,7 @@ public static class CdpConfigValidator
     {
         ["tower"] = new(StringComparer.OrdinalIgnoreCase)
         {
-            "listen_port", "registry", "target_cache_ms", "probe_timeout_ms"
+            "listen_port", "install_dir", "registry", "target_cache_ms", "probe_timeout_ms"
         },
         ["slots"] = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -32,7 +32,7 @@ public static class CdpConfigValidator
         },
         ["bridge"] = new(StringComparer.OrdinalIgnoreCase)
         {
-            "base_url", "token_path", "auto_start_slot", "composer",
+            "base_url", "token_path", "auto_start_tower", "auto_start_slot", "composer",
             "capabilities_poll_ms", "deploy_wait_ms", "deploy_poll_ms", "deploy_gap_retry_ms", "service_ready_ms"
         },
         ["tools"] = new(StringComparer.OrdinalIgnoreCase)

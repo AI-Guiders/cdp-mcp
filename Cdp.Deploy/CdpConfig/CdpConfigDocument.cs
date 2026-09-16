@@ -23,6 +23,7 @@ public sealed class CdpConfigDocument
 public sealed class CdpConfigTowerSection
 {
     public int? ListenPort { get; set; }
+    public string? InstallDir { get; set; }
     public string? Registry { get; set; }
     public int? TargetCacheMs { get; set; }
     public int? ProbeTimeoutMs { get; set; }
@@ -43,6 +44,7 @@ public sealed class CdpConfigBridgeSection
 {
     public string? BaseUrl { get; set; }
     public string? TokenPath { get; set; }
+    public bool? AutoStartTower { get; set; }
     public bool? AutoStartSlot { get; set; }
     public string? Composer { get; set; }
     public int? CapabilitiesPollMs { get; set; }

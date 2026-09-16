@@ -66,6 +66,22 @@ public sealed class CdpConfigLoaderTests
     }
 
     [Fact]
+    public void MapBridge_reads_tower_install_dir_and_auto_start_tower()
+    {
+        var doc = CdpConfigLoader.Parse("""
+            [tower]
+            install_dir = "D:/tower"
+
+            [bridge]
+            auto_start_tower = true
+            """);
+
+        var bridge = CdpConfigLoader.MapBridge(doc);
+        Assert.Equal(Path.GetFullPath("D:/tower"), bridge.GatekeeperInstallDir);
+        Assert.True(bridge.AutoStartTower);
+    }
+
+    [Fact]
     public void MapSlot_reads_slots_section_before_legacy_service()
     {
         var doc = CdpConfigLoader.Parse("""

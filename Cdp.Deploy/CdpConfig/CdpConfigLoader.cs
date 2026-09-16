@@ -18,6 +18,7 @@ public sealed class CdpTowerRoleConfig
     public const string DefaultBind = "127.0.0.1";
 
     public int ListenPort { get; init; } = DefaultListenPort;
+    public string? InstallDir { get; init; }
 }
 
 public sealed class CdpSlotRoleConfig
@@ -34,6 +35,8 @@ public sealed class CdpBridgeRoleConfig
     public Uri BaseUrl { get; init; } = new($"http://{CdpTowerRoleConfig.DefaultBind}:{CdpTowerRoleConfig.DefaultListenPort}/");
     public string? TokenPath { get; init; }
     public string? InstallDir { get; init; }
+    public string? GatekeeperInstallDir { get; init; }
+    public bool AutoStartTower { get; init; }
     public bool AutoStart { get; init; }
 }
 
@@ -86,7 +89,11 @@ public static class CdpConfigLoader
         };
 
     public static CdpTowerRoleConfig MapTower(CdpConfigDocument doc) =>
-        new() { ListenPort = ResolveListenPort(doc) };
+        new()
+        {
+            ListenPort = ResolveListenPort(doc),
+            InstallDir = ResolveGatekeeperInstallDir(doc)
+        };
 
     public static CdpSlotRoleConfig MapSlot(CdpConfigDocument doc)
     {
@@ -105,11 +112,14 @@ public static class CdpConfigLoader
     public static CdpBridgeRoleConfig MapBridge(CdpConfigDocument doc)
     {
         var installDir = ResolveInstallDir(doc);
+        var gatekeeperInstallDir = ResolveGatekeeperInstallDir(doc);
         return new CdpBridgeRoleConfig
         {
             BaseUrl = ResolveBaseUrl(doc),
             TokenPath = ResolveTokenPath(doc),
             InstallDir = installDir,
+            GatekeeperInstallDir = gatekeeperInstallDir,
+            AutoStartTower = ResolveBridgeAutoStartTower(doc, gatekeeperInstallDir),
             AutoStart = ResolveBridgeAutoStart(doc, installDir)
         };
     }
@@ -181,6 +191,32 @@ public static class CdpConfigLoader
             return legacyAuto;
 
         return !string.IsNullOrWhiteSpace(installDir);
+    }
+
+    static string? ResolveGatekeeperInstallDir(CdpConfigDocument doc)
+    {
+        var raw = doc.Tower?.InstallDir;
+        if (!string.IsNullOrWhiteSpace(raw))
+            return Path.GetFullPath(raw.Trim());
+
+        const string defaultDir = @"D:\cdp-gatekeeper";
+        if (Directory.Exists(defaultDir)
+            && File.Exists(Path.Combine(defaultDir, "CdpGatekeeper.exe")))
+            return defaultDir;
+
+        var slotDir = ResolveInstallDir(doc);
+        if (slotDir is not null && File.Exists(Path.Combine(slotDir, "CdpGatekeeper.exe")))
+            return slotDir;
+
+        return null;
+    }
+
+    static bool ResolveBridgeAutoStartTower(CdpConfigDocument doc, string? gatekeeperInstallDir)
+    {
+        if (doc.Bridge?.AutoStartTower is { } towerAuto)
+            return towerAuto;
+
+        return gatekeeperInstallDir is not null;
     }
 
     static string? NormalizeOptionalPath(string? path) =>

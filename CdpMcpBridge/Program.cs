@@ -47,8 +47,8 @@ var options = new McpServerOptions
         Watches capabilitiesRev (ADR-0202) and emits tools/list_changed when CdpService rev bumps.
         Deploy gap (ADR-0203): cdp_deploy apply|hard|rollout blocks until durable job + service health;
         cdp_lifecycle_* reads local job store when service is down; ensurer skips auto-start during deploy.
-        When [service] install_dir is set, bridge auto-starts CdpService on connection refused (cold boot only).
-        Otherwise run Start-CdpService.ps1 or cdp deploy hard.
+        When tower/slot install_dir is set, bridge auto-starts CdpGatekeeper then CdpService on connection refused.
+        Logon Scheduled Task remains cold-boot only (ADR-0209).
         """,
     ProtocolVersion = "2024-11-05",
     Capabilities = new ServerCapabilities
@@ -150,6 +150,7 @@ static void PrintUsage()
         Config (TOML — same cdp-mcp.toml as service):
           [tower]
           listen_port = 8771
+          install_dir = "D:/cdp-gatekeeper"
 
           [slots]
           install_dir = "D:/cdp-service"
@@ -157,6 +158,7 @@ static void PrintUsage()
 
           [bridge]
           base_url = "http://127.0.0.1:8771"
+          auto_start_tower = true
           auto_start_slot = true
 
         Env: none required. Use --config PATH; optional --bridge-rev STAMP (Cursor remount only).

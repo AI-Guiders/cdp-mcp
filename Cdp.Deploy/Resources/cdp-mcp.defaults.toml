@@ -53,6 +53,7 @@ ids = ["csharp", "typescript", "python", "delphi", "powershell"]
 
 [tower]
 listen_port = 8771
+install_dir = "D:/cdp-gatekeeper"
 
 [slots]
 enabled = true
@@ -60,6 +61,7 @@ bind = "127.0.0.1"
 
 [bridge]
 base_url = "http://127.0.0.1:8771"
+auto_start_tower = true
 composer = "main"
 capabilities_poll_ms = 2000
 deploy_wait_ms = 180000
