@@ -164,13 +164,101 @@ internal static class CdpServiceHost
         {
             context.Response.Headers.CacheControl = "no-cache";
             context.Response.ContentType = "text/event-stream";
-            await foreach (var rev in rt.WatchCapabilitiesRevisionAsync(ct).ConfigureAwait(false))
+            // SSE heartbeat: consumer may time out a silent stream — keep alive.
+            var heartbeat = TimeSpan.FromSeconds(15);
+            await using var e = rt.WatchCapabilitiesRevisionAsync(ct).GetAsyncEnumerator();
+            while (!ct.IsCancellationRequested)
             {
+                var next = e.MoveNextAsync();
+                var ping = Task.Delay(heartbeat, ct);
+                var done = await Task.WhenAny(next.AsTask(), ping).ConfigureAwait(false);
+                if (done == ping)
+                {
+                    await context.Response.WriteAsync(": ping\n\n", ct).ConfigureAwait(false);
+                    await context.Response.Body.FlushAsync(ct).ConfigureAwait(false);
+                    continue;
+                }
+
+                if (!await next.ConfigureAwait(false)) break;
                 await context.Response
-                    .WriteAsync($"event: rev\ndata: {{\"capabilitiesRev\":{rev}}}\n\n", ct)
+                    .WriteAsync($"event: rev\ndata: {{\"capabilitiesRev\":{e.Current}}}\n\n", ct)
                     .ConfigureAwait(false);
                 await context.Response.Body.FlushAsync(ct).ConfigureAwait(false);
             }
+        });
+
+        app.MapPost("/api/v1/wake/subscribe", (CdpWakeSubscribeRequest req) =>
+        {
+            if (string.IsNullOrWhiteSpace(req.Nick) || string.IsNullOrWhiteSpace(req.Event))
+                return Results.BadRequest(new { detail = "nick and event are required." });
+            var sub = CideWakeDispatch.Subscribe(req.Nick.Trim(), req.Event.Trim(), req.TaskFilter);
+            if (sub is null)
+                return Results.BadRequest(new { detail = "subscribe failed (unknown nick/event?)" });
+            return Results.Json(new
+            {
+                ok = true,
+                subscription_id = sub.Id,
+                nick = sub.Nick,
+                @event = sub.EventKind,
+                carrier = "dsh",
+                hint = "watch: GET /api/v1/wake/watch?nick=… (X-CDP-Bridge-Session header required)"
+            });
+        });
+
+        app.MapGet("/api/v1/wake/watch", async (HttpContext http, CancellationToken ct) =>
+        {
+            // CDP-ADR-0227: external harness subscriber stream (carrier=dsh).
+            var nick = http.Request.Query["nick"].FirstOrDefault()?.Trim() ?? "";
+            var tenant = CdpTenantHeaders.TryParse(http.Request.Headers);
+            var bridge = tenant?.BridgeSession ?? "";
+            if (nick.Length == 0 || bridge.Length == 0)
+                return Results.BadRequest(new { detail = "nick (query) and X-CDP-Bridge-Session (header) are required." });
+
+            http.Response.Headers.CacheControl = "no-cache";
+            http.Response.ContentType = "text/event-stream";
+            var channel = System.Threading.Channels.Channel.CreateUnbounded<Cdp.CdpState.CdpWakeEnvelopeEntity>(
+                new System.Threading.Channels.UnboundedChannelOptions { SingleReader = true, SingleWriter = false });
+            using var registration = DshWakeHub.Register(nick, bridge, channel.Writer);
+
+            // Backlog: pending dsh-конверты ника (session-фильтр внутри hub).
+            foreach (var e in CideWakeDispatch.Default.PendingDsh(nick))
+            {
+                if (ct.IsCancellationRequested) break;
+                _ = CideWakeDispatch.Default.TryDeliverDsh(e);
+            }
+
+            try
+            {
+                await http.Response.WriteAsync($"event: ready\ndata: {{\"nick\":\"{nick}\"}}\n\n", ct);
+                await http.Response.Body.FlushAsync(ct);
+                // SSE heartbeat (CDP-ADR-0228): consumer may time out a silent
+                // stream (CdpToastService ReadTimeoutMs=30s) — keep it alive.
+                var heartbeat = TimeSpan.FromSeconds(15);
+                while (!ct.IsCancellationRequested)
+                {
+                    var wake = channel.Reader.WaitToReadAsync(ct).AsTask();
+                    var ping = Task.Delay(heartbeat, ct);
+                    var done = await Task.WhenAny(wake, ping).ConfigureAwait(false);
+                    if (done == ping)
+                    {
+                        await http.Response.WriteAsync(": ping\n\n", ct);
+                        await http.Response.Body.FlushAsync(ct);
+                        continue;
+                    }
+
+                    while (channel.Reader.TryRead(out var e))
+                    {
+                        var json = System.Text.Json.JsonSerializer.Serialize(e, CdpJsonOpts);
+                        await http.Response.WriteAsync($"event: wake\ndata: {json}\n\n", ct);
+                        await http.Response.Body.FlushAsync(ct);
+                    }
+                }
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                /* client disconnected — registration disposed */
+            }
+            return Results.Empty;
         });
 
         app.MapPost("/api/v1/cdp/invoke", async (
@@ -261,11 +349,28 @@ internal static class CdpServiceHost
             }
 
             slot.LastSeenUtc = DateTimeOffset.UtcNow;
-            CdpSlotRegistry.Upsert(CdpProfile.StateRoot, slot);
+            try
+            {
+                CdpSlotRegistry.Upsert(CdpProfile.StateRoot, slot);
+            }
+            catch (Exception ex)
+            {
+                // Одна транзиентная ошибка БД не должна убивать heartbeat навсегда:
+                // иначе слот устаревает (Fresh) и гейткипер отдаёт 503 до рестарта.
+                Console.Error.WriteLine($"CdpSlotRegistry.Upsert (heartbeat) failed: {ex.Message}");
+            }
         }
     }
 
+    /// <summary>Wire JSON: snake_case, без null-полей (см. CdpInvokeResponse).</summary>
+    static readonly System.Text.Json.JsonSerializerOptions CdpJsonOpts = new()
+    {
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.SnakeCaseLower,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+    };
 }
+
+internal sealed record CdpWakeSubscribeRequest(string? Nick, string? Event, string? TaskFilter);
 
 internal sealed class CdpInvokeRequest
 {

@@ -98,7 +98,9 @@ internal static class CdpGatekeeperHost
                 outRequest.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
         }
 
-        using var response = await http.SendAsync(outRequest, context.RequestAborted).ConfigureAwait(false);
+        using var response = await http
+            .SendAsync(outRequest, HttpCompletionOption.ResponseHeadersRead, context.RequestAborted)
+            .ConfigureAwait(false);
 
         context.Response.StatusCode = (int)response.StatusCode;
         CopyHeaders(response.Headers, context.Response.Headers);
@@ -108,6 +110,9 @@ internal static class CdpGatekeeperHost
         if (response.Headers.TransferEncodingChunked == true
             || mediaType.Contains("text/event-stream", StringComparison.OrdinalIgnoreCase))
         {
+            // SSE: Kestrel буферизует тело по умолчанию — без DisableBuffering()
+            // стрим через гейткипер молча висит (capabilities/watch ровно так и ломался).
+            context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpResponseBodyFeature>()?.DisableBuffering();
             await response.Content.CopyToAsync(context.Response.Body, context.RequestAborted).ConfigureAwait(false);
             return;
         }

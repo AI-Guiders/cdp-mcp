@@ -362,6 +362,24 @@ internal sealed class CdpWakeDispatcher
                     wakeGate.Release();
                 }
 
+            case "dsh":
+                // CDP-ADR-0227: external harness subscriber (DSH plugin) via in-process SSE hub.
+                if (TryDeliverDsh(e))
+                {
+                    return e; // delivered — state already persisted by TryDeliverDsh
+                }
+                e.Detail = "no_dsh_watcher — ждёт подключения линии (pending)";
+                return e; // pending — ретрай на следующем тике / на подключении watch
+
+            case "toast":
+                // CDP-ADR-0228: operator toast service — тот же hub, другой потребитель.
+                if (TryDeliverDsh(e))
+                {
+                    return e;
+                }
+                e.Detail = "no_toast_watcher — ждёт подключения операторского тост-сервиса (pending)";
+                return e;
+
             case "citizen":
                 // Stage-2: citizen-turn канал; пока честный skip, не тишина
                 e.State = "skipped";
@@ -387,6 +405,24 @@ internal sealed class CdpWakeDispatcher
                 return e;
         }
     }
+
+    /// <summary>CDP-ADR-0227: доставить dsh-конверт в hub (in-memory SSE) и зафиксировать delivered.</summary>
+    public bool TryDeliverDsh(CdpWakeEnvelopeEntity e)
+    {
+        if (!DshWakeHub.TryDeliver(e)) return false;
+        e.State = "delivered";
+        e.DeliveredUtc = _time.GetUtcNow();
+        e.Detail = "dsh";
+        _ = _store.SetWakeState(e.Id, e.State, e.Detail, null);
+        _ = _store.PurgeWake("delivered", _options.KeepCompleted);
+        return true;
+    }
+
+    /// <summary>CDP-ADR-0227: pending-конверты ника (backlog на подключении watch).</summary>
+    public IReadOnlyList<CdpWakeEnvelopeEntity> PendingDsh(string nick) =>
+        _store.LoadWake("pending", _options.MaxPending)
+            .Where(x => x.Nick.Equals(nick, StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
     void AbsorbLegacyArms()
     {

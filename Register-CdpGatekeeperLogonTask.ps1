@@ -69,6 +69,8 @@ if (-not $StartupFolderOnly) {
             -DontStopIfGoingOnBatteries `
             -StartWhenAvailable `
             -MultipleInstances IgnoreNew `
+            -RestartCount 3 `
+            -RestartInterval (New-TimeSpan -Minutes 1) `
             -ExecutionTimeLimit ([TimeSpan]::Zero)
         Register-ScheduledTask `
             -TaskName $TaskName `

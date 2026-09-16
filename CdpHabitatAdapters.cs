@@ -17,8 +17,16 @@ internal sealed class ProfileStateRootProvider : IStateRootProvider
 /// <summary>Порт ростера над скомпонованным инстансом реестра (ADR-0212).</summary>
 internal sealed class IntercomAgentsRoster : IAgentRoster
 {
-    public CideIntercomAgents.AgentRow? Resolve(string nick) =>
-        CideIntercomAgents.Resolve(nick);
+    /// <summary>Виртуальный уведомляемый ник оператора (CDP-ADR-0228): тост-сервис
+    /// подписывается как внешний потребитель NotificationCenter, без записи в witdb.</summary>
+    internal const string OperatorNick = "оператор";
+
+    public CideIntercomAgents.AgentRow? Resolve(string nick)
+    {
+        if (nick.Equals(OperatorNick, StringComparison.OrdinalIgnoreCase))
+            return new CideIntercomAgents.AgentRow(OperatorNick, "operator", null, "toast", "", DateTimeOffset.UtcNow);
+        return CideIntercomAgents.Resolve(nick);
+    }
 
     public CideIntercomAgents.AgentRow? ResolveDefaultSeat(
         out IReadOnlyList<CideIntercomAgents.AgentRow> liveCandidates) =>
