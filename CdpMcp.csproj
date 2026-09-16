@@ -61,6 +61,9 @@
     <Compile Remove="Cdp.Deploy/**" />
     <None Remove="Cdp.Deploy/**" />
     <EmbeddedResource Remove="Cdp.Deploy/**" />
+    <Compile Remove="CdpToastService/**" />
+    <None Remove="CdpToastService/**" />
+    <EmbeddedResource Remove="CdpToastService/**" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
