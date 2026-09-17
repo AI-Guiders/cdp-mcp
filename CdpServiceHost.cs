@@ -160,40 +160,21 @@ internal static class CdpServiceHost
             }).ToArray()
         }));
 
-        app.MapGet("/api/v1/cdp/capabilities/watch", async (HttpContext context, CdpHostRuntime rt, CancellationToken ct) =>
+        // SSE via framework Results.ServerSentEvents (ASP.NET Core 10): the
+        // runtime owns framing/backpressure/cancellation — no hand-rolled
+        // MoveNextAsync/FlushAsync (those produced the ValueTask race that
+        // killed the slot twice). Wire shape stays compatible with
+        // CdpBridgeCapabilitiesWatcher: "event: rev\ndata: {"capabilitiesRev":N}".
+        static async IAsyncEnumerable<string> MapCapabilitiesRevisions(
+            IAsyncEnumerable<long> revisions,
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct)
         {
-            context.Response.Headers.CacheControl = "no-cache";
-            context.Response.ContentType = "text/event-stream";
-            // SSE: no heartbeat race — MoveNextAsync must be awaited before the
-            // next call; the bridge waits on ReadLineAsync without a timeout.
-            await using var e = rt.WatchCapabilitiesRevisionAsync(ct).GetAsyncEnumerator();
-            try
-            {
-                // NO WhenAny race: MoveNextAsync must be awaited before the next
-                // call — a second MoveNextAsync while the previous one is still
-                // in flight throws "The asynchronous operation has not completed"
-                // (and killed the slot as NRE before the try/catch below landed).
-                while (!ct.IsCancellationRequested)
-                {
-                    if (!await e.MoveNextAsync().ConfigureAwait(false)) break;
-                    await context.Response
-                        .WriteAsync($"event: rev\ndata: {{\"capabilitiesRev\":{e.Current}}}\n\n", ct)
-                        .ConfigureAwait(false);
-                    await context.Response.Body.FlushAsync(ct).ConfigureAwait(false);
-                }
-            }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
-            {
-                // Client went away or shutdown — normal SSE teardown, not a fault.
-            }
-            catch (Exception error)
-            {
-                // A stream fault must end THIS subscription, never the service:
-                // the bridge re-subscribes by itself (CdpBridgeCapabilitiesWatcher)
-                // and the next watch call heals the catalog.
-                Console.Error.WriteLine($"capabilities/watch stream failed: {error}");
-            }
-        });
+            await foreach (var rev in revisions.WithCancellation(ct).ConfigureAwait(false))
+                yield return $"{{\"capabilitiesRev\":{rev}}}";
+        }
+
+        app.MapGet("/api/v1/cdp/capabilities/watch", (CdpHostRuntime rt, CancellationToken ct) =>
+            Results.ServerSentEvents(MapCapabilitiesRevisions(rt.WatchCapabilitiesRevisionAsync(ct), ct), "rev"));
 
         app.MapPost("/api/v1/wake/subscribe", (CdpWakeSubscribeRequest req) =>
         {
