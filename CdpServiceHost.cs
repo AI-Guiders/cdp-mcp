@@ -164,24 +164,18 @@ internal static class CdpServiceHost
         {
             context.Response.Headers.CacheControl = "no-cache";
             context.Response.ContentType = "text/event-stream";
-            // SSE heartbeat: consumer may time out a silent stream — keep alive.
-            var heartbeat = TimeSpan.FromSeconds(15);
+            // SSE: no heartbeat race — MoveNextAsync must be awaited before the
+            // next call; the bridge waits on ReadLineAsync without a timeout.
             await using var e = rt.WatchCapabilitiesRevisionAsync(ct).GetAsyncEnumerator();
             try
             {
+                // NO WhenAny race: MoveNextAsync must be awaited before the next
+                // call — a second MoveNextAsync while the previous one is still
+                // in flight throws "The asynchronous operation has not completed"
+                // (and killed the slot as NRE before the try/catch below landed).
                 while (!ct.IsCancellationRequested)
                 {
-                    var next = e.MoveNextAsync();
-                    var ping = Task.Delay(heartbeat, ct);
-                    var done = await Task.WhenAny(next.AsTask(), ping).ConfigureAwait(false);
-                    if (done == ping)
-                    {
-                        await context.Response.WriteAsync(": ping\n\n", ct).ConfigureAwait(false);
-                        await context.Response.Body.FlushAsync(ct).ConfigureAwait(false);
-                        continue;
-                    }
-
-                    if (!await next.ConfigureAwait(false)) break;
+                    if (!await e.MoveNextAsync().ConfigureAwait(false)) break;
                     await context.Response
                         .WriteAsync($"event: rev\ndata: {{\"capabilitiesRev\":{e.Current}}}\n\n", ct)
                         .ConfigureAwait(false);
@@ -196,8 +190,7 @@ internal static class CdpServiceHost
             {
                 // A stream fault must end THIS subscription, never the service:
                 // the bridge re-subscribes by itself (CdpBridgeCapabilitiesWatcher)
-                // and the next watch call heals the catalog. Unhandled here used
-                // to kill the whole slot process (NRE in channel ReadAllAsync).
+                // and the next watch call heals the catalog.
                 Console.Error.WriteLine($"capabilities/watch stream failed: {error}");
             }
         });
