@@ -1,5 +1,5 @@
 using AIGuiders.Platform.Execution.Ide.Session;
-using AIGuiders.Platform.Modeling.Language.Adapters.Fcs;
+using AIGuiders.Platform.Execution.Language.Adapters.Fcs;
 using Cdp.Core;
 using DotNetWorkspace.Core;
 #if CDP_FEDERATION_IDE_SESSION
@@ -45,7 +45,7 @@ internal static class IdeWorkspaceWarm
         try
         {
             MsBuildLocatorOnce.EnsureRegistered();
-            FcsCompilerServicesHost.materialize(view);
+            FcsExecutionHost.Materialize(view);
         }
         catch (Exception ex)
         {

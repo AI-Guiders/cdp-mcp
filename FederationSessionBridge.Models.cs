@@ -21,8 +21,8 @@ internal sealed record FederationGraphPulseDto
     [JsonPropertyName("project_edge_count")]
     public int ProjectEdgeCount { get; init; }
 
-    [JsonPropertyName("file_ownership_count")]
-    public int FileOwnershipCount { get; init; }
+    [JsonPropertyName("document_registry_count")]
+    public int DocumentRegistryCount { get; init; }
 
     [JsonPropertyName("ledger_revision")]
     public long LedgerRevision { get; init; }

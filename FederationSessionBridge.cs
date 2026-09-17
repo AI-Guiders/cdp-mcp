@@ -3,6 +3,7 @@ using System.Text.Json;
 using AIGuiders.Platform.Execution.Ide.Session;
 using AIGuiders.Platform.Modeling.Ide.Session;
 using Cdp.Core;
+using Microsoft.FSharp.Collections;
 
 namespace CdpMcp;
 
@@ -21,15 +22,17 @@ internal static class FederationSessionBridge
         {
             var opened = FederationSessionRuntime.Open(anchor);
             var graph = opened.Runtime.Session.Graph;
+            var projectRefEdges = SolutionGraphModule.projectRefEdges(graph);
+            var registryCount = opened.Runtime.Registry.Count;
 
             return new FederationGraphPulseDto
             {
                 Available = true,
-                AnchorPath = graph.AnchorPath,
+                AnchorPath = graph.Anchor.Value,
                 Phase = opened.Runtime.Session.Phase.ToString(),
                 ProjectCount = graph.Projects.Length,
-                ProjectEdgeCount = graph.ProjectEdges.Length,
-                FileOwnershipCount = graph.FileOwnership.Count,
+                ProjectEdgeCount = projectRefEdges.Length,
+                DocumentRegistryCount = registryCount,
                 LedgerRevision = opened.Runtime.Ledger.NextRevision - 1,
                 GraphValid = opened.IsValid,
                 IssueCount = opened.Validation.Issues.Length
@@ -66,12 +69,14 @@ internal static class FederationSessionBridge
         {
             var opened = FederationSessionRuntime.Open(anchor);
             var graph = opened.Runtime.Session.Graph;
+            var projectRefEdges = SolutionGraphModule.projectRefEdges(graph);
+            var registryCount = opened.Runtime.Registry.Count;
 
             return JsonSerializer.Serialize(new
             {
                 ok = true,
                 schema = "federation.ide.session.scene/v1",
-                anchor_path = graph.AnchorPath,
+                anchor_path = graph.Anchor.Value,
                 phase = opened.Runtime.Session.Phase.ToString(),
                 graph_valid = opened.IsValid,
                 validation_issues = opened.Validation.Issues.Select(i => i.Message).ToArray(),
@@ -79,17 +84,13 @@ internal static class FederationSessionBridge
                 materialized_count = opened.Runtime.Materialized.Entries.Count,
                 projects = graph.Projects.Select(p => new
                 {
-                    id = ProjectIdModule.value(p.Id),
+                    id = AIGuiders.Platform.Modeling.Ide.Session.ProjectIdModule.value(p.Id),
                     path = p.AbsolutePath,
                     kind = p.Kind.ToString(),
                     capability_count = p.Capabilities.Length
                 }).ToArray(),
-                project_edges = graph.ProjectEdges.Select(e => new
-                {
-                    from = ProjectIdModule.value(e.From),
-                    to = ProjectIdModule.value(e.To)
-                }).ToArray(),
-                file_ownership_count = graph.FileOwnership.Count,
+                project_edges = ProjectRefWire(projectRefEdges).ToArray(),
+                document_registry_count = registryCount,
                 next = new object[]
                 {
                     new { go = "ide_session_scene", label = "Refresh graph", why = "detail=full" },
@@ -101,6 +102,27 @@ internal static class FederationSessionBridge
         {
             return JsonSerializer.Serialize(new { ok = false, anchor_path = anchor, error = ex.Message }, pretty);
         }
+    }
+
+    static IEnumerable<object> ProjectRefWire(FSharpList<Relation> projectRefEdges) =>
+        ListModule.ToSeq(projectRefEdges)
+            .Select(TryProjectRefEndpoints)
+            .Where(static x => x is not null)
+            .Select(static x => x!);
+
+    static object? TryProjectRefEndpoints(Relation relation)
+    {
+        if (relation.From is not GraphNodeRef.SessionProject fromNode
+            || relation.To is not GraphNodeRef.SessionProject toNode)
+        {
+            return null;
+        }
+
+        return new
+        {
+            from = AIGuiders.Platform.Modeling.Ide.Session.ProjectIdModule.value(fromNode.Item),
+            to = AIGuiders.Platform.Modeling.Ide.Session.ProjectIdModule.value(toNode.Item)
+        };
     }
 
     static string? OptPath(IReadOnlyDictionary<string, JsonElement> args)

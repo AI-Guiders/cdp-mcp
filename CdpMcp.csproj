@@ -107,6 +107,7 @@
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Cockpit.Cds\AIGuiders.Platform.Execution.Cockpit.Cds.csproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.CommandPlane\AIGuiders.Platform.Execution.CommandPlane.csproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Language\AIGuiders.Platform.Execution.Language.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Language.Adapters.Fcs\AIGuiders.Platform.Execution.Language.Adapters.Fcs.csproj" />
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language\AIGuiders.Platform.Modeling.Language.fsproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Ide.Session\AIGuiders.Platform.Execution.Ide.Session.csproj" />
   </ItemGroup>
