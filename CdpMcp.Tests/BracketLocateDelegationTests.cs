@@ -17,7 +17,17 @@ public sealed class BracketLocateDelegationTests
         Assert.Equal(10, span.LineStart);
         Assert.Equal(BracketLocate.AxisFamily.Csharp, BracketLocate.ClassifyFamily(span, out var error));
         Assert.Null(error);
-        Assert.Contains("F:Program.cs", BracketLocate.Format(span));
+        Assert.StartsWith("[Kind:CodeEdit;", BracketLocate.Format(span));
+        Assert.Contains("Member:Foo", BracketLocate.Format(span));
+    }
+
+    [Fact]
+    public void Parse_legacy_fml_wire_via_relation_boundary()
+    {
+        var span = BracketLocate.Parse("[F:Legacy.cs;M:Old;L:5]");
+        Assert.Equal("Legacy.cs", span.File);
+        Assert.Equal("Old", span.MemberKey);
+        Assert.Equal(5, span.LineStart);
     }
 
     [Fact]
@@ -39,10 +49,10 @@ public sealed class BracketLocateDelegationTests
     }
 
     [Fact]
-    public void Format_preferCanonical_emits_kind_code_edit()
+    public void Format_default_emits_kind_code_edit()
     {
         var span = BracketLocate.Parse("[F:Program.cs;M:Foo;L:10]");
-        var wire = BracketLocate.Format(span, preferCanonical: true);
+        var wire = BracketLocate.Format(span);
         Assert.Equal("[Kind:CodeEdit; File:Program.cs; Member:Foo]", wire);
     }
 }
