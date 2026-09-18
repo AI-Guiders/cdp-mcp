@@ -44,10 +44,19 @@ public sealed class CitizenLandHostTests
         Assert.Equal("[Kind:Nav; Command:go; Go:editor_scene]", go.Command);
 
         var wire = CitizenIntentRouter.RouteOne(
-            "land anchor=\"[Family:navigation;Command:show;Anchor:[File:x.png]]\"");
+            "land anchor=\"[Kind:Nav; Command:show; File:x.png]\"");
         Assert.True(wire.Ok);
         Assert.Equal("show", wire.Op);
-        Assert.Contains("Command:show", wire.Command, StringComparison.Ordinal);
+        Assert.Equal("[Kind:Nav; File:x.png; Command:show]", wire.Command);
+    }
+
+    [Fact]
+    public void Route_land_rejects_legacy_family_navigation_wire()
+    {
+        var wire = CitizenIntentRouter.RouteOne(
+            "land anchor=\"[Family:navigation;Command:show;Anchor:[File:x.png]]\"");
+        Assert.False(wire.Ok);
+        Assert.Equal("land_anchor_invalid", wire.Reason);
     }
 
     [Fact]

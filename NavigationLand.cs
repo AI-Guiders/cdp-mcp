@@ -6,7 +6,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Land via <c>Kind:Nav</c> anchor wire (ADR 0186; federation §10). Not Deep-Link / URI.
-/// Legacy <c>Family:navigation</c> wires are ingested and flattened on format.
+/// Legacy <c>Family:navigation</c> ingest removed (ship-60) — Kind:Nav only.
 /// </summary>
 internal static class NavigationLand
 {
@@ -46,7 +46,7 @@ internal static class NavigationLand
         if (famErr is not null)
             return Fail(famErr, wire);
         if (family != BracketLocate.AxisFamily.Navigation)
-            return Fail("not_navigation_family", "Expected Kind:Nav navigation wire (legacy Family:navigation accepted on ingest). Code/xml → edit_op=anchor.");
+            return Fail("not_navigation_family", "Expected Kind:Nav navigation wire. Code/xml → edit_op=anchor.");
 
         var command = (span.Command ?? "").Trim().ToLowerInvariant();
         if (command.Length == 0)

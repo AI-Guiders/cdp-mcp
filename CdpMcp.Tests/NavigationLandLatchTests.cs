@@ -35,7 +35,7 @@ public class NavigationLandLatchTests : IDisposable
         var path = Path.Combine(_root, "Foo.cs");
         File.WriteAllText(path, "class Foo { }");
 
-        NavigationLandLatch.Publish("goto", path, 12, "Foo", "[Family:navigation;Command:goto]");
+        NavigationLandLatch.Publish("goto", path, 12, "Foo", "[Kind:Nav; Command:goto]");
 
         Assert.True(File.Exists(NavigationLandLatch.LatchPath));
         using var doc = JsonDocument.Parse(File.ReadAllText(NavigationLandLatch.LatchPath));

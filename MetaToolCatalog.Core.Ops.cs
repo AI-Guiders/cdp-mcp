@@ -63,7 +63,7 @@ internal static partial class MetaToolCatalog
         type = "object",
         properties = new
         {
-            anchor = new { type = "string", description = "[Kind:Nav; Command:…; File:…; Member:…; Go:…] (legacy Family:navigation accepted on ingest)" },
+            anchor = new { type = "string", description = "[Kind:Nav; Command:…; File:…; Member:…; Go:…]" },
             at = new { type = "string", description = "Alias of anchor" },
             wire = new { type = "string", description = "Alias of anchor" },
             show_face = new { type = "boolean", description = "Invite Human Glass Face (AvalonEdit + PreferSurface). Default false on open|goto; Command:show defaults true." }

@@ -1,5 +1,7 @@
 #nullable enable
 
+using Cdp.ScriptableIde;
+
 namespace CdpMcp;
 
 /// <summary>Citizen @intent land|deep_link — NavigationLand / cdp_land without Cursor MCP (Kind:Nav anchor).</summary>
@@ -51,7 +53,15 @@ internal static partial class CitizenIntentRouter
         string? command;
         if (!string.IsNullOrWhiteSpace(wired))
         {
-            command = wired.Trim();
+            try
+            {
+                var span = BracketLocate.Parse(wired.Trim());
+                command = BracketLocate.Format(span);
+            }
+            catch (ArgumentException)
+            {
+                return new Route(Verb.Unknown, raw, Ok: false, Reason: "land_anchor_invalid");
+            }
         }
         else
         {
