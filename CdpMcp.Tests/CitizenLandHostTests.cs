@@ -27,10 +27,12 @@ public sealed class CitizenLandHostTests
         Assert.Equal("CitizenRouteHost.cs", r.Path);
         Assert.Equal("50", r.Detail);
         Assert.Equal("RunLand", r.Scene);
+        Assert.StartsWith("[Kind:Nav;", r.Command, StringComparison.Ordinal);
         Assert.Contains("Command:open", r.Command, StringComparison.Ordinal);
         Assert.Contains("File:CitizenRouteHost.cs", r.Command, StringComparison.Ordinal);
         Assert.Contains("Line:50", r.Command, StringComparison.Ordinal);
         Assert.Contains("Member:RunLand", r.Command, StringComparison.Ordinal);
+        Assert.DoesNotContain("Family:navigation", r.Command, StringComparison.Ordinal);
     }
 
     [Fact]

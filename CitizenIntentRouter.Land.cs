@@ -146,15 +146,9 @@ internal static partial class CitizenIntentRouter
         if (string.IsNullOrWhiteSpace(path))
             return null;
 
-        if (!string.IsNullOrWhiteSpace(member))
-        {
-            return "[Family:navigation;Command:" + op + ";Anchor:[File:" + path.Trim()
-                + ";Member:" + member.Trim()
-                + (string.IsNullOrWhiteSpace(line) ? "" : ";Line:" + line.Trim())
-                + "]]";
-        }
-
         var flat = new List<string> { "Kind:Nav", "File:" + path.Trim(), "Command:" + op };
+        if (!string.IsNullOrWhiteSpace(member))
+            flat.Add("Member:" + member.Trim());
         if (!string.IsNullOrWhiteSpace(line))
             flat.Add("Line:" + line.Trim());
         return "[" + string.Join("; ", flat) + "]";
