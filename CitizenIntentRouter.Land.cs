@@ -131,13 +131,13 @@ internal static partial class CitizenIntentRouter
         string? goTarget)
     {
         if (op is "restore")
-            return "[Family:navigation;Command:restore]";
+            return "[Kind:Nav; Command:restore]";
 
         if (op is "go")
         {
             if (string.IsNullOrWhiteSpace(goTarget))
                 return null;
-            return "[Family:navigation;Command:go;Go:" + goTarget.Trim() + "]";
+            return "[Kind:Nav; Command:go; Go:" + goTarget.Trim() + "]";
         }
 
         if (op is "wire")
@@ -146,13 +146,18 @@ internal static partial class CitizenIntentRouter
         if (string.IsNullOrWhiteSpace(path))
             return null;
 
-        var nested = new List<string> { "File:" + path.Trim() };
         if (!string.IsNullOrWhiteSpace(member))
-            nested.Add("Member:" + member.Trim());
-        if (!string.IsNullOrWhiteSpace(line))
-            nested.Add("Line:" + line.Trim());
+        {
+            return "[Family:navigation;Command:" + op + ";Anchor:[File:" + path.Trim()
+                + ";Member:" + member.Trim()
+                + (string.IsNullOrWhiteSpace(line) ? "" : ";Line:" + line.Trim())
+                + "]]";
+        }
 
-        return "[Family:navigation;Command:" + op + ";Anchor:[" + string.Join(';', nested) + "]]";
+        var flat = new List<string> { "Kind:Nav", "File:" + path.Trim(), "Command:" + op };
+        if (!string.IsNullOrWhiteSpace(line))
+            flat.Add("Line:" + line.Trim());
+        return "[" + string.Join("; ", flat) + "]";
     }
 
     static string? InferLandOpFromWire(string wire)

@@ -15,7 +15,7 @@ public sealed class CitizenLandHostTests
         Assert.Equal(CitizenIntentRouter.Verb.Land, r.Verb);
         Assert.Equal("restore", r.Op);
         Assert.Equal("land", r.Go);
-        Assert.Equal("[Family:navigation;Command:restore]", r.Command);
+        Assert.Equal("[Kind:Nav; Command:restore]", r.Command);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public sealed class CitizenLandHostTests
         var go = CitizenIntentRouter.RouteOne("land go go=editor_scene");
         Assert.True(go.Ok);
         Assert.Equal("go", go.Op);
-        Assert.Equal("[Family:navigation;Command:go;Go:editor_scene]", go.Command);
+        Assert.Equal("[Kind:Nav; Command:go; Go:editor_scene]", go.Command);
 
         var wire = CitizenIntentRouter.RouteOne(
             "land anchor=\"[Family:navigation;Command:show;Anchor:[File:x.png]]\"");
@@ -78,7 +78,7 @@ public sealed class CitizenLandHostTests
             Assert.Equal("land", applied[0].Action);
             Assert.Contains("land", applied[0].Pulse, StringComparison.Ordinal);
             Assert.NotNull(seen);
-            Assert.Equal("[Family:navigation;Command:restore]", seen!["anchor"].GetString());
+            Assert.Equal("[Kind:Nav; Command:restore]", seen!["anchor"].GetString());
         }
         finally
         {

@@ -42,6 +42,14 @@ public sealed class BracketLocateDelegationTests
     }
 
     [Fact]
+    public void Format_command_only_navigation_emits_kind_nav()
+    {
+        var span = BracketLocate.Parse("[Family:navigation;Command:restore]");
+        Assert.Equal(BracketLocate.AxisFamily.Navigation, BracketLocate.ClassifyFamily(span, out _));
+        Assert.Equal("[Kind:Nav; Command:restore]", BracketLocate.Format(span));
+    }
+
+    [Fact]
     public void Parse_kind_nav_wire()
     {
         var span = BracketLocate.Parse("[Kind:Nav; File:README.md; Line:10; Command:open]");
