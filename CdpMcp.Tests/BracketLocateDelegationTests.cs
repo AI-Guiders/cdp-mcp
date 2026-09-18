@@ -37,4 +37,12 @@ public sealed class BracketLocateDelegationTests
         Assert.Equal("MyNamespace.MyType", span.TypeKey);
         Assert.Equal(BracketLocate.AxisFamily.Csharp, BracketLocate.ClassifyFamily(span, out _));
     }
+
+    [Fact]
+    public void Format_preferCanonical_emits_kind_code_edit()
+    {
+        var span = BracketLocate.Parse("[F:Program.cs;M:Foo;L:10]");
+        var wire = BracketLocate.Format(span, preferCanonical: true);
+        Assert.Equal("[Kind:CodeEdit; File:Program.cs; Member:Foo]", wire);
+    }
 }
