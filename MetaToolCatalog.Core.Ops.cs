@@ -58,7 +58,7 @@ internal static partial class MetaToolCatalog
             ask = new { type = "string", description = "alias of message" }
         }
     }),
-    Meta("cdp_land", "Land via Kind:Nav anchor wire (ADR 0186; federation §10). NOT Deep-Link/URI. Pass anchor=[Kind:Nav; Command:open|goto|restore|show|go; File:…; Member:…; Go:…]. Legacy Family:navigation ingest still accepted. Default open|goto quiet (show_face=false); Command:show invites Human Face. Alias go=land.", new
+    Meta("cdp_land", "Land via Kind:Nav anchor wire (ADR 0186; federation §10). NOT Deep-Link/URI. Pass anchor=[Kind:Nav; Command:open|goto|restore|show|go; File:…; Member:…; Go:…]. Kind:Nav only (ship-60). Default open|goto quiet (show_face=false); Command:show invites Human Face. Alias go=land.", new
     {
         type = "object",
         properties = new
