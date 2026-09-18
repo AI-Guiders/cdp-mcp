@@ -18,7 +18,7 @@ Operator framing (Part2):
 1. **Unified ICM** — one `command_id` drive.
 2. **GUI on-demand** — former CIDE window is optional shell, not boot-with-GUI.
 3. **Anchor Start/Stop** — agent opens/closes operator cockpit (deferred).
-4. **Nav Anchor in GUI** — same `cdp_land` / Family:navigation wire; human entry later (parity, not second nav SSOT).
+4. **Nav Anchor in GUI** — same `cdp_land` / `Kind:Nav` wire (legacy `Family:navigation` ingest); human entry later (parity, not second nav SSOT).
 
 Week DoD = harness seams + locked model. Avalonia rewrite / repo merge = later.
 

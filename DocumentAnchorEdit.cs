@@ -43,7 +43,7 @@ internal static class DocumentAnchorEdit
             throw new ArgumentException("Anchor needs csharp axes (M/T/L/S/K) or xml axes (X/A).");
         if (family == BracketLocate.AxisFamily.Navigation)
             throw new ArgumentException(
-                "Family:navigation is land-only — use cdp_land (not edit_op=anchor).");
+                "Kind:Nav is land-only — use cdp_land (not edit_op=anchor).");
 
         if (family == BracketLocate.AxisFamily.Fsharp
             || (family == BracketLocate.AxisFamily.Csharp

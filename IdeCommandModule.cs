@@ -18,7 +18,7 @@ namespace CdpMcp;
 /// </para>
 /// <para>
 /// Navigation Anchor (<c>cdp_land</c>) is agent-ready; GUI may project the same
-/// Family:navigation wire later. SoftDispatch stays behind this module.
+/// Kind:Nav wire via IdeCommandModule when ICM lands nav (ADR 0186). SoftDispatch stays behind this module.
 /// Human Melody ids use <see cref="ExecuteAliasedAsync"/> + <see cref="IdeCommandAliasMap"/>.
 /// </para>
 /// </remarks>

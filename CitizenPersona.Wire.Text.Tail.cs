@@ -47,7 +47,7 @@ internal static partial class CitizenPersona
           @intent land goto path=rel/file.cs line=50 member=Foo
           @intent land show path=docs/shot.png
           @intent land go go=editor_scene
-          @intent land anchor="[Family:navigation;Command:restore]"
+          @intent land anchor="[Kind:Nav; Command:restore]"
           @intent pkg
           @intent pkg list
           @intent nuget

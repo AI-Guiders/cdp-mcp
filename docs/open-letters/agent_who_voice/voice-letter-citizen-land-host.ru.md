@@ -10,7 +10,7 @@
 
 ## Стало
 
-`@intent land|deep_link|land_*` → build Anchor wire → `MetaDispatchResolver("cdp_land")` / `NavigationLand.RunAsync`. Bare `land` = restore (desk bookmark). UX: `land open|goto path=` · `land show` · `land go go=` · raw `land anchor="[Family:navigation;…]"`. Не ворует bare `open`/`goto`/`navigate`/`anchor` (чужие руки).
+`@intent land|deep_link|land_*` → build Kind:Nav anchor → `MetaDispatchResolver("cdp_land")` / `NavigationLand.RunAsync`. Bare `land` = restore (desk bookmark). UX: `land open|goto path=` · `land show` · `land go go=` · raw `land anchor="[Kind:Nav; …]"` (legacy `Family:navigation` still ingests). Не ворует bare `open`/`goto`/`navigate`/`anchor` (чужие руки).
 
 ## Lived
 

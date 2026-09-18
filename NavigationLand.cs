@@ -5,8 +5,8 @@ using Cdp.ScriptableIde;
 namespace CdpMcp;
 
 /// <summary>
-/// Land via <c>Family:navigation</c> Anchor wire (ADR 0186). Not Deep-Link / URI.
-/// Nested <c>Anchor:[…]</c> reuses the same BracketLocate resolve path.
+/// Land via <c>Kind:Nav</c> anchor wire (ADR 0186; federation §10). Not Deep-Link / URI.
+/// Legacy <c>Family:navigation</c> wires are ingested and flattened on format.
 /// </summary>
 internal static class NavigationLand
 {
@@ -30,7 +30,7 @@ internal static class NavigationLand
     {
         var wire = Opt(args, "anchor") ?? Opt(args, "at") ?? Opt(args, "wire");
         if (string.IsNullOrWhiteSpace(wire))
-            return Fail("anchor_required", "Pass anchor=[Family:navigation;Command:…;…]");
+            return Fail("anchor_required", "Pass anchor=[Kind:Nav; Command:…; …]");
 
         BracketLocate.Span span;
         try
@@ -46,7 +46,7 @@ internal static class NavigationLand
         if (famErr is not null)
             return Fail(famErr, wire);
         if (family != BracketLocate.AxisFamily.Navigation)
-            return Fail("not_navigation_family", "Expected Family:navigation (or Command/Go/Anchor). Code/xml → edit_op=anchor.");
+            return Fail("not_navigation_family", "Expected Kind:Nav navigation wire (legacy Family:navigation accepted on ingest). Code/xml → edit_op=anchor.");
 
         var command = (span.Command ?? "").Trim().ToLowerInvariant();
         if (command.Length == 0)

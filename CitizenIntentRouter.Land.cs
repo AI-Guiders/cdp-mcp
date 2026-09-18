@@ -2,7 +2,7 @@
 
 namespace CdpMcp;
 
-/// <summary>Citizen @intent land|deep_link — NavigationLand / cdp_land without Cursor MCP (Family:navigation Anchor).</summary>
+/// <summary>Citizen @intent land|deep_link — NavigationLand / cdp_land without Cursor MCP (Kind:Nav anchor).</summary>
 internal static partial class CitizenIntentRouter
 {
     static Route RouteLand(string raw)
