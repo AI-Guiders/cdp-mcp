@@ -90,6 +90,7 @@
     <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Composition" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Cds" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="AIGuiders.Platform.Execution.CommandPlane" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Execution.CommandPlane.ArgSuggestions" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260225" />
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260225" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.3" />
@@ -110,6 +111,7 @@
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Language.Adapters.Fcs\AIGuiders.Platform.Execution.Language.Adapters.Fcs.csproj" />
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language\AIGuiders.Platform.Modeling.Language.fsproj" />
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Ide.Session\AIGuiders.Platform.Execution.Ide.Session.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.CommandPlane.ArgSuggestions\AIGuiders.Platform.Execution.CommandPlane.ArgSuggestions.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(UseLocalGuidersPlatform)' == 'true'">
     <DefineConstants>$(DefineConstants);CDP_FEDERATION_IDE_SESSION</DefineConstants>
