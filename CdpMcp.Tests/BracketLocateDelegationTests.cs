@@ -35,9 +35,20 @@ public sealed class BracketLocateDelegationTests
     {
         var span = BracketLocate.Parse("[Family:navigation;Command:open;Anchor:[F:README.md;L:10]]");
         Assert.Equal(BracketLocate.AxisFamily.Navigation, BracketLocate.ClassifyFamily(span, out _));
-        Assert.NotNull(span.NestedAnchor);
-        Assert.Equal("README.md", span.NestedAnchor!.File);
-        Assert.Equal(10, span.NestedAnchor.LineStart);
+        Assert.Equal("README.md", span.File);
+        Assert.Equal(10, span.LineStart);
+        Assert.Equal("open", span.Command);
+        Assert.Equal("[Kind:Nav; File:README.md; Line:10; Command:open]", BracketLocate.Format(span));
+    }
+
+    [Fact]
+    public void Parse_kind_nav_wire()
+    {
+        var span = BracketLocate.Parse("[Kind:Nav; File:README.md; Line:10; Command:open]");
+        Assert.Equal(BracketLocate.AxisFamily.Navigation, BracketLocate.ClassifyFamily(span, out _));
+        Assert.Equal("README.md", span.File);
+        Assert.Equal(10, span.LineStart);
+        Assert.Equal("open", span.Command);
     }
 
     [Fact]
