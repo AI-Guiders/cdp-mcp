@@ -31,26 +31,24 @@ public sealed class BracketLocateDelegationTests
     }
 
     [Fact]
-    public void Parse_navigation_nested_anchor_flattens_member_to_kind_nav()
-    {
-        var span = BracketLocate.Parse("[Family:navigation;Command:open;Anchor:[F:README.md;M:Foo;L:10]]");
-        Assert.Equal(BracketLocate.AxisFamily.Navigation, BracketLocate.ClassifyFamily(span, out _));
-        Assert.Equal("README.md", span.File);
-        Assert.Equal("Foo", span.MemberKey);
-        Assert.Equal(10, span.LineStart);
-        Assert.Equal("open", span.Command);
-        Assert.Equal("[Kind:Nav; File:README.md; Line:10; Member:Foo; Command:open]", BracketLocate.Format(span));
-    }
-
-    [Fact]
     public void Parse_navigation_nested_anchor()
     {
         var span = BracketLocate.Parse("[Family:navigation;Command:open;Anchor:[F:README.md;L:10]]");
         Assert.Equal(BracketLocate.AxisFamily.Navigation, BracketLocate.ClassifyFamily(span, out _));
         Assert.Equal("README.md", span.File);
+        Assert.Null(span.NestedAnchor);
         Assert.Equal(10, span.LineStart);
         Assert.Equal("open", span.Command);
         Assert.Equal("[Kind:Nav; File:README.md; Line:10; Command:open]", BracketLocate.Format(span));
+    }
+
+    [Fact]
+    public void Parse_navigation_member_flattens_to_kind_nav()
+    {
+        var span = BracketLocate.Parse("[Family:navigation;Command:open;Anchor:[F:README.md;M:Foo;L:10]]");
+        Assert.Equal("README.md", span.File);
+        Assert.Equal("Foo", span.MemberKey);
+        Assert.Equal("[Kind:Nav; File:README.md; Line:10; Member:Foo; Command:open]", BracketLocate.Format(span));
     }
 
     [Fact]
