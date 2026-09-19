@@ -32,6 +32,26 @@ internal static class VisibleToolCatalog
         "cdp_goto",
         "cdp_analysis_scene",
         "cdp_test_scene",
+        // pkg-read → packages { list|find|… }; mutate stays listed
+        "cdp_pkg_find",
+        "cdp_pkg_list",
+        "cdp_pkg_outdated",
+        "cdp_pkg_audit",
+        "cdp_pkg_latest",
+        "cdp_pkg_upgrade_plan",
+        "cdp_pkg_supply_chain",
+        // git-read → git { scene|status|diff|preflight }; commit/push stay
+        "git_git_scene",
+        "git_status",
+        "git_diff",
+        "git_preflight",
+        // knowledge-read → knowledge { recall|tags|read|list }; write stays
+        "memory_world_knowledge_tags",
+        "memory_world_read_knowledge_file",
+        "memory_world_list_knowledge_files",
+        // lifecycle pulses → lastBuild|lastTest|lifecycle
+        "cdp_lifecycle_scene",
+        "cdp_lifecycle_last",
     };
 
     /// <summary>Soft organs with go= aliases — CallTool ok, omit from always-ListTools.</summary>

@@ -111,28 +111,99 @@ internal sealed class CdpQueryType : ObjectType
 
         descriptor
             .Field("git")
-            .Type<ObjectType<GitSceneNode>>()
-            .Resolve(async ctx =>
-            {
-                var call = CdpGraphQlCall.From(ctx);
-                return await new CdpQueryRoot().Git(call, ctx.RequestAborted).ConfigureAwait(false);
-            });
+            .Type<GitReadQueryType>()
+            .Resolve(ctx => new GitReadQuery(CdpGraphQlCall.From(ctx)));
 
         descriptor
             .Field("knowledge")
-            .Argument("query", a => a.Type<NonNullType<StringType>>())
-            .Argument("layer", a => a.Type<StringType>())
-            .Argument("first", a => a.Type<IntType>().DefaultValue(15))
-            .Type<ObjectType<KnowledgeRecallResult>>()
+            .Type<KnowledgeReadQueryType>()
+            .Resolve(ctx => new KnowledgeReadQuery(CdpGraphQlCall.From(ctx)));
+
+        descriptor
+            .Field("semanticMap")
+            .Argument("path", a => a.Type<StringType>())
+            .Argument("anchor", a => a.Type<StringType>())
+            .Argument("mode", a => a.Type<StringType>())
+            .Argument("maxRelated", a => a.Type<IntType>())
+            .Type<ObjectType<EngineEnvelopeNode>>()
             .Resolve(async ctx =>
             {
                 var call = CdpGraphQlCall.From(ctx);
-                return await new CdpQueryRoot().Knowledge(
+                return await SceneReadResolvers.SemanticMapAsync(
                     call,
-                    ctx.ArgumentValue<string>("query"),
-                    ctx.ArgumentValue<string?>("layer"),
-                    ctx.ArgumentValue<int>("first"),
+                    ctx.ArgumentValue<string?>("path"),
+                    ctx.ArgumentValue<string?>("anchor"),
+                    ctx.ArgumentValue<string?>("mode"),
+                    ctx.ArgumentValue<int?>("maxRelated"),
                     ctx.RequestAborted).ConfigureAwait(false);
+            });
+
+        descriptor
+            .Field("codeClones")
+            .Argument("path", a => a.Type<StringType>())
+            .Type<ObjectType<EngineEnvelopeNode>>()
+            .Resolve(async ctx =>
+            {
+                var call = CdpGraphQlCall.From(ctx);
+                return await SceneReadResolvers.CodeClonesAsync(
+                    call,
+                    ctx.ArgumentValue<string?>("path"),
+                    ctx.RequestAborted).ConfigureAwait(false);
+            });
+
+        descriptor
+            .Field("symbol")
+            .Argument("name", a => a.Type<NonNullType<StringType>>())
+            .Argument("file", a => a.Type<StringType>())
+            .Type<SymbolReadResultType>()
+            .Resolve(async ctx =>
+            {
+                var call = CdpGraphQlCall.From(ctx);
+                return await SymbolReadResolvers.SymbolAsync(
+                    call,
+                    ctx.ArgumentValue<string>("name"),
+                    ctx.ArgumentValue<string?>("file"),
+                    ctx.RequestAborted).ConfigureAwait(false);
+            });
+
+        descriptor
+            .Field("testScene")
+            .Type<ObjectType<EngineEnvelopeNode>>()
+            .Resolve(async ctx =>
+            {
+                var call = CdpGraphQlCall.From(ctx);
+                return await SceneReadResolvers.TestSceneAsync(call, ctx.RequestAborted).ConfigureAwait(false);
+            });
+
+        descriptor
+            .Field("packages")
+            .Type<PackagesReadQueryType>()
+            .Resolve(ctx => new PackagesReadQuery(CdpGraphQlCall.From(ctx)));
+
+        // Tier B situational pulses (execute verbs stay MCP)
+        WireEnvelope(descriptor, "health", SituationalReadResolvers.HealthAsync);
+        WireEnvelope(descriptor, "recent", SituationalReadResolvers.RecentAsync);
+        WireEnvelope(descriptor, "lifecycle", SituationalReadResolvers.LifecycleAsync);
+        WireEnvelope(descriptor, "projectScene", SituationalReadResolvers.ProjectSceneAsync);
+        WireEnvelope(descriptor, "editorScene", SituationalReadResolvers.EditorSceneAsync);
+        WireEnvelope(descriptor, "shellScene", SituationalReadResolvers.ShellSceneAsync);
+        WireEnvelope(descriptor, "canonStack", SituationalReadResolvers.CanonStackAsync);
+        WireEnvelope(descriptor, "lastBuild", SituationalReadResolvers.LastBuildAsync);
+        WireEnvelope(descriptor, "lastTest", SituationalReadResolvers.LastTestAsync);
+    }
+
+    static void WireEnvelope(
+        IObjectTypeDescriptor descriptor,
+        string name,
+        Func<CdpGraphQlCall, CancellationToken, Task<EngineEnvelopeNode>> resolve)
+    {
+        descriptor
+            .Field(name)
+            .Type<ObjectType<EngineEnvelopeNode>>()
+            .Resolve(async ctx =>
+            {
+                var call = CdpGraphQlCall.From(ctx);
+                return await resolve(call, ctx.RequestAborted).ConfigureAwait(false);
             });
     }
 }

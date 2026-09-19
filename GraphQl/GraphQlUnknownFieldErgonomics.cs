@@ -18,8 +18,9 @@ internal static class GraphQlUnknownFieldErgonomics
     [
         "textHits", "peek", "diagnostics", "goto", "session",
         "correspondence", "git", "knowledge",
-        // deferred roots (hint only until wired)
-        "semanticMap", "packages", "testScene", "symbol"
+        "semanticMap", "codeClones", "symbol", "testScene", "packages",
+        "health", "recent", "lifecycle", "projectScene", "editorScene",
+        "shellScene", "canonStack", "lastBuild", "lastTest",
     ];
 
     internal static bool IsUnknownField(IError error)

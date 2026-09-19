@@ -19,6 +19,9 @@ internal static class CdpGraphQlRegistration
             .AddQueryType<CdpQueryType>()
             .AddType<AnchorType>()
             .AddType<PackagesReadQueryType>()
+            .AddType<GitReadQueryType>()
+            .AddType<KnowledgeReadQueryType>()
+            .AddType<SymbolReadResultType>()
             .AddErrorFilter<CdpGraphQlDidYouMeanFilter>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true);
 

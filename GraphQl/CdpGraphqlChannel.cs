@@ -64,10 +64,12 @@ internal static class CdpGraphqlChannel
             new { id = 2, title = "peek → anchor", query = "{ peek(path: \"GraphQl/CdpQueryRoot.cs\", limit: 20) { path lines { n text anchor { wire } } } }" },
             new { id = 3, title = "goto → anchor", query = "{ goto(query: \"t CdpQueryType\", first: 5) { kind name score anchor { wire } } }" },
             new { id = 4, title = "diagnostics → Fix chain", query = "{ diagnostics(path: \"GraphQl\", first: 10) { severity message path line anchor { wire } } }" },
-            new { id = 5, title = "session + git pulse", query = "{ session { phase projectRoot solutionOrProjectPath language } git { ok schema } }" },
+            new { id = 5, title = "session + git scene", query = "{ session { phase projectRoot solutionOrProjectPath language } git { scene { ok schema hint } } }" },
             new { id = 6, title = "Vision-Exp external tree", query = "{ textHits(query: \"AddGraphQLServer\", scope: \"external\", path: \"C:/Projects/EDW.Portal.Repo\", first: 10) { nodes { path preview anchor { wire } } } }" },
             new { id = 7, title = "LIKE translator", query = "{ textHits(like: \"%FindInFiles%\", first: 5) { nodes { preview anchor { wire } } } }" },
             new { id = 8, title = "Vision-Exp peek OOW", query = "{ peek(path: \"C:/Windows/System32/drivers/etc/hosts\", limit: 5) { path lines { n text anchor { wire } } } }" },
+            new { id = 9, title = "packages list + knowledge tags", query = "{ packages { list { ok schema hint } } knowledge { tags { ok schema hint } } }" },
+            new { id = 10, title = "symbol + health pulse", query = "{ symbol(name: \"CdpQueryType\") { name hint declaration { wire } usages { name anchor { wire } } } health { ok schema hint } }" },
         }
     };
 
