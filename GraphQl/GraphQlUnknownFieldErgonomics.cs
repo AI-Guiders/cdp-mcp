@@ -19,6 +19,7 @@ internal static class GraphQlUnknownFieldErgonomics
         "textHits", "peek", "diagnostics", "goto", "session",
         "correspondence", "git", "knowledge",
         "semanticMap", "codeClones", "symbol", "testScene", "packages",
+        "project", "sln",
         "health", "recent", "lifecycle", "projectScene", "editorScene",
         "shellScene", "canonStack", "lastBuild", "lastTest",
     ];

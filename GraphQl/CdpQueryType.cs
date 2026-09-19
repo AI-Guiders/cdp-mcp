@@ -180,6 +180,16 @@ internal sealed class CdpQueryType : ObjectType
             .Type<PackagesReadQueryType>()
             .Resolve(ctx => new PackagesReadQuery(CdpGraphQlCall.From(ctx)));
 
+        descriptor
+            .Field("project")
+            .Type<ProjectReadQueryType>()
+            .Resolve(ctx => new ProjectReadQuery(CdpGraphQlCall.From(ctx)));
+
+        descriptor
+            .Field("sln")
+            .Type<SlnReadQueryType>()
+            .Resolve(ctx => new SlnReadQuery(CdpGraphQlCall.From(ctx)));
+
         // Tier B situational pulses (execute verbs stay MCP)
         WireEnvelope(descriptor, "health", SituationalReadResolvers.HealthAsync);
         WireEnvelope(descriptor, "recent", SituationalReadResolvers.RecentAsync);

@@ -52,6 +52,15 @@ internal static class VisibleToolCatalog
         // lifecycle pulses → lastBuild|lastTest|lifecycle
         "cdp_lifecycle_scene",
         "cdp_lifecycle_last",
+        // situational → health|recent|projectScene|… + project{}/sln{}
+        "cdp_health",
+        "cdp_recent",
+        "cdp_project_scene",
+        "cdp_project_list",
+        "cdp_sln_list",
+        "cdp_sln_projects",
+        "cdp_editor_scene",
+        "cdp_canon_stack",
     };
 
     /// <summary>Soft organs with go= aliases — CallTool ok, omit from always-ListTools.</summary>
@@ -96,7 +105,8 @@ internal static class VisibleToolCatalog
         "cdp_citizen",
         "cdp_elicit",
         "cdp_land",
-        "cdp_cide_presentation"
+        "cdp_cide_presentation",
+        "cdp_peel"
     };
 
     public static List<Tool> Build(VisibleToolCatalogDeps d)

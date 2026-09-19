@@ -28,6 +28,7 @@ public sealed class ListToolsAmortiseTests : IDisposable
     {
         Assert.Contains("cdp_ignite", VisibleToolCatalog.SoftInstrumentMetaNames);
         Assert.Contains("cdp_pressure", VisibleToolCatalog.SoftInstrumentMetaNames);
+        Assert.Contains("cdp_peel", VisibleToolCatalog.SoftInstrumentMetaNames);
     }
 
     [Fact]

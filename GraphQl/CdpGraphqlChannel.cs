@@ -70,6 +70,7 @@ internal static class CdpGraphqlChannel
             new { id = 8, title = "Vision-Exp peek OOW", query = "{ peek(path: \"C:/Windows/System32/drivers/etc/hosts\", limit: 5) { path lines { n text anchor { wire } } } }" },
             new { id = 9, title = "packages list + knowledge tags", query = "{ packages { list { ok schema hint } } knowledge { tags { ok schema hint } } }" },
             new { id = 10, title = "symbol + health pulse", query = "{ symbol(name: \"CdpQueryType\") { name hint declaration { wire } usages { name anchor { wire } } } health { ok schema hint } }" },
+            new { id = 11, title = "project list + sln projects", query = "{ project { list { ok schema hint } scene { ok schema hint } } sln { list { ok schema hint } projects { ok schema hint } } }" },
         }
     };
 
