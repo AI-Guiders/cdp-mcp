@@ -10,6 +10,7 @@ namespace CdpMcp.GraphQl;
 internal static class CdpGraphQlRegistration
 {
     public const string HttpPath = "/api/v1/cdp/graphql";
+    public const string SchemaPath = "/api/v1/cdp/graphql/schema";
 
     public static IServiceCollection AddCdpGraphQl(this IServiceCollection services)
     {
@@ -17,6 +18,7 @@ internal static class CdpGraphQlRegistration
             .AddGraphQLServer()
             .AddQueryType<CdpQueryType>()
             .AddType<AnchorType>()
+            .AddType<PackagesReadQueryType>()
             .AddErrorFilter<CdpGraphQlDidYouMeanFilter>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true);
 
@@ -27,6 +29,7 @@ internal static class CdpGraphQlRegistration
     {
         CdpGraphQlRuntime.Services = app.Services;
         app.MapGraphQL(HttpPath);
+        app.MapGraphQLSchema(SchemaPath);
         return app;
     }
 

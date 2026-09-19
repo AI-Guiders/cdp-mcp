@@ -178,10 +178,31 @@ internal static class NavigationLand
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(span.Go))
-            return Fail("go_required", "Command:go needs Go:editor_scene|git_scene|…");
+            return Fail("go_required", "Command:go needs Go:editor_scene|git_scene|cdp_graphql|…");
 
         if (dispatchTool is null)
             return Fail("no_dispatch", "Tool dispatch unavailable.");
+
+        // Agent Voyager: Kind:Nav → GraphQL schema node (same organ as cdp_graphql op=voyager).
+        if (GraphQl.GraphQlAgentVoyager.IsGraphqlGo(span.Go))
+        {
+            var type = string.IsNullOrWhiteSpace(span.MemberKey) ? "Query" : span.MemberKey!.Trim();
+            var gqlArgs = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+            {
+                ["op"] = JsonSerializer.SerializeToElement("voyager"),
+                ["type"] = JsonSerializer.SerializeToElement(type),
+            };
+            if (!string.IsNullOrWhiteSpace(span.TextNeedle))
+                gqlArgs["filter"] = JsonSerializer.SerializeToElement(span.TextNeedle!);
+
+            var gqlRaw = await dispatchTool("cdp_graphql", gqlArgs, cancellationToken).ConfigureAwait(false);
+            return Ok("go", span, new
+            {
+                go = span.Go,
+                type,
+                voyager = JsonSerializer.Deserialize<JsonElement>(gqlRaw)
+            });
+        }
 
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
         {

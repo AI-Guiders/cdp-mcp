@@ -224,7 +224,7 @@ internal static partial class MetaToolCatalog
             writable_only = new { type = "boolean", description = "catalog: only hot user keys" }
         }
     }),
-    Meta("cdp_graphql", "THE agent read surface (ADR-0233 L3). Prefer over bare find/find_in_files/cdp_peek/cdp_search/goto/diagnostics — those are unmounted from ListTools. First op=voyager|examples, then op=query. Hits carry Anchor. Mutate stays CSX/edit_plan.", new
+    Meta("cdp_graphql", "THE agent read surface (ADR-0233 L3). Prefer over bare find/find_in_files/cdp_peek/cdp_search/goto/diagnostics — those are unmounted from ListTools. First op=voyager (Agent Voyager: ISchema node + Kind:Nav edges; type=|filter=|anchor=) or op=examples, then op=query. Hits carry Anchor. Mutate stays CSX/edit_plan. Land Voyager edges via cdp_land Command:go Go:cdp_graphql Member:<Type>.", new
     {
         type = "object",
         properties = new

@@ -37,8 +37,10 @@ internal static class CdpGraphqlChannel
 
         return op switch
         {
-            "voyager" or "toc" or "map" => VoyagerCard(),
-            "type" => TypeCard(Opt(args, "name") ?? Opt(args, "type") ?? "Query"),
+            "voyager" or "toc" or "map" or "type" => GraphQlAgentVoyager.Frame(
+                typeName: Opt(args, "name") ?? Opt(args, "type"),
+                filter: Opt(args, "filter") ?? Opt(args, "q") ?? Opt(args, "find"),
+                anchorWire: Opt(args, "anchor") ?? Opt(args, "at") ?? Opt(args, "wire")),
             "examples" or "goldens" => ExamplesCard(),
             "query" or "gql" or "run" => QueryCard(session, docStore, settings, args, dispatchToolAsync),
             _ => new
@@ -46,36 +48,10 @@ internal static class CdpGraphqlChannel
                 ok = false,
                 schema = SchemaVersion,
                 error = "unknown_op",
-                hint = "op=voyager|type|examples|query — then query= / variables="
+                hint = "op=voyager|examples|query — voyager: type=|filter=|anchor= Kind:Nav; query= for documents"
             }
         };
     }
-
-    static object VoyagerCard() => new
-    {
-        ok = true,
-        schema = SchemaVersion,
-        role = "graphql",
-        http = CdpGraphQlRegistration.HttpPath,
-        roots = new[]
-        {
-            "textHits(query|like, path, scope, first)",
-            "peek(path, offset, limit)",
-            "diagnostics(path, first)",
-            "goto, session, correspondence, git, knowledge (+ semanticMap/packages/testScene later)"
-        },
-        hint = "op=examples for goldens; op=query query='{ textHits(query:\"IdeFindChannel\", first:5) { nodes { preview anchor { wire } } } }'"
-    };
-
-    static object TypeCard(string name) => new
-    {
-        ok = true,
-        schema = SchemaVersion,
-        type = name,
-        hint = name.Equals("Query", StringComparison.OrdinalIgnoreCase)
-            ? "Fields: textHits, peek (+ L2 roots). Anchor: wire/file/lineStart/lineEnd."
-            : "Use introspection or Banana Cake Pop at /api/v1/cdp/graphql",
-    };
 
     static object ExamplesCard() => new
     {
