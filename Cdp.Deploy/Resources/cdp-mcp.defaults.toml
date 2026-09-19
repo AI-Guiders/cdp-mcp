@@ -78,6 +78,7 @@ shell_ignite_arm = true
 lifecycle_ignite_arm = true
 tool_wake_arm = true
 oom_wake_cdt_edge = false
+cursor_sdk_local = true
 
 [tools]
 # rg = ""

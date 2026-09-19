@@ -20,6 +20,7 @@ public sealed class CdpOpsConfigTests
             [ops]
             oom_wake_cdt_edge = true
             shell_ignite_arm = false
+            cursor_sdk_local = false
 
             [tools]
             rg = "D:/tools/rg.exe"
@@ -47,6 +48,7 @@ public sealed class CdpOpsConfigTests
         Assert.Equal(90, ops.TenantIdleTtlMinutes);
         Assert.True(ops.OomWakeCdtEdge);
         Assert.False(ops.ShellIgniteArm);
+        Assert.False(ops.CursorSdkLocal);
         Assert.Equal("debug", ops.BridgeComposer);
         Assert.Equal(3000, ops.BridgeCapabilitiesPollMs);
     }

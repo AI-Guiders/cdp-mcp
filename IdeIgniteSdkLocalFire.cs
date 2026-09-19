@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using Cdp.Config;
 using static CdpMcp.IdeIgniteArmHost;
 
 namespace CdpMcp;
@@ -41,10 +42,12 @@ internal static class IdeIgniteSdkLocalFire
 
     public static bool IsSdkConfigured()
     {
-        if (ForceUnavailableForTests)
-            return false;
         if (BridgeOverride is not null)
             return true;
+        if (!CdpOpsConfig.Current.CursorSdkLocal)
+            return false;
+        if (ForceUnavailableForTests)
+            return false;
         if (ApiKeyPresentOverride is bool forced)
             return forced;
         return !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CURSOR_API_KEY"));

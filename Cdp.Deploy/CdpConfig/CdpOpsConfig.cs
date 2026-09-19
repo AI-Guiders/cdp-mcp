@@ -18,6 +18,7 @@ public sealed class CdpOpsConfig
     public bool LifecycleIgniteArm { get; init; } = true;
     public bool ToolWakeArm { get; init; } = true;
     public bool OomWakeCdtEdge { get; init; }
+    public bool CursorSdkLocal { get; init; } = true;
     public string BridgeComposer { get; init; } = "main";
     public int BridgeCapabilitiesPollMs { get; init; } = 2000;
     public int BridgeDeployWaitMs { get; init; } = 180_000;
@@ -55,6 +56,7 @@ public sealed class CdpOpsConfig
             LifecycleIgniteArm = ops?.LifecycleIgniteArm ?? true,
             ToolWakeArm = ops?.ToolWakeArm ?? true,
             OomWakeCdtEdge = ops?.OomWakeCdtEdge ?? false,
+            CursorSdkLocal = ops?.CursorSdkLocal ?? true,
             BridgeComposer = string.IsNullOrWhiteSpace(bridge?.Composer) ? "main" : bridge.Composer.Trim(),
             BridgeCapabilitiesPollMs = Clamp(bridge?.CapabilitiesPollMs, 500, 60_000, 2000),
             BridgeDeployWaitMs = Clamp(bridge?.DeployWaitMs, 5_000, 600_000, 180_000),

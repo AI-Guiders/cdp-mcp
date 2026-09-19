@@ -53,7 +53,8 @@ public static class CdpConfigValidator
         },
         ["ops"] = new(StringComparer.OrdinalIgnoreCase)
         {
-            "explore_corr_enabled", "shell_ignite_arm", "lifecycle_ignite_arm", "tool_wake_arm", "oom_wake_cdt_edge"
+            "explore_corr_enabled", "shell_ignite_arm", "lifecycle_ignite_arm", "tool_wake_arm", "oom_wake_cdt_edge",
+            "cursor_sdk_local"
         },
         ["service"] = new(StringComparer.OrdinalIgnoreCase)
         {

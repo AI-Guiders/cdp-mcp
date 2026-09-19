@@ -1,4 +1,5 @@
 using System.Reflection;
+using Cdp.Config;
 using Xunit;
 using static CdpMcp.IdeIgniteArmHost;
 
@@ -89,6 +90,28 @@ public sealed class IdeIgniteSdkLocalFireTests : IDisposable
         var result = await IdeIgniteSdkLocalFire.TryDeliverAsync(Arm(), "hello", CancellationToken.None);
 
         Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task ConfigDisabled_returns_null_for_cdt_escape()
+    {
+        var prev = CdpOpsConfig.Current;
+        CdpOpsConfig.Bind(new CdpConfigDocument
+        {
+            Ops = new CdpConfigOpsSection { CursorSdkLocal = false }
+        });
+        try
+        {
+            IdeIgniteSdkLocalFire.ApiKeyPresentOverride = true;
+
+            var result = await IdeIgniteSdkLocalFire.TryDeliverAsync(Arm(), "hello", CancellationToken.None);
+
+            Assert.Null(result);
+        }
+        finally
+        {
+            CdpOpsConfig.RestoreForTests(prev);
+        }
     }
 
     [Fact]

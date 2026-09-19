@@ -35,4 +35,6 @@ public sealed class CdpConfigOpsSection
     public bool? LifecycleIgniteArm { get; set; }
     public bool? ToolWakeArm { get; set; }
     public bool? OomWakeCdtEdge { get; set; }
+    /// <summary>L6 Cursor SDK local Autoi gun (ADR-0232). Off → CDT Composer escape only.</summary>
+    public bool? CursorSdkLocal { get; set; }
 }
