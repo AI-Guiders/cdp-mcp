@@ -71,6 +71,10 @@ var options = new McpServerOptions
                         response.EnsureSuccessStatusCode();
                         var payload = await response.Content.ReadFromJsonAsync<CdpCapabilitiesResponse>(jsonOptions, ct)
                             .ConfigureAwait(false);
+                        var rev = payload?.CapabilitiesRev ?? 0;
+                        if (rev > 0 && CdpBridgeToolsCache.TryGet(rev, out var cached) && cached is not null)
+                            return new ListToolsResult { Tools = cached };
+
                         var tools = (payload?.Tools ?? [])
                             .Select(t => new Tool
                             {
@@ -81,6 +85,8 @@ var options = new McpServerOptions
                                     : t.InputSchema
                             })
                             .ToList();
+                        if (rev > 0)
+                            CdpBridgeToolsCache.Put(rev, tools);
                         return new ListToolsResult { Tools = tools };
                     },
                     cancellationToken).ConfigureAwait(false);
@@ -193,6 +199,7 @@ return 0;
 
 internal sealed class CdpCapabilitiesResponse
 {
+    public long CapabilitiesRev { get; set; }
     public CdpCapabilityTool[]? Tools { get; set; }
 }
 

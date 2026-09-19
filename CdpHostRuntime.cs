@@ -443,7 +443,17 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         return runtime;
     }
 
-    internal List<Tool> ListTools() => _hostDeps.BuildVisibleTools();
+    internal List<Tool> ListTools()
+    {
+        var session = CdpTenantExecutionContext.CurrentSlice?.Session ?? _session;
+        var fp = VisibleToolsSessionCache.Fingerprint(CapabilitiesRevision, session);
+        if (VisibleToolsSessionCache.TryGet(fp, out var cached) && cached is not null)
+            return cached;
+
+        var tools = _hostDeps.BuildVisibleTools();
+        VisibleToolsSessionCache.Put(fp, tools);
+        return tools;
+    }
 
     internal int TenantCount => _tenantRegistry.ActiveCount;
 
@@ -540,6 +550,7 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
     internal void NotifyListChanged()
     {
         _capabilitiesRevision.Bump();
+        VisibleToolsSessionCache.Invalidate();
         if (_serverRef is null) return;
         _ = _serverRef.SendNotificationAsync(
             NotificationMethods.ToolListChangedNotification,

@@ -36,7 +36,21 @@ internal static class VisibleToolCatalog
         "cdp_scope",
         "cdp_webcam",
         "cdp_glass",
-        "cdp_ps1_scene"
+        "cdp_ps1_scene",
+        // L4 amortise — soft instruments stay CallTool/go= reachable, omit always-ListTools
+        "cdp_ignite",
+        "cdp_pressure",
+        "cdp_calendar",
+        "cdp_freshness",
+        "cdp_env_readiness",
+        "cdp_ide_health",
+        "cdp_icm",
+        "cdp_forum",
+        "cdp_intercom",
+        "cdp_citizen",
+        "cdp_elicit",
+        "cdp_land",
+        "cdp_cide_presentation"
     };
 
     public static List<Tool> Build(VisibleToolCatalogDeps d)

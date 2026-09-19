@@ -119,6 +119,8 @@ internal sealed class CdpBridgeCapabilitiesWatcher
             _lastRev = rev;
         }
 
+        CdpBridgeToolsCache.Invalidate(rev);
+
         await server
             .SendNotificationAsync(NotificationMethods.ToolListChangedNotification, cancellationToken: cancellationToken)
             .ConfigureAwait(false);

@@ -146,19 +146,33 @@ internal static class CdpServiceHost
             return Results.Json(CdpTenantComposerLatch.Snapshot(key.Value.BridgeSession, conversationId));
         });
 
-        app.MapGet("/api/v1/cdp/capabilities", (CdpHostRuntime rt) => Results.Json(new
+        app.MapGet("/api/v1/cdp/capabilities", (CdpHostRuntime rt, HttpContext http) =>
         {
-            capabilitiesRev = rt.CapabilitiesRevision,
-            // Bridge ListTools needs inputSchema — name/description alone yields empty schemas in Cursor.
-            tools = rt.ListTools().Select(t => new
+            var rev = rt.CapabilitiesRevision;
+            // L4: ?rev=N when client already has that rev → short unchanged body (no tools[] recompose).
+            if (long.TryParse(http.Request.Query["rev"], out var clientRev) && clientRev == rev && rev > 0)
             {
-                name = t.Name,
-                description = t.Description,
-                inputSchema = t.InputSchema.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
-                    ? JsonSerializer.SerializeToElement(new { type = "object", properties = new { } })
-                    : t.InputSchema
-            }).ToArray()
-        }));
+                return Results.Json(new
+                {
+                    capabilitiesRev = rev,
+                    unchanged = true
+                });
+            }
+
+            return Results.Json(new
+            {
+                capabilitiesRev = rev,
+                // Bridge ListTools needs inputSchema — name/description alone yields empty schemas in Cursor.
+                tools = rt.ListTools().Select(t => new
+                {
+                    name = t.Name,
+                    description = t.Description,
+                    inputSchema = t.InputSchema.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
+                        ? JsonSerializer.SerializeToElement(new { type = "object", properties = new { } })
+                        : t.InputSchema
+                }).ToArray()
+            });
+        });
 
         // SSE via framework Results.ServerSentEvents (ASP.NET Core 10): the
         // runtime owns framing/backpressure/cancellation — no hand-rolled
