@@ -52,7 +52,8 @@ internal static class CdpGraphqlChannel
         {
             "textHits(query|like, path, scope, first)",
             "peek(path, offset, limit)",
-            "diagnostics / goto / symbol / correspondence / semanticMap / git / knowledge / packages / testScene / session (L2+)"
+            "diagnostics(path, first)",
+            "goto / symbol / correspondence / semanticMap / git / knowledge / packages / testScene / session (L2+)"
         },
         hint = "op=examples for goldens; op=query query='{ textHits(query:\"IdeFindChannel\", first:5) { nodes { preview anchor { wire } } } }'"
     };

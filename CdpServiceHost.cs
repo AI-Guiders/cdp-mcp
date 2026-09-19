@@ -99,7 +99,14 @@ internal static class CdpServiceHost
             });
 
         var app = builder.Build();
-        await CdpMcp.GraphQl.CdpGraphQlRegistration.WarmExecutorAsync(app.Services).ConfigureAwait(false);
+        try
+        {
+            await CdpGraphQlRegistration.WarmExecutorAsync(app.Services).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"CdpGraphQl warm failed (ADR-0233): {ex.GetType().Name}: {ex.Message}");
+        }
 
         app.Use(async (context, next) =>
         {

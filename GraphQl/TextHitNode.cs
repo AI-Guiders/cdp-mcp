@@ -59,3 +59,40 @@ public sealed class PeekResult
     public string Path { get; }
     public IReadOnlyList<PeekLineNode> Lines { get; }
 }
+
+/// <summary>Projection of IdeProblemsChannel.Row with typed Anchor.</summary>
+public sealed class DiagnosticNode
+{
+    public DiagnosticNode(
+        string id,
+        string severity,
+        string message,
+        string? code,
+        string path,
+        int line,
+        int endLine,
+        Anchor anchor,
+        bool stale)
+    {
+        Id = id;
+        Severity = severity;
+        Message = message;
+        Code = code;
+        Path = path;
+        Line = line;
+        EndLine = endLine;
+        Anchor = anchor;
+        Stale = stale;
+    }
+
+    public string Id { get; }
+    public string Severity { get; }
+    public string Message { get; }
+    public string? Code { get; }
+    public string Path { get; }
+    public int Line { get; }
+    public int EndLine { get; }
+    public Anchor Anchor { get; }
+    public bool Stale { get; }
+}
+

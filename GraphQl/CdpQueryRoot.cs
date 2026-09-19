@@ -127,4 +127,42 @@ internal sealed class CdpQueryRoot
 
         return new PeekResult(path, lines);
     }
+
+    /// <summary>diagnostics → IdeProblemsChannel.Row + Anchor.</summary>
+    public IReadOnlyList<DiagnosticNode> Diagnostics(
+        [Service] CdpHostRuntime runtime,
+        string? path = null,
+        int first = 50)
+    {
+        if (first < 1) first = 1;
+        if (first > 200) first = 200;
+
+        var snap = IdeProblemsChannel.Build(runtime.HostDeps.DocStore, runtime.Session);
+        if (!snap.Ok)
+            throw new GraphQLException($"diagnostics_failed: {snap.Pulse}");
+
+        IEnumerable<IdeProblemsChannel.Row> rows = snap.Rows;
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+            var needle = path.Trim();
+            rows = rows.Where(r =>
+                r.Path.Contains(needle, StringComparison.OrdinalIgnoreCase)
+                || r.Anchor.Contains(needle, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return rows
+            .Take(first)
+            .Select(r => new DiagnosticNode(
+                r.Id,
+                r.Severity,
+                r.Message,
+                r.Code,
+                r.Path,
+                r.Line,
+                r.EndLine,
+                string.IsNullOrWhiteSpace(r.Anchor) ? Anchor.File(r.Path).Line(Math.Max(1, r.Line)) : Anchor.Parse(r.Anchor),
+                r.Stale))
+            .ToList();
+    }
+
 }

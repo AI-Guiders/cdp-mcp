@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace CdpMcp.GraphQl;
 
 /// <summary>Portal-style LIKE → rg regex (ADR-0233). Not MSSQL EF.Functions.Like.</summary>
-internal static class LikeToRg
+public static class LikeToRg
 {
     public static string Translate(string likePattern)
     {
