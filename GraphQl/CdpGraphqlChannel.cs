@@ -2,9 +2,6 @@
 using System.Text.Json;
 using Cdp.Core;
 using Cdp.ScriptableIde;
-using HotChocolate;
-using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CdpMcp.GraphQl;
 
@@ -116,62 +113,20 @@ internal static class CdpGraphqlChannel
             };
         }
 
-        var executor = CdpGraphQlRuntime.EnsureExecutorAsync().GetAwaiter().GetResult();
-        if (executor is null)
+        var outcome = CdpGraphQlQueryRunner.Run(session, docStore, settings, query!, args, dispatchToolAsync);
+        if (outcome.Error is not null)
         {
             return new
             {
                 ok = false,
                 schema = SchemaVersion,
-                error = "executor_cold",
-                detail = CdpGraphQlRuntime.LastWarmError,
-                hint = "Schema warm failed — see detail; fix HC registration then redeploy."
+                error = outcome.Error,
+                detail = outcome.Detail,
+                hint = outcome.Hint
             };
         }
 
-        IReadOnlyDictionary<string, object?>? variables = null;
-        if (args.TryGetValue("variables", out var varsEl))
-        {
-            if (varsEl.ValueKind == JsonValueKind.String)
-            {
-                var raw = varsEl.GetString();
-                if (!string.IsNullOrWhiteSpace(raw))
-                    variables = JsonSerializer.Deserialize<Dictionary<string, object?>>(raw!);
-            }
-            else if (varsEl.ValueKind == JsonValueKind.Object)
-            {
-                variables = JsonSerializer.Deserialize<Dictionary<string, object?>>(varsEl.GetRawText());
-            }
-        }
-
-        var request = OperationRequestBuilder.New()
-            .SetDocument(query!)
-            .SetVariableValues(variables)
-            .SetGlobalState(CdpGraphQlCall.StateKey, new CdpGraphQlCall
-            {
-                Session = session,
-                DocStore = docStore,
-                Settings = settings,
-                DispatchToolAsync = dispatchToolAsync
-            })
-            .Build();
-
-        var result = executor.ExecuteAsync(request).GetAwaiter().GetResult();
-        var json = result.ToJson();
-        if (result is IAsyncDisposable asyncDisp)
-            asyncDisp.DisposeAsync().AsTask().GetAwaiter().GetResult();
-        else if (result is IDisposable disp)
-            disp.Dispose();
-        using var parsed = JsonDocument.Parse(json);
-        var hasErrors = parsed.RootElement.TryGetProperty("errors", out var errs)
-            && errs.ValueKind == JsonValueKind.Array && errs.GetArrayLength() > 0;
-
-        return new
-        {
-            ok = !hasErrors,
-            schema = SchemaVersion,
-            gql = parsed.RootElement.Clone()
-        };
+        return new { ok = outcome.Ok, schema = SchemaVersion, gql = outcome.Gql };
     }
 
     static string? Opt(IReadOnlyDictionary<string, JsonElement> args, string key)

@@ -13,7 +13,7 @@ internal static partial class IdeChkChannel
             ["phase:explore", "phase:clarify", "phase:recall"],
             [
                 new("what-why", "memory", "Name what+why (or ask) before thrash", Action: "procedure:intake-brief-plan", Required: false),
-                new("find-desk", "memory", "Search via desk (cdp_search / buffer find / index) — not shell/Cursor Grep", Action: "cdp_search", Required: false),
+                new("find-desk", "memory", "Search via cdp_graphql textHits / buffer find / index — not shell/Cursor Grep (ADR-0233)", Action: "cdp_graphql", Required: false),
                 new("files-desk", "memory", "Browse via desk (cdp_files / go=files_desk, where=project|external) — not shell ls", Action: "cdp_files", Required: false),
                 new("ignite-desk", "memory", "Overnight Composer inject via CDT (cdp_ignite / go=ignite_desk) — not UIA", Action: "cdp_ignite", Required: false)
             ],
@@ -28,7 +28,7 @@ internal static partial class IdeChkChannel
             [
                 new("buffer", "memory", "Mutate via cdp_buffer — not Cursor Write", Action: "cdp_buffer", Required: false),
                 new("world-dig", "memory", "Doubt/variants → dig domain/pack/cdp_browser/internet before slap-slap edit (training ≠ dig)", Action: "cdp_browser", Required: false),
-                new("find-desk", "memory", "Search via desk (cdp_search / buffer find / index) — not shell rg", Action: "cdp_search", Required: false),
+                new("find-desk", "memory", "Search via cdp_graphql textHits / buffer find / index — not shell rg (ADR-0233)", Action: "cdp_graphql", Required: false),
                 new("files-desk", "memory", "Browse via desk (cdp_files / go=files_desk) — not shell ls/dir", Action: "cdp_files", Required: false),
                 new("sa-before-refactor", "memory", "Before structural extract/split: cdp_sa / go=sa_desk (not EICAS go=sa)", Action: "cdp_sa", Required: false),
                 new("debug-sa-before-act", "memory", "Before continue/rebuild under DAP: cdp_debug_sa / go=debug_desk (not go=debug raw)", Action: "cdp_debug_sa", Required: false),

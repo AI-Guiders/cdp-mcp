@@ -18,6 +18,23 @@ Agent read is fragmented across `find` / `find_in_files` / `cdp_search` / `cdp_p
 5. **Hard collapse (L3):** after L2 green, unmount read tools from ListTools **and** ship QRH/ECL/tool-desc in the **same** release. Mutate stays CSX / `cdp_edit_plan` / `cdp_buffer` / sniper / build·test execute / git commit.
 6. **Agent ergonomics:** Did you mean + availableFields on unknown field; slim `first`/preview defaults; goldens from real flows + Vision-Exp external/ignore/OOW peek.
 
+## Type-binding table (L0)
+
+| GraphQL field / type | Engine / C# SSOT |
+|----------------------|------------------|
+| `Anchor` | `Cdp.ScriptableIde.Anchor` via `AnchorType` (`wire`/`file`/`lineStart`/`lineEnd`) |
+| `textHits` → `TextHitConnection`/`TextHitNode` | `FindInFiles` / IdeFindChannel |
+| `peek` → `PeekResult` | `CdpPeekChannel` |
+| `diagnostics` → `DiagnosticNode` | `IdeProblemsChannel.Row` |
+| `goto` → `GotoHitNode` | `cdp_goto` / navigation |
+| `session` → `SessionNode` | `SessionContext` (honest nulls) |
+| `correspondence` → `CorrespondenceResult` | `Correspondence` organ |
+| `git` → `GitSceneNode` | `git_git_scene` via `DispatchToolAsync` |
+| `knowledge` → `KnowledgeRecallResult` | `memory_world_recall_knowledge` parity |
+| LIKE `like`/`nlike` | `LikeToRg` (rg); not MSSQL `EF.Functions.Like` |
+
+Deferred (voyager hint only): `semanticMap`, `packages`, `testScene`, `symbol`.
+
 ## Nested ship
 
 | Layer | DoD |
