@@ -84,5 +84,55 @@ internal sealed class CdpQueryType : ObjectType
                     ctx.ArgumentValue<string?>("kind"),
                     ctx.ArgumentValue<int>("first"));
             });
+        descriptor
+            .Field("session")
+            .Type<ObjectType<SessionNode>>()
+            .Resolve(ctx =>
+            {
+                var call = CdpGraphQlCall.From(ctx);
+                return new CdpQueryRoot().Session(call);
+            });
+
+        descriptor
+            .Field("correspondence")
+            .Argument("path", a => a.Type<StringType>())
+            .Argument("anchor", a => a.Type<StringType>())
+            .Argument("slim", a => a.Type<BooleanType>().DefaultValue(true))
+            .Type<ObjectType<CorrespondenceResult>>()
+            .Resolve(ctx =>
+            {
+                var call = CdpGraphQlCall.From(ctx);
+                return new CdpQueryRoot().Correspondence(
+                    call,
+                    ctx.ArgumentValue<string?>("path"),
+                    ctx.ArgumentValue<string?>("anchor"),
+                    ctx.ArgumentValue<bool>("slim"));
+            });
+
+        descriptor
+            .Field("git")
+            .Type<ObjectType<GitSceneNode>>()
+            .Resolve(async ctx =>
+            {
+                var call = CdpGraphQlCall.From(ctx);
+                return await new CdpQueryRoot().Git(call, ctx.RequestAborted).ConfigureAwait(false);
+            });
+
+        descriptor
+            .Field("knowledge")
+            .Argument("query", a => a.Type<NonNullType<StringType>>())
+            .Argument("layer", a => a.Type<StringType>())
+            .Argument("first", a => a.Type<IntType>().DefaultValue(15))
+            .Type<ObjectType<KnowledgeRecallResult>>()
+            .Resolve(async ctx =>
+            {
+                var call = CdpGraphQlCall.From(ctx);
+                return await new CdpQueryRoot().Knowledge(
+                    call,
+                    ctx.ArgumentValue<string>("query"),
+                    ctx.ArgumentValue<string?>("layer"),
+                    ctx.ArgumentValue<int>("first"),
+                    ctx.RequestAborted).ConfigureAwait(false);
+            });
     }
 }

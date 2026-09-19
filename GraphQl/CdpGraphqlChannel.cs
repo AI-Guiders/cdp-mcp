@@ -23,14 +23,16 @@ internal static class CdpGraphqlChannel
         SessionContext session,
         DocumentBufferStore docStore,
         CdpSettings settings,
-        IReadOnlyDictionary<string, JsonElement>? args) =>
-        JsonSerializer.Serialize(Handle(session, docStore, settings, args), Pretty);
+        IReadOnlyDictionary<string, JsonElement>? args,
+        Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>>? dispatchToolAsync = null) =>
+        JsonSerializer.Serialize(Handle(session, docStore, settings, args, dispatchToolAsync), Pretty);
 
     public static object Handle(
         SessionContext session,
         DocumentBufferStore docStore,
         CdpSettings settings,
-        IReadOnlyDictionary<string, JsonElement>? args)
+        IReadOnlyDictionary<string, JsonElement>? args,
+        Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>>? dispatchToolAsync = null)
     {
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var op = (Opt(args, "op") ?? (Opt(args, "query") is { Length: > 0 } ? "query" : "voyager"))
@@ -41,7 +43,7 @@ internal static class CdpGraphqlChannel
             "voyager" or "toc" or "map" => VoyagerCard(),
             "type" => TypeCard(Opt(args, "name") ?? Opt(args, "type") ?? "Query"),
             "examples" or "goldens" => ExamplesCard(),
-            "query" or "gql" or "run" => QueryCard(session, docStore, settings, args),
+            "query" or "gql" or "run" => QueryCard(session, docStore, settings, args, dispatchToolAsync),
             _ => new
             {
                 ok = false,
@@ -63,7 +65,7 @@ internal static class CdpGraphqlChannel
             "textHits(query|like, path, scope, first)",
             "peek(path, offset, limit)",
             "diagnostics(path, first)",
-            "goto / symbol / correspondence / semanticMap / git / knowledge / packages / testScene / session (L2+)"
+            "goto, session, correspondence, git, knowledge (+ semanticMap/packages/testScene later)"
         },
         hint = "op=examples for goldens; op=query query='{ textHits(query:\"IdeFindChannel\", first:5) { nodes { preview anchor { wire } } } }'"
     };
@@ -88,6 +90,7 @@ internal static class CdpGraphqlChannel
             new { id = 2, title = "peek → anchor", query = "{ peek(path: \"GraphQl/CdpQueryRoot.cs\", limit: 20) { path lines { n text anchor { wire } } } }" },
             new { id = 3, title = "goto → anchor", query = "{ goto(query: \"t CdpQueryType\", first: 5) { kind name score anchor { wire } } }" },
             new { id = 4, title = "diagnostics → Fix chain", query = "{ diagnostics(path: \"GraphQl\", first: 10) { severity message path line anchor { wire } } }" },
+            new { id = 5, title = "session + git pulse", query = "{ session { phase projectRoot solutionOrProjectPath language } git { ok schema } }" },
             new { id = 6, title = "Vision-Exp external tree", query = "{ textHits(query: \"AddGraphQLServer\", scope: \"external\", path: \"C:/Projects/EDW.Portal.Repo\", first: 10) { nodes { path preview anchor { wire } } } }" },
             new { id = 7, title = "LIKE translator", query = "{ textHits(like: \"%FindInFiles%\", first: 5) { nodes { preview anchor { wire } } } }" },
             new { id = 8, title = "Vision-Exp peek OOW", query = "{ peek(path: \"C:/Windows/System32/drivers/etc/hosts\", limit: 5) { path lines { n text anchor { wire } } } }" },
@@ -98,7 +101,8 @@ internal static class CdpGraphqlChannel
         SessionContext session,
         DocumentBufferStore docStore,
         CdpSettings settings,
-        IReadOnlyDictionary<string, JsonElement> args)
+        IReadOnlyDictionary<string, JsonElement> args,
+        Func<string, IReadOnlyDictionary<string, JsonElement>, CancellationToken, Task<string>>? dispatchToolAsync = null)
     {
         var query = Opt(args, "query") ?? Opt(args, "gql") ?? Opt(args, "q");
         if (string.IsNullOrWhiteSpace(query))
@@ -140,7 +144,6 @@ internal static class CdpGraphqlChannel
             }
         }
 
-
         var request = OperationRequestBuilder.New()
             .SetDocument(query!)
             .SetVariableValues(variables)
@@ -148,7 +151,8 @@ internal static class CdpGraphqlChannel
             {
                 Session = session,
                 DocStore = docStore,
-                Settings = settings
+                Settings = settings,
+                DispatchToolAsync = dispatchToolAsync
             })
             .Build();
 

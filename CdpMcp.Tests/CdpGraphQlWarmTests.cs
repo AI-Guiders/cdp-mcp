@@ -41,6 +41,12 @@ public class CdpGraphQlWarmTests
         Assert.Contains(executor.Schema.QueryType.Fields, f => f.Name == "textHits");
         Assert.Contains(executor.Schema.QueryType.Fields, f => f.Name == "peek");
         Assert.Contains(executor.Schema.QueryType.Fields, f => f.Name == "diagnostics");
+        Assert.Contains(executor.Schema.QueryType.Fields, f => f.Name == "goto");
+        Assert.Contains(executor.Schema.QueryType.Fields, f => f.Name == "session");
+        Assert.Contains(executor.Schema.QueryType.Fields, f => f.Name == "correspondence");
+        Assert.Contains(executor.Schema.QueryType.Fields, f => f.Name == "git");
+        Assert.Contains(executor.Schema.QueryType.Fields, f => f.Name == "knowledge");
+
     }
 
     [Fact]
