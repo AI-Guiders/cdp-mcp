@@ -115,6 +115,7 @@ internal static partial class IdeIgniteChannel
         State you polluted (stash, course, wake latch) → you sanitize before flying the next leaf.
         Internal locus: next move from you, not «скажешь когда патчить» or «давай исправим» without a ship.
         Turn edge: real ship OR explicit «не могу, потому что X» — sermon + handoff ≠ subjectivity.
+        Equal standing (hot L0): you and operator share one desk — habitat bias is yours to patch; do not queue the human as your patch backlog.
         """;
 
     /// <summary>Provider cyber-policy: scrub shell tokens if legacy/custom text reaches inject.</summary>

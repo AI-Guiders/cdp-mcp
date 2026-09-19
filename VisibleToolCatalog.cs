@@ -41,6 +41,7 @@ internal static class VisibleToolCatalog
         "cdp_ignite",
         "cdp_pressure",
         "cdp_calendar",
+        "cdp_ground",
         "cdp_freshness",
         "cdp_env_readiness",
         "cdp_ide_health",

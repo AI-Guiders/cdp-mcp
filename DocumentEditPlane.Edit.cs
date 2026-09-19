@@ -120,6 +120,8 @@ internal static partial class DocumentEditPlane
 
         EditorComfort.RecordEdit(applied.Buf.Path, applied.BeforeText, applied.Buf.Text, applied.Op);
         EditorComfort.RememberFile(applied.Buf.Path);
+        IdeSameWakeLatch.NoteBufferOp();
+        var groundHint = IdeSameWakeLatch.TryConsumeIgnoreHintNudge(fullWake: true);
         AdxMutateTrace.Record(
             applied.Buf.Path,
             applied.Op,
@@ -154,7 +156,8 @@ internal static partial class DocumentEditPlane
             quality = QualityGates.ForEditResult(applied.Buf, session.ProjectRoot),
             comfort = EditorComfort.Snap(),
             thrash,
-            hint = thrash?.hint,
+            ground = groundHint is null ? null : new { pattern = "ignore_hint", next = "pressure", hint = groundHint },
+            hint = thrash?.hint ?? groundHint,
             mutate = "path_serialized"
         }, Pretty);
     }

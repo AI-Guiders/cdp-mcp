@@ -100,6 +100,7 @@ internal static partial class IdePressureChannel
 
 static object Recall(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
+        IdeSameWakeLatch.NoteRecall();
         var doc = Load() ?? new PressureDoc();
         var resolved = ResolveRecallBody(doc);
         if (resolved.Body is not { Length: > 0 })

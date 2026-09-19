@@ -60,7 +60,9 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
         string? OnboardTipLabel = null,
         string? OnboardTipWhy = null,
         bool ThrashHot = false,
-        string? ThrashPulse = null);
+        string? ThrashPulse = null,
+        bool BufferMillHot = false,
+        string? GroundPulse = null);
 
     public NextCard[] Build(in Input input)
     {
@@ -128,6 +130,15 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
                 input.ThrashPulse ?? "thrash hot — slices not whole-file set_text");
             Add("n-scope", "scope", "Sniper aim",
                 "corridor before another thick set_text · QRH set-text-thrash");
+        }
+
+        // Same-wake ground: buffer-mill → inventory before more edits.
+        if (input.BufferMillHot)
+        {
+            Add("n-ground", "ground", "Same-wake ground",
+                input.GroundPulse ?? "buffer_mill — soft recalibrate then inventory");
+            Add("n-inventory", "inventory", "Inventory",
+                "buffer_mill — list a= before more buffer ops");
         }
 
         // First-contact: cold explore/recall without scan → reserved Cap slot near top.

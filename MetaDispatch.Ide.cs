@@ -104,6 +104,8 @@ internal static partial class MetaDispatch
         return IdeVerifyWaveChannel.HandleJson(session, callArgs);
     case "cdp_calendar":
         return IdeCalendarChannel.HandleJson(session, callArgs);
+    case "cdp_ground":
+        return IdeGroundChannel.HandleJson(session, callArgs);
     case "cdp_freshness":
         return await IdeFreshnessChannel.HandleJsonAsync(session, callArgs, cancellationToken).ConfigureAwait(false);
     case "cdp_env_readiness":

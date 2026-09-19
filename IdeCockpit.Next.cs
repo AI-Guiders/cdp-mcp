@@ -80,6 +80,8 @@ internal static partial class IdeCockpit
             PhaseColdExplore: session.Phase is CdpPhase.Explore or CdpPhase.Recall or CdpPhase.Clarify,
             ThrashHot: IdeThrashLatch.IsHot(),
             ThrashPulse: IdeThrashLatch.PulseLine(),
+            BufferMillHot: IdeGroundChannel.IsBufferMillHot(),
+            GroundPulse: IdeGroundChannel.PulseLine(),
             DiskChangedCount: buffer.DiskChangedCount,
             FocusId: focusId,
             BufferCount: buffer.Count,

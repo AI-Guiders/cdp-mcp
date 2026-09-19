@@ -174,6 +174,15 @@ internal static partial class MetaToolCatalog
                 op = new { type = "string", description = "scene|pulse|month" }
             }
         }),
+    Meta("cdp_ground", "Same-wake soft recalibration. op=pulse|scene|reset|mark_recall — {pattern,next,resume_ok}. Patterns: buffer_mill|ignore_hint|early_act|biped|ok. Alias go=ground|same_wake. Soft mirror only — not a hard block.",
+        new
+        {
+            type = "object",
+            properties = new
+            {
+                op = new { type = "string", description = "pulse|scene|reset|mark_recall" }
+            }
+        }),
     Meta("cdp_freshness", "KB freshness MLP soft desk — harness walks watchlist URLs; returns Digest/Atom-shaped entries (not raw HTML). Digest ≠ Проверено stamp. op=scene|pulse|watchlist|scan|digest|explain|aliases|clear|nrt|schedule|arm|disarm|tick. alias=/urls=/domain=. Alias go=freshness|freshness_desk.",
         new
         {
