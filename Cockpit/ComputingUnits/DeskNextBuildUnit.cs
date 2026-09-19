@@ -58,7 +58,9 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
         bool PhaseColdExplore = false,
         string? OnboardTipGo = null,
         string? OnboardTipLabel = null,
-        string? OnboardTipWhy = null);
+        string? OnboardTipWhy = null,
+        bool ThrashHot = false,
+        string? ThrashPulse = null);
 
     public NextCard[] Build(in Input input)
     {
@@ -118,6 +120,15 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
                 $"cmd=\"layout {layoutHint}\" — {input.LayoutSeatNote ?? layoutHint}");
         if (input.ProblemErrors > 0)
             Add("n-problems", "problems", "Error List", $"E×{input.ProblemErrors} — aim row, don't dump");
+
+        // Thrash Just Culture: pivot before retry when large set_text ring is hot.
+        if (input.ThrashHot)
+        {
+            Add("n-edit-plan", "edit_draft", "Edit plan (anti-thrash)",
+                input.ThrashPulse ?? "thrash hot — slices not whole-file set_text");
+            Add("n-scope", "scope", "Sniper aim",
+                "corridor before another thick set_text · QRH set-text-thrash");
+        }
 
         // First-contact: cold explore/recall without scan → reserved Cap slot near top.
         if (input.PhaseColdExplore && !input.OnboardHasScan)

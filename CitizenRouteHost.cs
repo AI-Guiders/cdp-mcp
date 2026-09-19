@@ -52,6 +52,10 @@ internal static partial class CitizenRouteHost
         if (CitizenScarGate.TryRefuse(route) is { } scarRefuse)
             return scarRefuse;
 
+        if (route.Verb == CitizenIntentRouter.Verb.Take
+            && CitizenFailStreakLedger.TryRefuseTake(route) is { } streakRefuse)
+            return streakRefuse;
+
         if (ExploreCorrGate.TryRefuseRoute(route) is { } corrRefuse)
             return corrRefuse;
 

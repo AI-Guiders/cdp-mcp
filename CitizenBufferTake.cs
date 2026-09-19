@@ -63,12 +63,17 @@ internal static class CitizenBufferTake
             CitizenEditResponse.TryReadEditMeta(json, out full, out docId);
             if (full is null) full = CitizenBufferComfort.TryReadRootPath(json);
             var seat = IdeDeskSeats.PlaceOrgan("editor_scene");
+            if (ok)
+                CitizenFailStreakLedger.NoteSuccess("take", full ?? route.Path);
+            else
+                CitizenFailStreakLedger.NoteFailure("take", full ?? route.Path);
             return new CitizenRouteHost.Applied(route.Raw, route.Verb.ToString(), Ok: ok, Action: op, Seat: seat, Go: "editor_scene",
                 Path: full ?? route.Path, DocId: docId, Pulse: pulse, Ship: ship,
                 Reason: ok ? null : (CitizenRouteHost.TryReadLifecycleError(json) ?? CitizenBufferComfort.TryReadUndoError(json) ?? pulse ?? op + "_failed"));
         }
         catch (Exception ex)
         {
+            CitizenFailStreakLedger.NoteFailure("take", route.Path);
             return new CitizenRouteHost.Applied(route.Raw, route.Verb.ToString(), Ok: false, Action: op, Path: route.Path,
                 Reason: ex.GetType().Name + ": " + ex.Message);
         }

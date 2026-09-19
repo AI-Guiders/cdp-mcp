@@ -68,7 +68,8 @@ internal static partial class EditorPlane
                     StartColumn = st.StartColumn,
                     EndLine = st.EndLine,
                     EndColumn = st.EndColumn,
-                    AllowShrink = st.AllowShrink
+                    AllowShrink = st.AllowShrink,
+                    Force = st.Force
                 }
                 : st).ToArray();
         }
@@ -89,7 +90,8 @@ internal static partial class EditorPlane
         StartColumn = st.StartColumn,
         EndLine = st.EndLine,
         EndColumn = st.EndColumn,
-        AllowShrink = st.AllowShrink
+        AllowShrink = st.AllowShrink,
+        Force = st.Force
     };
 
     sealed class YamlPlanDoc
@@ -124,5 +126,6 @@ internal static partial class EditorPlane
         public int? EndLine { get; set; }
         public int? EndColumn { get; set; }
         public bool? AllowShrink { get; set; }
+        public bool? Force { get; set; }
     }
 }

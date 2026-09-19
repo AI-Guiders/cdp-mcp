@@ -89,6 +89,29 @@ internal static partial class EditorPlane
                 break;
             case "set_text":
                 // text may be empty intentionally
+                if (fullPath is not null
+                    && (File.Exists(fullPath)
+                        || store.All.Any(b => string.Equals(b.Path, fullPath, StringComparison.OrdinalIgnoreCase))))
+                {
+                    try
+                    {
+                        var body = store.All.FirstOrDefault(b =>
+                                       string.Equals(b.Path, fullPath, StringComparison.OrdinalIgnoreCase))
+                                   ?.Text
+                                   ?? File.ReadAllText(fullPath);
+                        var lines = CountLines(body);
+                        if (lines >= DocumentEditPlane.ThrashWarnLines && step.Force != true)
+                        {
+                            errors.Add(
+                                "thrash_risk:set_text_large — prefer anchor|replace or force=true (ADX-HX-001 / thrash.md)");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"set_text_size:{ex.Message}");
+                    }
+                }
+
                 break;
         }
 
@@ -129,6 +152,8 @@ internal static partial class EditorPlane
         PutInt("end_column", step.EndColumn);
         if (step.AllowShrink is { } ash)
             dict["allow_shrink"] = JsonSerializer.SerializeToElement(ash);
+        if (step.Force is { } fr)
+            dict["force"] = JsonSerializer.SerializeToElement(fr);
         return dict;
     }
 }

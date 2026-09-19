@@ -49,6 +49,7 @@ internal static partial class EditorPlane
                 && !include.Any(p => PathMatches(b.Path, p) || string.Equals(b.DocId, p, StringComparison.OrdinalIgnoreCase)))
                 continue;
 
+            var lines = CountLines(b.Text);
             candidates.Add(new
             {
                 path = b.Path,
@@ -56,11 +57,15 @@ internal static partial class EditorPlane
                 dirty = b.Dirty,
                 language = b.Language,
                 version = b.Version,
-                line_count = CountLines(b.Text),
+                line_count = lines,
+                thrash_risk = lines >= DocumentEditPlane.ThrashWarnLines,
                 preferred_edit_op = string.Equals(b.Language, "csharp", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(b.Language, "xml", StringComparison.OrdinalIgnoreCase)
                     ? "anchor"
-                    : "replace"
+                    : "replace",
+                attractor = lines >= DocumentEditPlane.ThrashWarnLines
+                    ? "edit_plan|sniper — avoid whole-file set_text (thrash.md)"
+                    : null
             });
         }
 

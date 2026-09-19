@@ -67,6 +67,26 @@ internal static partial class IdeQrhChannel
             ["procedure:mutate-plan-then-act", "definition:blast-radius"],
             "Did this go through the buffer plane — or around the desk into chat context?"),
         new(
+            "set-text-thrash",
+            "abnormal",
+            "Whole-file set_text thrash",
+            "Large or repeated set_text on the same path is a habitat gap (Just Culture) — not «agent forgot». Prefer cdp_edit_plan slices / go=scope sniper / edit_op=anchor|replace. Soft-refuse after ≥2 set_text_large unless force=true. Domain: .cdp/domain/thrash.md.",
+            ["set_text", "thrash", "set_text_large", "thrash_ring", "edit_plan", "sniper", "force"],
+            [
+                "Prefer edit_plan or sniper over another whole-file rewrite",
+                "force=true only for intentional full rewrite escape",
+                "Reason id = thrash_ring / set_text_large — substrate-first"
+            ],
+            [
+                new("cdp_edit_plan draft/validate — slices not mill", "edit_draft", "cdp_edit_plan"),
+                new("go=scope — sniper corridor before thick edit", "scope", "cdp_edit_sniper"),
+                new("cdp_buffer edit_op=anchor|replace", "buffer", "cdp_buffer"),
+                new("Domain card thrash.md", "domain", "cdp_domain")
+            ],
+            ["path-mutate-gate", "intake-brief"],
+            ["procedure:mutate-plan-then-act"],
+            "Am I rewriting the whole file again — or aiming a slice?"),
+        new(
             "ship-dirty",
             "abnormal",
             "Verified work, dirty tree, no ship",

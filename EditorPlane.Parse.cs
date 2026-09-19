@@ -29,6 +29,7 @@ internal static partial class EditorPlane
         public int? EndLine { get; init; }
         public int? EndColumn { get; init; }
         public bool? AllowShrink { get; init; }
+        public bool? Force { get; init; }
     }
 
     static IReadOnlyList<EditSlice>? TryGetSlices(IReadOnlyDictionary<string, JsonElement> args)
@@ -131,7 +132,8 @@ internal static partial class EditorPlane
         StartColumn = PropInt(s, "start_column"),
         EndLine = PropInt(s, "end_line"),
         EndColumn = PropInt(s, "end_column"),
-        AllowShrink = PropBool(s, "allow_shrink")
+        AllowShrink = PropBool(s, "allow_shrink"),
+        Force = PropBool(s, "force")
     };
 
     static string? PropString(JsonElement el, string name) =>

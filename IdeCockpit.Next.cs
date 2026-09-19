@@ -78,6 +78,8 @@ internal static partial class IdeCockpit
             OnboardTipLabel: onboardTip?.Label,
             OnboardTipWhy: onboardTip?.Why,
             PhaseColdExplore: session.Phase is CdpPhase.Explore or CdpPhase.Recall or CdpPhase.Clarify,
+            ThrashHot: IdeThrashLatch.IsHot(),
+            ThrashPulse: IdeThrashLatch.PulseLine(),
             DiskChangedCount: buffer.DiskChangedCount,
             FocusId: focusId,
             BufferCount: buffer.Count,

@@ -163,10 +163,14 @@ internal static partial class EditorPlane
             ok = !anyFail,
             stop_on_error = stopOnError,
             slice_count = sliceResults.Count,
+            thrash = IdeThrashLatch.PulseLine(),
+            thrash_hot = IdeThrashLatch.IsHot(),
             slices = sliceResults,
             next = anyFail
                 ? "cdp_editor_scene + fix remaining slices"
-                : "cdp_buffer op=diagnostics / cdp_build / git_git_scene"
+                : IdeThrashLatch.IsHot()
+                    ? "thrash hot — prefer go=scope / cdp_edit_plan anchor (thrash.md)"
+                    : "cdp_buffer op=diagnostics / cdp_build / git_git_scene"
         }, Pretty);
     }
 

@@ -50,6 +50,8 @@ internal static partial class DocumentEditPlane
                                 "Bootstrap new files via op=create text=.");
                         }
 
+                        RefuseSetTextThrashRingIfNeeded(pathKey, forceRewrite);
+
                         store.ApplySetText(buf, OptString(args, "text") ?? "");
                         break;
                     }
@@ -159,7 +161,11 @@ internal static partial class DocumentEditPlane
 
     /// <summary>
     /// Thick set_text on large buffers is legal but stressful — nudge sniper/anchor for next cuts.
+    /// WarnLines / WarnChars are public for tests (L3 thrash Just Culture).
     /// </summary>
+    internal const int ThrashWarnLines = 350;
+    internal const int ThrashWarnChars = 48_000;
+
     static ThrashCard? ThrashHint(EditApplied applied)
     {
         if (!string.Equals(applied.Op, "set_text", StringComparison.OrdinalIgnoreCase))
@@ -167,16 +173,29 @@ internal static partial class DocumentEditPlane
 
         var beforeLines = CountNewlines(applied.BeforeText);
         var afterLines = CountNewlines(applied.Buf.Text);
-        const int warnLines = 350;
-        if (beforeLines < warnLines && afterLines < warnLines && applied.Buf.Text.Length < 48_000)
+        if (beforeLines < ThrashWarnLines && afterLines < ThrashWarnLines && applied.Buf.Text.Length < ThrashWarnChars)
             return null;
+
+        IdeThrashLatch.NoteSetTextLarge(applied.Buf.Path);
 
         return new ThrashCard(
             "set_text_large",
             beforeLines,
             afterLines,
             applied.Buf.Text.Length,
-            "Large set_text — next edits: edit_op=anchor|replace or go=scope sniper (not another whole-file set_text).");
+            "Large set_text — next edits: edit_op=anchor|replace or go=scope sniper / cdp_edit_plan (not another whole-file set_text). Domain: thrash.md.");
+    }
+
+    /// <summary>Per-path ring: ≥2 set_text_large → soft-refuse next whole-file set_text unless force.</summary>
+    internal static void RefuseSetTextThrashRingIfNeeded(string pathKey, bool forceRewrite)
+    {
+        if (forceRewrite)
+            return;
+        if (IdeThrashLatch.LargeSetTextCount(pathKey) < 2)
+            return;
+        throw new InvalidOperationException(
+            $"Refusing repeated set_text_large on '{pathKey}' (thrash_ring · habitat gap). " +
+            "Prefer edit_op=anchor|replace or go=scope / cdp_edit_plan; pass force=true to escape. See .cdp/domain/thrash.md.");
     }
 
     static int CountNewlines(string text)
