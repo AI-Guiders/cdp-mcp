@@ -159,6 +159,9 @@ internal static partial class IdeCockpit
         if (store is null)
             return new WorkSnap(null, null, "no task store");
         var pulse = IdeTaskManager.PulseLine(store, state, CdpEnumParse.ToWire(session.Phase));
+        // Desk A-pulse: active wave seals work_a on WorkSnap (not only ~wave on plan board).
+        if (IdeWaveChannel.WorkASummary() is { Length: > 0 } workA)
+            pulse = workA;
         return new WorkSnap(
             state.ActiveIntentId?.ToString("D"),
             state.ActiveStageId?.ToString("D"),

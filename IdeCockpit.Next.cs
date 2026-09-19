@@ -33,6 +33,8 @@ internal static partial class IdeCockpit
             qrhPulse = qSuggest.Pulse;
         }
 
+        var onboardTip = IdeOnboardChannel.TryDeskTip(session);
+
         var cards = DeskNext.Build(new DeskNextBuildUnit.Input(
             HasProject: session.ProjectRoot is not null,
             DeskBookmarkExists: File.Exists(DeskBookmark.FilePath),
@@ -41,6 +43,9 @@ internal static partial class IdeCockpit
             AlertBeeping: alert.Level != IdeAlertChannel.Level.Clear,
             AlertPulse: alert.Pulse,
             AlertWhy: alert.Explain?.WhyLine,
+            AlertReason: alert.Explain?.Reason,
+            WaveActive: IdeWaveChannel.HasActiveOpen(),
+            WavePulse: IdeWaveChannel.WorkASummary() ?? IdeWaveChannel.PulseLine(),
             PressureArmed: IdePressureChannel.IsArmed(),
             PressurePulse: IdePressureChannel.PulseLine(),
             PressureWhy: IdePressureChannel.ExplainWhyLine(),
@@ -69,6 +74,10 @@ internal static partial class IdeCockpit
             ToolchainPulse: IdeToolchainChannel.PulseLine(session),
             OnboardHasScan: IdeOnboardChannel.HasScan(session),
             OnboardPulse: IdeOnboardChannel.PulseLine(session),
+            OnboardTipGo: onboardTip?.Go,
+            OnboardTipLabel: onboardTip?.Label,
+            OnboardTipWhy: onboardTip?.Why,
+            PhaseColdExplore: session.Phase is CdpPhase.Explore or CdpPhase.Recall or CdpPhase.Clarify,
             DiskChangedCount: buffer.DiskChangedCount,
             FocusId: focusId,
             BufferCount: buffer.Count,

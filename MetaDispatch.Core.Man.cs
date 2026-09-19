@@ -12,9 +12,10 @@ internal static partial class MetaDispatch
         {
             if (tool is "context_budget" or "budget" or "context")
                 return SessionPlane.ContextBudgetManual;
-                return SessionPlane.ContextBudgetManual;
             if (tool is "cdp_buffer" or "buffer")
                 return BufferManual;
+            if (tool is "first_contact" or "first-contact" or "onboard")
+                return FirstContactManual;
             return $"Manual: {tool} — see tool description; domain ops via prefixed tools / sibling man.";
         }
 
@@ -38,8 +39,18 @@ internal static partial class MetaDispatch
                "memory_self_finding_ memory_self_failure_ debug_ build_ roslyn_ git_ codebase_index_ anui_. " +
                "Agent-IDE pillars: session plane, shared truth, affordance nav, continuity, evidence-first, self-ops. " +
                "Order: Agent Env first; CIDE projector later. " +
-               "Context: man tool=context_budget (EICAS W/C/A).";
+               "Context: man tool=context_budget (EICAS W/C/A). " +
+               "First contact: man tool=first_contact · go=onboard_desk.";
     }
+
+    /// <summary>Cold-start attractor — open → onboard scan before plan.</summary>
+    internal const string FirstContactManual =
+        "first_contact — cold habitat attractor. " +
+        "Sequence: cdp_open(path) → go=onboard_desk op=scan (or cdp_onboard) → read entrypoints/next[] → then go=plan. " +
+        "Do not jump unbound wake straight to plan/invent. " +
+        "Desk: when phase∈{explore,recall,clarify} and no scan yet, next[] reserves n-onboard near Cap top. " +
+        "After scan: desk may surface Open entrypoint/README tip. " +
+        "Domain card: .cdp/domain/onboard.md. Buffer SSOT: man tool=buffer.";
 
     /// <summary>cdp_buffer manual — address model canon + known corner cases (2026-09-05).</summary>
     internal const string BufferManual =

@@ -49,7 +49,7 @@ internal static partial class IdeIgniteChannel
         public bool Applies(WakePreflightContext context) => !context.Faulted && !context.WorkspaceBound;
 
         public WakeChargePreflight Select(WakePreflightContext context) =>
-            WakeChargePreflight.Full("TM: unbound — workspace not loaded; cdp_open then go=plan; treat as amnesia until TM seeded.");
+            WakeChargePreflight.Full("TM: unbound — workspace not loaded; cdp_open → onboard_desk scan → go=plan; treat as amnesia until TM seeded.");
     }
 
     sealed class WakeEmptyFeaturesRule : IRule<WakePreflightContext, WakeChargePreflight>

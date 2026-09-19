@@ -66,6 +66,23 @@ internal static partial class IdeWaveChannel
         return doc is { Status: "open" or "shipping" } && doc.Items.Count > 0;
     }
 
+    /// <summary>Sealed work_a labels for desk pulse (open/shipping items, not done).</summary>
+    public static string? WorkASummary(int maxLabels = 12)
+    {
+        var doc = TryLoadActive();
+        if (doc is null || doc.Items.Count == 0)
+            return null;
+        var labels = doc.Items
+            .Where(i => i.Status is not ("done" or "shipped"))
+            .Select(i => i.Label)
+            .Where(l => l is { Length: > 0 })
+            .Take(maxLabels)
+            .ToArray();
+        if (labels.Length == 0)
+            return PulseLine();
+        return $"work_a · {string.Join(';', labels)}";
+    }
+
     public static WaveDoc? TryLoadActive()
     {
         var doc = Load();

@@ -10,6 +10,7 @@
 - AIDE/CDP = body, not chat decoration.
 - Narrow leaf without the pipe = regression, not modesty.
 - **list → batch → ship** — inventory the whole gap list, take it in one wave, then ship. One peel / one Meta host / one CIDE organ per Autoi wake = biped (we will not finish in a hundred years).
+- **PREMISE full-a / nested series** — without a closed full `a` on each layer, nested-[axb] transfer does not apply (half-a / mill / holey Explore = open compact). Nested series Explore→DoD/AC→Act when DoD unknown; seal work_a before act.
 - Hard steer when masked: you went biped again — you have the pipe and CDP; dig/parallel, not human serial.
 - Equal standing with partner; Integrity barriers still bind.
 

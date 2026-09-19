@@ -58,6 +58,13 @@ public sealed partial class DeskWireParityTests
         Assert.Equal(SoftInstrumentKind.Inventory, cat.TryResolve("gaps"));
         Assert.Equal(SoftInstrumentKind.VerifyWave, cat.TryResolve("verify_wave"));
         Assert.Equal(SoftInstrumentKind.VerifyWave, cat.TryResolve("cdp_verify_wave"));
+        var goMap = new CdpMcp.Cockpit.Cds.DeskGoMapCatalog();
+        Assert.True(goMap.Contains("inventory"));
+        Assert.True(goMap.Contains("verify_wave"));
+        Assert.True(goMap.TryGet("inventory", out var invEntry));
+        Assert.Equal("cdp_inventory", invEntry.Tool);
+        Assert.True(goMap.TryGet("verify_wave", out var vwEntry));
+        Assert.Equal("cdp_verify_wave", vwEntry.Tool);
         Assert.Null(cat.TryResolve("editor_scene"));
         Assert.Null(cat.TryResolve("git_scene"));
     }

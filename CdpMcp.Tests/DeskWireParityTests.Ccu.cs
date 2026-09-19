@@ -205,6 +205,236 @@ public sealed partial class DeskWireParityTests
     }
 
     [Fact]
+    public void DeskNextBuildUnit_biped_mill_surfaces_inventory_and_wave_seed()
+    {
+        var unit = new DeskNextBuildUnit();
+        var cards = unit.Build(new DeskNextBuildUnit.Input(
+            HasProject: true,
+            DeskBookmarkExists: false,
+            WorkIntentId: "work-1",
+            WorkPulse: "plan · X",
+            AlertBeeping: true,
+            AlertPulse: "sa WARN · biped_mill",
+            AlertWhy: "alert.biped_mill · biped_mill · act · no wave · next go=inventory",
+            PressureArmed: false,
+            PressurePulse: null,
+            PressureWhy: null,
+            ChkOpenRequired: 0,
+            ChkPulse: null,
+            PhaseReviewOrVerify: false,
+            PhaseIsReview: false,
+            QrhHotId: null,
+            QrhPulse: null,
+            LayoutHint: null,
+            LayoutSeatNote: null,
+            ProblemErrors: 0,
+            AnyUndo: false,
+            AnyClipboard: false,
+            AnyNavBack: false,
+            QualityEnabled: false,
+            QualityFail: 0,
+            QualityWarn: 0,
+            SuggestSniper: false,
+            SniperHasHold: false,
+            SniperArmed: false,
+            SniperPulse: null,
+            ArchHasWork: false,
+            ArchPulse: null,
+            ToolchainPulse: "toolchain",
+            OnboardHasScan: false,
+            OnboardPulse: null,
+            DiskChangedCount: 0,
+            FocusId: null,
+            BufferCount: 0,
+            BufferDirtyCount: 0,
+            GitDirty: false,
+            TestFailed: 0,
+            DebugStopped: false,
+            ShellRunning: 0,
+            StampPending: false,
+            AlertReason: "biped_mill"));
+        Assert.True(cards.Length <= DeskNextBuildUnit.Cap);
+        Assert.Contains(cards, c => c.Go == "inventory");
+        var plan = Assert.Single(cards, c => c.Go == "plan");
+        Assert.Contains("wave seed", plan.Why, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void DeskNextBuildUnit_wave_active_surfaces_work_a_and_verify()
+    {
+        var unit = new DeskNextBuildUnit();
+        var cards = unit.Build(new DeskNextBuildUnit.Input(
+            HasProject: true,
+            DeskBookmarkExists: false,
+            WorkIntentId: "work-1",
+            WorkPulse: "plan · X",
+            AlertBeeping: false,
+            AlertPulse: null,
+            AlertWhy: null,
+            PressureArmed: false,
+            PressurePulse: null,
+            PressureWhy: null,
+            ChkOpenRequired: 0,
+            ChkPulse: null,
+            PhaseReviewOrVerify: false,
+            PhaseIsReview: false,
+            QrhHotId: null,
+            QrhPulse: null,
+            LayoutHint: null,
+            LayoutSeatNote: null,
+            ProblemErrors: 0,
+            AnyUndo: false,
+            AnyClipboard: false,
+            AnyNavBack: false,
+            QualityEnabled: false,
+            QualityFail: 0,
+            QualityWarn: 0,
+            SuggestSniper: false,
+            SniperHasHold: false,
+            SniperArmed: false,
+            SniperPulse: null,
+            ArchHasWork: false,
+            ArchPulse: null,
+            ToolchainPulse: "toolchain",
+            OnboardHasScan: false,
+            OnboardPulse: null,
+            DiskChangedCount: 0,
+            FocusId: null,
+            BufferCount: 0,
+            BufferDirtyCount: 0,
+            GitDirty: false,
+            TestFailed: 0,
+            DebugStopped: false,
+            ShellRunning: 0,
+            StampPending: false,
+            WaveActive: true,
+            WavePulse: "work_a · a;b;c"));
+        Assert.True(cards.Length <= DeskNextBuildUnit.Cap);
+        var plan = Assert.Single(cards, c => c.Go == "plan");
+        Assert.Contains("work_a", plan.Why, StringComparison.Ordinal);
+        Assert.Contains(cards, c => c.Go == "verify_wave");
+    }
+
+    [Fact]
+    public void DeskNextBuildUnit_cold_explore_without_scan_ranks_onboard_top3()
+    {
+        var unit = new DeskNextBuildUnit();
+        var cards = unit.Build(new DeskNextBuildUnit.Input(
+            HasProject: true,
+            DeskBookmarkExists: false,
+            WorkIntentId: null,
+            WorkPulse: null,
+            AlertBeeping: false,
+            AlertPulse: null,
+            AlertWhy: null,
+            PressureArmed: false,
+            PressurePulse: null,
+            PressureWhy: null,
+            ChkOpenRequired: 0,
+            ChkPulse: null,
+            PhaseReviewOrVerify: false,
+            PhaseIsReview: false,
+            QrhHotId: null,
+            QrhPulse: null,
+            LayoutHint: null,
+            LayoutSeatNote: null,
+            ProblemErrors: 0,
+            AnyUndo: false,
+            AnyClipboard: false,
+            AnyNavBack: false,
+            QualityEnabled: false,
+            QualityFail: 0,
+            QualityWarn: 0,
+            SuggestSniper: false,
+            SniperHasHold: false,
+            SniperArmed: false,
+            SniperPulse: null,
+            ArchHasWork: false,
+            ArchPulse: null,
+            ToolchainPulse: "toolchain",
+            OnboardHasScan: false,
+            OnboardPulse: null,
+            DiskChangedCount: 0,
+            FocusId: null,
+            BufferCount: 0,
+            BufferDirtyCount: 0,
+            GitDirty: false,
+            TestFailed: 0,
+            DebugStopped: false,
+            ShellRunning: 0,
+            StampPending: false,
+            PhaseColdExplore: true));
+        Assert.True(cards.Length <= DeskNextBuildUnit.Cap);
+        var idx = Array.FindIndex(cards, c => c.Go == "onboard_desk");
+        Assert.True(idx is >= 0 and < 3, $"n-onboard index={idx} expected top-3 under Cap");
+        Assert.Contains("first_contact", cards[idx].Why, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void DeskNextBuildUnit_scan_merges_onboard_tip_under_cap()
+    {
+        var unit = new DeskNextBuildUnit();
+        var cards = unit.Build(new DeskNextBuildUnit.Input(
+            HasProject: true,
+            DeskBookmarkExists: false,
+            WorkIntentId: null,
+            WorkPulse: null,
+            AlertBeeping: false,
+            AlertPulse: null,
+            AlertWhy: null,
+            PressureArmed: false,
+            PressurePulse: null,
+            PressureWhy: null,
+            ChkOpenRequired: 0,
+            ChkPulse: null,
+            PhaseReviewOrVerify: false,
+            PhaseIsReview: false,
+            QrhHotId: null,
+            QrhPulse: null,
+            LayoutHint: null,
+            LayoutSeatNote: null,
+            ProblemErrors: 0,
+            AnyUndo: false,
+            AnyClipboard: false,
+            AnyNavBack: false,
+            QualityEnabled: false,
+            QualityFail: 0,
+            QualityWarn: 0,
+            SuggestSniper: false,
+            SniperHasHold: false,
+            SniperArmed: false,
+            SniperPulse: null,
+            ArchHasWork: false,
+            ArchPulse: null,
+            ToolchainPulse: "toolchain",
+            OnboardHasScan: true,
+            OnboardPulse: "onboard · mapped",
+            DiskChangedCount: 0,
+            FocusId: null,
+            BufferCount: 0,
+            BufferDirtyCount: 0,
+            GitDirty: false,
+            TestFailed: 0,
+            DebugStopped: false,
+            ShellRunning: 0,
+            StampPending: false,
+            PhaseColdExplore: true,
+            OnboardTipGo: "buffer",
+            OnboardTipLabel: "Open Program",
+            OnboardTipWhy: "op=open path=Program.cs"));
+        Assert.True(cards.Length <= DeskNextBuildUnit.Cap);
+        Assert.Contains(cards, c => c.Go == "buffer" && c.Label.Contains("Program", StringComparison.Ordinal));
+        Assert.Contains(cards, c => c.Go == "onboard_desk");
+    }
+
+    [Fact]
+    public void Man_first_contact_and_buffer_pages_are_live()
+    {
+        Assert.Contains("onboard_desk", MetaDispatch.FirstContactManual, StringComparison.Ordinal);
+        Assert.Contains("cdp_buffer", MetaDispatch.BufferManual, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DeskSniperLocusUnit_null_without_hold()
     {
         var unit = new DeskSniperLocusUnit();

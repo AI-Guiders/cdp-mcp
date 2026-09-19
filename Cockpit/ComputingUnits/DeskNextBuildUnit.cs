@@ -51,7 +51,14 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
         int TestFailed,
         bool DebugStopped,
         int ShellRunning,
-        bool StampPending);
+        bool StampPending,
+        string? AlertReason = null,
+        bool WaveActive = false,
+        string? WavePulse = null,
+        bool PhaseColdExplore = false,
+        string? OnboardTipGo = null,
+        string? OnboardTipLabel = null,
+        string? OnboardTipWhy = null);
 
     public NextCard[] Build(in Input input)
     {
@@ -79,6 +86,21 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
 
         if (input.AlertBeeping)
             Add("n-alert", "alert", "SA board", input.AlertWhy ?? input.AlertPulse ?? "alert");
+        // Throughput AxB: biped_mill / active wave must win Cap before filler gos.
+        if (string.Equals(input.AlertReason, "biped_mill", StringComparison.OrdinalIgnoreCase))
+        {
+            Add("n-inventory", "inventory", "Inventory gaps",
+                "list full a — biped_mill · no active wave");
+            Add("n-wave-seed", "plan", "Seed wave",
+                "cmd=wave seed title=… items=a;b;c — seal work_a then batch→ship");
+        }
+        else if (input.WaveActive)
+        {
+            Add("n-wave", "plan", "Active wave",
+                input.WavePulse ?? "wave open — work_a sealed");
+            Add("n-verify-wave", "verify_wave", "Verify wave",
+                "checklist before ship — dual hard via terminal_*");
+        }
         if (input.StampPending)
             Add("n-stamp", "domain", "Stamp last_ship",
                 "after commit — same turn; L1 ≠ stamp moment (петух = already late)");
@@ -96,6 +118,14 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
                 $"cmd=\"layout {layoutHint}\" — {input.LayoutSeatNote ?? layoutHint}");
         if (input.ProblemErrors > 0)
             Add("n-problems", "problems", "Error List", $"E×{input.ProblemErrors} — aim row, don't dump");
+
+        // First-contact: cold explore/recall without scan → reserved Cap slot near top.
+        if (input.PhaseColdExplore && !input.OnboardHasScan)
+            Add("n-onboard", "onboard_desk", "Onboard scan",
+                "op=scan — cold-start map before plan · man tool=first_contact");
+        else if (input.OnboardHasScan && input.OnboardTipGo is { Length: > 0 } tipGo)
+            Add("n-onboard-tip", tipGo, input.OnboardTipLabel ?? "Open entrypoint",
+                input.OnboardTipWhy ?? "from onboard scan");
 
         Add("n-goto", "goto", "Go To (Ctrl+T)", "query= type/member/file — land on anchor");
         Add("n-editor", "editor_scene", "Editor map", "Buffer/desk loop");
@@ -199,7 +229,9 @@ public sealed class DeskNextBuildUnit : ICockpitComputeUnit
             && !string.Equals(input.FocusId, "buffer:none", StringComparison.OrdinalIgnoreCase))
             Add("n-focus-editor", "editor_scene", "Focus editor context", $"locus {input.FocusId}");
 
-        if (input.WorkIntentId is not null)
+        if (input.WaveActive)
+            Add("n-plan", "plan", "Active wave", input.WavePulse ?? input.WorkPulse ?? "wave open");
+        else if (input.WorkIntentId is not null)
             Add("n-plan", "plan", "Task Manager", input.WorkPulse ?? input.WorkIntentId);
         else
             Add("n-plan", "plan", "Task Manager", "no plan — feature <name>");

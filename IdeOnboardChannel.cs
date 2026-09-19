@@ -74,6 +74,25 @@ internal static partial class IdeOnboardChannel
         }
     }
 
+    /// <summary>Top onboard next tip for desk Cap merge (entrypoint or README).</summary>
+    public static (string Go, string Label, string Why)? TryDeskTip(SessionContext session)
+    {
+        lock (Gate)
+        {
+            var doc = LoadUnlocked(session);
+            if (doc.Entrypoints.Count > 0)
+            {
+                var e = doc.Entrypoints[0];
+                return ("buffer", $"Open {e.Label}", $"op=open path={e.Path}");
+            }
+
+            if (doc.Docs.HasReadme && doc.Docs.ReadmePath is { Length: > 0 } rm)
+                return ("buffer", "Open README", $"op=open path={rm}");
+
+            return null;
+        }
+    }
+
     /// <summary>Mirror onboard pulse to flat CIDE chrome latch (not EICAS).</summary>
     public static void PublishGlass(SessionContext session)
     {
