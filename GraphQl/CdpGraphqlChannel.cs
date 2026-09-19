@@ -1,5 +1,7 @@
 #nullable enable
 using System.Text.Json;
+using Cdp.Core;
+using Cdp.ScriptableIde;
 using HotChocolate;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,10 +19,18 @@ internal static class CdpGraphqlChannel
 
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
 
-    public static string HandleJson(IReadOnlyDictionary<string, JsonElement>? args) =>
-        JsonSerializer.Serialize(Handle(args), Pretty);
+    public static string HandleJson(
+        SessionContext session,
+        DocumentBufferStore docStore,
+        CdpSettings settings,
+        IReadOnlyDictionary<string, JsonElement>? args) =>
+        JsonSerializer.Serialize(Handle(session, docStore, settings, args), Pretty);
 
-    public static object Handle(IReadOnlyDictionary<string, JsonElement>? args)
+    public static object Handle(
+        SessionContext session,
+        DocumentBufferStore docStore,
+        CdpSettings settings,
+        IReadOnlyDictionary<string, JsonElement>? args)
     {
         args ??= new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var op = (Opt(args, "op") ?? (Opt(args, "query") is { Length: > 0 } ? "query" : "voyager"))
@@ -31,7 +41,7 @@ internal static class CdpGraphqlChannel
             "voyager" or "toc" or "map" => VoyagerCard(),
             "type" => TypeCard(Opt(args, "name") ?? Opt(args, "type") ?? "Query"),
             "examples" or "goldens" => ExamplesCard(),
-            "query" or "gql" or "run" => QueryCard(args),
+            "query" or "gql" or "run" => QueryCard(session, docStore, settings, args),
             _ => new
             {
                 ok = false,
@@ -76,12 +86,19 @@ internal static class CdpGraphqlChannel
         {
             new { id = 1, title = "textHits → anchor", query = "{ textHits(query: \"IdeFindChannel\", first: 5) { nodes { path line preview anchor { wire file lineStart } } totalCount } }" },
             new { id = 2, title = "peek → anchor", query = "{ peek(path: \"GraphQl/CdpQueryRoot.cs\", limit: 20) { path lines { n text anchor { wire } } } }" },
+            new { id = 3, title = "goto → anchor", query = "{ goto(query: \"t CdpQueryType\", first: 5) { kind name score anchor { wire } } }" },
+            new { id = 4, title = "diagnostics → Fix chain", query = "{ diagnostics(path: \"GraphQl\", first: 10) { severity message path line anchor { wire } } }" },
             new { id = 6, title = "Vision-Exp external tree", query = "{ textHits(query: \"AddGraphQLServer\", scope: \"external\", path: \"C:/Projects/EDW.Portal.Repo\", first: 10) { nodes { path preview anchor { wire } } } }" },
             new { id = 7, title = "LIKE translator", query = "{ textHits(like: \"%FindInFiles%\", first: 5) { nodes { preview anchor { wire } } } }" },
+            new { id = 8, title = "Vision-Exp peek OOW", query = "{ peek(path: \"C:/Windows/System32/drivers/etc/hosts\", limit: 5) { path lines { n text anchor { wire } } } }" },
         }
     };
 
-    static object QueryCard(IReadOnlyDictionary<string, JsonElement> args)
+    static object QueryCard(
+        SessionContext session,
+        DocumentBufferStore docStore,
+        CdpSettings settings,
+        IReadOnlyDictionary<string, JsonElement> args)
     {
         var query = Opt(args, "query") ?? Opt(args, "gql") ?? Opt(args, "q");
         if (string.IsNullOrWhiteSpace(query))
@@ -123,9 +140,16 @@ internal static class CdpGraphqlChannel
             }
         }
 
+
         var request = OperationRequestBuilder.New()
             .SetDocument(query!)
             .SetVariableValues(variables)
+            .SetGlobalState(CdpGraphQlCall.StateKey, new CdpGraphQlCall
+            {
+                Session = session,
+                DocStore = docStore,
+                Settings = settings
+            })
             .Build();
 
         var result = executor.ExecuteAsync(request).GetAwaiter().GetResult();

@@ -5,13 +5,12 @@ using HotChocolate;
 
 namespace CdpMcp.GraphQl;
 
-/// <summary>GraphQL Query root (CDP-ADR-0233). Query-only; mutate stays CSX/edit_plan.</summary>
-[GraphQLName("Query")]
+/// <summary>GraphQL Query root (CDP-ADR-0233). Query-only; mutate stays CSX/edit_plan. Bound via CdpQueryType.</summary>
 internal sealed class CdpQueryRoot
 {
     /// <summary>textHits → FindInFiles.Hit projection; default first=20 (slim).</summary>
     public TextHitConnection TextHits(
-        [Service] CdpHostRuntime runtime,
+        CdpGraphQlCall call,
         string? query = null,
         string? path = null,
         string? scope = null,
@@ -31,8 +30,8 @@ internal sealed class CdpQueryRoot
         if (string.IsNullOrWhiteSpace(needle))
             throw new GraphQLException("query_required: pass query= or like= (Portal-style LIKE → rg translator).");
 
-        var session = runtime.Session;
-        var store = runtime.HostDeps.DocStore;
+        var session = call.Session;
+        var store = call.DocStore;
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
         {
             ["query"] = JsonSerializer.SerializeToElement(needle),
@@ -84,7 +83,7 @@ internal sealed class CdpQueryRoot
 
     /// <summary>peek → CdpPeekChannel lines with Anchor.</summary>
     public PeekResult Peek(
-        [Service] CdpHostRuntime runtime,
+        CdpGraphQlCall call,
         string path,
         int? offset = null,
         int? limit = null)
@@ -97,7 +96,7 @@ internal sealed class CdpQueryRoot
         if (offset is int o) args["offset"] = JsonSerializer.SerializeToElement(o);
         if (limit is int lim) args["limit"] = JsonSerializer.SerializeToElement(lim);
 
-        var json = CdpPeekChannel.HandleJson(runtime.Session, runtime.Settings.Languages, runtime.HostDeps.DocStore, args);
+        var json = CdpPeekChannel.HandleJson(call.Session, call.Settings.Languages, call.DocStore, args);
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
         if (root.TryGetProperty("ok", out var okEl) && okEl.ValueKind == JsonValueKind.False)
@@ -130,14 +129,14 @@ internal sealed class CdpQueryRoot
 
     /// <summary>diagnostics → IdeProblemsChannel.Row + Anchor.</summary>
     public IReadOnlyList<DiagnosticNode> Diagnostics(
-        [Service] CdpHostRuntime runtime,
+        CdpGraphQlCall call,
         string? path = null,
         int first = 50)
     {
         if (first < 1) first = 1;
         if (first > 200) first = 200;
 
-        var snap = IdeProblemsChannel.Build(runtime.HostDeps.DocStore, runtime.Session);
+        var snap = IdeProblemsChannel.Build(call.DocStore, call.Session);
         if (!snap.Ok)
             throw new GraphQLException($"diagnostics_failed: {snap.Pulse}");
 
@@ -163,6 +162,53 @@ internal sealed class CdpQueryRoot
                 string.IsNullOrWhiteSpace(r.Anchor) ? Anchor.File(r.Path).Line(Math.Max(1, r.Line)) : Anchor.Parse(r.Anchor),
                 r.Stale))
             .ToList();
+    }
+
+    /// <summary>goto → GoToAll.Hit + Anchor (cdp_goto engine).</summary>
+    public IReadOnlyList<GotoHitNode> Goto(
+        CdpGraphQlCall call,
+        string query,
+        string? kind = null,
+        int first = 20)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(query);
+        if (first < 1) first = 1;
+        if (first > 100) first = 100;
+
+        var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+        {
+            ["query"] = JsonSerializer.SerializeToElement(query),
+            ["max"] = JsonSerializer.SerializeToElement(first),
+        };
+        if (!string.IsNullOrWhiteSpace(kind))
+            args["kind"] = JsonSerializer.SerializeToElement(kind.Trim());
+
+        var json = GoToAll.Dispatch(call.DocStore, call.Session, args);
+        using var doc = JsonDocument.Parse(json);
+        var rootEl = doc.RootElement;
+        if (rootEl.TryGetProperty("ok", out var okEl) && okEl.ValueKind == JsonValueKind.False)
+        {
+            var err = rootEl.TryGetProperty("error", out var e) ? e.GetString() : "goto_failed";
+            var hint = rootEl.TryGetProperty("hint", out var h) ? h.GetString() : null;
+            throw new GraphQLException($"{err}: {hint ?? "GoToAll failed"}");
+        }
+
+        var nodes = new List<GotoHitNode>();
+        if (rootEl.TryGetProperty("hits", out var hits) && hits.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var hit in hits.EnumerateArray())
+            {
+                var k = hit.TryGetProperty("kind", out var ke) ? ke.GetString() ?? "" : "";
+                var name = hit.TryGetProperty("name", out var ne) ? ne.GetString() ?? "" : "";
+                var score = hit.TryGetProperty("score", out var se) && se.TryGetInt32(out var si) ? si : 0;
+                var wire = hit.TryGetProperty("anchor", out var ae) ? ae.GetString() : null;
+                if (string.IsNullOrWhiteSpace(wire))
+                    continue;
+                nodes.Add(new GotoHitNode(k, name, score, Anchor.Parse(wire!)));
+            }
+        }
+
+        return nodes;
     }
 
 }

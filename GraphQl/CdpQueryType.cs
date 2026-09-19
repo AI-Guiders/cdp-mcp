@@ -26,9 +26,9 @@ internal sealed class CdpQueryType : ObjectType
             .Type<ObjectType<TextHitConnection>>()
             .Resolve(ctx =>
             {
-                var runtime = ctx.Service<CdpHostRuntime>();
+                var call = CdpGraphQlCall.From(ctx);
                 return new CdpQueryRoot().TextHits(
-                    runtime,
+                    call,
                     ctx.ArgumentValue<string?>("query"),
                     ctx.ArgumentValue<string?>("path"),
                     ctx.ArgumentValue<string?>("scope"),
@@ -47,9 +47,9 @@ internal sealed class CdpQueryType : ObjectType
             .Type<ObjectType<PeekResult>>()
             .Resolve(ctx =>
             {
-                var runtime = ctx.Service<CdpHostRuntime>();
+                var call = CdpGraphQlCall.From(ctx);
                 return new CdpQueryRoot().Peek(
-                    runtime,
+                    call,
                     ctx.ArgumentValue<string>("path"),
                     ctx.ArgumentValue<int?>("offset"),
                     ctx.ArgumentValue<int?>("limit"));
@@ -62,10 +62,26 @@ internal sealed class CdpQueryType : ObjectType
             .Type<ListType<ObjectType<DiagnosticNode>>>()
             .Resolve(ctx =>
             {
-                var runtime = ctx.Service<CdpHostRuntime>();
+                var call = CdpGraphQlCall.From(ctx);
                 return new CdpQueryRoot().Diagnostics(
-                    runtime,
+                    call,
                     ctx.ArgumentValue<string?>("path"),
+                    ctx.ArgumentValue<int>("first"));
+            });
+
+        descriptor
+            .Field("goto")
+            .Argument("query", a => a.Type<NonNullType<StringType>>())
+            .Argument("kind", a => a.Type<StringType>())
+            .Argument("first", a => a.Type<IntType>().DefaultValue(20))
+            .Type<ListType<ObjectType<GotoHitNode>>>()
+            .Resolve(ctx =>
+            {
+                var call = CdpGraphQlCall.From(ctx);
+                return new CdpQueryRoot().Goto(
+                    call,
+                    ctx.ArgumentValue<string>("query"),
+                    ctx.ArgumentValue<string?>("kind"),
                     ctx.ArgumentValue<int>("first"));
             });
     }

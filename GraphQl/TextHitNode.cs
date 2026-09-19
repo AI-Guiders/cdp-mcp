@@ -96,3 +96,20 @@ public sealed class DiagnosticNode
     public bool Stale { get; }
 }
 
+/// <summary>Projection of GoToAll.Hit with typed Anchor (ADR-0233).</summary>
+public sealed class GotoHitNode
+{
+    public GotoHitNode(string kind, string name, int score, Anchor anchor)
+    {
+        Kind = kind;
+        Name = name;
+        Score = score;
+        Anchor = anchor;
+    }
+
+    public string Kind { get; }
+    public string Name { get; }
+    public int Score { get; }
+    public Anchor Anchor { get; }
+}
+
