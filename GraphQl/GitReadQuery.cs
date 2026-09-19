@@ -59,14 +59,28 @@ internal sealed class GitReadQuery
             throw new GraphQLException($"dispatch_unavailable: need DispatchToolAsync for {tool}");
 
         var json = await _call.DispatchToolAsync(tool, args, ct).ConfigureAwait(false);
-        using var doc = JsonDocument.Parse(json);
-        var root = doc.RootElement;
-        var ok = !(root.TryGetProperty("ok", out var okEl) && okEl.ValueKind == JsonValueKind.False);
-        var sch = root.TryGetProperty("schema", out var s) && s.ValueKind == JsonValueKind.String
-            ? s.GetString() ?? schema
-            : schema;
-        var hint = root.TryGetProperty("hint", out var h) ? h.GetString()
-            : root.TryGetProperty("error", out var e) ? e.GetString() : null;
-        return new EngineEnvelopeNode(sch!, ok, json, hint);
+        return ParseEnvelope(schema, json);
+    }
+
+    static EngineEnvelopeNode ParseEnvelope(string schema, string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            var ok = !(root.TryGetProperty("ok", out var okEl) && okEl.ValueKind == JsonValueKind.False);
+            var sch = root.TryGetProperty("schema", out var s) && s.ValueKind == JsonValueKind.String
+                ? s.GetString() ?? schema
+                : schema;
+            var hint = root.TryGetProperty("hint", out var h) ? h.GetString()
+                : root.TryGetProperty("error", out var e) ? e.GetString() : null;
+            return new EngineEnvelopeNode(sch!, ok, json, hint);
+        }
+        catch (JsonException)
+        {
+            // Some git organs return pulse text, not JSON — empty≠error.
+            var payload = JsonSerializer.Serialize(new { ok = true, schema, pulse = json, hint = "non_json_pulse" });
+            return new EngineEnvelopeNode(schema, true, payload, "non_json_pulse");
+        }
     }
 }
