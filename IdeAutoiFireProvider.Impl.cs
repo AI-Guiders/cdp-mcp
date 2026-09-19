@@ -9,7 +9,7 @@ internal static class IdeAutoiFireProvider
         IdeAutoiFireProviderOpencode.Instance.IsActive() ? IdeAutoiFireProviderOpencode.Instance : IdeAutoiFireProviderCursor.Instance;
 }
 
-/// <summary>Cursor seat — inject into Cursor Composer via CDT (:9222). Default provider.</summary>
+/// <summary>Cursor seat — SDK local primary; CDT Composer (:9222) is escape. Default provider.</summary>
 internal sealed class IdeAutoiFireProviderCursor : IAutoiFireProvider
 {
     public static readonly IdeAutoiFireProviderCursor Instance = new();
@@ -19,8 +19,21 @@ internal sealed class IdeAutoiFireProviderCursor : IAutoiFireProvider
 
     public bool IsActive() => true;
 
-    public Task<object> FireAsync(string message, int waitSeconds, CancellationToken ct) =>
-        IdeIgniteChannel.FireAsync(IdeIgniteChannel.DefaultPort, message, chat: null, waitSeconds, ct);
+    public async Task<object> FireAsync(string message, int waitSeconds, CancellationToken ct)
+    {
+        var arm = new IdeIgniteArmHost.IgniteArm
+        {
+            Id = "autoi-cursor-" + Guid.NewGuid().ToString("N")[..8],
+            Message = message,
+            Harness = "cursor",
+            WaitSeconds = waitSeconds
+        };
+        var sdk = await IdeIgniteSdkLocalFire.TryDeliverAsync(arm, message, ct).ConfigureAwait(false);
+        if (sdk is not null)
+            return sdk;
+        return await IdeIgniteChannel.FireAsync(
+            IdeIgniteChannel.DefaultPort, message, chat: null, waitSeconds, ct).ConfigureAwait(false);
+    }
 }
 
 /// <summary>OpenCode seat — native `opencode run -s &lt;session&gt;` wake. Config-gated.</summary>

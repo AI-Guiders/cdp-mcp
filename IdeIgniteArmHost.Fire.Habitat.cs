@@ -81,7 +81,8 @@ internal sealed partial class CdpIgniteArmHost
 
     internal bool IsHabitatSubmitKind(string? submit) =>
         string.Equals(submit, "habitat", StringComparison.OrdinalIgnoreCase)
-        || string.Equals(submit, "citizen", StringComparison.OrdinalIgnoreCase);
+        || string.Equals(submit, "citizen", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(submit, IdeIgniteSdkLocalFire.SubmitKindSdkLocal, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Prefer habitat when PF duplex live, or autonomous overnight (plain timers).

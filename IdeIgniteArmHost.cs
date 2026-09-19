@@ -48,12 +48,20 @@ internal static partial class IdeIgniteArmHost
         /// <summary>ADR-0200: tenant wire stamped at arm time — fire enters slice for TM/wake/flight.</summary>
         public string? TenantWire { get; set; }
         /// <summary>
-        /// Wake seat: cursor (CDT Composer, default) | opencode (sidecar HTTP) | citizen (Completions).
+        /// Wake seat: cursor (SDK local primary, CDT Composer escape) | opencode (sidecar HTTP) | citizen (Completions).
         /// Agent stamps harness= at arm — no env/heuristic routing. session= required when harness=opencode.
         /// </summary>
         public string Harness { get; set; } = "cursor";
         /// <summary>OpenCode session id when Harness=opencode (ADR-0205).</summary>
         public string? OpencodeSession { get; set; }
+        /// <summary>L6: Cursor SDK local agent id for resume/send.</summary>
+        public string? SdkAgentId { get; set; }
+        /// <summary>L6: last fire delivery path (sdk_local | cdt_escape).</summary>
+        public string? DeliveryPath { get; set; }
+        /// <summary>L6: skip SDK local and force CDT Composer escape.</summary>
+        public bool ForceCdt { get; set; }
+        /// <summary>L6: composer|cdt forces escape; default SDK local when configured.</summary>
+        public string? CursorFirePolicy { get; set; }
         public string Status { get; set; } = "armed";
         public string? LastError { get; set; }
         public DateTimeOffset CreatedUtc { get; set; }

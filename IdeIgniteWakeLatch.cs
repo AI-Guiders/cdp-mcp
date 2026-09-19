@@ -15,6 +15,7 @@ internal static partial class IdeIgniteWakeLatch
     public const string Schema = "ignite_wake_latch/v0";
     public const string ChannelComposer = "composer";
     public const string ChannelHabitat = "habitat";
+    public const string ChannelSdkLocal = "sdk_local";
 
     static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -61,7 +62,8 @@ internal static partial class IdeIgniteWakeLatch
         string channel,
         string? reason = null,
         string? task = null,
-        string? course = null)
+        string? course = null,
+        string? sdkAgentId = null)
     {
         var id = armId?.Trim() ?? "";
         var body = charge?.Trim() ?? "";
@@ -87,6 +89,7 @@ internal static partial class IdeIgniteWakeLatch
                 ChargeTemplateRev = IdeIgniteChannel.ChargeTemplateRev,
                 Reason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim(),
                 Task = string.IsNullOrWhiteSpace(task) ? null : task.Trim(),
+                SdkAgentId = string.IsNullOrWhiteSpace(sdkAgentId) ? null : sdkAgentId.Trim(),
                 StampedUtc = DateTimeOffset.UtcNow
             };
             var json = JsonSerializer.Serialize(doc, JsonOpts);
@@ -127,6 +130,7 @@ internal static partial class IdeIgniteWakeLatch
         {
             "composer" or "cdt" or "cursor" => ChannelComposer,
             "habitat" or "intercom" or "duplex" => ChannelHabitat,
+            "sdk_local" or "sdk" or "cursor_sdk" => ChannelSdkLocal,
             _ => null
         };
     }
@@ -145,6 +149,8 @@ internal static partial class IdeIgniteWakeLatch
         public string? ChargeTemplateRev { get; set; }
         public string? Reason { get; set; }
         public string? Task { get; set; }
+        /// <summary>L6: Cursor SDK agent id stamped at publish.</summary>
+        public string? SdkAgentId { get; set; }
         public DateTimeOffset StampedUtc { get; set; }
     }
 }

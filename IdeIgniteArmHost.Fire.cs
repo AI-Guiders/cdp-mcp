@@ -176,6 +176,16 @@ internal sealed partial class CdpIgniteArmHost
                 return;
             }
 
+            // L6: Cursor SDK local primary; CDT Composer = escape only.
+            var sdk = await IdeIgniteSdkLocalFire.TryDeliverAsync(arm, msg, ct).ConfigureAwait(false);
+            if (sdk is not null)
+            {
+                MarkSendInvoked(arm.Id);
+                ApplyFireOutcome(arm, sdk);
+                return;
+            }
+            arm.DeliveryPath ??= IdeIgniteSdkLocalFire.DeliveryPathCdtEscape;
+
             // Composer adapter path — keep habitat SSOT if autonomous stamp already wrote it.
             if (!IdeIgniteWakeLatch.IsHabitatLatchForArm(arm.Id))
             {

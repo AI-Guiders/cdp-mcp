@@ -391,13 +391,34 @@ internal sealed class CdpWakeDispatcher
                 {
                     e.State = "skipped";
                     e.SkippedReason = "cdt_disabled (region)";
+                    return e;
                 }
-                else
+
                 {
+                    var arm = new IdeIgniteArmHost.IgniteArm
+                    {
+                        Id = string.IsNullOrWhiteSpace(e.Id)
+                            ? "wake-" + Guid.NewGuid().ToString("N")[..8]
+                            : e.Id,
+                        Message = e.Body,
+                        Harness = "cursor"
+                    };
+                    var sdk = await IdeIgniteSdkLocalFire.TryDeliverAsync(arm, e.Body, ct)
+                        .ConfigureAwait(false);
+                    if (sdk is not null && IsFireOk(sdk))
+                    {
+                        e.State = "delivered";
+                        e.DeliveredUtc = _time.GetUtcNow();
+                        e.Detail = IdeIgniteSdkLocalFire.DeliveryPathSdkLocal;
+                        return e;
+                    }
+
                     e.State = "skipped";
-                    e.SkippedReason = "cdt_channel_todo";
+                    e.SkippedReason = IdeIgniteSdkLocalFire.IsSdkConfigured()
+                        ? "sdk_local_fail"
+                        : "cdt_escape_todo";
+                    return e;
                 }
-                return e;
 
             default:
                 e.State = "failed";
@@ -478,4 +499,11 @@ internal sealed class CdpWakeDispatcher
         result.GetType().GetProperty("error")?.GetValue(result) as string
         ?? result.GetType().GetProperty("detail")?.GetValue(result) as string
         ?? "unknown";
+
+    static bool IsFireOk(object result)
+    {
+        if (result.GetType().GetProperty("ok")?.GetValue(result) is bool b)
+            return b;
+        return false;
+    }
 }
