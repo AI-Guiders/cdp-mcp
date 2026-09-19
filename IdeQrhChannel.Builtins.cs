@@ -246,7 +246,7 @@ internal static partial class IdeQrhChannel
             [
                 new("cdp_files / go=files_desk — scene|list|cd|open", "files_desk", "cdp_files"),
                 new("cdp_files where=external path= — any disk tree", Action: "cdp_files"),
-                new("op=search → find_desk facet", "find_desk", "cdp_search"),
+                new("search content → cdp_graphql textHits", Action: "cdp_graphql"),
                 new("go=ecl — memory files-desk", "ecl")
             ],
             ["find-via-desk", "path-mutate-gate", "tool-result-tax", "scm-via-desk"],
