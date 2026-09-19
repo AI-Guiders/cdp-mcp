@@ -11,6 +11,8 @@ public sealed class AnchorType : ObjectType<Anchor>
     {
         descriptor.Name("Anchor");
         descriptor.Description("Cdp.ScriptableIde.Anchor — locus SSOT (ADR-0233).");
+        // Anchor has many fluent public methods; implicit binding would explode the schema.
+        descriptor.BindFieldsExplicitly();
 
         descriptor.Field("wire")
             .Type<NonNullType<StringType>>()

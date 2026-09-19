@@ -95,7 +95,7 @@ internal static class CdpGraphqlChannel
             };
         }
 
-        var executor = CdpGraphQlRuntime.Executor;
+        var executor = CdpGraphQlRuntime.EnsureExecutorAsync().GetAwaiter().GetResult();
         if (executor is null)
         {
             return new
@@ -103,7 +103,8 @@ internal static class CdpGraphqlChannel
                 ok = false,
                 schema = SchemaVersion,
                 error = "executor_cold",
-                hint = "CdpService must be running with GraphQL warmed (deploy/restart after ADR-0233 ship)."
+                detail = CdpGraphQlRuntime.LastWarmError,
+                hint = "Schema warm failed — see detail; fix HC registration then redeploy."
             };
         }
 

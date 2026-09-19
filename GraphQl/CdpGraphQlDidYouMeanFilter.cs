@@ -1,5 +1,6 @@
 #nullable enable
 using HotChocolate;
+using HotChocolate.Execution;
 
 namespace CdpMcp.GraphQl;
 
