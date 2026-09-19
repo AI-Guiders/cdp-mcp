@@ -224,7 +224,7 @@ internal static partial class MetaToolCatalog
             writable_only = new { type = "boolean", description = "catalog: only hot user keys" }
         }
     }),
-    Meta("cdp_graphql", "Unified agent read query (ADR-0233). First op=voyager|examples, then op=query query= GraphQL. Hits carry Anchor. Mutate stays CSX/edit_plan.", new
+    Meta("cdp_graphql", "THE agent read surface (ADR-0233 L3). Prefer over bare find/find_in_files/cdp_peek/cdp_search/goto/diagnostics — those are unmounted from ListTools. First op=voyager|examples, then op=query. Hits carry Anchor. Mutate stays CSX/edit_plan.", new
     {
         type = "object",
         properties = new

@@ -9,6 +9,31 @@ namespace CdpMcp;
 /// <summary>ListTools composition peeled from Program (soft-warn).</summary>
 internal static class VisibleToolCatalog
 {
+    /// <summary>
+    /// ADR-0233 L3 hard collapse — situational read leaves ListTools; engines stay CallTool
+    /// for <c>cdp_graphql</c> / MetaDispatch. Mutate bare verbs stay listed.
+    /// </summary>
+    public static readonly HashSet<string> GraphQlCollapsedReadNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // bare read → textHits / peek / goto / diagnostics / session
+        "find",
+        "get_find",
+        "find_in_files",
+        "find_all",
+        "go_to_definition",
+        "find_usages",
+        "get_document_symbols",
+        "get_symbol_at_position",
+        "get_diagnostics",
+        "get_workspace_navigation_context",
+        // meta / soft scenes superseded by cdp_graphql
+        "cdp_peek",
+        "cdp_search",
+        "cdp_goto",
+        "cdp_analysis_scene",
+        "cdp_test_scene",
+    };
+
     /// <summary>Soft organs with go= aliases — CallTool ok, omit from always-ListTools.</summary>
     public static readonly HashSet<string> SoftInstrumentMetaNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -57,9 +82,12 @@ internal static class VisibleToolCatalog
     public static List<Tool> Build(VisibleToolCatalogDeps d)
     {
         var meta = d.BuildMetaTools()
-            .Where(t => !SoftInstrumentMetaNames.Contains(t.Name))
+            .Where(t => !SoftInstrumentMetaNames.Contains(t.Name)
+                && !GraphQlCollapsedReadNames.Contains(t.Name))
             .ToList();
-        var ide = IdeLanguageTools.BuildBareVerbTools().ToList();
+        var ide = IdeLanguageTools.BuildBareVerbTools()
+            .Where(t => !GraphQlCollapsedReadNames.Contains(t.Name))
+            .ToList();
         var hits = PhaseObjectCatalog.Query(
             d.AllAffordances, d.Session.Phase, d.Session.Object, d.Session.Intent,
             limit: PhaseObjectCatalog.DefaultListToolsLimit, language: d.Session.Language);
