@@ -69,6 +69,8 @@ internal static partial class MetaDispatch
                 return d.IdeSettings.Dispatch(callArgs);
             case "cdp_search":
                 return IdeFindChannel.HandleJson(d.DocStore, d.Session, callArgs);
+            case "cdp_graphql":
+                return CdpMcp.GraphQl.CdpGraphqlChannel.HandleJson(callArgs);
             case "cdp_peek":
                 return CdpPeekChannel.HandleJson(d.Session, d.Settings.Languages, d.DocStore, callArgs);
             case "cdp_canon_stack":

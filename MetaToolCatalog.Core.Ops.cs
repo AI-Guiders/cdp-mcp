@@ -224,6 +224,18 @@ internal static partial class MetaToolCatalog
             writable_only = new { type = "boolean", description = "catalog: only hot user keys" }
         }
     }),
+    Meta("cdp_graphql", "Unified agent read query (ADR-0233). First op=voyager|examples, then op=query query= GraphQL. Hits carry Anchor. Mutate stays CSX/edit_plan.", new
+    {
+        type = "object",
+        properties = new
+        {
+            op = new { type = "string", description = "voyager|type|examples|query (default voyager)" },
+            query = new { type = "string", description = "GraphQL document (op=query)" },
+            variables = new { description = "JSON object or string — GraphQL variables" },
+            name = new { type = "string", description = "op=type: type name (default Query)" },
+            type = new { type = "string", description = "alias of name=" }
+        }
+    }),
     Meta("cdp_search", "Agent-native search organ (ADR-0009). Prefer over shell/Cursor Grep. Axes: what=text|index|symbol, where=buffer|project|external|dirty|buffers (+roots[]/path=), shape=slim|list|raw. op=run|refine|last|clear. Alias go=find_desk.", new
     {
         type = "object",

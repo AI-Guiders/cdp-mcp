@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using ModelContextProtocol.AspNetCore;
+using CdpMcp.GraphQl;
 
 namespace CdpMcp;
 
@@ -54,6 +55,7 @@ internal static class CdpServiceHost
         builder.WebHost.UseUrls(baseUrl);
         builder.Services.AddSingleton(runtime);
         builder.Services.AddSingleton(settings);
+        builder.Services.AddCdpGraphQl();
         builder.Services.AddMcpServer(options =>
         {
             options.ServerInfo = new Implementation
@@ -97,6 +99,7 @@ internal static class CdpServiceHost
             });
 
         var app = builder.Build();
+        await CdpMcp.GraphQl.CdpGraphQlRegistration.WarmExecutorAsync(app.Services).ConfigureAwait(false);
 
         app.Use(async (context, next) =>
         {
@@ -263,6 +266,8 @@ internal static class CdpServiceHost
             }
             return Results.Empty;
         });
+
+        app.MapCdpGraphQl();
 
         app.MapPost("/api/v1/cdp/invoke", async (
             CdpInvokeRequest request,
