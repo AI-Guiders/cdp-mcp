@@ -6,8 +6,8 @@ using HotChocolate.Execution;
 namespace CdpMcp.GraphQl;
 
 /// <summary>
-/// Agent-native Voyager: one live schema node frame + Kind:Nav edges (cdp_land Command:go).
-/// Not SDL dump — traverse like Banana Cake Pop / Voyager, MCP-shaped.
+/// Agent-native Voyager: one live schema node + Kind:Nav edges.
+/// Context A/C: default <c>detail=pulse</c>; <c>detail=full</c> for args/descriptions.
 /// </summary>
 internal static class GraphQlAgentVoyager
 {
@@ -16,8 +16,10 @@ internal static class GraphQlAgentVoyager
     internal static object Frame(
         string? typeName = null,
         string? filter = null,
-        string? anchorWire = null)
+        string? anchorWire = null,
+        string? detail = null)
     {
+        var level = NormalizeDetail(detail);
         var exec = CdpGraphQlRuntime.EnsureExecutorAsync().GetAwaiter().GetResult();
         if (exec is null)
         {
@@ -26,8 +28,9 @@ internal static class GraphQlAgentVoyager
                 ok = false,
                 schema = CdpGraphqlChannel.SchemaVersion,
                 role = "voyager",
+                detail = level,
                 error = "executor_cold",
-                detail = CdpGraphQlRuntime.LastWarmError,
+                warm = CdpGraphQlRuntime.LastWarmError,
                 http = CdpGraphQlRegistration.HttpPath,
                 hint = "Schema warm failed — fix HC registration then redeploy."
             };
@@ -49,6 +52,7 @@ internal static class GraphQlAgentVoyager
                 ok = false,
                 schema = CdpGraphqlChannel.SchemaVersion,
                 role = "voyager",
+                detail = level,
                 type = typeName,
                 error = "type_not_found",
                 nav_root = NavWire("Query"),
@@ -60,6 +64,7 @@ internal static class GraphQlAgentVoyager
         var fields = new List<object>();
         var edges = new List<object>();
         var edgeTypes = new HashSet<string>(StringComparer.Ordinal);
+        var full = level == "full";
 
         foreach (var f in node.Fields)
         {
@@ -74,60 +79,61 @@ internal static class GraphQlAgentVoyager
 
             var returnPrint = f.Type.Print();
             var targetType = NavigableNamedType(f.Type);
-            string? nav = null;
-            if (targetType is not null)
-            {
-                nav = NavWire(targetType);
-                if (edgeTypes.Add(targetType))
-                {
-                    edges.Add(new
-                    {
-                        type = targetType,
-                        via_field = f.Name,
-                        nav,
-                        hint = "cdp_land anchor=… or cdp_graphql op=voyager type=" + targetType
-                    });
-                }
-            }
+            string? nav = targetType is null ? null : NavWire(targetType);
+            if (targetType is not null && edgeTypes.Add(targetType))
+                edges.Add(Edge(targetType, viaField: f.Name, viaArg: null, nav!, full));
 
-            var args = new List<object>();
-            foreach (var a in f.Arguments)
+            if (full)
             {
-                var argTarget = NavigableNamedType(a.Type);
-                args.Add(new
+                var args = new List<object>();
+                foreach (var a in f.Arguments)
                 {
-                    name = a.Name,
-                    type = a.Type.Print(),
-                    nav = argTarget is null ? null : NavWire(argTarget)
+                    var argTarget = NavigableNamedType(a.Type);
+                    args.Add(new
+                    {
+                        name = a.Name,
+                        type = a.Type.Print(),
+                        nav = argTarget is null ? null : NavWire(argTarget)
+                    });
+                    if (argTarget is not null && edgeTypes.Add(argTarget))
+                        edges.Add(Edge(argTarget, viaField: f.Name, viaArg: a.Name, NavWire(argTarget), full));
+                }
+
+                fields.Add(new
+                {
+                    name = f.Name,
+                    args,
+                    type = returnPrint,
+                    nav,
+                    description = string.IsNullOrWhiteSpace(f.Description) ? null : f.Description
                 });
-                if (argTarget is not null && edgeTypes.Add(argTarget))
-                {
-                    edges.Add(new
-                    {
-                        type = argTarget,
-                        via_arg = a.Name,
-                        via_field = f.Name,
-                        nav = NavWire(argTarget),
-                        hint = "cdp_land anchor=… or cdp_graphql op=voyager type=" + argTarget
-                    });
-                }
             }
-
-            fields.Add(new
+            else
             {
-                name = f.Name,
-                args,
-                type = returnPrint,
-                nav,
-                description = f.Description
-            });
+                // pulse: name → type → nav; arg tax = count + names only
+                var argNames = f.Arguments.Select(static a => a.Name).ToArray();
+                fields.Add(new
+                {
+                    name = f.Name,
+                    type = returnPrint,
+                    arg_count = argNames.Length,
+                    args = argNames.Length == 0 ? null : argNames,
+                    nav
+                });
+            }
         }
+
+        var pulse = $"voyager · {node.Name} · fields×{fields.Count} · edges×{edges.Count}"
+            + (filterNorm is null ? "" : " · filter=" + filterNorm)
+            + (full ? " · full" : " · pulse");
 
         return new
         {
             ok = true,
             schema = CdpGraphqlChannel.SchemaVersion,
             role = "voyager",
+            detail = level,
+            pulse,
             type = node.Name,
             kind = "OBJECT",
             filter = filterNorm,
@@ -136,9 +142,39 @@ internal static class GraphQlAgentVoyager
             edges,
             nav_self = NavWire(node.Name),
             nav_root = NavWire("Query"),
-            http = CdpGraphQlRegistration.HttpPath,
-            sdl_path = CdpGraphQlRegistration.SchemaPath,
-            hint = "Agent Voyager node. Follow edges via cdp_land (Kind:Nav Command:go Go:cdp_graphql Member:<Type>) or op=voyager type=. filter= substrings fields."
+            http = full ? CdpGraphQlRegistration.HttpPath : null,
+            sdl_path = full ? CdpGraphQlRegistration.SchemaPath : null,
+            hint = full
+                ? "Voyager full. Land edges: cdp_land / op=voyager type=|anchor=."
+                : "Voyager pulse [A]. detail=full for args shapes + descriptions + http/sdl paths."
+        };
+    }
+
+    static object Edge(string type, string viaField, string? viaArg, string nav, bool full) =>
+        full
+            ? new
+            {
+                type,
+                via_field = viaField,
+                via_arg = viaArg,
+                nav,
+                hint = "cdp_land anchor=… or cdp_graphql op=voyager type=" + type
+            }
+            : new
+            {
+                type,
+                via = viaArg is null ? viaField : viaField + "." + viaArg,
+                nav
+            };
+
+    static string NormalizeDetail(string? detail)
+    {
+        var d = (detail ?? "pulse").Trim().ToLowerInvariant();
+        return d switch
+        {
+            "full" or "fat" or "c" or "map" => "full",
+            "pulse" or "slim" or "a" or "" => "pulse",
+            _ => "pulse"
         };
     }
 
@@ -165,7 +201,6 @@ internal static class GraphQlAgentVoyager
         var named = type.NamedType();
         if (named.Name.StartsWith("__", StringComparison.Ordinal))
             return null;
-        // Object / interface / input / enum — same Voyager click targets; scalars stay leaves.
         if (named is IObjectTypeDefinition or IInterfaceTypeDefinition
             or IInputObjectTypeDefinition or IEnumTypeDefinition)
         {

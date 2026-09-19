@@ -191,6 +191,7 @@ internal static class NavigationLand
             {
                 ["op"] = JsonSerializer.SerializeToElement("voyager"),
                 ["type"] = JsonSerializer.SerializeToElement(type),
+                ["detail"] = JsonSerializer.SerializeToElement("pulse"),
             };
             if (!string.IsNullOrWhiteSpace(span.TextNeedle))
                 gqlArgs["filter"] = JsonSerializer.SerializeToElement(span.TextNeedle!);

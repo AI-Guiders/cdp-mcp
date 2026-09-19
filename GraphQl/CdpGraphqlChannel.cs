@@ -40,7 +40,8 @@ internal static class CdpGraphqlChannel
             "voyager" or "toc" or "map" or "type" => GraphQlAgentVoyager.Frame(
                 typeName: Opt(args, "name") ?? Opt(args, "type"),
                 filter: Opt(args, "filter") ?? Opt(args, "q") ?? Opt(args, "find"),
-                anchorWire: Opt(args, "anchor") ?? Opt(args, "at") ?? Opt(args, "wire")),
+                anchorWire: Opt(args, "anchor") ?? Opt(args, "at") ?? Opt(args, "wire"),
+                detail: Opt(args, "detail") ?? Opt(args, "go_detail")),
             "examples" or "goldens" => ExamplesCard(),
             "query" or "gql" or "run" => QueryCard(session, docStore, settings, args, dispatchToolAsync),
             _ => new
@@ -48,7 +49,7 @@ internal static class CdpGraphqlChannel
                 ok = false,
                 schema = SchemaVersion,
                 error = "unknown_op",
-                hint = "op=voyager|examples|query — voyager: type=|filter=|anchor= Kind:Nav; query= for documents"
+                hint = "op=voyager|examples|query — voyager: type=|filter=|anchor=|detail=pulse|full; query= for documents"
             }
         };
     }

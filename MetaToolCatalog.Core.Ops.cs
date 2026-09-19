@@ -224,16 +224,19 @@ internal static partial class MetaToolCatalog
             writable_only = new { type = "boolean", description = "catalog: only hot user keys" }
         }
     }),
-    Meta("cdp_graphql", "THE agent read surface (ADR-0233 L3). Prefer over bare find/find_in_files/cdp_peek/cdp_search/goto/diagnostics — those are unmounted from ListTools. First op=voyager (Agent Voyager: ISchema node + Kind:Nav edges; type=|filter=|anchor=) or op=examples, then op=query. Hits carry Anchor. Mutate stays CSX/edit_plan. Land Voyager edges via cdp_land Command:go Go:cdp_graphql Member:<Type>.", new
+    Meta("cdp_graphql", "[A] Agent read (ADR-0233 L3). op=voyager default detail=pulse (field names+types+nav); detail=full for args/descriptions. Edges=Kind:Nav → cdp_land Go:cdp_graphql. Then op=examples|query. Hits carry Anchor. Mutate stays CSX/edit_plan.", new
     {
         type = "object",
         properties = new
         {
             op = new { type = "string", description = "voyager|type|examples|query (default voyager)" },
+            detail = new { type = "string", description = "voyager: pulse|slim (default, A) | full (C — args+descriptions+http/sdl)" },
+            type = new { type = "string", description = "voyager: type name (default Query); alias name=" },
+            name = new { type = "string", description = "alias of type=" },
+            filter = new { type = "string", description = "voyager: substring on field/type names" },
+            anchor = new { type = "string", description = "voyager: Kind:Nav wire (Go:cdp_graphql Member:<Type>)" },
             query = new { type = "string", description = "GraphQL document (op=query)" },
-            variables = new { description = "JSON object or string — GraphQL variables" },
-            name = new { type = "string", description = "op=type: type name (default Query)" },
-            type = new { type = "string", description = "alias of name=" }
+            variables = new { description = "JSON object or string — GraphQL variables" }
         }
     }),
     Meta("cdp_search", "Agent-native search organ (ADR-0009). Prefer over shell/Cursor Grep. Axes: what=text|index|symbol, where=buffer|project|external|dirty|buffers (+roots[]/path=), shape=slim|list|raw. op=run|refine|last|clear. Alias go=find_desk.", new
