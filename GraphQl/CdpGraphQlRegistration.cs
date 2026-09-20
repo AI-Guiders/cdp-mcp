@@ -21,8 +21,12 @@ internal static class CdpGraphQlRegistration
             .AddType<PackagesReadQueryType>()
             .AddType<GitReadQueryType>()
             .AddType<KnowledgeReadQueryType>()
+            .AddType<ProjectReadQueryType>()
+            .AddType<SlnReadQueryType>()
             .AddType<SymbolReadResultType>()
             .AddErrorFilter<CdpGraphQlDidYouMeanFilter>()
+            // Agent channel (MCP in-proc + local HTTP) — allow __schema/__type; Voyager stays preferred pulse.
+            .DisableIntrospection(false)
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true);
 
         return services;
