@@ -45,10 +45,16 @@ internal static class VisibleToolCatalog
         "git_status",
         "git_diff",
         "git_preflight",
-        // knowledge-read → knowledge { recall|tags|read|list }; write stays
+        // knowledge-read → knowledge { recall|tags|read|list|definition|procedure|process|packs|radiusGate }; write stays
         "memory_world_knowledge_tags",
         "memory_world_read_knowledge_file",
         "memory_world_list_knowledge_files",
+        "memory_world_recall_knowledge",
+        "memory_world_get_definition",
+        "memory_world_get_procedure",
+        "memory_world_get_process",
+        "memory_world_list_pack",
+        "memory_world_radius_gate_check",
         // lifecycle pulses → lastBuild|lastTest|lifecycle
         "cdp_lifecycle_scene",
         "cdp_lifecycle_last",
@@ -125,6 +131,8 @@ internal static class VisibleToolCatalog
         foreach (var hit in hits)
         {
             var a = hit.Affordance;
+            if (GraphQlCollapsedReadNames.Contains(a.PrefixedName))
+                continue;
             var schemaTool = ResolveSchema(d, a.Domain, a.UnderlyingName);
             if (schemaTool is null) continue;
             var schema = a.Domain == CdpDomains.Git

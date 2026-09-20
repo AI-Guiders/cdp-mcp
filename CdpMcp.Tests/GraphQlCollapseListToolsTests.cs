@@ -16,6 +16,9 @@ public class GraphQlCollapseListToolsTests
         Assert.Contains("cdp_project_list", VisibleToolCatalog.GraphQlCollapsedReadNames);
         Assert.Contains("cdp_sln_projects", VisibleToolCatalog.GraphQlCollapsedReadNames);
         Assert.Contains("cdp_recent", VisibleToolCatalog.GraphQlCollapsedReadNames);
+        Assert.Contains("memory_world_get_definition", VisibleToolCatalog.GraphQlCollapsedReadNames);
+        Assert.Contains("memory_world_recall_knowledge", VisibleToolCatalog.GraphQlCollapsedReadNames);
+        Assert.Contains("memory_world_list_pack", VisibleToolCatalog.GraphQlCollapsedReadNames);
         Assert.DoesNotContain("cdp_graphql", VisibleToolCatalog.GraphQlCollapsedReadNames);
         Assert.DoesNotContain("rename_symbol", VisibleToolCatalog.GraphQlCollapsedReadNames);
         Assert.DoesNotContain("get_completions", VisibleToolCatalog.GraphQlCollapsedReadNames);

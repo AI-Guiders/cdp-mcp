@@ -66,5 +66,83 @@ internal sealed class KnowledgeReadQueryType : ObjectType<KnowledgeReadQuery>
                     ctx.ArgumentValue<string?>("subdir"),
                     ctx.RequestAborted).ConfigureAwait(false);
             });
+
+        descriptor
+            .Field("definition")
+            .Argument("definitionId", a => a.Type<NonNullType<StringType>>())
+            .Argument("packId", a => a.Type<StringType>())
+            .Argument("packPath", a => a.Type<StringType>())
+            .Type<ObjectType<EngineEnvelopeNode>>()
+            .Resolve(async ctx =>
+            {
+                var parent = ctx.Parent<KnowledgeReadQuery>();
+                return await parent.Definition(
+                    ctx.ArgumentValue<string>("definitionId"),
+                    ctx.ArgumentValue<string?>("packId"),
+                    ctx.ArgumentValue<string?>("packPath"),
+                    ctx.RequestAborted).ConfigureAwait(false);
+            });
+
+        descriptor
+            .Field("procedure")
+            .Argument("procedureId", a => a.Type<StringType>())
+            .Argument("packId", a => a.Type<StringType>())
+            .Argument("packPath", a => a.Type<StringType>())
+            .Type<ObjectType<EngineEnvelopeNode>>()
+            .Resolve(async ctx =>
+            {
+                var parent = ctx.Parent<KnowledgeReadQuery>();
+                return await parent.Procedure(
+                    ctx.ArgumentValue<string?>("procedureId"),
+                    ctx.ArgumentValue<string?>("packId"),
+                    ctx.ArgumentValue<string?>("packPath"),
+                    ctx.RequestAborted).ConfigureAwait(false);
+            });
+
+        descriptor
+            .Field("process")
+            .Argument("processId", a => a.Type<StringType>())
+            .Argument("packId", a => a.Type<StringType>())
+            .Argument("packPath", a => a.Type<StringType>())
+            .Type<ObjectType<EngineEnvelopeNode>>()
+            .Resolve(async ctx =>
+            {
+                var parent = ctx.Parent<KnowledgeReadQuery>();
+                return await parent.Process(
+                    ctx.ArgumentValue<string?>("processId"),
+                    ctx.ArgumentValue<string?>("packId"),
+                    ctx.ArgumentValue<string?>("packPath"),
+                    ctx.RequestAborted).ConfigureAwait(false);
+            });
+
+        descriptor
+            .Field("packs")
+            .Argument("packId", a => a.Type<StringType>())
+            .Argument("packPath", a => a.Type<StringType>())
+            .Type<ObjectType<EngineEnvelopeNode>>()
+            .Resolve(async ctx =>
+            {
+                var parent = ctx.Parent<KnowledgeReadQuery>();
+                return await parent.Packs(
+                    ctx.ArgumentValue<string?>("packId"),
+                    ctx.ArgumentValue<string?>("packPath"),
+                    ctx.RequestAborted).ConfigureAwait(false);
+            });
+
+        descriptor
+            .Field("radiusGate")
+            .Argument("deltaRadius", a => a.Type<NonNullType<FloatType>>())
+            .Argument("openHypothesisCount", a => a.Type<IntType>())
+            .Argument("claim", a => a.Type<StringType>())
+            .Type<ObjectType<EngineEnvelopeNode>>()
+            .Resolve(async ctx =>
+            {
+                var parent = ctx.Parent<KnowledgeReadQuery>();
+                return await parent.RadiusGate(
+                    ctx.ArgumentValue<double>("deltaRadius"),
+                    ctx.ArgumentValue<int?>("openHypothesisCount"),
+                    ctx.ArgumentValue<string?>("claim"),
+                    ctx.RequestAborted).ConfigureAwait(false);
+            });
     }
 }

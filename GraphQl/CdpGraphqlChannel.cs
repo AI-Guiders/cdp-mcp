@@ -71,6 +71,7 @@ internal static class CdpGraphqlChannel
             new { id = 9, title = "packages list + knowledge tags", query = "{ packages { list { ok schema hint } } knowledge { tags { ok schema hint } } }" },
             new { id = 10, title = "symbol + health pulse", query = "{ symbol(name: \"CdpQueryType\") { name hint declaration { wire } usages { name anchor { wire } } } health { ok schema hint } }" },
             new { id = 11, title = "project list + sln projects", query = "{ project { list { ok schema hint } scene { ok schema hint } } sln { list { ok schema hint } projects { ok schema hint } } }" },
+            new { id = 12, title = "knowledge pack gets", query = "{ knowledge { packs(packId: \"epistemic-scene\") { ok schema hint } definition(definitionId: \"debug-radius\") { ok schema hint } procedure(procedureId: \"mutate-plan-then-act\") { ok schema hint } } }" },
         }
     };
 
