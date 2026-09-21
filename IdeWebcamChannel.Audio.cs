@@ -17,7 +17,7 @@ namespace CdpMcp;
 
 internal static partial class IdeWebcamChannel
 {
-    /// <summary>Mic WAV via NAudio WaveInEvent — capture-mcp <c>capture_audio</c> parity.</summary>
+    /// <summary>Mic WAV via NAudio 3 WasapiRecorder — capture-mcp <c>capture_audio</c> parity.</summary>
     static object Audio(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
     {
         var workspace = ResolveWorkspace(session, Opt(args, "workspace_path") ?? Opt(args, "workspace"));
@@ -56,41 +56,11 @@ internal static partial class IdeWebcamChannel
             : MakeSafeFileName(fileName);
         var outputPath = Path.Combine(outputDir, $"{safeBaseName}.wav");
 
-        if (WaveInEvent.DeviceCount == 0)
-            throw new ArgumentException("No recording devices were found.");
-        if (deviceNumber >= WaveInEvent.DeviceCount)
-            throw new ArgumentException(
-                $"device_number {deviceNumber} is out of range. Available devices: {WaveInEvent.DeviceCount}.");
-
-        using var waveIn = new WaveInEvent
-        {
-            DeviceNumber = deviceNumber,
-            WaveFormat = new WaveFormat(sampleRate, 16, channels),
-            BufferMilliseconds = 50
-        };
-        using var writer = new WaveFileWriter(outputPath, waveIn.WaveFormat);
-        using var completed = new ManualResetEventSlim(false);
-        Exception? recordingError = null;
-
-        waveIn.DataAvailable += (_, eventArgs) =>
-        {
-            writer.Write(eventArgs.Buffer, 0, eventArgs.BytesRecorded);
-            writer.Flush();
-        };
-        waveIn.RecordingStopped += (_, eventArgs) =>
-        {
-            recordingError = eventArgs.Exception;
-            completed.Set();
-        };
-
-        waveIn.StartRecording();
+        using var capture = IdeWebcamWasapiCapture.OpenSession(outputPath, deviceNumber, sampleRate, channels);
+        capture.StartRecording();
         Thread.Sleep(durationSec * 1000);
-        waveIn.StopRecording();
-
-        if (!completed.Wait(TimeSpan.FromSeconds(5)))
-            throw new ArgumentException("Timeout while finalizing audio recording.");
-        if (recordingError is not null)
-            throw new ArgumentException("Audio capture failed: " + recordingError.Message);
+        capture.StopRecording();
+        capture.WaitForStop(TimeSpan.FromSeconds(5));
 
         var fileInfo = new FileInfo(outputPath);
         if (!fileInfo.Exists || fileInfo.Length <= 44)
@@ -103,7 +73,7 @@ internal static partial class IdeWebcamChannel
             op = "audio",
             go = GoName,
             tool = ToolName,
-            pulse = $"webcam · audio · wavein · {durationSec}s · {sampleRate}Hz · {channels}ch · {fileInfo.Length}B",
+            pulse = $"webcam · audio · wasapi · {durationSec}s · {sampleRate}Hz · {channels}ch · {fileInfo.Length}B",
             success = true,
             file_path = outputPath,
             duration_sec = durationSec,
@@ -120,22 +90,15 @@ internal static partial class IdeWebcamChannel
 
     static object AudioDeviceScene()
     {
-        var waveIn = new List<object>();
-        for (var i = 0; i < WaveInEvent.DeviceCount; i++)
-        {
-            var caps = WaveInEvent.GetCapabilities(i);
-            waveIn.Add(new { index = i, name = caps.ProductName, channels = caps.Channels });
-        }
-
-        var wasapiActive = new List<string>();
-        var wasapiDisabled = new List<string>();
+        List<object> capture = [];
+        List<string> wasapiActive = [];
+        List<string> wasapiDisabled = [];
         try
         {
-            using var enumerator = new MMDeviceEnumerator();
-            foreach (var d in enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active))
-                wasapiActive.Add(d.FriendlyName);
-            foreach (var d in enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Disabled))
-                wasapiDisabled.Add(d.FriendlyName);
+            foreach (var d in IdeWebcamWasapiCapture.ListActiveCaptureDevices())
+                capture.Add(new { index = d.Index, name = d.Name });
+            wasapiActive = IdeWebcamWasapiCapture.ListCaptureDeviceNames(DeviceState.Active).ToList();
+            wasapiDisabled = IdeWebcamWasapiCapture.ListCaptureDeviceNames(DeviceState.Disabled).ToList();
         }
         catch
         {
@@ -144,8 +107,8 @@ internal static partial class IdeWebcamChannel
 
         return new
         {
-            wavein_count = WaveInEvent.DeviceCount,
-            wavein = waveIn,
+            capture_count = capture.Count,
+            capture_devices = capture,
             wasapi_active = wasapiActive,
             wasapi_disabled = wasapiDisabled
         };

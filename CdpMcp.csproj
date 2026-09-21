@@ -69,18 +69,18 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Anthropic" Version="12.13.0" />
-    <PackageReference Include="Microsoft.Agents.AI" Version="1.3.0" />
-    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.3.0" />
-    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.5.0" />
+    <PackageReference Include="Anthropic" Version="12.49.0" />
+    <PackageReference Include="Microsoft.Agents.AI" Version="1.22.0" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.22.0" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.10.0" />
     <PackageReference Include="ModelContextProtocol" Version="2.2.0" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="16.6.6" />
     <PackageReference Include="Tomlyn" Version="2.10.1" />
     <PackageReference Include="YamlDotNet" Version="18.1.0" />
-    <PackageReference Include="Polly" Version="8.7.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
+    <PackageReference Include="Polly" Version="8.8.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
     <PackageReference Include="OutWit.Database.EntityFramework" Version="14.0.1" />
     <PackageReference Include="AIGuiders.WebcamMcp.Shared" Version="0.1.0" />
     <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Abstractions" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
@@ -92,12 +92,14 @@
     <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Cds" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="AIGuiders.Platform.Execution.CommandPlane" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="AIGuiders.Platform.Execution.CommandPlane.ArgSuggestions" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
-    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260225" />
-    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260225" />
-    <PackageReference Include="System.Drawing.Common" Version="10.0.3" />
-    <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="Whisper.net" Version="1.9.0" />
-    <PackageReference Include="Whisper.net.Runtime" Version="1.9.0" />
+    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260627" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.12" />
+    <!-- NAudio 3 modular stack — Core+Wasapi build on net10.0 cross-platform; WinMM not used (WasapiRecorder). -->
+    <PackageReference Include="NAudio.Core" Version="3.1.0" />
+    <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
+    <PackageReference Include="Whisper.net" Version="1.9.1" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersPlatform)' == 'true'">
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Cockpit.Abstractions\AIGuiders.Platform.Execution.Cockpit.Abstractions.csproj" />
@@ -125,6 +127,9 @@
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersFSharp)' == 'true' and Exists('$(DashSpecRoot)\src\DashSpec.Modeling.Language.Adapters.DashSpec\DashSpec.Modeling.Language.Adapters.DashSpec.fsproj')">
     <ProjectReference Include="$(DashSpecRoot)\src\DashSpec.Modeling.Language.Adapters.DashSpec\DashSpec.Modeling.Language.Adapters.DashSpec.fsproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalGuidersPlatform)' == 'true' and Exists('$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Language.Builtins\AIGuiders.Platform.Execution.Language.Builtins.csproj')">
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Execution.Language.Builtins\AIGuiders.Platform.Execution.Language.Builtins.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersCore)' == 'true'">
     <ProjectReference Include="$(GuidersCoreRoot)\src\DotNetWorkspace.Core\DotNetWorkspace.Core.csproj" />
@@ -169,11 +174,11 @@
     <ProjectReference Include="..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj" Condition="!Exists('$(GuidersCoreRoot)\src\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj') AND Exists('..\agent-notes-mcp\AgentNotes.Mcp.Hosting\AgentNotes.Mcp.Hosting.csproj')" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="18.9.6" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.9.6" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build" Version="18.10.1" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.10.1" ExcludeAssets="runtime" />
     <ProjectReference Include="..\ai-native-ui\src\Anui.Agent\Anui.Agent.csproj" />
     <ProjectReference Include="..\ai-native-ui\src\Anui.Ingest\Anui.Ingest.csproj" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.9.1" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.11.2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\agent-findings-mcp\ToolHandlers.cs" Link="Backends\Linked\FindingsToolHandlers.cs" />
@@ -584,10 +589,7 @@
       <GitSha Condition="'$(GitDirtyDetected)' != ''">$(GitSha)-dirty</GitSha>
       <BuildStampUtc>$([System.DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))</BuildStampUtc>
     </PropertyGroup>
-    <WriteLinesToFile
-      File="$(IntermediateOutputPath)BuildStamp.g.cs"
-      Lines="[assembly: System.Reflection.AssemblyMetadata(&quot;BuildSha&quot;, &quot;$(GitSha)&quot;)]%0A[assembly: System.Reflection.AssemblyMetadata(&quot;BuildTimeUtc&quot;, &quot;$(BuildStampUtc)&quot;)]"
-      Overwrite="true" />
+    <WriteLinesToFile File="$(IntermediateOutputPath)BuildStamp.g.cs" Lines="[assembly: System.Reflection.AssemblyMetadata(&quot;BuildSha&quot;, &quot;$(GitSha)&quot;)]%0A[assembly: System.Reflection.AssemblyMetadata(&quot;BuildTimeUtc&quot;, &quot;$(BuildStampUtc)&quot;)]" Overwrite="true" />
     <ItemGroup>
       <Compile Include="$(IntermediateOutputPath)BuildStamp.g.cs" />
     </ItemGroup>

@@ -8,6 +8,7 @@
     <GuidersPlatformRoot Condition="'$(GuidersPlatformRoot)' == ''">$(MSBuildThisFileDirectory)..\guiders-platform</GuidersPlatformRoot>
     <GuidersFSharpRoot Condition="'$(GuidersFSharpRoot)' == ''">$(MSBuildThisFileDirectory)..\guiders-fsharp</GuidersFSharpRoot>
     <DashSpecRoot Condition="'$(DashSpecRoot)' == ''">$(MSBuildThisFileDirectory)..\dash-spec</DashSpecRoot>
+    <GuidersWpfRoot Condition="'$(GuidersWpfRoot)' == ''">$(MSBuildThisFileDirectory)..\guiders-wpf</GuidersWpfRoot>
     <!-- aid-publish -UseNuGet → AidUseNuGet=true overrides sibling auto-detect -->
     <UseLocalGuidersCore Condition="'$(UseLocalGuidersCore)' == '' and '$(AidUseNuGet)' == 'true'">false</UseLocalGuidersCore>
     <UseLocalGuidersPlatform Condition="'$(UseLocalGuidersPlatform)' == '' and '$(AidUseNuGet)' == 'true'">false</UseLocalGuidersPlatform>
@@ -19,4 +20,9 @@
     <!-- NuGet.Frameworks version skew across guiders F# adapters — benign binding redirect noise. -->
     <NoWarn>$(NoWarn);MSB3277</NoWarn>
   </PropertyGroup>
+  <!-- MSBuild.Locator 1.11+ MSBL001 — transitive MSBuild satellites: compile-only, no copy-local. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.StringTools" Version="18.10.1" PrivateAssets="all" ExcludeAssets="runtime" />
+    <PackageReference Include="NuGet.Frameworks" Version="6.14.3" PrivateAssets="all" ExcludeAssets="runtime" />
+  </ItemGroup>
 </Project>

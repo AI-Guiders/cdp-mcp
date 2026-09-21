@@ -27,7 +27,12 @@ internal static class CdpGraphQlRegistration
             .AddErrorFilter<CdpGraphQlDidYouMeanFilter>()
             // Agent channel (MCP in-proc + local HTTP) — allow __schema/__type; Voyager stays preferred pulse.
             .DisableIntrospection(false)
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true);
+            .ModifyRequestOptions(o =>
+            {
+                o.IncludeExceptionDetails = true;
+                // pkg audit/outdated on large .slnx can exceed HC default 30s — align with citizen pkg (3m).
+                o.ExecutionTimeout = TimeSpan.FromMinutes(3);
+            });
 
         return services;
     }

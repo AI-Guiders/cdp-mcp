@@ -49,8 +49,8 @@ internal static partial class IdeWebcamChannel
         var ext = Path.GetExtension(audioPath).TrimStart('.').ToLowerInvariant();
         if (ext == "wav")
         {
-            using var reader = new AudioFileReader(audioPath);
-            ConvertToWhisperWav(reader, normalizedWavPath);
+            using var reader = new WaveFileReader(audioPath);
+            ConvertToWhisperWav(new WaveToSampleProvider(reader), normalizedWavPath);
         }
         else if (!TryConvertToWavWithFfmpeg(audioPath, normalizedWavPath))
         {

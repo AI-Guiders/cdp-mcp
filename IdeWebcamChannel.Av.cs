@@ -73,12 +73,6 @@ internal static partial class IdeWebcamChannel
         var metadataPath = Path.Combine(sessionDir, "metadata.json");
         var videoPath = saveVideo ? Path.Combine(sessionDir, "video.mp4") : null;
 
-        if (WaveInEvent.DeviceCount == 0)
-            throw new ArgumentException("No recording devices were found.");
-        if (audioDeviceNumber >= WaveInEvent.DeviceCount)
-            throw new ArgumentException(
-                $"device_number {audioDeviceNumber} is out of range. Available devices: {WaveInEvent.DeviceCount}.");
-
         using var capture = new VideoCapture(cameraIndex, VideoCaptureAPIs.ANY);
         if (!capture.IsOpened())
             throw new ArgumentException($"Camera {cameraIndex} is not available.");
@@ -87,15 +81,9 @@ internal static partial class IdeWebcamChannel
         if (requestedHeight > 0)
             capture.Set(VideoCaptureProperties.FrameHeight, requestedHeight);
 
-        using var waveIn = new WaveInEvent
-        {
-            DeviceNumber = audioDeviceNumber,
-            WaveFormat = new WaveFormat(audioSampleRate, 16, audioChannels),
-            BufferMilliseconds = 50
-        };
-        using var audioCompleted = new ManualResetEventSlim(false);
-        Exception? audioError = null;
         var audioLock = new object();
+        using var audioCapture = IdeWebcamWasapiCapture.OpenSession(
+            audioPath, audioDeviceNumber, audioSampleRate, audioChannels, audioLock);
         var frameTimestampsMs = new List<int>();
         var frameCount = 0;
         var startUtc = DateTime.UtcNow;
@@ -106,21 +94,7 @@ internal static partial class IdeWebcamChannel
 
         // WaveFileWriter finalizes WAV header on Dispose — must close before length check (capture parity).
         {
-            using var audioWriter = new WaveFileWriter(audioPath, waveIn.WaveFormat);
-            waveIn.DataAvailable += (_, eventArgs) =>
-            {
-                lock (audioLock)
-                {
-                    audioWriter.Write(eventArgs.Buffer, 0, eventArgs.BytesRecorded);
-                    audioWriter.Flush();
-                }
-            };
-            waveIn.RecordingStopped += (_, eventArgs) =>
-            {
-                audioError = eventArgs.Exception;
-                audioCompleted.Set();
-            };
-
+            audioCapture.StartRecording();
             using var frame = new Mat();
             VideoWriter? videoWriter = null;
             try
@@ -130,8 +104,6 @@ internal static partial class IdeWebcamChannel
                     capture.Read(frame);
                     Thread.Sleep(15);
                 }
-
-                waveIn.StartRecording();
 
                 while (stopwatch.Elapsed.TotalMilliseconds <= durationMs)
                 {
@@ -186,15 +158,12 @@ internal static partial class IdeWebcamChannel
             }
             finally
             {
-                waveIn.StopRecording();
+                audioCapture.StopRecording();
                 videoWriter?.Release();
                 videoWriter?.Dispose();
             }
 
-            if (!audioCompleted.Wait(TimeSpan.FromSeconds(8)))
-                throw new ArgumentException("Timeout while finalizing audio recording.");
-            if (audioError is not null)
-                throw new ArgumentException("Audio capture failed: " + audioError.Message);
+            audioCapture.WaitForStop(TimeSpan.FromSeconds(8));
         }
 
         var audioInfo = new FileInfo(audioPath);
