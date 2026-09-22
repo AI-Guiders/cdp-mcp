@@ -1,8 +1,8 @@
 using AIGuiders.Platform.Execution.Language;
 using AIGuiders.Platform.Language.CSharp;
-using AIGuiders.Platform.Language.Sql;
 using AIGuiders.Platform.Modeling.Language.Adapters.Fcs;
 using AIGuiders.Platform.Modeling.Language.Adapters.Gdl;
+using AIGuiders.Platform.Modeling.Language.Adapters.Sql;
 using DashSpec.Modeling.Language.Adapters.DashSpec;
 
 namespace CdpMcp;
@@ -22,6 +22,7 @@ internal static class CdpLanguageResolverHost
             .Register(new CsharpLanguageBackend())
             .Register(new SqlPostgresLanguageBackend())
             .Register(new SqlMssqlLanguageBackend())
+            .Register(new SqlSqliteLanguageBackend())
             .Register(new SqlLanguageBackend())
             .Register(new DashSpecLanguageBackend())
             .Build();

@@ -122,6 +122,7 @@
   <ItemGroup Condition="'$(UseLocalGuidersFSharp)' == 'true'">
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language.Adapters.Fcs\AIGuiders.Platform.Modeling.Language.Adapters.Fcs.fsproj" />
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language.Adapters.Gdl\AIGuiders.Platform.Modeling.Language.Adapters.Gdl.fsproj" />
+    <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language.Adapters.Sql\AIGuiders.Platform.Modeling.Language.Adapters.Sql.fsproj" />
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Ide.Session\AIGuiders.Platform.Modeling.Ide.Session.fsproj" />
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Ide.Session.Ports.DotNet\AIGuiders.Platform.Modeling.Ide.Session.Ports.DotNet.fsproj" />
   </ItemGroup>
@@ -130,7 +131,6 @@
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersPlatform)' == 'true' and Exists('$(GuidersPlatformRoot)\src\AIGuiders.Platform.Language.CSharp\AIGuiders.Platform.Language.CSharp.csproj')">
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Language.CSharp\AIGuiders.Platform.Language.CSharp.csproj" />
-    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Language.Sql\AIGuiders.Platform.Language.Sql.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersCore)' == 'true'">
     <ProjectReference Include="$(GuidersCoreRoot)\src\DotNetWorkspace.Core\DotNetWorkspace.Core.csproj" />
