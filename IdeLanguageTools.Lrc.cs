@@ -134,7 +134,7 @@ internal static partial class IdeLanguageTools
             solution = solEl.GetString();
         }
 
-        return new LanguageRequest(filePath, line, column, sourceText ?? "", solution ?? "");
+        return new LanguageRequest(filePath, line, column, sourceText ?? "", solution ?? "", "");
     }
 
     static RenameSymbolRequest BuildRenameRequest(

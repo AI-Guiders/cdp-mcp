@@ -38,7 +38,7 @@ internal static class FSharpAnchorResolve
             return false;
         }
 
-        var req = new LanguageRequest(path, 1, 1, text, "");
+        var req = new LanguageRequest(path, 1, 1, text, "", "");
         DocumentSymbolsResult symbols;
         try
         {
