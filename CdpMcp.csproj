@@ -128,9 +128,7 @@
   <ItemGroup Condition="'$(UseLocalGuidersFSharp)' == 'true' and Exists('$(DashSpecRoot)\src\DashSpec.Modeling.Language.Adapters.DashSpec\DashSpec.Modeling.Language.Adapters.DashSpec.fsproj')">
     <ProjectReference Include="$(DashSpecRoot)\src\DashSpec.Modeling.Language.Adapters.DashSpec\DashSpec.Modeling.Language.Adapters.DashSpec.fsproj" />
   </ItemGroup>
-  <ItemGroup Condition="'$(UseLocalGuidersPlatform)' == 'true' and Exists('$(GuidersPlatformRoot)\src\AIGuiders.Platform.Language.Fsharp\AIGuiders.Platform.Language.Fsharp.csproj')">
-    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Language.Fsharp\AIGuiders.Platform.Language.Fsharp.csproj" />
-    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Language.Gdl\AIGuiders.Platform.Language.Gdl.csproj" />
+  <ItemGroup Condition="'$(UseLocalGuidersPlatform)' == 'true' and Exists('$(GuidersPlatformRoot)\src\AIGuiders.Platform.Language.CSharp\AIGuiders.Platform.Language.CSharp.csproj')">
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Language.CSharp\AIGuiders.Platform.Language.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersCore)' == 'true'">

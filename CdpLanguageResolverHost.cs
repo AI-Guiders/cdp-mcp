@@ -1,4 +1,7 @@
 using AIGuiders.Platform.Execution.Language;
+using AIGuiders.Platform.Language.CSharp;
+using AIGuiders.Platform.Modeling.Language.Adapters.Fcs;
+using AIGuiders.Platform.Modeling.Language.Adapters.Gdl;
 using DashSpec.Modeling.Language.Adapters.DashSpec;
 
 namespace CdpMcp;
@@ -10,15 +13,12 @@ internal static class CdpLanguageResolverHost
 
     public static LanguageResolverCenter Center => Lazy.Value;
 
-    static LanguageResolverCenter Build()
-    {
-        var families = StandardLanguageFamilyManifest
-            .LoadFederation(AppContext.BaseDirectory)
-            .ToList();
-
-        return LanguageFamilyResolverHost.Create(
-            families,
-            new LanguageFamilyActivationCatalog(families),
-            builder => builder.Register(new DashSpecLanguageBackend()));
-    }
+    static LanguageResolverCenter Build() =>
+        new LanguageResolverBuilder()
+            .WithActivation(new PathRulesLanguageActivationCatalog())
+            .Register(new FcsLanguageBackend(null))
+            .Register(new GdlLanguageBackend())
+            .Register(new CsharpLanguageBackend())
+            .Register(new DashSpecLanguageBackend())
+            .Build();
 }
