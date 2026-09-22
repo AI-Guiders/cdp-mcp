@@ -130,6 +130,7 @@
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersPlatform)' == 'true' and Exists('$(GuidersPlatformRoot)\src\AIGuiders.Platform.Language.CSharp\AIGuiders.Platform.Language.CSharp.csproj')">
     <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Language.CSharp\AIGuiders.Platform.Language.CSharp.csproj" />
+    <ProjectReference Include="$(GuidersPlatformRoot)\src\AIGuiders.Platform.Language.Sql\AIGuiders.Platform.Language.Sql.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalGuidersCore)' == 'true'">
     <ProjectReference Include="$(GuidersCoreRoot)\src\DotNetWorkspace.Core\DotNetWorkspace.Core.csproj" />
