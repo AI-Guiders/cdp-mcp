@@ -30,6 +30,7 @@ internal static class BufferLanguageRules
             ".razor" or ".cshtml" => CdpLanguages.Csharp,
             ".xml" or ".config" or ".xaml" => "xml",
             ".md" or ".markdown" => "markdown",
+            ".tex" or ".latex" or ".ltx" or ".sty" or ".cls" or ".bbl" or ".bst" or ".bib" => CdpLanguages.Latex,
             ".toml" => "toml",
             ".json" or ".jsonc" => "json",
             _ => "text",

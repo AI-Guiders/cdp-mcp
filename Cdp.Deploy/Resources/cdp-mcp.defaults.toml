@@ -49,7 +49,7 @@ enabled = true
 enabled = false
 
 [languages]
-ids = ["csharp", "typescript", "python", "delphi", "powershell"]
+ids = ["csharp", "typescript", "python", "delphi", "powershell", "latex"]
 
 [tower]
 listen_port = 8771
