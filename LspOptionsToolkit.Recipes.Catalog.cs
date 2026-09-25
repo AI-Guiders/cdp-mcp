@@ -109,6 +109,25 @@ internal sealed partial class LspOptionsToolkit
                 new("scoop", ["scoop", "install", "marksman"]),
                 new("winget", ["winget", "install", "-e", "--id", "artempyanykh.marksman"])
             ]),
+        ["latex"] = new(
+            "latex",
+            "LaTeX (texlab)",
+            "texlab",
+            "texlab language server winget install",
+            new LspLaunchPreset
+            {
+                Id = "latex",
+                Command = "texlab",
+                CommandCandidates = ["texlab"],
+                Args = [],
+                LanguageIds = ["latex", "bibtex"],
+                RootMarkers = [".git", "latexmkrc", ".latexmkrc", "main.tex"]
+            },
+            [
+                new("winget", ["winget", "install", "-e", "--id", "latex-lsp.texlab"]),
+                new("scoop", ["scoop", "install", "texlab"]),
+                new("cargo", ["cargo", "install", "--git", "https://github.com/latex-lsp/texlab", "--locked"])
+            ]),
         ["typescript"] = new(
             "typescript",
             "TypeScript (typescript-language-server)",

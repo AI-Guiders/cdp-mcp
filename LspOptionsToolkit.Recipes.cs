@@ -154,6 +154,13 @@ internal sealed partial class LspOptionsToolkit
         ensure = r.Ok ? null : $"op=lsp_ensure id={r.Id}"
     };
 
+    /// <summary>Recipe catalog + user overrides merged for host boot (vertical LSP plugins).</summary>
+    internal static IReadOnlyList<LspLaunchPreset> MergeStartupPresets(IReadOnlyList<LspLaunchPreset> process)
+    {
+        IdeSettingsStore.EnsureLoaded();
+        return MergePresets(process, LoadUserPresets(), Recipes.Values);
+    }
+
     static List<LspLaunchPreset> MergePresets(
         IReadOnlyList<LspLaunchPreset> process,
         IReadOnlyList<LspLaunchPreset> user,

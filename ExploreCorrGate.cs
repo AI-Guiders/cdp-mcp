@@ -18,7 +18,8 @@ internal static class ExploreCorrGate
     // Non-code extensions are skipped entirely; code keeps the full-a requirement.
     static readonly HashSet<string> NonCodeDocExts = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".md", ".markdown", ".txt", ".rst", ".adoc", ".log", ".html", ".htm"
+        ".md", ".markdown", ".txt", ".rst", ".adoc", ".log", ".html", ".htm",
+        ".tex", ".latex", ".ltx", ".sty", ".cls", ".bbl", ".bst", ".bib"
     };
 
     static bool IsCodeLocus(string full) =>
