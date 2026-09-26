@@ -127,11 +127,22 @@ internal sealed class KnowledgeReadQuery
             throw new GraphQLException($"dispatch_unavailable: need DispatchToolAsync for {tool}");
 
         var json = await _call.DispatchToolAsync(tool, args, ct).ConfigureAwait(false);
+        json = EnsureJsonEnvelope(json, schema);
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
         var ok = !(root.TryGetProperty("ok", out var okEl) && okEl.ValueKind == JsonValueKind.False);
         var hint = root.TryGetProperty("hint", out var h) ? h.GetString()
             : root.TryGetProperty("error", out var e) ? e.GetString() : null;
         return new EngineEnvelopeNode(schema, ok, json, hint);
+    }
+
+    static string EnsureJsonEnvelope(string raw, string schema)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return """{"ok":false,"error":"empty"}""";
+        ReadOnlySpan<char> t = raw.AsSpan().TrimStart();
+        if (t.Length > 0 && t[0] == '{')
+            return raw;
+        return JsonSerializer.Serialize(new { ok = true, schema, content = raw });
     }
 }
