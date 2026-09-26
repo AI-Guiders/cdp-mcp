@@ -58,8 +58,8 @@ internal static partial class MetaDispatch
         "Edit ops: set_text (whole file; force=true to overwrite existing disk content, allow_shrink when shorter), " +
         "replace (old_string→new_string; multi-line old_string NOT resolved — single-line only), " +
         "replace_range (line/col span; end exclusive; end position clamps to line end / EOF), " +
-        "anchor ([F:;M:;K:] / [F:;X:;A:] + place=before|after|into|end|replace). " +
-        "Address canon: semantic anchors are THE address — C# M:/K:, xml X:/A:. " +
+        "anchor ([Kind:CodeEdit; File:…; Member:…] or legacy F:/M:/K:; xml [F:;X:;A:] + place=before|after|into|end|replace). " +
+        "Address canon: semantic anchors are THE address — C# Member:/Kind:CodeEdit, xml X:/A:. " +
         "L: (line_literal) is a FALLBACK facet — for non-semantic files (md/json/toml/yaml) and peek chains (lines[].anchor). " +
         "Line-number edits on code = model degradation (Cursor-coordinates regress) — prefer member anchors (2026-07-23 decision). " +
         "F#: T: needles FORBIDDEN on .fs (silently resolve to file-scope — whole-file wipe risk); prefer M: replace or set_text. " +

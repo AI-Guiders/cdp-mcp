@@ -139,7 +139,7 @@ internal static partial class IdeLanguageTools
             anchor = new
             {
                 type = "string",
-                description = "csharp [F:;M:;K:] span"
+                description = "csharp [Kind:CodeEdit; File:…; Member:…] span (legacy F:/M:/K:)"
             },
             start_line = new
             {

@@ -13,7 +13,7 @@ internal static class DocumentAnchorEdit
         IReadOnlyDictionary<string, JsonElement> args)
     {
         var wire = OptString(args, "anchor") ?? OptString(args, "at")
-            ?? throw new ArgumentException("edit_op=anchor requires anchor= (or at=) bracket wire [F:;M:;K:] or [F:;X:;A:].");
+            ?? throw new ArgumentException("edit_op=anchor requires anchor= (or at=) bracket wire [Kind:CodeEdit; File:…; Member:…] (legacy [F:;M:;K:]) or xml [F:;X:;A:].");
         var replacement = OptString(args, "text") ?? OptString(args, "new_string")
             ?? throw new ArgumentException("edit_op=anchor requires text= (body for place=; default place=replace overwrites locus).");
         var place = NormalizeAnchorPlace(OptString(args, "place") ?? OptString(args, "at_place"));
@@ -126,7 +126,7 @@ internal static class DocumentAnchorEdit
                 throw new ArgumentException(
                     "Needle-only wire is not a csharp edit-anchor axis (contract: M/T/L/S/K) — " +
                     "resolver would degrade to file scope and place semantics change. " +
-                    "Use [F:;T:<Type>] type locus, [F:;L:<line>] corridor, [F:;M:;K:] member axes, " +
+                    "Use [Kind:CodeEdit; File:…; Type:…] type locus, Line: corridor, Member: member locus (legacy F:/T:/L:/M:), " +
                     "or replace with old_string/new_string. wire: "
                     + BracketLocate.Format(span));
 
