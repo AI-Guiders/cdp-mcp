@@ -59,6 +59,15 @@ internal sealed class MemoryScopeGateway
 
         var dict = args.ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.Ordinal);
 
+        // GraphQL knowledge.read and Citizen wire use path=; AN tools expect file_path= (CDP-ADR-0233).
+        if (underlyingName is "read_knowledge_file" or "write_knowledge_file" or "append_knowledge_file"
+                or "validate_sections" or "normalize_sections" or "delete_knowledge_file"
+                or "upsert_knowledge_section" or "delete_knowledge_section")
+        {
+            if (HasNonEmpty(dict, "path") && !HasNonEmpty(dict, "file_path"))
+                dict["file_path"] = dict["path"];
+        }
+
         // file_path: validate when set (read/write/validate knowledge); never invent a file.
         if (HasNonEmpty(dict, "file_path") || (dict.TryGetValue("file_path", out var fpEl)
             && fpEl.ValueKind == JsonValueKind.String))

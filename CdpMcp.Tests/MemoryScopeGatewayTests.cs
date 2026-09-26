@@ -8,6 +8,19 @@ namespace CdpMcp.Tests;
 public sealed class MemoryScopeGatewayTests
 {
     [Fact]
+    public void Read_knowledge_file_path_alias_maps_to_file_path()
+    {
+        var gw = new MemoryScopeGateway("memory_world", ["worlds", "META", "."]);
+        var args = gw.Apply(
+            "read_knowledge_file",
+            new Dictionary<string, JsonElement>
+            {
+                ["path"] = JsonSerializer.SerializeToElement("META/environment-axioms.md")
+            });
+        Assert.Equal("META/environment-axioms.md", args["file_path"].GetString());
+    }
+
+    [Fact]
     public void World_dot_root_allows_knowledge_hub_file()
     {
         var gw = new MemoryScopeGateway("memory_world", ["worlds", "META", "."]);
