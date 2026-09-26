@@ -30,7 +30,9 @@ Agent read is fragmented across `find` / `find_in_files` / `cdp_search` / `cdp_p
 | `session` → `SessionNode` | `SessionContext` (honest nulls) |
 | `correspondence` → `CorrespondenceResult` | `Correspondence` organ |
 | `git` → `GitSceneNode` | `git_git_scene` via `DispatchToolAsync` |
-| `knowledge` → `KnowledgeRecallResult` | `memory_world_recall_knowledge` parity |
+| `knowledge.recall` → `KnowledgeRecallResult` | `memory_world_recall_knowledge` parity |
+| `knowledge.hotContext` / `routeContext` → `EngineEnvelopeNode` | `memory_session_read_hot_context` / `memory_session_route_context` (+ session `workspace_path` inject) |
+| `knowledge.*` (tags/read/packs/…) → `EngineEnvelopeNode` | `memory_world_*` tools |
 | LIKE `like`/`nlike` | `LikeToRg` (rg); not MSSQL `EF.Functions.Like` |
 
 Deferred (voyager hint only): `semanticMap`, `packages`, `testScene`, `symbol`.

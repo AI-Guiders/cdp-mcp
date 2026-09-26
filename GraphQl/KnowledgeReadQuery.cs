@@ -107,6 +107,61 @@ internal sealed class KnowledgeReadQuery
         return DispatchAsync("memory_world_radius_gate_check", "knowledge_radius_gate/v0", args, ct);
     }
 
+    /// <summary>L0/L1 hot slice — parity with <c>memory_session_read_hot_context</c> (ADR-0233).</summary>
+    public Task<EngineEnvelopeNode> HotContext(
+        string? activeScope = null,
+        string? workspacePath = null,
+        CancellationToken ct = default)
+    {
+        var args = SessionHotArgs(workspacePath);
+        if (!string.IsNullOrWhiteSpace(activeScope))
+            args["active_scope"] = JsonSerializer.SerializeToElement(activeScope.Trim());
+        return DispatchAsync("memory_session_read_hot_context", "knowledge_hot_context/v0", args, ct);
+    }
+
+    /// <summary>Router-first context pack — parity with <c>memory_session_route_context</c>.</summary>
+    public Task<EngineEnvelopeNode> RouteContext(
+        string query,
+        string? activeScope = null,
+        int? maxSections = null,
+        int? maxChars = null,
+        string? workspacePath = null,
+        CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(query);
+        var args = SessionHotArgs(workspacePath);
+        args["query"] = JsonSerializer.SerializeToElement(query.Trim());
+        if (!string.IsNullOrWhiteSpace(activeScope))
+            args["active_scope"] = JsonSerializer.SerializeToElement(activeScope.Trim());
+        if (maxSections is { } ms)
+            args["max_sections"] = JsonSerializer.SerializeToElement(Math.Clamp(ms, 1, 20));
+        if (maxChars is { } mc)
+            args["max_chars"] = JsonSerializer.SerializeToElement(Math.Clamp(mc, 1000, 40_000));
+        return DispatchAsync("memory_session_route_context", "knowledge_route_context/v0", args, ct);
+    }
+
+    Dictionary<string, JsonElement> SessionHotArgs(string? workspacePath)
+    {
+        var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        var ws = !string.IsNullOrWhiteSpace(workspacePath)
+            ? workspacePath.Trim()
+            : FirstNonEmpty(_call.Session.ProjectRoot, _call.Session.ScmRoot);
+        if (!string.IsNullOrWhiteSpace(ws))
+            args["workspace_path"] = JsonSerializer.SerializeToElement(ws);
+        return args;
+    }
+
+    static string? FirstNonEmpty(params string?[] values)
+    {
+        foreach (var v in values)
+        {
+            if (!string.IsNullOrWhiteSpace(v))
+                return v;
+        }
+
+        return null;
+    }
+
     static Dictionary<string, JsonElement> PackArgs(string? packId, string? packPath)
     {
         var args = new Dictionary<string, JsonElement>(StringComparer.Ordinal);

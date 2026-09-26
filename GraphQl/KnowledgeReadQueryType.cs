@@ -144,5 +144,41 @@ internal sealed class KnowledgeReadQueryType : ObjectType<KnowledgeReadQuery>
                     ctx.ArgumentValue<string?>("claim"),
                     ctx.RequestAborted).ConfigureAwait(false);
             });
+
+        descriptor
+            .Field("hotContext")
+            .Description("L0/L1 hot agent-notes slice (memory_session read_hot_context). workspacePath optional — defaults to session projectRoot/scmRoot after cdp_open.")
+            .Argument("activeScope", a => a.Type<StringType>())
+            .Argument("workspacePath", a => a.Type<StringType>())
+            .Type<ObjectType<EngineEnvelopeNode>>()
+            .Resolve(async ctx =>
+            {
+                var parent = ctx.Parent<KnowledgeReadQuery>();
+                return await parent.HotContext(
+                    ctx.ArgumentValue<string?>("activeScope"),
+                    ctx.ArgumentValue<string?>("workspacePath"),
+                    ctx.RequestAborted).ConfigureAwait(false);
+            });
+
+        descriptor
+            .Field("routeContext")
+            .Description("Router-first section pack from agent-notes (memory_session route_context).")
+            .Argument("query", a => a.Type<NonNullType<StringType>>())
+            .Argument("activeScope", a => a.Type<StringType>())
+            .Argument("maxSections", a => a.Type<IntType>())
+            .Argument("maxChars", a => a.Type<IntType>())
+            .Argument("workspacePath", a => a.Type<StringType>())
+            .Type<ObjectType<EngineEnvelopeNode>>()
+            .Resolve(async ctx =>
+            {
+                var parent = ctx.Parent<KnowledgeReadQuery>();
+                return await parent.RouteContext(
+                    ctx.ArgumentValue<string>("query"),
+                    ctx.ArgumentValue<string?>("activeScope"),
+                    ctx.ArgumentValue<int?>("maxSections"),
+                    ctx.ArgumentValue<int?>("maxChars"),
+                    ctx.ArgumentValue<string?>("workspacePath"),
+                    ctx.RequestAborted).ConfigureAwait(false);
+            });
     }
 }
