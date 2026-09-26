@@ -91,18 +91,24 @@ internal static partial class MetaDispatch
         if (string.Equals(session.Language, "csharp", StringComparison.OrdinalIgnoreCase)
             && session.SolutionOrProjectPath is { Length: > 0 } warmPath)
         {
-            var pathCopy = warmPath;
-            _ = Task.Run(async () =>
+            var ext = Path.GetExtension(warmPath);
+            var deferRoslynWarm = ext.Equals(".slnx", StringComparison.OrdinalIgnoreCase)
+                                  || ext.Equals(".slnf", StringComparison.OrdinalIgnoreCase);
+            if (!deferRoslynWarm)
             {
-                try
+                var pathCopy = warmPath;
+                _ = Task.Run(async () =>
                 {
-                    await RoslynMcp.ServiceLayer.MsBuildWorkspaceHost.WarmAsync(pathCopy).ConfigureAwait(false);
-                }
-                catch
-                {
-                    // Warm is best-effort; tools still open on demand.
-                }
-            });
+                    try
+                    {
+                        await RoslynMcp.ServiceLayer.MsBuildWorkspaceHost.WarmAsync(pathCopy).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // Warm is best-effort; tools still open on demand.
+                    }
+                });
+            }
         }
 
         return payload + "\n# list_changed: shortlist refreshed after cdp_open";
