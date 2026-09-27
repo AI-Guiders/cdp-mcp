@@ -137,6 +137,7 @@ internal static partial class CitizenRouteHost
         WorkDispatchOverride = null;
         CockpitDispatchOverride = null;
         MetaDispatchResolver = null;
+        McpOutletHabitat.ClearInstanceForTests();
     }
 
     static Applied RunBuild(CitizenIntentRouter.Route route)

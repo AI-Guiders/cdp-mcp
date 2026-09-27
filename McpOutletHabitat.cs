@@ -104,6 +104,9 @@ internal sealed partial class McpOutletHabitat : IAsyncDisposable
 
 	public static McpOutletHabitat? Instance { get; private set; }
 
+	/// <summary>Test isolation — <see cref="CitizenRouteHost.UnbindLifecycle"/>.</summary>
+	internal static void ClearInstanceForTests() => Instance = null;
+
 	public McpOutletHabitat()
 	{
 		Instance = this;

@@ -24,8 +24,15 @@ internal static class CdpOpsConfigTestHelper
             };
         });
 
-    public static IDisposable BindOps(bool? oomWakeCdtEdge = null) =>
-        Bind(doc => doc.Ops = new CdpConfigOpsSection { OomWakeCdtEdge = oomWakeCdtEdge });
+    public static IDisposable BindOps(bool? oomWakeCdtEdge = null, bool? shellIgniteArm = null) =>
+        Bind(doc => doc.Ops = new CdpConfigOpsSection
+        {
+            OomWakeCdtEdge = oomWakeCdtEdge,
+            ShellIgniteArm = shellIgniteArm
+        });
+
+    public static IDisposable BindForum(string forumRoot) =>
+        Bind(doc => doc.Forum = new CdpConfigForumSection { Root = forumRoot });
 
     sealed class Restore(CdpOpsConfig prev) : IDisposable
     {

@@ -39,6 +39,7 @@ public sealed class CitizenMcpHostTests
     public void Execute_mcp_without_outlet_fails_no_outlet()
     {
         CitizenRouteHost.UnbindLifecycle();
+        McpOutletHabitat.ClearInstanceForTests();
         var applied = CitizenRouteHost.Execute([CitizenIntentRouter.RouteOne("mcp")]);
         Assert.Single(applied);
         Assert.False(applied[0].Ok);

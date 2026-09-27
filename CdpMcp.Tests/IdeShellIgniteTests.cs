@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Cdp.Config;
 using TerminalMcp.Core;
 using Xunit;
 
@@ -82,6 +83,7 @@ public sealed class IdeShellIgniteTests : IDisposable
     public void TryAutoArmBackground_arms_shell_finished_for_tab()
     {
         IdeToolCallWatch.SuppressArmForTests = false;
+        using var _ops = CdpOpsConfigTestHelper.BindOps(shellIgniteArm: true);
         var armId = "shell-bg-test-" + Guid.NewGuid().ToString("N")[..6];
         try
         {

@@ -66,6 +66,13 @@ public sealed class RecallKnowledgeFacadeTests
         using var doc = Parse(storage.RecallKnowledge(hotProbe, layer: "auto", limit: 5));
         Assert.Contains("hot", Layers(doc.RootElement));
         Assert.True(doc.RootElement.TryGetProperty("hot", out _));
+
+        var hotHits = doc.RootElement.GetProperty("hits").EnumerateArray()
+            .Where(h => h.GetProperty("layer").GetString() == "hot").ToArray();
+        Assert.NotEmpty(hotHits);
+        Assert.Contains(
+            hotHits,
+            h => HitText(h).Contains(hotProbe, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -121,6 +128,15 @@ public sealed class RecallKnowledgeFacadeTests
         Assert.Equal("hot", root.GetProperty("layer").GetString());
         Assert.True(root.TryGetProperty("try_next", out var next));
         Assert.Equal("memory_world_recall_knowledge", next.GetProperty("tool").GetString());
+    }
+
+    static string HitText(JsonElement hit)
+    {
+        if (hit.TryGetProperty("preview", out var pv) && pv.ValueKind == JsonValueKind.String)
+            return pv.GetString() ?? "";
+        if (hit.TryGetProperty("text", out var tx) && tx.ValueKind == JsonValueKind.String)
+            return tx.GetString() ?? "";
+        return "";
     }
 
     static IEnumerable<string> Layers(JsonElement root)

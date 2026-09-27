@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Cdp.CdpState;
+using Cdp.Config;
 using NSubstitute;
 using Xunit;
 
@@ -10,12 +11,14 @@ namespace CdpMcp.Tests;
 public class CdpForumChannelTests : IDisposable
 {
     readonly string _root;
+    readonly IDisposable _forumOps;
     CdpWakeDispatcher? _wake;
 
     public CdpForumChannelTests()
     {
         _root = Path.Combine(Path.GetTempPath(), "cdp-forum-tests-" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(Path.Combine(_root, "topics"));
+        _forumOps = CdpOpsConfigTestHelper.BindForum(_root);
         Environment.SetEnvironmentVariable("CDP_FORUM_ROOT", _root);
         // Кейс Тени (Света 2026-09-08): mention-wake в тестах не должен класть
         // реальные письма в прод-очередь — иначе Тень получает «echo» на каждый
@@ -30,6 +33,7 @@ public class CdpForumChannelTests : IDisposable
 
     public void Dispose()
     {
+        _forumOps.Dispose();
         Environment.SetEnvironmentVariable("CDP_FORUM_ROOT", null);
         _wake = null;
         try { Directory.Delete(_root, recursive: true); } catch { /* best effort */ }

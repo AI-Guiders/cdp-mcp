@@ -3,6 +3,7 @@ using Xunit;
 
 namespace CdpMcp.Tests;
 
+[Collection("BatchSerial")]
 public sealed partial class CitizenRouteHostTests
 {
     [Fact]
@@ -165,6 +166,10 @@ public sealed partial class CitizenRouteHostTests
         IdeDeskSeats.EnsureDefaultsFromSettings();
         IdeDeskSeats.Clear();
         IdeDeskSeats.TryPlaceExplicit("forward", "browser");
+        var prevApplyArm = CitizenSoftFlApplyLatch.ApplyArmedOverrideForTests;
+        var prevExplore = ExploreCorrLatch.EnabledOverrideForTests;
+        CitizenSoftFlApplyLatch.ApplyArmedOverrideForTests = false;
+        ExploreCorrLatch.EnabledOverrideForTests = false;
 
         try
         {
@@ -177,7 +182,7 @@ public sealed partial class CitizenRouteHostTests
             IdeLanguageTools.BindDocumentStore(store);
             var applied = CitizenRouteHost.Execute(routes);
             Assert.Single(applied);
-            Assert.True(applied[0].Ok);
+            Assert.True(applied[0].Ok, applied[0].Reason ?? "(no reason)");
             Assert.Equal("replace", applied[0].Action);
             Assert.Equal("editor_scene", applied[0].Go);
             Assert.Equal(Path.GetFullPath(full), applied[0].Path);
@@ -193,6 +198,8 @@ public sealed partial class CitizenRouteHostTests
         }
         finally
         {
+            CitizenSoftFlApplyLatch.ApplyArmedOverrideForTests = prevApplyArm;
+            ExploreCorrLatch.EnabledOverrideForTests = prevExplore;
             IdeCockpitHostChannel.ProjectRootResolver = prevRoot;
             NavigationLandLatch.RootOverrideForTests = null;
             try { Directory.Delete(root, recursive: true); } catch { /* temp */ }

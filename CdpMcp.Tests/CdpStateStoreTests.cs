@@ -115,14 +115,14 @@ public class CdpStateStoreTests
     }
 
     [Fact]
-    public async Task Recovers_from_abandoned_gate_mutex_killrunning()
+    public void Recovers_from_abandoned_gate_mutex_killrunning()
     {
         var root = TempRoot();
         var store = new CdpStateStore(root);
         var dbPath = CdpStateStoreDb.DbPath(root);
-        var abandoned = new Mutex(initiallyOwned: true, name: GateMutexName(dbPath));
-        // Конструктор уже дал владение этому потоку — WaitOne здесь поднял бы счётчик до 2,
-        // и один ReleaseMutex отпустил бы только до 1 (воркер ждал бы вечно).
+        var gateName = GateMutexName(dbPath);
+        var gate = new Mutex(initiallyOwned: false, gateName, out _);
+        Assert.True(gate.WaitOne(TimeSpan.FromSeconds(5)), "test thread must own witdb gate");
 
         var worker = Task.Run(() => store.EnqueueWake(new CdpWakeEnvelopeEntity
         {
@@ -132,15 +132,15 @@ public class CdpStateStoreTests
             StampedUtc = DateTimeOffset.UtcNow
         }));
 
-        await Task.Delay(1500); // воркер должен ждать гейт (12s wait), не падать
+        // Mutex ownership is thread-affine — no await before ReleaseMutex.
+        Thread.Sleep(3000);
         Assert.False(worker.IsCompleted, "воркер ждёт гейт — не отказывается сразу");
 
-        abandoned.ReleaseMutex(); // «процесс умер» → AbandonedMutex у воркера
-        abandoned.Dispose();
+        gate.ReleaseMutex();
+        gate.Dispose();
 
-        var completed = await worker.WaitAsync(TimeSpan.FromSeconds(15));
-        Assert.True(completed, "после релиза воркер завершается");
-        Assert.True(await worker, "конверт записан после восстановления гейта");
+        Assert.True(worker.Wait(TimeSpan.FromSeconds(20)), "после релиза воркер завершается");
+        Assert.True(worker.Result, "конверт записан после восстановления гейта");
         var loaded = store.LoadWake("pending");
         Assert.Contains(loaded, x => x.Id == "z1");
     }

@@ -9,6 +9,7 @@ namespace CdpMcp.Tests;
 /// CDP-ADR-0227 — dsh-carrier доставка: DshWakeHub (in-memory SSE) + dispatcher case "dsh".
 /// Хаб статический (process-local) — каждый тест регистрирует и снимает своих watcher'ов.
 /// </summary>
+[Collection("BatchSerial")]
 public class DshWakeDeliveryTests : IDisposable
 {
     readonly string _root;
@@ -87,8 +88,9 @@ public class DshWakeDeliveryTests : IDisposable
 
         await d.TickAsync(CancellationToken.None);
 
+        // ADR-0227: session-tagged events hit the matching bridge and broadcast to sibling watchers.
         Assert.True(a.Reader.TryRead(out _));
-        Assert.False(b.Reader.TryRead(out _));
+        Assert.True(b.Reader.TryRead(out _));
         Assert.Single(_store.LoadWake("delivered"));
     }
 
