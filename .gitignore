@@ -37,3 +37,7 @@ Directory.Build.user.props
 .cascade-ide/
 publish-debug/
 .deploy-worker/
+# Accidental local npm / test logs (not repo surface)
+node_modules/
+runs/
+package-lock.json
