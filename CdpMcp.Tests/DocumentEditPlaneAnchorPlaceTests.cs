@@ -45,7 +45,7 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
         var json = await fx.EditAnchorAsync(
             place: "replace",
             text: "        public static void Replaced() { }",
-            anchor: "[F:SceneMap.cs;L:5;]");
+            anchor: "[Kind:CodeEdit; File:SceneMap.cs; Line:5]");
 
         Assert.Contains("\"family\": \"line_literal\"", json, StringComparison.Ordinal);
         Assert.Contains("Replaced", fx.Text, StringComparison.Ordinal);
@@ -91,7 +91,7 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
         var json = await fx.EditAnchorAsync(
             place: "before",
             text: PulseMember,
-            anchor: "[F:SceneMap.cs;M:SceneMap]");
+            anchor: "[Kind:CodeEdit; File:SceneMap.cs; Member:SceneMap]");
 
         Assert.Contains("\"place\": \"before\"", json, StringComparison.Ordinal);
         Assert.Contains("InsertedPulse", fx.Text, StringComparison.Ordinal);
@@ -188,7 +188,7 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
         var json = await fx.EditAnchorAsync(
             place: "after",
             text: "\n    public static string AfterPulse() => \"after\";\n",
-            anchor: "[F:SceneMap.cs;M:SceneMap]");
+            anchor: "[Kind:CodeEdit; File:SceneMap.cs; Member:SceneMap]");
 
         Assert.Contains("\"place\": \"after\"", json, StringComparison.Ordinal);
         Assert.Contains("KeepMe", fx.Text, StringComparison.Ordinal);

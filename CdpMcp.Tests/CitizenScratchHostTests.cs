@@ -34,7 +34,7 @@ public sealed class CitizenScratchHostTests
         CitizenRouteHost.ScratchCallOverride = args =>
         {
             seen = args;
-            return """{"schema":"editor_comfort/v0","ok":true,"op":"scratch","anchor":"[F:.cdp/scratch/untitled-1.cs]","meta":{"path":"D:\\tmp\\.cdp\\scratch\\untitled-1.cs","doc_id":"doc-1"}}""";
+            return """{"schema":"editor_comfort/v0","ok":true,"op":"scratch","anchor":"[Kind:CodeEdit; File:.cdp/scratch/untitled-1.cs]","meta":{"path":"D:\\tmp\\.cdp\\scratch\\untitled-1.cs","doc_id":"doc-1"}}""";
         };
         try
         {

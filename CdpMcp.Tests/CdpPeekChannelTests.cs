@@ -81,7 +81,7 @@ public class CdpPeekChannelTests : IDisposable
         var json = CdpPeekChannel.HandleJson(_session, LanguageRegistry.Default, null,
             new Dictionary<string, JsonElement>
             {
-                ["anchor"] = JsonSerializer.SerializeToElement("[F:src/x.cs;L:10;]"),
+                ["anchor"] = JsonSerializer.SerializeToElement("[Kind:CodeEdit; File:src/x.cs; Line:10]"),
                 ["pad"] = JsonSerializer.SerializeToElement(1)
             });
 

@@ -11,11 +11,11 @@ public sealed class CitizenEditHostTests
     public void Route_edit_anchor_parses()
     {
         var r = CitizenIntentRouter.RouteOne(
-            "edit path=a.cs anchor=\"[F:a.cs;M:Foo]\" text=\"patched\" place=after");
+            "edit path=a.cs anchor=\"[Kind:CodeEdit; File:a.cs; Member:Foo]\" text=\"patched\" place=after");
         Assert.True(r.Ok);
         Assert.Equal(CitizenIntentRouter.Verb.Edit, r.Verb);
         Assert.Equal("a.cs", r.Path);
-        Assert.Equal("[F:a.cs;M:Foo]", r.Detail);
+        Assert.Equal("[Kind:CodeEdit; File:a.cs; Member:Foo]", r.Detail);
         Assert.Equal("patched", r.NewString);
         Assert.Equal("after", r.Op);
         Assert.Equal("buffer", r.Go);
@@ -25,7 +25,7 @@ public sealed class CitizenEditHostTests
     public void Route_anchor_alias_defaults_place_replace()
     {
         var r = CitizenIntentRouter.RouteOne(
-            "anchor path=a.cs at=\"[F:a.cs;M:Foo]\" body=\"x\"");
+            "anchor path=a.cs at=\"[Kind:CodeEdit; File:a.cs; Member:Foo]\" body=\"x\"");
         Assert.True(r.Ok);
         Assert.Equal(CitizenIntentRouter.Verb.Edit, r.Verb);
         Assert.Equal("replace", r.Op);
@@ -41,7 +41,7 @@ public sealed class CitizenEditHostTests
             CitizenIntentRouter.RouteOne("edit path=a.cs text=x").Reason);
         Assert.Equal(
             "edit_text_required",
-            CitizenIntentRouter.RouteOne("edit path=a.cs anchor=\"[F:a.cs;M:Foo]\"").Reason);
+            CitizenIntentRouter.RouteOne("edit path=a.cs anchor=\"[Kind:CodeEdit; File:a.cs; Member:Foo]\"").Reason);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public sealed class CitizenEditHostTests
     public void Route_edit_parses_old_string_for_anchor_in_locus()
     {
         var r = CitizenIntentRouter.RouteOne(
-            "edit path=a.cs anchor=\"[F:a.cs;M:KeepMe]\" place=replace old_string=\"var a = 1;\" text=\"var a = 99;\"");
+            "edit path=a.cs anchor=\"[Kind:CodeEdit; File:a.cs; Member:KeepMe]\" place=replace old_string=\"var a = 1;\" text=\"var a = 99;\"");
         Assert.True(r.Ok);
         Assert.Equal(CitizenIntentRouter.Verb.Edit, r.Verb);
         Assert.Equal("var a = 1;", r.OldString);
@@ -79,7 +79,7 @@ public sealed class CitizenEditHostTests
         {
             var applied = CitizenRouteHost.Execute([
                 CitizenIntentRouter.RouteOne(
-                    "edit path=a.cs anchor=\"[F:a.cs;M:Foo]\" text=\"hello\" place=before")
+                    "edit path=a.cs anchor=\"[Kind:CodeEdit; File:a.cs; Member:Foo]\" text=\"hello\" place=before")
             ]);
             Assert.Single(applied);
             Assert.True(applied[0].Ok);
@@ -88,7 +88,7 @@ public sealed class CitizenEditHostTests
             Assert.Equal("edit", seen!["op"].GetString());
             Assert.Equal("anchor", seen["edit_op"].GetString());
             Assert.Equal("a.cs", seen["path"].GetString());
-            Assert.Equal("[F:a.cs;M:Foo]", seen["anchor"].GetString());
+            Assert.Equal("[Kind:CodeEdit; File:a.cs; Member:Foo]", seen["anchor"].GetString());
             Assert.Equal("hello", seen["text"].GetString());
             Assert.Equal("before", seen["place"].GetString());
             Assert.True(seen["flush"].GetBoolean());
@@ -114,7 +114,7 @@ public sealed class CitizenEditHostTests
         {
             var applied = CitizenRouteHost.Execute([
                 CitizenIntentRouter.RouteOne(
-                    "edit path=a.cs anchor=\"[F:a.cs;M:KeepMe]\" place=replace old_string=\"var a = 1;\" text=\"var a = 99;\" force=true")
+                    "edit path=a.cs anchor=\"[Kind:CodeEdit; File:a.cs; Member:KeepMe]\" place=replace old_string=\"var a = 1;\" text=\"var a = 99;\" force=true")
             ]);
             Assert.Single(applied);
             Assert.True(applied[0].Ok);

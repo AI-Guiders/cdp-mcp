@@ -53,7 +53,7 @@ public class DocumentAnchorEditGuardTests : IDisposable
 
         var result = DocumentAnchorEdit.Apply(
             store, _session, buf,
-            Args("[F:Sample.cs;T:Sample]", "    int y;\n", "end"));
+            Args("[Kind:CodeEdit; File:Sample.cs; Type:Sample]", "    int y;\n", "end"));
 
         Assert.Equal("csharp", (string?)result.GetType().GetProperty("family")?.GetValue(result));
         Assert.Contains("    int y;\n}", Norm(buf.Text));
@@ -66,7 +66,7 @@ public class DocumentAnchorEditGuardTests : IDisposable
 
         DocumentAnchorEdit.Apply(
             store, _session, buf,
-            Args("[F:Sample.cs;T:Sample]", "    const int Z = 1;\n", "append"));
+            Args("[Kind:CodeEdit; File:Sample.cs; Type:Sample]", "    const int Z = 1;\n", "append"));
 
         Assert.Contains("    const int Z = 1;\n}", Norm(buf.Text));
     }
@@ -78,7 +78,7 @@ public class DocumentAnchorEditGuardTests : IDisposable
 
         DocumentAnchorEdit.Apply(
             store, _session, buf,
-            Args("[F:Sample.cs;T:Sample]", "\npublic sealed class Zed\n{\n}\n", "after"));
+            Args("[Kind:CodeEdit; File:Sample.cs; Type:Sample]", "\npublic sealed class Zed\n{\n}\n", "after"));
 
         Assert.Contains("}\npublic sealed class Zed", Norm(buf.Text));
     }
@@ -90,7 +90,7 @@ public class DocumentAnchorEditGuardTests : IDisposable
 
         DocumentAnchorEdit.Apply(
             store, _session, buf,
-            Args("[F:Sample.cs;T:Sample]", "public interface IFoo\n{\n}\n\n", "before"));
+            Args("[Kind:CodeEdit; File:Sample.cs; Type:Sample]", "public interface IFoo\n{\n}\n\n", "before"));
 
         Assert.StartsWith("public interface IFoo", Norm(buf.Text));
     }
@@ -102,7 +102,7 @@ public class DocumentAnchorEditGuardTests : IDisposable
 
         var ex = Assert.Throws<ArgumentException>(() => DocumentAnchorEdit.Apply(
             store, _session, buf,
-            Args("[F:Sample.cs;T:Nope]", "x", "end")));
+            Args("[Kind:CodeEdit; File:Sample.cs; Type:Nope]", "x", "end")));
 
         Assert.Contains("type_not_found", ex.Message);
     }
@@ -114,7 +114,7 @@ public class DocumentAnchorEditGuardTests : IDisposable
 
         var ex = Assert.Throws<ArgumentException>(() => DocumentAnchorEdit.Apply(
             store, _session, buf,
-            Args("[F:Sample.cs;Text:Sample]", "x", "after")));
+            Args("[Kind:CodeEdit; File:Sample.cs; Text:Sample]", "x", "after")));
 
         Assert.Contains("Needle-only wire is not a csharp edit-anchor axis", ex.Message);
     }
@@ -126,7 +126,7 @@ public class DocumentAnchorEditGuardTests : IDisposable
 
         var result = DocumentAnchorEdit.Apply(
             store, _session, buf,
-            Args("[F:Sample.cs;L:1]", "// ok", "before"));
+            Args("[Kind:CodeEdit; File:Sample.cs; Line:1]", "// ok", "before"));
 
         Assert.Equal("line_literal", (string?)result.GetType().GetProperty("family")?.GetValue(result));
     }

@@ -45,8 +45,8 @@ public sealed class EditSniperAimProcessTests : IDisposable
             var fileName = Path.GetFileName(path);
             var json = EditSniper.Dispatch(store, session, Dict(
                 ("op", "scope"),
-                ("from", $"[F:{fileName};L:4]"),
-                ("till", $"[F:{fileName};L:6]")));
+                ("from", $"[Kind:CodeEdit; File:{fileName}; Line:4]"),
+                ("till", $"[Kind:CodeEdit; File:{fileName}; Line:6]")));
 
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
@@ -93,7 +93,7 @@ public sealed class EditSniperAimProcessTests : IDisposable
             // T: = Type axis (canon 2026-09-08) — locate needle is Needle:/Text:/Content:.
             var json = EditSniper.Dispatch(store, session, Dict(
                 ("op", "scope"),
-                ("from", $"[F:{fileName};L:2;Needle:public static void Arm()]")));
+                ("from", $"[Kind:CodeEdit; File:{fileName}; Line:2; Text:public static void Arm()]")));
 
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;

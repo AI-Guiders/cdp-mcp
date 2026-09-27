@@ -202,7 +202,7 @@ internal static partial class DocumentEditPlane
             diagnostics,
             diagnostics_note = diagNote,
             hint =
-                "Prefer edit_op=anchor + place=; wire from find/peek — [Kind:CodeEdit; File:…; Member:…] (legacy F:/M:/K: parses). " +
+                "Prefer edit_op=anchor + place=; wire from find/peek — [Kind:CodeEdit; File:…; Member:…]. " +
                 "Comfort: undo/redo/copy/paste/find/back. Fallback: set_text|replace|replace_range."
         }, Pretty);
     }

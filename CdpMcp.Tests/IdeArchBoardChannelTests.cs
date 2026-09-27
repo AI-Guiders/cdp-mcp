@@ -33,7 +33,7 @@ public partial class IdeArchBoardChannelTests
                 ["role"] = JsonSerializer.SerializeToElement("ccu-build"),
                 ["anchors"] = JsonSerializer.SerializeToElement(new[]
                 {
-                    "[F:IdeCockpit.Build.cs;M:BuildAsync]",
+                    "[Kind:CodeEdit; File:IdeCockpit.Build.cs; Member:BuildAsync]",
                     "IdeCockpit.cs::BuildAsync"
                 })
             });
@@ -43,7 +43,7 @@ public partial class IdeArchBoardChannelTests
             {
                 ["op"] = JsonSerializer.SerializeToElement("elect"),
                 ["role"] = JsonSerializer.SerializeToElement("ccu-build"),
-                ["candidate"] = JsonSerializer.SerializeToElement("[F:IdeCockpit.Build.cs;M:BuildAsync]")
+                ["candidate"] = JsonSerializer.SerializeToElement("[Kind:CodeEdit; File:IdeCockpit.Build.cs; Member:BuildAsync]")
             });
             AssertOk(elect);
 

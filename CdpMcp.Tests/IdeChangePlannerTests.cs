@@ -38,7 +38,7 @@ public sealed class IdeChangePlannerTests
             {
                 cp_op = "anchor",
                 dir = planDir,
-                anchor = "[F:IdeChangePlanner.cs;M:Handle]"
+                anchor = "[Kind:CodeEdit; File:IdeChangePlanner.cs; Member:Handle]"
             }));
             using (var aDoc = JsonDocument.Parse(JsonSerializer.Serialize(anchored)))
             {

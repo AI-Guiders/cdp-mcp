@@ -61,7 +61,7 @@ public sealed class CitizenNavHostTests
         CitizenRouteHost.NavCallOverride = args =>
         {
             seen = args;
-            return """{"schema":"editor_comfort/v0","ok":true,"op":"back","locus":"[F:a.cs]","nav":{"back":1,"forward":0,"current":"[F:a.cs]"}}""";
+            return """{"schema":"editor_comfort/v0","ok":true,"op":"back","locus":"[Kind:CodeEdit; File:a.cs]","nav":{"back":1,"forward":0,"current":"[Kind:CodeEdit; File:a.cs]"}}""";
         };
         try
         {

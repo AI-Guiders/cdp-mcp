@@ -23,7 +23,7 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
             """;
         await using var fx = await AnchorFixture.CreateAsync(body, fileName: "RouteMap.cs");
         // Needle: axis (Text:) narrows inside M:; T: is now the Type axis (canon 2026-09-08).
-        var json = await fx.EditAnchorAsync(place: "after", text: "\n                    // after-early", anchor: "[F:RouteMap.cs;M:RouteOne;Needle:return \"early\";]");
+        var json = await fx.EditAnchorAsync(place: "after", text: "\n                    // after-early", anchor: "[Kind:CodeEdit; File:RouteMap.cs; Member:RouteOne; Text:return \"early\"]");
         Assert.Contains("\"place\": \"after\"", json, StringComparison.Ordinal);
         Assert.Contains("return \"early\";", fx.Text, StringComparison.Ordinal);
         var early = fx.Text.IndexOf("return \"early\";", StringComparison.Ordinal);
@@ -38,7 +38,7 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
     {
         await using var fx = await AnchorFixture.CreateAsync(FixtureBody);
         var before = fx.Text;
-        var ex = await Assert.ThrowsAsync<ArgumentException>(() => fx.EditAnchorAsync(place: "after", text: "\n    // nope", anchor: "[F:SceneMap.cs;M:KeepMe;Needle:this_needle_is_absent]"));
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => fx.EditAnchorAsync(place: "after", text: "\n    // nope", anchor: "[Kind:CodeEdit; File:SceneMap.cs; Member:KeepMe; Text:this_needle_is_absent]"));
         Assert.Contains("text_needle_not_found", ex.Message, StringComparison.Ordinal);
         Assert.Equal(before, fx.Text);
     }
@@ -87,7 +87,7 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
                 ["op"] = "edit",
                 ["path"] = Path,
                 ["edit_op"] = "anchor",
-                ["anchor"] = anchor ?? string.Format("[F:{0};M:KeepMe]", fileName),
+                ["anchor"] = anchor ?? string.Format("[Kind:CodeEdit; File:{0}; Member:KeepMe]", fileName),
                 ["text"] = text,
                 ["diagnose"] = false,
                 ["flush"] = true,

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Cdp.ScriptableIde;
 
 namespace CdpMcp;
 
@@ -31,7 +32,8 @@ internal static class DiagnosticAnchorWires
                     lineNode.GetValue<int>() <= 0)
                     continue;
 
-                item["anchor"] = $"[F:{rel};L:{lineNode.GetValue<int>()}]";
+                item["anchor"] = BracketLocate.Format(
+                    new BracketLocate.Span(rel, null, lineNode.GetValue<int>(), null));
                 changed = true;
             }
 

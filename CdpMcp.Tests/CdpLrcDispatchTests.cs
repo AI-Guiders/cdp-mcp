@@ -266,10 +266,9 @@ public sealed class CdpLrcDispatchTests
             Assert.True(first.TryGetProperty("anchor", out var anchor));
             var wire = anchor.GetString();
             Assert.NotNull(wire);
-            Assert.StartsWith("[F:", wire);
-            Assert.EndsWith("]", wire);
+            Assert.StartsWith("[Kind:CodeEdit", wire);
             Assert.Contains("Broken.fs", wire);
-            Assert.Contains(";L:", wire);
+            Assert.Contains("Line:", wire);
         }
         finally
         {

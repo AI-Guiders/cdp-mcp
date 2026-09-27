@@ -19,10 +19,10 @@ public sealed class CitizenTakeHostTests
     [Fact]
     public void Route_take_path_and_anchor()
     {
-        var r = CitizenIntentRouter.RouteOne("take path=a.cs anchor=[F:a.cs;M:Foo]");
+        var r = CitizenIntentRouter.RouteOne("take path=a.cs anchor=[Kind:CodeEdit; File:a.cs; Member:Foo]");
         Assert.True(r.Ok);
         Assert.Equal("a.cs", r.Path);
-        Assert.Equal("[F:a.cs;M:Foo]", r.Detail);
+        Assert.Equal("[Kind:CodeEdit; File:a.cs; Member:Foo]", r.Detail);
     }
 
     [Fact]

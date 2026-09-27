@@ -67,7 +67,7 @@ internal static partial class IdeArchBoardChannel
         path = null;
         member = null;
         label = raw;
-        if (!raw.Contains("[F:", StringComparison.OrdinalIgnoreCase))
+        if (!raw.Contains("Kind:CodeEdit", StringComparison.OrdinalIgnoreCase))
             return false;
 
         try

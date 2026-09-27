@@ -10,11 +10,11 @@ public sealed class CitizenSniperHostTests
     [Fact]
     public void Route_scope_from_wire()
     {
-        var r = CitizenIntentRouter.RouteOne("scope from=[F:a.cs;L:10]");
+        var r = CitizenIntentRouter.RouteOne("scope from=[Kind:CodeEdit; File:a.cs; Line:10]");
         Assert.True(r.Ok);
         Assert.Equal(CitizenIntentRouter.Verb.Sniper, r.Verb);
         Assert.Equal("scope", r.Op);
-        Assert.Equal("[F:a.cs;L:10]", r.OldString);
+        Assert.Equal("[Kind:CodeEdit; File:a.cs; Line:10]", r.OldString);
     }
 
     [Fact]
@@ -64,14 +64,14 @@ public sealed class CitizenSniperHostTests
         try
         {
             var applied = CitizenRouteHost.Execute([
-                CitizenIntentRouter.RouteOne("scope from=[F:a.cs;L:10]")
+                CitizenIntentRouter.RouteOne("scope from=[Kind:CodeEdit; File:a.cs; Line:10]")
             ]);
             Assert.Single(applied);
             Assert.True(applied[0].Ok);
             Assert.Equal("scope", applied[0].Action);
             Assert.NotNull(seen);
             Assert.Equal("scope", seen!["op"].GetString());
-            Assert.Equal("[F:a.cs;L:10]", seen["from"].GetString());
+            Assert.Equal("[Kind:CodeEdit; File:a.cs; Line:10]", seen["from"].GetString());
             Assert.Contains("armed", applied[0].Pulse, StringComparison.Ordinal);
         }
         finally
@@ -90,7 +90,7 @@ public sealed class CitizenSniperHostTests
         try
         {
             var applied = CitizenRouteHost.Execute([
-                CitizenIntentRouter.RouteOne("scope from=[F:missing.cs;L:1]")
+                CitizenIntentRouter.RouteOne("scope from=[Kind:CodeEdit; File:missing.cs; Line:1]")
             ]);
             Assert.Single(applied);
             Assert.False(applied[0].Ok);

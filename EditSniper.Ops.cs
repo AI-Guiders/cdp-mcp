@@ -69,7 +69,7 @@ internal static partial class EditSniper
                 hold = (object?)null,
                 next = new object[]
                 {
-                    new { go = "scope", label = "Set corridor", why = "from=/till= [F:;M:;S:/L:]" }
+                    new { go = "scope", label = "Set corridor", why = "from=/till= [Kind:CodeEdit; File:…; Line:…|Member:…]" }
                 },
                 hint = "No aim. go=scope + go_args.from (+ optional till)."
             }, Pretty);
@@ -108,7 +108,7 @@ internal static partial class EditSniper
                 ok = false,
                 op = "scope",
                 error = "from_required",
-                hint = "go_args: { from: \"[F:…;M:…;S:while]\" , till?: \"…\" | body }"
+                hint = "go_args: { from: \"[Kind:CodeEdit; File:…; Scope:while]\" , till?: \"…\" | body }"
             }, Pretty);
         }
 

@@ -11,7 +11,7 @@ public sealed class BracketLocateDelegationTests
     [Fact]
     public void Parse_classify_format_code_wire_roundtrip()
     {
-        var span = BracketLocate.Parse("[F:Program.cs;M:Foo;L:10]");
+        var span = BracketLocate.Parse("[Kind:CodeEdit; File:Program.cs; Member:Foo; Line:10]");
         Assert.Equal("Program.cs", span.File);
         Assert.Equal("Foo", span.MemberKey);
         Assert.Equal(10, span.LineStart);
@@ -22,19 +22,16 @@ public sealed class BracketLocateDelegationTests
     }
 
     [Fact]
-    public void Parse_legacy_fml_wire_via_relation_boundary()
+    public void Parse_rejects_legacy_fml_wire()
     {
-        var span = BracketLocate.Parse("[F:Legacy.cs;M:Old;L:5]");
-        Assert.Equal("Legacy.cs", span.File);
-        Assert.Equal("Old", span.MemberKey);
-        Assert.Equal(5, span.LineStart);
+        Assert.Throws<ArgumentException>(() => BracketLocate.Parse("[F:Legacy.cs;M:Old;L:5]"));
     }
 
     [Fact]
     public void Parse_rejects_legacy_family_navigation()
     {
         Assert.Throws<ArgumentException>(() =>
-            BracketLocate.Parse("[Family:navigation;Command:open;Anchor:[F:README.md;L:10]]"));
+            BracketLocate.Parse("[Family:navigation;Command:open;Anchor:[Kind:CodeEdit; File:README.md; Line:10]]"));
     }
 
     [Fact]
@@ -78,7 +75,7 @@ public sealed class BracketLocateDelegationTests
     [Fact]
     public void Parse_type_key_passthrough()
     {
-        var span = BracketLocate.Parse("[F:Types.cs;T:MyNamespace.MyType;M:Run]");
+        var span = BracketLocate.Parse("[Kind:CodeEdit; File:Types.cs; Type:MyNamespace.MyType; Member:Run]");
         Assert.Equal("MyNamespace.MyType", span.TypeKey);
         Assert.Equal(BracketLocate.AxisFamily.Csharp, BracketLocate.ClassifyFamily(span, out _));
     }
@@ -86,7 +83,7 @@ public sealed class BracketLocateDelegationTests
     [Fact]
     public void Format_default_emits_kind_code_edit()
     {
-        var span = BracketLocate.Parse("[F:Program.cs;M:Foo;L:10]");
+        var span = BracketLocate.Parse("[Kind:CodeEdit; File:Program.cs; Member:Foo; Line:10]");
         var wire = BracketLocate.Format(span);
         Assert.Equal("[Kind:CodeEdit; File:Program.cs; Member:Foo]", wire);
     }

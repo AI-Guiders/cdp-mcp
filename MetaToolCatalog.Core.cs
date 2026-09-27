@@ -67,7 +67,7 @@ internal static partial class MetaToolCatalog
             start_line = new { type = "integer" },
             end_line = new { type = "integer" },
             edit_op = new { type = "string", description = "edit: anchor|set_text|replace|replace_range — prefer anchor" },
-            anchor = new { type = "string", description = "edit_op=anchor / copy|cut|paste: csharp [Kind:CodeEdit; File:…; Member:…] (legacy [F:path;M:member]) or xml [F:;X:path;A:attr?][+K:Element]" },
+            anchor = new { type = "string", description = "edit_op=anchor / copy|cut|paste: [Kind:CodeEdit; File:…; Member:…|Element:…|Line:…]" },
             at = new { type = "string", description = "Alias of anchor" },
             text = new { type = "string", description = "edit set_text / create body / replace|replace_range body / anchor text (place=before|after|into|end=insert) / paste override / find query alias" },
             old_string = new { type = "string" },
@@ -151,13 +151,13 @@ internal static partial class MetaToolCatalog
             solution_or_project_path = new { type = "string", description = "Optional; default = session after cdp_open" }
         }
     }),
-    Meta("cdp_edit_sniper", "Edit sniper process: sight→lock→arm→fire. scope=lock (full-line + auto-peek → phase=armed). put/paste sniper hard-blocked until armed. Prefer [Kind:CodeEdit; File:…; Member:…] / xml X:; [F:;T:needle] content (survives L-drift); L:=line_literal. Prefer go=scope/target on cdp_cockpit.", new
+    Meta("cdp_edit_sniper", "Edit sniper process: sight→lock→arm→fire. scope=lock (full-line + auto-peek → phase=armed). put/paste sniper hard-blocked until armed. Prefer [Kind:CodeEdit; File:…; Member:…|Text:…|Line:…]. Line: = line_literal corridor. Prefer go=scope/target on cdp_cockpit.", new
     {
         type = "object",
         properties = new
         {
             op = new { type = "string", description = "scope|target|clear|status (default status)" },
-            from = new { type = "string", description = "scope: Select.From anchor wire [F:;M:;T:/L:]" },
+            from = new { type = "string", description = "scope: Select.From [Kind:CodeEdit; File:…; Member:…|Line:…|Text:…]" },
             till = new { type = "string", description = "scope: Till wire, or body|enclosing" },
             max = new { type = "integer", description = "target: max nodes (default 48)" }
         }
