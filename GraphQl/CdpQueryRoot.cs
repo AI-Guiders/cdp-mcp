@@ -375,6 +375,9 @@ internal sealed class CdpQueryRoot
                 var preview = hit.TryGetProperty("preview", out var pr) ? pr.GetString()
                     ?? (hit.TryGetProperty("excerpt", out var ex) ? ex.GetString() : null)
                     : null;
+                int? line = hit.TryGetProperty("line", out var ln) && ln.ValueKind == JsonValueKind.Number && ln.TryGetInt32(out var lv)
+                    ? lv
+                    : null;
                 double? score = hit.TryGetProperty("score", out var sc) && sc.TryGetDouble(out var sd) ? sd : null;
                 Anchor? anchor = null;
                 if (hit.TryGetProperty("anchor", out var ae))
@@ -385,7 +388,7 @@ internal sealed class CdpQueryRoot
                 }
                 else if (!string.IsNullOrWhiteSpace(path))
                 {
-                    anchor = Anchor.File(path!);
+                    anchor = line is { } ln2 && ln2 > 0 ? Anchor.File(path!).Line(ln2) : Anchor.File(path!);
                 }
                 hits.Add(new KnowledgeHitNode(path, title, preview, score, anchor));
             }
