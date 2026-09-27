@@ -89,6 +89,10 @@ internal static partial class CitizenIntentRouter
         }
 
         var rest = raw[i..];
+        if (rest.StartsWith('[') && IsBracketWireKey(key)
+            && TryReadBracketWire(rest, out var wire))
+            return wire;
+
         // SoftFL: unquoted path-like values may contain spaces (Personal Cursor Folder).
         // Stop before the next keyed arg (" key="), not at the first space.
         if (IsPathLikeKey(key))
@@ -99,6 +103,38 @@ internal static partial class CitizenIntentRouter
 
         var sp = rest.IndexOf(' ');
         return sp < 0 ? rest : rest[..sp];
+    }
+
+    static bool IsBracketWireKey(string key) =>
+        key.Equals("anchor", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("at", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("from", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("till", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("wire", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("locus", StringComparison.OrdinalIgnoreCase);
+
+    static bool TryReadBracketWire(string rest, out string wire)
+    {
+        wire = "";
+        if (rest.Length == 0 || rest[0] != '[')
+            return false;
+        var depth = 0;
+        for (var i = 0; i < rest.Length; i++)
+        {
+            if (rest[i] == '[')
+                depth++;
+            else if (rest[i] == ']')
+            {
+                depth--;
+                if (depth == 0)
+                {
+                    wire = rest[..(i + 1)];
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     static bool IsPathLikeKey(string key) =>

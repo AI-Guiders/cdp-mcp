@@ -46,7 +46,7 @@ public class CdpPeekChannelTests : IDisposable
         Assert.Contains("     1|line1", root.GetProperty("text").GetString());
         var anchor = root.GetProperty("lines")[0].GetProperty("anchor").GetString();
         Assert.Contains("a.cs", anchor);
-        Assert.Contains("L:1", anchor);
+        Assert.Contains("Line:1", anchor);
     }
 
     [Fact]
