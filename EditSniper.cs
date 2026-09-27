@@ -12,7 +12,7 @@ namespace CdpMcp;
 /// Edit sniper — process <c>sight → lock → arm → fire → verify</c> (kj-1848).
 /// <c>scope</c> = lock: full-line expand + auto-peek → <c>phase=armed</c>.
 /// Fire (put/paste sniper) is hard-blocked until armed — no peek ritual for the agent.
-/// Prefer semantic wires [F:;M:;K:] / XML X:; [F:;T:needle] content_literal (survives L-drift); L: alone is line_literal corridor (not Roslyn node snap).
+/// Prefer semantic wires [Kind:CodeEdit; File:…; Member:…] / xml Element:; Text: needle content_literal (survives L-drift); Line: alone is line_literal corridor (not Roslyn node snap).
 /// </summary>
 internal static partial class EditSniper
 {

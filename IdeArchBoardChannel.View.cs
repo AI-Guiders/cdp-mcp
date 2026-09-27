@@ -82,7 +82,7 @@ internal static partial class IdeArchBoardChannel
             next,
             hint = doc.Mode == "as_built"
                 ? "As-built of open ProjectRoot. Soft organ: go=arch_desk op=as_built | view=as_built. Anchors auto. Plan board = LATEST.json."
-                : "Board ≠ code. Soft organ: go=arch_desk / layout=arch (M seat). Candidates = [F:;M:;K:]. elect → op=promote (focus). op=as_built scans open project."
+                : "Board ≠ code. Soft organ: go=arch_desk / layout=arch (M seat). Candidates = [Kind:CodeEdit; File:…; Member:…]. elect → op=promote (focus). op=as_built scans open project."
         };
     }
 

@@ -13,7 +13,7 @@ internal static class DocumentAnchorEdit
         IReadOnlyDictionary<string, JsonElement> args)
     {
         var wire = OptString(args, "anchor") ?? OptString(args, "at")
-            ?? throw new ArgumentException("edit_op=anchor requires anchor= (or at=) bracket wire [Kind:CodeEdit; File:…; Member:…] (legacy [F:;M:;K:]) or xml [F:;X:;A:].");
+            ?? throw new ArgumentException("edit_op=anchor requires anchor= (or at=) bracket wire [Kind:CodeEdit; File:…; Member:…] (legacy [F:path;M:member]) or xml [F:;X:;A:].");
         var replacement = OptString(args, "text") ?? OptString(args, "new_string")
             ?? throw new ArgumentException("edit_op=anchor requires text= (body for place=; default place=replace overwrites locus).");
         var place = NormalizeAnchorPlace(OptString(args, "place") ?? OptString(args, "at_place"));

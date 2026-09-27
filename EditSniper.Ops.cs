@@ -87,7 +87,7 @@ internal static partial class EditSniper
             text = h.PeekText,
             next = ShootNext(),
             hint = h.Phase == PhaseArmed
-                ? "Armed. Fire hard-gated: put/paste sniper. Prefer semantic [F:;M:;K:] / X: next aim."
+                ? "Armed. Fire hard-gated: put/paste sniper. Prefer [Kind:CodeEdit; File:…; Member:…] / xml Element: next aim."
                 : "Corridor held but not armed — go=scope to lock+peek."
         }, Pretty);
     }
@@ -241,7 +241,7 @@ internal static partial class EditSniper
             next = ShootNext(),
             hint =
                 "Locked+armed (full lines + auto-peek). Fire: put/paste sniper — hard-blocked until armed. " +
-                "Prefer semantic [F:;M:;K:] / X:; L: is line_literal."
+                "Prefer [Kind:CodeEdit; File:…; Member:…] / xml Element:; Line: is line_literal."
         }, Pretty);
     }
 

@@ -90,4 +90,15 @@ public sealed class BracketLocateDelegationTests
         var wire = BracketLocate.Format(span);
         Assert.Equal("[Kind:CodeEdit; File:Program.cs; Member:Foo]", wire);
     }
+
+    [Fact]
+    public void Parse_rejects_doc_template_placeholder()
+    {
+        var ex = Assert.Throws<ArgumentException>(() => BracketLocate.Parse("[F:;M:;K:]"));
+        Assert.Contains("doc template", ex.Message, StringComparison.OrdinalIgnoreCase);
+
+        ex = Assert.Throws<ArgumentException>(() =>
+            BracketLocate.Parse("[Kind:CodeEdit; File:…; Member:Foo]"));
+        Assert.Contains("doc template", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
 }

@@ -5,7 +5,7 @@ namespace CdpMcp;
 
 /// <summary>
 /// Diagnostics comfort parity (F# comfort = C# comfort): every diagnostic item carries a
-/// BracketLocate anchor wire [F:rel;L:line] derived from its span — mutate-ready
+/// BracketLocate anchor wire [Kind:CodeEdit; File:rel; Line:line] derived from its span — mutate-ready
 /// (cdp_buffer op=edit anchor=). Best-effort: malformed payloads pass through unchanged.
 /// </summary>
 internal static class DiagnosticAnchorWires

@@ -36,7 +36,7 @@ internal static partial class IdeArchBoardChannel
     {
         public string Id { get; set; } = "";
         public string Label { get; set; } = "";
-        /// <summary>Canonical CodeAnchor wire <c>[F:;M:;K:]</c> (or L/C). Not a bare path.</summary>
+        /// <summary>Canonical CodeAnchor wire <c>[Kind:CodeEdit; File:…; Member:…]</c> (legacy F/M/L axes still parse). Not a bare path.</summary>
         public string? Anchor { get; set; }
         public string? Path { get; set; }
         public string? Symbol { get; set; }

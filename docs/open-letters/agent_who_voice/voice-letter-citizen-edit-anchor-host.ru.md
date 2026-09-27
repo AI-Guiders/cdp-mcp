@@ -6,7 +6,7 @@
 
 ## Было
 
-Peer умел replace/create/append/delete, но точный Roslyn-якорь (`[F:;M:;K:]`) жил только в Cursor `cdp_buffer`. Standalone citizen оставался на string-replace — без precise hand.
+Peer умел replace/create/append/delete, но точный Roslyn-якорь (`[Kind:CodeEdit; File:…; Member:…]`) жил только в Cursor `cdp_buffer`. Standalone citizen оставался на string-replace — без precise hand.
 
 ## Стало
 

@@ -83,7 +83,7 @@ internal static partial class MetaToolCatalog
             why = new { type = "string", description = "respond: short code ≤80 chars, not essay" }
         }
     }),
-    Meta("cdp_arch", "Architecture staging board (ADR 0196) — ontological kneeboard, not Miro. Roles CCU|Channel|CDS|Compositor|Surface + candidates as CodeAnchor wires [F:;M:;K:]. op=scene|add_role|add_candidates|elect|reject|edge|promote|clear|roles|as_built. Alias go=arch_desk|board. Board ≠ code until promote (plan-only v0).",
+    Meta("cdp_arch", "Architecture staging board (ADR 0196) — ontological kneeboard, not Miro. Roles CCU|Channel|CDS|Compositor|Surface + candidates as CodeAnchor wires [Kind:CodeEdit; File:…; Member:…]. op=scene|add_role|add_candidates|elect|reject|edge|promote|clear|roles|as_built. Alias go=arch_desk|board. Board ≠ code until promote (plan-only v0).",
         new
         {
             type = "object",
@@ -93,7 +93,7 @@ internal static partial class MetaToolCatalog
                 role = new { type = "string", description = "ccu|channel|cds|ids|compositor|surface|instrument|databus|dal|transport" },
                 role_id = new { type = "string", description = "optional stable id for the role slot" },
                 id = new { type = "string", description = "alias of role_id" },
-                anchors = new { type = "string", description = "CodeAnchor wires [F:;M:;K:] (array or comma-separated); not bare paths" },
+                anchors = new { type = "string", description = "CodeAnchor wires [Kind:CodeEdit; File:…; Member:…] (array or comma-separated); not bare paths" },
                 candidates = new { type = "string", description = "alias of anchors" },
                 candidate = new { type = "string", description = "elect/reject: candidate id|label|wire" },
                 from = new { type = "string", description = "edge: from role id|kind" },

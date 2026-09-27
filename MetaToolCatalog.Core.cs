@@ -67,7 +67,7 @@ internal static partial class MetaToolCatalog
             start_line = new { type = "integer" },
             end_line = new { type = "integer" },
             edit_op = new { type = "string", description = "edit: anchor|set_text|replace|replace_range — prefer anchor" },
-            anchor = new { type = "string", description = "edit_op=anchor / copy|cut|paste: csharp [Kind:CodeEdit; File:…; Member:…] (legacy [F:;M:;K:]) or xml [F:;X:path;A:attr?][+K:Element]" },
+            anchor = new { type = "string", description = "edit_op=anchor / copy|cut|paste: csharp [Kind:CodeEdit; File:…; Member:…] (legacy [F:path;M:member]) or xml [F:;X:path;A:attr?][+K:Element]" },
             at = new { type = "string", description = "Alias of anchor" },
             text = new { type = "string", description = "edit set_text / create body / replace|replace_range body / anchor text (place=before|after|into|end=insert) / paste override / find query alias" },
             old_string = new { type = "string" },

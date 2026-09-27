@@ -9,7 +9,7 @@
 - Soft-warn FileLinesWarn=400; `EditSniper` is `partial` by concern.
 - Partials: Core (hold/AimAtWire) · Ops (Dispatch/Scope/Target) · PeekResolve · Syntax (Roslyn expand/helpers).
 - Process: sight → lock → arm → fire → verify; fire hard-blocked until `phase=armed`.
-- Prefer semantic wires [F:;M:;K:] over bare L: (line_literal).
+- Prefer semantic wires [Kind:CodeEdit; File:…; Member:…] over bare Line: (line_literal).
 
 ## Entry
 
