@@ -23,6 +23,7 @@
 ## last_ship
 
 - **0.5.664** — `edit_op=replace` accepts `text=` alias + refuses missing body (parity with replace_range; lived PublishGlass wipe). DocumentEditPlaneReplaceTests 4/4.
+- **unreleased (2026-10-09)** — fsharp `into|end` = **inside braces** (block_body_start/end via `FSharpAnchorResolve.TryGetBraceInterior`; strings/`//`/`(* *)` skipped). Lived: `place=into` on a record type landed the field **outside** `}` (whole-span after-end). Brace-less / one-line braces refuse honestly → use `before|after`.
 - **0.5.660** — csharp `M:` `place=before|after` = **sibling outside** member (MergeGoArgs footgun fix). Body interior = `into|end` (aliases body/start → into). Type/ns `before|after` still interior. Meta + DocumentEditPlaneAnchorPlaceTests.
 - **0.5.649** — csharp `place=before|after` on `M:` inserts **inside** method/type braces (`TryGetBlockInteriorInsertPoint`), not outside the member (same footgun class as ignored `T:` → wrong edge). Sibling members → `M:TypeName`. Tests DocumentEditPlaneAnchorPlaceTests 11/11. **Superseded for method siblings by 0.5.660.**
 - soft-warn peel: Core253 Edit210 Anchor244 Diagnostics251 @ 0.5.400

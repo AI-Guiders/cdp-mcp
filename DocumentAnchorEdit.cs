@@ -61,6 +61,19 @@ internal static class DocumentAnchorEdit
             if (!FSharpAnchorResolve.TryResolve(buf.Path, buf.Text, span, out var fr, out var fd))
                 throw new ArgumentException($"Anchor resolve failed ({fd}): {wire}");
 
+            if (place is "into" or "end")
+            {
+                // F# interior = braces (record / object-expression). The old whole-span after-end
+                // insert landed fields OUTSIDE the record (lived FilterDefinition 2026-10-09).
+                if (!FSharpAnchorResolve.TryGetBraceInterior(buf.Text, fr, before: place is "into", out var fp, out var fbody))
+                    throw new ArgumentException(
+                        $"fsharp place={place} needs a multi-line brace body in the locus ({fd}) — " +
+                        $"use place=before|after for brace-less declarations. wire: {wire}");
+
+                ApplyPlacedRange(store, buf, "before", fp.LineStart, fp.ColumnStart, fp.LineEnd, fp.ColumnEnd, replacement);
+                return new { family = "fsharp", wire = BracketLocate.Format(span), resolve = fd + "+" + fbody, place, range = new { start_line = fp.LineStart, start_column = fp.ColumnStart, end_line = fp.LineEnd, end_column = fp.ColumnEnd } };
+            }
+
             ApplyPlacedRange(store, buf, place, fr.LineStart, fr.ColumnStart, fr.LineEnd, fr.ColumnEnd, replacement);
             return new { family = "fsharp", wire = BracketLocate.Format(span), resolve = fd, place, range = new { start_line = fr.LineStart, start_column = fr.ColumnStart, end_line = fr.LineEnd, end_column = fr.ColumnEnd } };
         }
