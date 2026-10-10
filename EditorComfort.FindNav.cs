@@ -60,7 +60,7 @@ internal static partial class EditorComfort
                     error = "regex_invalid",
                     pattern = query,
                     detail = ex.Message,
-                    hint = "Pattern failed to compile — this is NOT 'no matches'."
+                    hint = SyntaxErrorHint(ex.Message)
                 }, Pretty);
             }
 
@@ -161,7 +161,7 @@ internal static partial class EditorComfort
                     error = "regex_invalid",
                     pattern = query,
                     detail = ex.Message,
-                    hint = "Pattern failed to compile — this is NOT 'no matches'. .NET regex (VS toggle): ^/$ are line anchors; escape literal . [ ] ( ); \\s = whitespace."
+                    hint = SyntaxErrorHint(ex.Message)
                 }, Pretty);
             }
 
@@ -251,6 +251,21 @@ internal static partial class EditorComfort
                 + "The pattern around it fails: check anchors, groups, optional tails, or line endings.";
 
         return "No matches.";
+    }
+
+    /// <summary>Syntax error in a regex pattern — name the fault and its offset, never disguise it as "No matches".</summary>
+    static string SyntaxErrorHint(string engineMessage)
+    {
+        var reason = engineMessage ?? "";
+        var where = "";
+        var m = Regex.Match(reason, @"at offset (\d+)");
+        if (m.Success)
+        {
+            where = $" at offset {m.Groups[1].Value}";
+            reason = Regex.Replace(reason, @"\s*at offset \d+", "");
+        }
+
+        return $"Syntax error in pattern{where}: {reason.Trim()} Nothing was replaced.";
     }
 
     /// <summary>Longest literal run in a regex pattern (escapes folded, metacharacters split runs) — diagnostic heuristic.</summary>

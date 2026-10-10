@@ -50,7 +50,8 @@ public sealed class EditorComfortReplaceAllTests
     {
         var json = await ReplaceAllAsync("alpha beta\r\n", "(unclosed", "x", regex: true);
         Assert.Contains("\"error\": \"regex_invalid\"", json, StringComparison.Ordinal);
-        Assert.Contains("Pattern failed to compile", json, StringComparison.Ordinal);
+        Assert.Contains("Syntax error in pattern", json, StringComparison.Ordinal);
+        Assert.Contains("at offset", json, StringComparison.Ordinal);
     }
 
     [Fact]
