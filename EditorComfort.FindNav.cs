@@ -43,7 +43,28 @@ internal static partial class EditorComfort
         if (regex)
         {
             var opts = RegexOptions.Multiline | (ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None);
-            foreach (Match m in Regex.Matches(buf.Text, query!, opts))
+            MatchCollection matches;
+            try
+            {
+                matches = Regex.Matches(buf.Text, query!, opts);
+            }
+            catch (ArgumentException ex)
+            {
+                // ADX-HX-003: an unparseable pattern must never masquerade as "no hits".
+                return JsonSerializer.Serialize(new
+                {
+                    schema = Schema,
+                    ok = false,
+                    op = all ? "find_all" : "find",
+                    scope = "buffer",
+                    error = "regex_invalid",
+                    pattern = query,
+                    detail = ex.Message,
+                    hint = "Pattern failed to compile — this is NOT 'no matches'."
+                }, Pretty);
+            }
+
+            foreach (Match m in matches)
             {
                 hits.Add(HitCard(session, buf, m.Index, m.Length, m.Value));
                 if (!all || hits.Count >= MaxFindHits)
@@ -124,7 +145,26 @@ internal static partial class EditorComfort
         if (regex)
         {
             var opts = RegexOptions.Multiline | (ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None);
-            var rx = new Regex(query!, opts);
+            Regex rx;
+            try
+            {
+                rx = new Regex(query!, opts);
+            }
+            catch (ArgumentException ex)
+            {
+                // ADX-HX-003: an unparseable pattern must never masquerade as "No matches".
+                return JsonSerializer.Serialize(new
+                {
+                    schema = Schema,
+                    ok = false,
+                    op = "replace_all",
+                    error = "regex_invalid",
+                    pattern = query,
+                    detail = ex.Message,
+                    hint = "Pattern failed to compile — this is NOT 'no matches'. .NET regex (VS toggle): ^/$ are line anchors; escape literal . [ ] ( ); \\s = whitespace."
+                }, Pretty);
+            }
+
             count = rx.Matches(before).Count;
             after = rx.Replace(before, replacement);
         }
@@ -160,7 +200,7 @@ internal static partial class EditorComfort
                 ok = true,
                 op = "replace_all",
                 replaced = 0,
-                hint = "No matches."
+                hint = NoMatchDiagnostics(query!, before, regex, ignoreCase)
             }, Pretty);
         }
 
@@ -182,4 +222,75 @@ internal static partial class EditorComfort
             hint = "One undo step for the whole replace_all."
         }, Pretty);
     }
+
+    /// <summary>
+    /// ADX-HX-003: "No matches" must not hide "pattern could not match" — surface the likely cause.
+    /// </summary>
+    static string NoMatchDiagnostics(string pattern, string text, bool regex, bool ignoreCase)
+    {
+        if (!regex)
+            return $"No matches (literal). Check spelling/case — ignore_case={(ignoreCase ? "true" : "false")}.";
+
+        var needle = LongestLiteralFragment(pattern);
+        var needlePresent =
+            needle.Length >= 3
+            && text.Contains(needle, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+        var crlf = text.Contains("\r\n", StringComparison.Ordinal);
+
+        if (crlf && pattern.Contains('$') && !pattern.Contains("\\r", StringComparison.Ordinal))
+            return $"No matches — but the pattern uses ^/$ anchors on a CRLF buffer: '$' sits AFTER the '\\r'. "
+                + $"Add \\r? before $ (or match [\\s\\n] instead of [ \\t]). Literal fragment '{Truncate(needle, 40)}' is "
+                + $"{(needlePresent ? "present" : "absent")} in the buffer.";
+
+        if (needle.Length >= 3 && !needlePresent)
+            return $"No matches — and even the longest literal fragment '{Truncate(needle, 40)}' is absent from the buffer. "
+                + "Wrong file/scope, or the pattern does not mean what you think.";
+
+        if (needlePresent)
+            return $"No matches — but the literal fragment '{Truncate(needle, 40)}' IS present. "
+                + "The pattern around it fails: check anchors, groups, optional tails, or line endings.";
+
+        return "No matches.";
+    }
+
+    /// <summary>Longest literal run in a regex pattern (escapes folded, metacharacters split runs) — diagnostic heuristic.</summary>
+    static string LongestLiteralFragment(string pattern)
+    {
+        var best = "";
+        var current = new StringBuilder();
+
+        void Flush()
+        {
+            if (current.Length > best.Length)
+                best = current.ToString();
+
+            current.Clear();
+        }
+
+        for (var i = 0; i < pattern.Length; i++)
+        {
+            var ch = pattern[i];
+
+            if (ch == '\\' && i + 1 < pattern.Length)
+            {
+                i++;
+                current.Append(pattern[i]);
+                continue;
+            }
+
+            if ("()[]{}?+*|^$.#".IndexOf(ch) >= 0)
+            {
+                Flush();
+                continue;
+            }
+
+            current.Append(ch);
+        }
+
+        Flush();
+        return best.Trim();
+    }
+
+    static string Truncate(string value, int max) =>
+        value.Length <= max ? value : value[..max] + "…";
 }
