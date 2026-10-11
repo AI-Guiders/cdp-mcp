@@ -331,8 +331,15 @@ internal static class CideIntercomIdentityLatch
             catch { /* interop export best-effort */ }
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            try
+            {
+                File.AppendAllText(
+                    Path.Combine(StateRoot, "cdp-state-write-errors.log"),
+                    $"{DateTime.UtcNow:O} identity-latch WriteUnlocked: {ex}{Environment.NewLine}");
+            }
+            catch { /* diagnostics best-effort */ }
             return false;
         }
     }

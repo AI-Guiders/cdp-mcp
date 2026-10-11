@@ -489,7 +489,7 @@ public static class CdpStateStoreDb
     {
         MigrateWakeQueue(db, stateRoot);
         MigrateArms(db, stateRoot);
-        EnsureRegistrySeeded(db);
+        EnsureRegistrySeeded(db, stateRoot);
     }
 
     static void MigrateWakeQueue(CdpStateDbContext db, string stateRoot)
@@ -602,7 +602,7 @@ public static class CdpStateStoreDb
 
     /// <summary>Migration-on-first-run (P0): upsert канонических записей из <see cref="CdpStoreRegistryCatalog"/>.
     /// Идемпотентно — дополняет реестр после апгрейда (GS-HS1 partial).</summary>
-    static void EnsureRegistrySeeded(CdpStateDbContext db)
+    static void EnsureRegistrySeeded(CdpStateDbContext db, string stateRoot)
     {
         var now = DateTimeOffset.UtcNow;
         var changed = false;
@@ -626,7 +626,38 @@ public static class CdpStateStoreDb
             }
         }
         if (changed)
-            db.SaveChanges();
+        {
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+            {
+                // WitDB index desync (stale <db>_indexes): Find() missed an existing row and the
+                // PK insert hit UNIQUE. Canonical rows are already stored — registry seeding must
+                // never brick every store write (ADR-0219 store SSOT).
+                foreach (var entry in db.ChangeTracker.Entries().Where(e => e.State == EntityState.Added))
+                    entry.State = EntityState.Detached;
+                try
+                {
+                    File.AppendAllText(
+                        Path.Combine(stateRoot, "cdp-state-write-errors.log"),
+                        $"{DateTime.UtcNow:O} EnsureRegistrySeeded UNIQUE-desync tolerated: {ex.InnerException?.Message}{Environment.NewLine}");
+                }
+                catch { /* diagnostics best-effort */ }
+            }
+        }
+    }
+
+    static bool IsUniqueConstraintViolation(Exception? ex)
+    {
+        for (var e = ex; e is not null; e = e.InnerException)
+        {
+            if (e.Message.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     static void RenameLegacyAside(string legacy)
