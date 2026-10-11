@@ -9,6 +9,18 @@ namespace CdpMcp;
 internal sealed partial class CdpIgniteArmHost
 {
     /// <summary>Parse arm args into a new IgniteArm (does not persist).</summary>
+    /// <summary>Caller identity for the wake target: conversation id when it IS an opencode
+    /// session, else the bridge→session bind written at identity claim (session=).</summary>
+    internal static string? ResolveCallerSession(string? conversationId = null, string? bridge = null)
+    {
+        conversationId ??= CdpTenantRoutingContext.CurrentConversationId;
+        if (!string.IsNullOrWhiteSpace(conversationId)
+            && conversationId.StartsWith("ses_", StringComparison.Ordinal))
+            return conversationId.Trim();
+        bridge ??= CdpTenantExecutionContext.CurrentSlice?.Key.BridgeSession;
+        return CideIntercomBridgeBind.SessionOf(bridge);
+    }
+
     bool TryCreateArm(IReadOnlyDictionary<string, JsonElement> args, out IgniteArm arm, out object? err)
     {
         arm = null!;
@@ -108,6 +120,14 @@ internal sealed partial class CdpIgniteArmHost
             if (!string.IsNullOrWhiteSpace(session))
             {
                 harness = "opencode"; // compat: session= alone ⇒ opencode
+            }
+            else if (ResolveCallerSession() is { } caller)
+            {
+                // Caller-first (2026-10-11): арм всегда про окно, которое его создало —
+                // личность вызывающего (conversation id / bridge→session bind), а не
+                // ростер-голосование (эвристика ниже остаётся fallback для старых клиентов).
+                harness = "opencode";
+                session = caller;
             }
             else
             {

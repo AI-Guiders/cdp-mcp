@@ -13,7 +13,12 @@ internal static class CdpBridgeConversationMeta
         "composerId",
         "composer_id",
         "conversationId",
-        "conversation_id"
+        "conversation_id",
+        "opencode/sessionId",
+        "opencode/session",
+        "sessionId",
+        "session_id",
+        "session"
     ];
 
     public static string? TryResolve(CallToolRequestParams? parameters) =>
