@@ -73,6 +73,12 @@ internal static partial class MetaDispatch
             : IdeSettingsHabitat.EffectiveShellCodepage();
         string? wakeHarness = callArgs.TryGetValue("wake_harness", out var whEl) ? whEl.GetString() : null;
         string? wakeSession = callArgs.TryGetValue("wake_session", out var wsEl) ? wsEl.GetString() : null;
+        if (string.IsNullOrWhiteSpace(wakeSession)
+            && callArgs.TryGetValue("__session", out var wsmEl)
+            && wsmEl.GetString() is { Length: > 0 } wsm && wsm.StartsWith("ses_", StringComparison.Ordinal))
+        {
+            wakeSession = wsm;
+        }
         var json = shellHabitat.Run(ShellDefaults(session), cmd, tab, cwd, shell, timeout, background, codepage, argv);
         if (background && IdeShellIgnite.ResolveIgniteArmEnabled(callArgs, background: true))
         {
@@ -109,6 +115,12 @@ internal static partial class MetaDispatch
         var background = callArgs.TryGetValue("background", out var bgEl) && bgEl.ValueKind == JsonValueKind.True;
         string? wakeHarness = callArgs.TryGetValue("wake_harness", out var rwhEl) ? rwhEl.GetString() : null;
         string? wakeSession = callArgs.TryGetValue("wake_session", out var rwsEl) ? rwsEl.GetString() : null;
+        if (string.IsNullOrWhiteSpace(wakeSession)
+            && callArgs.TryGetValue("__session", out var rwsmEl)
+            && rwsmEl.GetString() is { Length: > 0 } rwsm && rwsm.StartsWith("ses_", StringComparison.Ordinal))
+        {
+            wakeSession = rwsm;
+        }
         var json = shellHabitat.Rerun(ShellDefaults(session), tab, index, timeout, background);
         if (background && IdeShellIgnite.ResolveIgniteArmEnabled(callArgs, background: true))
         {
