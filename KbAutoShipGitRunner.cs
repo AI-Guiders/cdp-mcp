@@ -21,13 +21,21 @@ internal sealed class KbAutoShipGitRunner
             WorkingDirectory = cwd,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            RedirectStandardInput = true,
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        // Сервис работает без терминала: интерактивный запрос (credential / host-key / passphrase)
+        // превратился бы в молчаливое зависание до лимита и выглядел бы как «git timeout».
+        psi.Environment["GIT_TERMINAL_PROMPT"] = "0";
+        psi.Environment["GCM_INTERACTIVE"] = "never";
+        psi.Environment["GIT_SSH_COMMAND"] =
+            "ssh -o BatchMode=yes -o ConnectTimeout=8 -o ServerAliveInterval=5 -o ServerAliveCountMax=3";
 
         using var p = Process.Start(psi);
         if (p is null)
             return new KbGitExecResult(-1, "", "git start failed");
+        try { p.StandardInput.Close(); } catch { /* stdin закрыт: ввод невозможен */ }
 
         var stdoutTask = p.StandardOutput.ReadToEndAsync();
         var stderrTask = p.StandardError.ReadToEndAsync();

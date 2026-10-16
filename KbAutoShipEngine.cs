@@ -30,41 +30,44 @@ internal sealed class KbAutoShipEngine
         var branch = options.Branch;
         var remoteRef = $"origin/{branch}";
 
-        var fetch = _git.Run(repoRoot, "fetch origin");
-        if (fetch.ExitCode != 0)
-            return AlertFail(repoRoot, $"fetch failed: {Trim(fetch.Stderr)}");
-
-        var behind = _git.Run(repoRoot, $"rev-list HEAD..{remoteRef} --count");
-        if (behind.ExitCode == 0
-            && int.TryParse(behind.Stdout.Trim(), out var ahead)
-            && ahead > 0)
-        {
-            return AlertFail(
-                repoRoot,
-                $"{remoteRef} is {ahead} commit(s) ahead of local HEAD — operator must reconcile (no auto-rebase).",
-                conflict: true);
-        }
-
-        var secretHits = IdeReviewChannel.ListDirtyFiles(repoRoot)
-            .Count(d => d.Risk.Equals("secret", StringComparison.OrdinalIgnoreCase));
-        if (secretHits > 0)
-            return AlertFail(repoRoot, $"blocked: {secretHits} secret-risk path(s) in working tree.");
-
-        var add = _git.Run(repoRoot, "add -A");
-        if (add.ExitCode != 0)
-            return AlertFail(repoRoot, $"git add failed: {Trim(add.Stderr)}");
-
+        // 1) Есть ли что коммитить? Проверка ПЕРВАЯ и локальная: нет изменений — нет и сети.
         var status = _git.Run(repoRoot, "status --porcelain");
         if (status.ExitCode != 0)
             return AlertFail(repoRoot, $"git status failed: {Trim(status.Stderr)}");
-        if (string.IsNullOrWhiteSpace(status.Stdout))
+
+        string? message = null;
+        if (!string.IsNullOrWhiteSpace(status.Stdout))
+        {
+            var secretHits = IdeReviewChannel.ListDirtyFiles(repoRoot)
+                .Count(d => d.Risk.Equals("secret", StringComparison.OrdinalIgnoreCase));
+            if (secretHits > 0)
+                return AlertFail(repoRoot, $"blocked: {secretHits} secret-risk path(s) in working tree.");
+
+            var add = _git.Run(repoRoot, "add -A");
+            if (add.ExitCode != 0)
+                return AlertFail(repoRoot, $"git add failed: {Trim(add.Stderr)}");
+
+            var staged = _git.Run(repoRoot, "status --porcelain");
+            if (staged.ExitCode != 0)
+                return AlertFail(repoRoot, $"git status failed: {Trim(staged.Stderr)}");
+
+            message = BuildCommitMessage(staged.Stdout);
+            var commit = _git.Run(repoRoot, $"commit -m {QuoteArg(message)}");
+            if (commit.ExitCode != 0)
+                return AlertFail(repoRoot, $"commit failed: {Trim(commit.Stderr)}");
+        }
+
+        // 2) Есть ли незапушенное? Тоже локально (по remote-tracking ref). Без этой проверки
+        //    «закоммичено, но push отказан» застряло бы навсегда: чистое дерево глушило бы отправку.
+        var pending = _git.Run(repoRoot, $"rev-list {remoteRef}..HEAD --count");
+        if (pending.ExitCode == 0
+            && int.TryParse(pending.Stdout.Trim(), out var ahead)
+            && ahead == 0)
+        {
             return new KbAutoShipResult(KbAutoShipOutcome.Clean);
+        }
 
-        var message = BuildCommitMessage(status.Stdout);
-        var commit = _git.Run(repoRoot, $"commit -m {QuoteArg(message)}");
-        if (commit.ExitCode != 0)
-            return AlertFail(repoRoot, $"commit failed: {Trim(commit.Stderr)}");
-
+        // 3) Единственный сетевой шаг — и он же арбитр расхождения: non-fast-forward git отвергнет сам.
         var push = _git.Run(repoRoot, $"push origin {branch}");
         if (push.ExitCode != 0)
             return AlertFail(repoRoot, $"push rejected: {Trim(push.Stderr)}", conflict: true);

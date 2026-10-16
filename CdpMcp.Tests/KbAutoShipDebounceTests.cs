@@ -52,29 +52,53 @@ public sealed class KbAutoShipDebounceTests : IDisposable
     }
 
     [Fact]
-    public void Origin_ahead_alerts_and_skips_commit_and_push()
+    public void Clean_tree_makes_no_network_calls()
     {
         var engine = new KbAutoShipEngine(a => _alerts.Add(a));
         var options = new KbAutoShipOptions { Branch = "main", Roots = [_repo] };
 
         KbAutoShipGitRunner.ExecOverride = (cwd, args) =>
         {
-            if (args.StartsWith("rev-list HEAD..origin/main", StringComparison.Ordinal))
-                return new KbGitExecResult(0, "2", "");
-            if (args.StartsWith("fetch", StringComparison.Ordinal))
-                return new KbGitExecResult(0, "", "");
-            if (args.StartsWith("status --porcelain", StringComparison.Ordinal))
-                return new KbGitExecResult(0, " M knowledge/foo.md", "");
             _gitLog.Add(args);
+            if (args.StartsWith("status --porcelain", StringComparison.Ordinal))
+                return new KbGitExecResult(0, "", "");
+            if (args.StartsWith("rev-list origin/main..HEAD", StringComparison.Ordinal))
+                return new KbGitExecResult(0, "0", "");
             return new KbGitExecResult(0, "", "");
         };
 
         var result = engine.TryShip(_repo, options);
 
-        Assert.Equal(KbAutoShipOutcome.Failed, result.Outcome);
-        Assert.Contains(_alerts, a => a.Contains("ahead", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(_gitLog, l => l.Contains("commit", StringComparison.Ordinal));
-        Assert.DoesNotContain(_gitLog, l => l.Contains("push", StringComparison.Ordinal));
+        Assert.Equal(KbAutoShipOutcome.Clean, result.Outcome);
+        Assert.DoesNotContain(_gitLog, l => l.StartsWith("fetch", StringComparison.Ordinal));
+        Assert.DoesNotContain(_gitLog, l => l.StartsWith("push", StringComparison.Ordinal));
+        Assert.DoesNotContain(_gitLog, l => l.StartsWith("add", StringComparison.Ordinal));
+        Assert.Empty(_alerts);
+    }
+
+    [Fact]
+    public void Clean_tree_but_unpushed_commit_is_pushed()
+    {
+        var engine = new KbAutoShipEngine(a => _alerts.Add(a));
+        var options = new KbAutoShipOptions { Branch = "main", Roots = [_repo] };
+
+        KbAutoShipGitRunner.ExecOverride = (cwd, args) =>
+        {
+            _gitLog.Add(args);
+            if (args.StartsWith("status --porcelain", StringComparison.Ordinal))
+                return new KbGitExecResult(0, "", "");
+            if (args.StartsWith("rev-list origin/main..HEAD", StringComparison.Ordinal))
+                return new KbGitExecResult(0, "1", "");
+            if (args.StartsWith("push", StringComparison.Ordinal))
+                return new KbGitExecResult(0, "", "");
+            return new KbGitExecResult(0, "", "");
+        };
+
+        var result = engine.TryShip(_repo, options);
+
+        Assert.Equal(KbAutoShipOutcome.Shipped, result.Outcome);
+        Assert.Contains(_gitLog, l => l.StartsWith("push", StringComparison.Ordinal));
+        Assert.DoesNotContain(_gitLog, l => l.StartsWith("commit", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -131,7 +155,7 @@ public sealed class KbAutoShipDebounceTests : IDisposable
     KbGitExecResult GitStub(string cwd, string args)
     {
         _gitLog.Add(args);
-        if (args.StartsWith("rev-list HEAD..origin/main", StringComparison.Ordinal))
+        if (args.StartsWith("rev-list origin/main..HEAD", StringComparison.Ordinal))
             return new KbGitExecResult(0, "0", "");
         if (args.StartsWith("fetch", StringComparison.Ordinal))
             return new KbGitExecResult(0, "", "");
