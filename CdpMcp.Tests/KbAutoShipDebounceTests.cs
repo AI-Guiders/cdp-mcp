@@ -110,7 +110,7 @@ public sealed class KbAutoShipDebounceTests : IDisposable
         KbAutoShipGitRunner.ExecOverride = (cwd, args) =>
         {
             if (args.StartsWith("rev-list", StringComparison.Ordinal))
-                return new KbGitExecResult(0, "0", "");
+                return new KbGitExecResult(0, "1", "");
             if (args.StartsWith("fetch", StringComparison.Ordinal))
                 return new KbGitExecResult(0, "", "");
             if (args.StartsWith("status --porcelain", StringComparison.Ordinal))
