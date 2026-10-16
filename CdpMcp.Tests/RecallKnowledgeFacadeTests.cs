@@ -10,14 +10,20 @@ public sealed class RecallKnowledgeFacadeTests
 {
     const string ConfigPath = @"D:/agent-notes-mcp/agent-notes-mcp.toml";
 
-    static bool TryInit(out NotesStorage storage)
+    static bool TryInit(out NotesStorage storage) => TryInit(out storage, out _);
+
+    static bool TryInit(out NotesStorage storage, out string hotPath)
     {
         storage = new NotesStorage();
+        hotPath = "";
         if (!File.Exists(ConfigPath))
             return false;
         var code = AgentNotesBootstrap.TryLoadSettings(["--config", ConfigPath], out var settings, out _);
         if (code != 0 || settings is null)
             return false;
+        if (string.IsNullOrWhiteSpace(settings.PrimaryKnowledgeRoot))
+            return false;
+        hotPath = Path.Combine(settings.PrimaryKnowledgeRoot, "agent-notes.md");
         AgentNotesRuntime.Initialize(settings, AgentNotesBootstrap.LoadedConfigPath);
         return true;
     }
@@ -57,22 +63,36 @@ public sealed class RecallKnowledgeFacadeTests
     [Fact]
     public void Auto_hot_only_query_falls_through_to_hot()
     {
-        if (!TryInit(out var storage))
+        if (!TryInit(out var storage, out var hotPath))
             return;
 
+        // Проба уходит в ЖИВОЙ канон (тест интеграционный). Поэтому:
+        //  * id уникален на прогон — иначе нарушается hot-split-инвариант «один section_id = одна секция»,
+        //    и в каноне копятся дубликаты (так и накопилось 4 блока к 2026-10-17);
+        //  * файл восстанавливается в finally — прогон тестов не должен менять канон вообще
+        //    (заодно снимается BOM, который добавлял путь записи).
+        var before = File.ReadAllText(hotPath);
         var hotProbe = Guid.NewGuid().ToString("N");
-        storage.Append("", $"\n<!-- section:recall-facade-probe -->\n{hotProbe}\n<!-- /section:recall-facade-probe -->\n");
+        var probeSection = "recall-facade-probe-" + hotProbe[..8];
+        try
+        {
+            storage.Append("", $"\n<!-- section:{probeSection} -->\n{hotProbe}\n<!-- /section:{probeSection} -->\n");
 
-        using var doc = Parse(storage.RecallKnowledge(hotProbe, layer: "auto", limit: 5));
-        Assert.Contains("hot", Layers(doc.RootElement));
-        Assert.True(doc.RootElement.TryGetProperty("hot", out _));
+            using var doc = Parse(storage.RecallKnowledge(hotProbe, layer: "auto", limit: 5));
+            Assert.Contains("hot", Layers(doc.RootElement));
+            Assert.True(doc.RootElement.TryGetProperty("hot", out _));
 
-        var hotHits = doc.RootElement.GetProperty("hits").EnumerateArray()
-            .Where(h => h.GetProperty("layer").GetString() == "hot").ToArray();
-        Assert.NotEmpty(hotHits);
-        Assert.Contains(
-            hotHits,
-            h => HitText(h).Contains(hotProbe, StringComparison.Ordinal));
+            var hotHits = doc.RootElement.GetProperty("hits").EnumerateArray()
+                .Where(h => h.GetProperty("layer").GetString() == "hot").ToArray();
+            Assert.NotEmpty(hotHits);
+            Assert.Contains(
+                hotHits,
+                h => HitText(h).Contains(hotProbe, StringComparison.Ordinal));
+        }
+        finally
+        {
+            File.WriteAllText(hotPath, before, new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        }
     }
 
     [Fact]
