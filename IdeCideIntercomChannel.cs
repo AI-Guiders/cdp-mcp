@@ -226,21 +226,6 @@ internal static partial class IdeCideIntercomChannel
             }
         }
 
-        // to= target wakes too (2026-10-11): адресат письма — явная цель, как и @упоминание.
-        // Без этого to=@Ник только ложился в журнал, и почтальону было нечего нести.
-        if (toNick is not null
-            && (published.Mentions is null
-                || !published.Mentions.Any(m => m.Equals(toNick, StringComparison.OrdinalIgnoreCase)))
-            && !toNick.Equals(published.Name ?? "", StringComparison.OrdinalIgnoreCase))
-        {
-            _ = CideWakeDispatch.Enqueue(
-                CideWakeDispatch.KindLetter,
-                published.Body,
-                nick: toNick,
-                from: published.Name ?? from,
-                task: "intercom_send");
-        }
-
         if (published is null)
             return Fail("publish_failed", "could not write intercom latch");
 
@@ -389,21 +374,6 @@ internal static partial class IdeCideIntercomChannel
             var doc = CideIntercomIdentityLatch.Claim(seatRaw!, name!, kind, slot);
             if (doc is null)
                 return Fail("identity_failed", "seat=pf|pm name=… (freeform Who / nick; guest≠citizen model)");
-
-            var sessionArg = Arg(args, "session") ?? Arg(args, "ses") ?? Arg(args, "opencode_session");
-            string? wakeBind = null;
-            if (!string.IsNullOrWhiteSpace(sessionArg))
-            {
-                var bridge = CdpTenantExecutionContext.CurrentSlice?.Key.BridgeSession;
-                CideIntercomBridgeBind.Bind(bridge, sessionArg, name);
-                var harnessArg = Arg(args, "harness");
-                CideIntercomAgents.Claim(name!, kind ?? CideIntercomVoiceLatch.KindGuest, null,
-                    string.IsNullOrWhiteSpace(harnessArg) ? "opencode" : harnessArg.Trim(), sessionArg.Trim());
-                wakeBind = bridge is null
-                    ? "session bound (roster row written; no bridge on this call)"
-                    : "session bound to bridge " + bridge[..Math.Min(8, bridge.Length)] + "… — auto-arms wake this window";
-            }
-
             return JsonSerializer.Serialize(new
             {
                 schema = Schema,
@@ -413,8 +383,7 @@ internal static partial class IdeCideIntercomChannel
                 identity_path = CideIntercomIdentityLatch.LatchPath,
                 identity = IdentityCard(doc),
                 model = slot,
-                wake_bind = wakeBind,
-                hint = "Who claimed: citizen→FM model slot; guest/operator→harness:* (never stomps citizen FM). session= binds wake target (bridge→session)."
+                hint = "Who claimed: citizen→FM model slot; guest/operator→harness:* (never stomps citizen FM)."
             });
         }
 

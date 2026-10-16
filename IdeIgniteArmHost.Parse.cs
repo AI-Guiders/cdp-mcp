@@ -9,32 +9,6 @@ namespace CdpMcp;
 internal sealed partial class CdpIgniteArmHost
 {
     /// <summary>Parse arm args into a new IgniteArm (does not persist).</summary>
-    /// <summary>
-    /// Stable caller identity stamped into every tool call by the OpenCode plugin
-    /// (cdp-session-stamp): the chat session id survives restarts, unlike the bridge GUID.
-    /// </summary>
-    internal static string? CallEmbeddedSession(IReadOnlyDictionary<string, JsonElement> args)
-    {
-        if (!args.TryGetValue("__session", out var el))
-            return null;
-        var value = el.GetString();
-        return !string.IsNullOrWhiteSpace(value) && value.StartsWith("ses_", StringComparison.Ordinal)
-            ? value.Trim()
-            : null;
-    }
-
-    /// <summary>Caller identity for the wake target: conversation id when it IS an opencode
-    /// session, else the bridge→session bind written at identity claim (session=).</summary>
-    internal static string? ResolveCallerSession(string? conversationId = null, string? bridge = null)
-    {
-        conversationId ??= CdpTenantRoutingContext.CurrentConversationId;
-        if (!string.IsNullOrWhiteSpace(conversationId)
-            && conversationId.StartsWith("ses_", StringComparison.Ordinal))
-            return conversationId.Trim();
-        bridge ??= CdpTenantExecutionContext.CurrentSlice?.Key.BridgeSession;
-        return CideIntercomBridgeBind.SessionOf(bridge);
-    }
-
     bool TryCreateArm(IReadOnlyDictionary<string, JsonElement> args, out IgniteArm arm, out object? err)
     {
         arm = null!;
@@ -121,7 +95,7 @@ internal sealed partial class CdpIgniteArmHost
             message = IdeIgniteChannel.CanonicalComposerCharge;
 
         var chargeMode = (Opt(args, "charge") ?? "minimal").Trim().ToLowerInvariant();
-        var session = Opt(args, "session") ?? Opt(args, "opencode_session") ?? CallEmbeddedSession(args);
+        var session = Opt(args, "session") ?? Opt(args, "opencode_session");
         var harnessRaw = (Opt(args, "harness") ?? Opt(args, "host") ?? "").Trim().ToLowerInvariant();
         // Explicit seat: harness=cursor|opencode|citizen. Compat: session= alone ⇒ opencode.
         // Умный дефолт (Света 2026-09-08): нет harness и нет session → резолв ЕДИНСТВЕННОЙ
@@ -134,14 +108,6 @@ internal sealed partial class CdpIgniteArmHost
             if (!string.IsNullOrWhiteSpace(session))
             {
                 harness = "opencode"; // compat: session= alone ⇒ opencode
-            }
-            else if (ResolveCallerSession() is { } caller)
-            {
-                // Caller-first (2026-10-11): арм всегда про окно, которое его создало —
-                // личность вызывающего (conversation id / bridge→session bind), а не
-                // ростер-голосование (эвристика ниже остаётся fallback для старых клиентов).
-                harness = "opencode";
-                session = caller;
             }
             else
             {

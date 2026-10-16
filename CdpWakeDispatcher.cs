@@ -60,6 +60,12 @@ internal sealed class CdpWakeDispatcher
     {
         try
         {
+            // Guard: пустое тело = пустой user-ход = агент сходит с ума.
+            // Не кладём в witdb то, что потом всё равно skip в DeliverAsync,
+            // но может просочиться через SSE watch backlog (TryDeliverDsh напрямую).
+            if (string.IsNullOrWhiteSpace(body))
+                return null;
+
             var envelope = new CdpWakeEnvelopeEntity
             {
                 Id = Guid.NewGuid().ToString("N")[..12],
@@ -461,12 +467,12 @@ internal sealed class CdpWakeDispatcher
                     var json = File.ReadAllText(path);
                     var note = System.Text.Json.JsonSerializer.Deserialize<LegacyArmNote>(json, LegacyOpts);
                     File.Move(path, Path.Combine(done, Path.GetFileName(path)), overwrite: true);
-                    if (note is null || !string.IsNullOrWhiteSpace(note.Body))
+                    if (note is not null && !string.IsNullOrWhiteSpace(note.Body))
                     {
                         _ = Enqueue(KindLetter,
-                            note?.Body ?? "",
-                            nick: note?.Nick,
-                            from: note?.From,
+                            note.Body,
+                            nick: note.Nick,
+                            from: note.From,
                             task: "legacy_arms");
                     }
                 }
