@@ -17,7 +17,7 @@ param(
     [string]$ReleaseTag = "latest",
     [ValidateSet("", "win-x64", "linux-x64", "osx-x64", "osx-arm64")]
     [string]$Runtime = "",
-    [string]$KbPublicRepo = "https://github.com/AI-Guiders/kb-public.git",
+    [string]$KbPublicRepo = "git@github.com:AI-Guiders/kb-public.git",
     [ValidateSet("cursor", "claude", "vscode", "windsurf", "antigravity", "opencode", "none")]
     [string]$HostAdapter = "cursor",
     [switch]$Upgrade,
