@@ -1,5 +1,6 @@
 #nullable enable
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Cdp.Core;
 
 namespace CdpMcp;
@@ -61,6 +62,20 @@ internal static class ExploreCorrNoAdr
                  ?? Directory.GetCurrentDirectory();
         var rel = Rel(ws, abs);
 
+        if (!NamesSource(ws, why))
+        {
+            return JsonSerializer.Serialize(new
+            {
+                schema = ExploreCorrLatch.Schema,
+                ok = false,
+                feature = "no_adr",
+                error = "why_needs_source",
+                hint =
+                    "why= должен предъявить, что прочитано: существующий путь или ADR-id. " +
+                    "Намерение без предъявленного источника — театр; см. CDP-ADR-0031."
+            }, Pretty);
+        }
+
         try
         {
             ExploreCorrLatch.StampNoAdr(ws, rel, why);
@@ -88,6 +103,32 @@ internal static class ExploreCorrNoAdr
             explore_corr = ExploreCorrLatch.Pulse(ws),
             hint = "Latch stamped — Act/mutate green for this locus (TTL). Prefer real corr when ADRs exist."
         }, Pretty);
+    }
+
+    /// <summary>why= обязан предъявить источник: существующий путь или ADR-id. Пустое намерение — театр.</summary>
+    internal static bool NamesSource(string workspaceRoot, string why)
+    {
+        foreach (var raw in why.Split(
+                     [' ', ',', ';', '(', ')', '[', ']', '"', '\'', '`', '\t', '\n'],
+                     StringSplitOptions.RemoveEmptyEntries))
+        {
+            var token = raw.Trim();
+            if (token.Length == 0)
+                continue;
+
+            if (Regex.IsMatch(token, @"ADR[-\s_]?\d{3,4}", RegexOptions.IgnoreCase))
+                return true;
+
+            var candidate = Path.IsPathRooted(token) ? token : Path.Combine(workspaceRoot, token);
+            if (File.Exists(candidate) || Directory.Exists(candidate))
+                return true;
+
+            if (token.Contains('.') &&
+                (File.Exists(Path.Combine(workspaceRoot, token.Replace('.', '/') + ".md"))))
+                return true;
+        }
+
+        return false;
     }
 
     static string Rel(string workspaceRoot, string abs)
