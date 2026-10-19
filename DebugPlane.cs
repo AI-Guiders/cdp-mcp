@@ -30,7 +30,7 @@ internal static partial class DebugPlane
             "bp_add" => await BpAddAsync(session, args, cancellationToken).ConfigureAwait(false),
             "bp_remove" => await BpRemoveAsync(session, args, cancellationToken).ConfigureAwait(false),
             "bp_list" => BpList(session, args),
-            "bp_clear" => BpClear(session, args),
+            "bp_clear" => await BpClearAsync(session, args, cancellationToken).ConfigureAwait(false),
             "launch" => await ForwardAsync(byDomain, "debug_launch", session, args, fillPaths: true, cancellationToken)
                 .ConfigureAwait(false),
             "attach" => await ForwardAsync(byDomain, "debug_attach", session, args, fillPaths: true, cancellationToken)
@@ -213,17 +213,29 @@ internal static partial class DebugPlane
         }, Pretty);
     }
 
-    static string BpClear(SessionContext session, IReadOnlyDictionary<string, JsonElement> args)
+    static async Task<string> BpClearAsync(
+        SessionContext session,
+        IReadOnlyDictionary<string, JsonElement> args,
+        CancellationToken cancellationToken)
     {
         var (ws, target) = RequirePaths(session, args, targetOptional: true);
         BreakpointsStorage.ClearBreakpoints(ws, target);
+
+        // Хранилище очищено — снимаем и живые точки: иначе в адаптере остаются призраки,
+        // которых в хранилище уже нет (DAP setBreakpoints заменяет набор только у присланного файла).
+        var live = target is { Length: > 0 }
+            ? await TryApplyLiveAsync(ws, target, Array.Empty<BreakpointsStorage.BreakpointEntry>(), cancellationToken)
+                .ConfigureAwait(false)
+            : await ClearAllLiveAsync(cancellationToken).ConfigureAwait(false);
+
         return JsonSerializer.Serialize(new
         {
             schema = "debug_bp_clear/v0",
             ok = true,
             workspace_path = ws,
             target_path = target,
-            cleared = target is { Length: > 0 } ? "target" : "workspace"
+            cleared = target is { Length: > 0 } ? "target" : "workspace",
+            live_dap = live
         }, Pretty);
     }
 }

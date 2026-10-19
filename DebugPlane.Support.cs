@@ -41,8 +41,26 @@ internal static partial class DebugPlane
     }
 
     /// <summary>
+    /// Файлы, которые реально ушли в текущую DAP-сессию. Нужны, чтобы снимать точки с файлов,
+    /// выпавших из нового списка: DAP setBreakpoints заменяет набор только у присланного файла,
+    /// поэтому без этого в адаптере остаются точки, которых в хранилище уже нет.
+    /// </summary>
+    static DapClient? LiveBpClient;
+    static readonly HashSet<string> LiveBpFiles = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Новая DAP-сессия — прежний список живых файлов не переносим.</summary>
+    static void ResetLiveBpIfNewSession(DapClient client)
+    {
+        if (ReferenceEquals(LiveBpClient, client))
+            return;
+        LiveBpClient = client;
+        LiveBpFiles.Clear();
+    }
+
+    /// <summary>
     /// If DAP session is live for this workspace/target, push file breakpoints now
     /// (same grouping as launch). Otherwise applied on next launch/attach.
+    /// Files that dropped out of the list are cleared in the adapter — otherwise the live set drifts from storage.
     /// </summary>
     static async Task<object> TryApplyLiveAsync(
         string workspacePath,
@@ -71,22 +89,85 @@ internal static partial class DebugPlane
 
         try
         {
+            ResetLiveBpIfNewSession(client);
+
             var byFile = breakpoints
                 .GroupBy(b => Path.GetFullPath(b.File), StringComparer.OrdinalIgnoreCase)
                 .ToList();
-            foreach (var g in byFile)
+            var wanted = new HashSet<string>(byFile.Select(g => g.Key), StringComparer.OrdinalIgnoreCase);
+
+            // Снять точки с файлов, которые были в сессии и выпали из нового списка.
+            var cleared = new List<string>();
+            foreach (var stale in LiveBpFiles.Where(file => !wanted.Contains(file)).ToList())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var list = g.Select(b => (b.Line, b.Condition)).ToList();
-                await client.SetBreakpointsAsync(g.Key, list, cancellationToken).ConfigureAwait(false);
+                await client.SetBreakpointsAsync(stale, Array.Empty<(int, string?)>(), cancellationToken).ConfigureAwait(false);
+                LiveBpFiles.Remove(stale);
+                cleared.Add(stale);
             }
 
-            return new { applied = true, files = byFile.Count, breakpoints = breakpoints.Count };
+            var verifiedCount = 0;
+            var noVerdict = 0;
+            var unverified = new List<object>();
+            foreach (var group in byFile)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var list = group.Select(b => (b.Line, b.Condition)).ToList();
+                var verdicts = await client.SetBreakpointsWithVerdictsAsync(group.Key, list, cancellationToken).ConfigureAwait(false);
+                if (verdicts.Count == 0)
+                {
+                    // Адаптер не вернул вердикт: это «неизвестно», а не «связано».
+                    noVerdict += list.Count;
+                }
+                else
+                {
+                    foreach (var verdict in verdicts)
+                    {
+                        if (verdict.Verified)
+                            verifiedCount++;
+                        else
+                            unverified.Add(new { file = group.Key, line = verdict.Line, message = verdict.Message });
+                    }
+                }
+
+                LiveBpFiles.Add(group.Key);
+            }
+
+            return new
+            {
+                applied = true,
+                files = byFile.Count,
+                breakpoints = breakpoints.Count,
+                verified = verifiedCount,
+                unverified,
+                verdict_unknown = noVerdict,
+                cleared
+            };
         }
         catch (Exception ex)
         {
             return new { applied = false, reason = "dap_setBreakpoints_failed", error = ex.Message };
         }
+    }
+
+    /// <summary>Снять все живые точки: при очистке по всему workspace конкретный target не важен.</summary>
+    static async Task<object> ClearAllLiveAsync(CancellationToken cancellationToken)
+    {
+        var client = DebugSession.CurrentClient;
+        if (client is null)
+            return new { applied = false, reason = "no_active_dap; will apply on next launch/attach" };
+
+        ResetLiveBpIfNewSession(client);
+        var cleared = new List<string>();
+        foreach (var file in LiveBpFiles.ToList())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await client.SetBreakpointsAsync(file, Array.Empty<(int, string?)>(), cancellationToken).ConfigureAwait(false);
+            LiveBpFiles.Remove(file);
+            cleared.Add(file);
+        }
+
+        return new { applied = true, cleared };
     }
 
     static object WireBp(BreakpointsStorage.BreakpointEntry b) => new
