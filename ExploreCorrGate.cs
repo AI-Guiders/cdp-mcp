@@ -34,8 +34,7 @@ internal static class ExploreCorrGate
     {
         if (!ExploreCorrLatch.IsEnabled())
             return;
-        if (ForceArg(args))
-            return;
+        var forced = ForceArg(args);
         if (string.IsNullOrWhiteSpace(absPath))
             return;
 
@@ -69,6 +68,20 @@ internal static class ExploreCorrGate
         if (ExploreCorrLatch.HasSatisfied(ws, rel))
             return;
 
+        if (forced)
+        {
+            var forceWhy = WhyArg(args);
+            if (string.IsNullOrWhiteSpace(forceWhy) || !ExploreCorrNoAdr.NamesSource(ws, forceWhy))
+            {
+                throw new ArgumentException(
+                    $"{verb} refused — force_why_required: force=true тоже требует why= " +
+                    "с источником (существующий путь или ADR-id); слепой обход — не дверь (CDP-ADR-0031).");
+            }
+
+            ExploreCorrLatch.StampForce(ws, rel, forceWhy);
+            return;
+        }
+
         throw new ArgumentException(
             $"{verb} refused — {RefuseId}: ADR-mapped locus needs Explore full-a — " +
             "cdp_analysis_scene feature=correspondence path= [slim=true] (or feature=no_adr why=…). " +
@@ -80,8 +93,7 @@ internal static class ExploreCorrGate
     {
         if (!ExploreCorrLatch.IsEnabled())
             return null;
-        if (HasForceRoute(route))
-            return null;
+        var forced = HasForceRoute(route);
         if (!IsMutateVerb(route))
             return null;
         if (string.IsNullOrWhiteSpace(route.Path))
@@ -122,6 +134,30 @@ internal static class ExploreCorrGate
         var rel = Rel(ws, full);
         if (ExploreCorrLatch.HasSatisfied(ws, rel))
             return null;
+
+        if (forced)
+        {
+            var raw = route.Raw ?? "";
+            var forceWhy = CitizenIntentRouter.ExtractKeyedValue(raw, "why")
+                           ?? CitizenIntentRouter.ExtractKeyedValue(raw, "reason");
+            if (string.IsNullOrWhiteSpace(forceWhy) || !ExploreCorrNoAdr.NamesSource(ws, forceWhy))
+            {
+                return new CitizenRouteHost.Applied(
+                    route.Raw,
+                    route.Verb.ToString(),
+                    Ok: false,
+                    Action: "refuse",
+                    Path: route.Path,
+                    Go: route.Go,
+                    Cmd: route.Cmd,
+                    Pulse: "force_why_required",
+                    Reason: "force_why_required: force=1 требует why= с источником " +
+                            "(существующий путь или ADR-id); слепой обход — не дверь (CDP-ADR-0031).");
+            }
+
+            ExploreCorrLatch.StampForce(ws, rel, forceWhy);
+            return null;
+        }
 
         return new CitizenRouteHost.Applied(
             route.Raw,
@@ -189,6 +225,21 @@ internal static class ExploreCorrGate
         }
 
         return false;
+    }
+
+    /// <summary>Причина обхода/отсутствия ADR: why= или reason=.</summary>
+    static string? WhyArg(IReadOnlyDictionary<string, JsonElement>? args)
+    {
+        if (args is null)
+            return null;
+
+        foreach (var key in new[] { "why", "reason" })
+        {
+            if (args.TryGetValue(key, out var el) && el.ValueKind == JsonValueKind.String)
+                return el.GetString();
+        }
+
+        return null;
     }
 
     static bool Boolish(IReadOnlyDictionary<string, JsonElement> args, string key)

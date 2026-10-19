@@ -16,6 +16,8 @@ internal static class ExploreCorrLatch
     public const string RefuseId = "explore_corr_missing";
     public const string KindCorr = "corr";
     public const string KindNoAdr = "no_adr";
+    /// <summary>Явный обход гейта (<c>force=true</c>) — тоже со следом и причиной (CDP-ADR-0031).</summary>
+    public const string KindForce = "force";
 
     internal static string? PathOverrideForTests { get; set; }
     internal static bool? EnabledOverrideForTests { get; set; }
@@ -76,6 +78,24 @@ internal static class ExploreCorrLatch
             NormalizeRoot(workspaceRoot),
             NormalizeRel(fileRel),
             KindNoAdr,
+            why.Trim(),
+            AdrCount: 0,
+            DateTimeOffset.UtcNow));
+    }
+
+    /// <summary>
+    /// Обход гейта (<c>force=true</c>) — тоже штампом: дверь остаётся, но проход виден
+    /// и требует причины с источником. Молчаливый обход неотличим от поломки контроля.
+    /// </summary>
+    public static void StampForce(string workspaceRoot, string fileRel, string why)
+    {
+        if (string.IsNullOrWhiteSpace(why))
+            throw new ArgumentException("force requires why= (source: existing path or ADR id).");
+
+        Write(new Stamp(
+            NormalizeRoot(workspaceRoot),
+            NormalizeRel(fileRel),
+            KindForce,
             why.Trim(),
             AdrCount: 0,
             DateTimeOffset.UtcNow));
@@ -194,8 +214,8 @@ internal static class ExploreCorrLatch
            && stamps.Any(s =>
                IsFresh(s, maxAge)
                && MatchesLocus(s, mutateRel)
-               && (s.Kind is KindCorr or KindNoAdr)
-               && (s.Kind != KindNoAdr || !string.IsNullOrWhiteSpace(s.Why)));
+               && (s.Kind is KindCorr or KindNoAdr or KindForce)
+               && (s.Kind == KindCorr || !string.IsNullOrWhiteSpace(s.Why)));
 
     public static bool HasAnyFresh(string workspaceRoot, TimeSpan? maxAge = null)
         => TryReadStamps(workspaceRoot, out var stamps)
