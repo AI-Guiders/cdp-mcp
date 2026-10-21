@@ -96,7 +96,7 @@ internal static class CideWakeChannels
                 var psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = $"/c {QuoteArg(Bin)} run -s {session} {QuoteArg(message)}",
+                    Arguments = BuildRunArguments(session, message),
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
@@ -292,6 +292,29 @@ internal static class CideWakeChannels
             arg.Contains(' ') || arg.Contains('"') || arg.Contains('&')
                 ? "\"" + arg.Replace("\"", "\\\"", StringComparison.Ordinal) + "\""
                 : arg;
+
+    /// <summary>Аргументы CLI-доставки. cmd.exe обрывает команду на переводе строки, поэтому
+    /// многострочное тело charge доходило только первой строкой: терялись course pointer,
+    /// строка TM, amnesia stub и ownership postfix — получатель видел голую фразу и заново
+    /// искал контекст. Тело склеиваем в одну строку до кавычек.</summary>
+    internal static string BuildRunArguments(string session, string message) =>
+        $"/c {QuoteArg(Bin)} run -s {session} {QuoteArg(CollapseForCliArg(message))}";
+
+    /// <summary>Переводы строк → разделитель секций: содержимое charge сохраняется целиком,
+    /// аргумент остаётся однострочным. Обрезка по лимиту командной строки cmd.</summary>
+    internal const int CliArgMaxChars = 6000;
+
+    internal static string CollapseForCliArg(string message)
+    {
+        var t = (message ?? "")
+            .Replace("\r\n", " | ", StringComparison.Ordinal)
+            .Replace("\n", " | ", StringComparison.Ordinal)
+            .Replace("\r", " ", StringComparison.Ordinal)
+            .Trim();
+        return t.Length <= CliArgMaxChars
+            ? t
+            : t[..CliArgMaxChars].TrimEnd() + " …[truncated wake charge]";
+    }
 
         /// <summary>Canonical no-session failure (dispatcher-level guard result).</summary>
         public static object ErrNoSession() =>
