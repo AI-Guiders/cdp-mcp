@@ -341,6 +341,16 @@ internal sealed class CdpWakeDispatcher
                     return e; // pending — session не привязан
                 }
 
+                // TaskKey-адресация: конверт с ключом задачи — только той линии, чья подписка
+                // на этот ключ (TaskFilter). Подписки без фильтра принимают всё — поведение
+                // для нынешних линий не меняется (инцидент tm-wake, пункт 2 от 2026-10-12).
+                if (!string.IsNullOrWhiteSpace(e.TaskKey) && !TaskFilterAllows(e.Nick, e.Kind, e.TaskKey!))
+                {
+                    e.State = "skipped";
+                    e.SkippedReason = "task_filter_mismatch";
+                    return e;
+                }
+
                 // Вежливый почтальон (Света 2026-09-07): письмо перебило генерацию Ток/Тень —
                 // ждём «exiting loop», конверт остаётся pending до завершения хода.
                 if (_transport.IsSessionBusy(session!))
@@ -442,6 +452,26 @@ internal sealed class CdpWakeDispatcher
                 e.SkippedReason = "unknown_harness";
                 return e;
         }
+    }
+
+    /// <summary>Подписка линии на ключ задачи: нет подписки или подписка без фильтра — принимаем
+    /// всё; с фильтром — ключ должен совпасть. Сравнение по event kind: фильтр задачи не должен
+    /// влиять на другие виды событий.</summary>
+    bool TaskFilterAllows(string? nick, string? kind, string taskKey)
+    {
+        var subs = _store.LoadSubscriptions()
+            .Where(s => s.Nick.Equals(nick ?? "", StringComparison.OrdinalIgnoreCase)
+                        && s.EventKind.Equals(kind ?? "", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        var filters = subs
+            .Where(s => !string.IsNullOrWhiteSpace(s.TaskFilter))
+            .Select(s => s.TaskFilter!)
+            .ToList();
+        if (filters.Count == 0)
+            return true; // подписки без фильтра (или без подписки) — всё принимается
+
+        return filters.Any(f => f.Equals(taskKey, StringComparison.OrdinalIgnoreCase)
+                               || taskKey.Contains(f, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>CDP-ADR-0227: доставить dsh-конверт в hub (in-memory SSE) и зафиксировать delivered.</summary>

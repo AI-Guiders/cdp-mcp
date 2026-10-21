@@ -85,6 +85,30 @@ public class CdpWakeDispatcherTests : IDisposable
     }
 
     [Fact]
+    public async Task Letter_with_task_key_reaches_only_subscribed_task()
+    {
+        // Линия подписана на ключ задачи → конверт с чужим ключом не доставляется.
+        var d = Dispatcher(OkTransport());
+        _ = d.Subscribe("Тень", CdpWakeDispatcher.KindLetter, taskFilter: "TM-ключ");
+
+        _ = d.Enqueue(CdpWakeDispatcher.KindLetter, "чужое", nick: "Тень", session: "ses_x",
+            harness: "opencode", task: "чужая-задача");
+        _ = d.Enqueue(CdpWakeDispatcher.KindLetter, "своё", nick: "Тень", session: "ses_y",
+            harness: "opencode", task: "TM-ключ");
+
+        await d.TickAsync(CancellationToken.None);
+
+        var skipped = _store.LoadWake("skipped");
+        Assert.Single(skipped);
+        Assert.Equal("task_filter_mismatch", skipped[0].SkippedReason);
+        Assert.Equal("чужое", skipped[0].Body);
+
+        var delivered = _store.LoadWake("delivered");
+        Assert.Single(delivered);
+        Assert.Equal("своё", delivered[0].Body);
+    }
+
+    [Fact]
     public async Task Busy_session_stays_pending_with_detail()
     {
         var d = Dispatcher(OkTransport(busy: true));
