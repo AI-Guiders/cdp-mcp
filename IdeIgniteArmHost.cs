@@ -36,6 +36,11 @@ internal static partial class IdeIgniteArmHost
         public string? Chat { get; set; }
         /// <summary>ADR-0200: MCP conversation id stamped at arm — fire-time latch lookup.</summary>
         public string? ConversationId { get; set; }
+        /// <summary>Владелец доставки (ник линии). Ставится явно (nick=) или автоматически,
+        /// когда seat взят из реестра линий по умолчанию. Перед доставкой проверяется, что
+        /// владелец всё ещё ведёт ту же сессию — иначе честный отказ, а не будильник чужой
+        /// линии (инцидент tm-wake: 2026-10-12, 2026-10-21).</summary>
+        public string? OwnerNick { get; set; }
         public int Port { get; set; } = IdeIgniteChannel.DefaultPort;
         public bool Once { get; set; } = true;
         /// <summary>Await-operator latch: after successful fire → status=awaiting; block repeat last_once arms.</summary>

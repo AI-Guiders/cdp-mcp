@@ -130,6 +130,19 @@ internal sealed partial class CdpIgniteArmHost
             // Explicit harness seat (agent stamps harness= at arm — installer HostAdapter analogue).
             if (string.Equals(arm.Harness, "opencode", StringComparison.OrdinalIgnoreCase))
             {
+                // Адрес доставки — владелец. Если владелец сменил сессию или неизвестен,
+                // честный отказ: чужая линия не будится (tm-wake, 2026-10-12 / 2026-10-21).
+                if (!OwnerStillOwnsSession(arm, out var ownerErr))
+                {
+                    ApplyFireOutcome(arm, new
+                    {
+                        ok = false,
+                        error = ownerErr,
+                        detail = $"owner '{arm.OwnerNick}' no longer owns session '{arm.OpencodeSession}'"
+                    });
+                    return;
+                }
+
                 MarkSendInvoked(arm.Id);
                 var oc = await IdeIgniteChannel.FireToOpencodeAsync(msg, ct, arm.OpencodeSession).ConfigureAwait(false);
                 ApplyFireOutcome(arm, oc);
@@ -241,6 +254,25 @@ internal sealed partial class CdpIgniteArmHost
     /// </summary>
     internal bool IsSoftDeliveredError(string? error) =>
         string.Equals(error, "became_stop", StringComparison.Ordinal);
+
+    /// <summary>Проверка владельца доставки: арм помнит ник линии, из которой взят seat.
+    /// Перед будильником убеждаемся, что владелец всё ещё ведёт ту же сессию. Иначе — отказ
+    /// (owner_moved / no_owner), а не будильник чужой линии (инцидент tm-wake).</summary>
+    static bool OwnerStillOwnsSession(IgniteArm arm, out string error)
+    {
+        error = "owner_moved";
+        if (string.IsNullOrWhiteSpace(arm.OwnerNick))
+            return true; // явная session= — владельца нет, проверять нечего
+
+        var row = CideIntercomAgents.Resolve(arm.OwnerNick);
+        if (row is null)
+        {
+            error = "no_owner";
+            return false;
+        }
+
+        return string.Equals(row.Session, arm.OpencodeSession, StringComparison.OrdinalIgnoreCase);
+    }
 
     void ApplyFireOutcome(IgniteArm arm, object? result)
     {

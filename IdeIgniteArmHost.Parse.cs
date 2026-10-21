@@ -96,6 +96,8 @@ internal sealed partial class CdpIgniteArmHost
 
         var chargeMode = (Opt(args, "charge") ?? "minimal").Trim().ToLowerInvariant();
         var session = Opt(args, "session") ?? Opt(args, "opencode_session");
+        // Владелец доставки: явный nick=/owner= либо ник линии, из которой взят seat по умолчанию.
+        var ownerNick = Opt(args, "owner") ?? Opt(args, "nick");
         var harnessRaw = (Opt(args, "harness") ?? Opt(args, "host") ?? "").Trim().ToLowerInvariant();
         // Explicit seat: harness=cursor|opencode|citizen. Compat: session= alone ⇒ opencode.
         // Умный дефолт (Света 2026-09-08): нет harness и нет session → резолв ЕДИНСТВЕННОЙ
@@ -124,6 +126,7 @@ internal sealed partial class CdpIgniteArmHost
 
                 harness = seat.Harness;
                 session = seat.Session;
+                ownerNick ??= seat.Nick;
             }
         }
         else
@@ -158,6 +161,7 @@ internal sealed partial class CdpIgniteArmHost
             Chat = chat,
             Harness = harness,
             OpencodeSession = session,
+            OwnerNick = ownerNick,
             SdkAgentId = Opt(args, "sdk_agent_id") ?? Opt(args, "agent_id"),
             ForceCdt = OptBool(args, "force_cdt") ?? false,
             CursorFirePolicy = Opt(args, "fire_policy") ?? Opt(args, "cursor_fire_policy"),
