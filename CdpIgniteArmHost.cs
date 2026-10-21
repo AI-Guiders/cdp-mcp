@@ -16,7 +16,13 @@ internal sealed partial class CdpIgniteArmHost
 {
     /// <summary>Порт коллекций cdp-state.witdb (ADR-0219). Default — профильный state root;
     /// тесты инжектируют временный root своим стором.</summary>
-    readonly ICdpStateStore Store;
+    readonly ICdpStateStore _store;
+
+    /// <summary>Эффективный стор армов: в тестах — изолированный temp-стор
+    /// (<see cref="CdpStateStoreOverride"/>). Без этого прогон тестов писал армы
+    /// (shell-bg-*) в боевой cdp-state.witdb: живой CdpService подхватывал их и будил
+    /// реальные линии — opencode run -s &lt;placeholder session&gt; "&lt;charge&gt;".</summary>
+    ICdpStateStore Store => CdpStateStoreOverride.ForTests ?? _store;
 
     /// <summary>Id армов, известные хосту с последней загрузки/reload — diff против текущих Arms
     /// даёт drop-список для SyncArms (строки сиблингов не трогаются).</summary>
@@ -44,7 +50,7 @@ internal sealed partial class CdpIgniteArmHost
     internal CdpIgniteArmHost(TimeProvider? time = null, ICdpStateStore? store = null)
     {
         _time = time ?? TimeProvider.System;
-        Store = store ?? new WitDbCdpStateStore(new ProfileStateRootProvider());
+        _store = store ?? new WitDbCdpStateStore(new ProfileStateRootProvider());
     }
 
     string ResolveSeat()

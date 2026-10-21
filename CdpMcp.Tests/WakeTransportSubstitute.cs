@@ -28,5 +28,20 @@ internal static class WakeTransportSubstitute
         File.WriteAllText(roster,
             "2026-09-08T00:00:00Z\tnick=Тестовик\tkind=guest\tline=line-test\tharness=opencode\tsession=ses_test0000000000000000000\n");
         CideIntercomAgents.WitDbPathOverride = () => roster;
+
+        // Герметичный CDP-стор: тесты не пишут в боевой %LocalAppData%/cdp-mcp/cdp-state.witdb.
+        // Без этого прогон тестов оставлял там свои армы (shell-bg-* → opencode_session=<placeholder>),
+        // и живой CdpService их подхватывал: opencode run -s <placeholder> "<charge>" — будилась реальная линия.
+        TestStateRoot = Path.Combine(Path.GetTempPath(), "cdp-mcp-test-state", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(TestStateRoot);
+        CdpStateStoreOverride.ForTests = new WitDbCdpStateStore(new FixedStateRoot(TestStateRoot));
+    }
+
+    /// <summary>Temp-root изолированного CDP-стора (см. Init).</summary>
+    internal static string TestStateRoot { get; private set; } = "";
+
+    sealed class FixedStateRoot(string root) : IStateRootProvider
+    {
+        public string ResolveStateRoot() => root;
     }
 }

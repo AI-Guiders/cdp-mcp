@@ -31,7 +31,7 @@ internal static class CideWakeDispatch
     static CdpWakeDispatcher BuildDefault() => new(
         new IntercomAgentsRoster(),
         RealOpencodeWakeTransport.Instance,
-        new WitDbCdpStateStore(new ProfileStateRootProvider()),
+        CdpStateStoreOverride.ForTests ?? new WitDbCdpStateStore(new ProfileStateRootProvider()),
         stateRoot: new ProfileStateRootProvider());
 
     public static string StorePath =>

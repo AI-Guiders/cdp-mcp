@@ -40,6 +40,15 @@ internal sealed class IntercomAgentsRoster : IAgentRoster
         CideIntercomAgents.Claim(nick, kind, lineId, harness, session);
 }
 
+/// <summary>Тестовый шов для CDP-стора: боевой cdp-state.witdb не пишется из тестов.
+/// Без шва прогон тестов оставлял в живом сторе армы (shell-bg-*) и конверты очереди:
+/// живой CdpService подхватывал их и будил реальные линии (opencode run -s &lt;session&gt;).
+/// Тесты подменяют стор на temp-root (CdpMcp.Tests/WakeTransportSubstitute).</summary>
+internal static class CdpStateStoreOverride
+{
+    internal static ICdpStateStore? ForTests { get; set; }
+}
+
 /// <summary>Порт коллекций cdp-state.witdb, привязанный к state root на композиции
 /// (ADR-0219 §DI.4: инстанс стора собирается один раз от провайдера root).</summary>
 internal sealed class WitDbCdpStateStore : ICdpStateStore
