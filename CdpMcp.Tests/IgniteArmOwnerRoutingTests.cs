@@ -91,10 +91,30 @@ public sealed class IgniteArmOwnerRoutingTests : IDisposable
             IdeIgniteChannel.Handle(ArmArgs(id, "НикНеВРеестре"));
             FireShellFinished();
 
-            var after = WaitForSettled(id);
+            // Статус арма после отказа обязан стать терминальным, а не остаться «firing».
+            var seen = new List<string>();
+            var deadline = DateTime.UtcNow.AddSeconds(8);
+            IdeIgniteArmHost.IgniteArm? after = null;
+            while (DateTime.UtcNow < deadline)
+            {
+                var arm = IdeIgniteArmHost.Snapshot().FirstOrDefault(a => a.Id == id);
+                if (arm is not null)
+                {
+                    if (seen.Count == 0 || seen[^1] != arm.Status)
+                        seen.Add(arm.Status);
+                    after = arm;
+                    if (arm.Status == "error" || arm.Status == "awaiting" || arm.Status == "armed")
+                        break;
+                }
+                Thread.Sleep(100);
+            }
+
             Assert.NotNull(after);
             Assert.Equal(false, after!.SendOk);
             Assert.Equal("no_owner", after.SendError);
+            Assert.True(
+                after.Status is "error" or "awaiting" or "armed",
+                $"status={after.Status} seen=[{string.Join("→", seen)}] sendOk={after.SendOk} sendError={after.SendError}");
         }
         finally
         {
