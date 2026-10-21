@@ -8,7 +8,7 @@ public sealed class BufferLanguageRulesTests
     [Theory]
     [InlineData("Module.fs", "fsharp")]
     [InlineData("Deck.catalog.gdl", "gdl")]
-    [InlineData("report.dashspec", "dashspec")]
+    [InlineData("report.ds", "dashspec")]
     [InlineData("App.cs", "csharp")]
     [InlineData("index.ts", "typescript")]
     [InlineData("script.ps1", "powershell")]

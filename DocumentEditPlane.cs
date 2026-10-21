@@ -79,6 +79,15 @@ internal static partial class DocumentEditPlane
         };
     }
 
+    /// <summary>
+    /// Clean buffer + disk drift → take disk text (VS Reload) before read-side ops.
+    /// Dirty keeps memory (unsaved edits win); keep_disk silences drift and is respected.
+    /// Without this, read/diagnostics serve stale text after an outside edit — the
+    /// in-memory version never changes, so force/refresh never re-read the disk.
+    /// </summary>
+    static DocBuffer ReloadIfCleanDrifted(DocumentBufferStore store, DocBuffer buf) =>
+        buf.Dirty || !buf.ProbeDiskChanged(out _, out _) ? buf : store.ReloadFromDisk(buf.Path);
+
     static string Reload(
         DocumentBufferStore store,
         SessionContext session,
@@ -255,7 +264,7 @@ internal static partial class DocumentEditPlane
     {
         var path = OptString(args, "path");
         var resolved = path is { Length: > 0 } ? DocumentAnchorEdit.ResolveUserPath(session, path) : null;
-        var buf = store.Resolve(resolved, OptString(args, "doc_id"));
+        var buf = ReloadIfCleanDrifted(store, store.Resolve(resolved, OptString(args, "doc_id")));
         EditorComfort.RememberFile(buf.Path);
         EditorComfort.PushLocus(session, buf.Path);
         int? start = IntOrNull(args, "start_line");

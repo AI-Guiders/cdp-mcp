@@ -15,7 +15,8 @@ internal static partial class DocumentEditPlane
     {
         var path = OptString(args, "path");
         var resolved = path is { Length: > 0 } ? DocumentAnchorEdit.ResolveUserPath(session, path) : null;
-        var buf = store.Resolve(resolved, OptString(args, "doc_id"));
+        // Outside edit landed: clean buffer takes disk before diagnosing (dirty keeps memory).
+        var buf = ReloadIfCleanDrifted(store, store.Resolve(resolved, OptString(args, "doc_id")));
         var flush = BoolOr(args, "flush", defaultValue: true);
         // force=true → recompute even if version unchanged. refresh=false kept as soft "prefer cache".
         var force = BoolOr(args, "force", defaultValue: false);

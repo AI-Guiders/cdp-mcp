@@ -62,4 +62,76 @@ public sealed class LrcBufferDiagnosticsTests
             IdeLanguageTools.Configure(LanguageRegistry.Default);
         }
     }
+
+    [Fact]
+    public async Task Buffer_diagnostics_reloads_clean_buffer_after_outside_edit()
+    {
+        IdeLanguageTools.Configure(LanguageRegistry.Default);
+        IdeLanguageTools.BindDocumentStore(null);
+
+        var root = Path.Combine(Path.GetTempPath(), "cdp-lrc-reload-" + Path.GetRandomFileName());
+        Directory.CreateDirectory(root);
+        var path = Path.Combine(root, "Broken.fs");
+        var store = new DocumentBufferStore();
+        var session = new SessionContext
+        {
+            ProjectRoot = root,
+            Language = CdpLanguages.Fsharp,
+        };
+
+        try
+        {
+            store.Create(path, "module Broken\nlet x = (\n", overwrite: true);
+
+            // Baseline: the broken text diagnoses an error (fills the cache).
+            var rawBroken = await DocumentEditPlane.DispatchAsync(
+                "cdp_buffer",
+                store,
+                session,
+                new Dictionary<string, ICdpBackendModule>(),
+                new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["op"] = JsonSerializer.SerializeToElement("diagnostics"),
+                    ["path"] = JsonSerializer.SerializeToElement(path),
+                    ["force"] = JsonSerializer.SerializeToElement(true),
+                },
+                default);
+            using (var broken = JsonDocument.Parse(rawBroken))
+            {
+                Assert.True(HasErrorItem(broken));
+            }
+
+            // Outside edit: fix the file on disk without touching the buffer plane.
+            // Bump mtime so the drift probe is deterministic regardless of fs tick resolution.
+            File.WriteAllText(path, "module Broken\nlet x = 1\n");
+            File.SetLastWriteTimeUtc(path, DateTime.UtcNow.AddSeconds(5));
+
+            // Clean buffer must take the disk text before diagnosing — no stale error.
+            var rawFixed = await DocumentEditPlane.DispatchAsync(
+                "cdp_buffer",
+                store,
+                session,
+                new Dictionary<string, ICdpBackendModule>(),
+                new Dictionary<string, JsonElement>(StringComparer.Ordinal)
+                {
+                    ["op"] = JsonSerializer.SerializeToElement("diagnostics"),
+                    ["path"] = JsonSerializer.SerializeToElement(path),
+                },
+                default);
+            using (var fixedDoc = JsonDocument.Parse(rawFixed))
+            {
+                Assert.False(HasErrorItem(fixedDoc));
+            }
+        }
+        finally
+        {
+            try { Directory.Delete(root, recursive: true); } catch { /* ignore */ }
+            IdeLanguageTools.Configure(LanguageRegistry.Default);
+        }
+    }
+
+    static bool HasErrorItem(JsonDocument doc) =>
+        doc.RootElement.GetProperty("diagnostics").TryGetProperty("items", out var items)
+        && items.GetArrayLength() > 0
+        && items.EnumerateArray().Any(d => d.GetProperty("severity").GetString() == "error");
 }
