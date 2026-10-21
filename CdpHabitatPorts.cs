@@ -88,4 +88,9 @@ internal sealed class CdpHabitatOptions
 
     /// <summary>Глобальная доставка-пауза, если в queue_state ещё не записано значение.</summary>
     public int DefaultDeliveryCooldownSeconds { get; init; } = 15;
+
+    /// <summary>Сколько ждать непривязанную цель (no_session / no_registry), прежде чем
+    /// конверт станет терминальным skip с причиной misroute. Раньше такой конверт висел
+    /// pending вечно и стоял первым в очереди (инцидент tm-wake, 2026-10-12).</summary>
+    public int WakeTargetMissingMaxAgeMinutes { get; init; } = 30;
 }

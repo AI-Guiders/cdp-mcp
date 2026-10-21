@@ -268,6 +268,17 @@ internal sealed class CdpWakeDispatcher
 
             var result = await DeliverAsync(e, harnessCdt, ct).ConfigureAwait(false);
 
+            // Цель не появилась (нет сессии или нет записи в ростере) — не ретраим бесконечно:
+            // по истечении окна конверт становится терминальным skip с причиной misroute,
+            // чтобы мёртвая цель не стояла первой в очереди (инцидент tm-wake, 2026-10-12).
+            if (result.State == "pending"
+                && result.SkippedReason is "no_registry" or "no_session"
+                && now - e.StampedUtc >= TimeSpan.FromMinutes(_options.WakeTargetMissingMaxAgeMinutes))
+            {
+                result.State = "skipped";
+                result.Detail = $"misroute: target not bound after {_options.WakeTargetMissingMaxAgeMinutes} min";
+            }
+
             if (result.State == "delivered")
             {
                 _lastDeliveryUtc = now;

@@ -62,6 +62,29 @@ public class CdpWakeDispatcherTests : IDisposable
     }
 
     [Fact]
+    public async Task Unbound_target_becomes_terminal_misroute_after_bound()
+    {
+        // Линия есть, но сессии не привязано → no_session. Такой конверт не должен
+        // висеть pending вечно: по истечении окна — терминальный skip с причиной misroute.
+        _roster.Resolve("Тень").Returns(
+            new CideIntercomAgents.AgentRow("Тень", "citizen", null, "opencode", null, _time.GetUtcNow()));
+        var d = Dispatcher(OkTransport());
+        _ = d.Enqueue(CdpWakeDispatcher.KindLetter, "привет", nick: "Тень");
+
+        await d.TickAsync(CancellationToken.None);
+        Assert.Single(_store.LoadWake("pending"));
+
+        _time.Advance(TimeSpan.FromMinutes(45));
+        await d.TickAsync(CancellationToken.None);
+
+        var skipped = _store.LoadWake("skipped");
+        Assert.Single(skipped);
+        Assert.Equal("no_session", skipped[0].SkippedReason);
+        Assert.Contains("misroute", skipped[0].Detail ?? "", StringComparison.Ordinal);
+        Assert.Empty(_store.LoadWake("pending"));
+    }
+
+    [Fact]
     public async Task Busy_session_stays_pending_with_detail()
     {
         var d = Dispatcher(OkTransport(busy: true));
