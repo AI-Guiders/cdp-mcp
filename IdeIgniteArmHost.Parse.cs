@@ -113,15 +113,31 @@ internal sealed partial class CdpIgniteArmHost
             }
             else
             {
-                var seat = CideIntercomAgents.ResolveDefaultSeat(out var liveLines);
+                // Приоритет адресата: исполнитель активного листа (~Executor) — если это
+                // известная реестру линия. Иначе — умолчание «единственная живая opencode-линия»
+                // (ResolveDefaultSeat): Executor — это «кто» (Света|Кир|Sierra), он может и не
+                // быть линией из реестра, и тогда дежурная линия остаётся адресатом.
+                var executor = TryResolveLeafExecutor();
+                IReadOnlyList<CideIntercomAgents.AgentRow> liveLines = Array.Empty<CideIntercomAgents.AgentRow>();
+                CideIntercomAgents.AgentRow? seat = null;
+                if (executor is { Length: > 0 } ex)
+                {
+                    var row = CideIntercomAgents.Resolve(ex);
+                    if (row is not null && !string.IsNullOrWhiteSpace(row.Session))
+                        seat = row;
+                }
                 if (seat is null)
                 {
-                    err = liveLines.Count == 0
-                        ? Err("arm", "no_live_line",
-                            "no explicit harness and no live opencode line in the roster (witdb) — arm refused; stamp harness= explicitly or claim a line (cdp_intercom identity)")
-                        : Err("arm", "ambiguous_live_line",
-                            $"multiple live opencode lines in the roster ({string.Join(", ", liveLines.Select(l => $"{l.Nick}={l.Session ?? "?"}"))}) — default seat refused: «freshest» is not necessarily the caller (2026-09-08: timer-arms were waking Tok); pass session= explicitly");
-                    return false;
+                    seat = CideIntercomAgents.ResolveDefaultSeat(out liveLines);
+                    if (seat is null)
+                    {
+                        err = liveLines.Count == 0
+                            ? Err("arm", "no_live_line",
+                                "no explicit harness, no leaf executor in the roster, and no live opencode line in the roster (witdb) — arm refused; stamp harness= explicitly or claim a line (cdp_intercom identity)")
+                            : Err("arm", "ambiguous_live_line",
+                                $"multiple live opencode lines in the roster ({string.Join(", ", liveLines.Select(l => $"{l.Nick}={l.Session ?? "?"}"))}) — default seat refused: «freshest» is not necessarily the caller (2026-09-08: timer-arms were waking Tok); pass session= explicitly");
+                        return false;
+                    }
                 }
 
                 harness = seat.Harness;
@@ -178,6 +194,35 @@ internal sealed partial class CdpIgniteArmHost
         };
         StampTenantWire(arm);
         return true;
+    }
+
+    /// <summary>Исполнитель активного TM-листа (Stage ~Executor) — предпочтительный адресат
+    /// доставки. Пусто, если листа нет или исполнитель не задан. Это «кто» (Sierra|Кир|Света…),
+    /// не обязательно линия из реестра — тогда адресатом остаётся умолчание по реестру.</summary>
+    string? TryResolveLeafExecutor()
+    {
+        try
+        {
+            if (!IdeStageCycle.TryWorkspace(out var store, out var state, out _))
+                return null;
+            var leafId = ResolveWakeLeafId(store, state);
+            if (leafId is not { } id)
+                return null;
+            var snap = store.TaskManagerSnapshot(state);
+            foreach (var feature in snap.Features)
+            {
+                foreach (var stage in feature.Stages)
+                {
+                    if (stage.Id != id) continue;
+                    return string.IsNullOrWhiteSpace(stage.Executor) ? null : stage.Executor.Trim();
+                }
+            }
+            return null;
+        }
+        catch
+        {
+            return null; // нет workspace/листа — умолчание по реестру
+        }
     }
 
     bool ResolveLastOnce(IReadOnlyDictionary<string, JsonElement> args)
