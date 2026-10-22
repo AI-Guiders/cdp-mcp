@@ -93,6 +93,17 @@ internal static class CideWakeChannels
         {
             try
             {
+                // Адресат должен существовать: `opencode run -s <id>` создаёт несуществующую
+                // сессию (зомби). Точно известное «нет такой сессии» → честный отказ;
+                // неизвестно (нет стора/схемы) → доставляем, как раньше (fail-open).
+                var exists = OpencodeSessionIndex.Exists(session);
+                if (exists == false)
+                {
+                    return Err("no_session",
+                        $"opencode session '{session}' not found in the store — wake refused (opencode run -s would create a zombie session)",
+                        404);
+                }
+
                 var psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
