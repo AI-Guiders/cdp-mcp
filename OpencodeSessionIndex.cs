@@ -42,9 +42,12 @@ internal static class OpencodeSessionIndex
                     if (command.ExecuteScalar() is not null)
                         return true;
                 }
-                catch (SqliteException)
+                catch (SqliteException ex)
                 {
-                    // такой таблицы нет — пробуем следующую (схема opencode менялась)
+                    // Нет такой таблицы (схема opencode менялась) — пробуем следующую.
+                    // Любая другая ошибка чтения → неизвестно: пробуждение не теряем.
+                    if (!ex.Message.Contains("no such table", StringComparison.OrdinalIgnoreCase))
+                        return null;
                 }
             }
 
