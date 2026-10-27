@@ -76,6 +76,7 @@ internal static class CdpBridgeToolsCache
         {
             Name = t.Name,
             Description = t.Description,
-            InputSchema = t.InputSchema
+            InputSchema = t.InputSchema,
+            OutputSchema = t.OutputSchema
         }).ToList();
 }

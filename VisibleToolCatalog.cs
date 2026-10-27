@@ -148,7 +148,11 @@ internal static class VisibleToolCatalog
             {
                 Name = a.PrefixedName,
                 Description = $"[{a.Domain}] {schemaTool.Description}",
-                InputSchema = schema
+                InputSchema = schema,
+                // Facade-declared result contracts (e.g. AgentNotes string
+                // reports) ride through — code-mode clients render them as
+                // typed signatures instead of an opaque unknown.
+                OutputSchema = schemaTool.OutputSchema
             });
         }
         return meta.Concat(ide).Concat(domainTools).ToList();

@@ -21,6 +21,7 @@ internal static class CdpServiceHost
 
     internal static async Task<int> RunAsync(string configPath, string[] args, CancellationToken cancellationToken = default)
     {
+        Console.Error.WriteLine($"CdpService: mcp-json relaxed = {AgentNotes.Core.McpJsonRelax.EnsureRelaxed()}");
         CdpServiceProcessReclaim.Ensure();
         // ADR-0212 stage (d): the postman lives in the tower — polls per-line wake
         // notes (arms/line-*.json) and delivers them to registered opencode sessions.
@@ -173,13 +174,17 @@ internal static class CdpServiceHost
             {
                 capabilitiesRev = rev,
                 // Bridge ListTools needs inputSchema — name/description alone yields empty schemas in Cursor.
+                // outputSchema rides along so code-mode clients can render typed result signatures.
                 tools = rt.ListTools().Select(t => new
                 {
                     name = t.Name,
                     description = t.Description,
                     inputSchema = t.InputSchema.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
                         ? JsonSerializer.SerializeToElement(new { type = "object", properties = new { } })
-                        : t.InputSchema
+                        : t.InputSchema,
+                    outputSchema = t.OutputSchema is { ValueKind: not JsonValueKind.Undefined and not JsonValueKind.Null }
+                        ? t.OutputSchema.Value
+                        : (System.Text.Json.JsonElement?)null
                 }).ToArray()
             });
         });

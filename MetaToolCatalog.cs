@@ -15,10 +15,13 @@ internal static partial class MetaToolCatalog
     static IReadOnlyList<Tool> BuildOnce() =>
         [..Core(), ..CorePeek(), ..CoreSuggest(), ..CoreOps(), ..SoftInstruments(), ..SoftOps(), ..IdeLifecycle(), ..IdePkg(), ..HubShell()];
 
-    static Tool Meta(string name, string desc, object schema) => new()
+    static Tool Meta(string name, string desc, object schema, object? outputSchema = null) => new()
     {
         Name = name,
         Description = desc,
-        InputSchema = JsonSerializer.SerializeToElement(schema)
+        InputSchema = JsonSerializer.SerializeToElement(schema),
+        OutputSchema = outputSchema is null
+            ? null
+            : JsonSerializer.SerializeToElement(outputSchema)
     };
 }

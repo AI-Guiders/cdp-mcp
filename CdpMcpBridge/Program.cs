@@ -7,6 +7,8 @@ using ModelContextProtocol.Server;
 using Tomlyn;
 using Tool = ModelContextProtocol.Protocol.Tool;
 
+Console.Error.WriteLine($"CdpMcpBridge: mcp-json relaxed = {McpJsonRelax.EnsureRelaxed()}");
+
 var load = CdpBridgeConfigLoader.Load(args);
 if (load.IsHelp)
 {
@@ -82,7 +84,10 @@ var options = new McpServerOptions
                                 Description = t.Description,
                                 InputSchema = t.InputSchema.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
                                     ? JsonSerializer.SerializeToElement(new { type = "object", properties = new { } })
-                                    : t.InputSchema
+                                    : t.InputSchema,
+                                OutputSchema = t.OutputSchema is { ValueKind: not JsonValueKind.Undefined and not JsonValueKind.Null }
+                                    ? t.OutputSchema
+                                    : null
                             })
                             .ToList();
                         if (rev > 0)
@@ -208,6 +213,9 @@ internal sealed class CdpCapabilityTool
     public string Name { get; set; } = "";
     public string? Description { get; set; }
     public JsonElement InputSchema { get; set; }
+    /// <summary>Optional structured-output contract (SEP-1306/SEP-2106): lets
+    /// code-mode clients render a typed result signature for this tool.</summary>
+    public JsonElement? OutputSchema { get; set; }
 }
 
 internal sealed class CdpInvokeRequest

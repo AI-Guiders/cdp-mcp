@@ -309,11 +309,32 @@ internal sealed class CdpBridgeInvokeRouter
                 Success = false,
                 Body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)
             };
-        return new CallToolResult
+
+        // Successful CdpService bodies are already JSON — ride them as
+        // structuredContent so code-mode clients get machine-shaped results
+        // instead of re-parsing the text block. Text stays for plain clients.
+        System.Text.Json.JsonElement? structured = null;
+        if (body.Success && !string.IsNullOrWhiteSpace(body.Body))
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(body.Body);
+                structured = doc.RootElement.Clone();
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                // non-JSON body (plain text report) — no structured payload
+            }
+        }
+
+        var result = new CallToolResult
         {
             Content = [new TextContentBlock { Text = body.Body }],
             IsError = !body.Success
         };
+        if (structured is not null)
+            result.StructuredContent = structured;
+        return result;
     }
 
     static CallToolResult Ok(string body) =>
@@ -397,7 +418,7 @@ internal sealed class CdpBridgeInvokeRouter
             service_url = _settings.BaseUrl.ToString(),
             hint = "CdpService is restarting during durable deploy. Bridge reads lifecycle from disk; " +
                    "cdp_deploy apply/hard/rollout blocks until job completes. No terminal_* escape."
-        }, new JsonSerializerOptions { WriteIndented = true });
+        }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
     }
 }
 
