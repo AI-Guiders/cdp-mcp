@@ -35,6 +35,64 @@ internal static partial class MetaToolCatalog
             structured_only = new { type = "boolean", description = "Omit numbered text block" },
             mode = new { type = "string", description = "outline: structural section map for md/json/yaml/toml (cheap markers); else normal file read" }
         }
+    }, new
+    {
+        type = "object",
+        properties = new
+        {
+            schema = new { type = "string", description = "Envelope version." },
+            ok = new { type = "boolean" },
+            tool = new { type = "string", description = "cdp_peek." },
+            mode = new { type = "string", description = "file (single read) | batch (paths[]) | image | find (query=) | outline (structural map)." },
+            path = new { type = "string", description = "Absolute path (file/image/outline/error branches)." },
+            rel = new { type = "string", description = "Project-relative path." },
+            total_lines = new { type = "integer", description = "file/outline: whole-file line count." },
+            offset = new { type = "integer", description = "file: 1-based first returned line." },
+            limit = new { type = "integer", description = "file: window size." },
+            returned = new { type = "integer", description = "file: lines actually returned." },
+            has_more = new { type = "boolean", description = "file: more lines below the window." },
+            next_offset = new { type = "integer", description = "file: offset= for the next window (null at EOF)." },
+            chars = new { type = "integer", description = "file: approximate payload size." },
+            text = new { type = "string", description = "file: numbered text block (omit with structured_only=true)." },
+            lines = new
+            {
+                type = "array",
+                description = "file: per-line records for the mutate chain (omit with text_only=true).",
+                items = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        n = new { type = "integer", description = "1-based line number." },
+                        text = new { type = "string" },
+                        anchor = new { type = "string", description = "[F:…;L:n;] wire — feed cdp_edit_sniper / cdp_buffer anchor=." }
+                    },
+                    required = new[] { "n", "text" }
+                }
+            },
+            count = new { type = "integer", description = "batch: files peeked | find: hit windows | outline: entries." },
+            truncated = new { type = "boolean", description = "batch: shared char budget exhausted." },
+            files = new { type = "array", items = new { type = "object" }, description = "batch: per-file results, same shape as a single peek." },
+            bytes = new { type = "integer", description = "image: file size | file_too_large: offending size." },
+            extension = new { type = "string", description = "image: e.g. .png (cdp_see for vision)." },
+            max_bytes = new { type = "integer", description = "file_too_large: cap." },
+            query = new { type = "string", description = "find: the needle." },
+            regex = new { type = "boolean", description = "find: regex interpretation applied." },
+            glob = new { type = "string", description = "find: normalized rg glob." },
+            scope = new { type = "string", description = "find: search scope." },
+            windows = new { type = "array", items = new { type = "object" }, description = "find: { hit{anchor,path,rel,line,preview}, peek } per match — anchor feeds the sniper chain." },
+            find = new { type = "object", description = "find: raw find report on failure or zero hits." },
+            ext = new { type = "string", description = "outline: file extension." },
+            kind = new { type = "string", description = "outline: markdown|json|yaml|toml." },
+            supported = new { type = "boolean", description = "outline: false when no cheap markers." },
+            entries = new { type = "array", items = new { type = "object" }, description = "outline: structural entries (title/line/level)." },
+            error = new { type = "string", description = "not_found | binary | file_too_large | batch_too_large | no_store (ok=false)." },
+            detail = new { type = "string", description = "Error detail." },
+            bind_note = new { type = "string", description = "Lazy project-bind note on first peek." },
+            outline_hint = new { type = "string", description = "file: pointer when mode=outline would be cheaper." },
+            hint = new { type = "string", description = "Next-step hint (mutate chain / retry / narrow)." }
+        },
+        required = new[] { "schema", "ok", "tool" }
     })
     ];
 }

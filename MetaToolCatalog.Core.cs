@@ -46,6 +46,40 @@ internal static partial class MetaToolCatalog
             path = new { type = "string", description = "File or directory (.sln, .csproj, tsconfig.json, source file, or folder). Optional if recent_index set or Recent non-empty." },
             recent_index = new { type = "integer", description = "Optional 0-based Open Recent index (0 = last opened)." }
         }
+    }, new
+    {
+        type = "object",
+        properties = new
+        {
+            root = new { type = "string", description = "Session project root (absolute)." },
+            kind = new { type = "string", description = "Detected project kind (sln/csproj/folder/tsconfig…)." },
+            language = new { type = "string", description = "Detected language id; null for plain folder." },
+            anchors = new { type = "array", items = new { type = "string" }, description = "Detected anchor paths (.sln/.csproj/tsconfig.json)." },
+            solution_or_project_path = new { type = "string", description = "Session solution/project anchor." },
+            tsconfig_path = new { type = "string" },
+            scm_root = new { type = "string", description = "Git root resolved from project root." },
+            scm_risk = new { type = "string", description = "'ancestor' when scm root sits above the project root." },
+            scm_note = new { type = "string" },
+            buffers_parked = new { type = "integer", description = "Clean buffers closed on open." },
+            buffers_kept_dirty = new { type = "integer" },
+            buffers_kept_dirty_paths = new { type = "array", items = new { type = "string" } },
+            buffer_note = new { type = "string" },
+            session_phase = new { type = "string", description = "Phase after open (explore)." },
+            session_object = new { type = "string", description = "Object kind after open (code)." },
+            recent_count = new { type = "integer" },
+            recent_store = new { type = "string", description = "Open-recent store location." },
+            lsp_preset = new { type = "string", description = "LSP pool preset id for the language (null when none)." },
+            canon_lang = new { type = "string", description = "Writing-canon effective language (ADR-0207)." },
+            canon_lang_source = new { type = "string" },
+            canon_stack = new { type = "array", items = new { type = "object" }, description = "Canon route for re-anchor after compact." },
+            add_root = new { type = "boolean", description = "add_root=true call: extra root attached, primary unchanged." },
+            duplicate = new { type = "boolean", description = "add_root=true: root already in session." },
+            primary = new { type = "string", description = "add_root=true: unchanged primary root." },
+            extra_roots = new { type = "array", items = new { type = "string" }, description = "add_root=true: all session roots." },
+            note = new { type = "string" },
+            list_changed = new { type = "boolean", description = "Tool catalog shortlist refreshed after open (capabilitiesRev bump rides separately)." }
+        },
+        required = new[] { "root", "kind" }
     }),
     Meta("cdp_buffer", "File buffer plane: op=scene|open|create|put|take|share|read|edit|diagnostics|close|reload|keep_disk|disk_peek + comfort undo|redo|history|copy|cut|paste|clipboard|find|…. put= dump draft; share with=operator|self (inbox/shelf + thin chat); share from=self|latest (pull shelf body into tool result); take= file span into agent (rare). Instant Save. Anchors: edit_op=anchor + place=before|after|into|end|replace (default replace). Relative path= → ProjectRoot.", new
     {
@@ -132,6 +166,52 @@ internal static partial class MetaToolCatalog
             flush = new { type = "boolean", description = "apply mutate: Instant Save per step (default true)" },
             skip_validate = new { type = "boolean", description = "apply: skip pre-validate (default false)" }
         }
+    }, new
+    {
+        type = "object",
+        properties = new
+        {
+            schema = new { type = "string", description = "edit_plan/v0." },
+            op = new { type = "string", description = "draft | validate | apply (echo of request op)." },
+            ok = new { type = "boolean" },
+            sketch = new { type = "string", description = "draft: echo of sketch=." },
+            session = new { type = "object", description = "draft: { project_root, language }." },
+            candidates = new { type = "array", items = new { type = "object" }, description = "draft: per-file candidates (path, doc_id, dirty, line_count, thrash_risk, preferred_edit_op; unresolvable carries ok=false + error)." },
+            candidate_count = new { type = "integer", description = "draft." },
+            suggested_yaml = new { type = "string", description = "draft sketch=fix: fix-YAML drafted from diagnostics." },
+            example_yaml = new { type = "string", description = "draft: mutate steps template." },
+            example_fix_yaml = new { type = "string", description = "draft: fix template." },
+            slice_count = new { type = "integer", description = "validate/apply." },
+            slices = new
+            {
+                type = "array",
+                description = "validate/apply: per-slice verdicts.",
+                items = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        message = new { type = "string" },
+                        path = new { type = "string" },
+                        ok = new { type = "boolean" },
+                        error = new { type = "string" },
+                        fix = new { type = "object", description = "validate: { ok, path, ids, hits[{id,line,column,message}], error } | apply: { ok, error, applied }." },
+                        step_count = new { type = "integer", description = "validate." },
+                        errors = new { type = "array", items = new { type = "string" }, description = "validate: slice errors (step[i]:… prefixed)." },
+                        steps = new { type = "array", items = new { type = "object" }, description = "validate/apply: per-step records (index, path, edit_op, ok, errors | result)." }
+                    },
+                    required = new[] { "ok" }
+                }
+            },
+            stop_on_error = new { type = "boolean", description = "apply: echo." },
+            thrash = new { type = "string", description = "apply: thrash latch pulse line (null cold)." },
+            thrash_hot = new { type = "boolean", description = "apply: thrash latch hot — prefer anchor edits." },
+            next = new { type = "string", description = "apply: suggested next call." },
+            error = new { type = "string", description = "apply: validate_failed when pre-validation blocked the run." },
+            validate = new { type = "object", description = "apply: embedded validate report on validate_failed." },
+            hint = new { type = "string" }
+        },
+        required = new[] { "schema", "op", "ok" }
     }),
     Meta("cdp_peel", "FileLines peel — thin Meta over live Roslyn move_members_to_partial_file. path= + members= + out=; apply=false preview (default), true writes + DependentUpon. Session injects solution after cdp_open. Alias go=peel. Prefer after go=refactor partials.", new
     {
@@ -161,6 +241,46 @@ internal static partial class MetaToolCatalog
             till = new { type = "string", description = "scope: Till wire, or body|enclosing" },
             max = new { type = "integer", description = "target: max nodes (default 48)" }
         }
+    }, new
+    {
+        type = "object",
+        properties = new
+        {
+            schema = new { type = "string", description = "edit_sniper/v0." },
+            ok = new { type = "boolean" },
+            op = new { type = "string", description = "scope | target | peek | aim | clear | status." },
+            phase = new { type = "string", description = "armed after scope lock — fire (put/paste sniper) hard-gated until then." },
+            process = new { type = "string", description = "scope: sight→lock→arm." },
+            hold = new { type = "object", description = "Corridor card { path, from, till, phase, line_start, line_end, lines }; null when cleared." },
+            resolve = new { type = "string", description = "scope: anchor resolution detail." },
+            count = new { type = "integer", description = "scope/status: corridor lines | target: nodes found." },
+            start_line = new { type = "integer", description = "scope." },
+            end_line = new { type = "integer", description = "scope." },
+            text = new { type = "string", description = "scope/status: corridor peek text." },
+            truncated = new { type = "boolean", description = "target: max= cap hit." },
+            targets = new
+            {
+                type = "array",
+                description = "target: in-corridor nodes.",
+                items = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        kind = new { type = "string" },
+                        name = new { type = "string" },
+                        member = new { type = "string" },
+                        line_start = new { type = "integer" },
+                        line_end = new { type = "integer" },
+                        wire = new { type = "string", description = "[Kind:CodeEdit; …] wire — feed aim / edit anchors." }
+                    }
+                }
+            },
+            next = new { type = "array", items = new { type = "object" }, description = "Suggested next go= steps." },
+            error = new { type = "string", description = "from_required | no_scope | unknown_op | wire resolve errors (ok=false)." },
+            hint = new { type = "string" }
+        },
+        required = new[] { "schema", "ok" }
     }),
     Meta("cdp_debug", "Debug plane (breakpoints + DAP): op=scene|bp_add|bp_remove|bp_set|bp_list|bp_clear|launch|attach|continue|stop|stop_context|step_*|stack|variables. Session defaults after cdp_open — no hand-written breakpoints JSON.", new
     {

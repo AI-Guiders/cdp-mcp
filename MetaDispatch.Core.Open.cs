@@ -74,7 +74,7 @@ internal static partial class MetaDispatch
                 primary = session.SolutionOrProjectPath,
                 extra_roots = session.ExtraRoots.ToArray(),
                 note = "multi-root session — extra root added; primary unchanged"
-            }, new JsonSerializerOptions { WriteIndented = true });
+            }, AgentNotes.Core.AigJson.Indented);
         }
 
         var park = docStore.ParkOutsideProject(open.Root);
@@ -111,6 +111,23 @@ internal static partial class MetaDispatch
             }
         }
 
-        return payload + "\n# list_changed: shortlist refreshed after cdp_open";
+        // Machine body stays pure JSON: the list_changed marker used to be a
+        // "\n# …" text tail after the payload, which broke the bridge's strict
+        // parse (no structuredContent). The protocol-level refresh still rides
+        // NotifyListChanged()/capabilitiesRev (ADR-0202); the field is the breadcrumb.
+        try
+        {
+            var node = System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject();
+            if (node is not null)
+            {
+                node["list_changed"] = true;
+                return node.ToJsonString(AgentNotes.Core.AigJson.Indented);
+            }
+        }
+        catch
+        {
+            // payload is already well-formed on its own — fall through
+        }
+        return payload;
     }
 }

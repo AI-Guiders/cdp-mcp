@@ -313,6 +313,11 @@ internal sealed class CdpBridgeInvokeRouter
         // Successful CdpService bodies are already JSON — ride them as
         // structuredContent so code-mode clients get machine-shaped results
         // instead of re-parsing the text block. Text stays for plain clients.
+        // Text-report tools (cdp_deploy, cdp_man, shell…) have no JSON body,
+        // but the uniform fallback outputSchema promises an object — strict
+        // SDKs reject a declared-schema tool without structured content. Wrap
+        // the text so the contract holds for every tool; raw report stays in
+        // the text block for plain clients.
         System.Text.Json.JsonElement? structured = null;
         if (body.Success && !string.IsNullOrWhiteSpace(body.Body))
         {
@@ -323,7 +328,8 @@ internal sealed class CdpBridgeInvokeRouter
             }
             catch (System.Text.Json.JsonException)
             {
-                // non-JSON body (plain text report) — no structured payload
+                structured = System.Text.Json.JsonSerializer.SerializeToElement(
+                    new { output = body.Body });
             }
         }
 
