@@ -53,25 +53,25 @@ internal static partial class MetaToolCatalog
         {
             root = new { type = "string", description = "Session project root (absolute)." },
             kind = new { type = "string", description = "Detected project kind (sln/csproj/folder/tsconfig…)." },
-            language = new { type = "string", description = "Detected language id; null for plain folder." },
+            language = new { type = new[] { "string", "null" }, description = "Detected language id; null for plain folder." },
             anchors = new { type = "array", items = new { type = "string" }, description = "Detected anchor paths (.sln/.csproj/tsconfig.json)." },
-            solution_or_project_path = new { type = "string", description = "Session solution/project anchor." },
-            tsconfig_path = new { type = "string" },
-            scm_root = new { type = "string", description = "Git root resolved from project root." },
-            scm_risk = new { type = "string", description = "'ancestor' when scm root sits above the project root." },
-            scm_note = new { type = "string" },
+            solution_or_project_path = new { type = new[] { "string", "null" }, description = "Session solution/project anchor." },
+            tsconfig_path = new { type = new[] { "string", "null" } },
+            scm_root = new { type = new[] { "string", "null" }, description = "Git root resolved from project root." },
+            scm_risk = new { type = new[] { "string", "null" }, description = "'ancestor' when scm root sits above the project root." },
+            scm_note = new { type = new[] { "string", "null" } },
             buffers_parked = new { type = "integer", description = "Clean buffers closed on open." },
             buffers_kept_dirty = new { type = "integer" },
-            buffers_kept_dirty_paths = new { type = "array", items = new { type = "string" } },
-            buffer_note = new { type = "string" },
+            buffers_kept_dirty_paths = new { type = new[] { "array", "null" }, items = new { type = "string" } },
+            buffer_note = new { type = new[] { "string", "null" } },
             session_phase = new { type = "string", description = "Phase after open (explore)." },
             session_object = new { type = "string", description = "Object kind after open (code)." },
             recent_count = new { type = "integer" },
             recent_store = new { type = "string", description = "Open-recent store location." },
-            lsp_preset = new { type = "string", description = "LSP pool preset id for the language (null when none)." },
-            canon_lang = new { type = "string", description = "Writing-canon effective language (ADR-0207)." },
-            canon_lang_source = new { type = "string" },
-            canon_stack = new { type = "array", items = new { type = "object" }, description = "Canon route for re-anchor after compact." },
+            lsp_preset = new { type = new[] { "string", "null" }, description = "LSP pool preset id for the language (null when none)." },
+            canon_lang = new { type = new[] { "string", "null" }, description = "Writing-canon effective language (ADR-0207)." },
+            canon_lang_source = new { type = new[] { "string", "null" } },
+            canon_stack = new { type = new[] { "object", "null" }, description = "Canon route map (lang → stack) for re-anchor after compact (ADR-0207)." },
             add_root = new { type = "boolean", description = "add_root=true call: extra root attached, primary unchanged." },
             duplicate = new { type = "boolean", description = "add_root=true: root already in session." },
             primary = new { type = "string", description = "add_root=true: unchanged primary root." },
@@ -166,52 +166,136 @@ internal static partial class MetaToolCatalog
             flush = new { type = "boolean", description = "apply mutate: Instant Save per step (default true)" },
             skip_validate = new { type = "boolean", description = "apply: skip pre-validate (default false)" }
         }
-    }, new
+    }, new Dictionary<string, object?>
     {
-        type = "object",
-        properties = new
+        ["type"] = "object",
+        ["properties"] = new Dictionary<string, object?>
         {
-            schema = new { type = "string", description = "edit_plan/v0." },
-            op = new { type = "string", description = "draft | validate | apply (echo of request op)." },
-            ok = new { type = "boolean" },
-            sketch = new { type = "string", description = "draft: echo of sketch=." },
-            session = new { type = "object", description = "draft: { project_root, language }." },
-            candidates = new { type = "array", items = new { type = "object" }, description = "draft: per-file candidates (path, doc_id, dirty, line_count, thrash_risk, preferred_edit_op; unresolvable carries ok=false + error)." },
-            candidate_count = new { type = "integer", description = "draft." },
-            suggested_yaml = new { type = "string", description = "draft sketch=fix: fix-YAML drafted from diagnostics." },
-            example_yaml = new { type = "string", description = "draft: mutate steps template." },
-            example_fix_yaml = new { type = "string", description = "draft: fix template." },
-            slice_count = new { type = "integer", description = "validate/apply." },
-            slices = new
+            ["schema"] = new { type = "string", description = "edit_plan/v0." },
+            ["op"] = new { type = "string", description = "draft | validate | apply (echo of request op)." },
+            ["ok"] = new { type = "boolean" },
+            ["sketch"] = new { type = new[] { "string", "null" }, description = "draft: echo of sketch=." },
+            ["session"] = new { type = "object", description = "draft: { project_root, language }." },
+            ["candidates"] = new
             {
                 type = "array",
-                description = "validate/apply: per-slice verdicts.",
-                items = new
+                items = new Dictionary<string, object?> { ["$ref"] = "#/$defs/Candidate" },
+                description = "draft: per-file candidates (open buffers + cold include paths)."
+            },
+            ["candidate_count"] = new { type = "integer", description = "draft." },
+            ["suggested_yaml"] = new { type = new[] { "string", "null" }, description = "draft sketch=fix: fix-YAML drafted from diagnostics." },
+            ["example_yaml"] = new { type = "string", description = "draft: mutate steps template." },
+            ["example_fix_yaml"] = new { type = "string", description = "draft: fix template." },
+            ["slice_count"] = new { type = "integer", description = "validate/apply." },
+            ["slices"] = new
+            {
+                type = "array",
+                items = new Dictionary<string, object?> { ["$ref"] = "#/$defs/SliceResult" },
+                description = "validate/apply: per-slice verdicts."
+            },
+            ["stop_on_error"] = new { type = "boolean", description = "apply: echo." },
+            ["thrash"] = new { type = new[] { "string", "null" }, description = "apply: thrash latch pulse line (null cold)." },
+            ["thrash_hot"] = new { type = "boolean", description = "apply: thrash latch hot — prefer anchor edits." },
+            ["next"] = new { type = new[] { "string", "null" }, description = "apply: suggested next call." },
+            ["error"] = new { type = new[] { "string", "null" }, description = "apply: validate_failed when pre-validation blocked the run." },
+            ["validate"] = new { type = new[] { "object", "null" }, description = "apply: embedded validate report on validate_failed." },
+            ["hint"] = new { type = "string" }
+        },
+        ["required"] = new[] { "schema", "op", "ok" },
+        ["$defs"] = new Dictionary<string, object?>
+        {
+            ["Candidate"] = new
+            {
+                type = "object",
+                properties = new
                 {
-                    type = "object",
-                    properties = new
-                    {
-                        message = new { type = "string" },
-                        path = new { type = "string" },
-                        ok = new { type = "boolean" },
-                        error = new { type = "string" },
-                        fix = new { type = "object", description = "validate: { ok, path, ids, hits[{id,line,column,message}], error } | apply: { ok, error, applied }." },
-                        step_count = new { type = "integer", description = "validate." },
-                        errors = new { type = "array", items = new { type = "string" }, description = "validate: slice errors (step[i]:… prefixed)." },
-                        steps = new { type = "array", items = new { type = "object" }, description = "validate/apply: per-step records (index, path, edit_op, ok, errors | result)." }
-                    },
-                    required = new[] { "ok" }
+                    path = new { type = "string", description = "File path." },
+                    doc_id = new { type = new[] { "string", "null" }, description = "Open buffer id (open-buffer candidates)." },
+                    dirty = new { type = new[] { "boolean", "null" } },
+                    language = new { type = new[] { "string", "null" } },
+                    version = new { type = new[] { "integer", "null" } },
+                    line_count = new { type = new[] { "integer", "null" } },
+                    opened = new { type = new[] { "boolean", "null" }, description = "false: cold path — cdp_buffer op=open before apply." },
+                    thrash_risk = new { type = new[] { "boolean", "null" }, description = "Line count at thrash threshold — avoid whole-file set_text." },
+                    preferred_edit_op = new { type = new[] { "string", "null" }, description = "anchor (csharp/xml) | replace." },
+                    attractor = new { type = new[] { "string", "null" }, description = "Pointer to edit_plan|sniper when thrash risk." },
+                    ok = new { type = new[] { "boolean", "null" }, description = "false: unresolvable include path." },
+                    error = new { type = new[] { "string", "null" }, description = "path_not_found / resolve failure." },
+                    hint = new { type = new[] { "string", "null" } }
                 }
             },
-            stop_on_error = new { type = "boolean", description = "apply: echo." },
-            thrash = new { type = "string", description = "apply: thrash latch pulse line (null cold)." },
-            thrash_hot = new { type = "boolean", description = "apply: thrash latch hot — prefer anchor edits." },
-            next = new { type = "string", description = "apply: suggested next call." },
-            error = new { type = "string", description = "apply: validate_failed when pre-validation blocked the run." },
-            validate = new { type = "object", description = "apply: embedded validate report on validate_failed." },
-            hint = new { type = "string" }
-        },
-        required = new[] { "schema", "op", "ok" }
+            ["FixHit"] = new
+            {
+                type = "object",
+                properties = new
+                {
+                    id = new { type = "string", description = "Stable diagnostic id (IDE0005…)." },
+                    line = new { type = "integer" },
+                    column = new { type = "integer" },
+                    message = new { type = "string" }
+                },
+                required = new[] { "id", "line", "column", "message" }
+            },
+            ["FixCheck"] = new
+            {
+                type = "object",
+                properties = new
+                {
+                    ok = new { type = "boolean" },
+                    path = new { type = new[] { "string", "null" }, description = "validate: target file." },
+                    ids = new { type = new[] { "array", "null" }, items = new { type = "string" }, description = "validate: requested fix ids." },
+                    hits = new
+                    {
+                        type = new[] { "array", "null" },
+                        items = new Dictionary<string, object?> { ["$ref"] = "#/$defs/FixHit" },
+                        description = "validate: located diagnostic hits."
+                    },
+                    applied = new { description = "apply: fix-apply detail." },
+                    error = new { type = new[] { "string", "null" } }
+                },
+                required = new[] { "ok" }
+            },
+            ["StepResult"] = new
+            {
+                type = "object",
+                properties = new
+                {
+                    index = new { type = "integer" },
+                    path = new { type = new[] { "string", "null" } },
+                    edit_op = new { type = new[] { "string", "null" }, description = "replace | anchor | …" },
+                    ok = new { type = "boolean" },
+                    errors = new { type = new[] { "array", "null" }, items = new { type = "string" }, description = "validate: per-step errors." },
+                    result = new { description = "apply: underlying cdp_buffer step result." }
+                },
+                required = new[] { "index", "ok" }
+            },
+            ["SliceResult"] = new
+            {
+                type = "object",
+                properties = new
+                {
+                    message = new { type = new[] { "string", "null" }, description = "Why this logical group." },
+                    path = new { type = new[] { "string", "null" }, description = "fix slice target file." },
+                    ok = new { type = "boolean" },
+                    error = new { type = new[] { "string", "null" } },
+                    fix = new
+                    {
+                        type = new[] { "object", "null" },
+                        oneOf = new[] { new Dictionary<string, object?> { ["$ref"] = "#/$defs/FixCheck" } },
+                        description = "fix-slice check/apply result."
+                    },
+                    step_count = new { type = new[] { "integer", "null" }, description = "validate." },
+                    errors = new { type = new[] { "array", "null" }, items = new { type = "string" }, description = "validate: slice errors (step[i]:… prefixed)." },
+                    steps = new
+                    {
+                        type = new[] { "array", "null" },
+                        items = new Dictionary<string, object?> { ["$ref"] = "#/$defs/StepResult" },
+                        description = "validate/apply: per-step records."
+                    }
+                },
+                required = new[] { "ok" }
+            }
+        }
     }),
     Meta("cdp_peel", "FileLines peel — thin Meta over live Roslyn move_members_to_partial_file. path= + members= + out=; apply=false preview (default), true writes + DependentUpon. Session injects solution after cdp_open. Alias go=peel. Prefer after go=refactor partials.", new
     {
@@ -251,30 +335,18 @@ internal static partial class MetaToolCatalog
             op = new { type = "string", description = "scope | target | peek | aim | clear | status." },
             phase = new { type = "string", description = "armed after scope lock — fire (put/paste sniper) hard-gated until then." },
             process = new { type = "string", description = "scope: sight→lock→arm." },
-            hold = new { type = "object", description = "Corridor card { path, from, till, phase, line_start, line_end, lines }; null when cleared." },
+            hold = ToolSchemas.NullableFor<EditSniper.Corridor>(),
             resolve = new { type = "string", description = "scope: anchor resolution detail." },
             count = new { type = "integer", description = "scope/status: corridor lines | target: nodes found." },
             start_line = new { type = "integer", description = "scope." },
             end_line = new { type = "integer", description = "scope." },
-            text = new { type = "string", description = "scope/status: corridor peek text." },
+            text = new { type = new[] { "string", "null" }, description = "scope/status: corridor peek text." },
             truncated = new { type = "boolean", description = "target: max= cap hit." },
             targets = new
             {
                 type = "array",
-                description = "target: in-corridor nodes.",
-                items = new
-                {
-                    type = "object",
-                    properties = new
-                    {
-                        kind = new { type = "string" },
-                        name = new { type = "string" },
-                        member = new { type = "string" },
-                        line_start = new { type = "integer" },
-                        line_end = new { type = "integer" },
-                        wire = new { type = "string", description = "[Kind:CodeEdit; …] wire — feed aim / edit anchors." }
-                    }
-                }
+                items = ToolSchemas.For<EditSniper.SniperTarget>(),
+                description = "target: in-corridor nodes."
             },
             next = new { type = "array", items = new { type = "object" }, description = "Suggested next go= steps." },
             error = new { type = "string", description = "from_required | no_scope | unknown_op | wire resolve errors (ok=false)." },

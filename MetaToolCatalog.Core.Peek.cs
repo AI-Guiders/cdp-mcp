@@ -51,24 +51,14 @@ internal static partial class MetaToolCatalog
             limit = new { type = "integer", description = "file: window size." },
             returned = new { type = "integer", description = "file: lines actually returned." },
             has_more = new { type = "boolean", description = "file: more lines below the window." },
-            next_offset = new { type = "integer", description = "file: offset= for the next window (null at EOF)." },
+            next_offset = new { type = new[] { "integer", "null" }, description = "file: offset= for the next window (null at EOF)." },
             chars = new { type = "integer", description = "file: approximate payload size." },
-            text = new { type = "string", description = "file: numbered text block (omit with structured_only=true)." },
+            text = new { type = new[] { "string", "null" }, description = "file: numbered text block (omit with structured_only=true)." },
             lines = new
             {
-                type = "array",
+                type = new[] { "array", "null" },
                 description = "file: per-line records for the mutate chain (omit with text_only=true).",
-                items = new
-                {
-                    type = "object",
-                    properties = new
-                    {
-                        n = new { type = "integer", description = "1-based line number." },
-                        text = new { type = "string" },
-                        anchor = new { type = "string", description = "[F:…;L:n;] wire — feed cdp_edit_sniper / cdp_buffer anchor=." }
-                    },
-                    required = new[] { "n", "text" }
-                }
+                items = ToolSchemas.For<CdpPeekChannel.LineEntry>()
             },
             count = new { type = "integer", description = "batch: files peeked | find: hit windows | outline: entries." },
             truncated = new { type = "boolean", description = "batch: shared char budget exhausted." },
@@ -78,17 +68,17 @@ internal static partial class MetaToolCatalog
             max_bytes = new { type = "integer", description = "file_too_large: cap." },
             query = new { type = "string", description = "find: the needle." },
             regex = new { type = "boolean", description = "find: regex interpretation applied." },
-            glob = new { type = "string", description = "find: normalized rg glob." },
-            scope = new { type = "string", description = "find: search scope." },
+            glob = new { type = new[] { "string", "null" }, description = "find: normalized rg glob." },
+            scope = new { type = new[] { "string", "null" }, description = "find: search scope." },
             windows = new { type = "array", items = new { type = "object" }, description = "find: { hit{anchor,path,rel,line,preview}, peek } per match — anchor feeds the sniper chain." },
-            find = new { type = "object", description = "find: raw find report on failure or zero hits." },
-            ext = new { type = "string", description = "outline: file extension." },
-            kind = new { type = "string", description = "outline: markdown|json|yaml|toml." },
+            find = new { type = new[] { "object", "null" }, description = "find: raw find report on failure or zero hits." },
+            ext = new { type = new[] { "string", "null" }, description = "outline: file extension." },
+            kind = new { type = new[] { "string", "null" }, description = "outline: markdown|json|yaml|toml." },
             supported = new { type = "boolean", description = "outline: false when no cheap markers." },
             entries = new { type = "array", items = new { type = "object" }, description = "outline: structural entries (title/line/level)." },
             error = new { type = "string", description = "not_found | binary | file_too_large | batch_too_large | no_store (ok=false)." },
             detail = new { type = "string", description = "Error detail." },
-            bind_note = new { type = "string", description = "Lazy project-bind note on first peek." },
+            bind_note = new { type = new[] { "string", "null" }, description = "Lazy project-bind note on first peek." },
             outline_hint = new { type = "string", description = "file: pointer when mode=outline would be cheaper." },
             hint = new { type = "string", description = "Next-step hint (mutate chain / retry / narrow)." }
         },

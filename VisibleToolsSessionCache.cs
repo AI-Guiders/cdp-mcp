@@ -81,6 +81,10 @@ internal static class VisibleToolsSessionCache
         {
             Name = t.Name,
             Description = t.Description,
-            InputSchema = t.InputSchema
+            InputSchema = t.InputSchema,
+            // OutputSchema must survive cache hits — a clone without it made
+            // every post-warmup tools/list serve untyped tools, so code-mode
+            // clients fell back to Promise<{}> even for declared contracts.
+            OutputSchema = t.OutputSchema
         }).ToList();
 }

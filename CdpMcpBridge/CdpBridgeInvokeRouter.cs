@@ -148,11 +148,13 @@ internal sealed class CdpBridgeInvokeRouter
 
         var merged = MergeDeployWait(finalJson, started.ElapsedMilliseconds, polls, waitedForService, healthBody, jobId);
         var failed = !deployOk;
-        return new CallToolResult
-        {
-            Content = [new TextContentBlock { Text = merged }],
-            IsError = failed
-        };
+        return WithStructured(
+            new CallToolResult
+            {
+                Content = [new TextContentBlock { Text = merged }],
+                IsError = failed
+            },
+            merged);
     }
 
     async Task<CallToolResult> DeployViaLocalWorkerAsync(
@@ -188,11 +190,13 @@ internal sealed class CdpBridgeInvokeRouter
         }
 
         var merged = MergeDeployWait(deployJson, started.ElapsedMilliseconds, polls: 0, waitedForService, healthBody, jobId: null);
-        return new CallToolResult
-        {
-            Content = [new TextContentBlock { Text = merged }],
-            IsError = !deployOk
-        };
+        return WithStructured(
+            new CallToolResult
+            {
+                Content = [new TextContentBlock { Text = merged }],
+                IsError = !deployOk
+            },
+            merged);
     }
 
     async Task<CallToolResult> LifecycleLastAsync(
@@ -310,45 +314,49 @@ internal sealed class CdpBridgeInvokeRouter
                 Body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)
             };
 
-        // Successful CdpService bodies are already JSON — ride them as
-        // structuredContent so code-mode clients get machine-shaped results
-        // instead of re-parsing the text block. Text stays for plain clients.
-        // Text-report tools (cdp_deploy, cdp_man, shell…) have no JSON body,
-        // but the uniform fallback outputSchema promises an object — strict
-        // SDKs reject a declared-schema tool without structured content. Wrap
-        // the text so the contract holds for every tool; raw report stays in
-        // the text block for plain clients.
-        System.Text.Json.JsonElement? structured = null;
-        if (body.Success && !string.IsNullOrWhiteSpace(body.Body))
+        // Uniform outputSchema contract (see WithStructured): every success
+        // carries a structuredContent object; the raw body stays in the text
+        // block for plain clients.
+        return WithStructured(
+            new CallToolResult
+            {
+                Content = [new TextContentBlock { Text = body.Body }],
+                IsError = !body.Success
+            },
+            body.Body);
+    }
+
+    /// <summary>
+    /// Uniform fallback outputSchema promises an object on every tool — strict
+    /// SDKs reject a declared-schema result without structured content. JSON
+    /// bodies ride as-is; text-report bodies (cdp_deploy, cdp_man, shell…)
+    /// wrap as { output: text } so the contract holds everywhere.
+    /// </summary>
+    static CallToolResult WithStructured(CallToolResult result, string? body)
+    {
+        if (result.IsError != true && !string.IsNullOrWhiteSpace(body))
         {
             try
             {
-                using var doc = System.Text.Json.JsonDocument.Parse(body.Body);
-                structured = doc.RootElement.Clone();
+                using var doc = JsonDocument.Parse(body);
+                result.StructuredContent = doc.RootElement.Clone();
             }
-            catch (System.Text.Json.JsonException)
+            catch (JsonException)
             {
-                structured = System.Text.Json.JsonSerializer.SerializeToElement(
-                    new { output = body.Body });
+                result.StructuredContent = JsonSerializer.SerializeToElement(new { output = body });
             }
         }
-
-        var result = new CallToolResult
-        {
-            Content = [new TextContentBlock { Text = body.Body }],
-            IsError = !body.Success
-        };
-        if (structured is not null)
-            result.StructuredContent = structured;
         return result;
     }
 
     static CallToolResult Ok(string body) =>
-        new()
-        {
-            Content = [new TextContentBlock { Text = body }],
-            IsError = false
-        };
+        WithStructured(
+            new CallToolResult
+            {
+                Content = [new TextContentBlock { Text = body }],
+                IsError = false
+            },
+            body);
 
     static CallToolResult Error(string message) =>
         new()

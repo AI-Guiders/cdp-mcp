@@ -15,7 +15,7 @@ internal static partial class CdpPeekChannel
     public const int MaxChars = 48_000;
     public const long MaxFileBytes = 5_000_000;
 
-    sealed record LineEntry(int N, string Text, string? Anchor);
+    internal sealed record LineEntry(int n, string text, string? anchor);
 
     static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -220,7 +220,7 @@ internal static partial class CdpPeekChannel
 
         var slice = ReadSlice(absPath, startLine, limit, rel, includeAnchors);
         var textBlock = wantText ? FormatNumberedText(slice) : null;
-        var chars = textBlock?.Length ?? slice.Sum(l => l.Text.Length + 12);
+        var chars = textBlock?.Length ?? slice.Sum(l => l.text.Length + 12);
 
         var returned = slice.Count;
         var hasMore = startLine + returned - 1 < totalLines;
@@ -245,7 +245,7 @@ internal static partial class CdpPeekChannel
             outline_hint = OutlineHint(rel, absPath, totalLines),
             text = textBlock,
             lines = wantLines
-                ? slice.Select(l => new { n = l.N, text = l.Text, anchor = l.Anchor }).ToList()
+                ? slice.ToList()
                 : null,
             hint = hasMore
                 ? $"More: cdp_peek path={rel} offset={nextOffset}"
@@ -285,7 +285,7 @@ internal static partial class CdpPeekChannel
     {
         var sb = new StringBuilder();
         foreach (var item in lines)
-            sb.Append(item.N.ToString().PadLeft(6)).Append('|').AppendLine(item.Text);
+            sb.Append(item.n.ToString().PadLeft(6)).Append('|').AppendLine(item.text);
 
         return sb.ToString().TrimEnd('\r', '\n');
     }

@@ -56,15 +56,13 @@ internal static partial class EditSniper
                 ls,
                 le == ls ? null : le));
 
-            nodes.Add(new
-            {
+            nodes.Add(new SniperTarget(
                 kind,
                 name,
-                member = memberKey,
-                line_start = ls,
-                line_end = le,
-                wire
-            });
+                memberKey,
+                ls,
+                le,
+                wire));
 
             if (nodes.Count >= max)
                 break;

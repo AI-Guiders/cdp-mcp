@@ -21,9 +21,15 @@ internal static partial class EditSniper
     public const string PhaseArmed = "armed";
     public const int MaxTargets = 48;
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new()
+    {
+        WriteIndented = true,
+        // Corridor и рекорды снайпера сериализуются в snake — как весь CDP-провод
+        // и как схему их генерирует ToolSchemas (единый источник имён).
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+    };
 
-    sealed record Corridor(
+    internal sealed record Corridor(
         string Path,
         string FileLabel,
         string FromWire,
@@ -35,6 +41,9 @@ internal static partial class EditSniper
         string ResolveDetail,
         string Phase,
         string? PeekText);
+
+    /// <summary>Wire node для op=target — SchemaGen-источник (единственный ранее безымянный проекции).</summary>
+    internal sealed record SniperTarget(string kind, string name, string? member, int line_start, int line_end, string wire);
 
     static Corridor? Hold;
 
@@ -48,18 +57,7 @@ internal static partial class EditSniper
             : null;
 
     public static object? HoldCard() =>
-        Hold is { } h
-            ? new
-            {
-                path = h.Path,
-                from = h.FromWire,
-                till = h.TillWire,
-                phase = h.Phase,
-                line_start = h.LineStart,
-                line_end = h.LineEnd,
-                lines = h.LineEnd - h.LineStart + 1
-            }
-            : null;
+        Hold is { } h ? h : null;
 
     /// <summary>Hard gate for put/paste sniper — hold alone is not enough.</summary>
     public static bool TryEnsureFire(out string error, out string hint)
