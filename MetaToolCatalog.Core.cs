@@ -172,7 +172,7 @@ internal static partial class MetaToolCatalog
         ["properties"] = new Dictionary<string, object?>
         {
             ["schema"] = new { type = "string", description = "edit_plan/v0." },
-            ["op"] = new { type = "string", description = "draft | validate | apply (echo of request op)." },
+            ["op"] = new { type = "string", @enum = new[] { "draft", "validate", "apply" }, description = "draft | validate | apply (echo of request op)." },
             ["ok"] = new { type = "boolean" },
             ["sketch"] = new { type = new[] { "string", "null" }, description = "draft: echo of sketch=." },
             ["session"] = new { type = "object", description = "draft: { project_root, language }." },
@@ -332,8 +332,8 @@ internal static partial class MetaToolCatalog
         {
             schema = new { type = "string", description = "edit_sniper/v0." },
             ok = new { type = "boolean" },
-            op = new { type = "string", description = "scope | target | peek | aim | clear | status." },
-            phase = new { type = "string", description = "armed after scope lock — fire (put/paste sniper) hard-gated until then." },
+            op = new { type = "string", @enum = new[] { "scope", "target", "peek", "aim", "clear", "status" }, description = "scope | target | peek | aim | clear | status." },
+            phase = new { type = new[] { "string", "null" }, @enum = new[] { "armed" }, description = "armed after scope lock — fire (put/paste sniper) hard-gated until then." },
             process = new { type = "string", description = "scope: sight→lock→arm." },
             hold = ToolSchemas.NullableFor<EditSniper.Corridor>(),
             resolve = new { type = "string", description = "scope: anchor resolution detail." },

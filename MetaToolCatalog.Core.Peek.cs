@@ -43,7 +43,7 @@ internal static partial class MetaToolCatalog
             schema = new { type = "string", description = "Envelope version." },
             ok = new { type = "boolean" },
             tool = new { type = "string", description = "cdp_peek." },
-            mode = new { type = "string", description = "file (single read) | batch (paths[]) | image | find (query=) | outline (structural map)." },
+            mode = new { type = "string", @enum = new[] { "file", "batch", "image", "find", "outline" }, description = "file (single read) | batch (paths[]) | image | find (query=) | outline (structural map)." },
             path = new { type = "string", description = "Absolute path (file/image/outline/error branches)." },
             rel = new { type = "string", description = "Project-relative path." },
             total_lines = new { type = "integer", description = "file/outline: whole-file line count." },
