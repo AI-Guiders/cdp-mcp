@@ -133,17 +133,17 @@ internal static partial class EditSniper
         IsArmed
             ?
             [
-                new { go = "put_sniper", label = "Fire put", why = "armed — text=/frame= into hold" },
-                new { go = "paste_sniper", label = "Fire paste", why = "armed — clipboard → hold" },
-                new { go = "target", label = "Outline corridor", why = "optional in-corridor nodes" },
-                new { go = "peek", label = "Re-peek", why = "optional verify before fire" },
-                new { go = "edit_draft", label = "Shoot (draft)", why = "mutate/fix plan" },
-                new { go = "scope_clear", label = "Clear aim", why = "drop From/Till" }
+                new SniperNextStep("put_sniper", "Fire put", "armed — text=/frame= into hold"),
+                new SniperNextStep("paste_sniper", "Fire paste", "armed — clipboard → hold"),
+                new SniperNextStep("target", "Outline corridor", "optional in-corridor nodes"),
+                new SniperNextStep("peek", "Re-peek", "optional verify before fire"),
+                new SniperNextStep("edit_draft", "Shoot (draft)", "mutate/fix plan"),
+                new SniperNextStep("scope_clear", "Clear aim", "drop From/Till")
             ]
             :
             [
-                new { go = "scope", label = "Lock corridor", why = "from=/till= → auto-arm" },
-                new { go = "scope_clear", label = "Clear aim", why = "drop From/Till" }
+                new SniperNextStep("scope", "Lock corridor", "from=/till= → auto-arm"),
+                new SniperNextStep("scope_clear", "Clear aim", "drop From/Till")
             ];
 
     static BracketSyntaxResolve.TextRange ExpandToFullLines(

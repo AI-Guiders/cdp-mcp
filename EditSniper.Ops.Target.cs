@@ -79,9 +79,9 @@ internal static partial class EditSniper
             targets = nodes,
             next = new object[]
             {
-                new { go = "peek", label = "Peek wire/corridor", why = "go_args.wire= optional" },
-                new { go = "edit_draft", label = "Draft mutate/fix", why = "pick wire → YAML / fix" },
-                new { go = "scope_clear", label = "Clear aim", why = "drop corridor" }
+                new SniperNextStep("peek", "Peek wire/corridor", "go_args.wire= optional"),
+                new SniperNextStep("edit_draft", "Draft mutate/fix", "pick wire → YAML / fix"),
+                new SniperNextStep("scope_clear", "Clear aim", "drop corridor")
             },
             hint =
                 "Targets are in-corridor only. go=peek wire=… → tiny window; then edit_plan. " +

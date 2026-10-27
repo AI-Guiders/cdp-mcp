@@ -7,6 +7,12 @@ namespace CdpMcp;
 
 internal static partial class CdpPeekChannel
 {
+    /// <summary>Находка поиска (cdp_peek mode=find) — SchemaGen-источник («Locus»).</summary>
+    internal sealed record FindHit(string? anchor, string path, string rel, int line, string? preview);
+
+    /// <summary>Окно поиска: находка + peeked коридор.</summary>
+    internal sealed record FindWindow(FindHit hit, object peek);
+
     static object FindAndPeek(
         SessionContext session,
         LanguageRegistry langs,
@@ -88,18 +94,14 @@ internal static partial class CdpPeekChannel
                 };
 
                 var land = PeekFile(session, abs, peekArgs, bindNote: null);
-                windows.Add(new
-                {
-                    hit = new
-                    {
+                windows.Add(new FindWindow(
+                    new FindHit(
                         anchor,
-                        path = abs,
-                        rel = Rel(session.ProjectRoot, abs),
+                        abs,
+                        Rel(session.ProjectRoot, abs),
                         line,
-                        preview = hit.TryGetProperty("preview", out var prev) ? prev.GetString() : null
-                    },
-                    peek = land
-                });
+                        hit.TryGetProperty("preview", out var prev) ? prev.GetString() : null),
+                    land));
             }
         }
 

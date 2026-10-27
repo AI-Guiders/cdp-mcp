@@ -51,7 +51,7 @@ internal static partial class EditSniper
             hold = (object?)null,
             next = new object[]
             {
-                new { go = "scope", label = "Set corridor", why = "from=/till= anchors" }
+                new SniperNextStep("scope", "Set corridor", "from=/till= anchors")
             },
             hint = "Sniper cleared. go=scope from=… till=… to aim again."
         }, Pretty);
@@ -69,7 +69,7 @@ internal static partial class EditSniper
                 hold = (object?)null,
                 next = new object[]
                 {
-                    new { go = "scope", label = "Set corridor", why = "from=/till= [Kind:CodeEdit; File:…; Line:…|Member:…]" }
+                    new SniperNextStep("scope", "Set corridor", "from=/till= [Kind:CodeEdit; File:…; Line:…|Member:…]")
                 },
                 hint = "No aim. go=scope + go_args.from (+ optional till)."
             }, Pretty);

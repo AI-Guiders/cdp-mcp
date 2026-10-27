@@ -45,6 +45,9 @@ internal static partial class EditSniper
     /// <summary>Wire node для op=target — SchemaGen-источник (единственный ранее безымянный проекции).</summary>
     internal sealed record SniperTarget(string kind, string name, string? member, int line_start, int line_end, string wire);
 
+    /// <summary>Suggested next step (cdp_edit_sniper next) — SchemaGen-источник.</summary>
+    internal sealed record SniperNextStep(string go, string label, string why);
+
     static Corridor? Hold;
 
     public static bool HasHold => Hold is not null;

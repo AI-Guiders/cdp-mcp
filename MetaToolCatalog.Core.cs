@@ -348,7 +348,7 @@ internal static partial class MetaToolCatalog
                 items = ToolSchemas.For<EditSniper.SniperTarget>(),
                 description = "target: in-corridor nodes."
             },
-            next = new { type = "array", items = new { type = "object" }, description = "Suggested next go= steps." },
+            next = new { type = "array", items = ToolSchemas.For<EditSniper.SniperNextStep>(), description = "Suggested next go= steps." },
             error = new { type = "string", description = "from_required | no_scope | unknown_op | wire resolve errors (ok=false)." },
             hint = new { type = "string" }
         },
