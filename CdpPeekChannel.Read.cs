@@ -15,7 +15,7 @@ internal static partial class CdpPeekChannel
     public const int MaxChars = 48_000;
     public const long MaxFileBytes = 5_000_000;
 
-    internal sealed record LineEntry(int n, string text, string? anchor);
+    internal sealed record LineEntry(int n, string text, string? anchor, Locus? locus);
 
     static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -270,12 +270,12 @@ internal static partial class CdpPeekChannel
             if (list.Count >= limit)
                 break;
 
+            var span = new BracketLocate.Span(rel, null, lineNo, null);
             list.Add(new LineEntry(
                 lineNo,
                 line,
-                includeAnchors
-                    ? BracketLocate.Format(new BracketLocate.Span(rel, null, lineNo, null))
-                    : null));
+                includeAnchors ? BracketLocate.Format(span) : null,
+                includeAnchors ? Locus.From(span) : null));
         }
 
         return list;

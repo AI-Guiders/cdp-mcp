@@ -8,7 +8,7 @@ namespace CdpMcp;
 internal static partial class CdpPeekChannel
 {
     /// <summary>Находка поиска (cdp_peek mode=find) — SchemaGen-источник («Locus»).</summary>
-    internal sealed record FindHit(string? anchor, string path, string rel, int line, string? preview);
+    internal sealed record FindHit(string? anchor, Locus? locus, string path, string rel, int line, string? preview);
 
     /// <summary>Окно поиска: находка + peeked коридор.</summary>
     internal sealed record FindWindow(FindHit hit, object peek);
@@ -97,6 +97,7 @@ internal static partial class CdpPeekChannel
                 windows.Add(new FindWindow(
                     new FindHit(
                         anchor,
+                        Locus.TryFromWire(anchor),
                         abs,
                         Rel(session.ProjectRoot, abs),
                         line,

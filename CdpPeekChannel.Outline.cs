@@ -7,8 +7,8 @@ namespace CdpMcp;
 
 internal static partial class CdpPeekChannel
 {
-    /// <summary>Структурная запись outline (markdown: level/anchor; json: kind) — SchemaGen-источник.</summary>
-    internal sealed record OutlineEntry(string name, int line, int? level, string? kind, string? anchor);
+    /// <summary>Структурная запись outline (markdown: level/anchor/locus; json: kind) — SchemaGen-источник.</summary>
+    internal sealed record OutlineEntry(string name, int line, int? level, string? kind, string? anchor, Locus? locus);
 
     static readonly HashSet<string> OutlineExts = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -116,7 +116,14 @@ internal static partial class CdpPeekChannel
             if (c != ' ' && c != '\t') continue;
             var name = raw[level..].Trim();
             if (name.Length == 0) continue;
-            list.Add(new OutlineEntry(name, n, level, null, BracketLocate.Format(new BracketLocate.Span(rel, null, n, null))));
+            var span = new BracketLocate.Span(rel, null, n, null);
+            list.Add(new OutlineEntry(
+                name,
+                n,
+                level,
+                null,
+                BracketLocate.Format(span),
+                Locus.From(span)));
         }
         return list;
     }
@@ -130,11 +137,11 @@ internal static partial class CdpPeekChannel
             if (doc.RootElement.ValueKind == JsonValueKind.Object)
             {
                 foreach (var prop in doc.RootElement.EnumerateObject())
-                    list.Add(new OutlineEntry(prop.Name, 0, null, JsonKindName(prop.Value.ValueKind), null));
+                    list.Add(new OutlineEntry(prop.Name, 0, null, JsonKindName(prop.Value.ValueKind), null, null));
             }
             else
             {
-                list.Add(new OutlineEntry("$root", 0, null, JsonKindName(doc.RootElement.ValueKind), null));
+                list.Add(new OutlineEntry("$root", 0, null, JsonKindName(doc.RootElement.ValueKind), null, null));
             }
             return list;
         }
