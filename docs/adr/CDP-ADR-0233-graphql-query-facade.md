@@ -58,3 +58,7 @@ Deferred (voyager hint only): `semanticMap`, `packages`, `testScene`, `symbol`.
 - GraphQL Mutation day-one  
 - Engine rewrite  
 - Compat dual API for unmounted tools  
+
+## Amendment (2026-10-27): base read tools stay listed
+
+`cdp_peek` возвращён в ListTools. АDR-0233 схлопывал его как «situational read», но peek — базовая поверхность чтения хабитата (ADR-0201, «prefer over host Read»), а не ситуационный запрос. С появлением Code Mode-агентов (OpenCode) тул вне ListTools для них не существует: «engines stay CallTool» работает только для тех, кто знает, что тул есть. Сигнатура peek генерируется из доменного рекорда `LineEntry` (`ToolSchemas`, ADR-0235). Остальной коллапс (pkg/git/knowledge reads, lifecycle, situational scenes) не меняется.

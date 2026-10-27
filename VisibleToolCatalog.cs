@@ -26,8 +26,10 @@ internal static class VisibleToolCatalog
         "get_symbol_at_position",
         "get_diagnostics",
         "get_workspace_navigation_context",
-        // meta / soft scenes superseded by cdp_graphql
-        "cdp_peek",
+        // meta / soft scenes superseded by cdp_graphql.
+        // cdp_peek возвращён в листинг 2026-10-27: базовая поверхность чтения
+        // (ADR-0201), не ситуационный read — Code Mode-агент вне листинга его
+        // не видит; схема генерируется из LineEntry (ToolSchemas).
         "cdp_search",
         "cdp_goto",
         "cdp_analysis_scene",

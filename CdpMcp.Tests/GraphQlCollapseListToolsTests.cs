@@ -9,7 +9,9 @@ public class GraphQlCollapseListToolsTests
     public void Collapsed_read_names_cover_plan_bare_and_meta()
     {
         Assert.Contains("find_in_files", VisibleToolCatalog.GraphQlCollapsedReadNames);
-        Assert.Contains("cdp_peek", VisibleToolCatalog.GraphQlCollapsedReadNames);
+        // cdp_peek возвращён в листинг (2026-10-27): базовая поверхность чтения
+        // (ADR-0201), не ситуационный read — Code Mode-агент вне листинга его не видит.
+        Assert.DoesNotContain("cdp_peek", VisibleToolCatalog.GraphQlCollapsedReadNames);
         Assert.Contains("cdp_search", VisibleToolCatalog.GraphQlCollapsedReadNames);
         Assert.Contains("get_diagnostics", VisibleToolCatalog.GraphQlCollapsedReadNames);
         Assert.Contains("cdp_health", VisibleToolCatalog.GraphQlCollapsedReadNames);
