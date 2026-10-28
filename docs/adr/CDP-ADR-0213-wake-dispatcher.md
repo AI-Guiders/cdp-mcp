@@ -1,6 +1,13 @@
+---
+type: ADR
+title: 'CDP-ADR-0213: WakeDispatcher — единый SSOT для wake-системы'
+adr_id: cdp-mcp/CDP-ADR-0213-wake-dispatcher
+status: stable
+adr_status: 'Accepted (2026-09-06)'
+---
+
 # CDP-ADR-0213: WakeDispatcher — единый SSOT для wake-системы
 
-**Status:** Accepted (2026-09-06)
 **Заказчик**: Света (оператор) · **Автор**: Тихон (PF, guest)
 
 ## Context

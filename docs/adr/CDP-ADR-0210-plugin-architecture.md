@@ -1,6 +1,13 @@
+---
+type: ADR
+title: 'CDP-ADR-0210: Плагинная архитектура à la Forge (вертикальные плагины, оба слоя)'
+adr_id: cdp-mcp/CDP-ADR-0210-plugin-architecture
+status: stable
+adr_status: 'Accepted — stage 1 implemented (2026-09-05); stages 2–3 **deferred**'
+---
+
 # CDP-ADR-0210: Плагинная архитектура à la Forge (вертикальные плагины, оба слоя)
 
-**Status:** Accepted — stage 1 implemented (2026-09-05); stages 2–3 **deferred**
 
 ## Context
 

@@ -1,8 +1,15 @@
+---
+type: ADR
+title: 'CDP-ADR-0219: Habitat state consolidation — one witdb per state root'
+adr_id: cdp-mcp/CDP-ADR-0219-habitat-state-consolidation
+status: draft
+adr_status: 'Draft'
+---
+
 # CDP-ADR-0219: Habitat state consolidation — one witdb per state root
 
 | | |
 |---|---|
-**Status:** Draft
 | **Date** | 2026-09-07 |
 | **Tags** | #cdp #adr #state #witdb #consolidation #correspondence |
 | **Related** | [CDP-ADR-0199 tenant isolation] · [CDP-ADR-0200 per-tenant session] · [CDP-ADR-0209 slots] · [CDP-ADR-0213 wake dispatcher] · [CDP-ADR-0214 wake-witdb-broker] · [OutWit.Database 14 — fleet standard, locking] |

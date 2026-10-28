@@ -1,3 +1,9 @@
+---
+type: ADR
+title: 'CDP-ADR-0227: Wake channel — external harness subscribers (DSH carrier)'
+adr_id: cdp-mcp/CDP-ADR-0227-wake-channel-external-subscribers
+---
+
 # CDP-ADR-0227: Wake channel — external harness subscribers (DSH carrier)
 
 | | |

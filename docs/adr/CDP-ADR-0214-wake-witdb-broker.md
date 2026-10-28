@@ -1,8 +1,15 @@
+---
+type: ADR
+title: 'CDP-ADR-0214: Wake subsystem — WitDB broker (replaces file zoo)'
+adr_id: cdp-mcp/CDP-ADR-0214-wake-witdb-broker
+status: draft
+adr_status: 'Proposed'
+---
+
 # CDP-ADR-0214: Wake subsystem — WitDB broker (replaces file zoo)
 
 | | |
 |---|---|
-**Status:** Proposed
 | **Date** | 2026-09-06 |
 | **Tags** | #cdp #wake #notificationcenter #witdb #opencode |
 | **Relates to** | [CDP-ADR-0212](./CDP-ADR-0212-intercom-chat-room.md) (intercom) · [CDP-ADR-0213](./CDP-ADR-0213-wake-dispatcher.md) (dispatcher design; storage layer superseded by this) · [WitDB](https://github.com/AI-Guiders/witdatabase) (storage engine) |

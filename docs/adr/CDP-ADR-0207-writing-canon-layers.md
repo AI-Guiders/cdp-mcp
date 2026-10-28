@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0207: Writing canon layers — route stack, guiders-style, personal operator'
+adr_id: cdp-mcp/CDP-ADR-0207-writing-canon-layers
+status: stable
+adr_status: 'Accepted (direction); implementation phased'
+date: 2026-08-26
+---
+
 # CDP-ADR-0207: Writing canon layers — route stack, guiders-style, personal operator
 
-**Status:** Accepted (direction); implementation phased  
-**Date:** 2026-08-26  
 **Tags:** #cdp #adr #habitat #canon #guiders-style #route  
 **project-id:** `cdp-mcp` · consumers: CDP habitat · Cursor seat · all code repos with `.cdp/`
 

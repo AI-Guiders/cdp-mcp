@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0222: Configuration management — один TOML, роли читают свои секции, без env-hell'
+adr_id: cdp-mcp/CDP-ADR-0222-configuration-management-single-toml
+status: stable
+adr_status: 'Accepted (2026-09-12)'
+date: 2026-09-10
+---
+
 # CDP-ADR-0222: Configuration management — один TOML, роли читают свои секции, без env-hell
 
-**Status:** Accepted (2026-09-12)
-**Date:** 2026-09-10
 **project-id:** `cdp-mcp` · related: CDP-ADR-0198 (durable sidecar), CDP-ADR-0203 (deploy gap), CDP-ADR-0209 (gatekeeper/slots), CDP-ADR-0221 (virtualization), CDP-ADR-0207 (canon layers)
 **Tags:** #cdp #adr #config #toml #habitat #configuration-management
 

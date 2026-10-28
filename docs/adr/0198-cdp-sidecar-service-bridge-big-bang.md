@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0198: CDP sidecar big-bang — durable CdpService + thin CdpMcpBridge'
+adr_id: cdp-mcp/0198-cdp-sidecar-service-bridge-big-bang
+status: stable
+adr_status: 'Accepted'
+date: 2026-08-21
+---
+
 # ADR 0198: CDP sidecar big-bang — durable CdpService + thin CdpMcpBridge
 
-**Status:** Accepted  
-**Date:** 2026-08-21  
 **Extends:** cascade-ide [0165](../cascade-ide/docs/adr/0165-mcp-transport-stratification-stdio-http-and-host-matrix.md) (Tier B pattern)  
 **Reference:** agent-forge FORGE-ADR-0014 B (stdio bridge → HTTP invoke)
 

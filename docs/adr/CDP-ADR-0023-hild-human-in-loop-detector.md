@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0023: HILD — Human-in-the-loop detector (CDT Composer)'
+adr_id: cdp-mcp/CDP-ADR-0023-hild-human-in-loop-detector
+status: stable
+adr_status: 'Accepted'
+date: 2026-07-31
+---
+
 # CDP-ADR-0023: HILD — Human-in-the-loop detector (CDT Composer)
 
-**Status:** Accepted  
-**Date:** 2026-07-31  
 **project-id:** `cascade-ide` · consumer: CDP / Agent Env  
 **Tags:** #cdp #adr #ignite #cdt #hild #continuity
 

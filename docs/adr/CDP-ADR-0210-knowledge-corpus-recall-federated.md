@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0210: Federated knowledge corpus recall (scope-first, workspace-independent)'
+adr_id: cdp-mcp/CDP-ADR-0210-knowledge-corpus-recall-federated
+status: stable
+adr_status: 'Accepted (direction); implementation phased'
+date: 2026-09-12
+---
+
 # CDP-ADR-0210: Federated knowledge corpus recall (scope-first, workspace-independent)
 
-**Status:** Accepted (direction); implementation phased  
-**Date:** 2026-09-12  
 **Tags:** #cdp #adr #kb #recall #knowledge_tags #hci #mlp #memory #agent-notes  
 **project-id:** `cdp-mcp` · `agent-notes` · consumers: CDP MCP · Cursor seat · CIDE in-proc
 

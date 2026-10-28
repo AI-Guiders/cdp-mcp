@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0032: Durable background jobs — three layers'
+adr_id: cdp-mcp/CDP-ADR-0032-durable-background-jobs-three-layers
+status: stable
+adr_status: 'Accepted (phased)'
+date: 2026-08-16
+---
+
 # CDP-ADR-0032: Durable background jobs — three layers
 
-**Status:** Accepted (phased)  
-**Date:** 2026-08-16  
 **Context:** MCP CallTool blocks on sync build/test/deploy → host timeout. Hard deploy kills in-proc MCP → Cursor shows green then `Not connected` (stdio zombie, exe often still alive). Long shell jobs (Fremus mirror) die on CDP remount.
 
 ## Decision

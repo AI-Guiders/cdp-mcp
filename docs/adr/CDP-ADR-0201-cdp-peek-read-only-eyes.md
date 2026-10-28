@@ -1,6 +1,13 @@
+---
+type: ADR
+title: 'CDP-ADR-0201: cdp_peek — read-only file eyes'
+adr_id: cdp-mcp/CDP-ADR-0201-cdp-peek-read-only-eyes
+status: stable
+adr_status: 'Accepted'
+---
+
 # CDP-ADR-0201: cdp_peek — read-only file eyes
 
-**Status:** Accepted
 - **Date:** 2026-08-21
 - **Related:** ADR-0198 (sidecar) · ADR-0031 (Explore corr — peek is dig, not mutate) · host Read/Grep
 

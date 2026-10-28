@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0209: Gatekeeper tower + self-registering service slots'
+adr_id: cdp-mcp/CDP-ADR-0209-gatekeeper-self-registering-slots
+status: stable
+adr_status: 'Accepted — implemented stages 1–2, 4 (2026-09-05); stage 3 (ship, slot-from-snapshot) — 2026-09-10 via CDP-ADR-0223; slot pool (Buran 3+1) — follow-up'
+date: 2026-09-05
+---
+
 # CDP-ADR-0209: Gatekeeper tower + self-registering service slots
 
-**Status:** Accepted — implemented stages 1–2, 4 (2026-09-05); stage 3 (ship, slot-from-snapshot) — 2026-09-10 via CDP-ADR-0223; slot pool (Buran 3+1) — follow-up  
-**Date:** 2026-09-05  
 **Extends:** ADR-0198 (sidecar/bridge), ADR-0203 (deploy gap survival), ADR-0032 (durable jobs)
 
 ## Problem

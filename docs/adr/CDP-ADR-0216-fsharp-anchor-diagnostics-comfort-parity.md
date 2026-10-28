@@ -1,8 +1,15 @@
+---
+type: ADR
+title: 'CDP-ADR-0216: F# anchor & diagnostics comfort parity'
+adr_id: cdp-mcp/CDP-ADR-0216-fsharp-anchor-diagnostics-comfort-parity
+status: draft
+adr_status: 'Proposed'
+---
+
 # CDP-ADR-0216: F# anchor & diagnostics comfort parity
 
 | | |
 |---|---|
-**Status:** Proposed
 | **Date** | 2026-09-06 |
 | **Tags** | #cdp #fsharp #anchors #diagnostics #comfort #lrc |
 | **Relates to** | [CDP-ADR-0201](./CDP-ADR-0201-cdp-peek-read-only-eyes.md) · [CDP-ADR-0208](./CDP-ADR-0208-language-resolver-center-cdp-host.md) · GUIDERS-ADR-0050 (Paths guild: `PathBoundary.ToLogical` / `LogicalPath` canonical `/`) · GUIDERS-ADR-0021 (LRC FCS backend) · CDP-ADR-0215 (where/tips) |

@@ -1,3 +1,9 @@
+---
+type: ADR
+title: 'CDP-ADR-0229: Agent UX (AUX) — locus policy (chain · choose · direct)'
+adr_id: cdp-mcp/CDP-ADR-0229-agent-ux-locus-policy
+---
+
 # CDP-ADR-0229: Agent UX (AUX) — locus policy (chain · choose · direct)
 
 | | |

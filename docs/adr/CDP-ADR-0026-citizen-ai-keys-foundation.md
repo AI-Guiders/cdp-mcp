@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0026: Citizen AI keys foundation (`ai-keys.toml`)'
+adr_id: cdp-mcp/CDP-ADR-0026-citizen-ai-keys-foundation
+status: stable
+adr_status: 'Accepted (foundation; loader 0.5.329; host consume via `CitizenCompletions` / `cdp_citizen` — shipped)'
+date: 2026-07-31
+---
+
 # CDP-ADR-0026: Citizen AI keys foundation (`ai-keys.toml`)
 
-**Status:** Accepted (foundation; loader 0.5.329; host consume via `CitizenCompletions` / `cdp_citizen` — shipped)  
-**Date:** 2026-07-31  
 **Tags:** #cdp #adr #citizen #secrets #ai-keys
 
 **Related:** CIDE [ADR 0028](../../cascade-ide/docs/adr/0028-user-settings-toml-localappdata-and-secrets.md) (`ai-keys.toml`) · CDP-ADR-0025 (citizen/guest isolation) · [citizen-agent-wire-v0.md](../design/citizen-agent-wire-v0.md)

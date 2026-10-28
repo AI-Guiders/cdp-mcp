@@ -1,8 +1,15 @@
+---
+type: ADR
+title: 'CDP-ADR-0217: goto symbol graph — in-memory m: search over the federation graph'
+adr_id: cdp-mcp/CDP-ADR-0217-goto-symbol-graph
+status: draft
+adr_status: 'Proposed'
+---
+
 # CDP-ADR-0217: goto symbol graph — in-memory m: search over the federation graph
 
 | | |
 |---|---|
-**Status:** Proposed
 | **Date** | 2026-09-06 |
 | **Tags** | #cdp #goto #semantic-map #federation #hci #agent-native |
 | **Relates to** | [CDP-ADR-0202](./CDP-ADR-0202-capabilities-revision.md) (capabilities rev) · [CDP-ADR-0214](./CDP-ADR-0214-wake-witdb-broker.md) · Modeling.Ide.Session (federation graph) · HybridCodebaseIndex (HCI FTS lane) |

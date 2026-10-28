@@ -1,6 +1,13 @@
+---
+type: ADR
+title: 'CDP-ADR-0224: Env-free ops — zero operator env, CLI + EmbeddedTOML only'
+adr_id: cdp-mcp/CDP-ADR-0224-env-free-ops
+status: stable
+adr_status: 'Accepted (2026-09-12)'
+---
+
 # CDP-ADR-0224: Env-free ops — zero operator env, CLI + EmbeddedTOML only
 
-**Status:** Accepted (2026-09-12)
 **Extends:** ADR-0222 (config TOML), ADR-0223 (ship slot port)
 
 ## Decision

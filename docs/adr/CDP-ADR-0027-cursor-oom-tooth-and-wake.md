@@ -1,6 +1,13 @@
+---
+type: ADR
+title: 'CDP-ADR-0027: D:\Experiments\Personal Cursor Folder\open\cdp mcp\docs\adr\CDP ADR 0027 cursor oom tooth and wake'
+adr_id: cdp-mcp/CDP-ADR-0027-cursor-oom-tooth-and-wake
+status: stable
+adr_status: 'Accepted'
+---
+
 # Cursor guest-host OOM tooth + OOM Wake
 
-**Status:** Accepted
 - **Date:** 2026-07-31
 - **Related:** CDP-ADR-0025 (citizen/guest isolation) · AutoIgnition ConnectionWatch · RemountInitialized wake
 

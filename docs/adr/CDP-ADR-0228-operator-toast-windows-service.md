@@ -1,3 +1,9 @@
+---
+type: ADR
+title: 'CDP-ADR-0228: Operator toast — отдельный Windows-only сервис (потребитель NotificationCenter)'
+adr_id: cdp-mcp/CDP-ADR-0228-operator-toast-windows-service
+---
+
 # CDP-ADR-0228: Operator toast — отдельный Windows-only сервис (потребитель NotificationCenter)
 
 | | |

@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0203: Bridge deploy-gap survival'
+adr_id: cdp-mcp/CDP-ADR-0203-bridge-deploy-gap-survival
+status: stable
+adr_status: 'Accepted'
+date: 2026-08-22
+---
+
 # CDP-ADR-0203: Bridge deploy-gap survival
 
-**Status:** Accepted  
-**Date:** 2026-08-22  
 **Extends:** ADR-0198 (bridge), ADR-0032 (durable jobs)
 
 ## Problem

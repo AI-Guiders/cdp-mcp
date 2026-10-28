@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0030: Citizen multi-session continuity (one mind · N seats)'
+adr_id: cdp-mcp/CDP-ADR-0030-citizen-multi-session-continuity
+status: draft
+adr_status: 'Proposed (direction locked; partial organs shipped; multiplex dogfood next)'
+date: 2026-08-05
+---
+
 # CDP-ADR-0030: Citizen multi-session continuity (one mind · N seats)
 
-**Status:** Proposed (direction locked; partial organs shipped; multiplex dogfood next)  
-**Date:** 2026-08-05  
 **Tags:** #cdp #adr #citizen #continuity #intercom #glass #equal-standing #attention
 
 **Related:**

@@ -1,6 +1,13 @@
+---
+type: ADR
+title: 'CDP-ADR-0031: Explore corr full-a before Act'
+adr_id: cdp-mcp/CDP-ADR-0031-explore-corr-full-a-before-act
+status: stable
+adr_status: 'Accepted'
+---
+
 # CDP-ADR-0031: Explore corr full-a before Act
 
-**Status:** Accepted
 - **Date:** 2026-08-14
 - **Related:** CDP-ADR-0029 (analysis organ) · cascade-ide ADR 0155/0156 (CRS) · seeming Done shields
 

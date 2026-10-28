@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0206: Habitat Integrity Subsystem (HIS)'
+adr_id: cdp-mcp/CDP-ADR-0206-habitat-integrity-subsystem
+status: stable
+adr_status: 'Accepted (direction); v0 spec locked; implementation phased'
+date: 2026-08-25
+---
+
 # CDP-ADR-0206: Habitat Integrity Subsystem (HIS)
 
-**Status:** Accepted (direction); v0 spec locked; implementation phased  
-**Date:** 2026-08-25  
 **Tags:** #cdp #adr #integrity #habitat #kb #provenance #drift #mem-c  
 **project-id:** `cdp-mcp` · consumer: CDP habitat · agent-notes · Cursor seat
 

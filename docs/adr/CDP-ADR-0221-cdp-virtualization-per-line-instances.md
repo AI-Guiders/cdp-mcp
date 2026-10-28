@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0221: CDP Virtualization — per-line instance profiles'
+adr_id: cdp-mcp/CDP-ADR-0221-cdp-virtualization-per-line-instances
+status: draft
+adr_status: 'Draft'
+date: 2026-09-08
+---
+
 # CDP-ADR-0221: CDP Virtualization — per-line instance profiles
 
-**Status:** Draft
-**Date:** 2026-09-08
 **project-id:** `cdp-mcp` · related: CDP-ADR-0199 (isolation), CDP-ADR-0203 (deploy), CDP-ADR-0213 (wake dispatcher), CDP-ADR-0198 (durable service)
 **Tags:** #cdp #adr #virtualization #habitat #multi-line #isolation
 

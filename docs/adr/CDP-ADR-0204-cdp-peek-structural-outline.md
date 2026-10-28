@@ -1,6 +1,13 @@
+---
+type: ADR
+title: 'CDP-ADR-0204: cdp_peek \u2014 structural outline for large files'
+adr_id: cdp-mcp/CDP-ADR-0204-cdp-peek-structural-outline
+status: stable
+adr_status: 'Accepted'
+---
+
 # CDP-ADR-0204: cdp_peek \u2014 structural outline for large files
 
-**Status:** Accepted
 - **Date:** 2026-08-24
 - **Related:** ADR-0201 (cdp_peek) \u00B7 ADR-0031 (Explore corr \u2014 dig) \u00B7 get_document_symbols (Roslyn/LSP)
 

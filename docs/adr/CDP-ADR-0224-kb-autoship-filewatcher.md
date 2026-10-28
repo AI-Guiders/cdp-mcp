@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0224: KB AutoShip — FileWatcher in CdpService'
+adr_id: cdp-mcp/CDP-ADR-0224-kb-autoship-filewatcher
+status: stable
+adr_status: 'Accepted'
+date: 2026-09-12
+---
+
 # CDP-ADR-0224: KB AutoShip — FileWatcher in CdpService
 
-**Status:** Accepted  
-**Date:** 2026-09-12  
 **project-id:** `cdp-mcp` · extends ADR-0213 (wake dispatch), ADR-0207 (writing canon / agent-notes chain)  
 **Tags:** #cdp #adr #autoship #git #agent-notes #kb
 

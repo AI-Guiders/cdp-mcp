@@ -1,6 +1,13 @@
+---
+type: ADR
+title: 'CDP-ADR-0029: D:\Experiments\Personal Cursor Folder\open\cdp mcp\docs\adr\CDP ADR 0029 teeth analysis organ'
+adr_id: cdp-mcp/CDP-ADR-0029-teeth-analysis-organ
+status: stable
+adr_status: 'Accepted'
+---
+
 # Teeth analysis organ (guest-host afferent)
 
-**Status:** Accepted
 - **Date:** 2026-08-01
 - **Related:** CDP-ADR-0027 (OOM tooth + wake) · CDP-ADR-0023 (HILD) · FDR (tool-call black box — separate)
 

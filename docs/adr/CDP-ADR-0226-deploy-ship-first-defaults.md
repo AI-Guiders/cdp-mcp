@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0226: Deploy ship-first — defaults, rollout, observability'
+adr_id: cdp-mcp/CDP-ADR-0226-deploy-ship-first-defaults
+status: stable
+adr_status: 'Accepted'
+date: 2026-09-12
+---
+
 # CDP-ADR-0226: Deploy ship-first — defaults, rollout, observability
 
-**Status:** Accepted  
-**Date:** 2026-09-12  
 **project-id:** `cdp-mcp` · extends ADR-0223 (ship slot), ADR-0203 (bridge deploy gap), ADR-0211 (deploy-plane)  
 **Tags:** #cdp #adr #deploy #ship #rollout #just-culture
 

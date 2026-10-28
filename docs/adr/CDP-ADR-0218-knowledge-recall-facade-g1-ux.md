@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0218: Unified KB recall facade (`recall_knowledge`) + G1 UX'
+adr_id: cdp-mcp/CDP-ADR-0218-knowledge-recall-facade-g1-ux
+status: stable
+adr_status: 'Accepted'
+date: 2026-09-12
+---
+
 # CDP-ADR-0218: Unified KB recall facade (`recall_knowledge`) + G1 UX
 
-**Status:** Accepted  
-**Date:** 2026-09-12  
 **Extends:** [CDP-ADR-0210](CDP-ADR-0210-knowledge-corpus-recall-federated.md)  
 **WORK leaf:** `agent-notes/knowledge/domains/agent-operations/WORK-CDP-ADR-0218-recall-knowledge-facade-g1-ux.md`
 

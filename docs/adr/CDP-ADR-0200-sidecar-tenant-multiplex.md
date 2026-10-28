@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0200: Sidecar tenant multiplex (one IDE · N composers)'
+adr_id: cdp-mcp/CDP-ADR-0200-sidecar-tenant-multiplex
+status: stable
+adr_status: 'Accepted · Implemented'
+date: 2026-08-21
+---
+
 # CDP-ADR-0200: Sidecar tenant multiplex (one IDE · N composers)
 
-**Status:** Accepted · Implemented  
-**Date:** 2026-08-21  
 **Extends:** ADR-0198 (sidecar) · ADR-0199 (workspace isolation) · ADR-0030 (multiplex direction)
 
 ## Problem

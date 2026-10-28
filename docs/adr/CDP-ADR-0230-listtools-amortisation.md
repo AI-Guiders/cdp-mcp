@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0230: D:\Experiments\Personal Cursor Folder\open\cdp mcp\docs\adr\CDP ADR 0230 listtools amortisation'
+adr_id: cdp-mcp/CDP-ADR-0230-listtools-amortisation
+status: stable
+adr_status: 'Accepted'
+date: 2026-09-19
+---
+
 # CDP-ADR-0230 — ListTools amortisation (invalidate vs cache)
 
-**Status:** Accepted  
-**Date:** 2026-09-19  
 **Epic:** Habitat AxB Attractors L4
 
 ## Context

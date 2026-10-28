@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0232: Cursor SDK local Autoi primary (L6)'
+adr_id: cdp-mcp/CDP-ADR-0232-cursor-sdk-local-autoi-primary
+status: stable
+adr_status: 'Accepted'
+date: 2026-09-19
+---
+
 # CDP-ADR-0232: Cursor SDK local Autoi primary (L6)
 
-**Status:** Accepted  
-**Date:** 2026-09-19  
 **project-id:** `cdp-mcp`  
 **Tags:** #cdp #adr #ignite #autoi #cursor-sdk #habitat #axb
 

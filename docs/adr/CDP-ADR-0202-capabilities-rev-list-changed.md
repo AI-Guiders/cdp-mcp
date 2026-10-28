@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0202: Online capabilities refresh (bridge `list_changed`)'
+adr_id: cdp-mcp/CDP-ADR-0202-capabilities-rev-list-changed
+status: stable
+adr_status: 'Accepted'
+date: 2026-08-21
+---
+
 # CDP-ADR-0202: Online capabilities refresh (bridge `list_changed`)
 
-**Status:** Accepted  
-**Date:** 2026-08-21  
 **Extends:** [0198](0198-cdp-sidecar-service-bridge-big-bang.md) (CdpService + CdpMcpBridge)  
 **Related:** [0201](CDP-ADR-0201-cdp-peek-read-only-eyes.md) (new tools must appear without MCP remount)
 

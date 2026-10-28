@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0225: Deploy plane source resolution (`repo_root`)'
+adr_id: cdp-mcp/CDP-ADR-0225-deploy-plane-repo-root
+status: stable
+adr_status: 'Accepted'
+date: 2026-09-12
+---
+
 # CDP-ADR-0225: Deploy plane source resolution (`repo_root`)
 
-**Status:** Accepted  
-**Date:** 2026-09-12  
 **Extends:** [CDP-ADR-0211](CDP-ADR-0211-deploy-plane-ownership.md)
 
 ## Problem

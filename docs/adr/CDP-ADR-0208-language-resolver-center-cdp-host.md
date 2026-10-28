@@ -1,6 +1,13 @@
+---
+type: ADR
+title: 'CDP-ADR-0208: Language Resolver Center — CDP first host'
+adr_id: cdp-mcp/CDP-ADR-0208-language-resolver-center-cdp-host
+status: stable
+adr_status: 'Accepted · In progress (P2 F# parity slice landed)'
+---
+
 # CDP-ADR-0208: Language Resolver Center — CDP first host
 
-**Status:** Accepted · In progress (P2 F# parity slice landed)
 - **Implementation:** LRC dispatch in CDP — bare-verb routing smoke (`CdpLrcDispatchTests`); F# semantic/materialize oracle in `guiders-fsharp` `Language.Tests`; rename `apply` via `SessionOrchestrator.applyPatch`; ω project resolve via `DocumentRegistry`; **CompilerServices materialize** via `FederationSessionRuntime.TryEnsureCompilerServices` before LRC dispatch (ADR-0062 slice); active-pattern blocker; workspace symbol identity via `FSharpSymbol.IsEffectivelySameAs`; ide-session federation pulse partial
 - **Date:** 2026-09-02
 - **Tags:** #cdp #lrc #fsharp #fcs #roslyn #gdl #ide #mcp

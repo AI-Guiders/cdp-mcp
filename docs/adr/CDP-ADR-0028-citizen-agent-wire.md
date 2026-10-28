@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0028: Citizen agent wire (pulse frames)'
+adr_id: cdp-mcp/CDP-ADR-0028-citizen-agent-wire
+status: stable
+adr_status: 'Accepted (wire contract + parser + host inject via `CitizenCompletions` / `cdp_citizen`)'
+date: 2026-07-31
+---
+
 # CDP-ADR-0028: Citizen agent wire (pulse frames)
 
-**Status:** Accepted (wire contract + parser + host inject via `CitizenCompletions` / `cdp_citizen`)  
-**Date:** 2026-07-31  
 **Tags:** #cdp #adr #citizen #wire #dark-cockpit
 
 **Related:** [citizen-agent-wire-v0.md](../design/citizen-agent-wire-v0.md) · fixtures `docs/design/citizen-wire-fixtures/` · `CitizenWireParser` · CDP-ADR-0020 (desk vs organ) · CDP-ADR-0025 (isolation) · CDP-ADR-0026 (ai-keys) · CIDE ADR 0021 (W/C/A)

@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0231: Same-wake ground soft recalibration'
+adr_id: cdp-mcp/CDP-ADR-0231-same-wake-ground
+status: stable
+adr_status: 'Accepted'
+date: 2026-09-19
+---
+
 # CDP-ADR-0231: Same-wake ground soft recalibration
 
-**Status:** Accepted  
-**Date:** 2026-09-19  
 **project-id:** `cdp-mcp`  
 **Tags:** #cdp #adr #ground #same-wake #axb #just-culture
 

@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0233: D:\Experiments\Personal Cursor Folder\open\cdp mcp\docs\adr\CDP ADR 0233 graphql query facade'
+adr_id: cdp-mcp/CDP-ADR-0233-graphql-query-facade
+status: stable
+adr_status: 'Accepted'
+date: 2026-09-19
+---
+
 # CDP-ADR-0233 — GraphQL query facade (read collapse)
 
-**Status:** Accepted  
-**Date:** 2026-09-19  
 **Extends:** ADR-0198 (handlers in CdpService) · ADR-0230 (ListTools amortisation) · ADR-0009 (search organ → superseded for agent read)
 
 ## Context

@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0234: Wake addressing — owner, task key, terminal misroute'
+adr_id: cdp-mcp/CDP-ADR-0234-wake-addressing-owner-and-task-key
+status: stable
+adr_status: 'Accepted'
+date: 2026-10-22
+---
+
 # CDP-ADR-0234: Wake addressing — owner, task key, terminal misroute
 
-**Status:** Accepted  
-**Date:** 2026-10-22  
 **Extends:** [CDP-ADR-0213](CDP-ADR-0213-wake-dispatcher.md), [CDP-ADR-0219](CDP-ADR-0219-habitat-state-consolidation.md), [CDP-ADR-0227](CDP-ADR-0227-wake-channel-external-subscribers.md)
 
 ## Problem

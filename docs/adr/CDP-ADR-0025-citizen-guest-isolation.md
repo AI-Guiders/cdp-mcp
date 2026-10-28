@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0025: Citizen vs guest isolation (guest must not thrash citizen)'
+adr_id: cdp-mcp/CDP-ADR-0025-citizen-guest-isolation
+status: stable
+adr_status: 'Accepted (foundation; dual-seat ignite/HILD + pressure seat dirs shipped 0.5.330; citizen host not shipped)'
+date: 2026-07-31
+---
+
 # CDP-ADR-0025: Citizen vs guest isolation (guest must not thrash citizen)
 
-**Status:** Accepted (foundation; dual-seat ignite/HILD + pressure seat dirs shipped 0.5.330; citizen host not shipped)  
-**Date:** 2026-07-31  
 **Tags:** #cdp #adr #citizen #guest #isolation #continuity
 
 **Related:** [citizen-agent-wire-v0.md](../design/citizen-agent-wire-v0.md) · CDP-ADR-0021 (Glass projector) · CDP-ADR-0023 (HILD) · CDP-ADR-0024 (recall gate) · CIDE ADR 0199 (workspace isolation)

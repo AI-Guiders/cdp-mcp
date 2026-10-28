@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0205: AutoIgnition harness seat + provider target bag'
+adr_id: cdp-mcp/CDP-ADR-0205-autoi-harness-target-bag
+status: stable
+adr_status: 'Accepted · Pending implementation (OpenCode leaf)'
+date: 2026-08-24
+---
+
 # CDP-ADR-0205: AutoIgnition harness seat + provider target bag
 
-**Status:** Accepted · Pending implementation (OpenCode leaf)  
-**Date:** 2026-08-24  
 **Extends:** ADR-0198 (sidecar) · ADR-0200 (tenant multiplex) · Install-Cdp `HostAdapter`  
 **Supersedes (shape):** flat `IgniteArm.OpencodeSession` / env-gated `IdeAutoiFireProvider.Resolve()` as seat selectors
 

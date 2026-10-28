@@ -1,7 +1,14 @@
+---
+type: ADR
+title: 'CDP-ADR-0223: Ship — слот из immutable-снимка (реализация stage 3 ADR-0209)'
+adr_id: cdp-mcp/CDP-ADR-0223-ship-slot-from-immutable-snapshot
+status: stable
+adr_status: 'Accepted'
+date: 2026-09-10
+---
+
 # CDP-ADR-0223: Ship — слот из immutable-снимка (реализация stage 3 ADR-0209)
 
-**Status:** Accepted  
-**Date:** 2026-09-10  
 **project-id:** `cdp-mcp` · extends ADR-0209 (вышка+слоты), ADR-0211 (deploy-plane ownership), ADR-0203 (deploy gap)  
 **Tags:** #cdp #adr #deploy #slots #ship #immutable
 

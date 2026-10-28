@@ -1,8 +1,15 @@
+---
+type: ADR
+title: 'CDP-ADR-0220: In-Generation Procedural Execution — in-gen-gate, harness-led step-based turns'
+adr_id: cdp-mcp/CDP-ADR-0220-in-generation-procedural-execution
+status: draft
+adr_status: 'Draft'
+---
+
 # CDP-ADR-0220: In-Generation Procedural Execution — in-gen-gate, harness-led step-based turns
 
 | | |
 |---|---|
-**Status:** Draft
 | **Date** | 2026-09-08 |
 | **Tags** | #cdp #adr #ignite #procedures #in-gen-gate #protocol-runner #wake |
 | **Related** | [CDP-ADR-0213 wake dispatcher] · [CDP-ADR-0214 wake-witdb-broker] · [CDP-ADR-0212 nick registry] · [CDP-ADR-0219 habitat state] · memory_world processes.toml (Guided Graph) · procedures.toml (when-cards) |
