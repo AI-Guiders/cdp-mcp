@@ -92,7 +92,7 @@ internal static class GitSessionDefaults
                 return schema;
 
             using var stream = new MemoryStream();
-            using (var writer = new Utf8JsonWriter(stream))
+            using (var writer = new Utf8JsonWriter(stream, CdpJson.WriterOptions))
             {
                 writer.WriteStartObject();
                 foreach (var prop in root.EnumerateObject())

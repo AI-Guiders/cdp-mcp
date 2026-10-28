@@ -24,4 +24,7 @@
     <ProjectReference Include="..\..\guiders-assist\src\AIGuiders.Cli\AIGuiders.Cli.csproj" Condition="'$(UseLocalGuidersCore)' == 'true'" />
     <PackageReference Include="AIGuiders.Cli" Version="1.1.1" Condition="'$(UseLocalGuidersCore)' != 'true'" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="CdpAnalyzers\CdpAnalyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
 </Project>

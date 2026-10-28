@@ -34,8 +34,9 @@ using var http = CdpBridgeHttpClient.Create(settings, tenantState);
 var serviceEnsurer = new CdpBridgeServiceEnsurer(settings);
 var jsonOptions = new JsonSerializerOptions
 {
-    PropertyNameCaseInsensitive = true,
-    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,    PropertyNameCaseInsensitive = true,
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
 };
 
 var invokeRouter = new CdpBridgeInvokeRouter(settings, http, serviceEnsurer, jsonOptions);

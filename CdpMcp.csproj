@@ -52,6 +52,9 @@
     <Compile Remove="CdpMcp.ArchitectureAnalyzers/**" />
     <None Remove="CdpMcp.ArchitectureAnalyzers/**" />
     <EmbeddedResource Remove="CdpMcp.ArchitectureAnalyzers/**" />
+    <Compile Remove="CdpAnalyzers/**" />
+    <None Remove="CdpAnalyzers/**" />
+    <EmbeddedResource Remove="CdpAnalyzers/**" />
     <Compile Remove="CdpDeskTui/**" />
     <None Remove="CdpDeskTui/**" />
     <EmbeddedResource Remove="CdpDeskTui/**" />
@@ -596,4 +599,7 @@
       <Compile Include="$(IntermediateOutputPath)BuildStamp.g.cs" />
     </ItemGroup>
   </Target>
+  <ItemGroup>
+    <ProjectReference Include="CdpAnalyzers\CdpAnalyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
 </Project>

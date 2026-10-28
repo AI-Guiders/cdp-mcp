@@ -83,7 +83,7 @@ internal static class CdpBridgeDeployRunner
         {
             using var doc = JsonDocument.Parse(deployJson);
             var writer = new MemoryStream();
-            using (var w = new Utf8JsonWriter(writer, new JsonWriterOptions { Indented = true }))
+            using (var w = new Utf8JsonWriter(writer, CdpJson.WriterOptionsIndented))
             {
                 w.WriteStartObject();
                 foreach (var prop in doc.RootElement.EnumerateObject())

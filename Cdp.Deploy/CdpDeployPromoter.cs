@@ -7,6 +7,12 @@ public static class CdpDeployPromoter
 {
     static readonly string[] PreserveNames = ["cdp-mcp.toml"];
 
+    static readonly JsonSerializerOptions SsotOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
         public static void PromoteTree(string stagedRoot, string liveRoot)
     {
         if (!Directory.Exists(stagedRoot))
@@ -130,7 +136,8 @@ internal static class CdpDeployPending
 
         return JsonSerializer.Deserialize<PendingUpdate>(File.ReadAllText(layout.PendingMarker), new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,            PropertyNameCaseInsensitive = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         }) ?? throw new InvalidOperationException("Invalid pending update JSON.");
     }
 

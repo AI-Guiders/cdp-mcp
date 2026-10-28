@@ -6,7 +6,7 @@ namespace CdpMcpBridge;
 /// <summary>Bridge-local read of durable job SSOT when CdpService is down during deploy (ADR-0203).</summary>
 internal static class CdpBridgeDurableAccess
 {
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = CdpJson.Indented;
 
     internal static bool HasInFlightDeploy() =>
         DurableJobStore.TryGetInFlightKind("deploy") is not null;
@@ -92,7 +92,7 @@ internal static class CdpBridgeDurableAccess
         {
             using var doc = JsonDocument.Parse(json);
             var writer = new MemoryStream();
-            using (var w = new Utf8JsonWriter(writer, new JsonWriterOptions { Indented = true }))
+            using (var w = new Utf8JsonWriter(writer, CdpJson.WriterOptionsIndented))
             {
                 w.WriteStartObject();
                 foreach (var prop in doc.RootElement.EnumerateObject())

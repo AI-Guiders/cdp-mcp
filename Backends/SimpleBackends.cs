@@ -260,7 +260,7 @@ internal sealed class CodebaseIndexBackend(CdpSettings settings) : ICdpBackendMo
             using var reindex = JsonDocument.Parse(reindexJson);
             var root = search.RootElement.Clone();
             using var stream = new MemoryStream();
-            using (var writer = new Utf8JsonWriter(stream))
+            using (var writer = new Utf8JsonWriter(stream, CdpJson.WriterOptions))
             {
                 writer.WriteStartObject();
                 foreach (var p in root.EnumerateObject())
