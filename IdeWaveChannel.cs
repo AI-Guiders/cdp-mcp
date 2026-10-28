@@ -32,7 +32,7 @@ internal static partial class IdeWaveChannel
         ?? Path.Combine(CdpProfile.StateRoot, IdeIgniteArmHost.Seat, "active-wave.json");
 
     public static string HandleJson(IReadOnlyDictionary<string, JsonElement>? args = null) =>
-        JsonSerializer.Serialize(Handle(args), new JsonSerializerOptions { WriteIndented = true });
+        JsonSerializer.Serialize(Handle(args), AgentNotes.Core.AigJson.Indented);
 
     public static object Handle(IReadOnlyDictionary<string, JsonElement>? args = null)
     {

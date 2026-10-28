@@ -117,7 +117,7 @@ internal static partial class CdpPluginQuarantine
         };
 
         var manifestPath = Path.Combine(dest, ManifestFileName);
-        File.WriteAllText(manifestPath, JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(manifestPath, JsonSerializer.Serialize(manifest, AgentNotes.Core.AigJson.Indented));
 
         var groupState = LoadGroupState();
         if (!TryRead(manifestPath, groupState, out var info))

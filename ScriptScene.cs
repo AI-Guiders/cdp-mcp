@@ -21,10 +21,7 @@ internal static partial class ScriptScene
 
 	public const string ToolName = "cdp_script_scene";
 
-	private static readonly JsonSerializerOptions Pretty = new JsonSerializerOptions
-	{
-		WriteIndented = true
-	};
+	private static readonly JsonSerializerOptions Pretty = new(AgentNotes.Core.AigJson.Indented);
 
 	private static readonly ConcurrentDictionary<string, LastRun> LastByRoot = new ConcurrentDictionary<string, LastRun>(StringComparer.OrdinalIgnoreCase);
 

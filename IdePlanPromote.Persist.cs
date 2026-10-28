@@ -24,7 +24,7 @@ internal static partial class IdePlanPromote
         };
         File.WriteAllText(
             path,
-            JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true }),
+            JsonSerializer.Serialize(payload, AgentNotes.Core.AigJson.Indented),
             Encoding.UTF8);
     }
 

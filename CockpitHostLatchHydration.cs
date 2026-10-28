@@ -91,7 +91,7 @@ internal static class CockpitHostLatchHydration
 
             obj["stamped_utc"] = DateTimeOffset.UtcNow.ToString("O");
             var tmp = path + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
-            File.WriteAllText(tmp, node.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            File.WriteAllText(tmp, node.ToJsonString(AgentNotes.Core.AigJson.Indented));
             File.Move(tmp, path, overwrite: true);
             return true;
         }

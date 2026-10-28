@@ -20,8 +20,9 @@ public static class CdpDeployShip
     const int FirstSlotPort = 8772;
     const int LastSlotPort = 8871;
 
-    /// <summary>How long a fresh slot may take to answer its own /healthz.</summary>
-    public static readonly TimeSpan SlotHealthTimeout = TimeSpan.FromSeconds(30);
+    /// <summary>How long a fresh slot may take to answer its own /healthz. Cold start measured
+    /// at ~25s under load — 30s failed deploys twice on a busy machine (2026-10-25/26).</summary>
+    public static readonly TimeSpan SlotHealthTimeout = TimeSpan.FromSeconds(90);
 
     /// <summary>Immutable snapshots retained for rollback (newest N survive pruning).</summary>
     public const int SnapshotsToKeep = 3;

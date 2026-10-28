@@ -16,7 +16,7 @@ internal static class IdeCalendarChannel
     public static string HandleJson(
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement>? args = null) =>
-        JsonSerializer.Serialize(Handle(session, args), new JsonSerializerOptions { WriteIndented = true });
+        JsonSerializer.Serialize(Handle(session, args), AgentNotes.Core.AigJson.Indented);
 
     public static object Handle(
         SessionContext session,

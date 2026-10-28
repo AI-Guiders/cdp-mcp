@@ -120,7 +120,7 @@ internal static class CdpDeployPending
             bridgeStaged,
             version,
             "cdp_deploy mode=apply (promote .next, no republish)");
-        File.WriteAllText(layout.PendingMarker, JsonSerializer.Serialize(pending, new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(layout.PendingMarker, JsonSerializer.Serialize(pending, new System.Text.Json.JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
     }
 
     public static PendingUpdate ReadRequired(CdpDeployLayout layout)
@@ -155,6 +155,6 @@ internal static class CdpDeployPending
             bridgeStaged,
             null,
             "bridge deferred — bridges were running; promote lands on next apply");
-        File.WriteAllText(layout.PendingMarker, JsonSerializer.Serialize(pending, new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(layout.PendingMarker, JsonSerializer.Serialize(pending, new System.Text.Json.JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
     }
 }

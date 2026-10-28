@@ -54,7 +54,7 @@ internal static partial class CdpPluginQuarantine
             ["schema"] = GroupsSchema,
             ["groups"] = groups
         };
-        File.WriteAllText(GroupsPath, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(GroupsPath, root.ToJsonString(AgentNotes.Core.AigJson.Indented));
     }
 
     static void EnsureGroupRegistered(string id, string label)
@@ -119,7 +119,7 @@ internal static partial class CdpPluginQuarantine
             if (node is null)
                 return false;
             patch(node);
-            File.WriteAllText(path, node.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            File.WriteAllText(path, node.ToJsonString(AgentNotes.Core.AigJson.Indented));
             return true;
         }
         catch

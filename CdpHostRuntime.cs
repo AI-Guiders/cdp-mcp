@@ -310,7 +310,7 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
             session.Object = udo;
 
         var mcpVersion = ComposeMcpVersion();
-        var pretty = new JsonSerializerOptions { WriteIndented = true };
+        var pretty = AgentNotes.Core.AigJson.Indented;
 
         List<Tool> BuildVisibleTools() =>
             VisibleToolCatalog.Build(new VisibleToolCatalogDeps

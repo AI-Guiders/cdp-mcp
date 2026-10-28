@@ -83,7 +83,7 @@ public sealed class IdeLifecycleJobsTests
             ["ignite_arm"] = JsonSerializer.SerializeToElement(false)
         };
 
-        var startedJson = IdeLifecycleJobs.StartBuild(session, args, buildMod: null, new JsonSerializerOptions { WriteIndented = true });
+        var startedJson = IdeLifecycleJobs.StartBuild(session, args, buildMod: null, AgentNotes.Core.AigJson.Indented);
         using (var doc = JsonDocument.Parse(startedJson))
         {
             Assert.True(doc.RootElement.GetProperty("ok").GetBoolean());

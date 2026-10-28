@@ -23,14 +23,14 @@ internal static class IdeEnvironmentReadinessChannel
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement>? args = null) =>
         JsonSerializer.Serialize(Handle(session, args).GetAwaiter().GetResult(),
-            new JsonSerializerOptions { WriteIndented = true });
+            AgentNotes.Core.AigJson.Indented);
 
     public static async Task<string> HandleJsonAsync(
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement>? args,
         CancellationToken ct) =>
         JsonSerializer.Serialize(await Handle(session, args, ct).ConfigureAwait(false),
-            new JsonSerializerOptions { WriteIndented = true });
+            AgentNotes.Core.AigJson.Indented);
 
     public static async Task<object> Handle(
         SessionContext session,

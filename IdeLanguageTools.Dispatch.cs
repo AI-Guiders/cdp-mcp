@@ -17,11 +17,11 @@ internal static partial class IdeLanguageTools
         {
             if (!args.TryGetValue("path", out var pEl) || pEl.GetString()is not { Length: > 0 } path)
             {
-                return JsonSerializer.Serialize(new { session_project_root = session.ProjectRoot, session_kind = session.ProjectKind, session_language = session.Language, solution_or_project_path = session.SolutionOrProjectPath, tsconfig_path = session.TsConfigPath, scm_root = session.ScmRoot }, new JsonSerializerOptions { WriteIndented = true });
+                return JsonSerializer.Serialize(new { session_project_root = session.ProjectRoot, session_kind = session.ProjectKind, session_language = session.Language, solution_or_project_path = session.SolutionOrProjectPath, tsconfig_path = session.TsConfigPath, scm_root = session.ScmRoot }, AgentNotes.Core.AigJson.Indented);
             }
 
             var detected = _langs.Detect(path);
-            return JsonSerializer.Serialize(new { root = detected.Root, kind = detected.Kind, language = detected.Language, anchors = detected.Anchors, solution_or_project_path = detected.SolutionOrProjectPath, tsconfig_path = detected.TsConfigPath }, new JsonSerializerOptions { WriteIndented = true });
+            return JsonSerializer.Serialize(new { root = detected.Root, kind = detected.Kind, language = detected.Language, anchors = detected.Anchors, solution_or_project_path = detected.SolutionOrProjectPath, tsconfig_path = detected.TsConfigPath }, AgentNotes.Core.AigJson.Indented);
         }
 
         // Text find — language-agnostic, same shelf as get_completions (not cdp_buffer-only).

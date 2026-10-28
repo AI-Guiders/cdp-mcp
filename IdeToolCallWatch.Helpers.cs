@@ -167,7 +167,7 @@ internal static partial class IdeToolCallWatch
                 ["during_call"] = exceededDuring,
                 ["hint"] = "wall time past timeout_wake — Autoi once-wake armed if idle; prefer start+poll for long organs"
             };
-            return obj.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+            return obj.ToJsonString(AgentNotes.Core.AigJson.Indented);
         }
         catch
         {

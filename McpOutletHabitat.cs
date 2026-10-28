@@ -64,11 +64,7 @@ internal sealed partial class McpOutletHabitat : IAsyncDisposable
 
 	public const string Schema = "mcp_outlet/v1";
 
-	private static readonly JsonSerializerOptions Pretty = new JsonSerializerOptions
-	{
-		WriteIndented = true,
-		PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-	};
+	private static readonly JsonSerializerOptions Pretty = AgentNotes.Core.AigJson.IndentedSnakeCase;
 
 	private readonly ConcurrentDictionary<string, MountedServer> _servers = new ConcurrentDictionary<string, MountedServer>(StringComparer.OrdinalIgnoreCase);
 

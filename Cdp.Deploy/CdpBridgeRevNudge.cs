@@ -42,7 +42,7 @@ public static class CdpBridgeRevNudge
             if (!bumped)
                 return false;
 
-            File.WriteAllText(mcpJson, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            File.WriteAllText(mcpJson, root.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
             return true;
         }
         catch

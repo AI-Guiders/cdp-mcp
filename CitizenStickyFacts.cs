@@ -80,7 +80,7 @@ internal static class CitizenStickyFacts
         {
             Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
             var map = new Dictionary<string, string>(Load(), StringComparer.OrdinalIgnoreCase) { [k] = v };
-            File.WriteAllText(FilePath, JsonSerializer.Serialize(map, new JsonSerializerOptions { WriteIndented = true }));
+            File.WriteAllText(FilePath, JsonSerializer.Serialize(map, AgentNotes.Core.AigJson.Indented));
         }
         catch
         {
@@ -121,7 +121,7 @@ internal static class CitizenStickyFacts
             else
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-                File.WriteAllText(FilePath, JsonSerializer.Serialize(map, new JsonSerializerOptions { WriteIndented = true }));
+                File.WriteAllText(FilePath, JsonSerializer.Serialize(map, AgentNotes.Core.AigJson.Indented));
             }
         }
         catch

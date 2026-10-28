@@ -18,7 +18,7 @@ public class FederationSessionBridgeTests
     public void BuildSceneJson_without_anchor_returns_reason()
     {
         var session = new SessionContext();
-        var json = FederationSessionBridge.BuildSceneJson(session, new Dictionary<string, JsonElement>(), new JsonSerializerOptions { WriteIndented = true });
+        var json = FederationSessionBridge.BuildSceneJson(session, new Dictionary<string, JsonElement>(), AgentNotes.Core.AigJson.Indented);
         using var doc = JsonDocument.Parse(json);
         Assert.False(doc.RootElement.GetProperty("ok").GetBoolean());
         Assert.Equal("no_anchor", doc.RootElement.GetProperty("reason").GetString());

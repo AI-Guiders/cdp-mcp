@@ -52,7 +52,7 @@ var options = new McpServerOptions
         When tower/slot install_dir is set, bridge auto-starts CdpGatekeeper then CdpService on connection refused.
         Logon Scheduled Task remains cold-boot only (ADR-0209).
         """,
-    ProtocolVersion = "2024-11-05",
+    ProtocolVersion = "2025-06-18",
     Capabilities = new ServerCapabilities
     {
         Tools = new ToolsCapability { ListChanged = true }
@@ -85,9 +85,12 @@ var options = new McpServerOptions
                                 InputSchema = t.InputSchema.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
                                     ? JsonSerializer.SerializeToElement(new { type = "object", properties = new { } })
                                     : t.InputSchema,
+                                // Declared schema wins; tools without one get the honest
+                                // envelope (CdpService bodies are JSON objects) so the
+                                // catalog never shows an opaque Promise<unknown>.
                                 OutputSchema = t.OutputSchema is { ValueKind: not JsonValueKind.Undefined and not JsonValueKind.Null }
                                     ? t.OutputSchema
-                                    : null
+                                    : JsonSerializer.SerializeToElement(new { type = "object" })
                             })
                             .ToList();
                         if (rev > 0)

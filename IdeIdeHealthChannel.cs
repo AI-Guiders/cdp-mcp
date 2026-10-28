@@ -21,7 +21,7 @@ internal static class IdeIdeHealthChannel
         SessionContext session,
         IReadOnlyDictionary<string, JsonElement>? args = null) =>
         JsonSerializer.Serialize(Handle(session, args),
-            new JsonSerializerOptions { WriteIndented = true });
+            AgentNotes.Core.AigJson.Indented);
 
     public static object Handle(
         SessionContext session,

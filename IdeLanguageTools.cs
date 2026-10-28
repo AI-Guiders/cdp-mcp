@@ -160,7 +160,7 @@ internal static partial class IdeLanguageTools
             recent_count = OpenRecentStore.List().Count,
             recent_store = OpenRecentStore.Location,
             lsp_preset = ResolveLspPool().TryGetPreset(open.Language ?? "", out var p) ? p.Id : null
-        }, new JsonSerializerOptions { WriteIndented = true });
+        }, AgentNotes.Core.AigJson.Indented);
     }
 
     /// <summary>Attach ApplyOpen meta onto create/sln step JSON as <c>open</c> (scm_note, buffer_note, …).</summary>
@@ -175,7 +175,7 @@ internal static partial class IdeLanguageTools
             if (node is null || open is null)
                 return stepJson;
             node["open"] = open;
-            return node.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+            return node.ToJsonString(AgentNotes.Core.AigJson.Indented);
         }
         catch
         {
