@@ -1,19 +1,18 @@
-# Known: Unicode escapes in structured content despite McpJsonRelax
+# Known: Unicode escapes in structured content — awaiting upstream PR
 
 ## Symptom
-`\u00B7` (·), `\u250C` (┌), `\u2192` (→) in tool responses — structured content path.
-Text content (via CdpJson) is clean. Knowledge MCP (agent-notes) is clean.
+`\u00B7` (·), `\u250C` (┌) in tool responses — ×2-3 context tokens on Cyrillic/box-drawing.
+Knowledge MCP (agent-notes) is clean — different code path.
 
-## Root cause (suspected)
-MCP SDK 2.2.0: `StreamServerTransport` may create its own `JsonSerializerOptions`
-bypassing both `McpJsonUtilities.DefaultOptions` and `JsonContext.Default.Options`.
-The reflection patch in `McpJsonRelax` targets both, but one path escapes.
+## Root cause
+MCP C# SDK 2.2.0: source-gen `JsonContext` bakes conservative encoder at compile time.
+`McpJsonRelax` reflection hack patches `JsonSerializerOptions.Encoder` at runtime,
+but cached `JsonTypeInfo` doesn't re-read it. Text content path works (runtime serializer),
+structured content path doesn't (source-gen serializer).
 
-## Fix path
-1. Dump the actual options the transport serializes with (add debug log)
-2. If a third instance exists, patch it in `EnsureRelaxed()`
-3. Or: intercept at the `CallToolResult` construction — serialize StructuredContent
-   to string with relaxed options, pass as text content alongside structured
+## Fix
+PR pending upstream (modelcontextprotocol/csharp-sdk): add encoder knob to `McpJsonUtilities`.
+Until merged: `McpJsonRelax` is the best we can do — it covers text content but not structured.
 
-## Status
-Cosmetic (data is correct, display shows `\uXXXX`). Priority: low.
+## Priority
+Medium — not cosmetic (context waste), but blocked on upstream.
