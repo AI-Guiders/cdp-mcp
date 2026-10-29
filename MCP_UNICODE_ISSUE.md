@@ -1,18 +1,24 @@
-# Known: Unicode escapes in structured content — awaiting upstream PR
+# Unicode escapes in StructuredContent — blocked on upstream PR
 
-## Symptom
-`\u00B7` (·), `\u250C` (┌) in tool responses — ×2-3 context tokens on Cyrillic/box-drawing.
-Knowledge MCP (agent-notes) is clean — different code path.
+## Diagnosis (confirmed 2026-10-30)
 
-## Root cause
-MCP C# SDK 2.2.0: source-gen `JsonContext` bakes conservative encoder at compile time.
-`McpJsonRelax` reflection hack patches `JsonSerializerOptions.Encoder` at runtime,
-but cached `JsonTypeInfo` doesn't re-read it. Text content path works (runtime serializer),
-structured content path doesn't (source-gen serializer).
+| Path | Serializer | McpJsonRelax | Unicode |
+|------|-----------|-------------|---------|
+| TextContentBlock | runtime JsonSerializer | ✅ patched | ✅ clean |
+| StructuredContent | source-gen JsonContext | ❌ baked at compile | ❌ \uXXXX |
 
-## Fix
-PR pending upstream (modelcontextprotocol/csharp-sdk): add encoder knob to `McpJsonUtilities`.
-Until merged: `McpJsonRelax` is the best we can do — it covers text content but not structured.
+Agent-notes works because it only sends TextContentBlock (no StructuredContent).
+CDP sends both — text for LLMs (clean), structured for strict SDK validators (escaped).
 
-## Priority
-Medium — not cosmetic (context waste), but blocked on upstream.
+## Impact
+×2-3 tokens on Unicode payloads (Cyrillic, box-drawing, arrows) in the structured
+content block that gets sent alongside the clean text. ZCode shows both to the LLM.
+
+## Cannot fix locally
+- Removing StructuredContent breaks strict MCP clients (Open Code, Antigravity, etc.)
+- SDK 1.3.0-2.3.0: same source-gen behavior across versions
+- McpJsonRelax patches options but source-gen doesn't re-read encoder at runtime
+
+## Fix: upstream PR
+modelcontextprotocol/csharp-sdk#626 — add encoder knob to McpJsonUtilities.
+Until merged: text content carries the clean data, structured is best-effort.
