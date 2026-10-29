@@ -79,7 +79,7 @@ internal static partial class MetaToolCatalog
             error = new { type = "string", description = "not_found | binary | file_too_large | batch_too_large | no_store (ok=false)." },
             detail = new { type = "string", description = "Error detail." },
             bind_note = new { type = new[] { "string", "null" }, description = "Lazy project-bind note on first peek." },
-            outline_hint = new { type = "string", description = "file: pointer when mode=outline would be cheaper." },
+            outline_hint = new { type = new[] { "string", "null" }, description = "file: pointer when mode=outline would be cheaper." },
             hint = new { type = "string", description = "Next-step hint (mutate chain / retry / narrow)." }
         },
         required = new[] { "schema", "ok", "tool" }

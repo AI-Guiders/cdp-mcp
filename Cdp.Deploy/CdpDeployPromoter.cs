@@ -136,7 +136,7 @@ internal static class CdpDeployPending
 
         return JsonSerializer.Deserialize<PendingUpdate>(File.ReadAllText(layout.PendingMarker), new JsonSerializerOptions
         {
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,            PropertyNameCaseInsensitive = true,
+            PropertyNameCaseInsensitive = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         }) ?? throw new InvalidOperationException("Invalid pending update JSON.");
     }
