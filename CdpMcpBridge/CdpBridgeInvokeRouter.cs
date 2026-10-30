@@ -331,6 +331,12 @@ internal sealed class CdpBridgeInvokeRouter
     /// SDKs reject a declared-schema result without structured content. JSON
     /// bodies ride as-is; text-report bodies (cdp_deploy, cdp_man, shell…)
     /// wrap as { output: text } so the contract holds everywhere.
+    ///
+    /// StructuredContent rides the source-gen JsonContext (conservative encoder,
+    /// McpJsonRelax can't patch it — baked at compile time, ×2-3 tokens on
+    /// Unicode). The text content block duplicates the body as a plain string
+    /// through the runtime serializer (relaxed by McpJsonRelax) — LLMs read
+    /// that clean; strict SDK validators read StructuredContent.
     /// </summary>
     static CallToolResult WithStructured(CallToolResult result, string? body)
     {
