@@ -38,10 +38,18 @@ internal sealed class KbAutoShipEngine
         string? message = null;
         if (!string.IsNullOrWhiteSpace(status.Stdout))
         {
-            var secretHits = IdeReviewChannel.ListDirtyFiles(repoRoot)
-                .Count(d => d.Risk.Equals("secret", StringComparison.OrdinalIgnoreCase));
-            if (secretHits > 0)
-                return AlertFail(repoRoot, $"blocked: {secretHits} secret-risk path(s) in working tree.");
+            // CDP-ADR-0236: content-based secret gate (gitleaks) replaces the filename
+            // heuristic — the old lane missed real secrets in innocently-named files and
+            // deadlocked on the deletion of a secret-named path.
+            var scan = KbAutoShipSecretScanner.Scan(repoRoot, options);
+            if (scan.ScannerMissing)
+            {
+                _alert("gitleaks not found — secret gate skipped this cycle (secret_scanner = off to silence).");
+            }
+            else if (scan.Blocked)
+            {
+                return AlertFail(repoRoot, scan.Detail!);
+            }
 
             var add = _git.Run(repoRoot, "add -A");
             if (add.ExitCode != 0)

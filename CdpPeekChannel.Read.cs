@@ -285,7 +285,8 @@ internal static partial class CdpPeekChannel
     {
         var sb = new StringBuilder();
         foreach (var item in lines)
-            sb.Append(item.n.ToString().PadLeft(6)).Append('|').AppendLine(item.text);
+            // '\n' join, not AppendLine: wire is JSON — '\r' doubles separator tokens for zero info.
+            sb.Append(item.n.ToString().PadLeft(6)).Append('|').Append(item.text).Append('\n');
 
         return sb.ToString().TrimEnd('\r', '\n');
     }

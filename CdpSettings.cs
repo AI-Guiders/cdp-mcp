@@ -111,7 +111,9 @@ internal sealed partial class CdpSettings
                 Enabled = kbAutoShip.Enabled,
                 DebounceMs = kbAutoShip.DebounceMs,
                 Roots = kbAutoShip.Roots,
-                Branch = kbAutoShip.Branch
+                Branch = kbAutoShip.Branch,
+                SecretScanner = kbAutoShip.SecretScanner,
+                SecretScannerConfig = kbAutoShip.SecretScannerConfig
             },
             Deploy = new DeploySettings
             {
@@ -148,6 +150,8 @@ internal sealed partial class CdpSettings
         public int? DebounceMs { get; set; }
         public string[]? Roots { get; set; }
         public string? Branch { get; set; }
+        public string? SecretScanner { get; set; }
+        public string? SecretScannerConfig { get; set; }
     }
 
     private sealed class CdpTomlCanon

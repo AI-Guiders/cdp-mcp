@@ -15,12 +15,16 @@ public sealed class KbAutoShipDebounceTests : IDisposable
         InitBareRepo();
         KbAutoShipGitRunner.ExecOverride = GitStub;
         KbAutoShipEngine.AlertOverride = a => _alerts.Add(a);
+        // The secret gate has its own test class (KbAutoShipSecretGateTests);
+        // here it is stubbed clean — a real gitleaks run does not fit the debounce timings.
+        KbAutoShipSecretScanner.ExecOverride = (_, args) => new KbGitExecResult(0, "", "");
     }
 
     public void Dispose()
     {
         KbAutoShipGitRunner.ExecOverride = null;
         KbAutoShipEngine.AlertOverride = null;
+        KbAutoShipSecretScanner.ExecOverride = null;
         try { Directory.Delete(_repo, recursive: true); } catch { /* best effort */ }
     }
 

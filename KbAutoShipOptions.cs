@@ -13,6 +13,12 @@ internal sealed class KbAutoShipOptions
     public IReadOnlyList<string> Roots { get; init; } = [];
     public string Branch { get; init; } = DefaultBranch;
 
+    /// <summary>"auto" (PATH/winget probe), explicit gitleaks path, or "off" (CDP-ADR-0236).</summary>
+    public string SecretScanner { get; init; } = "auto";
+
+    /// <summary>Optional gitleaks config; default — repo-local .gitleaks.toml when present.</summary>
+    public string? SecretScannerConfig { get; init; }
+
     public static KbAutoShipOptions FromSettings(CdpSettings settings)
     {
         var toml = settings.KbAutoShip;
@@ -22,7 +28,9 @@ internal sealed class KbAutoShipOptions
             Enabled = toml.Enabled ?? true,
             DebounceMs = toml.DebounceMs is > 0 ? toml.DebounceMs.Value : DefaultDebounceMs,
             Roots = roots,
-            Branch = string.IsNullOrWhiteSpace(toml.Branch) ? DefaultBranch : toml.Branch.Trim()
+            Branch = string.IsNullOrWhiteSpace(toml.Branch) ? DefaultBranch : toml.Branch.Trim(),
+            SecretScanner = string.IsNullOrWhiteSpace(toml.SecretScanner) ? "auto" : toml.SecretScanner.Trim(),
+            SecretScannerConfig = string.IsNullOrWhiteSpace(toml.SecretScannerConfig) ? null : toml.SecretScannerConfig.Trim()
         };
     }
 
@@ -65,4 +73,6 @@ internal sealed class KbAutoShipTomlSettings
     public int? DebounceMs { get; init; }
     public string[]? Roots { get; init; }
     public string? Branch { get; init; }
+    public string? SecretScanner { get; init; }
+    public string? SecretScannerConfig { get; init; }
 }

@@ -58,6 +58,7 @@
 * [CDP-ADR-0233: D:\Experiments\Personal Cursor Folder\open\cdp mcp\docs\adr\CDP ADR 0233 graphql query facade](CDP-ADR-0233-graphql-query-facade.md)
 * [CDP-ADR-0234: Wake addressing — owner, task key, terminal misroute](CDP-ADR-0234-wake-addressing-owner-and-task-key.md)
 * [CDP-ADR-0235: Suggestion protocol — cdp_suggest → cdp_apply (код-экшены для модели)](CDP-ADR-0235-suggestion-protocol-code-actions.md)
+* [CDP-ADR-0236: KB AutoShip secret gate — gitleaks (content-based)](CDP-ADR-0236-kb-autoship-secret-gate-gitleaks.md)
 
 ## Hub (1)
 
