@@ -12,6 +12,7 @@ internal static class CdpBridgeToolsCache
     static readonly object Gate = new();
     static long _rev = -1;
     static List<Tool>? _tools;
+    static List<Tool>? _lastGoodTools;
     static int _hits;
     static int _misses;
 
@@ -31,17 +32,34 @@ internal static class CdpBridgeToolsCache
         }
     }
 
+    public static bool TryGetLastGood(out List<Tool>? tools)
+    {
+        lock (Gate)
+        {
+            if (_lastGoodTools is { Count: > 0 })
+            {
+                tools = Clone(_lastGoodTools);
+                return true;
+            }
+
+            tools = null;
+            return false;
+        }
+    }
+
     public static void Put(long rev, List<Tool> tools)
     {
         lock (Gate)
         {
             _rev = rev;
             _tools = Clone(tools);
+            if (tools.Count > 0)
+                _lastGoodTools = Clone(tools);
             _misses++;
         }
     }
 
-    /// <summary>Watcher / list_changed — drop payload so next ListTools refetches.</summary>
+    /// <summary>Watcher / list_changed — drop payload so next ListTools refetches, keeping lastGood fallback.</summary>
     public static void Invalidate(long? newRev = null)
     {
         lock (Gate)
@@ -66,6 +84,7 @@ internal static class CdpBridgeToolsCache
         {
             _rev = -1;
             _tools = null;
+            _lastGoodTools = null;
             _hits = 0;
             _misses = 0;
         }

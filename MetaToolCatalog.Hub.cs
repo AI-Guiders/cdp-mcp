@@ -156,18 +156,18 @@ internal static partial class MetaToolCatalog
         type = "object",
         properties = new
         {
-            ok = new { type = "boolean", description = "false when the script ended with an unhandled error (see error)." },
-            mode = new { type = "string", description = "run | dry_run" },
-            result = new { description = "The script's return value (any JSON); null when the script returned nothing." },
-            error = new { type = "string", description = "Error message when ok=false." },
-            steps = new { type = "array", items = new { type = "object" }, description = "Per-step records (anchors, diffs, diagnostics)." },
-            diagnostics = new { type = "array", items = new { type = "object" } },
-            consoleOut = new { type = "string" },
-            planId = new { type = "string", description = "Plan id when executed via cdp_csx_run_plan." },
-            primaryRoot = new { type = "string" },
-            workRoot = new { type = "string" }
+            Ok = new { type = "boolean", description = "false when the script ended with an unhandled error (see Error)." },
+            Mode = new { type = "string", description = "run | dry_run" },
+            Result = new { description = "The script's return value (any JSON); null when the script returned nothing." },
+            Error = new { type = new[] { "string", "null" }, description = "Error message when Ok=false." },
+            Steps = new { type = new[] { "array", "null" }, items = new { type = "object" }, description = "Per-step records (anchors, diffs, diagnostics)." },
+            Diagnostics = new { type = new[] { "array", "null" }, items = new { type = "object" } },
+            ConsoleOut = new { type = new[] { "string", "null" } },
+            PlanId = new { type = new[] { "string", "null" }, description = "Plan id when executed via cdp_csx_run_plan." },
+            PrimaryRoot = new { type = new[] { "string", "null" } },
+            WorkRoot = new { type = new[] { "string", "null" } }
         },
-        required = new[] { "ok", "mode" }
+        required = new[] { "Ok", "Mode" }
     }),
     Meta("cdp_csx_run_plan", "Sandbox scoped to open project (GitRoot+PlanScope); overlay primary WIP under scope; promote merges plan delta (dirty elsewhere OK). Then cdp_csx_promote|discard.", new
     {

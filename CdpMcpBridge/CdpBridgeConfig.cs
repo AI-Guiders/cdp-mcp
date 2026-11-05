@@ -114,6 +114,10 @@ internal static class CdpBridgeHttpClient
         {
             InnerHandler = new HttpClientHandler()
         };
-        return new HttpClient(handler) { BaseAddress = settings.BaseUrl };
+        return new HttpClient(handler)
+        {
+            BaseAddress = settings.BaseUrl,
+            Timeout = TimeSpan.FromMinutes(5)
+        };
     }
 }

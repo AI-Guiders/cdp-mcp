@@ -306,6 +306,15 @@ internal sealed class CdpBridgeInvokeRouter
         
         using var response = await _http.PostAsJsonAsync(new Uri(CdpBridgeEndpoint.Current(), "api/v1/cdp/invoke"), payload, _jsonOptions, cancellationToken)
             .ConfigureAwait(false);
+        if (response.StatusCode is System.Net.HttpStatusCode.BadGateway
+            or System.Net.HttpStatusCode.ServiceUnavailable
+            or System.Net.HttpStatusCode.GatewayTimeout)
+        {
+            throw new HttpRequestException(
+                $"Gatekeeper transient status {(int)response.StatusCode} ({response.StatusCode}).",
+                inner: null,
+                statusCode: response.StatusCode);
+        }
         var body = await response.Content.ReadFromJsonAsync<CdpInvokeResponse>(_jsonOptions, cancellationToken)
             .ConfigureAwait(false)
             ?? new CdpInvokeResponse

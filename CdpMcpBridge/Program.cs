@@ -102,6 +102,9 @@ var options = new McpServerOptions
             }
             catch (Exception ex)
             {
+                if (CdpBridgeToolsCache.TryGetLastGood(out var lastGood) && lastGood is { Count: > 0 })
+                    return new ListToolsResult { Tools = lastGood };
+
                 var hint = serviceEnsurer.CanAutoStart
                     ? "Auto-start failed or service still down."
                     : "Set [service] install_dir or run Start-CdpService.ps1.";

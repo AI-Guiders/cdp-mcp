@@ -3,7 +3,7 @@ namespace CdpMcpBridge;
 internal sealed class CdpBridgeInvokeContext
 {
     internal bool SuppressAutoStart { get; init; }
-    internal int MaxAttempts { get; init; } = 2;
+    internal int MaxAttempts { get; init; } = 4;
     internal TimeSpan RetryDelay { get; init; } = TimeSpan.FromMilliseconds(500);
     internal TimeSpan? TotalTimeout { get; init; }
 

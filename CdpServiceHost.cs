@@ -1,6 +1,9 @@
 using System.Collections.Frozen;
+using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Cdp.Config;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -44,9 +47,10 @@ internal static class CdpServiceHost
             BuildUtc = CdpHostRuntime.BuildStamp().Utc,
             LastSeenUtc = DateTimeOffset.UtcNow
         };
-        CdpSlotRegistry.Upsert(CdpProfile.StateRoot, slot);
+        CdpSlotRegistry.Upsert(slot);
+        var towerPort = CdpConfigLoader.MapTower(CdpConfigLoader.Load(configPath)).ListenPort;
         using var heartbeatCts = new CancellationTokenSource();
-        var heartbeatTask = HeartbeatSlotAsync(slot, heartbeatCts.Token);
+        var heartbeatTask = HeartbeatSlotAsync(slot, towerPort, heartbeatCts.Token);
 
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -355,29 +359,59 @@ internal static class CdpServiceHost
         return null;
     }
 
-    static async Task HeartbeatSlotAsync(CdpSlotRecord slot, CancellationToken token)
+    static async Task HeartbeatSlotAsync(CdpSlotRecord slot, int towerPort, CancellationToken token)
     {
+        var wsUri = new Uri($"ws://127.0.0.1:{towerPort}{CdpSlotRegistry.WsPath}");
         while (!token.IsCancellationRequested)
         {
+            using var ws = new ClientWebSocket();
+            ws.Options.KeepAliveInterval = TimeSpan.FromSeconds(5);
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(5), token).ConfigureAwait(false);
+                using (var connectCts = CancellationTokenSource.CreateLinkedTokenSource(token))
+                {
+                    connectCts.CancelAfter(TimeSpan.FromSeconds(3));
+                    await ws.ConnectAsync(wsUri, connectCts.Token).ConfigureAwait(false);
+                }
+
+                while (ws.State == WebSocketState.Open && !token.IsCancellationRequested)
+                {
+                    slot.LastSeenUtc = DateTimeOffset.UtcNow;
+                    CdpSlotRegistry.Upsert(slot);
+                    var payload = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(slot));
+                    await ws.SendAsync(payload, WebSocketMessageType.Text, endOfMessage: true, token)
+                        .ConfigureAwait(false);
+
+                    await Task.Delay(TimeSpan.FromSeconds(5), token).ConfigureAwait(false);
+                }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
+                if (ws.State == WebSocketState.Open)
+                {
+                    try
+                    {
+                        await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "slot_stopping", CancellationToken.None)
+                            .ConfigureAwait(false);
+                    }
+                    catch { /* best effort */ }
+                }
+
                 return;
             }
-
-            slot.LastSeenUtc = DateTimeOffset.UtcNow;
-            try
+            catch
             {
-                CdpSlotRegistry.Upsert(CdpProfile.StateRoot, slot);
-            }
-            catch (Exception ex)
-            {
-                // Одна транзиентная ошибка БД не должна убивать heartbeat навсегда:
-                // иначе слот устаревает (Fresh) и гейткипер отдаёт 503 до рестарта.
-                Console.Error.WriteLine($"CdpSlotRegistry.Upsert (heartbeat) failed: {ex.Message}");
+                // Gatekeeper may be restarting or not listening yet — keep local registry warm and retry fast.
+                slot.LastSeenUtc = DateTimeOffset.UtcNow;
+                CdpSlotRegistry.Upsert(slot);
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(500), token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
             }
         }
     }

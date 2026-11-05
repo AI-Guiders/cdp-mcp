@@ -12,8 +12,7 @@ namespace CdpMcp;
 internal static class VisibleToolsSessionCache
 {
     static readonly object Gate = new();
-    static string? _key;
-    static List<Tool>? _tools;
+    static readonly Dictionary<string, List<Tool>> ByFingerprint = new(StringComparer.Ordinal);
     static int _hits;
     static int _misses;
 
@@ -28,10 +27,10 @@ internal static class VisibleToolsSessionCache
     {
         lock (Gate)
         {
-            if (_tools is not null && string.Equals(_key, fingerprint, StringComparison.Ordinal))
+            if (ByFingerprint.TryGetValue(fingerprint, out var cached))
             {
                 _hits++;
-                tools = Clone(_tools);
+                tools = Clone(cached);
                 return true;
             }
 
@@ -44,8 +43,7 @@ internal static class VisibleToolsSessionCache
     {
         lock (Gate)
         {
-            _key = fingerprint;
-            _tools = Clone(tools);
+            ByFingerprint[fingerprint] = Clone(tools);
             _misses++;
         }
     }
@@ -54,23 +52,21 @@ internal static class VisibleToolsSessionCache
     {
         lock (Gate)
         {
-            _key = null;
-            _tools = null;
+            ByFingerprint.Clear();
         }
     }
 
     public static (int Hits, int Misses, bool Warm) Stats()
     {
         lock (Gate)
-            return (_hits, _misses, _tools is not null);
+            return (_hits, _misses, ByFingerprint.Count > 0);
     }
 
     public static void ResetForTests()
     {
         lock (Gate)
         {
-            _key = null;
-            _tools = null;
+            ByFingerprint.Clear();
             _hits = 0;
             _misses = 0;
         }

@@ -1,4 +1,7 @@
 using System.Net.Http.Headers;
+using System.Net.WebSockets;
+using System.Text;
+using System.Text.Json;
 using Cdp.Config;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -39,6 +42,25 @@ internal static class CdpGatekeeperHost
         using var prober = new HttpClient { Timeout = ProbeTimeout };
 
         var app = builder.Build();
+        app.UseWebSockets(new WebSocketOptions
+        {
+            KeepAliveInterval = TimeSpan.FromSeconds(5)
+        });
+
+        app.MapGet(CdpSlotRegistry.ListPath, () => Results.Json(CdpSlotRegistry.Fresh()));
+
+        app.Map(CdpSlotRegistry.WsPath, async (HttpContext context) =>
+        {
+            if (!context.WebSockets.IsWebSocketRequest)
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await context.Response.WriteAsync("WebSocket connection expected.").ConfigureAwait(false);
+                return;
+            }
+
+            using var ws = await context.WebSockets.AcceptWebSocketAsync().ConfigureAwait(false);
+            await HandleSlotWebSocketAsync(ws, context.RequestAborted).ConfigureAwait(false);
+        });
 
         app.MapFallback(async (HttpContext context) =>
         {
@@ -58,11 +80,7 @@ internal static class CdpGatekeeperHost
             }
             catch (Exception ex)
             {
-                lock (TargetGate)
-                {
-                    _target = null;
-                    _targetAt = DateTimeOffset.UtcNow;
-                }
+                InvalidateTargetCache();
 
                 context.Response.StatusCode = StatusCodes.Status502BadGateway;
                 await context.Response.WriteAsync($"Gatekeeper: {ex.Message}").ConfigureAwait(false);
@@ -70,9 +88,78 @@ internal static class CdpGatekeeperHost
         });
 
         Console.Out.WriteLine(
-            $"Gatekeeper: {baseUrl}/ (Kestrel) -> slots {CdpSlotRegistry.DbPath(CdpProfile.StateRoot)}");
+            $"Gatekeeper: {baseUrl}/ (Kestrel) -> in-memory WebSocket slots ({CdpSlotRegistry.WsPath})");
         await app.RunAsync().ConfigureAwait(false);
         return 0;
+    }
+
+    static void InvalidateTargetCache()
+    {
+        lock (TargetGate)
+        {
+            _target = null;
+            _targetAt = DateTimeOffset.MinValue;
+        }
+    }
+
+    static readonly JsonSerializerOptions SlotJsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
+    static async Task HandleSlotWebSocketAsync(WebSocket ws, CancellationToken ct)
+    {
+        var connectedPid = 0;
+        var buffer = new byte[4096];
+        try
+        {
+            while (ws.State == WebSocketState.Open && !ct.IsCancellationRequested)
+            {
+                var result = await ws.ReceiveAsync(buffer, ct).ConfigureAwait(false);
+                if (result.MessageType == WebSocketMessageType.Close)
+                    break;
+
+                if (result.Count <= 0)
+                {
+                    if (connectedPid > 0)
+                        CdpSlotRegistry.Touch(connectedPid);
+                    continue;
+                }
+
+                var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                try
+                {
+                    var record = JsonSerializer.Deserialize<CdpSlotRecord>(json, SlotJsonOptions);
+                    if (record is { Pid: > 0, Port: > 0 })
+                    {
+                        var isFirstFrame = connectedPid == 0;
+                        connectedPid = record.Pid;
+                        record.LastSeenUtc = DateTimeOffset.UtcNow;
+                        CdpSlotRegistry.Upsert(record);
+                        if (isFirstFrame)
+                            InvalidateTargetCache();
+                    }
+                }
+                catch
+                {
+                    if (connectedPid > 0)
+                        CdpSlotRegistry.Touch(connectedPid);
+                }
+            }
+        }
+        catch
+        {
+            /* socket closed or aborted */
+        }
+        finally
+        {
+            if (connectedPid > 0)
+            {
+                CdpSlotRegistry.Remove(connectedPid);
+                InvalidateTargetCache();
+            }
+        }
     }
 
     static async Task ForwardAsync(HttpContext context, Uri target, HttpClient http)
