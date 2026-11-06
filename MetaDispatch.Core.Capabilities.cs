@@ -17,6 +17,12 @@ internal static partial class MetaDispatch
         var Pretty = d.Pretty;
         var BuildVisibleTools = d.BuildVisibleTools;
         var BuildMetaTools = d.BuildMetaTools;
+
+        object? SlimToolRef(string name) =>
+            BuildMetaTools().FirstOrDefault(t => t.Name == name) is { } t
+                ? new { name = t.Name, schema_hint = "cdp_man tool=" + t.Name }
+                : null;
+
         return JsonSerializer.Serialize(new
         {
             catalog = "f(phase,object[,language]); intent ranks",
@@ -32,24 +38,11 @@ internal static partial class MetaDispatch
                 .Select(t => t.Name)
                 .ToArray(),
             soft_organ_meta_hidden = SoftInstrumentMetaNames.OrderBy(x => x).ToArray(),
-            buffer_tool = BuildMetaTools()
-                .Where(t => t.Name == "cdp_buffer")
-                .Select(t => new
-                {
-                    name = t.Name,
-                    description = t.Description,
-                    input_schema = t.InputSchema
-                })
-                .FirstOrDefault(),
-            debug_tool = BuildMetaTools()
-                .Where(t => t.Name == "cdp_debug")
-                .Select(t => new
-                {
-                    name = t.Name,
-                    description = t.Description,
-                    input_schema = t.InputSchema
-                })
-                .FirstOrDefault(),
+            // Slim pointers, not schemas: the full input_schema poem (~40KB with the
+            // buffer plane) belongs to cdp_man tool=<name> on demand — capabilities
+            // is a catalog, agents pull detail per tool when they need it.
+            buffer_tool = SlimToolRef("cdp_buffer"),
+            debug_tool = SlimToolRef("cdp_debug"),
             layers = new
             {
                 memory = new
