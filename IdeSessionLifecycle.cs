@@ -14,7 +14,13 @@ internal static partial class IdeSessionLifecycle
         if (!string.IsNullOrWhiteSpace(session.Language)
             && !CdpLanguages.IsAny(session.Language))
             return session.Language!;
-        if (!string.IsNullOrWhiteSpace(session.TsConfigPath))
+        // TsConfigPath implies Typescript ONLY when the anchor is not a .NET solution:
+        // mixed solutions (C# slnx + sibling tsconfig for the JS layer) keep their
+        // solution-inferred language, else cdp_build would route dotnet → npx tsc.
+        // The TS worker still reads TsConfigPath for .js/.ts buffer diagnostics.
+        if (!string.IsNullOrWhiteSpace(session.TsConfigPath)
+            && (string.IsNullOrWhiteSpace(session.SolutionOrProjectPath)
+                || !IsDotNetSolutionAnchor(session.SolutionOrProjectPath)))
             return CdpLanguages.Typescript;
         if (!string.IsNullOrWhiteSpace(session.SolutionOrProjectPath)
             && Ps1BufferDiagnostics.IsPs1Path(session.SolutionOrProjectPath))
@@ -23,6 +29,12 @@ internal static partial class IdeSessionLifecycle
             return CdpLanguages.Csharp;
         return CdpLanguages.Any;
     }
+
+    static bool IsDotNetSolutionAnchor(string path) =>
+        path.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)
+        || path.EndsWith(".slnx", StringComparison.OrdinalIgnoreCase)
+        || path.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase)
+        || path.EndsWith(".fsproj", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Relative path= joins session ProjectRoot (not process cwd) — MCP host cwd is often user home.</summary>
     static string ResolveAgainstSession(SessionContext session, string path)
