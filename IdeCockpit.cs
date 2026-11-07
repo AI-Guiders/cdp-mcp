@@ -37,6 +37,6 @@ internal static partial class IdeCockpit
     static IReadOnlyDictionary<string, string> PinAliases => DeskPins.Map;
     static readonly DeskPlaceableOrganUnit DeskPlaceable = new();
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
-    static readonly JsonSerializerOptions Compact = new() { WriteIndented = false };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    static readonly JsonSerializerOptions Compact = new() { WriteIndented = false, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 }

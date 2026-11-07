@@ -17,7 +17,7 @@ internal static partial class IdeFilesChannel
     public const int ListCap = 120;
     public const int TreeDefaultDepth = 2;
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static string HandleJson(
         DocumentBufferStore store,

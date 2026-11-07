@@ -16,8 +16,8 @@ internal static partial class IdeFindChannel
     public const int SlimHitCap = 1;
     public const int ListHitCap = 40;
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
-    static readonly JsonSerializerOptions Compact = new() { WriteIndented = false };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    static readonly JsonSerializerOptions Compact = new() { WriteIndented = false, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static string HandleJson(
         DocumentBufferStore store,

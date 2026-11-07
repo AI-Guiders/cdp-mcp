@@ -14,7 +14,7 @@ internal static partial class IdeShare
 {
     public const string SchemaVersion = "share/v1";
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     /// <summary>Buffer/span → share inbox/shelf; agent gets thin <c>chat</c> only (unless from=).</summary>
     public static string ShareBuffer(

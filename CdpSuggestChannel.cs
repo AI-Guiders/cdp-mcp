@@ -23,7 +23,7 @@ internal static class CdpSuggestChannel
     public const string ToolName = "cdp_suggest";
     public const string Schema = "cdp_suggest/v0";
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     static readonly CommandCatalogIndex AttachCatalog =
         CommandCatalogIndex.FromDescriptors(FederationAttachCatalog.AllDescriptors());
 

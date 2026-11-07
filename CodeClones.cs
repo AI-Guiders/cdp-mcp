@@ -16,7 +16,7 @@ internal static partial class CodeClones
     public const int MaxGroupsDefault = 40;
     public const int MaxInstancesPerGroup = 12;
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     static readonly HashSet<string> SkipDirNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "bin", "obj", ".git", ".vs", "node_modules", "packages", "TestResults"

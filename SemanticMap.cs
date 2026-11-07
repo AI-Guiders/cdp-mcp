@@ -13,7 +13,7 @@ namespace CdpMcp;
 internal static partial class SemanticMap
 {
     public const string Schema = "semantic_map/v0";
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static async Task<string> RunAsync(
         DocumentBufferStore store,

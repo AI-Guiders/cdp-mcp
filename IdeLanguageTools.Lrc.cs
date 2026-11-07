@@ -10,6 +10,7 @@ internal static partial class IdeLanguageTools
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     private static readonly HashSet<string> LrcBareVerbs = new(StringComparer.Ordinal)
@@ -96,7 +97,11 @@ internal static partial class IdeLanguageTools
         {
             return System.Text.Json.JsonSerializer.Serialize(
                 new { diagnostic = diag.Envelope, ok = false },
-                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+                new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                });
         }
     }
 

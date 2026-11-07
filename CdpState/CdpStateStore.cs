@@ -26,7 +26,8 @@ public static class CdpStateStoreDb
     static readonly JsonSerializerOptions LegacyOpts = new()
     {
         PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     public static string DbPath(string stateRoot) => Path.Combine(stateRoot, FileName);

@@ -16,7 +16,7 @@ internal static class IdeSeeChannel
     public const string ToolName = "cdp_see";
     public const string GoName = "see_desk";
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     static readonly HashSet<string> ImageExt = new(StringComparer.OrdinalIgnoreCase)
     {

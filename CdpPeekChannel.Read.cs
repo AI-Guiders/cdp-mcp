@@ -209,13 +209,16 @@ internal static partial class CdpPeekChannel
                 limit = Math.Max(0, totalLines - startLine + 1);
         }
 
-        var includeAnchors = BoolOr(args, "include_anchors", defaultValue: true);
+        var includeAnchors = BoolOr(args, "include_anchors", defaultValue: false);
         var wantText = !BoolOr(args, "structured_only", defaultValue: false);
-        var wantLines = !BoolOr(args, "text_only", defaultValue: false);
+        var explicitTextOnlyFalse = args.TryGetValue("text_only", out var toEl) && toEl.ValueKind == JsonValueKind.False;
+        var wantLines = BoolOr(args, "include_lines", defaultValue: false)
+            || BoolOr(args, "structured_only", defaultValue: false)
+            || includeAnchors
+            || explicitTextOnlyFalse;
         if (!wantText && !wantLines)
         {
             wantText = true;
-            wantLines = true;
         }
 
         var slice = ReadSlice(absPath, startLine, limit, rel, includeAnchors);

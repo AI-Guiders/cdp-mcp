@@ -60,8 +60,8 @@ public sealed class CdpJsonAnalyzer : DiagnosticAnalyzer
 
         if (typeName == "System.Text.Json.JsonSerializerOptions")
         {
-            // Exempt when the initializer assigns Encoder explicitly.
-            if (creation.Initializer is not null && creation.Syntax is ObjectCreationExpressionSyntax { Initializer: { } init })
+            // Exempt when the initializer assigns Encoder explicitly (both `new JsonSerializerOptions { ... }` and target-typed `new() { ... }`).
+            if (creation.Initializer is not null && creation.Syntax is BaseObjectCreationExpressionSyntax { Initializer: { } init })
             {
                 foreach (var a in init.Expressions)
                 {

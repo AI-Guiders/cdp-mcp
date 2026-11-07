@@ -209,7 +209,7 @@ internal static partial class IdeLanguageTools
 
 
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
 
     public static object LspHealth(bool resolveProbe = true) => new

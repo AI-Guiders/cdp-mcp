@@ -11,7 +11,7 @@ namespace CdpMcp;
 /// </summary>
 internal static class DiagnosticAnchorWires
 {
-    static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static string Enrich(string rawDiagnosticsJson, string? projectRoot, string filePath)
     {

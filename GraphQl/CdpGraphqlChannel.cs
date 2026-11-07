@@ -14,7 +14,7 @@ internal static class CdpGraphqlChannel
     public const string SchemaVersion = "cdp_graphql/v0";
     public const string ToolName = "cdp_graphql";
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static string HandleJson(
         SessionContext session,

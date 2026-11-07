@@ -25,7 +25,7 @@ internal static class GlassSurfaceIpc
     public static string CmdPath => Path.Combine(StateRoot, CmdFileName);
     public static string ReplyPath => Path.Combine(StateRoot, ReplyFileName);
 
-    static readonly JsonSerializerOptions WriteOpts = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions WriteOpts = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     /// <summary>Write cmd, wait for matching reply id. Returns (ok, reply root, error code).</summary>
     public static (bool Ok, JsonElement? Reply, string? Error) Call(

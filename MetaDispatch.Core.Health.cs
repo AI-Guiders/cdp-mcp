@@ -67,7 +67,7 @@ internal static partial class MetaDispatch
         }, jsonOpts);
     }
 
-    static readonly JsonSerializerOptions CompactHealthJson = new() { WriteIndented = false };
+    static readonly JsonSerializerOptions CompactHealthJson = new() { WriteIndented = false, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     /// <summary>Default pulse (no LSP path resolve). full|lsp = prior fat card.</summary>
     static string ResolveHealthDetail(IReadOnlyDictionary<string, JsonElement> callArgs)

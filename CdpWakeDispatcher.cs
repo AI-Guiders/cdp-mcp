@@ -540,6 +540,7 @@ internal sealed class CdpWakeDispatcher
     {
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.SnakeCaseLower,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     static string DetailOf(object result) =>

@@ -22,7 +22,7 @@ internal static class ExploreCorrLatch
     internal static string? PathOverrideForTests { get; set; }
     internal static bool? EnabledOverrideForTests { get; set; }
 
-    static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = false };
+    static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = false, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public sealed record Stamp(
         string WorkspaceRoot,

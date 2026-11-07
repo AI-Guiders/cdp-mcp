@@ -13,7 +13,7 @@ internal static partial class IdeSaChannel
     public const string SchemaVersion = "code_sa/v1";
     public const string ToolName = "cdp_sa";
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static string HandleJson(
         DocumentBufferStore store,

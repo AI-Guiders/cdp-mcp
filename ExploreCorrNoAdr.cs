@@ -8,7 +8,7 @@ namespace CdpMcp;
 /// <summary>Explicit Explore escape when locus has no useful ADR — still stamps latch with why=.</summary>
 internal static class ExploreCorrNoAdr
 {
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static string Run(
         DocumentBufferStore store,

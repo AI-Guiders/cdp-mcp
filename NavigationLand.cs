@@ -15,7 +15,8 @@ internal static class NavigationLand
     static readonly JsonSerializerOptions Pretty = new()
     {
         WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     public static async Task<string> RunAsync(

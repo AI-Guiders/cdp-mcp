@@ -16,7 +16,8 @@ internal static partial class IdeQrhChannel
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        WriteIndented = false
+        WriteIndented = false,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     /// <summary>Builtins + overlay custom − removed. Prefer over <see cref="Builtins"/> for open/search/suggest.</summary>

@@ -10,7 +10,8 @@ internal static class IdeDurableJobRunner
 {
     static readonly JsonSerializerOptions JsonOpts = new()
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     public static async Task<int> RunAsync(string jobId)

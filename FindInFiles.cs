@@ -15,7 +15,7 @@ internal static partial class FindInFiles
     public const int TimeoutMs = 20_000;
     public const int ExternalTimeoutMs = 60_000;
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     static readonly HashSet<string> SkipGlobs = new(StringComparer.OrdinalIgnoreCase)
     {
         "!**/bin/**", "!**/obj/**", "!**/.git/**", "!**/.vs/**",

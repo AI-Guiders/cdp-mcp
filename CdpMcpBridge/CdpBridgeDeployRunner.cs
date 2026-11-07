@@ -135,5 +135,5 @@ internal static class CdpBridgeDeployRunner
         return "…" + text[^max..];
     }
 
-    static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 }

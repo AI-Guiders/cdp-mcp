@@ -11,7 +11,7 @@ namespace CdpMcp;
 /// </summary>
 internal static partial class TakeShip
 {
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static async Task<string> TakeAsync(
         DocumentBufferStore store,

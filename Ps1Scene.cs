@@ -21,7 +21,7 @@ internal static partial class Ps1Scene
 	public const string Schema = "ps1_scene/v0";
 	public const string ToolName = "cdp_ps1_scene";
 
-	private static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+	private static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 	private static readonly ConcurrentDictionary<string, LastRun> LastByRoot = new(StringComparer.OrdinalIgnoreCase);
 	private const int BodyCapChars = 12000;
 

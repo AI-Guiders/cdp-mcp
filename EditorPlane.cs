@@ -30,7 +30,7 @@ internal static partial class EditorPlane
             # or: edit_op: anchor / anchor: "[F:Foo.cs;M:Bar;K:Method]" / text: "…"
         """;
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     static readonly YamlDotNet.Serialization.IDeserializer Yaml =
         new YamlDotNet.Serialization.DeserializerBuilder()
             .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.UnderscoredNamingConvention.Instance)

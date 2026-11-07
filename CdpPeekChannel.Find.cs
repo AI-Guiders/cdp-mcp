@@ -90,7 +90,7 @@ internal static partial class CdpPeekChannel
                 {
                     ["anchor"] = JsonSerializer.SerializeToElement(anchor ?? $"[F:{Rel(session.ProjectRoot, abs)};L:{line};]"),
                     ["pad"] = JsonSerializer.SerializeToElement(pad),
-                    ["structured_only"] = JsonSerializer.SerializeToElement(true)
+                    ["text_only"] = JsonSerializer.SerializeToElement(true)
                 };
 
                 var land = PeekFile(session, abs, peekArgs, bindNote: null);

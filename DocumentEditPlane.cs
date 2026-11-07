@@ -17,7 +17,7 @@ internal static partial class DocumentEditPlane
         name is "cdp_buffer" or "cdp_doc" or "cdp_doc_scene" or "cdp_doc_open" or "cdp_doc_read" or "cdp_doc_edit"
             or "cdp_doc_diagnostics" or "cdp_doc_close";
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static async Task<string> DispatchAsync(
         string name,

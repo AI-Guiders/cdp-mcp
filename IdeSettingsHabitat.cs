@@ -15,7 +15,8 @@ internal sealed partial class IdeSettingsHabitat
     static readonly JsonSerializerOptions Pretty = new()
     {
         WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     static readonly (string Id, string Title, string Why)[] Pages =

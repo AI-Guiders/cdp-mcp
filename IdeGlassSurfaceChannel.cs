@@ -16,7 +16,7 @@ internal static partial class IdeGlassSurfaceChannel
     public const string ToolName = "cdp_glass";
     public const string GoName = "surface_desk";
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     static readonly HashSet<string> Implemented = new(StringComparer.OrdinalIgnoreCase)
     {

@@ -9,7 +9,7 @@ namespace CdpMcp;
 internal static partial class QualityGates
 {
     public const string SchemaVersion = "quality_gates/v0";
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static object EvaluateStore(DocumentBufferStore store, string? projectRoot)
     {

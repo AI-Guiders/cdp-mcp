@@ -22,7 +22,7 @@ internal static partial class IdeCrmChannel
         "negative", "say_again", "continue", "roger", "wilco"
     ];
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
 
     public static string HandleJson(

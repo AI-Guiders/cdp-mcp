@@ -15,7 +15,7 @@ internal static partial class GoToAll
     public const int DefaultMax = 40;
     public const int MaxFilesScan = 400;
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     static readonly HashSet<string> SkipDirs = new(StringComparer.OrdinalIgnoreCase)
     {
         "bin", "obj", ".git", ".vs", "node_modules", "packages", "TestResults", "publish", "publish-release", "dist"

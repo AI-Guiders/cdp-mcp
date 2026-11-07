@@ -15,7 +15,7 @@ internal static partial class IdeRefactorPlanChannel
     public const string ToolName = "cdp_refactor";
     public const string GoName = "refactor_plan";
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static string HandleJson(
         DocumentBufferStore store,

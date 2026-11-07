@@ -11,7 +11,7 @@ namespace CdpMcp;
 /// </summary>
 internal static class IdeBuildShipBridge
 {
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     internal static string AnnotateBuildResult(string buildJson, SessionContext session)
     {

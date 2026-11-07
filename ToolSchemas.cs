@@ -20,7 +20,8 @@ internal static class ToolSchemas
     {
         // Имена — snake, как на всём CDP-проводе: схема обязана совпадать с проводом.
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-        TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     public static JsonNode For<T>() => For(typeof(T));

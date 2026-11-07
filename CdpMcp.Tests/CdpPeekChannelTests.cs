@@ -23,10 +23,10 @@ public class CdpPeekChannelTests : IDisposable
     }
 
     [Fact]
-    public void Single_file_numbered_text_and_anchors()
+    public void Single_file_numbered_text_omits_lines_by_default_and_keeps_unescaped_unicode()
     {
         var file = Path.Combine(_root, "a.cs");
-        File.WriteAllText(file, "line1\nline2\nline3\n");
+        File.WriteAllText(file, "<Project> // привет\nline2\nline3\n");
 
         var json = CdpPeekChannel.HandleJson(_session, LanguageRegistry.Default, null,
             new Dictionary<string, JsonElement>
@@ -34,6 +34,9 @@ public class CdpPeekChannelTests : IDisposable
                 ["path"] = JsonSerializer.SerializeToElement("a.cs"),
                 ["limit"] = JsonSerializer.SerializeToElement(2)
             });
+
+        Assert.DoesNotContain("\\u003C", json, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("<Project> // привет", json, StringComparison.Ordinal);
 
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
@@ -43,8 +46,18 @@ public class CdpPeekChannelTests : IDisposable
         Assert.Equal(2, root.GetProperty("returned").GetInt32());
         Assert.True(root.GetProperty("has_more").GetBoolean());
         Assert.Equal(3, root.GetProperty("next_offset").GetInt32());
-        Assert.Contains("     1|line1", root.GetProperty("text").GetString());
-        var anchor = root.GetProperty("lines")[0].GetProperty("anchor").GetString();
+        Assert.Contains("     1|<Project> // привет", root.GetProperty("text").GetString());
+        Assert.Equal(JsonValueKind.Null, root.GetProperty("lines").ValueKind);
+
+        var withAnchorsJson = CdpPeekChannel.HandleJson(_session, LanguageRegistry.Default, null,
+            new Dictionary<string, JsonElement>
+            {
+                ["path"] = JsonSerializer.SerializeToElement("a.cs"),
+                ["limit"] = JsonSerializer.SerializeToElement(2),
+                ["include_anchors"] = JsonSerializer.SerializeToElement(true)
+            });
+        using var doc2 = JsonDocument.Parse(withAnchorsJson);
+        var anchor = doc2.RootElement.GetProperty("lines")[0].GetProperty("anchor").GetString();
         Assert.Contains("a.cs", anchor);
         Assert.Contains("Line:1", anchor);
     }

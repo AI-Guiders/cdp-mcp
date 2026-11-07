@@ -14,7 +14,7 @@ internal static partial class IdeDeploy
     public const string ServiceTarget = @"D:\cdp-service";
     public const string ScriptName = "publish-and-deploy.ps1";
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     static readonly object PublishGate = new();
 
     public static string Run(

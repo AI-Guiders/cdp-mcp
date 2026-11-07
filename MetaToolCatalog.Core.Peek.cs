@@ -30,8 +30,8 @@ internal static partial class MetaToolCatalog
             ignore_case = new { type = "boolean" },
             max = new { type = "integer", description = "Find+peek: max hit windows (default 5, max 20)" },
             bind = new { type = "boolean", description = "Lazy session project detect from path (default true)" },
-            include_anchors = new { type = "boolean", description = "Emit lines[].anchor (default true)" },
-            text_only = new { type = "boolean", description = "Omit lines[] array" },
+            include_anchors = new { type = "boolean", description = "Emit lines[].anchor (default false — semantic anchors live on symbols/outline, not every line)" },
+            text_only = new { type = "boolean", description = "Omit lines[] array (default true)" },
             structured_only = new { type = "boolean", description = "Omit numbered text block" },
             mode = new { type = "string", description = "outline: structural section map for md/json/yaml/toml (cheap markers); else normal file read" }
         }

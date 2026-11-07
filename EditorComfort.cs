@@ -18,7 +18,7 @@ internal static partial class EditorComfort
     public const int MaxRecent = 24;
     public const int MaxHistoryCards = 20;
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     static readonly object Gate = new();
     static readonly Dictionary<string, EditStack> Stacks = new(StringComparer.OrdinalIgnoreCase);
     static readonly List<string> RecentPaths = [];

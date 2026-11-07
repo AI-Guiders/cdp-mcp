@@ -14,7 +14,7 @@ internal static partial class DebugPlane
     public static bool IsDebugPlaneTool(string name) =>
         name is "cdp_debug";
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static async Task<string> DispatchAsync(
         SessionContext session,

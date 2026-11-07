@@ -12,7 +12,7 @@ namespace CdpMcp;
 internal static class Correspondence
 {
     public const string Schema = "correspondence/v0";
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static string Run(
         DocumentBufferStore store,

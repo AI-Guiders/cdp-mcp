@@ -26,7 +26,8 @@ internal static partial class EditSniper
         WriteIndented = true,
         // Corridor и рекорды снайпера сериализуются в snake — как весь CDP-провод
         // и как схему их генерирует ToolSchemas (единый источник имён).
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     internal sealed record Corridor(

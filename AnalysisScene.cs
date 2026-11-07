@@ -13,7 +13,7 @@ internal static class AnalysisScene
     public const string Schema = "analysis_scene/v0";
     public const string ToolName = "cdp_analysis_scene";
 
-    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };
+    static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static bool IsAnalysisTool(string name) =>
         string.Equals(name, ToolName, StringComparison.OrdinalIgnoreCase);
