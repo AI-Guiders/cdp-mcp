@@ -315,7 +315,7 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         List<Tool> BuildVisibleTools() =>
             VisibleToolCatalog.Build(new VisibleToolCatalogDeps
             {
-                Session = session,
+                Session = CdpTenantExecutionContext.CurrentSlice?.Session ?? session,
                 AllAffordances = allAffordances,
                 BuildMetaTools = BuildMetaTools,
                 AnTools = anTools,
@@ -443,9 +443,14 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
         return runtime;
     }
 
-    internal List<Tool> ListTools()
+    internal List<Tool> ListTools(CdpTenantKey? tenantKey = null)
     {
-        var session = CdpTenantExecutionContext.CurrentSlice?.Session ?? _session;
+        var slice = CdpTenantExecutionContext.CurrentSlice
+            ?? (tenantKey is not null ? _tenantRegistry.Resolve(tenantKey) : null);
+        using var execScope = slice is not null && CdpTenantExecutionContext.CurrentSlice is null
+            ? CdpTenantExecutionContext.Enter(slice)
+            : null;
+        var session = slice?.Session ?? _session;
         var fp = VisibleToolsSessionCache.Fingerprint(CapabilitiesRevision, session);
         if (VisibleToolsSessionCache.TryGet(fp, out var cached) && cached is not null)
             return cached;
@@ -485,12 +490,17 @@ internal sealed class CdpHostRuntime : IAsyncDisposable
             if (_serverRef is not null)
                 await CdpClientWorkspace.RefreshAsync(_serverRef, cancellationToken).ConfigureAwait(false);
             CdpClientWorkspace.EnsureSessionFallback(slice.Session);
+            var revBefore = CapabilitiesRevision;
+            var fpBefore = VisibleToolsSessionCache.Fingerprint(0, slice.Session);
             var text = await IdeToolCallWatch.RunAsync(
                     name,
                     callArgs,
                     ct => IdeCommandModule.ExecuteAsync(name, callArgs, ct),
                     cancellationToken)
                 .ConfigureAwait(false);
+            var fpAfter = VisibleToolsSessionCache.Fingerprint(0, slice.Session);
+            if (fpBefore != fpAfter && CapabilitiesRevision == revBefore)
+                NotifyListChanged();
             return new CdpInvokeResult(text, IsError: false);
         }
         catch (OperationCanceledException)

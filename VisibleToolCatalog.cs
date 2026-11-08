@@ -121,10 +121,12 @@ internal static class VisibleToolCatalog
     {
         var meta = d.BuildMetaTools()
             .Where(t => !SoftInstrumentMetaNames.Contains(t.Name)
-                && !GraphQlCollapsedReadNames.Contains(t.Name))
+                && !GraphQlCollapsedReadNames.Contains(t.Name)
+                && IsMetaOrIdeVisibleInSession(t.Name, d.Session))
             .ToList();
         var ide = IdeLanguageTools.BuildBareVerbTools()
-            .Where(t => !GraphQlCollapsedReadNames.Contains(t.Name))
+            .Where(t => !GraphQlCollapsedReadNames.Contains(t.Name)
+                && IsMetaOrIdeVisibleInSession(t.Name, d.Session))
             .ToList();
         var hits = PhaseObjectCatalog.Query(
             d.AllAffordances, d.Session.Phase, d.Session.Object, d.Session.Intent,
@@ -158,6 +160,62 @@ internal static class VisibleToolCatalog
             });
         }
         return meta.Concat(ide).Concat(domainTools).ToList();
+    }
+
+    /// <summary>
+    /// Phase-gate Meta and IDE bare verbs so ListTools stays a focused ~22–35 tool palette
+    /// per (Phase, Object) instead of dumping all 61 Meta+IDE tools in every phase.
+    /// Every tool remains callable via CallTool regardless of phase.
+    /// </summary>
+    public static bool IsMetaOrIdeVisibleInSession(string name, SessionContext s)
+    {
+        var phase = s.Phase;
+        var obj = s.Object;
+
+        return name switch
+        {
+            // Shell plumbing (cdp_shell_run stays always-on in core): only on Process/Session
+            "cdp_shell_close" or "cdp_shell_history" or "cdp_shell_kill" or "cdp_shell_last"
+                or "cdp_shell_rerun" or "cdp_shell_scene" or "cdp_shell_which"
+                => obj is CdpObjectKind.Process or CdpObjectKind.Session || phase == CdpPhase.Handoff,
+
+            // Host / settings / low-level scene inspection: only on Process/Session
+            "cdp_capabilities" or "cdp_cockpit_host" or "cdp_ide_session_scene"
+                or "cdp_mcp" or "cdp_settings"
+                => obj is CdpObjectKind.Process or CdpObjectKind.Session || phase == CdpPhase.Handoff,
+
+            // Package & solution/project scaffolding: only in Plan / Act on Code / Repo
+            "cdp_pkg_add" or "cdp_pkg_fix_vuln" or "cdp_pkg_remove" or "cdp_pkg_update"
+                or "cdp_project_add_to_sln" or "cdp_project_close" or "cdp_project_create"
+                or "cdp_sln_add" or "cdp_sln_create" or "cdp_sln_remove"
+                => phase is CdpPhase.Act or CdpPhase.Plan && obj is CdpObjectKind.Code or CdpObjectKind.Repo,
+
+            // Worktree CSX multi-step plans (cdp_csx_check and cdp_csx_run stay always-on in core)
+            "cdp_csx_run_plan" or "cdp_csx_help" or "cdp_script_scene"
+                => phase is CdpPhase.Act or CdpPhase.Plan,
+            "cdp_csx_promote" or "cdp_csx_discard"
+                => phase is CdpPhase.Act or CdpPhase.Verify or CdpPhase.Review or CdpPhase.Handoff,
+
+            // Visual / UI / Evidence / Test-plan organs
+            "cdp_browser" or "cdp_see" or "cdp_evidence" or "take" or "get_take" or "cdp_test_plan"
+                => phase is CdpPhase.Explore or CdpPhase.Verify or CdpPhase.Review
+                    || obj is CdpObjectKind.Issue or CdpObjectKind.Process,
+
+            // LSP code actions / refactoring: visible whenever working with Code/Repo (not cold Recall/Kb)
+            "code_actions" or "apply_code_action" or "rename_symbol" or "cdp_edit_sniper" or "resolve_project_root"
+                => obj is CdpObjectKind.Code or CdpObjectKind.Repo
+                    || phase is CdpPhase.Explore or CdpPhase.Act or CdpPhase.Review,
+
+            // Low-level editor completions: only in Act on Code
+            "get_completions" or "get_signature_help"
+                => phase == CdpPhase.Act && obj == CdpObjectKind.Code,
+
+            // Core desk & hands (cdp_open, cdp_context, cdp_peek, cdp_graphql, cdp_suggest,
+            // cdp_buffer, cdp_edit_plan, cdp_build, cdp_test, cdp_run, cdp_debug, cdp_deploy,
+            // cdp_csx_check, cdp_csx_run, cdp_shell_run, cdp_man, cdp_tools, cdp_cockpit,
+            // cdp_work, cdp_session, cdp_restore): always visible.
+            _ => true
+        };
     }
 
     static Tool? ResolveSchema(VisibleToolCatalogDeps d, string domain, string underlying) => domain switch

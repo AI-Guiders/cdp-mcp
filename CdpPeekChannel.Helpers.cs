@@ -79,6 +79,11 @@ internal static partial class CdpPeekChannel
             session.SolutionOrProjectPath = open.SolutionOrProjectPath;
             session.TsConfigPath = open.TsConfigPath;
             session.ScmRoot ??= GitSessionDefaults.TryResolveScmRoot(open.Root);
+            if (session.Phase == CdpPhase.Recall && session.Object == CdpObjectKind.Kb)
+            {
+                session.Phase = CdpPhase.Explore;
+                session.Object = CdpObjectKind.Code;
+            }
         }
         catch
         {

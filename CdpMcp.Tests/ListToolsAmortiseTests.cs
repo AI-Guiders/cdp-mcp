@@ -111,4 +111,32 @@ public sealed class ListToolsAmortiseTests : IDisposable
         Assert.True(CdpSlotRegistry.Remove(pid));
         Assert.Empty(CdpSlotRegistry.Fresh());
     }
+
+    [Fact]
+    public void VisibleToolCatalog_phases_meta_and_ide_tools_by_session_phase_and_object()
+    {
+        var cold = new SessionContext { Phase = CdpPhase.Recall, Object = CdpObjectKind.Kb };
+        var exploreCode = new SessionContext { Phase = CdpPhase.Explore, Object = CdpObjectKind.Code };
+        var actCode = new SessionContext { Phase = CdpPhase.Act, Object = CdpObjectKind.Code };
+        var opsProcess = new SessionContext { Phase = CdpPhase.Explore, Object = CdpObjectKind.Process };
+
+        // Core tools are visible in every phase
+        Assert.True(VisibleToolCatalog.IsMetaOrIdeVisibleInSession("cdp_open", cold));
+        Assert.True(VisibleToolCatalog.IsMetaOrIdeVisibleInSession("cdp_peek", cold));
+        Assert.True(VisibleToolCatalog.IsMetaOrIdeVisibleInSession("cdp_buffer", cold));
+
+        // Package/Sln scaffolding only in Act/Plan on Code/Repo
+        Assert.False(VisibleToolCatalog.IsMetaOrIdeVisibleInSession("cdp_pkg_add", cold));
+        Assert.False(VisibleToolCatalog.IsMetaOrIdeVisibleInSession("cdp_pkg_add", exploreCode));
+        Assert.True(VisibleToolCatalog.IsMetaOrIdeVisibleInSession("cdp_pkg_add", actCode));
+
+        // LSP refactoring visible on Code (Explore & Act), hidden on cold Recall/Kb
+        Assert.False(VisibleToolCatalog.IsMetaOrIdeVisibleInSession("rename_symbol", cold));
+        Assert.True(VisibleToolCatalog.IsMetaOrIdeVisibleInSession("rename_symbol", exploreCode));
+        Assert.True(VisibleToolCatalog.IsMetaOrIdeVisibleInSession("rename_symbol", actCode));
+
+        // Shell admin plumbing hidden on Code, visible on Process/Session
+        Assert.False(VisibleToolCatalog.IsMetaOrIdeVisibleInSession("cdp_shell_kill", exploreCode));
+        Assert.True(VisibleToolCatalog.IsMetaOrIdeVisibleInSession("cdp_shell_kill", opsProcess));
+    }
 }

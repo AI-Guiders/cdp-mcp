@@ -86,7 +86,8 @@ internal static class CdpServiceHost
                         ListToolsHandler = (_, ct) =>
                         {
                             ct.ThrowIfCancellationRequested();
-                            return ValueTask.FromResult(new ListToolsResult { Tools = rt.ListTools() });
+                            var tenantKey = CdpTenantHeaders.TryParse(httpContext.Request.Headers);
+                            return ValueTask.FromResult(new ListToolsResult { Tools = rt.ListTools(tenantKey) });
                         },
                         CallToolHandler = async (request, ct) =>
                         {
@@ -174,12 +175,13 @@ internal static class CdpServiceHost
                 });
             }
 
+            var tenantKey = CdpTenantHeaders.TryParse(http.Request.Headers);
             return Results.Json(new
             {
                 capabilitiesRev = rev,
                 // Bridge ListTools needs inputSchema — name/description alone yields empty schemas in Cursor.
                 // outputSchema rides along so code-mode clients can render typed result signatures.
-                tools = rt.ListTools().Select(t => new
+                tools = rt.ListTools(tenantKey).Select(t => new
                 {
                     name = t.Name,
                     description = t.Description,
