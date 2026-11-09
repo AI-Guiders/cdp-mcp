@@ -52,6 +52,10 @@ public sealed class CdpConfigBridgeSection
     public int? DeployPollMs { get; set; }
     public int? DeployGapRetryMs { get; set; }
     public int? ServiceReadyMs { get; set; }
+
+    /// <summary>structured_output = text | both (default both). Plain hosts (ZCode)
+    /// render both blocks and double every payload — text skips the twin.</summary>
+    public string? StructuredOutput { get; set; }
 }
 
 /// <summary>Legacy <c>[service]</c> — superseded by <c>[tower]</c>/<c>[slots]</c>/<c>[bridge]</c> (ADR-0222).</summary>

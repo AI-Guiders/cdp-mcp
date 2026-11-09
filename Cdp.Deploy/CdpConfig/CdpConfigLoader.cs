@@ -38,6 +38,7 @@ public sealed class CdpBridgeRoleConfig
     public string? GatekeeperInstallDir { get; init; }
     public bool AutoStartTower { get; init; }
     public bool AutoStart { get; init; }
+    public string? StructuredOutput { get; init; }
 }
 
 public static class CdpConfigLoader
@@ -120,7 +121,8 @@ public static class CdpConfigLoader
             InstallDir = installDir,
             GatekeeperInstallDir = gatekeeperInstallDir,
             AutoStartTower = ResolveBridgeAutoStartTower(doc, gatekeeperInstallDir),
-            AutoStart = ResolveBridgeAutoStart(doc, installDir)
+            AutoStart = ResolveBridgeAutoStart(doc, installDir),
+            StructuredOutput = doc.Bridge?.StructuredOutput
         };
     }
 

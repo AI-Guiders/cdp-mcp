@@ -12,6 +12,9 @@ namespace CdpMcpBridge;
 internal sealed class CdpBridgeInvokeRouter
 {
     readonly CdpBridgeSettings _settings;
+
+    /// <summary>Resolved [bridge].structured_output (env overrides toml); set once at construction.</summary>
+    internal static string? StructuredMode;
     readonly HttpClient _http;
     readonly CdpBridgeServiceEnsurer _ensurer;
     readonly JsonSerializerOptions _jsonOptions;
@@ -25,6 +28,7 @@ internal sealed class CdpBridgeInvokeRouter
         CdpBridgeTiming? timing = null)
     {
         _settings = settings;
+        StructuredMode = settings.StructuredOutput;
         _http = http;
         _ensurer = ensurer;
         _jsonOptions = jsonOptions;
@@ -349,13 +353,14 @@ internal sealed class CdpBridgeInvokeRouter
     /// </summary>
     static CallToolResult WithStructured(CallToolResult result, string? body)
     {
-        // CDP_STRUCTURED=text — plain clients (ZCode) read the text block only;
-        // the structured twin doubles the payload there. Code-Mode hosts keep
-        // the default both (strict SDK validators read StructuredContent).
-        if (string.Equals(
-                Environment.GetEnvironmentVariable("CDP_STRUCTURED"),
-                "text",
-                StringComparison.OrdinalIgnoreCase))
+        // CDP_STRUCTURED env overrides, then [bridge].structured_output in cdp-mcp.toml.
+        // text — plain clients (ZCode) read the text block only; both (default) — Code-Mode
+        // hosts, whose strict SDK validators read StructuredContent.
+        var mode =
+            Environment.GetEnvironmentVariable("CDP_STRUCTURED")
+            ?? StructuredMode;
+
+        if (string.Equals(mode, "text", StringComparison.OrdinalIgnoreCase))
         {
             return result;
         }

@@ -20,6 +20,8 @@ internal sealed class CdpBridgeSettings
     public bool AutoStartTower { get; init; }
     /// <summary>When true and <see cref="InstallDir"/> set, probe /healthz and spawn sidecar on connection refused.</summary>
     public bool AutoStart { get; init; }
+    /// <summary>structured_output = text | both (default both) — [bridge] in cdp-mcp.toml.</summary>
+    public string? StructuredOutput { get; init; }
 }
 
 internal sealed class CdpBridgeConfigLoadResult
@@ -92,7 +94,8 @@ internal static class CdpBridgeConfigLoader
                 GatekeeperInstallDir = gatekeeperInstallDir,
                 ServiceConfigPath = configPath,
                 AutoStartTower = bridge.AutoStartTower,
-                AutoStart = bridge.AutoStart
+                AutoStart = bridge.AutoStart,
+                StructuredOutput = bridge.StructuredOutput
             },
             ConfigPath = configPath
         };
