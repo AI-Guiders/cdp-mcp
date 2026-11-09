@@ -349,6 +349,17 @@ internal sealed class CdpBridgeInvokeRouter
     /// </summary>
     static CallToolResult WithStructured(CallToolResult result, string? body)
     {
+        // CDP_STRUCTURED=text — plain clients (ZCode) read the text block only;
+        // the structured twin doubles the payload there. Code-Mode hosts keep
+        // the default both (strict SDK validators read StructuredContent).
+        if (string.Equals(
+                Environment.GetEnvironmentVariable("CDP_STRUCTURED"),
+                "text",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return result;
+        }
+
         if (result.IsError != true && !string.IsNullOrWhiteSpace(body))
         {
             try
