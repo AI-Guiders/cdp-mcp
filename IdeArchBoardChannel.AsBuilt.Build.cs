@@ -20,13 +20,24 @@ internal static partial class IdeArchBoardChannel
         var surf = AddSeedRole(doc, "surf-core", "surface", "Surface snapshot / mounts", root, ["Cockpit/Surface/UiLayoutSnapshot.cs", "Cockpit/Surface/MainWindowInstrumentMountRegistry.cs"]);
         // DAL: Cockpit/DataAcquisition locus (ADR 0102); toolchain ensure hangs here (ADR 0198)
         var dal = AddSeedRole(doc, "dal-core", "dal", "DataAcquisition (ADR 0102)", root, ["Cockpit/DataAcquisition/ToolchainPathProbe.cs", "IdeToolchainChannel.cs"]) ?? AddGapRole(doc, "dal-gap", "dal", "missing locus — ADR 0102; toolchain ensure hangs here (ADR 0198)");
-        // transport → CCU → channel → CDS → compositor → surface
-        Wire(doc, transport, ccu, "feeds");
-        Wire(doc, dal, ccu, "feeds");
-        Wire(doc, ccu, ch, "feeds");
-        Wire(doc, ch, cds, "feeds");
-        Wire(doc, cds, comp, "projects");
-        Wire(doc, comp, surf, "projects");
+        var rolesById = new Dictionary<string, RoleSlot?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["transport-ingest"] = transport,
+            ["dal-core"] = dal,
+            ["ccu-core"] = ccu,
+            ["ch-core"] = ch,
+            ["cds-core"] = cds,
+            ["comp-core"] = comp,
+            ["surf-core"] = surf,
+        };
+        foreach (var (fromId, toId, edgeKind) in ArchBoard.canonicalChain)
+        {
+            if (rolesById.GetValueOrDefault(fromId) is { } fromSlot
+                && rolesById.GetValueOrDefault(toId) is { } toSlot)
+            {
+                Wire(doc, fromSlot, toSlot, edgeKind);
+            }
+        }
         // DataBus: domain events wire into channel/projections (orthogonal to CDS routing)
         Wire(doc, databus, ch, "wires");
         // Instruments mount onto surface slots

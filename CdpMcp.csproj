@@ -94,6 +94,7 @@
     <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Channels" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Composition" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="AIGuiders.Platform.Execution.Cockpit.Cds" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
+    <PackageReference Include="AIGuiders.Platform.Modeling.Cockpit.Channels" Version="0.1.0" Condition="'$(UseLocalGuidersFSharp)' != 'true'" />
     <PackageReference Include="AIGuiders.Platform.Execution.CommandPlane" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="AIGuiders.Platform.Execution.CommandPlane.ArgSuggestions" Version="$(GuidersPlatformVersion)" Condition="'$(UseLocalGuidersPlatform)' != 'true'" />
     <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
@@ -124,6 +125,7 @@
     <DefineConstants>$(DefineConstants);CDP_FEDERATION_IDE_SESSION</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition="'$(UseLocalGuidersFSharp)' == 'true'">
+    <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Cockpit.Channels\AIGuiders.Platform.Modeling.Cockpit.Channels.fsproj" />
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language.Adapters.Fcs\AIGuiders.Platform.Modeling.Language.Adapters.Fcs.fsproj" />
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language.Adapters.Gdl\AIGuiders.Platform.Modeling.Language.Adapters.Gdl.fsproj" />
     <ProjectReference Include="$(GuidersFSharpRoot)\src\AIGuiders.Platform.Modeling.Language.Adapters.Sql\AIGuiders.Platform.Modeling.Language.Adapters.Sql.fsproj" />

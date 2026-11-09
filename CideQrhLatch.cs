@@ -53,10 +53,11 @@ internal static class CideQrhLatch
                     ?.Title;
             }
 
-            var related = snap.Suggest.RelatedIds
-                .Where(static id => !string.IsNullOrWhiteSpace(id))
-                .Where(id => !string.Equals(id, hotId, StringComparison.OrdinalIgnoreCase))
-                .Take(4)
+            var relatedIds = Qrh.relatedMinusHot(new QrhSuggest(
+                hotId ?? "",
+                Microsoft.FSharp.Collections.ListModule.OfSeq(snap.Suggest.RelatedIds),
+                snap.Suggest.Pulse));
+            var related = relatedIds
                 .Select(id =>
                 {
                     var page = IdeQrhChannel.Builtins()
