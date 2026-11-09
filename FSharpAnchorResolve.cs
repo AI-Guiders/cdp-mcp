@@ -7,7 +7,8 @@ namespace CdpMcp;
 /// <summary>
 /// F# anchor resolver — symbol spans via the LRC FCS backend (GUIDERS-ADR-0021 port).
 /// Axes: M = symbol name (module/type/let member; case-insensitive, first match in document order);
-/// L = line_literal handled by the caller; T = text needle narrowed inside the resolved locus.
+/// L = line corridor (line-only handled by the caller; L+T narrowed here); T = text needle
+/// narrowed inside the resolved locus (including the whole-file one).
 /// </summary>
 internal static class FSharpAnchorResolve
 {
@@ -23,11 +24,39 @@ internal static class FSharpAnchorResolve
 
         if (string.IsNullOrWhiteSpace(span.MemberKey))
         {
-            // No member axis: whole-file locus.
+            // No member axis: whole-file locus — narrowed by L (line corridor) and
+            // T (text needle) when present. Neither axis may be silently dropped:
+            // a dropped T with place=replace once overwrote an entire file.
             var allLines = text.Replace("\r\n", "\n").Split('\n');
             var lastLen = allLines.Length > 0 ? allLines[^1].Length : 0;
             range = new BracketSyntaxResolve.TextRange(1, 1, allLines.Length, Math.Max(1, lastLen + 1));
             detail = "fsharp:file";
+
+            if (span.LineStart is { } lineStart)
+            {
+                var lineEnd = span.LineEnd ?? lineStart;
+                if (lineStart < 1 || lineEnd < lineStart || lineEnd > allLines.Length)
+                {
+                    detail = "line_out_of_range:" + lineStart;
+                    return false;
+                }
+
+                range = new BracketSyntaxResolve.TextRange(
+                    lineStart, 1, lineEnd, Math.Max(1, allLines[lineEnd - 1].Length + 1));
+                detail = "fsharp:lines";
+            }
+
+            if (!string.IsNullOrWhiteSpace(span.TextNeedle))
+            {
+                if (!TryNarrowToNeedle(text, range, span.TextNeedle, out range, out var needleDetail))
+                {
+                    detail = needleDetail;
+                    return false;
+                }
+
+                detail += "+T";
+            }
+
             return true;
         }
 

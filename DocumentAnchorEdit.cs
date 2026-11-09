@@ -61,6 +61,16 @@ internal static class DocumentAnchorEdit
             if (!FSharpAnchorResolve.TryResolve(buf.Path, buf.Text, span, out var fr, out var fd))
                 throw new ArgumentException($"Anchor resolve failed ({fd}): {wire}");
 
+            // A whole-file locus with place=replace is almost always an aim miss,
+            // not intent — it silently overwrote an entire file once (2026-11-09).
+            var fsTotalLines = buf.Text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n').Length;
+            if (place is "replace" && fr.LineStart == 1 && fr.LineEnd >= fsTotalLines)
+            {
+                throw new ArgumentException(
+                    $"Anchor resolved to the whole-file locus ({fd}) — place=replace would overwrite the entire file. " +
+                    "Aim with Member:/Text:/Line: axes or use edit_op=replace (old_string/new_string). wire: " + wire);
+            }
+
             if (place is "into" or "end")
             {
                 // F# interior = braces (record / object-expression). The old whole-span after-end

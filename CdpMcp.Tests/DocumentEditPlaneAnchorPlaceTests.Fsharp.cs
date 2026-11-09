@@ -105,4 +105,50 @@ public sealed partial class DocumentEditPlaneAnchorPlaceTests
         Assert.Equal(end.ColumnStart, end.ColumnEnd);
         Assert.True(end.LineStart >= start.LineStart, $"start={start.LineStart} end={end.LineStart}");
     }
+
+    [Fact]
+    public async Task Place_replace_with_line_and_text_narrows_to_needle_line()
+    {
+        // Regression 2026-11-09: a member-less F# anchor used to fall back to the
+        // whole-file locus, silently dropping the T axis — place=replace overwrote
+        // the entire file. L+T must narrow to the needle span instead.
+        await using var fx = await AnchorFixture.CreateAsync(FsharpRecordBody, fileName: "Fixture.fs");
+        var json = await fx.EditAnchorAsync(
+            place: "replace",
+            text: "Name: string?",
+            anchor: "[Kind:CodeEdit; File:Fixture.fs; Line:5; Text:Name: string]");
+
+        Assert.Contains("fsharp:lines+T", json, StringComparison.Ordinal);
+        Assert.Contains("Name: string?", fx.Text, StringComparison.Ordinal);
+        Assert.Contains("Kind: string", fx.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Place_replace_with_text_only_narrows_to_needle_line()
+    {
+        await using var fx = await AnchorFixture.CreateAsync(FsharpRecordBody, fileName: "Fixture.fs");
+        var json = await fx.EditAnchorAsync(
+            place: "replace",
+            text: "Kind: int",
+            anchor: "[Kind:CodeEdit; File:Fixture.fs; Text:Kind: string]");
+
+        Assert.Contains("fsharp:file+T", json, StringComparison.Ordinal);
+        Assert.Contains("Kind: int", fx.Text, StringComparison.Ordinal);
+        Assert.Contains("Name: string", fx.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Place_replace_on_whole_file_locus_refuses_instead_of_nuking()
+    {
+        await using var fx = await AnchorFixture.CreateAsync(FsharpRecordBody, fileName: "Fixture.fs");
+        var before = fx.Text;
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            fx.EditAnchorAsync(
+                place: "replace",
+                text: "nuked",
+                anchor: "[Kind:CodeEdit; File:Fixture.fs; Type:FilterDefinition]"));
+
+        Assert.Contains("whole-file locus", ex.Message, StringComparison.Ordinal);
+        Assert.Equal(before, fx.Text);
+    }
 }
