@@ -48,6 +48,41 @@ public static class CdpConfigLoader
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
 
+    /// <summary>Config problems an agent should see at tool-call time, not hunt for in
+    /// stderr nobody reads (missing explicit --config, deprecated sections, unknown keys).</summary>
+    static readonly object NoticeLock = new();
+    static readonly List<string> Notices = [];
+    static int _noticeSurfaced;
+
+    /// <summary>Startup config warnings; stable order, empty when the operator file is clean.</summary>
+    public static IReadOnlyList<string> StartupNotices
+    {
+        get { lock (NoticeLock) return [.. Notices]; }
+    }
+
+    static void RecordNotice(string message)
+    {
+        lock (NoticeLock)
+        {
+            if (!Notices.Contains(message))
+                Notices.Add(message);
+        }
+        Console.Error.WriteLine($"WARNING: {message}");
+    }
+
+    /// <summary>Appends the startup config notice to the FIRST tool response of the process
+    /// (once): a missing/degraded operator file surfaces at call time instead of silently
+    /// degrading to embedded defaults. Later responses carry no suffix.</summary>
+    public static string? TakeStartupNoticeSuffix()
+    {
+        if (Interlocked.Exchange(ref _noticeSurfaced, 1) == 1)
+            return null;
+        var notices = StartupNotices;
+        return notices.Count == 0
+            ? null
+            : "\n\n[cdp config] " + string.Join(" | ", notices);
+    }
+
     public static CdpConfigDocument Load(string? path) =>
         Parse(ResolveMergedToml(path));
 
@@ -58,12 +93,20 @@ public static class CdpConfigLoader
         return doc;
     }
 
-    /// <summary>Embedded defaults merged with optional operator overlay file.</summary>
+    /// <summary>Embedded defaults merged with optional operator overlay file. A declared
+    /// operator file that is missing on disk records a notice — it never silently
+    /// degrades to defaults.</summary>
     public static string ResolveMergedToml(string? path)
     {
         var defaults = CdpEmbeddedConfig.LoadDefaultsToml();
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        if (string.IsNullOrWhiteSpace(path))
             return defaults;
+
+        if (!File.Exists(path))
+        {
+            RecordNotice($"config not found: {path} — running on embedded defaults");
+            return defaults;
+        }
 
         var overlay = File.ReadAllText(path);
         EmitValidation(overlay, path);
@@ -75,7 +118,7 @@ public static class CdpConfigLoader
         var result = CdpConfigValidator.Validate(toml, CdpConfigValidator.IsStrictMode);
         var suffix = path is null ? "" : $" (config: {path})";
         foreach (var w in result.Warnings)
-            Console.Error.WriteLine($"WARNING: {w}{suffix}");
+            RecordNotice(w + suffix);
         if (!result.Ok)
             throw new InvalidOperationException(string.Join("; ", result.Errors));
     }

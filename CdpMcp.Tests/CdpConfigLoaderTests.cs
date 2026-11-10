@@ -316,4 +316,34 @@ public sealed class CdpConfigLoaderTests
         Assert.NotNull(doc.Bridge);
         Assert.Equal("http://127.0.0.1:8771", doc.Bridge!.BaseUrl);
     }
+
+    [Fact]
+    public void Missing_explicit_config_records_notice_and_surfaces_once()
+    {
+        var missing = Path.Combine(Path.GetTempPath(), "cdp-mcp", "definitely-absent", "cdp-mcp.toml");
+
+        // the declared operator file is absent: defaults still load, but the bridge must
+        // say so at call time instead of degrading silently
+        var toml = CdpConfigLoader.ResolveMergedToml(missing);
+        Assert.Contains("default_phase", toml); // embedded defaults
+
+        var notice = CdpConfigLoader.TakeStartupNoticeSuffix();
+        Assert.NotNull(notice);
+        Assert.Contains("config not found", notice);
+        Assert.Contains(missing.Replace('/', Path.DirectorySeparatorChar), notice);
+
+        // once-per-process: the suffix never repeats on later calls
+        Assert.Null(CdpConfigLoader.TakeStartupNoticeSuffix());
+    }
+
+    [Fact]
+    public void Legacy_service_section_records_a_notice()
+    {
+        var before = CdpConfigLoader.StartupNotices.Count;
+        CdpConfigLoader.EmitValidation("[service]\nbind = \"127.0.0.1\"\nport = 8771");
+
+        var notices = CdpConfigLoader.StartupNotices;
+        Assert.True(notices.Count > before);
+        Assert.Contains(notices, n => n.Contains("[service] is deprecated"));
+    }
 }

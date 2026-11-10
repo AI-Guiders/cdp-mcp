@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Collections.Frozen;
 using System.Text.Json;
@@ -15,6 +15,14 @@ internal sealed class CdpBridgeInvokeRouter
 
     /// <summary>Resolved [bridge].structured_output (env overrides toml); set once at construction.</summary>
     internal static string? StructuredMode;
+
+    /// <summary>True when tool results must not carry structuredContent (and ListTools
+    /// must not declare outputSchema — strict validators reject schema-without-content).</summary>
+    internal static bool StructuredTextMode =>
+        string.Equals(
+            Environment.GetEnvironmentVariable("CDP_STRUCTURED") ?? StructuredMode,
+            "text",
+            StringComparison.OrdinalIgnoreCase);
     readonly HttpClient _http;
     readonly CdpBridgeServiceEnsurer _ensurer;
     readonly JsonSerializerOptions _jsonOptions;
@@ -46,6 +54,21 @@ internal sealed class CdpBridgeInvokeRouter
     }
 
     internal async Task<CallToolResult> InvokeAsync(
+        string toolName,
+        IReadOnlyDictionary<string, JsonElement> args,
+        CancellationToken cancellationToken)
+    {
+        var result = await InvokeCoreAsync(toolName, args, cancellationToken).ConfigureAwait(false);
+        // Startup config problems (missing operator file, deprecated sections) surface on
+        // the FIRST tool response instead of degrading silently.
+        var notice = Cdp.Config.CdpConfigLoader.TakeStartupNoticeSuffix();
+        if (notice is null || result.Content is not [TextContentBlock first, ..])
+            return result;
+        first.Text += notice;
+        return result;
+    }
+
+    async Task<CallToolResult> InvokeCoreAsync(
         string toolName,
         IReadOnlyDictionary<string, JsonElement> args,
         CancellationToken cancellationToken)
@@ -356,11 +379,7 @@ internal sealed class CdpBridgeInvokeRouter
         // CDP_STRUCTURED env overrides, then [bridge].structured_output in cdp-mcp.toml.
         // text — plain clients (ZCode) read the text block only; both (default) — Code-Mode
         // hosts, whose strict SDK validators read StructuredContent.
-        var mode =
-            Environment.GetEnvironmentVariable("CDP_STRUCTURED")
-            ?? StructuredMode;
-
-        if (string.Equals(mode, "text", StringComparison.OrdinalIgnoreCase))
+        if (StructuredTextMode)
         {
             return result;
         }
