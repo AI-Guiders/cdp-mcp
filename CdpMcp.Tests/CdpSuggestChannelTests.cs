@@ -74,4 +74,30 @@ public sealed class CdpSuggestChannelTests
         var tool = MetaToolCatalog.Build().Single(t => t.Name == "cdp_suggest");
         Assert.Contains("ADR-0229", tool.Description, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void Choices_response_carries_budget_fields()
+    {
+        // context budget (CDP-ADR-0229): the menu must report total vs returned and
+        // whether the cap clipped it — the agent can always tell a full answer from a page
+        var root = Parse(Handle(Args("""{ "op": "choices", "step": "pick_kind" }""")));
+        Assert.True(root.GetProperty("ok").GetBoolean());
+        Assert.Equal(root.GetProperty("count").GetInt32(), root.GetProperty("total").GetInt32());
+        Assert.False(root.GetProperty("truncated").GetBoolean());
+    }
+
+    [Fact]
+    public void Choices_narrow_required_when_unfiltered_catalog_exceeds_threshold()
+    {
+        // pick_member over a real workspace catalog: without partial= and with more
+        // candidates than NarrowThreshold the channel refuses instead of dumping
+        var session = new SessionContext();
+        typeof(SessionContext).GetProperty(nameof(SessionContext.SolutionOrProjectPath))!
+            .SetValue(session, "D:/Experiments/PersonalCursorFolder/open/dash-spec/DashSpec.slnx");
+
+        var root = Parse(Handle(Args("""{ "op": "choices", "verb": "code", "step": "pick_member" }"""), session));
+        Assert.False(root.GetProperty("ok").GetBoolean());
+        Assert.Equal("narrow_required", root.GetProperty("error").GetString());
+        Assert.True(root.GetProperty("total").GetInt32() > CdpSuggestChannel.NarrowThreshold);
+    }
 }

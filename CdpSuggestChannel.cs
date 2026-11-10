@@ -23,6 +23,12 @@ internal static class CdpSuggestChannel
     public const string ToolName = "cdp_suggest";
     public const string Schema = "cdp_suggest/v0";
 
+    /// <summary>Context budget (CDP-ADR-0229: the menu exists to STOP token spirals —
+    /// it must not become one). More than MaxChoices matches → cap + truncated:true;
+    /// an unfiltered catalog bigger than NarrowThreshold refuses instead of dumping.</summary>
+    internal const int MaxChoices = 30;
+    internal const int NarrowThreshold = 50;
+
     static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     static readonly CommandCatalogIndex AttachCatalog =
         CommandCatalogIndex.FromDescriptors(FederationAttachCatalog.AllDescriptors());
@@ -96,7 +102,37 @@ internal static class CdpSuggestChannel
             workspace);
 
         var raw = broker.GetSuggestions(request);
-        var choices = raw.Select((choice, index) => MapChoice(index + 1, choice)).ToArray();
+
+        // path-aware picking: pick_member/pick_file scoped to the given file
+        // (the broker catalogs the whole workspace; the file arg narrows it)
+        if (path is { Length: > 0 })
+        {
+            var absolute = ResolveAgainstWorkspace(workspace, path);
+            raw = raw
+                .Where(choice =>
+                {
+                    var label = choice.LabelOrNull() ?? "";
+                    return label.Contains(path, StringComparison.OrdinalIgnoreCase)
+                        || label.Contains(absolute, StringComparison.OrdinalIgnoreCase);
+                })
+                .ToArray();
+        }
+
+        // budget gate: an unfiltered catalog refuses instead of flooding context
+        if (raw.Count > NarrowThreshold && partial.Length == 0)
+        {
+            return Fail(
+                "narrow_required",
+                $"{raw.Count} candidates — pass partial= to narrow (e.g. partial=Card), or path= to scope to a file; " +
+                "a full dump would burn the context the menu exists to save (CDP-ADR-0229).",
+                raw.Count);
+        }
+
+        var truncated = raw.Count > MaxChoices;
+        var choices = raw
+            .Take(MaxChoices)
+            .Select((choice, index) => MapChoice(workspace, index + 1, choice))
+            .ToArray();
 
         return new
         {
@@ -110,20 +146,77 @@ internal static class CdpSuggestChannel
             path,
             workspace,
             count = choices.Length,
+            total = raw.Count,
+            truncated,
             choices,
             hint = choices.Length > 0
-                ? "Reply pick=n or value=; re-call with verb/step/path/partial each turn — no server wizard state"
+                ? (truncated
+                    ? $"Reply pick=n or value=; showing top {MaxChoices} of {raw.Count} — narrow with partial= to see the rest"
+                    : "Reply pick=n or value=; re-call with verb/step/path/partial each turn — no server wizard state")
                 : "No matches — widen partial= or cdp_open workspace for session-scoped pickers"
         };
     }
 
-    static object MapChoice(int n, CommandPickerChoice choice) => new
+    static string ResolveAgainstWorkspace(string? workspace, string path)
     {
-        n,
-        value = choice.Value,
-        label = choice.LabelOrNull(),
-        hint = choice.HintOrNull()
-    };
+        if (Path.IsPathRooted(path) || workspace is null || workspace.Length == 0)
+        {
+            return path;
+        }
+
+        try
+        {
+            return Path.GetFullPath(Path.Combine(workspace, path));
+        }
+        catch
+        {
+            return path;
+        }
+    }
+
+    static object MapChoice(string? workspace, int n, CommandPickerChoice choice)
+    {
+        // compact labels: candidate labels carry the full absolute path
+        // («Value — D:/ws/src/…») — a known workspace makes the relative path enough.
+        // The workspace anchor may be the .slnx FILE (labels lead from its directory),
+        // and slash direction varies — try both roots, both separators.
+        var label = choice.LabelOrNull();
+        if (label is { Length: > 0 } && workspace is { Length: > 0 })
+        {
+            var roots = new List<string> { workspace };
+            try
+            {
+                var dir = Path.GetDirectoryName(workspace);
+                if (dir is { Length: > 0 })
+                {
+                    roots.Add(dir);
+                }
+            }
+            catch
+            {
+                // not a rooted workspace path — nothing to strip
+            }
+
+            foreach (var root in roots)
+            {
+                var normalized = root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                // slash direction varies between the session anchor and broker labels
+                foreach (var variant in new[] { normalized.Replace('\\', '/'), normalized.Replace('/', '\\') })
+                {
+                    label = label.Replace(variant + "/", "", StringComparison.OrdinalIgnoreCase)
+                                 .Replace(variant + "\\", "", StringComparison.OrdinalIgnoreCase);
+                }
+            }
+        }
+
+        return new
+        {
+            n,
+            value = choice.Value,
+            label,
+            hint = choice.HintOrNull()
+        };
+    }
 
     static bool TryResolveSuggestion(
         IReadOnlyDictionary<string, JsonElement> args,
@@ -254,5 +347,14 @@ internal static class CdpSuggestChannel
         ok = false,
         error = code,
         why
+    };
+
+    static object Fail(string code, string why, int total) => new
+    {
+        schema = Schema,
+        ok = false,
+        error = code,
+        why,
+        total
     };
 }
