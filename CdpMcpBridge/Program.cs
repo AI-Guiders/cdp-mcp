@@ -1,4 +1,4 @@
-using System.Collections.Frozen;
+﻿using System.Collections.Frozen;
 using System.Net.Http.Json;
 using System.Text.Json;
 using CdpMcpBridge;
@@ -89,9 +89,13 @@ var options = new McpServerOptions
                                 // Declared schema wins; tools without one get the honest
                                 // envelope (CdpService bodies are JSON objects) so the
                                 // catalog never shows an opaque Promise<unknown>.
-                                OutputSchema = t.OutputSchema is { ValueKind: not JsonValueKind.Undefined and not JsonValueKind.Null }
-                                    ? t.OutputSchema
-                                    : JsonSerializer.SerializeToElement(new { type = "object" })
+                                // text-mode: no declared schema — the result carries
+                                // no structuredContent, strict validators would reject it.
+                                OutputSchema = CdpBridgeInvokeRouter.StructuredTextMode
+                                    ? null
+                                    : t.OutputSchema is { ValueKind: not JsonValueKind.Undefined and not JsonValueKind.Null }
+                                        ? t.OutputSchema
+                                        : JsonSerializer.SerializeToElement(new { type = "object" })
                             })
                             .ToList();
                         if (rev > 0)
