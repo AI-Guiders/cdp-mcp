@@ -1,0 +1,15 @@
+{
+  "name": "ai-guiders-cdp",
+  "description": "AI-Guiders CDP IDE Cockpit & Execution Engine.",
+  "plugins": [
+    {
+      "name": "ai-guiders-cdp",
+      "version": "1.0.0",
+      "category": "development",
+      "description": "CDP IDE execution engine and cockpit skills (anchored editing, Roslyn/FCS intelligence, structured build/test, and DAP debugging).",
+      "source": ".",
+      "skills": "skills",
+      "tags": ["cdp", "ide", "roslyn", "fsharp", "debugging"]
+    }
+  ]
+}

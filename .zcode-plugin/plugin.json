@@ -1,0 +1,26 @@
+{
+  "name": "ai-guiders-cdp",
+  "version": "1.0.0",
+  "description": "CDP IDE execution engine and cockpit skills (anchored editing, Roslyn/FCS intelligence, structured build/test, and DAP debugging) for AI-Guiders.",
+  "author": {
+    "name": "AI-Guiders"
+  },
+  "license": "MIT",
+  "skills": "skills",
+  "mcpServers": {
+    "cdp": {
+      "type": "stdio",
+      "command": "D:\\cdp-mcp\\CdpMcpBridge.exe",
+      "args": [
+        "--config",
+        "D:/cdp-mcp/cdp-mcp.toml"
+      ],
+      "env": {
+        "CDP_MCP_TOOLSET": "0.4.0-session",
+        "CDP_RG": "c:\\Program Files\\cursor\\resources\\app\\node_modules\\@vscode\\ripgrep\\bin\\rg.exe",
+        "CDP_STRUCTURED": "text"
+      },
+      "timeoutMs": 300000
+    }
+  }
+}
